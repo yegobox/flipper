@@ -101,11 +101,9 @@ mixin VariantMixin implements VariantInterface {
       } else if (variantId != null) {
         conditions.add(Where('id').isExactly(variantId));
       } else if (name != null && name.isNotEmpty) {
-        if (scanMode) {
-          conditions.add(Where('bcd').isExactly(name));
-        } else {
-          conditions.add(Where('name').contains(name));
-        }
+        // Search both name (partial match) and barcode (exact match)
+        conditions.add(Or('name').contains(name));
+        conditions.add(Or('bcd').isExactly(name));
       } else if (stockSynchronized != null) {
         conditions.add(Where('stockSynchronized').isExactly(stockSynchronized));
       } else if (purchaseId != null) {

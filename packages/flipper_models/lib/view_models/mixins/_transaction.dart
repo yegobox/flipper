@@ -57,11 +57,7 @@ mixin TransactionMixinOld {
           key: "bhfId",
           value: ebm.bhfId,
         );
-
         // Collect payment and complete transaction details before generating receipt
-        await _completeTransactionAfterTaxValidation(transaction,
-            customerName: customerNameController.text,
-            countryCode: countryCodeController.text);
 
         response = await handleReceiptGeneration(
           formKey: formKey,
@@ -71,6 +67,10 @@ mixin TransactionMixinOld {
         );
         if (response.resultCd != "000") {
           throw Exception(response.resultMsg);
+        } else {
+          await _completeTransactionAfterTaxValidation(transaction,
+              customerName: customerNameController.text,
+              countryCode: countryCodeController.text);
         }
       } else {
         // For non-tax enabled scenarios, complete the transaction here

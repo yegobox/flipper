@@ -645,18 +645,21 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
             },
           );
           throw exception;
+        } else {
+          if (receiptType != 'NR' &&
+              receiptType != 'CR' &&
+              receiptType != 'TR') {
+            final ebmSyncService = TurboTaxService(repository);
+            // record stock Out sarTyCd = StockInOutType.sale
+            await ebmSyncService.syncTransactionWithEbm(
+              instance: transaction,
+              serverUrl: (await ProxyService.box.getServerUrl())!,
+              sarTyCd: sarTyCd,
+              invoiceNumber: counter.invcNo!,
+            );
+          }
+          return data;
         }
-        if (receiptType != 'NR' && receiptType != 'CR' && receiptType != 'TR') {
-          final ebmSyncService = TurboTaxService(repository);
-          // record stock Out sarTyCd = StockInOutType.sale
-          await ebmSyncService.syncTransactionWithEbm(
-            instance: transaction,
-            serverUrl: (await ProxyService.box.getServerUrl())!,
-            sarTyCd: sarTyCd,
-            invoiceNumber: counter.invcNo!,
-          );
-        }
-        return data;
       } else {
         throw Exception(
             "Failed to send request. Status Code: ${response.statusCode}");
@@ -1080,7 +1083,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       /// rra api does not accept real invoice number when we are dealing with CS receipt.
       json['orgInvcNo'] = 0;
     }
-    if (customer != null) {
+    if (transaction.customerId != null) {
       json = addFieldIfCondition(
           customer: customer,
           json: json,
@@ -1100,13 +1103,19 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
   Map<String, dynamic> addFieldIfCondition(
       {required Map<String, dynamic> json,
       required ITransaction transaction,
-      required Customer customer,
+      Customer? customer,
       String? purchaseCode}) {
     if (transaction.customerId != null && purchaseCode != null) {
-      json[custTinKey] = customer.custTin;
-      json[custNmKey] = customer.custNm;
+      json[custTinKey] = transaction.customerTin ??
+          customer?.custTin ??
+          ProxyService.box.customerTin();
+      json[custNmKey] = transaction.customerName ??
+          customer?.custNm ??
+          ProxyService.box.customerName() ??
+          "";
       json[prcOrdCd] = purchaseCode;
-      json['receipt'][custTinKey] = customer.custTin;
+      json['receipt'][custTinKey] =
+          transaction.customerTin ?? customer?.custTin;
     }
     return json;
   }

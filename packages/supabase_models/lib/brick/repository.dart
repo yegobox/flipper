@@ -476,8 +476,6 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       throw StateError('Repository is disposed');
     }
     try {
-      instance = await super.upsert(instance, policy: policy, query: query);
-
       try {
         // Notify Ditto for all models
         unawaited(
@@ -492,6 +490,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
         if (instance is Customer) {
           EventBus().fire(CustomerUpserted(instance));
         }
+        instance = await super.upsert(instance, policy: policy, query: query);
       } catch (e) {
         _logger.warning('Error notifying Ditto of local change: $e');
       }

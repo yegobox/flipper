@@ -108,6 +108,15 @@ class SearchFieldState extends ConsumerState<SearchField>
 
                 processDebouncedValue(value, model, widget.controller)
                     .then((_) {
+                  // Add a small delay to ensure all operations complete
+                  return Future.delayed(const Duration(milliseconds: 300));
+                }).then((_) {
+                  if (mounted) {
+                    setState(() {
+                      isSearching = false;
+                    });
+                  }
+                }).catchError((error) {
                   if (mounted) {
                     setState(() {
                       isSearching = false;
