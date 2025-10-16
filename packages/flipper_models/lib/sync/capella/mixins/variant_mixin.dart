@@ -2,11 +2,11 @@ import 'dart:async';
 
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/sync/interfaces/variant_interface.dart';
-import 'package:supabase_models/brick/repository.dart';
+import 'package:flipper_web/services/ditto_service.dart';
 import 'package:talker/talker.dart';
 
 mixin CapellaVariantMixin implements VariantInterface {
-  Repository get repository;
+  DittoService get dittoService => DittoService.instance;
   Talker get talker;
 
   @override
@@ -29,7 +29,69 @@ mixin CapellaVariantMixin implements VariantInterface {
     bool fetchRemote = false,
     List<String>? taxTyCds,
   }) async {
-    throw UnimplementedError('variants needs to be implemented for Capella');
+    try {
+      if (dittoService.dittoInstance == null) {
+        talker.error('Ditto not initialized');
+        return [];
+      }
+
+      String query = 'SELECT * FROM variants WHERE branchId = :branchId';
+      final arguments = <String, dynamic>{'branchId': branchId};
+
+      if (taxTyCds != null && taxTyCds.isNotEmpty) {
+        final taxConditions = taxTyCds
+            .asMap()
+            .entries
+            .map((entry) => 'taxTyCd = :tax${entry.key}')
+            .join(' OR ');
+        query += ' AND ($taxConditions)';
+        for (int i = 0; i < taxTyCds.length; i++) {
+          arguments['tax$i'] = taxTyCds[i];
+        }
+      }
+
+      if (name != null && name.isNotEmpty) {
+        if (scanMode) {
+          query += ' AND bcd = :name';
+        } else {
+          query += ' AND name LIKE :name';
+          arguments['name'] = '%$name%';
+        }
+        if (scanMode) arguments['name'] = name;
+      }
+
+      if (productId != null) {
+        query += ' AND productId = :productId';
+        arguments['productId'] = productId;
+      }
+
+      talker.info('Executing Ditto query: $query with args: $arguments');
+
+      // Try direct execute first
+      final result = await dittoService.dittoInstance!.store.execute(
+        query,
+        arguments: arguments,
+      );
+
+      talker.info('Direct execute returned ${result.items.length} items');
+
+      var items = result.items;
+
+      if (page != null && itemsPerPage != null) {
+        final offset = page * itemsPerPage;
+        items = items.skip(offset).take(itemsPerPage).toList();
+      }
+
+      final variants = items
+          .map((doc) => Variant.fromJson(Map<String, dynamic>.from(doc.value)))
+          .toList();
+
+      talker.info('Returning ${variants.length} variants');
+      return variants;
+    } catch (e) {
+      talker.error('Error fetching variants from Ditto: $e');
+      return [];
+    }
   }
 
   @override
@@ -45,7 +107,46 @@ mixin CapellaVariantMixin implements VariantInterface {
     String? itemCd,
     String? productId,
   }) async {
-    throw UnimplementedError('getVariant needs to be implemented for Capella');
+    try {
+      if (dittoService.dittoInstance == null) {
+        talker.error('Ditto not initialized');
+        return null;
+      }
+
+      String query = 'SELECT * FROM variants WHERE ';
+      final arguments = <String, dynamic>{};
+
+      if (id != null) {
+        query += '_id = :id';
+        arguments['id'] = id;
+      } else if (bcd != null) {
+        query += 'bcd = :bcd';
+        arguments['bcd'] = bcd;
+      } else if (name != null) {
+        query += 'name = :name';
+        arguments['name'] = name;
+      } else if (productId != null) {
+        query += 'productId = :productId';
+        arguments['productId'] = productId;
+      } else {
+        return null;
+      }
+
+      query += ' LIMIT 1';
+
+      final result = await dittoService.dittoInstance!.store.execute(
+        query,
+        arguments: arguments,
+      );
+
+      return result.items.isNotEmpty
+          ? Variant.fromJson(
+              Map<String, dynamic>.from(result.items.first.value))
+          : null;
+    } catch (e) {
+      talker.error('Error getting variant from Ditto: $e');
+      return null;
+    }
   }
 
   @override

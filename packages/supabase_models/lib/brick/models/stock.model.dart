@@ -19,8 +19,9 @@ part 'stock.model.ditto_sync_adapter.g.dart';
 )
 @DittoAdapter(
   'stocks',
-  syncDirection: SyncDirection.sendOnly,
+  syncDirection: SyncDirection.bidirectional,
   enableBackupPull: true,
+  
 )
 class Stock extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
@@ -80,7 +81,7 @@ class Stock extends OfflineFirstWithSupabaseModel {
         ebmSynced = ebmSynced ?? false,
         initialStock = initialStock ?? 0.0,
         active = active ?? true,
-        lastTouched = DateTime.now();
+        lastTouched = lastTouched ?? DateTime.now();
 
   // add copyWith
   Stock copyWith({

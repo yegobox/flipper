@@ -6,6 +6,7 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_models/providers/ebm_provider.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_models/cache/cache_export.dart';
@@ -69,8 +70,8 @@ class OuterVariants extends _$OuterVariants {
           searchString: '',
         );
         _allLoadedVariants.addAll(variants);
-      } catch (e) {
-        talker.error('Failed to load initial variants: $e');
+      } catch (e, s) {
+        talker.error('Failed to load initial variants: $e', s);
         // Propagate error to the initial state.
         state = AsyncValue.error(e, StackTrace.current);
       } finally {
@@ -172,7 +173,8 @@ class OuterVariants extends _$OuterVariants {
     // Prioritize remote fetch for initial load, otherwise local-first.
     bool fetchRemote = searchString.isEmpty && page == 0;
 
-    List<Variant> fetchedVariants = await ProxyService.strategy.variants(
+    List<Variant> fetchedVariants =
+        await ProxyService.getStrategy(Strategy.capella).variants(
       name: searchString.toLowerCase(),
       fetchRemote: fetchRemote,
       branchId: branchId,
@@ -192,7 +194,8 @@ class OuterVariants extends _$OuterVariants {
 
     // Fallback logic.
     if (fetchedVariants.isEmpty && searchString.isNotEmpty) {
-      fetchedVariants = await ProxyService.strategy.variants(
+      fetchedVariants =
+          await ProxyService.getStrategy(Strategy.capella).variants(
         name: searchString.toLowerCase(),
         fetchRemote: !fetchRemote, // Try the other source.
         branchId: branchId,

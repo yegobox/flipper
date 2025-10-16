@@ -32,6 +32,10 @@ class ITransactionDittoAdapter extends DittoSyncAdapter<ITransaction> {
   static final ITransactionDittoAdapter instance =
       ITransactionDittoAdapter._internal();
 
+  // Observer management to prevent live query buildup
+  dynamic _activeObserver;
+  dynamic _activeSubscription;
+
   static int? Function()? _branchIdProviderOverride;
   static int? Function()? _businessIdProviderOverride;
 
@@ -49,6 +53,14 @@ class ITransactionDittoAdapter extends DittoSyncAdapter<ITransaction> {
   void resetOverrides() {
     _branchIdProviderOverride = null;
     _businessIdProviderOverride = null;
+  }
+
+  /// Cleanup active observers to prevent live query buildup
+  Future<void> dispose() async {
+    await _activeObserver?.cancel();
+    await _activeSubscription?.cancel();
+    _activeObserver = null;
+    _activeSubscription = null;
   }
 
   @override
