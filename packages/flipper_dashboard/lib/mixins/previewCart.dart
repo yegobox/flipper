@@ -853,13 +853,12 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                             ref
                                 .read(isProcessingProvider.notifier)
                                 .stopProcessing();
-                            _refreshTransactionItems(
-                                transactionId: transaction.id);
-                            // Return `true` to indicate the dialog completed successfully
-                            Navigator.of(context).pop(true);
-                            ref.refresh(pendingTransactionStreamProvider(
-                              isExpense: false,
-                            ));
+
+                            // Call onComplete first to trigger transaction completion
+                            onComplete();
+
+                            // Close dialog
+                            Navigator.of(dialogContext).pop(true);
                           },
                           onFailure: (context, state) {
                             ref
@@ -934,7 +933,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                         ref
                             .read(isProcessingProvider.notifier)
                             .stopProcessing();
-                        Navigator.of(context).pop(false);
+                        Navigator.of(dialogContext).pop(false);
                       },
                     ),
                     BlocBuilder<PurchaseCodeFormBloc, FormBlocState>(

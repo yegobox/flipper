@@ -15,7 +15,7 @@ import 'package:flipper_models/providers/transactions_provider.dart';
 import 'dart:async';
 import 'package:flipper_dashboard/providers/customer_provider.dart';
 import 'package:flipper_dashboard/providers/customer_phone_provider.dart';
-  
+
 class CustomDropdownButton extends StatefulWidget {
   final List<String> items;
   final String selectedItem;
@@ -157,7 +157,7 @@ class _SearchInputWithDropdownState
 
     // Only initialize from database customer if there's no manually entered customer name
     final existingCustomerName = ProxyService.box.customerName();
-    
+
     if (transaction.value?.customerId != null && existingCustomerName == null) {
       final customer = await ProxyService.strategy.customers(
         id: transaction.value!.customerId,
@@ -253,12 +253,27 @@ class _SearchInputWithDropdownState
         transactionId: transaction.id,
       );
 
+      // Persist the selected customer details onto the pending transaction
+      // so that transaction.customerId, customerName and customerTin are stored
+      // and available to tax/receipt builders and other consumers.
+      try {
+        await ProxyService.strategy.updateTransaction(
+          transaction: transaction,
+          customerId: customer.id,
+          customerName: customer.custNm,
+          customerTin: customer.custTin,
+        );
+      } catch (e, s) {
+        talker.error(
+            'Failed to persist selected customer on transaction', e, s);
+      }
+
       // Save customer information to ProxyService.box for receipt generation
       await ProxyService.box
           .writeString(key: 'customerName', value: customer.custNm!);
       await ProxyService.box.writeString(
           key: 'currentSaleCustomerPhoneNumber', value: customer.telNo ?? '');
-      
+
       // Save customer's TIN for future use
       if (customer.custTin != null && customer.custTin!.isNotEmpty) {
         await ProxyService.box
