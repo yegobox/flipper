@@ -285,10 +285,26 @@ class VariantDittoAdapter extends DittoSyncAdapter<Variant> {
       return null;
     }
 
+    // Helper method to fetch relationships
+    Future<T?> fetchRelationship<T extends OfflineFirstWithSupabaseModel>(
+        dynamic id) async {
+      if (id == null) return null;
+      try {
+        final results = await Repository().get<T>(
+          query: Query(where: [Where('id').isExactly(id)]),
+          policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+        );
+        return results.isNotEmpty ? results.first : null;
+      } catch (e) {
+        return null;
+      }
+    }
+
     return Variant(
       id: id,
       purchaseId: document["purchaseId"],
-      stock: null, // Excluded from Ditto sync
+      stock: await fetchRelationship<Stock>(
+          document["stockId"]), // Fetched from repository
       stockId: document["stockId"],
       taxPercentage: document["taxPercentage"],
       name: document["name"],

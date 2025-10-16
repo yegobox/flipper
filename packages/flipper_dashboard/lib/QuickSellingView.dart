@@ -1249,12 +1249,30 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           }
           return null;
         },
-        onChanged: (value) {
+        onChanged: (value) async {
           // Store the customer name with the exact key expected by rw_tax.dart
           ProxyService.box.writeString(key: 'customerName', value: value);
 
           // For debugging
           talker.info('Customer name set to: $value');
+
+          // Persist to the pending transaction if one exists. Avoid creating a
+          // new transaction by only updating when there is an existing pending
+          // transaction instance available from the provider.
+          try {
+            final transactionAsync = ref.read(pendingTransactionStreamProvider(
+                isExpense: ProxyService.box.isOrdering() ?? false));
+            final transaction = transactionAsync.asData?.value;
+            if (transaction != null && transaction.id.isNotEmpty) {
+              await ProxyService.strategy.updateTransaction(
+                transaction: transaction,
+                customerName: value,
+              );
+            }
+          } catch (e, s) {
+            talker.error(
+                'Failed to update transaction with customer name', e, s);
+          }
         },
       ),
     );
@@ -1316,7 +1334,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                 minLines: 1,
                 suffixIcon:
                     Icon(FluentIcons.call_20_regular, color: Colors.blue),
-                onChanged: (value) {
+                onChanged: (value) async {
                   ProxyService.box.writeString(
                     key: 'currentSaleCustomerPhoneNumber',
                     value: value,
@@ -1324,6 +1342,27 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                   if (ProxyService.box.customerTin() == null) {
                     ProxyService.box
                         .writeString(key: 'customerTin', value: value);
+                  }
+
+                  // Persist customerTin (if present) to the pending transaction
+                  // so tax/receipt builders can read it from the transaction.
+                  try {
+                    final transactionAsync = ref.read(
+                        pendingTransactionStreamProvider(
+                            isExpense: ProxyService.box.isOrdering() ?? false));
+                    final transaction = transactionAsync.asData?.value;
+                    if (transaction != null && transaction.id.isNotEmpty) {
+                      final customerTin = ProxyService.box.customerTin();
+                      if (customerTin != null && customerTin.isNotEmpty) {
+                        await ProxyService.strategy.updateTransaction(
+                          transaction: transaction,
+                          customerTin: customerTin,
+                        );
+                      }
+                    }
+                  } catch (e, s) {
+                    talker.error(
+                        'Failed to update transaction with customer TIN', e, s);
                   }
                 },
                 validator: (String? value) {

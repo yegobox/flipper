@@ -209,6 +209,21 @@ class TransactionItemDittoAdapter extends DittoSyncAdapter<TransactionItem> {
       return null;
     }
 
+    // Helper method to fetch relationships
+    Future<T?> fetchRelationship<T extends OfflineFirstWithSupabaseModel>(
+        dynamic id) async {
+      if (id == null) return null;
+      try {
+        final results = await Repository().get<T>(
+          query: Query(where: [Where('id').isExactly(id)]),
+          policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+        );
+        return results.isNotEmpty ? results.first : null;
+      } catch (e) {
+        return null;
+      }
+    }
+
     return TransactionItem(
       id: id,
       name: document["name"],
@@ -261,7 +276,8 @@ class TransactionItemDittoAdapter extends DittoSyncAdapter<TransactionItem> {
       modrNm: document["modrNm"],
       lastTouched: DateTime.tryParse(document["lastTouched"]?.toString() ?? ""),
       purchaseId: document["purchaseId"],
-      stock: null, // Excluded from Ditto sync
+      stock: await fetchRelationship<Stock>(
+          document["stockId"]), // Fetched from repository
       taxPercentage: document["taxPercentage"],
       color: document["color"],
       sku: document["sku"],
