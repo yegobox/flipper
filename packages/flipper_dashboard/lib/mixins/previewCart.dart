@@ -231,6 +231,10 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       }
 
       // Deduct stock for each transaction item
+      // Call handleProformaOrTrainingMode once to avoid repeated awaits inside the loop
+      final bool isProformaOrTraining =
+          await TurboTaxService.handleProformaOrTrainingMode();
+
       for (var item in transactionItems) {
         // Do not deduct stock for services
         if (item.itemTyCd == "3") {
@@ -238,8 +242,9 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         }
         final variant =
             await ProxyService.strategy.getVariant(id: item.variantId!);
-        if (variant != null &&
-            !(await TurboTaxService.handleProformaOrTrainingMode())) {
+
+        // Only deduct stock when we have a variant and we're NOT in proforma/training mode
+        if (variant != null && !isProformaOrTraining) {
           final stock = variant.stock;
           if (stock != null) {
             originalStockQuantities[stock.id] =

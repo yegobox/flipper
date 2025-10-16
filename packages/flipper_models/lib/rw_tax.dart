@@ -646,6 +646,8 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
           );
           throw exception;
         } else {
+          // remove any tin saved in local storage on success
+          ProxyService.box.remove(key: 'customerTin');
           if (receiptType != 'NR' &&
               receiptType != 'CR' &&
               receiptType != 'TR') {
@@ -970,9 +972,23 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     talker.error("TopMessage: $topMessage");
     talker.error("TINN: ${business?.tinNumber}");
     final pmtTyCd = ProxyService.box.pmtTyCd();
+    // Resolve customer object if transaction has a customerId but no
+    // customer object was provided by the caller.
+    Customer? resolvedCustomer = customer;
+    if (transaction.customerId != null && resolvedCustomer == null) {
+      try {
+        resolvedCustomer =
+            await ProxyService.strategy.customerById(transaction.customerId!);
+        talker.info('Resolved customer from id: ${resolvedCustomer?.id}');
+      } catch (e) {
+        talker.warning(
+            'Failed to resolve customer for id ${transaction.customerId}: $e');
+      }
+    }
+
     final customerName = ProxyService.box.customerName() ??
         transaction.customerName ??
-        customer?.custNm ??
+        resolvedCustomer?.custNm ??
         "N/A";
     // Use the highest available invoice number across branch counters for the
     // top-level `invcNo` (covers all receipt types like NS, TS, etc.). We
@@ -1044,8 +1060,9 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       // Log customer name source for debugging
       ...(() {
         // final customerName = ProxyService.box.customerName();
-        if (customer?.custNm != null) {
-          talker.info('Using selected customer name: ${customer!.custNm}');
+        if (resolvedCustomer?.custNm != null) {
+          talker.info(
+              'Using selected customer name: ${resolvedCustomer!.custNm}');
         } else {
           talker.warning('No customer name available, using N/A');
         }
@@ -1060,9 +1077,9 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         "adrs": "Kigali, Rwanda",
         "topMsg": topMessage,
         "btmMsg": "THANK YOU COME BACK AGAIN",
-        "custMblNo": customer == null
+        "custMblNo": resolvedCustomer == null
             ? "0" + ProxyService.box.currentSaleCustomerPhoneNumber()!
-            : customer.telNo,
+            : resolvedCustomer.telNo,
       },
       "itemList": itemsList,
     };
@@ -1085,7 +1102,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     }
     if (transaction.customerId != null) {
       json = addFieldIfCondition(
-          customer: customer,
+          customer: resolvedCustomer,
           json: json,
           transaction: transaction,
           purchaseCode: purchaseCode ?? ProxyService.box.purchaseCode());

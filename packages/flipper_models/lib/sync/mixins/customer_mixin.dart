@@ -74,4 +74,16 @@ mixin CustomerMixin implements CustomerInterface {
       query: query,
     );
   }
+
+  /// Convenience method to fetch a single [Customer] by [id].
+  ///
+  /// Returns the matching [Customer] or `null` if not found.
+  Future<Customer?> customerById(String id) async {
+    final results = await repository.get<Customer>(
+      policy: OfflineFirstGetPolicy.alwaysHydrate,
+      query: Query(where: [Where('id', value: id, compare: Compare.exact)]),
+    );
+    if (results.isEmpty) return null;
+    return results.first;
+  }
 }

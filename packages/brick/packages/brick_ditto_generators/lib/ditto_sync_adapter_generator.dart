@@ -395,6 +395,20 @@ class DittoSyncAdapterGenerator extends GeneratorForAnnotation<DittoAdapter> {
       ..writeln('      return null;')
       ..writeln('    }')
       ..writeln('')
+      ..writeln('    // Helper method to fetch relationships')
+      ..writeln('    Future<T?> fetchRelationship<T extends OfflineFirstWithSupabaseModel>(dynamic id) async {')
+      ..writeln('      if (id == null) return null;')
+      ..writeln('      try {')
+      ..writeln('        final results = await Repository().get<T>(')
+      ..writeln('          query: Query(where: [Where(\'id\').isExactly(id)]),')
+      ..writeln('          policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,')
+      ..writeln('        );')
+      ..writeln('        return results.isNotEmpty ? results.first : null;')
+      ..writeln('      } catch (e) {')
+      ..writeln('        return null;')
+      ..writeln('      }')
+      ..writeln('    }')
+      ..writeln('')
       ..writeln('    return $className(')
       ..writeln('      id: id,')
       ..write(_generateConstructorArgs(fields))
@@ -523,9 +537,13 @@ String _generateConstructorArgs(List<FieldElement> fields) {
   final buffer = StringBuffer();
   for (final field in fields) {
     if (field.name == 'id') continue;
-    // For fields excluded from Ditto, set them to null in deserialization
+    // For fields excluded from Ditto, handle relationships or set to null
     if (_shouldExcludeFromDitto(field)) {
-      buffer.writeln('      ${field.name}: null, // Excluded from Ditto sync');
+      if (_isModelRelationship(field)) {
+        buffer.writeln('      ${field.name}: ${_generateRelationshipFetch(field)}, // Fetched from repository');
+      } else {
+        buffer.writeln('      ${field.name}: null, // Excluded from Ditto sync');
+      }
       continue;
     }
     buffer.writeln('      ${field.name}: ${_deserializeField(field)},');
@@ -614,6 +632,31 @@ $branchFilter
   }
 
 ''';
+}
+
+/// Checks if a field represents a model relationship
+bool _isModelRelationship(FieldElement field) {
+  final typeName = field.type.getDisplayString(withNullability: false);
+  final modelRelationshipTypes = [
+    'Stock',
+    'Product', 
+    'Variant',
+    'Customer',
+    'Branch',
+    'Business',
+    'Category',
+    'Unit',
+  ];
+  return modelRelationshipTypes.contains(typeName);
+}
+
+/// Generates code to fetch a relationship from the repository
+String _generateRelationshipFetch(FieldElement field) {
+  final typeName = field.type.getDisplayString(withNullability: false);
+  final fieldName = field.name;
+  final foreignKeyField = '${fieldName}Id';
+  
+  return '''await fetchRelationship<$typeName>(document["$foreignKeyField"])''';
 }
 
 List<_BackupLink> _collectBackupLinks(List<FieldElement> fields) {

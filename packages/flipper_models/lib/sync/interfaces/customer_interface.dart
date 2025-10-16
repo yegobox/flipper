@@ -8,4 +8,7 @@ abstract class CustomerInterface {
     String? transactionId,
   });
   FutureOr<List<Customer>> customers({int? branchId, String? key, String? id});
+
+  /// Return a single [Customer] by [id] or null if not found.
+  Future<Customer?> customerById(String id);
 }
