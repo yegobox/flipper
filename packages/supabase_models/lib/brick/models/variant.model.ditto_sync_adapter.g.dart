@@ -22,14 +22,18 @@ part of 'variant.model.dart';
 // - import 'package:supabase_models/brick/repository.dart';
 // **************************************************************************
 //
-// Sync Direction: sendOnly
-// This adapter sends data to Ditto but does NOT receive remote updates.
+// Sync Direction: bidirectional
+// This adapter supports full bidirectional sync (send and receive).
 // **************************************************************************
 
 class VariantDittoAdapter extends DittoSyncAdapter<Variant> {
   VariantDittoAdapter._internal();
 
   static final VariantDittoAdapter instance = VariantDittoAdapter._internal();
+
+  // Observer management to prevent live query buildup
+  dynamic _activeObserver;
+  dynamic _activeSubscription;
 
   static int? Function()? _branchIdProviderOverride;
   static int? Function()? _businessIdProviderOverride;
@@ -48,6 +52,14 @@ class VariantDittoAdapter extends DittoSyncAdapter<Variant> {
   void resetOverrides() {
     _branchIdProviderOverride = null;
     _businessIdProviderOverride = null;
+  }
+
+  /// Cleanup active observers to prevent live query buildup
+  Future<void> dispose() async {
+    await _activeObserver?.cancel();
+    await _activeSubscription?.cancel();
+    _activeObserver = null;
+    _activeSubscription = null;
   }
 
   @override
@@ -108,8 +120,73 @@ class VariantDittoAdapter extends DittoSyncAdapter<Variant> {
 
   @override
   Future<DittoSyncQuery?> buildObserverQuery() async {
-    // Send-only mode: no remote observation
-    return null;
+    // Cleanup any existing observer before creating new one
+    await _cleanupActiveObserver();
+    return _buildQuery(waitForBranchId: false);
+  }
+
+  /// Cleanup active observer to prevent live query buildup
+  Future<void> _cleanupActiveObserver() async {
+    if (_activeObserver != null) {
+      await _activeObserver?.cancel();
+      _activeObserver = null;
+    }
+    if (_activeSubscription != null) {
+      await _activeSubscription?.cancel();
+      _activeSubscription = null;
+    }
+  }
+
+  Future<DittoSyncQuery?> _buildQuery({required bool waitForBranchId}) async {
+    final branchId = await _resolveBranchId(waitForValue: waitForBranchId);
+    final branchIdString = ProxyService.box.branchIdString();
+    final bhfId = await ProxyService.box.bhfId();
+    final arguments = <String, dynamic>{};
+    final whereParts = <String>[];
+
+    if (branchId != null) {
+      whereParts.add('branchId = :branchId');
+      arguments["branchId"] = branchId;
+    }
+
+    if (branchIdString != null && branchIdString.isNotEmpty) {
+      whereParts.add(
+          '(branchId = :branchIdString OR branchIdString = :branchIdString)');
+      arguments["branchIdString"] = branchIdString;
+    }
+
+    if (bhfId != null && bhfId.isNotEmpty) {
+      whereParts.add('bhfId = :bhfId');
+      arguments["bhfId"] = bhfId;
+    }
+
+    if (whereParts.isEmpty) {
+      if (waitForBranchId) {
+        if (kDebugMode) {
+          debugPrint(
+              "Ditto hydration for Variant skipped because branch context is unavailable");
+        }
+        return null;
+      }
+      if (kDebugMode) {
+        debugPrint(
+            "Ditto observation for Variant deferred until branch context is available");
+      }
+      return const DittoSyncQuery(
+        query: "SELECT * FROM variants WHERE 1 = 0",
+      );
+    }
+
+    final whereClause = whereParts.join(" OR ");
+    return DittoSyncQuery(
+      query: "SELECT * FROM variants WHERE $whereClause",
+      arguments: arguments,
+    );
+  }
+
+  @override
+  Future<DittoSyncQuery?> buildHydrationQuery() async {
+    return _buildQuery(waitForBranchId: true);
   }
 
   @override

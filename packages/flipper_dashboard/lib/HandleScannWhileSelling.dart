@@ -1,6 +1,7 @@
 // ignore_for_file: unused_result
 
 import 'package:flipper_dashboard/data_view_reports/DynamicDataSource.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
@@ -58,7 +59,7 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
       try {
         final isVatEnabled = ProxyService.box.vatEnabled();
         // First try to find locally
-        List<Variant> variants = await ProxyService.strategy
+        List<Variant> variants = await ProxyService.getStrategy(Strategy.capella)
             .variants(
                 name: value,
                 branchId: ProxyService.box.getBranchId()!,
@@ -95,7 +96,7 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
           }
 
           // Try to fetch from remote with fetchRemote flag set to true
-          variants = await ProxyService.strategy
+          variants = await ProxyService.getStrategy(Strategy.capella)
               .variants(
                   name: value,
                   branchId: ProxyService.box.getBranchId()!,
@@ -165,14 +166,14 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
       final taxTyCds = ebm?.vatEnabled == true ? ['A', 'B', 'C'] : ['D', 'B'];
 
       // Search by both name and barcode
-      final nameResults = await ProxyService.strategy.variants(
+      final nameResults = await ProxyService.getStrategy(Strategy.capella).variants(
         name: value,
         branchId: branchId,
         scanMode: false,
         taxTyCds: taxTyCds,
       );
 
-      final barcodeResults = await ProxyService.strategy.variants(
+      final barcodeResults = await ProxyService.getStrategy(Strategy.capella).variants(
         name: value,
         branchId: branchId,
         scanMode: true,

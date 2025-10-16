@@ -1044,9 +1044,10 @@ class CapellaSync extends AiStrategyImpl
     return this;
   }
 
+  final Talker _talker = Talker();
+
   @override
-  // TODO: implement talker
-  Talker get talker => throw UnimplementedError();
+  Talker get talker => _talker;
 
   @override
   Future<Plan?> getPaymentPlan(
