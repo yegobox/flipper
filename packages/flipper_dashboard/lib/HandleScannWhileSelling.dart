@@ -17,8 +17,9 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
 
   Future<void> processDebouncedValue(String value, CoreViewModel model,
       TextEditingController controller) async {
-    final enableAutoAdd = ProxyService.box.readBool(key: 'enableAutoAddSearch') ?? false;
-    
+    final enableAutoAdd =
+        ProxyService.box.readBool(key: 'enableAutoAddSearch') ?? false;
+
     if (value.isNotEmpty && enableAutoAdd) {
       // Use auto-add search when enabled
       await searchAndAutoAdd(value, model, controller);
@@ -57,60 +58,21 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
       }
 
       try {
-        final isVatEnabled = ProxyService.box.vatEnabled();
-        // First try to find locally
-        List<Variant> variants = await ProxyService.getStrategy(Strategy.capella)
-            .variants(
-                name: value,
-                branchId: ProxyService.box.getBranchId()!,
-                scanMode: true,
-                taxTyCds: isVatEnabled ? ['A', 'B', 'C'] : ['D'])
-            .timeout(
-          const Duration(seconds: 5),
+        final branchId = ProxyService.box.getBranchId()!;
+        final ebm = await ProxyService.strategy.ebm(branchId: branchId);
+        final taxTyCds =
+            ebm?.vatEnabled == true ? ['A', 'B', 'C', 'TT'] : ['D', 'TT'];
+
+        // Search for variants (matches both name and barcode)
+        List<Variant> variants =
+            await ProxyService.getStrategy(Strategy.capella)
+                .variants(name: value, branchId: branchId, taxTyCds: taxTyCds)
+                .timeout(
+          const Duration(seconds: 10),
           onTimeout: () {
-            // Return empty list on timeout
             return [];
           },
         );
-
-        // If no variants found locally, try to fetch from remote
-        if (variants.isEmpty) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Row(
-                  children: [
-                    SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                    SizedBox(width: 10),
-                    Text('Searching from remote...'),
-                  ],
-                ),
-                duration: Duration(milliseconds: 1000),
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
-          }
-
-          // Try to fetch from remote with fetchRemote flag set to true
-          variants = await ProxyService.getStrategy(Strategy.capella)
-              .variants(
-                  name: value,
-                  branchId: ProxyService.box.getBranchId()!,
-                  scanMode: true,
-                  taxTyCds: isVatEnabled ? ['A', 'B', 'C'] : ['D'],
-                  fetchRemote: true)
-              .timeout(
-            const Duration(seconds: 10),
-            onTimeout: () {
-              // Return empty list on timeout
-              return [];
-            },
-          );
-        }
 
         // Dismiss the loading indicator if it's still showing
         if (mounted) {
@@ -163,39 +125,22 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
     try {
       final branchId = ProxyService.box.getBranchId()!;
       final ebm = await ProxyService.strategy.ebm(branchId: branchId);
-      final taxTyCds = ebm?.vatEnabled == true ? ['A', 'B', 'C'] : ['D', 'B'];
+      final taxTyCds =
+          ebm?.vatEnabled == true ? ['A', 'B', 'C', 'TT'] : ['D', 'TT'];
 
-      // Search by both name and barcode
-      final nameResults = await ProxyService.getStrategy(Strategy.capella).variants(
+      // Search variants (matches both name and barcode)
+      final variants =
+          await ProxyService.getStrategy(Strategy.capella).variants(
         name: value,
         branchId: branchId,
-        scanMode: false,
         taxTyCds: taxTyCds,
       );
 
-      final barcodeResults = await ProxyService.getStrategy(Strategy.capella).variants(
-        name: value,
-        branchId: branchId,
-        scanMode: true,
-        taxTyCds: taxTyCds,
-      );
-
-      // Combine and deduplicate results
-      final allResults = <Variant>[];
-      final seenIds = <String>{};
-      
-      for (final variant in [...nameResults, ...barcodeResults]) {
-        if (!seenIds.contains(variant.id)) {
-          seenIds.add(variant.id);
-          allResults.add(variant);
-        }
-      }
-
-      if (allResults.length == 1) {
+      if (variants.length == 1) {
         // Exactly one match - auto-add to cart
         controller.clear();
         hasText = false;
-        await _processTransaction(allResults.first, model);
+        await _processTransaction(variants.first, model);
       } else {
         // Multiple or no matches - show search results
         ref.read(searchStringProvider.notifier).emitString(value: value);
