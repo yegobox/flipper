@@ -30,14 +30,17 @@ mixin CapellaVariantMixin implements VariantInterface {
     List<String>? taxTyCds,
   }) async {
     try {
-      if (dittoService.dittoInstance == null) {
+      final ditto = dittoService.dittoInstance;
+      if (ditto == null) {
         talker.error('Ditto not initialized');
         return [];
       }
 
+      // Start query
       String query = 'SELECT * FROM variants WHERE branchId = :branchId';
       final arguments = <String, dynamic>{'branchId': branchId};
 
+      // Handle tax filters
       if (taxTyCds != null && taxTyCds.isNotEmpty) {
         final taxConditions = taxTyCds
             .asMap()
@@ -50,16 +53,16 @@ mixin CapellaVariantMixin implements VariantInterface {
         }
       }
 
+      // Name / barcode filtering
       if (name != null && name.isNotEmpty) {
-        if (scanMode) {
-          query += ' AND bcd = :name';
-        } else {
-          query += ' AND name LIKE :name';
-          arguments['name'] = '%$name%';
-        }
-        if (scanMode) arguments['name'] = name;
+        // Case-insensitive search for name, exact match for barcode
+        query +=
+            " AND (LOWER(name) LIKE '%' || LOWER(:name) || '%' OR bcd = :bcd)";
+        arguments['name'] = name;
+        arguments['bcd'] = name;
       }
 
+      // Filter by product
       if (productId != null) {
         query += ' AND productId = :productId';
         arguments['productId'] = productId;
@@ -67,29 +70,28 @@ mixin CapellaVariantMixin implements VariantInterface {
 
       talker.info('Executing Ditto query: $query with args: $arguments');
 
-      // Try direct execute first
-      final result = await dittoService.dittoInstance!.store.execute(
-        query,
-        arguments: arguments,
-      );
-
-      talker.info('Direct execute returned ${result.items.length} items');
-
+      // Execute query
+      final result = await ditto.store.execute(query, arguments: arguments);
       var items = result.items;
 
+      // Debug: Show what we found
+      talker.info('Direct execute returned ${items.length} items');
+
+      // Apply pagination manually
       if (page != null && itemsPerPage != null) {
         final offset = page * itemsPerPage;
         items = items.skip(offset).take(itemsPerPage).toList();
       }
 
+      // Parse to Variant objects
       final variants = items
           .map((doc) => Variant.fromJson(Map<String, dynamic>.from(doc.value)))
           .toList();
 
       talker.info('Returning ${variants.length} variants');
       return variants;
-    } catch (e) {
-      talker.error('Error fetching variants from Ditto: $e');
+    } catch (e, st) {
+      talker.error('Error fetching variants from Ditto: $e\n$st');
       return [];
     }
   }
