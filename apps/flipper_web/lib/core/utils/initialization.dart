@@ -75,7 +75,8 @@ Future<void> initializeDitto() async {
     // Set device name for debugging with timestamp to ensure uniqueness
     final platformTag = kIsWeb ? "Web" : "Mobile";
     final timestamp = DateTime.now().millisecondsSinceEpoch;
-    ditto.deviceName = "Flipper $platformTag $timestamp (${ditto.deviceName})";
+    final random = (timestamp % 100000) + (DateTime.now().microsecond % 1000);
+    ditto.deviceName = "Flipper_${platformTag}_${random}_$timestamp";
 
     ditto.updateTransportConfig((config) {
       // Clear any existing configs first to prevent conflicts
@@ -159,9 +160,9 @@ Future<void> initializeDitto() async {
         // Set device name with more randomness
         final platformTag = kIsWeb ? "Web" : "Mobile";
         final timestamp = DateTime.now().millisecondsSinceEpoch;
-        final random = (timestamp % 10000); // Add more uniqueness
-        ditto.deviceName =
-            "Flipper $platformTag $timestamp-$random (${ditto.deviceName})";
+        final random =
+            (timestamp % 100000) + (DateTime.now().microsecond % 1000);
+        ditto.deviceName = "Flipper_${platformTag}_${random}_retry_$timestamp";
 
         ditto.updateTransportConfig((config) {
           config.connect.webSocketUrls.clear();

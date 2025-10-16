@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
@@ -737,6 +738,23 @@ final requestStatusProvider =
     StateProvider<String>((ref) => RequestStatus.pending);
 
 final showProductsList = AutoDisposeStateProvider<bool>((ref) => true);
+
+// Stock stream provider for live stock updates
+final stockByVariantProvider = StreamProvider.autoDispose
+    .family<Stock?, String>((ref, variantId) {
+  if (variantId.isEmpty) {
+    return Stream.value(null);
+  }
+  
+  try {
+    return ProxyService.getStrategy(Strategy.capella)
+        .watchStockByVariantId(variantId);
+  } catch (e) {
+    print('Error setting up stock stream from strategy: $e');
+    return Stream.value(null);
+  }
+});
+
 List<ProviderBase> allProviders = [
   unsavedProductProvider,
   sellingModeProvider,

@@ -602,7 +602,8 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
                 talker.info(
                     "🧾 Starting receipt generation after payment confirmation...");
-                await _finalStepInCompletingTransaction(
+                final bool didComplete =
+                    await _finalStepInCompletingTransaction(
                   customer: customer,
                   transaction: transaction,
                   amount: amount,
@@ -616,10 +617,18 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                     talker.info("📄 Receipt successfully saved and synced");
                   },
                 );
-
                 // Execution reaches here AFTER _finalStepInCompletingTransaction completes
                 talker.info(
                     "🏁 _finalStepInCompletingTransaction returned successfully");
+
+                if (!didComplete) {
+                  // User cancelled or receipt generation did not complete.
+                  talker.info(
+                      "ℹ️ Receipt generation did not complete; not closing bottom sheet");
+                  _isProcessingPayment = false;
+                  paymentTimeout.cancel();
+                  return;
+                }
 
                 // Digital payment confirmed and receipt generated successfully
                 // NOW we can call the actual completeTransaction callback
@@ -654,7 +663,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     }
   }
 
-  Future<void> _finalStepInCompletingTransaction({
+  Future<bool> _finalStepInCompletingTransaction({
     required Customer? customer,
     required ITransaction transaction,
     required double amount,
@@ -666,11 +675,13 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       // Check if widget is still mounted before using ref
       if (!mounted) {
         talker.warning("Widget disposed, cannot complete transaction");
-        return;
+        return false;
       }
 
       if (customer != null) {
-        await additionalInformationIsRequiredToCompleteTransaction(
+        // Show dialog and capture whether the dialog completed successfully
+        final bool? dialogResult =
+            await additionalInformationIsRequiredToCompleteTransaction(
           amount: amount,
           onComplete: completeTransaction,
           discount: discount,
@@ -678,6 +689,18 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           transaction: transaction,
           context: context,
         );
+
+        // If user cancelled or dialog didn't complete, propagate false
+        if (dialogResult != true) {
+          if (mounted) {
+            // Stop loading but DO NOT refresh the pendingTransaction stream here.
+            // Refreshing triggers `manageTransactionStream` which may create a new
+            // pending transaction; cancelling should not create a new one.
+            ref.read(payButtonStateProvider.notifier).stopLoading();
+          }
+          return false;
+        }
+
         if (mounted) {
           ref.read(payButtonStateProvider.notifier).stopLoading();
           ref.refresh(pendingTransactionStreamProvider(
@@ -708,6 +731,8 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           ref.refresh(pendingTransactionStreamProvider(isExpense: false));
         }
       }
+
+      return true;
     } catch (e) {
       rethrow;
     }
@@ -762,7 +787,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     );
   }
 
-  Future<void> additionalInformationIsRequiredToCompleteTransaction({
+  Future<bool?> additionalInformationIsRequiredToCompleteTransaction({
     required String paymentType,
     required double amount,
     required ITransaction transaction,
@@ -771,8 +796,9 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     required BuildContext context,
   }) async {
     if (transaction.customerId != null) {
-      await showDialog(
+      final result = await showDialog<bool>(
         context: context,
+        barrierDismissible: false,
         builder: (BuildContext dialogContext) {
           final double height = MediaQuery.of(dialogContext).size.height;
           final double adjustedHeight = height * 0.8;
@@ -824,7 +850,8 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                                 .stopProcessing();
                             _refreshTransactionItems(
                                 transactionId: transaction.id);
-                            Navigator.of(context).pop();
+                            // Return `true` to indicate the dialog completed successfully
+                            Navigator.of(context).pop(true);
                             ref.refresh(pendingTransactionStreamProvider(
                               isExpense: false,
                             ));
@@ -880,12 +907,12 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                         style: TextStyle(color: Colors.grey[600]),
                       ),
                       onPressed: () {
-                        // Example: Stop loading from another widget or function
+                        // Stop any loading/processing state and return false
                         ref.read(payButtonStateProvider.notifier).stopLoading();
                         ref
                             .read(isProcessingProvider.notifier)
                             .stopProcessing();
-                        Navigator.of(context).pop();
+                        Navigator.of(context).pop(false);
                       },
                     ),
                     BlocBuilder<PurchaseCodeFormBloc, FormBlocState>(
@@ -905,7 +932,10 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           );
         },
       );
+
+      return result;
     }
+    return null;
   }
 
   void handleTicketNavigation(ITransaction transaction) {

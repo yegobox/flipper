@@ -133,6 +133,11 @@ class _RowItemState extends ConsumerState<RowItem>
     _initImageCache();
   }
 
+  @override
+  void dispose() {
+    super.dispose();
+  }
+
   void _initImageCache() {
     try {
       _imageUrl = widget.imageUrl;
@@ -155,27 +160,10 @@ class _RowItemState extends ConsumerState<RowItem>
     }
   }
 
-  /// Get a stream of stock updates for the current variant from cache
-  /// This provides live updates when stock changes
-  Stream<Stock?> _getStockStreamForVariant() {
-    // Skip if variant is null or has no ID
-    if (widget.variant == null || widget.variant!.id.isEmpty) {
-      return Stream.value(null);
-    }
-
-    try {
-      // Get a stream of stock updates using Capella strategy
-      return ProxyService.getStrategy(Strategy.capella)
-          .watchStockByVariantId(widget.variant!.id);
-    } catch (e) {
-      print('Error setting up stock stream from strategy: $e');
-      return Stream.value(null);
-    }
-  }
-
   @override
   void didUpdateWidget(RowItem oldWidget) {
     super.didUpdateWidget(oldWidget);
+
     if (widget.imageUrl != oldWidget.imageUrl ||
         (widget.variant?.branchId != oldWidget.variant?.branchId)) {
       _imageUrl = widget.imageUrl;
@@ -403,13 +391,12 @@ class _RowItemState extends ConsumerState<RowItem>
             overflow: TextOverflow.ellipsis,
           ),
 
-        // Stock display with live updates from cache
-        StreamBuilder<Stock?>(
-          // Use stream from cache for live updates
-          stream: _getStockStreamForVariant(),
-          builder: (context, snapshot) {
-            // Always use cache data when available
-            final stockValue = snapshot.data?.currentStock ?? 0;
+        // Stock display with live updates from Riverpod
+        Consumer(
+          builder: (context, ref, child) {
+            final stockAsync =
+                ref.watch(stockByVariantProvider(widget.variant?.id ?? ''));
+            final stockValue = stockAsync.value?.currentStock ?? 0;
 
             return Text(
               '$stockValue in stock',
@@ -504,13 +491,15 @@ class _RowItemState extends ConsumerState<RowItem>
                     overflow: TextOverflow.ellipsis,
                   ),
 
-                // Stock display with live updates from cache
-                StreamBuilder<Stock?>(
-                  stream: _getStockStreamForVariant(),
-                  builder: (context, snapshot) {
-                    final stockValue = snapshot.data?.currentStock ?? 0;
+                // Stock display with live updates from Riverpod
+                Consumer(
+                  builder: (context, ref, child) {
+                    final stockAsync = ref.watch(
+                        stockByVariantProvider(widget.variant?.id ?? ''));
+                    final stockValue = stockAsync.value?.currentStock ?? 0;
+
                     return Text(
-                      '$stockValue in stock!!',
+                      '$stockValue in stock',
                       style: textTheme.bodySmall?.copyWith(
                         color: stockValue > 0
                             ? Colors.green[700]
