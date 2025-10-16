@@ -888,6 +888,23 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                                     Icons.receipt,
                                     color: Colors.blue[800],
                                   ),
+                                  // Explicit error styling to ensure validation
+                                  // errors render visibly (red) across themes
+                                  errorStyle: TextStyle(color: Colors.red[700]),
+                                  errorBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide(
+                                      color: Colors.red.shade700,
+                                      width: 1.5,
+                                    ),
+                                  ),
+                                  focusedErrorBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide(
+                                      color: Colors.red.shade700,
+                                      width: 2.0,
+                                    ),
+                                  ),
                                 ),
                                 onSubmitted: (value) {
                                   talker.warning("purchase code submitted[1]");
