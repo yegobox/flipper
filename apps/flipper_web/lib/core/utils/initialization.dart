@@ -8,12 +8,6 @@ import 'platform.dart';
 /// Clean up old Ditto directories to prevent accumulation
 /// Note: Cleanup is disabled to ensure web compatibility
 /// The unique directory approach already prevents conflicts
-Future<void> _cleanupOldDittoDirectories() async {
-  if (kDebugMode) {
-    debugPrint('ℹ️  Ditto directory cleanup disabled for web compatibility');
-    debugPrint('   Unique directories prevent conflicts without cleanup');
-  }
-}
 
 /// Initializes Supabase with the appropriate configuration based on the environment
 Future<void> initializeSupabase() async {
@@ -39,7 +33,6 @@ Future<void> initializeSupabase() async {
 Future<void> initializeDitto() async {
   try {
     // Clean up old directories first (non-web platforms only)
-    await _cleanupOldDittoDirectories();
 
     // Check if DittoService already has an active instance and dispose it
     if (DittoService.instance.isReady()) {
@@ -61,16 +54,22 @@ Future<void> initializeDitto() async {
       enableDittoCloudSync: true,
     );
 
-    // Create a unique persistence directory for this instance to avoid file lock conflicts
-    final dirTimestamp = DateTime.now().millisecondsSinceEpoch;
-    final processId = DateTime.now().microsecond; // Additional uniqueness
-    final uniqueDir = "ditto_flipper_${dirTimestamp}_$processId";
+    // Use consistent directory for desktop, unique for web/mobile
+    final String persistenceDir;
+    if (kIsWeb) {
+      // Web needs unique directories to avoid conflicts
+      final dirTimestamp = DateTime.now().millisecondsSinceEpoch;
+      persistenceDir = "ditto_flipper_web_$dirTimestamp";
+    } else {
+      // Desktop/mobile use consistent directory to persist data
+      persistenceDir = "flipper_data_bridge";
+    }
 
-    debugPrint('📁 Using unique Ditto directory: $uniqueDir');
+    debugPrint('📁 Using Ditto directory: $persistenceDir');
 
     final ditto = await Ditto.open(
       identity: identity,
-      persistenceDirectory: uniqueDir,
+      persistenceDirectory: persistenceDir,
     );
 
     // Set device name for debugging with timestamp to ensure uniqueness
@@ -141,17 +140,20 @@ Future<void> initializeDitto() async {
           enableDittoCloudSync: true,
         );
 
-        // Create another unique directory for retry attempt
-        final retryTimestamp = DateTime.now().millisecondsSinceEpoch;
-        final retryProcessId = DateTime.now().microsecond;
-        final retryUniqueDir =
-            "ditto_flipper_retry_${retryTimestamp}_$retryProcessId";
+        // Use consistent directory for retry on desktop, unique for web
+        final String retryPersistenceDir;
+        if (kIsWeb) {
+          final retryTimestamp = DateTime.now().millisecondsSinceEpoch;
+          retryPersistenceDir = "ditto_flipper_web_retry_$retryTimestamp";
+        } else {
+          retryPersistenceDir = "flipper_data_bridge";
+        }
 
-        debugPrint('📁 Using retry Ditto directory: $retryUniqueDir');
+        debugPrint('📁 Using retry Ditto directory: $retryPersistenceDir');
 
         final ditto = await Ditto.open(
           identity: identity,
-          persistenceDirectory: retryUniqueDir,
+          persistenceDirectory: retryPersistenceDir,
         );
 
         // Set device name with more randomness

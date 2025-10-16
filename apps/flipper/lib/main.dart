@@ -62,7 +62,7 @@ Future<void> _initializeTransactionDelegation() async {
   try {
     await Future<void>.microtask(() async {
       // Use the new real-time Ditto-based monitoring
-      final delegationService = RealtimeDelegationService();
+      final delegationService = RealtimeDelegationService();  
       await delegationService.initialize();
       debugPrint('✅ Real-time Transaction Delegation initialized');
     });

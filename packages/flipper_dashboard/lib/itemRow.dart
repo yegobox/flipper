@@ -4,6 +4,7 @@ import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:flipper_dashboard/SnackBarMixin.dart';
 import 'package:flipper_dashboard/dialog_status.dart';
 import 'package:flipper_dashboard/refresh.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/flipperWatch.dart';
 import 'package:flipper_models/helperModels/hexColor.dart';
 import 'package:flipper_models/helperModels/talker.dart';
@@ -15,7 +16,6 @@ import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
-import 'package:supabase_models/cache/cache_export.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked/stacked.dart';
@@ -164,10 +164,11 @@ class _RowItemState extends ConsumerState<RowItem>
     }
 
     try {
-      // Get a stream of stock updates from cache using variant ID
-      return CacheManager().watchStockByVariantId(widget.variant!.id);
+      // Get a stream of stock updates using Capella strategy
+      return ProxyService.getStrategy(Strategy.capella)
+          .watchStockByVariantId(widget.variant!.id);
     } catch (e) {
-      print('Error setting up stock stream from cache: $e');
+      print('Error setting up stock stream from strategy: $e');
       return Stream.value(null);
     }
   }
@@ -793,8 +794,7 @@ class _RowItemState extends ConsumerState<RowItem>
 
     if (widget.variant != null) {
       // Use the shared TransactionItemAdder
-      final itemAdder =
-          TransactionItemAdder(context, ref, cacheManager: CacheManager());
+      final itemAdder = TransactionItemAdder(context, ref);
       await itemAdder.addItemToTransaction(
         variant: widget.variant!,
         isOrdering: isOrdering,
@@ -920,9 +920,11 @@ class _RowItemState extends ConsumerState<RowItem>
             tooltip: 'Delete',
             onPressed: () async {
               if (widget.variant != null) {
-                final stock = await CacheManager()
-                    .getStockByVariantId(widget.variant!.id);
-                if (stock != null && stock.currentStock != 0) {
+                final strategy = ProxyService.getStrategy(Strategy.capella);
+                final stock =
+                    await strategy.getStockByVariantId(widget.variant!.id);
+
+                if (stock != null && (stock.currentStock ?? 0) > 0) {
                   final dialogService = locator<DialogService>();
                   dialogService.showCustomDialog(
                     variant: DialogType.info,

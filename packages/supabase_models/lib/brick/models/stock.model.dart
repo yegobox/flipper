@@ -20,7 +20,7 @@ part 'stock.model.ditto_sync_adapter.g.dart';
 @DittoAdapter(
   'stocks',
   syncDirection: SyncDirection.bidirectional,
-  enableBackupPull: true,
+  hydrateOnStartup: true,
 )
 class Stock extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
