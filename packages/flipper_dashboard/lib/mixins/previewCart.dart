@@ -330,73 +330,14 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           completeTransaction: () async {
             // Show success confirmation before completing
             if (mounted && context.mounted) {
-              await showDialog(
-                context: context,
-                barrierDismissible: false,
-                builder: (BuildContext dialogContext) {
-                  return AlertDialog(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    backgroundColor: Colors.white,
-                    title: Row(
-                      children: [
-                        Icon(Icons.check_circle, color: Colors.green, size: 28),
-                        SizedBox(width: 12),
-                        Text(
-                          'Payment Successful!',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.green[800],
-                          ),
-                        ),
-                      ],
-                    ),
-                    content: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Transaction completed successfully.',
-                          style: TextStyle(fontSize: 16),
-                        ),
-                        SizedBox(height: 8),
-                        Text(
-                          'Amount: ${transaction.subTotal!.toStringAsFixed(2)} RWF',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        SizedBox(height: 16),
-                        Text(
-                          'Would you like to print a receipt?',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ],
-                    ),
-                    actions: [
-                      ElevatedButton(
-                        onPressed: () async {
-                          Navigator.of(dialogContext).pop();
-                          ref
-                              .read(payButtonStateProvider.notifier)
-                              .stopLoading();
-                          completeTransaction();
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue,
-                          foregroundColor: Colors.white,
-                        ),
-                        child: Text('Ok'),
-                      ),
-                    ],
-                  );
-                },
+              showCustomSnackBarUtil(
+                context,
+                'Payment Successful! Amount: ${transaction.subTotal!.toStringAsFixed(2)} RWF',
+                backgroundColor: Colors.green,
+                showCloseButton: true,
               );
+              ref.read(payButtonStateProvider.notifier).stopLoading();
+              completeTransaction();
             } else {
               completeTransaction(); // Fallback if context not available
             }
