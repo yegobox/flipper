@@ -266,7 +266,9 @@ class DittoSyncAdapterGenerator extends GeneratorForAnnotation<DittoAdapter> {
       buffer
         ..writeln('  @override')
         ..writeln('  Future<DittoSyncQuery?> buildObserverQuery() async {')
-        ..writeln('    // Cleanup any existing observer before creating new one')
+        ..writeln(
+          '    // Cleanup any existing observer before creating new one',
+        )
         ..writeln('    await _cleanupActiveObserver();')
         ..writeln('    return _buildQuery(waitForBranchId: false);')
         ..writeln('  }')
@@ -396,12 +398,16 @@ class DittoSyncAdapterGenerator extends GeneratorForAnnotation<DittoAdapter> {
       ..writeln('    }')
       ..writeln('')
       ..writeln('    // Helper method to fetch relationships')
-      ..writeln('    Future<T?> fetchRelationship<T extends OfflineFirstWithSupabaseModel>(dynamic id) async {')
+      ..writeln(
+        '    Future<T?> fetchRelationship<T extends OfflineFirstWithSupabaseModel>(dynamic id) async {',
+      )
       ..writeln('      if (id == null) return null;')
       ..writeln('      try {')
       ..writeln('        final results = await Repository().get<T>(')
       ..writeln('          query: Query(where: [Where(\'id\').isExactly(id)]),')
-      ..writeln('          policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,')
+      ..writeln(
+        '          policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,',
+      )
       ..writeln('        );')
       ..writeln('        return results.isNotEmpty ? results.first : null;')
       ..writeln('      } catch (e) {')
@@ -459,7 +465,8 @@ String _generateFieldsMapping(List<FieldElement> fields) {
     if (_shouldExcludeFromDitto(field)) {
       continue;
     }
-    buffer.writeln('      "${field.name}": ${_serializeField(field)},');
+    final fieldKey = field.name == 'id' ? '_id' : field.name;
+    buffer.writeln('      "$fieldKey": ${_serializeField(field)},');
   }
   return buffer.toString();
 }
@@ -540,9 +547,12 @@ String _generateConstructorArgs(List<FieldElement> fields) {
     // For fields excluded from Ditto, handle relationships or set to null
     if (_shouldExcludeFromDitto(field)) {
       if (_isModelRelationship(field)) {
-        buffer.writeln('      ${field.name}: ${_generateRelationshipFetch(field)}, // Fetched from repository');
+        buffer.writeln(
+          '      ${field.name}: ${_generateRelationshipFetch(field)}, // Fetched from repository',
+        );
       } else {
-        buffer.writeln('      ${field.name}: null, // Excluded from Ditto sync');
+        buffer
+            .writeln('      ${field.name}: null, // Excluded from Ditto sync');
       }
       continue;
     }
@@ -639,7 +649,7 @@ bool _isModelRelationship(FieldElement field) {
   final typeName = field.type.getDisplayString(withNullability: false);
   final modelRelationshipTypes = [
     'Stock',
-    'Product', 
+    'Product',
     'Variant',
     'Customer',
     'Branch',
@@ -655,7 +665,7 @@ String _generateRelationshipFetch(FieldElement field) {
   final typeName = field.type.getDisplayString(withNullability: false);
   final fieldName = field.name;
   final foreignKeyField = '${fieldName}Id';
-  
+
   return '''await fetchRelationship<$typeName>(document["$foreignKeyField"])''';
 }
 

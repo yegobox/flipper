@@ -167,7 +167,7 @@ class CounterDittoAdapter extends DittoSyncAdapter<Counter> {
   @override
   Future<Map<String, dynamic>> toDittoDocument(Counter model) async {
     return {
-      "id": model.id,
+      "_id": model.id,
       "businessId": model.businessId,
       "branchId": model.branchId,
       "receiptType": model.receiptType,

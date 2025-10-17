@@ -1020,10 +1020,12 @@ class CoreViewModel extends FlipperBaseModel
     required String pchsSttsCd,
     required Map<String, Variant>? itemMapper,
   }) async {
+    talker.debug(
+        "itemMapper contents: ${itemMapper?.keys.toList()} -> ${itemMapper?.values.map((v) => v.id).toList()}");
+
     for (final purchaseVariant in purchase.variants!) {
       final originalStatus = purchaseVariant.pchsSttsCd;
-      final isMapped =
-          itemMapper?.values.any((v) => v.id == purchaseVariant.id) ?? false;
+      final isMapped = itemMapper?.containsKey(purchaseVariant.id) ?? false;
 
       // Skip already handled variants
       if (originalStatus == "02" ||
@@ -1038,6 +1040,12 @@ class CoreViewModel extends FlipperBaseModel
           "Processing variant: ${purchaseVariant.name} (${purchaseVariant.id})");
       talker.debug(
           " - Incoming status: $pchsSttsCd, Original status: $originalStatus, isMapped: $isMapped");
+
+      if (isMapped) {
+        final mappedVariant = itemMapper![purchaseVariant.id];
+        talker.debug(
+            " - Mapped to variant: ${mappedVariant?.name} (${mappedVariant?.id})");
+      }
 
       bool shouldPersist = false;
 
@@ -1402,13 +1410,18 @@ class CoreViewModel extends FlipperBaseModel
 
   Future<void> _updateVariantStock(
       {required Variant item, required Variant existingVariantToUpdate}) async {
-    await ProxyService.strategy.updateStock(
-        stockId: existingVariantToUpdate.stock!.id,
-        appending: true,
-        rsdQty: item.stock!.currentStock,
-        initialStock: item.stock!.currentStock,
-        currentStock: item.stock!.currentStock,
-        value: item.stock!.currentStock! * item.retailPrice!);
+    try {
+      await ProxyService.strategy.updateStock(
+          stockId: existingVariantToUpdate.stock!.id,
+          appending: true,
+          rsdQty: item.stock!.currentStock,
+          initialStock: item.stock!.currentStock,
+          currentStock: item.stock!.currentStock,
+          value: item.stock!.currentStock! * item.retailPrice!);
+    } catch (e) {
+      debugPrint(
+          'Failed to update stock for ${existingVariantToUpdate.id}: $e');
+    }
   }
 
   Future<void> _updateVariant(Variant variant, {double? approvedQty}) async {

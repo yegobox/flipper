@@ -151,34 +151,50 @@ class _RefundState extends ConsumerState<Refund> {
                         widget.transaction!.customerId != 0) {
                       bool purchaseCodeReceived = await showPurchaseCodeModal();
                       if (purchaseCodeReceived) {
+                        try {
+                          if (widget.transaction!.receiptType == "PS") {
+                            if (widget.transaction!.isRefunded ?? false) {
+                              await handleReceipt(filterType: FilterType.CP);
+                            } else {
+                              await handleReceipt(filterType: FilterType.CP);
+                            }
+                          } else {
+                            if (widget.transaction!.isRefunded ?? false) {
+                              // I removed PR was await handleReceipt(filterType: FilterType.PR);
+                              await handleReceipt(filterType: FilterType.CR);
+                            } else {
+                              await handleReceipt(filterType: FilterType.CS);
+                            }
+                          }
+                        } catch (e, s) {
+                          toast(e.toString());
+                          talker.error(s);
+                          setState(() {
+                            isPrintingCopy = false;
+                          });
+                        }
+                      }
+                    } else {
+                      try {
                         if (widget.transaction!.receiptType == "PS") {
                           if (widget.transaction!.isRefunded ?? false) {
-                            await handleReceipt(filterType: FilterType.CP);
+                            await handleReceipt(filterType: FilterType.PR);
                           } else {
                             await handleReceipt(filterType: FilterType.CP);
                           }
                         } else {
                           if (widget.transaction!.isRefunded ?? false) {
-                            // I removed PR was await handleReceipt(filterType: FilterType.PR);
                             await handleReceipt(filterType: FilterType.CR);
                           } else {
                             await handleReceipt(filterType: FilterType.CS);
                           }
                         }
-                      }
-                    } else {
-                      if (widget.transaction!.receiptType == "PS") {
-                        if (widget.transaction!.isRefunded ?? false) {
-                          await handleReceipt(filterType: FilterType.PR);
-                        } else {
-                          await handleReceipt(filterType: FilterType.CP);
-                        }
-                      } else {
-                        if (widget.transaction!.isRefunded ?? false) {
-                          await handleReceipt(filterType: FilterType.CR);
-                        } else {
-                          await handleReceipt(filterType: FilterType.CS);
-                        }
+                      } catch (e, s) {
+                        toast(e.toString());
+                        talker.error(s);
+                        setState(() {
+                          isPrintingCopy = false;
+                        });
                       }
                     }
                   },

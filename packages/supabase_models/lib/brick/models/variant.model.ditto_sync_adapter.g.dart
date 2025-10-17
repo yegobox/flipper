@@ -195,7 +195,7 @@ class VariantDittoAdapter extends DittoSyncAdapter<Variant> {
   @override
   Future<Map<String, dynamic>> toDittoDocument(Variant model) async {
     return {
-      "id": model.id,
+      "_id": model.id,
       "purchaseId": model.purchaseId,
       "stockId": model.stockId,
       "taxPercentage": model.taxPercentage,

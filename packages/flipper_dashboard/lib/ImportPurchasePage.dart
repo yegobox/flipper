@@ -5,6 +5,7 @@ import 'package:flipper_dashboard/refresh.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart' as brick;
 import 'package:flipper_models/providers/outer_variant_provider.dart';
+import 'package:flipper_models/providers/variants_provider.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
