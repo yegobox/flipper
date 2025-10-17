@@ -332,7 +332,11 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
           .toString();
 
       /// update the remaining stock of this item in rra
-      if (variant.stock?.currentStock != null) {
+      // Prefer approvedQty when provided (assignment path). Otherwise use stock.currentStock
+      if (approvedQty != null) {
+        variant.rsdQty =
+            double.parse(approvedQty.toDouble().toStringAsFixed(2));
+      } else if (variant.stock?.currentStock != null) {
         // Truncate/round to 2 decimal places for RRA compatibility
         variant.rsdQty =
             double.parse(variant.stock!.currentStock!.toStringAsFixed(2));
@@ -359,10 +363,15 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         return RwApiResponse(resultCd: "000", resultMsg: "Invalid product");
       }
 
-      variant.rsdQty =
-          double.parse(variant.stock!.currentStock!.toStringAsFixed(2));
-      variant.qty = variant.qty ?? approvedQty?.toDouble();
-      talker.warning("RSD QTY: ${variant.toFlipperJson()}");
+      // Do not overwrite rsdQty here — it was set above, preferring approvedQty when provided.
+      // Ensure qty prefers approvedQty, then falls back to the variant's current stock,
+      // and finally to any existing variant.qty to avoid breaking prior behavior.
+      variant.qty = approvedQty?.toDouble() ??
+          variant.stock?.currentStock?.toDouble() ??
+          variant.qty;
+      final rsdSource =
+          approvedQty != null ? 'approvedQty' : 'stock.currentStock';
+      talker.warning("RSD QTY (from $rsdSource): ${variant.toFlipperJson()}");
       // if variant?.itemTyCd  == '3' it means it is a servcice, keep qty to 0, as service does not have stock.
       if (variant.itemTyCd == '3') {
         variant.rsdQty = 0;

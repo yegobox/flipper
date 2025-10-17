@@ -83,15 +83,10 @@ class DittoService {
 
   /// Sets the Ditto instance (called from main.dart after initialization)
   void setDitto(Ditto ditto) {
-    // Dispose of existing Ditto instance if it exists to prevent file lock conflicts
-    if (_ditto != null) {
-      debugPrint('Disposing existing Ditto instance before setting new one');
-      try {
-        _ditto!.stopSync();
-        // Give a moment for cleanup to complete
-      } catch (e) {
-        debugPrint('Error during existing Ditto disposal: $e');
-      }
+    // Only set if we don't already have the same instance
+    if (_ditto == ditto) {
+      debugPrint('Same Ditto instance already set, skipping');
+      return;
     }
 
     _ditto = ditto;
@@ -111,11 +106,15 @@ class DittoService {
 
     // Log Ditto device info for debugging
     debugPrint('📱 Ditto device initialized: ${ditto.deviceName}');
+    debugPrint('📁 Ditto persistence directory: ${ditto.persistenceDirectory}');
 
     // Note about mDNS warnings in debug
     if (kDebugMode) {
       debugPrint(
         'ℹ️  mDNS NameConflict warnings are normal in development when multiple instances are running',
+      );
+      debugPrint(
+        'ℹ️  File lock conflicts are prevented by using unique directories per instance',
       );
     }
 
@@ -342,24 +341,11 @@ class DittoService {
       _userProfilesController = null;
     }
 
-    // Properly dispose of Ditto instance
+    // Clear reference but don't dispose singleton
     if (_ditto != null) {
-      try {
-        debugPrint('🛑 Stopping Ditto sync...');
-        _ditto!.stopSync();
-
-        // Wait a bit to ensure sync is fully stopped
-        await Future.delayed(const Duration(milliseconds: 200));
-
-        debugPrint('🗑️  Clearing Ditto instance reference...');
-        _ditto = null;
-        _notifyDittoListeners();
-
-        // Additional wait to ensure file locks are released
-        await Future.delayed(const Duration(milliseconds: 300));
-      } catch (e) {
-        debugPrint('❌ Error during Ditto cleanup: $e');
-      }
+      _ditto = null;
+      _notifyDittoListeners();
+      _dittoListeners.clear();
     }
 
     debugPrint('✅ DittoService disposal completed');

@@ -169,7 +169,7 @@ class StockRecountDittoAdapter extends DittoSyncAdapter<StockRecount> {
   @override
   Future<Map<String, dynamic>> toDittoDocument(StockRecount model) async {
     return {
-      "id": model.id,
+      "_id": model.id,
       "branchId": model.branchId,
       "status": model.status,
       "userId": model.userId,

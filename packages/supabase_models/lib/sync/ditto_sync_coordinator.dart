@@ -243,7 +243,6 @@ class DittoSyncCoordinator {
             '❌ Failed to register Ditto subscription for $type: $error\n$stack');
       }
     }
-    
 
     final observer = ditto.store.registerObserver(
       query.query,
@@ -326,7 +325,7 @@ class DittoSyncCoordinator {
       // Skip if document hasn't changed (unless it's initial fetch)
       if (!isInitialFetch && previousHash == currentHash) {
         if (kDebugMode) {
-          debugPrint('⏭️  Skipping unchanged $type document: $docId');
+          // debugPrint('⏭️  Skipping unchanged $type document: $docId');
         }
         continue;
       }

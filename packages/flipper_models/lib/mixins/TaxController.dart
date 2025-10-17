@@ -281,7 +281,9 @@ class TaxController<OBJ> with TransactionDelegationMixin {
             await print.print(
               taxTT: totalTT,
               totalTaxTT: calculateTotalTax(totalTT, taxConfigTaxTT!),
-              customerPhone: transaction.customerPhone,
+              customerPhone: (transaction.customerPhone?.isNotEmpty ?? false)
+                  ? transaction.customerPhone
+                  : ProxyService.box.currentSaleCustomerPhoneNumber(),
               totalDiscount: totalDiscount,
               whenCreated: receipt!.whenCreated!,
               timeFromServer:
@@ -326,9 +328,13 @@ class TaxController<OBJ> with TransactionDelegationMixin {
               brandFooter: business.name!,
               emails: [business.email ?? ""],
               brandEmail: business.email ?? "info@yegobox.com",
-              customerTin: transaction.customerTin,
+              customerTin: (transaction.customerTin?.isNotEmpty ?? false)
+                  ? transaction.customerTin
+                  : ProxyService.box.customerTin(),
               receiptType: receiptType,
-              customerName: transaction.customerName ?? "N/A",
+              customerName: (transaction.customerName?.isNotEmpty ?? false)
+                  ? transaction.customerName!
+                  : ProxyService.box.customerName()!,
               printCallback: (Uint8List data) {
                 bytes = data;
               },
@@ -487,11 +493,15 @@ class TaxController<OBJ> with TransactionDelegationMixin {
             originalTransactionId: transaction.id,
             isOriginalTransaction: false,
             receiptNumber: counter.invcNo,
-            customerPhone: transaction.customerPhone,
+            customerPhone: (transaction.customerPhone?.isNotEmpty ?? false)
+                ? transaction.customerPhone!
+                : ProxyService.box.currentSaleCustomerPhoneNumber(),
             totalReceiptNumber: counter.totRcptNo,
             // Use the highest invoice number across counters as requested
             invoiceNumber: highestInvcNo,
-            customerName: transaction.customerName ?? "N/A",
+            customerName: (transaction.customerName?.isNotEmpty ?? false)
+                ? transaction.customerName!
+                : ProxyService.box.customerName(),
             paymentType: transaction.paymentType,
             subTotal: transaction.subTotal,
             // Adding other fields from transaction object
@@ -516,7 +526,9 @@ class TaxController<OBJ> with TransactionDelegationMixin {
             isIncome: transaction.isIncome,
             isExpense: transaction.isExpense,
             isRefunded: transaction.isRefunded,
-            customerTin: transaction.customerTin,
+            customerTin: (transaction.customerTin?.isNotEmpty ?? false)
+                ? transaction.customerTin
+                : ProxyService.box.customerTin(),
             remark: transaction.remark,
             customerBhfId: transaction.customerBhfId,
             sarTyCd: transaction.sarTyCd,

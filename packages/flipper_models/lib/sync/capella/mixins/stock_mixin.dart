@@ -12,8 +12,27 @@ mixin CapellaStockMixin implements StockInterface {
 
   @override
   Future<Stock> getStockById({required String id}) async {
-    throw UnimplementedError(
-        'getStockById needs to be implemented for Capella');
+    try {
+      final ditto = dittoService.dittoInstance;
+      if (ditto == null) {
+        talker.error('Ditto not initialized');
+        throw Exception('Ditto not initialized');
+      }
+
+      final result = await ditto.store.execute(
+        'SELECT * FROM stocks WHERE _id = :id LIMIT 1',
+        arguments: {'id': id},
+      );
+
+      if (result.items.isNotEmpty) {
+        final stockData = Map<String, dynamic>.from(result.items.first.value);
+        return _convertFromDittoDocument(stockData);
+      }
+      throw Exception('Stock with ID $id not found');
+    } catch (e) {
+      talker.error('Error getting stock by ID: $e');
+      rethrow;
+    }
   }
 
   @override
@@ -60,7 +79,8 @@ mixin CapellaStockMixin implements StockInterface {
           if (controller.isClosed) return;
 
           if (queryResult.items.isNotEmpty) {
-            final stockData = Map<String, dynamic>.from(queryResult.items.first.value);
+            final stockData =
+                Map<String, dynamic>.from(queryResult.items.first.value);
             final stock = _convertFromDittoDocument(stockData);
             controller.add(stock);
           } else {
@@ -121,8 +141,67 @@ mixin CapellaStockMixin implements StockInterface {
     double? value,
     bool appending = false,
     DateTime? lastTouched,
-  }) {
-    throw UnimplementedError('updateStock needs to be implemented for Capella');
+  }) async {
+    try {
+      final ditto = dittoService.dittoInstance;
+      if (ditto == null) {
+        talker.error('Ditto not initialized');
+        return;
+      }
+
+      // Get existing stock
+      final existingResult = await ditto.store.execute(
+        'SELECT * FROM stocks WHERE _id = :stockId LIMIT 1',
+        arguments: {'stockId': stockId},
+      );
+
+      if (existingResult.items.isEmpty) {
+        talker.error('Stock with ID $stockId not found');
+        return;
+      }
+
+      final existingData =
+          Map<String, dynamic>.from(existingResult.items.first.value);
+      final updateData = <String, dynamic>{};
+
+      // Handle appending vs replacing values
+      if (currentStock != null) {
+        updateData['currentStock'] = appending
+            ? ((existingData['currentStock'] as num?)?.toDouble() ?? 0) +
+                currentStock
+            : currentStock;
+      }
+      if (rsdQty != null) {
+        updateData['rsdQty'] = appending
+            ? ((existingData['rsdQty'] as num?)?.toDouble() ?? 0) + rsdQty
+            : rsdQty;
+      }
+      if (initialStock != null) {
+        updateData['initialStock'] = appending
+            ? ((existingData['initialStock'] as num?)?.toDouble() ?? 0) +
+                initialStock
+            : initialStock;
+      }
+      if (value != null) {
+        updateData['value'] = value;
+      }
+      if (ebmSynced != null) {
+        updateData['ebmSynced'] = ebmSynced;
+      }
+      if (lastTouched != null) {
+        updateData['lastTouched'] = lastTouched.toIso8601String();
+      }
+
+      if (updateData.isNotEmpty) {
+        await ditto.store.execute(
+          'UPDATE stocks SET ${updateData.keys.map((key) => '$key = :$key').join(', ')} WHERE _id = :stockId',
+          arguments: {...updateData, 'stockId': stockId},
+        );
+      }
+    } catch (e) {
+      talker.error('Error updating stock: $e');
+      rethrow;
+    }
   }
 
   @override
@@ -161,7 +240,8 @@ mixin CapellaStockMixin implements StockInterface {
           if (controller.isClosed) return;
 
           if (queryResult.items.isNotEmpty) {
-            final stockData = Map<String, dynamic>.from(queryResult.items.first.value);
+            final stockData =
+                Map<String, dynamic>.from(queryResult.items.first.value);
             final stock = _convertFromDittoDocument(stockData);
             controller.add(stock);
           } else {

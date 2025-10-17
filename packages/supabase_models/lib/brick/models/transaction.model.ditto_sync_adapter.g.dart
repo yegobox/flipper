@@ -104,7 +104,7 @@ class ITransactionDittoAdapter extends DittoSyncAdapter<ITransaction> {
   @override
   Future<Map<String, dynamic>> toDittoDocument(ITransaction model) async {
     return {
-      "id": model.id,
+      "_id": model.id,
       "reference": model.reference,
       "categoryId": model.categoryId,
       "transactionNumber": model.transactionNumber,
