@@ -18,6 +18,7 @@ class OuterVariants extends _$OuterVariants {
   // Internal state for pagination, loading, and search.
   int _currentPage = 0;
   final List<Variant> _allLoadedVariants = [];
+  int? _totalCount;
   int? _itemsPerPage;
   bool _hasMore = true;
   bool _isLoading = false;
@@ -33,8 +34,16 @@ class OuterVariants extends _$OuterVariants {
       _isDisposed = true;
     });
 
-    // Initialize itemsPerPage once.
-    _itemsPerPage ??= ProxyService.box.itemPerPage() ?? 10;
+    // Initialize itemsPerPage once. Use a sane default (20) and cap user
+    // preference to avoid extremely large defaults coming from storage
+    // (SharedPreferenceStorage previously defaulted to 1000).
+    final int _defaultPageSize = 20;
+    const int _maxPageSize = 100;
+    final int? prefIpp = ProxyService.box.itemPerPage();
+    _itemsPerPage ??=
+        (prefIpp != null && prefIpp > 0 && prefIpp <= _maxPageSize)
+            ? prefIpp
+            : _defaultPageSize;
 
     // Fetch VAT enabled status from EBM and cache it
     _isVatEnabled = await getVatEnabledFromEbm();
@@ -54,11 +63,13 @@ class OuterVariants extends _$OuterVariants {
     if (_allLoadedVariants.isEmpty && !_isLoading) {
       _isLoading = true;
       try {
+        // Fetch only the first page and store it as the current page.
         final variants = await _fetchVariants(
           branchId: branchId,
           page: 0,
           searchString: '',
         );
+        _allLoadedVariants.clear();
         _allLoadedVariants.addAll(variants);
       } catch (e, s) {
         talker.error('Failed to load initial variants: $e', s);
@@ -130,17 +141,14 @@ class OuterVariants extends _$OuterVariants {
         searchString: searchString,
       );
 
-      // Merge new unique variants into the main list.
-      final currentIds = _allLoadedVariants.map((v) => v.id).toSet();
-      final uniqueNewVariants =
-          newVariants.where((v) => !currentIds.contains(v.id)).toList();
+      // Replace the cached current page with search results. We don't
+      // accumulate pages during searches — server returns the requested page.
+      _allLoadedVariants.clear();
+      _allLoadedVariants.addAll(newVariants);
 
-      if (uniqueNewVariants.isNotEmpty) {
-        _allLoadedVariants.addAll(uniqueNewVariants);
-        // Force rebuild of the provider to get the updated filtered results
-        if (!_isDisposed) {
-          ref.invalidateSelf();
-        }
+      // Force rebuild of the provider to get the updated filtered results
+      if (!_isDisposed) {
+        ref.invalidateSelf();
       }
     } catch (e) {
       talker.error('Background search failed: $e');
@@ -163,8 +171,7 @@ class OuterVariants extends _$OuterVariants {
     // Prioritize remote fetch for initial load, otherwise local-first.
     bool fetchRemote = searchString.isEmpty && page == 0;
 
-    List<Variant> fetchedVariants =
-        await ProxyService.getStrategy(Strategy.capella).variants(
+    final paged = await ProxyService.getStrategy(Strategy.capella).variants(
       name: searchString.toLowerCase(),
       fetchRemote: fetchRemote,
       branchId: branchId,
@@ -173,6 +180,10 @@ class OuterVariants extends _$OuterVariants {
       taxTyCds: taxTyCds,
       scanMode: currentScanMode,
     );
+    List<Variant> fetchedVariants = List<Variant>.from(paged.variants);
+
+    // Record total count when provided by the backend
+    _totalCount = paged.totalCount;
 
     // Apply special filtering for non-VAT mode
     if (!isVatEnabled) {
@@ -184,7 +195,7 @@ class OuterVariants extends _$OuterVariants {
 
     // Fallback logic.
     if (fetchedVariants.isEmpty && searchString.isNotEmpty) {
-      fetchedVariants =
+      final fallbackPaged =
           await ProxyService.getStrategy(Strategy.capella).variants(
         name: searchString.toLowerCase(),
         fetchRemote: !fetchRemote, // Try the other source.
@@ -195,6 +206,9 @@ class OuterVariants extends _$OuterVariants {
         scanMode: currentScanMode,
       );
 
+      // Extract variants list from the paged fallback
+      fetchedVariants = List<Variant>.from(fallbackPaged.variants);
+
       // Apply special filtering for non-VAT mode to fallback results too
       if (!isVatEnabled) {
         fetchedVariants = fetchedVariants.where((variant) {
@@ -203,12 +217,18 @@ class OuterVariants extends _$OuterVariants {
         }).toList();
       }
     }
-    // Update pagination state for non-search loads.
+    // Update pagination state for non-search loads. We do NOT append pages in
+    // the provider; callers control which page to request. Compute hasMore
+    // using totalCount when available; otherwise fall back to length check.
     if (searchString.isEmpty) {
-      _hasMore = fetchedVariants.length == _itemsPerPage;
-      if (_hasMore) {
-        _currentPage++;
+      if (_totalCount != null) {
+        final total = _totalCount!;
+        final loaded = (page + 1) * _itemsPerPage!; // items up to this page
+        _hasMore = loaded < total;
+      } else {
+        _hasMore = fetchedVariants.length == _itemsPerPage;
       }
+      // Do not mutate _currentPage here; callers decide when to increment.
     }
 
     return fetchedVariants;
@@ -223,13 +243,18 @@ class OuterVariants extends _$OuterVariants {
 
     _isLoading = true;
     try {
+      // Request the next page and replace current page results. We avoid
+      // accumulating multiple pages in memory.
+      final nextPage = _currentPage + 1;
       final newVariants = await _fetchVariants(
         branchId: branchId,
-        page: _currentPage,
+        page: nextPage,
         searchString: '',
       );
 
       if (newVariants.isNotEmpty) {
+        _currentPage = nextPage;
+        _allLoadedVariants.clear();
         _allLoadedVariants.addAll(newVariants);
         if (!_isDisposed) {
           // Use _filterInMemory to ensure proper taxTyCd filtering when updating state
@@ -267,11 +292,13 @@ class OuterVariants extends _$OuterVariants {
     // Reload variants
     try {
       state = const AsyncValue.loading();
+      // Fetch page 0 and replace the current page cache
       final variants = await _fetchVariants(
         branchId: branchId,
         page: 0,
         searchString: '',
       );
+      _allLoadedVariants.clear();
       _allLoadedVariants.addAll(variants);
 
       // Apply current search filter if any
@@ -337,6 +364,70 @@ class OuterVariants extends _$OuterVariants {
     } catch (e) {
       talker.error('Failed to save stocks to cache: $e');
     }
+  }
+
+  /// Public helper: fetch a specific page and merge results into the cache.
+  /// This will NOT clear existing items; it appends unique items returned for
+  /// that page. It is safe to call from the UI to ensure a page is available.
+  Future<void> fetchPage(int page) async {
+    if (_isLoading || ref.read(searchStringProvider).isNotEmpty) return;
+    _isLoading = true;
+    try {
+      // Fetch the requested page and replace the current page cache. We do
+      // not append pages to the cache.
+      final newVariants = await _fetchVariants(
+        branchId: branchId,
+        page: page,
+        searchString: '',
+      );
+
+      if (newVariants.isNotEmpty) {
+        _currentPage = page;
+        _allLoadedVariants.clear();
+        _allLoadedVariants.addAll(newVariants);
+        if (!_isDisposed) {
+          final currentSearchString = ref.read(searchStringProvider);
+          final filteredVariants = _filterInMemory(currentSearchString);
+          state = AsyncValue.data(filteredVariants);
+        }
+      }
+    } catch (e) {
+      talker.error('Failed to fetch page $page: $e');
+    } finally {
+      _isLoading = false;
+    }
+  }
+
+  /// Return items for a given page (sliced from the locally cached variants).
+  List<Variant> getPageItems(int page) {
+    // The provider now caches only the current page of results. If caller
+    // requests that same page, return the cache; otherwise return empty list
+    // (caller should call fetchPage to populate other pages).
+    return page == _currentPage
+        ? List<Variant>.from(_allLoadedVariants)
+        : <Variant>[];
+  }
+
+  int get itemsPerPage => _itemsPerPage ?? 10;
+
+  int get loadedCount => _allLoadedVariants.length;
+
+  int? get totalCount => _totalCount;
+
+  /// Current page index (0-based) for the cached page in the provider.
+  int get currentPage => _currentPage;
+
+  bool get hasMorePages => _hasMore;
+
+  /// Returns an estimate of total pages based on loaded items and whether
+  /// there are more pages available. This is an estimate because the provider
+  /// does not currently have access to the absolute total count from remote.
+  int estimatedTotalPages() {
+    if (_totalCount != null) {
+      return (_totalCount! / itemsPerPage).ceil();
+    }
+    final pages = (loadedCount / itemsPerPage).ceil();
+    return hasMorePages ? pages + 1 : pages;
   }
 }
 

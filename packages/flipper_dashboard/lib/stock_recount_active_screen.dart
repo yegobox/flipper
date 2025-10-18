@@ -812,10 +812,12 @@ class _ProductSearchFieldState extends State<_ProductSearchField> {
       final ebm = await ProxyService.strategy.ebm(branchId: branchId);
       final taxTyCds =
           ebm?.vatEnabled == true ? ['A', 'B', 'C', 'TT'] : ['D', 'TT'];
-      final variants = await ProxyService.strategy.variants(
+      final paged = await ProxyService.strategy.variants(
         branchId: branchId,
         taxTyCds: taxTyCds,
       );
+
+      final variants = List<Variant>.from(paged.variants);
 
       // Filter out service items (itemTyCd == "2" or itemTyCd == "3") and match search query
       final filtered = variants

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/sync/interfaces/variant_interface.dart';
+import 'package:flipper_models/sync/models/paged_variants.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -57,7 +58,7 @@ mixin VariantMixin implements VariantInterface {
   }
 
   @override
-  Future<List<Variant>> variants({
+  Future<PagedVariants> variants({
     required int branchId,
     String? productId,
     int? page,
@@ -213,15 +214,20 @@ mixin VariantMixin implements VariantInterface {
 
       if (page != null && itemsPerPage != null) {
         final offset = page * itemsPerPage;
-        if (offset >= fetchedVariants.length) return [];
-        return fetchedVariants
-            .skip(offset)
-            .take(itemsPerPage)
-            .where((v) => v.branchId == branchId)
-            .toList();
+        final sliced = (offset >= fetchedVariants.length)
+            ? <Variant>[]
+            : fetchedVariants
+                .skip(offset)
+                .take(itemsPerPage)
+                .where((v) => v.branchId == branchId)
+                .toList();
+        return PagedVariants(
+            variants: sliced, totalCount: fetchedVariants.length);
       }
 
-      return fetchedVariants.where((v) => v.branchId == branchId).toList();
+      final results =
+          fetchedVariants.where((v) => v.branchId == branchId).toList();
+      return PagedVariants(variants: results, totalCount: results.length);
     } catch (e, s) {
       talker.error(s);
       rethrow;

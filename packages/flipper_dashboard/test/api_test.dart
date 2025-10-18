@@ -1,6 +1,7 @@
 import 'package:flipper_models/CoreSync.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/sync/models/paged_variants.dart';
 import 'package:test/test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flipper_services/proxy.dart';
@@ -98,12 +99,15 @@ void main() {
 
     test('#get variants with taxTyCds A, B, C', () async {
       when(() => mockDbSync.variants(
-            branchId: any(named: 'branchId'),
-            taxTyCds: any(named: 'taxTyCds'),
-          )).thenAnswer((_) async => [_createTestVariant()]);
+                branchId: any(named: 'branchId'),
+                taxTyCds: any(named: 'taxTyCds'),
+              ))
+          .thenAnswer((_) async =>
+              PagedVariants(variants: [_createTestVariant()], totalCount: 1));
 
-      final variants = await ProxyService.strategy
+      final paged = await ProxyService.strategy
           .variants(branchId: 1, taxTyCds: ['A', 'B', 'C']);
+      final variants = List<Variant>.from(paged.variants);
 
       expect(variants, isA<List<Variant>>());
       expect(variants.length, 1);
@@ -114,11 +118,13 @@ void main() {
                 branchId: any(named: 'branchId'),
                 taxTyCds: any(named: 'taxTyCds'),
               ))
-          .thenAnswer((_) async =>
-              [_createTestVariant(id: "variant_d", name: "Variant D")]);
+          .thenAnswer((_) async => PagedVariants(variants: [
+                _createTestVariant(id: "variant_d", name: "Variant D")
+              ], totalCount: 1));
 
-      final variants =
+      final paged =
           await ProxyService.strategy.variants(branchId: 1, taxTyCds: ['D']);
+      final variants = List<Variant>.from(paged.variants);
 
       expect(variants, isA<List<Variant>>());
       expect(variants.length, 1);

@@ -14,15 +14,14 @@ Future<List<Variant>> variant(
   bool forPurchaseScreen = false,
 }) async {
   print('Fetching variants for branchId: $branchId');
-  final variants = await ProxyService.strategy.variants(
-    taxTyCds: ProxyService.box.vatEnabled()
-        ? ['A', 'B', 'C']
-        : ['D'],
+  final paged = await ProxyService.strategy.variants(
+    taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D'],
     name: key,
     branchId: branchId,
     forImportScreen: forImportScreen,
     forPurchaseScreen: forPurchaseScreen,
   );
+  final variants = List<Variant>.from(paged.variants);
   print('Fetched ${variants.length} variants for branchId: $branchId');
   return variants;
 }
@@ -34,13 +33,12 @@ Future<List<Variant>> purchaseVariant(
   String? purchaseId,
 }) async {
   print('Fetching variants for branchId: $branchId');
-  final variants = await ProxyService.strategy.variants(
-    taxTyCds: ProxyService.box.vatEnabled()
-        ? ['A', 'B', 'C']
-        : ['D'],
+  final paged = await ProxyService.strategy.variants(
+    taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D'],
     purchaseId: purchaseId,
     branchId: branchId,
   );
+  final variants = List<Variant>.from(paged.variants);
   print('Fetched!! ${variants.length} variants for branchId: $branchId');
 
   return variants;

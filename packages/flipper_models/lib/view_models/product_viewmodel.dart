@@ -245,12 +245,11 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
   }
 
   void deleteVariant({required String id}) async {
-    Variant? variant = (await ProxyService.strategy
-            .variants(variantId: id, branchId: ProxyService.box.getBranchId()!,
-            taxTyCds: ProxyService.box.vatEnabled()
-                ? ['A', 'B', 'C']
-                : ['D']))
-        .firstOrNull;
+    final paged = await ProxyService.strategy.variants(
+        variantId: id,
+        branchId: ProxyService.box.getBranchId()!,
+        taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D']);
+    Variant? variant = (List<Variant>.from(paged.variants)).firstOrNull;
     // can not delete regular variant every product should have a regular variant.
     if (variant!.name != 'Regular') {
       ProxyService.strategy.flipperDelete(
@@ -308,11 +307,12 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
         businessId: ProxyService.box.getBusinessId()!,
         id: productId,
         branchId: ProxyService.box.getBranchId()!);
-    List<Variant> variants = await ProxyService.strategy.variants(
-      taxTyCds: ProxyService.box.vatEnabled()
-          ? ['A', 'B', 'C']
-          : ['D'],
-        branchId: ProxyService.box.getBranchId()!, productId: productId);
+    final paged = await ProxyService.strategy.variants(
+      taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D'],
+      branchId: ProxyService.box.getBranchId()!,
+      productId: productId,
+    );
+    List<Variant> variants = List<Variant>.from(paged.variants);
 
     if (supplyPrice != null) {
       for (Variant variation in variants) {
@@ -361,11 +361,11 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
     try {
       //get variants->delete
       int branchId = ProxyService.box.getBranchId()!;
-      List<Variant> variations = await ProxyService.strategy
-          .variants(branchId: branchId, productId: productId,
-          taxTyCds: ProxyService.box.vatEnabled()
-              ? ['A', 'B', 'C']
-              : ['D']);
+      final paged = await ProxyService.strategy.variants(
+          branchId: branchId,
+          productId: productId,
+          taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D']);
+      List<Variant> variations = List<Variant>.from(paged.variants);
       for (Variant variation in variations) {
         //get stock->delete
         /// deleting variant is supposed to cascade delete stock

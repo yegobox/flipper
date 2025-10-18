@@ -152,12 +152,14 @@ class InventoryService {
       final oneWeekAgo = now.subtract(const Duration(days: 7));
 
       // Get all variants with stock for this branch
-      final variants = await ProxyService.strategy.variants(
+      final paged = await ProxyService.strategy.variants(
         branchId: activeBranchId,
-        taxTyCds: ProxyService.box.vatEnabled()
-            ? ['A', 'B', 'C']
-            : ['D'],
+        taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D'],
       );
+
+      // The strategy now returns a paged result (items + optional totalCount).
+      // Convert the returned items to a List<Variant> for existing logic.
+      final variants = List<Variant>.from(paged.variants);
 
       // Count total items (variants with stock)
       final totalCount = variants.length;
@@ -239,12 +241,13 @@ class InventoryService {
       final oneWeekAgo = now.subtract(const Duration(days: 7));
 
       // Get variants with low stock for this branch
-      final variants = await ProxyService.strategy.variants(
+      final paged = await ProxyService.strategy.variants(
         branchId: activeBranchId,
-        taxTyCds: ProxyService.box.vatEnabled()
-            ? ['A', 'B', 'C']
-            : ['D'],
+        taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D'],
       );
+
+      // Convert paged result to a concrete list for filtering/counting
+      final variants = List<Variant>.from(paged.variants);
 
       // Filter variants with low stock (stock below threshold)
       final lowStockVariants = variants.where((variant) {
