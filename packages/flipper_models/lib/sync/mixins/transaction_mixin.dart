@@ -497,6 +497,42 @@ mixin TransactionMixin implements TransactionInterface {
 
       if (updatedTransaction != null) {
         yield updatedTransaction;
+      } else {
+        // No pending transaction found during polling — create a new one
+        if (!_isProcessingTransactionMap[branchId]!) {
+          _isProcessingTransactionMap[branchId] = true;
+          try {
+            final now = DateTime.now().toUtc();
+            final randomRef = randomNumber().toString();
+
+            final createdTransaction = ITransaction(
+              lastTouched: now,
+              reference: randomRef,
+              transactionNumber: randomRef,
+              status: PENDING,
+              isExpense: isExpense,
+              isIncome: !isExpense,
+              transactionType: transactionType,
+              subTotal: 0.0,
+              cashReceived: 0.0,
+              updatedAt: now,
+              customerChangeDue: 0.0,
+              paymentType: ProxyService.box.paymentType() ?? "Cash",
+              branchId: branchId,
+              createdAt: now,
+            );
+
+            transaction =
+                await repository.upsert<ITransaction>(createdTransaction);
+            yield transaction;
+          } catch (e, s) {
+            talker
+                .error('Error creating pending transaction in stream loop: $e');
+            talker.error(s);
+          } finally {
+            _isProcessingTransactionMap[branchId] = false;
+          }
+        }
       }
 
       // Add a delay to avoid busy-waiting

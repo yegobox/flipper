@@ -474,7 +474,21 @@ mixin VariantMixin implements VariantInterface {
   @override
   FutureOr<Variant> addStockToVariant(
       {required Variant variant, Stock? stock}) async {
-    variant.stock = stock;
+    if (stock == null) {
+      // Create a new Stock object if none provided
+      final newStock = Stock(
+        id: const Uuid().v4(),
+        currentStock: variant.qty ?? 0,
+        branchId: variant.branchId,
+        lastTouched: DateTime.now().toUtc(),
+      );
+      await repository.upsert<Stock>(newStock);
+      await CacheManager().saveStocks([newStock]);
+      variant.stock = newStock;
+      variant.stockId = newStock.id;
+    } else {
+      variant.stock = stock;
+    }
     return await repository.upsert<Variant>(variant);
   }
 

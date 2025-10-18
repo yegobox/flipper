@@ -39,9 +39,6 @@ class OuterVariants extends _$OuterVariants {
     // Fetch VAT enabled status from EBM and cache it
     _isVatEnabled = await getVatEnabledFromEbm();
 
-    // Initialize the cache manager once.
-    await _initializeCacheManager();
-
     // Load initial variants.
     await _loadInitialVariants(branchId);
 
@@ -51,13 +48,6 @@ class OuterVariants extends _$OuterVariants {
   }
 
   /// Initializes the cache manager.
-  Future<void> _initializeCacheManager() async {
-    try {
-      await CacheManager().initialize();
-    } catch (e) {
-      talker.error('Failed to initialize cache manager: $e');
-    }
-  }
 
   /// Loads the very first set of variants when the provider is initialized.
   Future<void> _loadInitialVariants(int branchId) async {
@@ -108,7 +98,7 @@ class OuterVariants extends _$OuterVariants {
     var filteredVariants = _allLoadedVariants.where((variant) {
       if (isVatEnabled) {
         // VAT enabled: show A, B, C tax types (includes TT items since they have taxTyCd='B')
-        return ['A', 'B', 'C'].contains(variant.taxTyCd);
+        return ['A', 'B', 'C', 'TT'].contains(variant.taxTyCd);
       } else {
         // VAT disabled: show D tax type OR TT items (even though they have taxTyCd='B')
         return variant.taxTyCd == 'D' || variant.ttCatCd == 'TT';
@@ -167,13 +157,14 @@ class OuterVariants extends _$OuterVariants {
   }) async {
     // Fetch all possible variants first, then filter based on VAT setting
     final isVatEnabled = _isVatEnabled; // Use cached VAT status
-    final taxTyCds = isVatEnabled ? ['A', 'B', 'C'] : ['D', 'B'];
+    final taxTyCds = isVatEnabled ? ['A', 'B', 'C', 'TT'] : ['D', 'TT'];
     final currentScanMode = ref.read(scanningModeProvider);
 
     // Prioritize remote fetch for initial load, otherwise local-first.
     bool fetchRemote = searchString.isEmpty && page == 0;
 
-    List<Variant> fetchedVariants = await ProxyService.strategy.variants(
+    List<Variant> fetchedVariants =
+        await ProxyService.getStrategy(Strategy.capella).variants(
       name: searchString.toLowerCase(),
       fetchRemote: fetchRemote,
       branchId: branchId,
@@ -193,7 +184,8 @@ class OuterVariants extends _$OuterVariants {
 
     // Fallback logic.
     if (fetchedVariants.isEmpty && searchString.isNotEmpty) {
-      fetchedVariants = await ProxyService.strategy.variants(
+      fetchedVariants =
+          await ProxyService.getStrategy(Strategy.capella).variants(
         name: searchString.toLowerCase(),
         fetchRemote: !fetchRemote, // Try the other source.
         branchId: branchId,
@@ -211,12 +203,6 @@ class OuterVariants extends _$OuterVariants {
         }).toList();
       }
     }
-
-    // Save to cache asynchronously.
-    if (fetchedVariants.isNotEmpty) {
-      unawaited(_saveStocksToCache(fetchedVariants));
-    }
-
     // Update pagination state for non-search loads.
     if (searchString.isEmpty) {
       _hasMore = fetchedVariants.length == _itemsPerPage;
