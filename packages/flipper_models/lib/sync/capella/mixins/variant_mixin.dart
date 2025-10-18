@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/sync/interfaces/variant_interface.dart';
+import 'package:flipper_models/sync/models/paged_variants.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:talker/talker.dart';
 
@@ -10,7 +11,7 @@ mixin CapellaVariantMixin implements VariantInterface {
   Talker get talker;
 
   @override
-  Future<List<Variant>> variants({
+  Future<PagedVariants> variants({
     required int branchId,
     String? productId,
     bool scanMode = false,
@@ -33,7 +34,7 @@ mixin CapellaVariantMixin implements VariantInterface {
       final ditto = dittoService.dittoInstance;
       if (ditto == null) {
         talker.error('Ditto not initialized');
-        return [];
+        return PagedVariants(variants: [], totalCount: 0);
       }
 
       // Start query
@@ -73,17 +74,50 @@ mixin CapellaVariantMixin implements VariantInterface {
 
       talker.info('Executing Ditto query: $query with args: $arguments');
 
-      // Execute query
+      // Execute query for items
+      // If pagination requested and Ditto supports LIMIT/OFFSET via SQL, append it.
+      if (page != null && itemsPerPage != null) {
+        final offset = page * itemsPerPage;
+        query += ' LIMIT :limit OFFSET :offset';
+        arguments['limit'] = itemsPerPage;
+        arguments['offset'] = offset;
+      }
+
       final result = await ditto.store.execute(query, arguments: arguments);
       var items = result.items;
 
-      // Debug: Show what we found
-      talker.info('Direct execute returned ${items.length} items');
-
-      // Apply pagination manually
+      // Attempt to get total count when paginating by running a COUNT query
+      int? totalCount;
       if (page != null && itemsPerPage != null) {
-        final offset = page * itemsPerPage;
-        items = items.skip(offset).take(itemsPerPage).toList();
+        try {
+          String countQuery =
+              'SELECT COUNT(*) as cnt FROM variants WHERE branchId = :branchId';
+          if (taxTyCds != null && taxTyCds.isNotEmpty) {
+            final taxConditions = taxTyCds
+                .asMap()
+                .entries
+                .map((entry) => 'taxTyCd = :tax${entry.key}')
+                .join(' OR ');
+            countQuery += ' AND ($taxConditions)';
+          }
+          if (name != null && name.isNotEmpty) {
+            countQuery +=
+                " AND (LOWER(name) LIKE '%' || LOWER(:name) || '%' OR bcd = :bcd)";
+          }
+          if (productId != null) {
+            countQuery += ' AND productId = :productId';
+          }
+          final countResult =
+              await ditto.store.execute(countQuery, arguments: arguments);
+          if (countResult.items.isNotEmpty) {
+            final v = countResult.items.first.value;
+            if (v['cnt'] != null) {
+              totalCount = (v['cnt'] as num).toInt();
+            }
+          }
+        } catch (e) {
+          talker.info('Count query failed: $e');
+        }
       }
 
       // Parse to Variant objects
@@ -91,11 +125,12 @@ mixin CapellaVariantMixin implements VariantInterface {
           .map((doc) => Variant.fromJson(Map<String, dynamic>.from(doc.value)))
           .toList();
 
-      talker.info('Returning ${variants.length} variants');
-      return variants;
+      talker.info(
+          'Returning ${variants.length} variants (totalCount: $totalCount)');
+      return PagedVariants(variants: variants, totalCount: totalCount);
     } catch (e, st) {
       talker.error('Error fetching variants from Ditto: $e\n$st');
-      return [];
+      return PagedVariants(variants: [], totalCount: 0);
     }
   }
 

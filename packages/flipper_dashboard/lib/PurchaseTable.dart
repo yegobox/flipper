@@ -575,7 +575,7 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
                                                               details.rowColumnIndex
                                                                       .rowIndex -
                                                                   1];
-                                                      final variants = await ProxyService
+                                                      final paged = await ProxyService
                                                           .strategy
                                                           .variants(
                                                               taxTyCds: ProxyService
@@ -592,6 +592,11 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
                                                               branchId: ProxyService
                                                                   .box
                                                                   .getBranchId()!);
+
+                                                      final variants =
+                                                          List<Variant>.from(
+                                                              paged.variants);
+
                                                       _showEditDialog(
                                                           context, item,
                                                           variants: variants

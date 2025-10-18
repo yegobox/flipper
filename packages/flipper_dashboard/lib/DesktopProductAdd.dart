@@ -520,10 +520,11 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                 model.setProductName(name: product.name);
                 final isVatEnabled = ProxyService.box.vatEnabled();
                 // Populate variants related to the product
-                List<Variant> variants = await ProxyService.strategy.variants(
+                final paged = await ProxyService.strategy.variants(
                     taxTyCds: isVatEnabled ? ['A', 'B', 'C'] : ['D'],
                     productId: widget.productId!,
                     branchId: ProxyService.box.getBranchId()!);
+                List<Variant> variants = List<Variant>.from(paged.variants);
                 if (!mounted) return;
 
                 // Preserve existing itemTyCd if it exists

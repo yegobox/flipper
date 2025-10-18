@@ -1,10 +1,11 @@
 import 'dart:async';
 
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/sync/models/paged_variants.dart';
 
 /// Interface for variant operations
 abstract class VariantInterface {
-  Future<List<Variant>> variants({
+  Future<PagedVariants> variants({
     required int branchId,
     String? productId,
     int? page,

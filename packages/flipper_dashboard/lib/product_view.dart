@@ -40,10 +40,11 @@ class ProductView extends StatefulHookConsumerWidget {
 class ProductViewState extends ConsumerState<ProductView> with Datamixer {
   final searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  // Pagination state
+  int _currentPage = 0;
   Timer? _debounce;
   Timer? _branchSwitchTimer;
   int _lastCheckedBranchSwitchTimestamp = 0;
-
 
   @override
   void initState() {
@@ -151,6 +152,16 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
   void _loadInitialProducts() {
     ref.read(
         outerVariantsProvider(ProxyService.box.getBranchId() ?? 0).notifier);
+  }
+
+  void _goToPage(int page) async {
+    final branchId = ProxyService.box.getBranchId() ?? 0;
+    final notifier = ref.read(outerVariantsProvider(branchId).notifier);
+    setState(() {
+      _currentPage = page;
+    });
+    // Ensure page data is loaded
+    await notifier.fetchPage(page);
   }
 
   @override
@@ -276,16 +287,164 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     final startDate = dateRange.startDate;
     final endDate = dateRange.endDate;
 
+    // Pagination helpers from provider
+    final branchId = ProxyService.box.getBranchId() ?? 0;
+    final notifier = ref.read(outerVariantsProvider(branchId).notifier);
+    final ipp = notifier.itemsPerPage;
+
+    // Compute total and page info using notifier helper methods
+    final loadedCount =
+        ref.read(outerVariantsProvider(branchId).notifier).loadedCount;
+    final estimatedTotalPages = ref
+        .read(outerVariantsProvider(branchId).notifier)
+        .estimatedTotalPages();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        const SizedBox(height: 30),
+        const SizedBox(height: 16),
+        // Top summary row similar to attached screenshot
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Showing X–Y of Z results
+              Builder(builder: (context) {
+                final start = (_currentPage * ipp) + 1;
+                final end = ((_currentPage + 1) * ipp) > loadedCount
+                    ? loadedCount
+                    : ((_currentPage + 1) * ipp);
+                final totalText =
+                    loadedCount == 0 ? '0' : loadedCount.toString();
+                return Text(
+                  'Showing $start–$end of $totalText results',
+                  style: Theme.of(context).textTheme.bodyMedium,
+                );
+              }),
+              // Placeholder for sorting dropdown area (keeps UI similar)
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  border: Border.all(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .onSurface
+                          .withOpacity(0.2)),
+                  borderRadius: BorderRadius.circular(4),
+                ),
+                child: Row(
+                  children: [
+                    const Text('Default sorting'),
+                    const SizedBox(width: 8),
+                    Icon(FluentIcons.chevron_down_20_regular,
+                        size: 16,
+                        color: Theme.of(context).colorScheme.onSurface)
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 14),
+
         // Flexible container that takes up remaining space
         Expanded(
-          child: _buildMainContentSection(context, model, variants,
-              showProductList, startDate, endDate, ref),
+          child: _buildMainContentSection(
+              context,
+              model,
+              notifier.getPageItems(_currentPage),
+              showProductList,
+              startDate,
+              endDate,
+              ref),
         ),
+
+        // Bottom pagination controls
+        if (estimatedTotalPages > 0)
+          Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+            child: Row(
+              children: [
+                // Previous button
+                IconButton(
+                  icon: const Icon(FluentIcons.chevron_left_20_regular),
+                  onPressed: _currentPage > 0
+                      ? () => _goToPage(_currentPage - 1)
+                      : null,
+                ),
+                // Page numbers (show up to 5 pages centered around current)
+                Expanded(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Row(
+                      children: List.generate(
+                        estimatedTotalPages,
+                        (index) {
+                          // limit displayed page buttons to reasonable number
+                          if (estimatedTotalPages > 10) {
+                            final low = (_currentPage - 2)
+                                .clamp(0, estimatedTotalPages - 1);
+                            final high = (_currentPage + 2)
+                                .clamp(0, estimatedTotalPages - 1);
+                            if (index < low || index > high) {
+                              // show ellipsis instead of the button
+                              return const SizedBox.shrink();
+                            }
+                          }
+                          final page = index;
+                          final isCurrent = page == _currentPage;
+                          return Padding(
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 6.0),
+                            child: InkWell(
+                              onTap: () => _goToPage(page),
+                              child: Container(
+                                width: 40,
+                                height: 36,
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  color: isCurrent
+                                      ? Theme.of(context).colorScheme.primary
+                                      : Colors.transparent,
+                                  border: Border.all(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .primary),
+                                ),
+                                child: Text(
+                                  '${page + 1}',
+                                  style: TextStyle(
+                                      color: isCurrent
+                                          ? Theme.of(context)
+                                              .colorScheme
+                                              .onPrimary
+                                          : Theme.of(context)
+                                              .colorScheme
+                                              .primary),
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ).where((w) => w != const SizedBox.shrink()).toList(),
+                    ),
+                  ),
+                ),
+                // Next button
+                IconButton(
+                  icon: const Icon(FluentIcons.chevron_right_20_regular),
+                  onPressed: _currentPage < (estimatedTotalPages - 1)
+                      ? () => _goToPage(_currentPage + 1)
+                      : null,
+                ),
+              ],
+            ),
+          ),
       ],
     );
   }

@@ -153,11 +153,12 @@ class CronService {
       }
 
       // Get all variants that haven't been synchronized yet
-      final variants = await ProxyService.strategy.variants(
+      final paged = await ProxyService.strategy.variants(
         taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D'],
         branchId: branchId,
         stockSynchronized: false,
       );
+      final variants = List<Variant>.from(paged.variants);
 
       if (variants.isEmpty) {
         talker.info('No unsynchronized variants found');
@@ -278,6 +279,7 @@ class CronService {
 
       // Update variants if force upsert is enabled
       if (ProxyService.box.forceUPSERT()) {
+        // We only need to trigger hydration/upsert side-effect here. Ignore returned pages.
         await ProxyService.strategy.variants(
             branchId: branchId,
             fetchRemote: true,

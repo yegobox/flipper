@@ -48,13 +48,13 @@ class _SearchProductState extends ConsumerState<SearchProduct> {
                     });
                     return;
                   }
-                  List<Variant> variants = await ProxyService.strategy.variants(
-                    taxTyCds: ProxyService.box.vatEnabled()
-                        ? ['A', 'B', 'C']
-                        : ['D'],
+                  final paged = await ProxyService.strategy.variants(
+                    taxTyCds:
+                        ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D'],
                     name: searchKey,
                     branchId: ProxyService.box.getBranchId()!,
                   );
+                  List<Variant> variants = List<Variant>.from(paged.variants);
                   setState(() {
                     _searchResults = variants.isNotEmpty ? variants : [];
                   });

@@ -119,11 +119,12 @@ mixin PurchaseMixin
         } catch (e) {
           talker.debug("Error sending message to Kafka: $e");
         }
-        return await variants(
+        final paged = await variants(
           branchId: branchId,
           forImportScreen: true,
           taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D'],
         );
+        return List<Variant>.from(paged.variants);
       }
 
       final List<Future<void>> saveVariantTasks = [];
@@ -152,10 +153,11 @@ mixin PurchaseMixin
         );
       }
 
-      return await variants(
+      final paged = await variants(
           branchId: branchId,
           forImportScreen: true,
           taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D']);
+      return List<Variant>.from(paged.variants);
     } catch (e, stackTrace) {
       talker.error("Error in selectImportItems: $e", stackTrace);
       rethrow;

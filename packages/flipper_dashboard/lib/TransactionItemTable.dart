@@ -843,12 +843,12 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
         await ProxyService.strategy
             .flipperDelete(id: item.id, endPoint: 'transactionItem');
       } else {
-        Variant? variant = (await ProxyService.strategy.variants(
+        final paged = await ProxyService.strategy.variants(
           taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D'],
           variantId: item.variantId!,
           branchId: ProxyService.box.getBranchId()!,
-        ))
-            .firstOrNull;
+        );
+        Variant? variant = (List<Variant>.from(paged.variants)).firstOrNull;
 
         if (variant != null) {
           final composites = await ProxyService.strategy

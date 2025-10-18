@@ -4,6 +4,7 @@ import 'package:flipper_dashboard/data_view_reports/DynamicDataSource.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/sync/models/paged_variants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
@@ -64,14 +65,15 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
             ebm?.vatEnabled == true ? ['A', 'B', 'C', 'TT'] : ['D', 'TT'];
 
         // Search for variants (matches both name and barcode)
-        List<Variant> variants = await ProxyService.strategy
+        final pagedResult = await ProxyService.strategy
             .variants(name: value, branchId: branchId, taxTyCds: taxTyCds)
             .timeout(
           const Duration(seconds: 10),
           onTimeout: () {
-            return [];
+            return PagedVariants(variants: [], totalCount: 0);
           },
         );
+        List<Variant> variants = List<Variant>.from(pagedResult.variants);
 
         // Dismiss the loading indicator if it's still showing
         if (mounted) {
@@ -128,11 +130,12 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
           ebm?.vatEnabled == true ? ['A', 'B', 'C', 'TT'] : ['D', 'TT'];
 
       // Search variants (matches both name and barcode)
-      final variants = await ProxyService.strategy.variants(
+      final paged = await ProxyService.strategy.variants(
         name: value,
         branchId: branchId,
         taxTyCds: taxTyCds,
       );
+      final variants = List<Variant>.from(paged.variants);
 
       if (variants.length == 1) {
         // Exactly one match - auto-add to cart
