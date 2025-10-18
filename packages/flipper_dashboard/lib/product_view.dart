@@ -5,6 +5,7 @@ import 'package:flipper_models/providers/date_range_provider.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
+import 'package:flipper_models/providers/product_sort_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
@@ -331,28 +332,8 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                   style: Theme.of(context).textTheme.bodyMedium,
                 );
               }),
-              // Placeholder for sorting dropdown area (keeps UI similar)
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                decoration: BoxDecoration(
-                  border: Border.all(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .onSurface
-                          .withOpacity(0.2)),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Row(
-                  children: [
-                    const Text('Default sorting'),
-                    const SizedBox(width: 8),
-                    Icon(FluentIcons.chevron_down_20_regular,
-                        size: 16,
-                        color: Theme.of(context).colorScheme.onSurface)
-                  ],
-                ),
-              ),
+              // Sorting dropdown
+              _buildSortingDropdown(context),
             ],
           ),
         ),
@@ -361,9 +342,15 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
 
         // Flexible container that takes up remaining space
         Expanded(
-          // Use the filtered variants passed into this method for display.
-          child: _buildMainContentSection(context, model, variants,
-              showProductList, startDate, endDate, ref),
+          // Apply sorting to variants before displaying
+          child: _buildMainContentSection(
+              context,
+              model,
+              _sortVariants(variants, ref),
+              showProductList,
+              startDate,
+              endDate,
+              ref),
         ),
 
         // Bottom pagination controls
@@ -533,5 +520,97 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
             rowsPerPage: ref.read(rowsPerPageProvider),
             showDetailedReport: true,
           );
+  }
+
+  Widget _buildSortingDropdown(BuildContext context) {
+    return Consumer(
+      builder: (context, ref, _) {
+        final currentSort = ref.watch(productSortProvider);
+        return PopupMenuButton<ProductSortOption>(
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              border: Border.all(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .onSurface
+                      .withValues(alpha: 0.2)),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(currentSort.label),
+                const SizedBox(width: 8),
+                Icon(FluentIcons.chevron_down_20_regular,
+                    size: 16, color: Theme.of(context).colorScheme.onSurface)
+              ],
+            ),
+          ),
+          onSelected: (ProductSortOption option) {
+            ref.read(productSortProvider.notifier).state = option;
+          },
+          itemBuilder: (BuildContext context) {
+            return ProductSortOption.values.map((ProductSortOption option) {
+              return PopupMenuItem<ProductSortOption>(
+                value: option,
+                child: Row(
+                  children: [
+                    if (option == currentSort)
+                      Icon(FluentIcons.checkmark_20_filled,
+                          size: 16,
+                          color: Theme.of(context).colorScheme.primary)
+                    else
+                      const SizedBox(width: 16),
+                    const SizedBox(width: 8),
+                    Text(option.label),
+                  ],
+                ),
+              );
+            }).toList();
+          },
+        );
+      },
+    );
+  }
+
+  List<Variant> _sortVariants(List<Variant> variants, WidgetRef ref) {
+    final sortOption = ref.watch(productSortProvider);
+    final sortedVariants = List<Variant>.from(variants);
+
+    switch (sortOption) {
+      case ProductSortOption.defaultSorting:
+        return sortedVariants;
+      case ProductSortOption.popularity:
+        sortedVariants.sort((a, b) => (b.qty ?? 0).compareTo(a.qty ?? 0));
+        break;
+      case ProductSortOption.averageRating:
+        // Assuming rating is stored in a field, adjust as needed
+        sortedVariants.sort(
+            (a, b) => 0); // Placeholder - implement based on your rating field
+        break;
+      case ProductSortOption.latest:
+        sortedVariants.sort((a, b) => (b.lastTouched ?? DateTime(0))
+            .compareTo(a.lastTouched ?? DateTime(0)));
+        break;
+      case ProductSortOption.priceLowToHigh:
+        sortedVariants
+            .sort((a, b) => (a.retailPrice ?? 0).compareTo(b.retailPrice ?? 0));
+        break;
+      case ProductSortOption.priceHighToLow:
+        sortedVariants
+            .sort((a, b) => (b.retailPrice ?? 0).compareTo(a.retailPrice ?? 0));
+        break;
+      case ProductSortOption.eventDateOldToNew:
+        sortedVariants.sort((a, b) => (a.lastTouched ?? DateTime(0))
+            .compareTo(b.lastTouched ?? DateTime(0)));
+        break;
+      case ProductSortOption.eventDateNewToOld:
+        sortedVariants.sort((a, b) => (b.lastTouched ?? DateTime(0))
+            .compareTo(a.lastTouched ?? DateTime(0)));
+        break;
+    }
+
+    return sortedVariants;
   }
 }
