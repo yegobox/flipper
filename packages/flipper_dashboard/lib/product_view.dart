@@ -193,15 +193,15 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     return Consumer(
       builder: (context, ref, _) {
         final branchId = ProxyService.box.getBranchId() ?? 0;
-        final searchString = ref.watch(searchStringProvider);
-        final notifier = ref.read(outerVariantsProvider(branchId).notifier);
-
-        // Debug log for rebuilds (temporary)
-        try {
-          // ignore: avoid_print
-          print(
-              'ProductView: rebuild search="$searchString" notifier.loaded=${notifier.loadedCount} total=${notifier.totalCount}');
-        } catch (_) {}
+        // If the search string changed, reset our local page to the first page
+        // so that search results always start from page 0.
+        final currentSearch = ref.watch(searchStringProvider);
+        if (currentSearch.isNotEmpty && _currentPage != 0) {
+          // Use setState to trigger UI update
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) setState(() => _currentPage = 0);
+          });
+        }
 
         return ref.watch(outerVariantsProvider(branchId)).when(
               data: (variants) {
@@ -301,26 +301,16 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     final branchId = ProxyService.box.getBranchId() ?? 0;
     final notifier = ref.read(outerVariantsProvider(branchId).notifier);
     final ipp = notifier.itemsPerPage;
-    final searchString = ref.watch(searchStringProvider);
 
     // Use the provided (already filtered) variants for display and counts.
     final loadedCount = variants.length;
-    final estimatedTotalPages = ref
-        .read(outerVariantsProvider(branchId).notifier)
-        .estimatedTotalPages();
+    final estimatedTotalPages = notifier.estimatedTotalPages();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Small on-screen debug line to help diagnose search issues
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 16.0),
-          child: Text(
-            'debug: search="$searchString" loaded=${notifier.loadedCount} total=${notifier.totalCount ?? notifier.loadedCount}',
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-        ),
+        const SizedBox.shrink(),
         const SizedBox(height: 16),
         // Top summary row similar to attached screenshot
         Padding(

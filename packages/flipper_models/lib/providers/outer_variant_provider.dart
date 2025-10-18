@@ -146,32 +146,73 @@ class OuterVariants extends _$OuterVariants {
     talker.info(
         'OuterVariants: _backgroundSearch starting for "$searchString" (branchId=$branchId)');
     try {
-      final newVariants = await _fetchVariants(
-        branchId: branchId,
-        page: 0, // Always start search from the beginning.
-        searchString: searchString,
-      );
+      final searchLower = searchString.toLowerCase();
 
-      // Replace the cached current page with search results. We don't
-      // accumulate pages during searches — server returns the requested page.
-      talker.info(
-          'OuterVariants: _backgroundSearch fetched ${newVariants.length} items for "$searchString"');
-      _allLoadedVariants.clear();
-      _allLoadedVariants.addAll(newVariants);
+      // First try exact match lookups (fastest)
+      Variant? exactVariant =
+          await ProxyService.strategy.getVariant(bcd: searchString);
+      exactVariant ??=
+          await ProxyService.strategy.getVariant(name: searchString);
 
-      // Update provider state immediately so UI consumers rebuild with
-      // the filtered results that correspond to the fetch we just performed.
-      final filteredVariants = _filterInMemory(searchString);
-      if (!_isDisposed) {
-        state = AsyncValue.data(filteredVariants);
+      if (exactVariant != null) {
+        bool shouldInclude = !_isVatEnabled
+            ? (exactVariant.taxTyCd == 'D' || exactVariant.ttCatCd == 'TT')
+            : ['A', 'B', 'C', 'TT'].contains(exactVariant.taxTyCd);
+
+        if (shouldInclude) {
+          _allLoadedVariants.clear();
+          _allLoadedVariants.add(exactVariant);
+          _currentPage = 0;
+          if (!_isDisposed) {
+            state = AsyncValue.data(_filterInMemory(searchString));
+          }
+          return;
+        }
       }
 
-      // If a pending search arrived while we were loading, process it next.
+      // Scan pages to find matches
+      int maxPages =
+          _totalCount != null ? (_totalCount! / itemsPerPage).ceil() : 50;
+
+      for (int page = 0; page < maxPages; page++) {
+        final pageVariants = await _fetchVariants(
+          branchId: branchId,
+          page: page,
+          searchString: '',
+        );
+
+        // Check if this page has matching variants
+        final hasMatch = pageVariants.any((v) =>
+            v.name.toLowerCase().contains(searchLower) ||
+            (v.bcd?.toLowerCase().contains(searchLower) ?? false) ||
+            (v.productName?.toLowerCase().contains(searchLower) ?? false));
+
+        if (hasMatch) {
+          _allLoadedVariants.clear();
+          _allLoadedVariants.addAll(pageVariants);
+          _currentPage = page;
+          if (!_isDisposed) {
+            final filteredVariants = _filterInMemory(searchString);
+            state = AsyncValue.data(filteredVariants);
+          }
+          return;
+        }
+
+        // Stop if we've reached the end
+        if (pageVariants.length < itemsPerPage) break;
+      }
+
+      // No matches found
+      _allLoadedVariants.clear();
+      _currentPage = 0;
+      if (!_isDisposed) {
+        state = AsyncValue.data([]);
+      }
+
+      // Process pending search if any
       if (_pendingSearch != null && _pendingSearch != searchString) {
         final nextSearch = _pendingSearch!;
         _pendingSearch = null;
-        talker.info('OuterVariants: processing pending search="$nextSearch"');
-        // Use microtask to avoid sync re-entrancy
         Future.microtask(() => _backgroundSearch(branchId, nextSearch));
       }
     } catch (e) {
@@ -247,18 +288,13 @@ class OuterVariants extends _$OuterVariants {
         }).toList();
       }
     }
-    // Update pagination state for non-search loads. We do NOT append pages in
-    // the provider; callers control which page to request. Compute hasMore
-    // using totalCount when available; otherwise fall back to length check.
-    if (searchString.isEmpty) {
-      if (_totalCount != null) {
-        final total = _totalCount!;
-        final loaded = (page + 1) * _itemsPerPage!; // items up to this page
-        _hasMore = loaded < total;
-      } else {
-        _hasMore = fetchedVariants.length == _itemsPerPage;
-      }
-      // Do not mutate _currentPage here; callers decide when to increment.
+    // Update pagination state. Compute hasMore using totalCount when available
+    if (_totalCount != null) {
+      final total = _totalCount!;
+      final loaded = (page + 1) * _itemsPerPage!; // items up to this page
+      _hasMore = loaded < total;
+    } else {
+      _hasMore = fetchedVariants.length == _itemsPerPage;
     }
 
     return fetchedVariants;
@@ -266,20 +302,19 @@ class OuterVariants extends _$OuterVariants {
 
   /// Loads the next page of variants for pagination.
   Future<void> loadMore() async {
-    // Do not load more if a search is active.
-    if (_isLoading || !_hasMore || ref.read(searchStringProvider).isNotEmpty) {
+    if (_isLoading || !_hasMore) {
       return;
     }
 
     _isLoading = true;
     try {
-      // Request the next page and replace current page results. We avoid
-      // accumulating multiple pages in memory.
       final nextPage = _currentPage + 1;
+      final currentSearchString = ref.read(searchStringProvider);
+
       final newVariants = await _fetchVariants(
         branchId: branchId,
         page: nextPage,
-        searchString: '',
+        searchString: currentSearchString,
       );
 
       if (newVariants.isNotEmpty) {
@@ -287,8 +322,6 @@ class OuterVariants extends _$OuterVariants {
         _allLoadedVariants.clear();
         _allLoadedVariants.addAll(newVariants);
         if (!_isDisposed) {
-          // Use _filterInMemory to ensure proper taxTyCd filtering when updating state
-          final currentSearchString = ref.read(searchStringProvider);
           final filteredVariants = _filterInMemory(currentSearchString);
           state = AsyncValue.data(filteredVariants);
         }
@@ -396,30 +429,25 @@ class OuterVariants extends _$OuterVariants {
     }
   }
 
-  /// Public helper: fetch a specific page and merge results into the cache.
-  /// This will NOT clear existing items; it appends unique items returned for
-  /// that page. It is safe to call from the UI to ensure a page is available.
+  /// Public helper: fetch a specific page and replace current cache.
   Future<void> fetchPage(int page) async {
-    if (_isLoading || ref.read(searchStringProvider).isNotEmpty) return;
+    if (_isLoading) return;
     _isLoading = true;
     try {
-      // Fetch the requested page and replace the current page cache. We do
-      // not append pages to the cache.
+      // Fetch the requested page
       final newVariants = await _fetchVariants(
         branchId: branchId,
         page: page,
         searchString: '',
       );
 
-      if (newVariants.isNotEmpty) {
-        _currentPage = page;
-        _allLoadedVariants.clear();
-        _allLoadedVariants.addAll(newVariants);
-        if (!_isDisposed) {
-          final currentSearchString = ref.read(searchStringProvider);
-          final filteredVariants = _filterInMemory(currentSearchString);
-          state = AsyncValue.data(filteredVariants);
-        }
+      _currentPage = page;
+      _allLoadedVariants.clear();
+      _allLoadedVariants.addAll(newVariants);
+      if (!_isDisposed) {
+        final currentSearchString = ref.read(searchStringProvider);
+        final filteredVariants = _filterInMemory(currentSearchString);
+        state = AsyncValue.data(filteredVariants);
       }
     } catch (e) {
       talker.error('Failed to fetch page $page: $e');
