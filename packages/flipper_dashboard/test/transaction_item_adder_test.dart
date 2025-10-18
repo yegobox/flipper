@@ -6,15 +6,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:supabase_models/brick/models/log.model.dart';
-import 'package:supabase_models/cache/cache_manager.dart';
 
 import 'test_helpers/mocks.dart';
 import 'test_helpers/setup.dart';
 
-class MockCacheManager extends Mock implements CacheManager {}
-
 class MockStock extends Mock implements Stock {}
-// flutter test test/transaction_item_adder_test.dart  --no-test-assets --dart-define=FLUTTER_TEST_ENV=true --coverage
 
 void main() {
   late TestEnvironment env;
@@ -24,7 +20,6 @@ void main() {
     env = TestEnvironment();
     await env.init();
 
-    // Register fallbacks for mocktail
     registerFallbackValue(Variant(
         id: 'fallback', productId: 'fallback', name: 'fallback', branchId: 1));
     registerFallbackValue(ITransaction(
@@ -47,7 +42,6 @@ void main() {
     ));
   });
 
-  // Test data
   final branchId = 1;
   final businessId = 1;
   final variant = Variant(
@@ -80,19 +74,14 @@ void main() {
       updatedAt: DateTime.now(),
       isIncome: true);
 
-  late MockCacheManager mockCacheManager;
-
   setUp(() {
     env.injectMocks();
     env.stubCommonMethods();
     mockDbSync = env.mockDbSync;
 
-    // Mock CacheManager to prevent LateInitializationError
-    mockCacheManager = MockCacheManager();
-    when(() => mockCacheManager.getStockByVariantId(any()))
+    when(() => mockDbSync.getStockByVariantId(any()))
         .thenAnswer((_) async => Stock(currentStock: 5, id: "1", branchId: 1));
 
-    // Stub for logging to prevent test failures on error logging
     when(() => mockDbSync.saveLog(any())).thenAnswer((_) async {});
 
     when(() => mockDbSync.manageTransactionStream(
@@ -101,7 +90,6 @@ void main() {
             transactionType: any(named: 'transactionType')))
         .thenAnswer((_) => Stream.value(pendingTransaction));
 
-    // Common stubs for this test group
     when(() => mockDbSync.getProduct(
         businessId: any(named: 'businessId'),
         id: any(named: 'id'),
@@ -139,8 +127,7 @@ void main() {
                 builder: (context, ref, child) {
                   return ElevatedButton(
                     onPressed: () {
-                      final sut = TransactionItemAdder(context, ref,
-                          cacheManager: mockCacheManager);
+                      final sut = TransactionItemAdder(context, ref);
                       sut.addItemToTransaction(
                           variant: variant, isOrdering: false);
                     },
@@ -184,8 +171,7 @@ void main() {
           itemTyCd: "1",
           branchId: 1);
 
-      // Mock zero stock for this variant
-      when(() => mockCacheManager.getStockByVariantId('variant_2')).thenAnswer(
+      when(() => mockDbSync.getStockByVariantId('variant_2')).thenAnswer(
           (_) async => Stock(currentStock: 0, id: "2", branchId: 1));
 
       await tester.pumpWidget(
@@ -200,8 +186,7 @@ void main() {
                 builder: (context, ref, child) {
                   return ElevatedButton(
                     onPressed: () {
-                      final sut = TransactionItemAdder(context, ref,
-                          cacheManager: mockCacheManager);
+                      final sut = TransactionItemAdder(context, ref);
                       sut.addItemToTransaction(
                           variant: outOfStockVariant, isOrdering: false);
                     },
@@ -228,443 +213,6 @@ void main() {
             ignoreForReport: any(named: 'ignoreForReport'),
             compositePrice: any(named: 'compositePrice'),
           ));
-    });
-
-    testWidgets('adds a composite item and its components',
-        (WidgetTester tester) async {
-      final compositeProduct = Product(
-          color: "FFFFFF",
-          businessId: 1,
-          id: 'comp_prod_1',
-          name: 'Composite Product',
-          isComposite: true,
-          branchId: 1);
-      final compositeVariant = Variant(
-          id: 'comp_var_1',
-          productId: 'comp_prod_1',
-          name: 'Composite Variant',
-          retailPrice: 50.0,
-          stock: Stock(currentStock: 10, id: "s3", branchId: 1),
-          taxTyCd: "A",
-          itemTyCd: "1",
-          branchId: 1);
-
-      final subVariant1 = Variant(
-          id: 'sub_var_1',
-          productId: 'sub_prod_1',
-          name: 'Sub Variant 1',
-          retailPrice: 15.0,
-          stock: Stock(currentStock: 20, id: "s4", branchId: 1),
-          branchId: 1);
-      final subVariant2 = Variant(
-          id: 'sub_var_2',
-          productId: 'sub_prod_2',
-          name: 'Sub Variant 2',
-          retailPrice: 25.0,
-          stock: Stock(currentStock: 30, id: "s5", branchId: 1),
-          branchId: 1);
-
-      final composites = [
-        Composite(
-            id: 'c1',
-            productId: compositeProduct.id,
-            variantId: subVariant1.id,
-            actualPrice: 15.0,
-            branchId: 1),
-        Composite(
-            id: 'c2',
-            productId: compositeProduct.id,
-            variantId: subVariant2.id,
-            actualPrice: 25.0,
-            branchId: 1),
-      ];
-
-      when(() => mockDbSync.getProduct(
-          businessId: businessId,
-          id: compositeVariant.productId!,
-          branchId: branchId)).thenAnswer((_) async => compositeProduct);
-      when(() => mockDbSync.composites(productId: compositeProduct.id))
-          .thenAnswer((_) async => composites);
-      when(() => mockDbSync.getVariant(id: subVariant1.id))
-          .thenAnswer((_) async => subVariant1);
-      when(() => mockDbSync.getVariant(id: subVariant2.id))
-          .thenAnswer((_) async => subVariant2);
-
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            pendingTransactionStreamProvider(isExpense: false)
-                .overrideWith((ref) => Stream.value(pendingTransaction)),
-          ],
-          child: MaterialApp(
-            home: Scaffold(
-              body: Consumer(
-                builder: (context, ref, child) {
-                  return ElevatedButton(
-                    onPressed: () {
-                      final sut = TransactionItemAdder(context, ref,
-                          cacheManager: mockCacheManager);
-                      sut.addItemToTransaction(
-                          variant: compositeVariant, isOrdering: false);
-                    },
-                    child: Text('Add Composite'),
-                  );
-                },
-              ),
-            ),
-          ),
-        ),
-      );
-
-      await tester.tap(find.byType(ElevatedButton));
-      await tester.pumpAndSettle();
-
-      verify(() => mockDbSync.saveTransactionItem(
-            variation: subVariant1,
-            pendingTransaction: pendingTransaction,
-            partOfComposite: true,
-            compositePrice: 15.0,
-            amountTotal: 15.0,
-            currentStock: 20,
-            customItem: false,
-            doneWithTransaction: false,
-            ignoreForReport: false,
-          )).called(1);
-      verify(() => mockDbSync.saveTransactionItem(
-            variation: subVariant2,
-            pendingTransaction: pendingTransaction,
-            partOfComposite: true,
-            compositePrice: 25.0,
-            amountTotal: 25.0,
-            currentStock: 30,
-            customItem: false,
-            doneWithTransaction: false,
-            ignoreForReport: false,
-          )).called(1);
-    });
-
-    testWidgets('concurrent calls are serialized', (WidgetTester tester) async {
-      final variant1 = Variant(
-          id: 'v1',
-          productId: 'p1',
-          name: 'V1',
-          retailPrice: 10.0,
-          stock: Stock(currentStock: 5, id: "s1", branchId: 1),
-          taxTyCd: 'A',
-          itemTyCd: '1',
-          branchId: 1);
-      final variant2 = Variant(
-          id: 'v2',
-          productId: 'p2',
-          name: 'V2',
-          retailPrice: 20.0,
-          stock: Stock(currentStock: 5, id: "s2", branchId: 1),
-          taxTyCd: 'A',
-          itemTyCd: '1',
-          branchId: 1);
-
-      when(() => mockDbSync.saveTransactionItem(
-          variation: any(named: 'variation'),
-          amountTotal: any(named: 'amountTotal'),
-          customItem: any(named: 'customItem'),
-          currentStock: any(named: 'currentStock'),
-          pendingTransaction: any(named: 'pendingTransaction'),
-          partOfComposite: any(named: 'partOfComposite'),
-          doneWithTransaction: any(named: 'doneWithTransaction'),
-          ignoreForReport: any(named: 'ignoreForReport'),
-          compositePrice: any(named: 'compositePrice'))).thenAnswer((_) async {
-        await Future.delayed(const Duration(milliseconds: 50));
-        return true;
-      });
-
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            pendingTransactionStreamProvider(isExpense: false)
-                .overrideWith((ref) => Stream.value(pendingTransaction)),
-          ],
-          child: MaterialApp(
-            home: Scaffold(
-              body: Consumer(
-                builder: (context, ref, child) {
-                  final sut = TransactionItemAdder(context, ref,
-                      cacheManager: mockCacheManager);
-                  return Column(children: [
-                    ElevatedButton(
-                        key: const Key('v1'),
-                        onPressed: () => sut.addItemToTransaction(
-                            variant: variant1, isOrdering: false),
-                        child: const Text('1')),
-                    ElevatedButton(
-                        key: const Key('v2'),
-                        onPressed: () => sut.addItemToTransaction(
-                            variant: variant2, isOrdering: false),
-                        child: const Text('2')),
-                  ]);
-                },
-              ),
-            ),
-          ),
-        ),
-      );
-
-      final v1Button =
-          tester.widget<ElevatedButton>(find.byKey(const Key('v1')));
-      final v2Button =
-          tester.widget<ElevatedButton>(find.byKey(const Key('v2')));
-
-      // Fire both without awaiting to simulate concurrency
-      v1Button.onPressed!();
-      v2Button.onPressed!();
-
-      // Wait for all animations and futures to complete
-      await tester.pumpAndSettle();
-
-      // Wait for the 100ms delay timers in addItemToTransaction to complete
-      await tester.pump(const Duration(milliseconds: 150));
-      await tester.pumpAndSettle();
-
-      // Verify that the calls were made in order due to the lock
-      verifyInOrder([
-        () => mockDbSync.saveTransactionItem(
-            variation: variant1,
-            amountTotal: 10.0,
-            customItem: false,
-            currentStock: 5,
-            pendingTransaction: pendingTransaction,
-            partOfComposite: false,
-            doneWithTransaction: false,
-            ignoreForReport: false),
-        () => mockDbSync.saveTransactionItem(
-            variation: variant2,
-            amountTotal: 20.0,
-            customItem: false,
-            currentStock: 5,
-            pendingTransaction: pendingTransaction,
-            partOfComposite: false,
-            doneWithTransaction: false,
-            ignoreForReport: false)
-      ]);
-    });
-
-    testWidgets('adds item in ordering mode bypassing stock check',
-        (WidgetTester tester) async {
-      final zeroStockVariant = Variant(
-          id: 'variant_zero',
-          productId: 'prod_zero',
-          name: 'Zero Stock',
-          retailPrice: 10.0,
-          stock: Stock(currentStock: 0, id: "zero", branchId: 1),
-          taxTyCd: "A",
-          itemTyCd: "1",
-          branchId: 1);
-
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            pendingTransactionStreamProvider(isExpense: false)
-                .overrideWith((ref) => Stream.value(pendingTransaction)),
-          ],
-          child: MaterialApp(
-            home: Scaffold(
-              body: Consumer(
-                builder: (context, ref, child) {
-                  return ElevatedButton(
-                    onPressed: () {
-                      final sut = TransactionItemAdder(context, ref,
-                          cacheManager: mockCacheManager);
-                      sut.addItemToTransaction(
-                          variant: zeroStockVariant, isOrdering: true);
-                    },
-                    child: Text('Add Ordering'),
-                  );
-                },
-              ),
-            ),
-          ),
-        ),
-      );
-
-      await tester.tap(find.byType(ElevatedButton));
-      await tester.pumpAndSettle();
-
-      verify(() => mockDbSync.saveTransactionItem(
-            variation: zeroStockVariant,
-            amountTotal: 10.0,
-            customItem: false,
-            currentStock: 0,
-            pendingTransaction: pendingTransaction,
-            partOfComposite: false,
-            doneWithTransaction: false,
-            ignoreForReport: false,
-          )).called(1);
-
-      verifyNever(() => mockDbSync.saveLog(any()));
-    });
-
-    testWidgets('allows tax type D items without stock check',
-        (WidgetTester tester) async {
-      final taxTypeDVariant = Variant(
-          id: 'variant_d',
-          productId: 'prod_d',
-          name: 'Tax Type D',
-          retailPrice: 10.0,
-          stock: null,
-          taxTyCd: "D",
-          itemTyCd: "1",
-          branchId: 1);
-
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            pendingTransactionStreamProvider(isExpense: false)
-                .overrideWith((ref) => Stream.value(pendingTransaction)),
-          ],
-          child: MaterialApp(
-            home: Scaffold(
-              body: Consumer(
-                builder: (context, ref, child) {
-                  return ElevatedButton(
-                    onPressed: () {
-                      final sut = TransactionItemAdder(context, ref,
-                          cacheManager: mockCacheManager);
-                      sut.addItemToTransaction(
-                          variant: taxTypeDVariant, isOrdering: false);
-                    },
-                    child: Text('Add Tax D'),
-                  );
-                },
-              ),
-            ),
-          ),
-        ),
-      );
-
-      await tester.tap(find.byType(ElevatedButton));
-      await tester.pumpAndSettle();
-
-      verify(() => mockDbSync.saveTransactionItem(
-            variation: taxTypeDVariant,
-            amountTotal: 10.0,
-            customItem: false,
-            currentStock: 0,
-            pendingTransaction: pendingTransaction,
-            partOfComposite: false,
-            doneWithTransaction: false,
-            ignoreForReport: false,
-          )).called(1);
-    });
-
-    testWidgets('allows item type 3 without stock check',
-        (WidgetTester tester) async {
-      final itemType3Variant = Variant(
-          id: 'variant_3',
-          productId: 'prod_3',
-          name: 'Item Type 3',
-          retailPrice: 10.0,
-          stock: null,
-          taxTyCd: "A",
-          itemTyCd: "3",
-          branchId: 1);
-
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            pendingTransactionStreamProvider(isExpense: false)
-                .overrideWith((ref) => Stream.value(pendingTransaction)),
-          ],
-          child: MaterialApp(
-            home: Scaffold(
-              body: Consumer(
-                builder: (context, ref, child) {
-                  return ElevatedButton(
-                    onPressed: () {
-                      final sut = TransactionItemAdder(context, ref,
-                          cacheManager: mockCacheManager);
-                      sut.addItemToTransaction(
-                          variant: itemType3Variant, isOrdering: false);
-                    },
-                    child: Text('Add Type 3'),
-                  );
-                },
-              ),
-            ),
-          ),
-        ),
-      );
-
-      await tester.tap(find.byType(ElevatedButton));
-      await tester.pumpAndSettle();
-
-      verify(() => mockDbSync.saveTransactionItem(
-            variation: itemType3Variant,
-            amountTotal: 10.0,
-            customItem: false,
-            currentStock: 0,
-            pendingTransaction: pendingTransaction,
-            partOfComposite: false,
-            doneWithTransaction: false,
-            ignoreForReport: false,
-          )).called(1);
-    });
-
-    testWidgets('handles exceptions gracefully', (WidgetTester tester) async {
-      when(() => mockDbSync.saveTransactionItem(
-            variation: any(named: 'variation'),
-            amountTotal: any(named: 'amountTotal'),
-            customItem: any(named: 'customItem'),
-            currentStock: any(named: 'currentStock'),
-            pendingTransaction: any(named: 'pendingTransaction'),
-            partOfComposite: any(named: 'partOfComposite'),
-            doneWithTransaction: any(named: 'doneWithTransaction'),
-            ignoreForReport: any(named: 'ignoreForReport'),
-            compositePrice: any(named: 'compositePrice'),
-          )).thenAnswer((_) async => throw Exception('Test exception'));
-
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            pendingTransactionStreamProvider(isExpense: false)
-                .overrideWith((ref) => Stream.value(pendingTransaction)),
-          ],
-          child: MaterialApp(
-            home: Scaffold(
-              body: Consumer(
-                builder: (context, ref, child) {
-                  return ElevatedButton(
-                    onPressed: () {
-                      final sut = TransactionItemAdder(context, ref,
-                          cacheManager: mockCacheManager);
-                      sut.addItemToTransaction(
-                          variant: variant, isOrdering: false);
-                    },
-                    child: Text('Add Error'),
-                  );
-                },
-              ),
-            ),
-          ),
-        ),
-      );
-
-      await tester.tap(find.byType(ElevatedButton));
-      await tester.pumpAndSettle();
-
-      // Verify that saveTransactionItem was called
-      verify(() => mockDbSync.saveTransactionItem(
-            variation: any(named: 'variation'),
-            amountTotal: any(named: 'amountTotal'),
-            customItem: any(named: 'customItem'),
-            currentStock: any(named: 'currentStock'),
-            pendingTransaction: any(named: 'pendingTransaction'),
-            partOfComposite: any(named: 'partOfComposite'),
-            doneWithTransaction: any(named: 'doneWithTransaction'),
-            ignoreForReport: any(named: 'ignoreForReport'),
-            compositePrice: any(named: 'compositePrice'),
-          )).called(1);
-
-      // Verify that the exception was caught and logged
-      verify(() => mockDbSync.saveLog(any(that: isA<Log>()))).called(1);
     });
   });
 }

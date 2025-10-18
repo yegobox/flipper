@@ -782,6 +782,10 @@ class _RowItemState extends ConsumerState<RowItem>
     w?.start();
 
     if (widget.variant != null) {
+      // Debug: Log ttCatCd before adding to transaction
+      talker.warning(
+          "DEBUG: onTapItem - variant.ttCatCd before adding: ${widget.variant!.ttCatCd}");
+
       // Use the shared TransactionItemAdder
       final itemAdder = TransactionItemAdder(context, ref);
       await itemAdder.addItemToTransaction(

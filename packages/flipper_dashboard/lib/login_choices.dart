@@ -13,7 +13,7 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 import 'package:flipper_personal/flipper_personal.dart';
 // ignore: unnecessary_import unused_result
-
+import 'package:supabase_models/sync/ditto_sync_registry.dart';
 import 'dart:async';
 import 'package:flipper_dashboard/BranchSelectionMixin.dart';
 import 'package:flipper_dashboard/utils/error_handler.dart';
@@ -283,6 +283,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
 
       // Ensure counters are hydrated now that the branch context is known.
       await DittoSyncCoordinator.instance.hydrate<Counter>();
+      await DittoSyncRegistry.seedModel<Stock>();
 
       // Observers are now registered in _setDefaultBranch
       // They will automatically pull data and listen for changes

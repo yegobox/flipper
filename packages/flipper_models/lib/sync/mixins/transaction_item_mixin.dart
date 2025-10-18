@@ -150,7 +150,7 @@ mixin TransactionItemMixin implements TransactionItemInterface {
         final qtyUnitCd = variation.qtyUnitCd;
 
         transactionItem = TransactionItem(
-          ttCatCd: variation.ttCatCd ?? "",
+          ttCatCd: variation.ttCatCd,
           itemNm: variation.itemNm ?? variation.name, // Required
           lastTouched: lastTouched, // Required
           name: name, // Use the passed `name` parameter
@@ -441,7 +441,7 @@ mixin TransactionItemMixin implements TransactionItemInterface {
         query: Query(where: [
           if (itemIds != null && itemIds.isNotEmpty)
             Where('id').isIn(itemIds)
-          else ...[  
+          else ...[
             if (transactionId != null)
               Where('transactionId').isExactly(transactionId),
             if (branchId != null) Where('branchId').isExactly(branchId),

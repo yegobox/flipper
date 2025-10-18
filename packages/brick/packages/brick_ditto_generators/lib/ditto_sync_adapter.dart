@@ -32,12 +32,18 @@ class DittoAdapter {
   /// additional context (for example, the active branch).
   final bool hydrateOnStartup;
 
+  /// List of field names that should always be included in sync operations,
+  /// regardless of sync direction. Useful for ensuring critical fields like
+  /// 'id' are synced for proper record matching.
+  final List<String>? includeFields;
+
   /// Creates a DittoAdapter annotation.
   const DittoAdapter(
     this.collectionName, {
     this.syncDirection = SyncDirection.bidirectional,
     this.enableBackupPull = false,
     this.hydrateOnStartup = false,
+    this.includeFields,
   });
 }
 

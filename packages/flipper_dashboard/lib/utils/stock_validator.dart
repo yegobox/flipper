@@ -1,6 +1,7 @@
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/db_model_export.dart';
-import 'package:supabase_models/cache/cache_manager.dart';
+import 'package:flipper_services/proxy.dart';
 
 /// Validates if the requested quantities are available in stock
 /// Returns a list of out-of-stock items, or an empty list if all items are in stock
@@ -10,9 +11,14 @@ Future<List<TransactionItem>> validateStockQuantity(
   final outOfStockItems = <TransactionItem>[];
 
   for (final item in items) {
-    final stock = await CacheManager().getStockByVariantId(item.variantId!);
-    if (stock != null && stock.currentStock! < item.qty) {
-      outOfStockItems.add(item);
+    try {
+      final stock = await ProxyService.getStrategy(Strategy.capella).getStockByVariantId(item.variantId!);
+      if (stock != null && stock.currentStock! < item.qty) {
+        outOfStockItems.add(item);
+      }
+    } catch (e) {
+      // If we can't get stock info, assume it's available to avoid blocking transactions
+      continue;
     }
   }
 

@@ -18,8 +18,6 @@ import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
 import 'package:sqflite_common/sqlite_api.dart';
 import 'package:supabase_models/brick/models/configuration.model.dart';
 import 'package:supabase_models/brick/models/customer.model.dart';
-import 'package:supabase_models/brick/models/stock.model.dart';
-import 'package:supabase_models/cache/cache_manager.dart';
 import 'db/schema.g.dart';
 import 'package:path/path.dart';
 // ignore: depend_on_referenced_packages
@@ -481,12 +479,6 @@ class Repository extends OfflineFirstWithSupabaseRepository {
         unawaited(
           DittoSyncCoordinator.instance.notifyLocalUpsert(instance),
         );
-
-        // Additional handling for specific models
-        if (instance is Stock) {
-          await CacheManager().saveStocks([instance]);
-        }
-
         if (instance is Customer) {
           EventBus().fire(CustomerUpserted(instance));
         }
