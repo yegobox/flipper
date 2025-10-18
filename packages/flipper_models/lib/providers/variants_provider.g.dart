@@ -6,7 +6,7 @@ part of 'variants_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$variantHash() => r'1087d7e35846bbfe39bc10830811168991c39d3f';
+String _$variantHash() => r'a17d4daf12dfead182571ec7beb47c39c53bf2e8';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -205,7 +205,7 @@ class _VariantProviderElement
   bool get forPurchaseScreen => (origin as VariantProvider).forPurchaseScreen;
 }
 
-String _$purchaseVariantHash() => r'17228851252ad3be7b0ed58f9f535b6c62c05885';
+String _$purchaseVariantHash() => r'661e989996a1d7f320e5c09b8b37610691e224c4';
 
 /// See also [purchaseVariant].
 @ProviderFor(purchaseVariant)
