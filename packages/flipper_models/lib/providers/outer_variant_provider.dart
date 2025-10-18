@@ -10,7 +10,6 @@ import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/sync/models/paged_variants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:supabase_models/cache/cache_export.dart';
 
 part 'outer_variant_provider.g.dart';
 
@@ -109,16 +108,6 @@ class OuterVariants extends _$OuterVariants {
   /// Add newly created variants to the provider without full reload.
   void addVariants(List<Variant> newVariants) {
     if (newVariants.isEmpty || state.value == null) return;
-
-    final currentIds = state.value!.map((v) => v.id).toSet();
-    final uniqueNewVariants =
-        newVariants.where((v) => !currentIds.contains(v.id)).toList();
-
-    if (uniqueNewVariants.isNotEmpty) {
-      final newList = [...uniqueNewVariants, ...state.value!];
-      state = AsyncValue.data(newList);
-      unawaited(_saveStocksToCache(uniqueNewVariants));
-    }
   }
 
   /// Removes a variant from the state.
@@ -129,16 +118,6 @@ class OuterVariants extends _$OuterVariants {
   }
 
   /// Saves stock data to cache.
-  Future<void> _saveStocksToCache(List<Variant> variants) async {
-    try {
-      final variantsWithStock = variants.where((v) => v.stock != null).toList();
-      if (variantsWithStock.isNotEmpty) {
-        await CacheManager().saveStocksForVariants(variantsWithStock);
-      }
-    } catch (e) {
-      talker.error('Failed to save stocks to cache: $e');
-    }
-  }
 
   /// Public helper: fetch a specific page and replace current cache.
   Future<void> fetchPage(int page) async {

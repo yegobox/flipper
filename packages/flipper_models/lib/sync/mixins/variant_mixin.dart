@@ -9,7 +9,6 @@ import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/models/sars.model.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
-import 'package:supabase_models/cache/cache_manager.dart';
 import 'package:supabase_models/services/turbo_tax_service.dart';
 import 'package:uuid/uuid.dart';
 
@@ -256,7 +255,7 @@ mixin VariantMixin implements VariantInterface {
             // Create a new Stock instance with the new ID
             final updatedStock = variantToSave.stock!.copyWith(id: newStockId);
             await repository.upsert<Stock>(updatedStock);
-            await CacheManager().saveStocks([updatedStock]);
+
             // Update the variant with the new stock and stockId
             return await repository.upsert<Variant>(
               variantToSave.copyWith(
@@ -436,9 +435,6 @@ mixin VariantMixin implements VariantInterface {
         updatables[i].lastTouched = DateTime.now().toUtc();
         updatables[i].qty =
             (approvedQty ?? updatables[i].stock?.currentStock)?.toDouble();
-        if (updatables[i].stock != null) {
-          await CacheManager().saveStocks([updatables[i].stock!]);
-        }
 
         final updated = await repository.upsert<Variant>(updatables[i]);
 
@@ -489,7 +485,6 @@ mixin VariantMixin implements VariantInterface {
         lastTouched: DateTime.now().toUtc(),
       );
       await repository.upsert<Stock>(newStock);
-      await CacheManager().saveStocks([newStock]);
       variant.stock = newStock;
       variant.stockId = newStock.id;
     } else {

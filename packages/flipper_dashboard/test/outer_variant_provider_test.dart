@@ -7,7 +7,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mocktail/mocktail.dart';
-import 'package:supabase_models/cache/cache_export.dart';
 import 'package:flipper_services/FirebaseCrashlyticService.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
@@ -16,7 +15,6 @@ import 'test_helpers/setup.dart';
 
 // flutter test test/outer_variant_provider_test.dart --dart-define=FLUTTER_TEST_ENV=true
 // Mocks
-class MockCacheManager extends Mock implements CacheManager {}
 
 class MockCrash extends TalkerObserver implements Crash {
   @override
@@ -36,7 +34,7 @@ void main() {
   // Declare mock objects.
   late MockBox mockBox;
   late MockDatabaseSync mockDbSync;
-  late MockCacheManager mockCacheManager;
+
   late TestEnvironment env;
 
   // Sample data for testing.
@@ -84,8 +82,6 @@ void main() {
     // Manually inject mocks without full ProxyService setup
     mockBox = env.mockBox;
     mockDbSync = env.mockDbSync;
-    mockCacheManager = MockCacheManager();
-
     // Reset mocks to clear any previous stubs from other tests
     reset(mockDbSync);
     reset(env.mockSyncStrategy);
@@ -101,13 +97,6 @@ void main() {
 
     when(() => env.mockSyncStrategy.current).thenReturn(mockDbSync);
 
-    if (!GetIt.I.isRegistered<CacheManager>()) {
-      GetIt.I.registerSingleton<CacheManager>(mockCacheManager);
-    } else {
-      GetIt.I.unregister<CacheManager>();
-      GetIt.I.registerSingleton<CacheManager>(mockCacheManager);
-    }
-
     // Register Crash service to fix CI/CD issue
     if (!GetIt.I.isRegistered<Crash>()) {
       GetIt.I.registerSingleton<Crash>(MockCrash());
@@ -115,9 +104,6 @@ void main() {
 
     when(() => mockBox.itemPerPage()).thenReturn(10);
     when(() => mockBox.getBranchId()).thenReturn(1);
-    when(() => mockCacheManager.initialize()).thenAnswer((_) async => true);
-    when(() => mockCacheManager.saveStocksForVariants(any()))
-        .thenAnswer((_) async {});
 
     // Mock ebm() to return EBM with VAT enabled by default
     final ebmWithVatEnabled = Ebm(

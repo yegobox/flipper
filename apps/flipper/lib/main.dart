@@ -103,7 +103,8 @@ Future<void> main() async {
       setupBottomSheetUi();
       await initDependencies();
       await DittoSyncRegistry.registerDefaults();
-
+      
+    
       // Initialize transaction delegation service (desktop only)
       await _initializeTransactionDelegation();
     }

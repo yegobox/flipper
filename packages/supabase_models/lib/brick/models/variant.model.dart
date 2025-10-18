@@ -23,6 +23,7 @@ part 'variant.model.ditto_sync_adapter.g.dart';
   'variants',
   syncDirection: SyncDirection.bidirectional,
   enableBackupPull: true,
+  includeFields: ['id'],
 )
 class Variant extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
@@ -329,9 +330,9 @@ class Variant extends OfflineFirstWithSupabaseModel {
         spplrItemNm: parseOrDefault<String?>(json['spplrItemNm'], null),
         ebmSynced: parseOrDefault<bool>(json['ebmSynced'], false),
         dcRt: (json['dcRt'] as num?)?.toDouble() ?? 0.0,
-        propertyTyCd: parseOrDefault<String?>(json['propertyTyCd'], "01"),
-        roomTypeCd: parseOrDefault<String?>(json['roomTypeCd'], "03"),
-        ttCatCd: parseOrDefault<String?>(json['ttCatCd'], "TT"),
+        propertyTyCd: parseOrDefault<String?>(json['propertyTyCd'], null),
+        roomTypeCd: parseOrDefault<String?>(json['roomTypeCd'], null),
+        ttCatCd: parseOrDefault<String?>(json['ttCatCd'], null),
         expirationDate: (json['expirationDate'] != null)
             ? DateTime.tryParse(json['expirationDate'] as String)
             : null,
