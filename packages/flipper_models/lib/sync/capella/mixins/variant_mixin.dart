@@ -68,6 +68,9 @@ mixin CapellaVariantMixin implements VariantInterface {
         arguments['productId'] = productId;
       }
 
+      // Add sorting
+      query += ' ORDER BY lastTouched DESC';
+
       talker.info('Executing Ditto query: $query with args: $arguments');
 
       // Execute query
