@@ -192,9 +192,18 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
   Widget _buildVariantList(BuildContext context, ProductViewModel model) {
     return Consumer(
       builder: (context, ref, _) {
-        return ref
-            .watch(outerVariantsProvider(ProxyService.box.getBranchId() ?? 0))
-            .when(
+        final branchId = ProxyService.box.getBranchId() ?? 0;
+        final searchString = ref.watch(searchStringProvider);
+        final notifier = ref.read(outerVariantsProvider(branchId).notifier);
+
+        // Debug log for rebuilds (temporary)
+        try {
+          // ignore: avoid_print
+          print(
+              'ProductView: rebuild search="$searchString" notifier.loaded=${notifier.loadedCount} total=${notifier.totalCount}');
+        } catch (_) {}
+
+        return ref.watch(outerVariantsProvider(branchId)).when(
               data: (variants) {
                 if (variants.isEmpty) {
                   return Center(
@@ -281,6 +290,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
 
   Widget _buildVariantsGrid(BuildContext context, ProductViewModel model,
       {required List<Variant> variants}) {
+    // Debug display will be shown below after we obtain pagination helpers
     final showProductList = ref.watch(showProductsList);
 
     final dateRange = ref.watch(dateRangeProvider);
@@ -291,10 +301,10 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     final branchId = ProxyService.box.getBranchId() ?? 0;
     final notifier = ref.read(outerVariantsProvider(branchId).notifier);
     final ipp = notifier.itemsPerPage;
+    final searchString = ref.watch(searchStringProvider);
 
-    // Compute total and page info using notifier helper methods
-    final loadedCount =
-        ref.read(outerVariantsProvider(branchId).notifier).loadedCount;
+    // Use the provided (already filtered) variants for display and counts.
+    final loadedCount = variants.length;
     final estimatedTotalPages = ref
         .read(outerVariantsProvider(branchId).notifier)
         .estimatedTotalPages();
@@ -303,6 +313,14 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
+        // Small on-screen debug line to help diagnose search issues
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 6.0, horizontal: 16.0),
+          child: Text(
+            'debug: search="$searchString" loaded=${notifier.loadedCount} total=${notifier.totalCount ?? notifier.loadedCount}',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ),
         const SizedBox(height: 16),
         // Top summary row similar to attached screenshot
         Padding(
@@ -312,12 +330,12 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
             children: [
               // Showing X–Y of Z results
               Builder(builder: (context) {
-                final start = (_currentPage * ipp) + 1;
-                final end = ((_currentPage + 1) * ipp) > loadedCount
-                    ? loadedCount
+                final start = loadedCount == 0 ? 0 : (_currentPage * ipp) + 1;
+                final total = notifier.totalCount ?? loadedCount;
+                final end = ((_currentPage + 1) * ipp) > total
+                    ? total
                     : ((_currentPage + 1) * ipp);
-                final totalText =
-                    loadedCount == 0 ? '0' : loadedCount.toString();
+                final totalText = total.toString();
                 return Text(
                   'Showing $start–$end of $totalText results',
                   style: Theme.of(context).textTheme.bodyMedium,
@@ -353,14 +371,9 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
 
         // Flexible container that takes up remaining space
         Expanded(
-          child: _buildMainContentSection(
-              context,
-              model,
-              notifier.getPageItems(_currentPage),
-              showProductList,
-              startDate,
-              endDate,
-              ref),
+          // Use the filtered variants passed into this method for display.
+          child: _buildMainContentSection(context, model, variants,
+              showProductList, startDate, endDate, ref),
         ),
 
         // Bottom pagination controls

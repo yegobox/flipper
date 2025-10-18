@@ -22,6 +22,7 @@ class OuterVariants extends _$OuterVariants {
   int? _itemsPerPage;
   bool _hasMore = true;
   bool _isLoading = false;
+  String? _pendingSearch;
   Timer? _debounce;
   bool _isDisposed = false;
   bool _isVatEnabled = false; // Cached VAT status from EBM
@@ -83,19 +84,27 @@ class OuterVariants extends _$OuterVariants {
 
   /// Handles search logic by filtering in-memory and triggering debounced background searches.
   List<Variant> _handleSearch(int branchId, String searchString) {
-    // Cancel any previous debounce timer.
-    _debounce?.cancel();
-
     // Always filter by taxTyCds and search string
+    talker.info(
+        'OuterVariants: _handleSearch called with searchString="$searchString" (branchId=$branchId)');
     final filteredList = _filterInMemory(searchString);
 
-    // Trigger a debounced background search for more results if there's a search string
-    if (searchString.isNotEmpty) {
-      _debounce = Timer(const Duration(milliseconds: 300), () {
-        if (!_isDisposed) {
-          _backgroundSearch(branchId, searchString);
-        }
-      });
+    // If a search string exists, trigger a background search immediately.
+    // The UI/SearchField already debounces input, so we don't debounce here.
+    if (searchString.isNotEmpty && !_isDisposed) {
+      if (_isLoading) {
+        // If a background search is already running, queue the latest
+        // search string so it will be processed when the current fetch
+        // completes. This prevents missing quick successive searches.
+        talker.info(
+            'OuterVariants: background search in progress, queueing pending search="$searchString"');
+        _pendingSearch = searchString;
+      } else {
+        talker.info(
+            'OuterVariants: triggering background search for "$searchString"');
+        // schedule the background search to avoid any sync re-entrancy
+        Future.microtask(() => _backgroundSearch(branchId, searchString));
+      }
     }
 
     return filteredList;
@@ -134,6 +143,8 @@ class OuterVariants extends _$OuterVariants {
     if (_isLoading) return;
     _isLoading = true;
 
+    talker.info(
+        'OuterVariants: _backgroundSearch starting for "$searchString" (branchId=$branchId)');
     try {
       final newVariants = await _fetchVariants(
         branchId: branchId,
@@ -143,12 +154,25 @@ class OuterVariants extends _$OuterVariants {
 
       // Replace the cached current page with search results. We don't
       // accumulate pages during searches — server returns the requested page.
+      talker.info(
+          'OuterVariants: _backgroundSearch fetched ${newVariants.length} items for "$searchString"');
       _allLoadedVariants.clear();
       _allLoadedVariants.addAll(newVariants);
 
-      // Force rebuild of the provider to get the updated filtered results
+      // Update provider state immediately so UI consumers rebuild with
+      // the filtered results that correspond to the fetch we just performed.
+      final filteredVariants = _filterInMemory(searchString);
       if (!_isDisposed) {
-        ref.invalidateSelf();
+        state = AsyncValue.data(filteredVariants);
+      }
+
+      // If a pending search arrived while we were loading, process it next.
+      if (_pendingSearch != null && _pendingSearch != searchString) {
+        final nextSearch = _pendingSearch!;
+        _pendingSearch = null;
+        talker.info('OuterVariants: processing pending search="$nextSearch"');
+        // Use microtask to avoid sync re-entrancy
+        Future.microtask(() => _backgroundSearch(branchId, nextSearch));
       }
     } catch (e) {
       talker.error('Background search failed: $e');
@@ -163,6 +187,8 @@ class OuterVariants extends _$OuterVariants {
     required int page,
     required String searchString,
   }) async {
+    talker.info(
+        'OuterVariants: _fetchVariants called (page=$page, itemsPerPage=${_itemsPerPage ?? 'null'}, searchString="$searchString")');
     // Fetch all possible variants first, then filter based on VAT setting
     final isVatEnabled = _isVatEnabled; // Use cached VAT status
     final taxTyCds = isVatEnabled ? ['A', 'B', 'C', 'TT'] : ['D', 'TT'];
@@ -184,6 +210,8 @@ class OuterVariants extends _$OuterVariants {
 
     // Record total count when provided by the backend
     _totalCount = paged.totalCount;
+    talker.info(
+        'OuterVariants: _fetchVariants returned ${fetchedVariants.length} items (totalCount=${_totalCount ?? 'null'})');
 
     // Apply special filtering for non-VAT mode
     if (!isVatEnabled) {
@@ -193,8 +221,10 @@ class OuterVariants extends _$OuterVariants {
       }).toList();
     }
 
-    // Fallback logic.
-    if (fetchedVariants.isEmpty && searchString.isNotEmpty) {
+    // Fallback logic: if the primary fetch returned no results, try the
+    // alternate source (remote/local). This is important for pagination
+    // when non-zero pages may not be present in the local cache.
+    if (fetchedVariants.isEmpty) {
       final fallbackPaged =
           await ProxyService.getStrategy(Strategy.capella).variants(
         name: searchString.toLowerCase(),
