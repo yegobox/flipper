@@ -342,11 +342,11 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
 
         // Flexible container that takes up remaining space
         Expanded(
-          // Apply sorting to variants before displaying
+          // Only apply sorting when not searching to avoid interfering with auto-add
           child: _buildMainContentSection(
               context,
               model,
-              _sortVariants(variants, ref),
+              _shouldApplySorting(ref) ? _sortVariants(variants, ref) : variants,
               showProductList,
               startDate,
               endDate,
@@ -572,6 +572,12 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
         );
       },
     );
+  }
+
+  bool _shouldApplySorting(WidgetRef ref) {
+    final currentSearch = ref.watch(searchStringProvider);
+    // Don't apply sorting when actively searching to preserve auto-add functionality
+    return currentSearch.isEmpty;
   }
 
   List<Variant> _sortVariants(List<Variant> variants, WidgetRef ref) {

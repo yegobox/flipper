@@ -1,10 +1,9 @@
 // ignore_for_file: unused_result
 
 import 'package:flipper_dashboard/data_view_reports/DynamicDataSource.dart';
-import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_models/providers/outer_variant_provider.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
-import 'package:flipper_models/sync/models/paged_variants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
@@ -36,120 +35,109 @@ mixin HandleScannWhileSelling<T extends ConsumerStatefulWidget>
     controller.clear();
     hasText = false;
     if (value.isNotEmpty) {
-      // Show loading indicator immediately to give feedback to the user
-      // This helps with perceived performance, especially on Windows
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Row(
-              children: [
-                SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-                SizedBox(width: 10),
-                Text('Searching...'),
-              ],
-            ),
-            duration: Duration(milliseconds: 500),
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
+      // Trigger search in outerVariantsProvider
+      ref.read(searchStringProvider.notifier).emitString(value: value);
 
-      try {
-        final branchId = ProxyService.box.getBranchId()!;
-        final ebm = await ProxyService.strategy.ebm(branchId: branchId);
-        final taxTyCds =
-            ebm?.vatEnabled == true ? ['A', 'B', 'C', 'TT'] : ['D', 'TT'];
+      // Wait for search results
+      await Future.delayed(const Duration(milliseconds: 200));
 
-        // Search for variants (matches both name and barcode)
-        final pagedResult = await ProxyService.strategy
-            .variants(name: value, branchId: branchId, taxTyCds: taxTyCds)
-            .timeout(
-          const Duration(seconds: 10),
-          onTimeout: () {
-            return PagedVariants(variants: [], totalCount: 0);
-          },
-        );
-        List<Variant> variants = List<Variant>.from(pagedResult.variants);
+      // Get results from outerVariantsProvider
+      final branchId = ProxyService.box.getBranchId()!;
+      final variantsAsync = ref.read(outerVariantsProvider(branchId));
 
-        // Dismiss the loading indicator if it's still showing
-        if (mounted) {
-          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-        }
-
-        if (variants.isNotEmpty) {
-          if (variants.length == 1) {
-            // If only one variant is found, proceed directly
-            Variant variant = variants.first;
-            await _processTransaction(variant, model);
+      variantsAsync.when(
+        data: (variants) async {
+          if (variants.isNotEmpty) {
+            if (variants.length == 1) {
+              // If only one variant is found, proceed directly
+              await _processTransaction(variants.first, model);
+            } else {
+              // If multiple variants are found, prompt the user to select one
+              Variant? selectedVariant =
+                  await _showVariantSelectionDialog(variants);
+              if (selectedVariant != null) {
+                await _processTransaction(selectedVariant, model);
+              }
+            }
           } else {
-            // If multiple variants are found, prompt the user to select one
-            Variant? selectedVariant =
-                await _showVariantSelectionDialog(variants);
-            if (selectedVariant != null) {
-              await _processTransaction(selectedVariant, model);
+            // Show a message when no variants are found
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('No variants found for "$value"'),
+                  duration: const Duration(seconds: 2),
+                  behavior: SnackBarBehavior.floating,
+                ),
+              );
             }
           }
-        } else {
-          // Show a message when no variants are found
+        },
+        loading: () {
+          // Show loading indicator
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Row(
+                  children: [
+                    SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                    SizedBox(width: 10),
+                    Text('Searching...'),
+                  ],
+                ),
+                duration: Duration(milliseconds: 500),
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+        },
+        error: (error, _) {
+          // Handle errors
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text('No variants found for "$value"'),
+                content:
+                    Text('Error searching for variants: ${error.toString()}'),
                 duration: const Duration(seconds: 2),
                 behavior: SnackBarBehavior.floating,
               ),
             );
           }
-        }
-      } catch (e) {
-        // Handle errors during search
-        if (mounted) {
-          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Error searching for variants: ${e.toString()}'),
-              duration: const Duration(seconds: 2),
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-        }
-      }
+        },
+      );
     }
   }
 
   Future<void> searchAndAutoAdd(String value, CoreViewModel model,
       TextEditingController controller) async {
-    try {
-      final branchId = ProxyService.box.getBranchId()!;
-      final ebm = await ProxyService.strategy.ebm(branchId: branchId);
-      final taxTyCds =
-          ebm?.vatEnabled == true ? ['A', 'B', 'C', 'TT'] : ['D', 'TT'];
+    // Trigger search in outerVariantsProvider
+    ref.read(searchStringProvider.notifier).emitString(value: value);
 
-      // Search variants (matches both name and barcode)
-      final paged = await ProxyService.strategy.variants(
-        name: value,
-        branchId: branchId,
-        taxTyCds: taxTyCds,
-      );
-      final variants = List<Variant>.from(paged.variants);
+    // Wait for search results
+    await Future.delayed(const Duration(milliseconds: 100));
 
-      if (variants.length == 1) {
-        // Exactly one match - auto-add to cart
-        controller.clear();
-        hasText = false;
-        await _processTransaction(variants.first, model);
-      } else {
-        // Multiple or no matches - show search results
-        ref.read(searchStringProvider.notifier).emitString(value: value);
-      }
-    } catch (e) {
-      // On error, fall back to normal search
-      ref.read(searchStringProvider.notifier).emitString(value: value);
-    }
+    // Get results from outerVariantsProvider
+    final branchId = ProxyService.box.getBranchId()!;
+    final variantsAsync = ref.read(outerVariantsProvider(branchId));
+
+    variantsAsync.when(
+      data: (variants) async {
+        if (variants.length == 1) {
+          // Exactly one match - auto-add to cart
+          controller.clear();
+          hasText = false;
+          // Clear search to avoid showing search results
+          ref.read(searchStringProvider.notifier).emitString(value: "");
+          await _processTransaction(variants.first, model);
+        }
+        // If multiple or no matches, search results are already showing via outerVariantsProvider
+      },
+      loading: () {}, // Search is in progress
+      error: (e, _) {}, // Error handled by UI
+    );
   }
 
   Future<void> refreshTransactionItems({required String transactionId}) async {
