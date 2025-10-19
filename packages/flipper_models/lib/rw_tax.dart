@@ -1250,7 +1250,8 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         // update variant with the new rcptTyCd
         Variant variant = variants.first;
         variant.pchsSttsCd = pchsSttsCd;
-        ProxyService.strategy.updateVariant(updatables: [variant]);
+        ProxyService.strategy
+            .updateVariant(updatables: [variant], updateStock: false);
         return respond;
       } else {
         throw Exception(

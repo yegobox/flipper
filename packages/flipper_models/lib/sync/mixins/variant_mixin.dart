@@ -368,7 +368,8 @@ mixin VariantMixin implements VariantInterface {
       String? propertyTyCd,
       String? roomTypeCd,
       String? ttCatCd,
-      bool? ebmSynced}) async {
+      bool? ebmSynced,
+      bool updateStock = true}) async {
     if (variantId != null) {
       Variant? variant = await getVariant(id: variantId);
       if (variant != null) {
@@ -397,11 +398,21 @@ mixin VariantMixin implements VariantInterface {
         updatables[i].productName = name;
         if (updatables[i].stock == null) {
           await addStockToVariant(variant: updatables[i]);
-        } else {
+        } else if (updateStock == true) {
           updatables[i].stock!.currentStock =
               approvedQty?.toDouble() ?? updatables[i].stock!.currentStock;
           unawaited(
-            repository.upsert<Stock>(updatables[i].stock!),
+            ProxyService.strategy.updateStock(
+              stockId: updatables[i].stock!.id,
+              appending: true,
+              rsdQty:
+                  approvedQty?.toDouble() ?? updatables[i].stock!.currentStock,
+              initialStock: updatables[i].stock!.currentStock,
+              currentStock:
+                  approvedQty?.toDouble() ?? updatables[i].stock!.currentStock,
+              value: updatables[i].stock!.currentStock! *
+                  updatables[i].retailPrice!,
+            ),
           );
         }
 
