@@ -135,7 +135,7 @@ mixin CapellaVariantMixin implements VariantInterface {
   }
 
   @override
-  Future<Variant?> getVariant({
+  Future<Variant?>  getVariant({
     String? id,
     String? modrId,
     String? name,

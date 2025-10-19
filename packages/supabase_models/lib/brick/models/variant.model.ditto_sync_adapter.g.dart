@@ -22,8 +22,8 @@ part of 'variant.model.dart';
 // - import 'package:supabase_models/brick/repository.dart';
 // **************************************************************************
 //
-// Sync Direction: bidirectional
-// This adapter supports full bidirectional sync (send and receive).
+// Sync Direction: sendOnly
+// This adapter sends data to Ditto but does NOT receive remote updates.
 // **************************************************************************
 
 class VariantDittoAdapter extends DittoSyncAdapter<Variant> {
@@ -66,38 +66,10 @@ class VariantDittoAdapter extends DittoSyncAdapter<Variant> {
   String get collectionName => "variants";
 
   @override
-  bool get shouldHydrateOnStartup => false;
+  bool get shouldHydrateOnStartup => true;
 
   @override
-  bool get supportsBackupPull => true;
-
-  @override
-  Future<DittoSyncQuery?> buildBackupPullQuery() async {
-    final branchId = await _resolveBranchId();
-    if (branchId == null) {
-      if (kDebugMode) {
-        debugPrint(
-            "Ditto backup pull for Variant skipped because branch context is unavailable");
-      }
-      return const DittoSyncQuery(
-        query: "SELECT * FROM variants WHERE 1 = 0",
-      );
-    }
-    return DittoSyncQuery(
-      query: "SELECT * FROM variants WHERE branchId = :branchId",
-      arguments: {"branchId": branchId},
-    );
-  }
-
-  @override
-  List<DittoBackupLinkConfig> get backupLinks => const [
-        const DittoBackupLinkConfig(
-          field: "stockId",
-          targetType: Stock,
-          remoteKey: "id",
-          cascade: true,
-        ),
-      ];
+  bool get supportsBackupPull => false;
 
   Future<int?> _resolveBranchId({bool waitForValue = false}) async {
     int? branchId =
@@ -120,73 +92,8 @@ class VariantDittoAdapter extends DittoSyncAdapter<Variant> {
 
   @override
   Future<DittoSyncQuery?> buildObserverQuery() async {
-    // Cleanup any existing observer before creating new one
-    await _cleanupActiveObserver();
-    return _buildQuery(waitForBranchId: false);
-  }
-
-  /// Cleanup active observer to prevent live query buildup
-  Future<void> _cleanupActiveObserver() async {
-    if (_activeObserver != null) {
-      await _activeObserver?.cancel();
-      _activeObserver = null;
-    }
-    if (_activeSubscription != null) {
-      await _activeSubscription?.cancel();
-      _activeSubscription = null;
-    }
-  }
-
-  Future<DittoSyncQuery?> _buildQuery({required bool waitForBranchId}) async {
-    final branchId = await _resolveBranchId(waitForValue: waitForBranchId);
-    final branchIdString = ProxyService.box.branchIdString();
-    final bhfId = await ProxyService.box.bhfId();
-    final arguments = <String, dynamic>{};
-    final whereParts = <String>[];
-
-    if (branchId != null) {
-      whereParts.add('branchId = :branchId');
-      arguments["branchId"] = branchId;
-    }
-
-    if (branchIdString != null && branchIdString.isNotEmpty) {
-      whereParts.add(
-          '(branchId = :branchIdString OR branchIdString = :branchIdString)');
-      arguments["branchIdString"] = branchIdString;
-    }
-
-    if (bhfId != null && bhfId.isNotEmpty) {
-      whereParts.add('bhfId = :bhfId');
-      arguments["bhfId"] = bhfId;
-    }
-
-    if (whereParts.isEmpty) {
-      if (waitForBranchId) {
-        if (kDebugMode) {
-          debugPrint(
-              "Ditto hydration for Variant skipped because branch context is unavailable");
-        }
-        return null;
-      }
-      if (kDebugMode) {
-        debugPrint(
-            "Ditto observation for Variant deferred until branch context is available");
-      }
-      return const DittoSyncQuery(
-        query: "SELECT * FROM variants WHERE 1 = 0",
-      );
-    }
-
-    final whereClause = whereParts.join(" OR ");
-    return DittoSyncQuery(
-      query: "SELECT * FROM variants WHERE $whereClause",
-      arguments: arguments,
-    );
-  }
-
-  @override
-  Future<DittoSyncQuery?> buildHydrationQuery() async {
-    return _buildQuery(waitForBranchId: true);
+    // Send-only mode: no remote observation
+    return null;
   }
 
   @override
@@ -196,6 +103,7 @@ class VariantDittoAdapter extends DittoSyncAdapter<Variant> {
   Future<Map<String, dynamic>> toDittoDocument(Variant model) async {
     return {
       "_id": model.id,
+      "id": model.id,
       "purchaseId": model.purchaseId,
       "stockId": model.stockId,
       "taxPercentage": model.taxPercentage,

@@ -394,8 +394,8 @@ class _RowItemState extends ConsumerState<RowItem>
         // Stock display with live updates from Riverpod
         Consumer(
           builder: (context, ref, child) {
-            final stockAsync =
-                ref.watch(stockByVariantProvider(widget.variant?.id ?? ''));
+            final stockAsync = ref
+                .watch(stockByVariantProvider(widget.variant?.stockId ?? ''));
             final stockValue = stockAsync.value?.currentStock ?? 0;
 
             return Text(
@@ -495,7 +495,7 @@ class _RowItemState extends ConsumerState<RowItem>
                 Consumer(
                   builder: (context, ref, child) {
                     final stockAsync = ref.watch(
-                        stockByVariantProvider(widget.variant?.id ?? ''));
+                        stockByVariantProvider(widget.variant?.stockId ?? ''));
                     final stockValue = stockAsync.value?.currentStock ?? 0;
 
                     return Text(
@@ -915,9 +915,9 @@ class _RowItemState extends ConsumerState<RowItem>
               if (widget.variant != null) {
                 final strategy = ProxyService.getStrategy(Strategy.capella);
                 final stock =
-                    await strategy.getStockByVariantId(widget.variant!.id);
+                    await strategy.getStockById(id: widget.variant!.stockId!);
 
-                if (stock != null && (stock.currentStock ?? 0) > 0) {
+                if ((stock.currentStock ?? 0) > 0) {
                   final dialogService = locator<DialogService>();
                   dialogService.showCustomDialog(
                     variant: DialogType.info,

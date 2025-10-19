@@ -21,9 +21,9 @@ part 'variant.model.ditto_sync_adapter.g.dart';
 )
 @DittoAdapter(
   'variants',
-  syncDirection: SyncDirection.bidirectional,
-  enableBackupPull: true,
-  includeFields: ['id'],
+  syncDirection: SyncDirection.sendOnly,
+  hydrateOnStartup: true,
+  // includeFields: ['id'],
 )
 class Variant extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
@@ -264,7 +264,7 @@ class Variant extends OfflineFirstWithSupabaseModel {
 
       // Extract stock information if present
       Stock? stock;
-      String? stockId = const Uuid().v4();
+      String? stockId = parseOrDefault<String?>(json['stockId'], null);
 
       stock = Stock(
         id: stockId,

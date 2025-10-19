@@ -475,6 +475,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     }
     try {
       try {
+        instance = await super.upsert(instance, policy: policy, query: query);
         // Notify Ditto for all models
         unawaited(
           DittoSyncCoordinator.instance.notifyLocalUpsert(instance),
@@ -482,7 +483,6 @@ class Repository extends OfflineFirstWithSupabaseRepository {
         if (instance is Customer) {
           EventBus().fire(CustomerUpserted(instance));
         }
-        instance = await super.upsert(instance, policy: policy, query: query);
       } catch (e) {
         _logger.warning('Error notifying Ditto of local change: $e');
       }

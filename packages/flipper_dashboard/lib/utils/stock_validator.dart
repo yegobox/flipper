@@ -12,8 +12,11 @@ Future<List<TransactionItem>> validateStockQuantity(
 
   for (final item in items) {
     try {
-      final stock = await ProxyService.getStrategy(Strategy.capella).getStockByVariantId(item.variantId!);
-      if (stock != null && stock.currentStock! < item.qty) {
+      final variant = await ProxyService.getStrategy(Strategy.capella)
+          .getVariant(id: item.variantId);
+      final stock = await ProxyService.getStrategy(Strategy.capella)
+          .getStockById(id: variant!.stockId!);
+      if (stock.currentStock! < item.qty) {
         outOfStockItems.add(item);
       }
     } catch (e) {

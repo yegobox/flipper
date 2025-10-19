@@ -2,7 +2,6 @@ import 'package:flipper_models/db_model_export.dart';
 
 abstract class StockInterface {
   Future<Stock?> getStockById({required String id});
-  Future<Stock?> getStockByVariantId(String variantId);
   Future<void> updateStock({
     required String stockId,
     double? qty,
@@ -23,5 +22,5 @@ abstract class StockInterface {
       required int branchId,
       required double currentStock,
       required double value});
-  Stream<Stock?> watchStockByVariantId(String variantId);
+  Stream<Stock?> watchStockByVariantId({required String stockId});
 }

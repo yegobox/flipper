@@ -105,6 +105,7 @@ class TransactionItemDittoAdapter extends DittoSyncAdapter<TransactionItem> {
   Future<Map<String, dynamic>> toDittoDocument(TransactionItem model) async {
     return {
       "_id": model.id,
+      "id": model.id,
       "name": model.name,
       "quantityRequested": model.quantityRequested,
       "quantityApproved": model.quantityApproved,

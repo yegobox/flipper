@@ -4,6 +4,7 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:talker/talker.dart';
+import 'package:flutter/foundation.dart';
 
 mixin CapellaStockMixin implements StockInterface {
   Repository get repository;
@@ -17,6 +18,9 @@ mixin CapellaStockMixin implements StockInterface {
       if (ditto == null) {
         talker.error('Ditto not initialized');
         throw Exception('Ditto not initialized');
+      }
+      if (id == "47f23ea5-c922-4f5b-bc11-cb6871eb59f0") {
+        debugPrint("we got the stock requested");
       }
 
       final result = await ditto.store.execute(
@@ -35,31 +39,6 @@ mixin CapellaStockMixin implements StockInterface {
     }
   }
 
-  @override
-  Future<Stock?> getStockByVariantId(String variantId) async {
-    try {
-      final ditto = dittoService.dittoInstance;
-      if (ditto == null) {
-        talker.error('Ditto not initialized');
-        return null;
-      }
-
-      final result = await ditto.store.execute(
-        'SELECT * FROM stocks WHERE variantId = :variantId LIMIT 1',
-        arguments: {'variantId': variantId},
-      );
-
-      if (result.items.isNotEmpty) {
-        final stockData = Map<String, dynamic>.from(result.items.first.value);
-        return _convertFromDittoDocument(stockData);
-      }
-      return null;
-    } catch (e) {
-      talker.error('Error getting stock by variant ID: $e');
-      return null;
-    }
-  }
-
   /// Watch stock by ID and get updates as a stream
   Stream<Stock?> watchStockById(String id) {
     try {
@@ -67,6 +46,9 @@ mixin CapellaStockMixin implements StockInterface {
       if (ditto == null) {
         talker.error('Ditto not initialized');
         return Stream.value(null);
+      }
+      if (id == "47f23ea5-c922-4f5b-bc11-cb6871eb59f0") {
+        debugPrint("we got the stock requested");
       }
 
       final controller = StreamController<Stock?>.broadcast();
@@ -222,7 +204,7 @@ mixin CapellaStockMixin implements StockInterface {
   }
 
   @override
-  Stream<Stock?> watchStockByVariantId(String variantId) {
+  Stream<Stock?> watchStockByVariantId({required String stockId}) {
     try {
       final ditto = dittoService.dittoInstance;
       if (ditto == null) {
@@ -234,8 +216,8 @@ mixin CapellaStockMixin implements StockInterface {
       dynamic observer;
 
       observer = ditto.store.registerObserver(
-        'SELECT * FROM stocks WHERE variantId = :variantId',
-        arguments: {'variantId': variantId},
+        'SELECT * FROM stocks WHERE id = :id',
+        arguments: {'id': stockId},
         onChange: (queryResult) {
           if (controller.isClosed) return;
 

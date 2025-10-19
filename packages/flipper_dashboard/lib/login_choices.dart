@@ -283,7 +283,6 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
 
       // Ensure counters are hydrated now that the branch context is known.
       await DittoSyncCoordinator.instance.hydrate<Counter>();
-      await DittoSyncRegistry.seedModel<Stock>();
 
       // Observers are now registered in _setDefaultBranch
       // They will automatically pull data and listen for changes

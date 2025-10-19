@@ -16,13 +16,10 @@ mixin StockMixin implements StockInterface {
         .firstOrNull;
   }
 
-  @override
-  Future<Stock?> getStockByVariantId(String variantId) async {
-    throw UnimplementedError('getStockByVariantId needs to be implemented');
-  }
+
 
   @override
-  Stream<Stock?> watchStockByVariantId(String variantId) {
+  Stream<Stock?> watchStockByVariantId({required String stockId}) {
     throw UnimplementedError('watchStockByVariantId needs to be implemented');
   }
 
