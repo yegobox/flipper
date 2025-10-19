@@ -53,7 +53,7 @@ class TransactionItemAdder {
         // Get the latest stock from cache
         Stock? cachedStock;
         if (variant.id.isNotEmpty) {
-          cachedStock = await ProxyService.getStrategy(Strategy.capella).getStockByVariantId(variant.id);
+          cachedStock = await ProxyService.getStrategy(Strategy.capella).getStockById(id: variant.stockId!);
         }
 
         // Use cached stock if available, otherwise fall back to variant.stock

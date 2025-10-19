@@ -79,7 +79,7 @@ void main() {
     env.stubCommonMethods();
     mockDbSync = env.mockDbSync;
 
-    when(() => mockDbSync.getStockByVariantId(any()))
+    when(() => mockDbSync.getStockById(id: any()))
         .thenAnswer((_) async => Stock(currentStock: 5, id: "1", branchId: 1));
 
     when(() => mockDbSync.saveLog(any())).thenAnswer((_) async {});
@@ -171,7 +171,7 @@ void main() {
           itemTyCd: "1",
           branchId: 1);
 
-      when(() => mockDbSync.getStockByVariantId('variant_2')).thenAnswer(
+      when(() => mockDbSync.getStockById(id: 'variant_2')).thenAnswer(
           (_) async => Stock(currentStock: 0, id: "2", branchId: 1));
 
       await tester.pumpWidget(

@@ -8,6 +8,7 @@ import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
 import 'package:flipper_dashboard/providers/customer_provider.dart';
 // ignore: unused_import
 import 'package:flipper_dashboard/utils/snack_bar_utils.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/providers/pay_button_provider.dart';
 import 'package:flipper_models/providers/selected_provider.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
@@ -240,19 +241,19 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         if (item.itemTyCd == "3") {
           continue;
         }
-        final variant =
-            await ProxyService.strategy.getVariant(id: item.variantId!);
+        final variant = await ProxyService.getStrategy(Strategy.capella)
+            .getVariant(id: item.variantId!);
 
         // Only deduct stock when we have a variant and we're NOT in proforma/training mode
         if (variant != null && !isProformaOrTraining) {
-          final stock = variant.stock;
-          if (stock != null) {
-            originalStockQuantities[stock.id] =
-                stock.currentStock!; // Store original
-            final newStock = stock.currentStock! - item.qty;
-            await ProxyService.strategy.updateStock(
-                stockId: stock.id, currentStock: newStock, rsdQty: newStock);
-          }
+          final stock = await ProxyService.getStrategy(Strategy.capella)
+              .getStockById(id: variant.stockId!);
+
+          originalStockQuantities[stock.id] =
+              stock.currentStock!; // Store original
+          final newStock = stock.currentStock! - item.qty;
+          await ProxyService.strategy.updateStock(
+              stockId: stock.id, currentStock: newStock, rsdQty: newStock);
         }
       }
 

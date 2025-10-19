@@ -1,0 +1,13 @@
+fix: resolve data inconsistencies by decoupling Stock and Variant
+
+This commit fixes data inconsistencies and synchronization issues by decoupling the `Stock` and `Variant` models.
+
+Previously, a tight coupling between `Stock` and `Variant` (via `variantId` in `Stock`) caused problems with data integrity, especially during synchronization. This change inverts the relationship, with `Variant` now holding a `stockId`.
+
+Key changes:
+- Replaced `getStockByVariantId` with `getStockById` across the app.
+- Updated the `Variant` model to include a `stockId`.
+- Changed `Variant`'s sync direction to `sendOnly` to prevent data conflicts.
+- Ensured the `id` field is always included in `toDittoDocument` for all models to improve data consistency in Ditto.
+
+This resolves issues where stock updates could fail or be inconsistent, leading to a more robust and reliable data layer.

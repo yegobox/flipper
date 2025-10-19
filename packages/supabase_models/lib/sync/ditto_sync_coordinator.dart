@@ -113,12 +113,12 @@ class DittoSyncCoordinator {
     if (docId == null) {
       return;
     }
-
+    
     if (_suppressedIds[T]?.remove(docId) == true) {
       // Skip feedback loops caused by remote upserts.
       return;
     }
-
+    debugPrint('DittoSyncCoordinator: notifyLocalUpsert for $T ($docId)');
     try {
       final document = await adapter.toDittoDocument(model);
       await ditto.store.execute(

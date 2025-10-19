@@ -741,14 +741,14 @@ final showProductsList = AutoDisposeStateProvider<bool>((ref) => true);
 
 // Stock stream provider for live stock updates
 final stockByVariantProvider =
-    StreamProvider.autoDispose.family<Stock?, String>((ref, variantId) {
-  if (variantId.isEmpty) {
+    StreamProvider.autoDispose.family<Stock?, String>((ref, stockId) {
+  if (stockId.isEmpty) {
     return Stream.value(null);
   }
 
   try {
     return ProxyService.getStrategy(Strategy.capella)
-        .watchStockByVariantId(variantId);
+        .watchStockByVariantId(stockId: stockId);
   } catch (e) {
     print('Error setting up stock stream from strategy: $e');
     return Stream.value(null);

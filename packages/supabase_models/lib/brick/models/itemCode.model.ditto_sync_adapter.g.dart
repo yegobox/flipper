@@ -103,6 +103,7 @@ class ItemCodeDittoAdapter extends DittoSyncAdapter<ItemCode> {
   Future<Map<String, dynamic>> toDittoDocument(ItemCode model) async {
     return {
       "_id": model.id,
+      "id": model.id,
       "code": model.code,
       "createdAt": model.createdAt.toIso8601String(),
       "branchId": model.branchId,

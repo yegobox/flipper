@@ -242,7 +242,7 @@ mixin VariantMixin implements VariantInterface {
       variations.map((variant) async {
         try {
           // Create a new variant with a UUID if one doesn't exist
-          final variantToSave = variant.id.isEmpty
+          var variantToSave = variant.id.isEmpty
               ? variant.copyWith(
                   id: const Uuid().v4(),
                   branchId: branchId,
@@ -250,19 +250,23 @@ mixin VariantMixin implements VariantInterface {
               : variant.copyWith(branchId: branchId);
 
           // Handle stock if it exists
-          if (variantToSave.stock != null && variantToSave.stock!.id.isEmpty) {
-            final newStockId = const Uuid().v4();
-            // Create a new Stock instance with the new ID
-            final updatedStock = variantToSave.stock!.copyWith(id: newStockId);
-            await repository.upsert<Stock>(updatedStock);
+          if (variantToSave.stock != null) {
+            if (variantToSave.stock!.id.isEmpty) {
+              final newStockId = const Uuid().v4();
+              // Create a new Stock instance with the new ID
+              final updatedStock =
+                  variantToSave.stock!.copyWith(id: newStockId);
+              await repository.upsert<Stock>(updatedStock);
 
-            // Update the variant with the new stock and stockId
-            return await repository.upsert<Variant>(
-              variantToSave.copyWith(
+              // Update the variant with the new stock and stockId
+              variantToSave = variantToSave.copyWith(
                 stock: updatedStock,
                 stockId: newStockId,
-              ),
-            );
+              );
+            } else {
+              // Even if stock has an ID, upsert it to ensure it's synced to Ditto
+              await repository.upsert<Stock>(variantToSave.stock!);
+            }
           }
 
           final newVariantSaved =
@@ -393,6 +397,10 @@ mixin VariantMixin implements VariantInterface {
         updatables[i].productName = name;
         if (updatables[i].stock == null) {
           await addStockToVariant(variant: updatables[i]);
+        } else {
+          unawaited(
+            repository.upsert<Stock>(updatables[i].stock!),
+          );
         }
 
         updatables[i].name = name;
