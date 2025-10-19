@@ -18,6 +18,7 @@ import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
 import 'package:sqflite_common/sqlite_api.dart';
 import 'package:supabase_models/brick/models/configuration.model.dart';
 import 'package:supabase_models/brick/models/customer.model.dart';
+import 'package:supabase_models/brick/models/stock.model.dart';
 import 'db/schema.g.dart';
 import 'package:path/path.dart';
 // ignore: depend_on_referenced_packages
@@ -477,6 +478,9 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       try {
         instance = await super.upsert(instance, policy: policy, query: query);
         // Notify Ditto for all models
+        if (instance is Stock) {
+          debugPrint('New Current Stock: ${instance.currentStock}');
+        }
         unawaited(
           DittoSyncCoordinator.instance.notifyLocalUpsert(instance),
         );

@@ -398,6 +398,8 @@ mixin VariantMixin implements VariantInterface {
         if (updatables[i].stock == null) {
           await addStockToVariant(variant: updatables[i]);
         } else {
+          updatables[i].stock!.currentStock =
+              approvedQty?.toDouble() ?? updatables[i].stock!.currentStock;
           unawaited(
             repository.upsert<Stock>(updatables[i].stock!),
           );
