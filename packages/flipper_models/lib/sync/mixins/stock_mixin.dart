@@ -1,3 +1,4 @@
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helper_models.dart';
 import 'package:flipper_models/sync/interfaces/stock_interface.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -10,13 +11,9 @@ mixin StockMixin implements StockInterface {
 
   @override
   Future<Stock?> getStockById({required String id}) async {
-    return (await repository.get<Stock>(
-      query: Query(where: [Where('id').isExactly(id)]),
-    ))
-        .firstOrNull;
+    return await ProxyService.getStrategy(Strategy.capella)
+        .getStockById(id: id);
   }
-
-
 
   @override
   Stream<Stock?> watchStockByVariantId({required String stockId}) {

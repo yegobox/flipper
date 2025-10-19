@@ -135,7 +135,7 @@ mixin CapellaVariantMixin implements VariantInterface {
   }
 
   @override
-  Future<Variant?>  getVariant({
+  Future<Variant?> getVariant({
     String? id,
     String? modrId,
     String? name,
@@ -233,6 +233,7 @@ mixin CapellaVariantMixin implements VariantInterface {
       String? propertyTyCd,
       String? roomTypeCd,
       String? ttCatCd,
+      bool updateStock = true,
       Map<String, String>? dates}) {
     throw UnimplementedError(
         'updateVariant needs to be implemented for Capella');

@@ -1074,6 +1074,7 @@ class CoreViewModel extends FlipperBaseModel
         await ProxyService.strategy.updateVariant(
           updatables: [purchaseVariant],
           updateIo: false,
+          updateStock: (purchaseVariant.assigned ?? false) ? false : true,
         );
       }
 
@@ -1229,15 +1230,12 @@ class CoreViewModel extends FlipperBaseModel
   }) async {
     // When mapping, the item from the purchase should be marked as assigned.
     purchaseVariant.assigned = true;
-    await _updateVariantStock(
-      item: purchaseVariant,
-      existingVariantToUpdate: existingVariant,
-    );
 
     purchaseVariant.pchsSttsCd = "03"; // Mapped status
 
     await ProxyService.strategy.updateVariant(
       updatables: [purchaseVariant],
+      updateStock: false,
     );
 
     existingVariant.ebmSynced = false;
@@ -1357,11 +1355,21 @@ class CoreViewModel extends FlipperBaseModel
       existingVariantToUpdate = variantToMapTo[incomingImportVariant.id];
       if (existingVariantToUpdate != null) {
         existingVariantToUpdate.ebmSynced = false;
-        await _updateVariantStock(
-            item: incomingImportVariant,
-            existingVariantToUpdate: existingVariantToUpdate);
 
-        /// get updated variant with new stock
+        // Merge incoming quantity into the existing variant's stock locally
+        final double incomingQty =
+            incomingImportVariant.stock?.currentStock ?? 0.0;
+        existingVariantToUpdate.stock!.currentStock =
+            (existingVariantToUpdate.stock!.currentStock ?? 0.0) + incomingQty;
+
+        // Persist the merged stock via updateVariant so updateStock is invoked once
+        await ProxyService.strategy.updateVariant(
+          updatables: [existingVariantToUpdate],
+          approvedQty: existingVariantToUpdate.stock?.currentStock,
+          updateStock: true
+        );
+
+        // Refresh the existing variant from storage to get the authoritative state
         existingVariantToUpdate = await ProxyService.strategy
                 .getVariant(id: existingVariantToUpdate.id) ??
             incomingImportVariant;
@@ -1373,8 +1381,8 @@ class CoreViewModel extends FlipperBaseModel
         incomingImportVariant.imptItemSttsCd = "3";
         existingVariantToUpdate.ebmSynced = true;
         incomingImportVariant.assigned = true;
-        await ProxyService.strategy
-            .updateVariant(updatables: [incomingImportVariant]);
+        await ProxyService.strategy.updateVariant(
+            updatables: [incomingImportVariant], updateStock: false);
         await ProxyService.strategy.updateVariant(
           updatables: [existingVariantToUpdate],
           approvedQty: incomingImportVariant.stock?.currentStock,
@@ -1407,22 +1415,6 @@ class CoreViewModel extends FlipperBaseModel
 
     await ProxyService.tax
         .updateImportItems(item: incomingImportVariant, URI: URI);
-  }
-
-  Future<void> _updateVariantStock(
-      {required Variant item, required Variant existingVariantToUpdate}) async {
-    try {
-      await ProxyService.strategy.updateStock(
-          stockId: existingVariantToUpdate.stock!.id,
-          appending: true,
-          rsdQty: item.stock!.currentStock,
-          initialStock: item.stock!.currentStock,
-          currentStock: item.stock!.currentStock,
-          value: item.stock!.currentStock! * item.retailPrice!);
-    } catch (e) {
-      debugPrint(
-          'Failed to update stock for ${existingVariantToUpdate.id}: $e');
-    }
   }
 
   Future<void> _updateVariant(Variant variant, {double? approvedQty}) async {
