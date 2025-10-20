@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:supabase_models/brick/models/all_models.dart';
+import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_services/proxy.dart';
 
 // Add provider for selected variant state
 final selectedVariantProvider =
@@ -41,13 +43,23 @@ Future<void> showVariantEditDialog(
 
                   return DropdownSearch<Variant>(
                     selectedItem: selectedVariant,
-                    items: (a, b) => variants,
+                    items: (filter, loadProps) => _searchVariants(filter),
                     compareFn: (Variant i, Variant s) => i.id == s.id,
                     itemAsString: (Variant v) => v.name,
                     decoratorProps: const DropDownDecoratorProps(
                       baseStyle: TextStyle(fontSize: 13),
                       decoration: InputDecoration(
                         border: OutlineInputBorder(),
+                      ),
+                    ),
+                    popupProps: const PopupProps.menu(
+                      showSearchBox: true,
+                      searchFieldProps: TextFieldProps(
+                        decoration: InputDecoration(
+                          hintText: 'Search variants...',
+                          border: OutlineInputBorder(),
+                          contentPadding: EdgeInsets.symmetric(horizontal: 12),
+                        ),
                       ),
                     ),
                     onChanged: (Variant? itemToAssign) {
@@ -104,4 +116,42 @@ Future<void> showVariantEditDialog(
       );
     },
   );
+}
+
+Future<List<Variant>> _searchVariants(String filter) async {
+  final branchId = ProxyService.box.getBranchId();
+  if (branchId == null) return [];
+
+  if (filter.isEmpty) {
+    // Return initial variants when no search filter
+    final variants = await ProxyService.getStrategy(Strategy.capella).variants(
+      name: '',
+      fetchRemote: false,
+      branchId: branchId,
+      page: 0,
+      itemsPerPage: 20,
+      taxTyCds: ['A', 'B', 'C', 'D', 'TT'],
+      scanMode: false,
+    );
+    return variants.variants
+        .where((v) => v.itemTyCd != '3')
+        .cast<Variant>()
+        .toList();
+  }
+
+  // Perform global search similar to search_field.dart
+  final variants = await ProxyService.getStrategy(Strategy.capella).variants(
+    name: filter.toLowerCase(),
+    fetchRemote: true, // Always fetch remote for searches
+    branchId: branchId,
+    page: 0,
+    itemsPerPage: 50, // Larger page size for search results
+    taxTyCds: ['A', 'B', 'C', 'D', 'TT'],
+    scanMode: false,
+  );
+
+  return variants.variants
+      .where((v) => v.itemTyCd != '3')
+      .cast<Variant>()
+      .toList();
 }

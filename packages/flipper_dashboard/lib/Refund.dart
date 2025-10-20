@@ -120,12 +120,6 @@ class _RefundState extends ConsumerState<Refund> {
                             isRefundProcessing = false;
                           });
                           return;
-                        } else if (widget.transaction!.receiptType == "PS") {
-                          toast("Can not refund a proforma");
-                          setState(() {
-                            isRefundProcessing = false;
-                          });
-                          return;
                         } else if (widget.transaction!.receiptType == "NS") {
                           await proceed(receiptType: "NR");
                         }
@@ -142,8 +136,7 @@ class _RefundState extends ConsumerState<Refund> {
                   busy: isPrintingCopy,
                   title: "Print Copy Receipt",
                   onTap: () async {
-                    if (widget.transaction!.receiptType == "TS" ||
-                        widget.transaction!.receiptType == "PS") {
+                    if (widget.transaction!.receiptType == "TS") {
                       toast("This receipt does not have a copy to print");
                       return;
                     }
@@ -154,13 +147,12 @@ class _RefundState extends ConsumerState<Refund> {
                         try {
                           if (widget.transaction!.receiptType == "PS") {
                             if (widget.transaction!.isRefunded ?? false) {
-                              await handleReceipt(filterType: FilterType.CP);
+                              await handleReceipt(filterType: FilterType.PR);
                             } else {
                               await handleReceipt(filterType: FilterType.CP);
                             }
                           } else {
                             if (widget.transaction!.isRefunded ?? false) {
-                              // I removed PR was await handleReceipt(filterType: FilterType.PR);
                               await handleReceipt(filterType: FilterType.CR);
                             } else {
                               await handleReceipt(filterType: FilterType.CS);

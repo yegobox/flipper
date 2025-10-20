@@ -1,4 +1,5 @@
 import 'package:flipper_models/providers/outer_variant_provider.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -59,7 +60,7 @@ class VariantSelectionDropdown extends HookConsumerWidget {
         }
 
         return DropdownSearch<Variant>(
-          items: (filter, infiniteScrollProps) => filteredVariants,
+          items: (filter, loadProps) => _searchVariants(filter, branchId),
           selectedItem: currentlySelectedVariant,
           itemAsString: (variant) => variant.name,
           compareFn: (Variant a, Variant b) => a.id == b.id,
@@ -93,5 +94,42 @@ class VariantSelectionDropdown extends HookConsumerWidget {
             style: TextStyle(color: Colors.red)),
       ),
     );
+  }
+
+  Future<List<Variant>> _searchVariants(
+      String filter, dynamic loadProps) async {
+    if (filter.isEmpty) {
+      // Return initial variants when no search filter
+      final variants =
+          await ProxyService.getStrategy(Strategy.capella).variants(
+        name: '',
+        fetchRemote: false,
+        branchId: ProxyService.box.getBranchId()!,
+        page: 0,
+        itemsPerPage: 20,
+        taxTyCds: ['A', 'B', 'C', 'D', 'TT'],
+        scanMode: false,
+      );
+      return variants.variants
+          .where((v) => v.itemTyCd != '3')
+          .cast<Variant>()
+          .toList();
+    }
+
+    // Perform global search similar to search_field.dart
+    final variants = await ProxyService.getStrategy(Strategy.capella).variants(
+      name: filter.toLowerCase(),
+      fetchRemote: true, // Always fetch remote for searches
+      branchId: ProxyService.box.getBranchId()!,
+      page: 0,
+      itemsPerPage: 50, // Larger page size for search results
+      taxTyCds: ['A', 'B', 'C', 'D', 'TT'],
+      scanMode: false,
+    );
+
+    return variants.variants
+        .where((v) => v.itemTyCd != '3')
+        .cast<Variant>()
+        .toList();
   }
 }
