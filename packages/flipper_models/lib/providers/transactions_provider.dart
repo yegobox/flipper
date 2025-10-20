@@ -159,17 +159,19 @@ Stream<List<TransactionItem>> transactionItemList(Ref ref) {
 Stream<ITransaction> pendingTransactionStream(Ref ref,
     {required bool isExpense, bool forceRealData = true}) async* {
   int? branchId = ProxyService.box.getBranchId();
-  
+
   // If branch ID is null, wait a bit and retry
   if (branchId == null) {
     await Future.delayed(Duration(milliseconds: 100));
     branchId = ProxyService.box.getBranchId();
-    
+
     if (branchId == null) {
-      throw StateError('No default branch selected. Please select a branch first.');
+      throw StateError(
+          'No default branch selected. Please select a branch first.');
     }
   }
-  
+
+  // First, check if there's already a pending transaction
   yield* ProxyService.strategy.manageTransactionStream(
     transactionType:
         isExpense ? TransactionType.purchase : TransactionType.sale,

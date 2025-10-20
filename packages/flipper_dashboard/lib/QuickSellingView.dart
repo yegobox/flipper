@@ -213,7 +213,12 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       transactionItemsStreamProvider(transactionId: transaction.id),
     );
 
-    await newTransaction(typeOfThisTransactionIsExpense: false);
+    await newTransaction(
+        typeOfThisTransactionIsExpense: ProxyService.box.isOrdering() ?? false);
+
+    // Refresh the pending transaction provider to pick up the new transaction
+    ref.refresh(pendingTransactionStreamProvider(
+        isExpense: ProxyService.box.isOrdering() ?? false));
 
     if (ref.read(previewingCart)) {
       ref.read(previewingCart.notifier).state = false;

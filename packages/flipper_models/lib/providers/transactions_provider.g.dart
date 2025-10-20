@@ -314,7 +314,7 @@ final transactionItemListProvider =
 typedef TransactionItemListRef
     = AutoDisposeStreamProviderRef<List<TransactionItem>>;
 String _$pendingTransactionStreamHash() =>
-    r'd998ee70ad56ca1e6b875cf6df9aed00e39b03ce';
+    r'6ef5c5b67f17594dd1db1bbf945951bf8f0f8d75';
 
 /// See also [pendingTransactionStream].
 @ProviderFor(pendingTransactionStream)
