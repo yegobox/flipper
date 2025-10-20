@@ -435,58 +435,18 @@ mixin TransactionMixin implements TransactionInterface {
   }) async* {
     _isProcessingTransactionMap[branchId] ??= false;
 
-    // Check for an existing transaction - always use includeSubTotalCheck: false
-    // to find any existing PENDING transaction regardless of subtotal
-    ITransaction? transaction = await _pendingTransaction(
+    // Yield initial or existing transaction
+    ITransaction transaction = await _getOrCreateTransaction(
       branchId: branchId,
       isExpense: isExpense,
-      status: PENDING,
       transactionType: transactionType,
-      includeSubTotalCheck: true,
     );
+    yield transaction;
 
-    // If no transaction exists, create and insert a new one
-    if (transaction == null && !_isProcessingTransactionMap[branchId]!) {
-      _isProcessingTransactionMap[branchId] = true;
-
-      ITransaction? createdTransaction;
-
-      try {
-        final now = DateTime.now().toUtc();
-        final randomRef = randomNumber().toString();
-
-        createdTransaction = ITransaction(
-          lastTouched: now,
-          reference: randomRef,
-          transactionNumber: randomRef,
-          status: PENDING,
-          isExpense: isExpense,
-          isIncome: !isExpense,
-          transactionType: transactionType,
-          subTotal: 0.0,
-          cashReceived: 0.0,
-          updatedAt: now,
-          customerChangeDue: 0.0,
-          paymentType: ProxyService.box.paymentType() ?? "Cash",
-          branchId: branchId,
-          createdAt: now,
-        );
-
-        transaction = await repository.upsert<ITransaction>(createdTransaction);
-      } catch (e, s) {
-        talker.error('Error creating pending transaction stream entry: $e');
-        talker.error(s);
-        transaction ??= createdTransaction;
-      } finally {
-        _isProcessingTransactionMap[branchId] = false;
-      }
-    }
-    if (transaction != null) {
-      yield transaction;
-    }
-    // Listen for changes in the transaction data
+    // Poll for updates
     while (true) {
-      // Always use includeSubTotalCheck: true to find any existing PENDING transaction
+      await Future.delayed(Duration(seconds: 1));
+
       final updatedTransaction = await _pendingTransaction(
         branchId: branchId,
         isExpense: isExpense,
@@ -498,45 +458,75 @@ mixin TransactionMixin implements TransactionInterface {
       if (updatedTransaction != null) {
         yield updatedTransaction;
       } else {
-        // No pending transaction found during polling — create a new one
-        if (!_isProcessingTransactionMap[branchId]!) {
-          _isProcessingTransactionMap[branchId] = true;
-          try {
-            final now = DateTime.now().toUtc();
-            final randomRef = randomNumber().toString();
-
-            final createdTransaction = ITransaction(
-              lastTouched: now,
-              reference: randomRef,
-              transactionNumber: randomRef,
-              status: PENDING,
-              isExpense: isExpense,
-              isIncome: !isExpense,
-              transactionType: transactionType,
-              subTotal: 0.0,
-              cashReceived: 0.0,
-              updatedAt: now,
-              customerChangeDue: 0.0,
-              paymentType: ProxyService.box.paymentType() ?? "Cash",
-              branchId: branchId,
-              createdAt: now,
-            );
-
-            transaction =
-                await repository.upsert<ITransaction>(createdTransaction);
-            yield transaction;
-          } catch (e, s) {
-            talker
-                .error('Error creating pending transaction in stream loop: $e');
-            talker.error(s);
-          } finally {
-            _isProcessingTransactionMap[branchId] = false;
-          }
-        }
+        // Transaction was completed/deleted, create new one
+        transaction = await _getOrCreateTransaction(
+          branchId: branchId,
+          isExpense: isExpense,
+          transactionType: transactionType,
+        );
+        yield transaction;
       }
+    }
+  }
 
-      // Add a delay to avoid busy-waiting
-      await Future.delayed(Duration(seconds: 1));
+// Extracted helper method to reduce duplication
+  Future<ITransaction> _getOrCreateTransaction({
+    required int branchId,
+    required bool isExpense,
+    required String transactionType,
+  }) async {
+    // Check for existing transaction
+    final existing = await _pendingTransaction(
+      branchId: branchId,
+      isExpense: isExpense,
+      status: PENDING,
+      transactionType: transactionType,
+      includeSubTotalCheck: true,
+    );
+
+    if (existing != null) return existing;
+
+    // Create new transaction with lock
+    if (_isProcessingTransactionMap[branchId]!) {
+      // Wait briefly and retry if already processing
+      await Future.delayed(Duration(milliseconds: 100));
+      return _getOrCreateTransaction(
+        branchId: branchId,
+        isExpense: isExpense,
+        transactionType: transactionType,
+      );
+    }
+
+    _isProcessingTransactionMap[branchId] = true;
+
+    try {
+      final now = DateTime.now().toUtc();
+      final randomRef = randomNumber().toString();
+
+      final newTransaction = ITransaction(
+        lastTouched: now,
+        reference: randomRef,
+        transactionNumber: randomRef,
+        status: PENDING,
+        isExpense: isExpense,
+        isIncome: !isExpense,
+        transactionType: transactionType,
+        subTotal: 0.0,
+        cashReceived: 0.0,
+        updatedAt: now,
+        customerChangeDue: 0.0,
+        paymentType: ProxyService.box.paymentType() ?? "Cash",
+        branchId: branchId,
+        createdAt: now,
+      );
+
+      return await repository.upsert<ITransaction>(newTransaction);
+    } catch (e, s) {
+      talker.error('Error creating pending transaction: $e');
+      talker.error(s);
+      rethrow; // Let caller handle the error
+    } finally {
+      _isProcessingTransactionMap[branchId] = false;
     }
   }
 

@@ -262,29 +262,6 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       final double finalSubTotal = transactionItems.fold(
           0, (sum, item) => sum + (item.price * item.qty));
 
-      await ProxyService.strategy.updateTransaction(
-        transaction: transaction,
-        status: COMPLETE,
-        cashReceived: ProxyService.box.getCashReceived(),
-        subTotal: finalSubTotal,
-      );
-      transaction.subTotal =
-          finalSubTotal; // Update the local object's subTotal
-      // Save payment methods
-      for (var payment in paymentMethods) {
-        await ProxyService.strategy.savePaymentType(
-          singlePaymentOnly: paymentMethods.length == 1,
-          amount: payment.amount,
-          transactionId: transaction.id,
-          paymentMethod: payment.method,
-        );
-      }
-
-      // Validate transaction
-      if (transaction.subTotal == 0) {
-        throw Exception("Remove item and add them back, we encountered error");
-      }
-
       final amount = double.tryParse(receivedAmountController.text) ?? 0;
       final discount = double.tryParse(discountController.text) ?? 0;
 
@@ -312,6 +289,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           amount: amount,
           discount: discount,
           branchId: branchId,
+          paymentMethods: paymentMethods,
           completeTransaction: completeTransaction,
           paymentType: paymentType,
           onPaymentConfirmed: onPaymentConfirmed,
@@ -326,10 +304,13 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           customer: customer,
           transaction: transaction,
           amount: amount,
+          paymentMethods: paymentMethods,
           discount: discount,
           paymentType: paymentType,
           completeTransaction: () async {
             // Show success confirmation before completing
+            await markTransactionAsCompleted(
+                transaction, finalSubTotal, paymentMethods);
             if (mounted && context.mounted) {
               showCustomSnackBarUtil(
                 context,
@@ -392,6 +373,26 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     }
   }
 
+  Future<void> markTransactionAsCompleted(ITransaction transaction,
+      double finalSubTotal, List<Payment> paymentMethods) async {
+    await ProxyService.strategy.updateTransaction(
+      transaction: transaction,
+      status: COMPLETE,
+      cashReceived: ProxyService.box.getCashReceived(),
+      subTotal: finalSubTotal,
+    );
+    transaction.subTotal = finalSubTotal; // Update the local object's subTotal
+    // Save payment methods
+    for (var payment in paymentMethods) {
+      await ProxyService.strategy.savePaymentType(
+        singlePaymentOnly: paymentMethods.length == 1,
+        amount: payment.amount,
+        transactionId: transaction.id,
+        paymentMethod: payment.method,
+      );
+    }
+  }
+
   Future<Customer?> _getCustomer(String? customerId) async {
     if (customerId == null) return null;
 
@@ -432,6 +433,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     required String paymentType,
     Function? onPaymentConfirmed,
     Function(String)? onPaymentFailed,
+    required List<Payment> paymentMethods,
   }) async {
     try {
       // customer.telNo from database already has country code (e.g., "+250783054874")
@@ -555,6 +557,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                   transaction: transaction,
                   amount: amount,
                   discount: discount,
+                  paymentMethods: paymentMethods,
                   paymentType: paymentType,
                   completeTransaction: () {
                     // For digital payments, don't call completeTransaction yet
@@ -617,6 +620,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     required double discount,
     required String paymentType,
     required Function completeTransaction,
+    required List<Payment> paymentMethods,
   }) async {
     try {
       // Check if widget is still mounted before using ref
@@ -651,7 +655,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         if (mounted) {
           ref.read(payButtonStateProvider.notifier).stopLoading();
           ref.refresh(pendingTransactionStreamProvider(
-            isExpense: false,
+            isExpense: ProxyService.box.isOrdering() ?? false,
           ));
         }
       } else {
@@ -675,7 +679,8 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
         if (mounted) {
           ref.read(payButtonStateProvider.notifier).stopLoading();
-          ref.refresh(pendingTransactionStreamProvider(isExpense: false));
+          ref.refresh(pendingTransactionStreamProvider(
+              isExpense: ProxyService.box.isOrdering() ?? false));
         }
       }
 
@@ -864,27 +869,24 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                     ),
                   ),
                   actions: <Widget>[
-                    TextButton(
-                      child: Text(
-                        'Cancel',
-                        style: TextStyle(color: Colors.grey[600]),
-                      ),
-                      onPressed: () {
-                        // Stop any loading/processing state and return false
-                        ref.read(payButtonStateProvider.notifier).stopLoading();
-                        ref
-                            .read(isProcessingProvider.notifier)
-                            .stopProcessing();
-                        Navigator.of(dialogContext).pop(false);
-                      },
-                    ),
                     BlocBuilder<PurchaseCodeFormBloc, FormBlocState>(
                       builder: (context, state) {
-                        return FlipperButton(
-                          busy: state is FormBlocSubmitting,
-                          text: 'Submit',
-                          textColor: Colors.black,
-                          onPressed: () => formBloc.submit(),
+                        return Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            TextButton(
+                              onPressed: () =>
+                                  Navigator.of(dialogContext).pop(false),
+                              child: Text('Cancel'),
+                            ),
+                            SizedBox(width: 8),
+                            FlipperButton(
+                              busy: state is FormBlocSubmitting,
+                              text: 'Submit',
+                              textColor: Colors.black,
+                              onPressed: () => formBloc.submit(),
+                            ),
+                          ],
                         );
                       },
                     ),
