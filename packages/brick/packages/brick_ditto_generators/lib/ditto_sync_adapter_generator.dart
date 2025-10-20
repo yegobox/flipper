@@ -465,8 +465,12 @@ String _generateFieldsMapping(List<FieldElement> fields) {
     if (_shouldExcludeFromDitto(field)) {
       continue;
     }
-    final fieldKey = field.name == 'id' ? '_id' : field.name;
-    buffer.writeln('      "$fieldKey": ${_serializeField(field)},');
+    if (field.name == 'id') {
+      buffer.writeln('      "_id": ${_serializeField(field)},');
+      buffer.writeln('      "id": ${_serializeField(field)},');
+    } else {
+      buffer.writeln('      "${field.name}": ${_serializeField(field)},');
+    }
   }
   return buffer.toString();
 }

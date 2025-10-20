@@ -3,7 +3,6 @@ library;
 
 /// List of required imports for generated Ditto sync adapter files.
 const List<String> requiredImports = [
-  'package:brick_core/query.dart',
   'package:brick_offline_first/brick_offline_first.dart',
   'package:flipper_services/proxy.dart',
   'package:flutter/foundation.dart',

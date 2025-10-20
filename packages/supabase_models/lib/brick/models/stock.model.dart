@@ -1,4 +1,3 @@
-import 'package:brick_core/query.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
@@ -19,8 +18,7 @@ part 'stock.model.ditto_sync_adapter.g.dart';
 )
 @DittoAdapter(
   'stocks',
-  syncDirection: SyncDirection.sendOnly,
-  hydrateOnStartup: true,
+  syncDirection: SyncDirection.bidirectional,
 )
 class Stock extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
