@@ -3,6 +3,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:supabase_models/brick/models/all_models.dart';
+import 'package:dropdown_search/dropdown_search.dart';
 
 /// A widget that displays a dropdown button for selecting a product variant.
 ///
@@ -57,24 +58,30 @@ class VariantSelectionDropdown extends HookConsumerWidget {
               .firstWhere((v) => v.id == initialSelectedVariantId);
         }
 
-        return DropdownButton<String>(
-          value: currentlySelectedVariant?.id,
-          hint: const Text('Select Variant'),
-          isExpanded: true, // Allow dropdown to use available horizontal space
-          items: filteredVariants.map((variant) {
-            return DropdownMenuItem<String>(
-              value: variant.id,
-              child: Text(variant.name),
-            );
-          }).toList(),
-          onChanged: (value) {
-            if (value != null) {
-              final selectedVariant =
-                  filteredVariants.firstWhere((variant) => variant.id == value);
-              onVariantSelected(selectedVariant);
-            } else {
-              onVariantSelected(null);
-            }
+        return DropdownSearch<Variant>(
+          items: (filter, infiniteScrollProps) => filteredVariants,
+          selectedItem: currentlySelectedVariant,
+          itemAsString: (variant) => variant.name,
+          compareFn: (Variant a, Variant b) => a.id == b.id,
+          decoratorProps: const DropDownDecoratorProps(
+            decoration: InputDecoration(
+              hintText: 'Select Variant',
+              border: OutlineInputBorder(),
+              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            ),
+          ),
+          popupProps: const PopupProps.menu(
+            showSearchBox: true,
+            searchFieldProps: TextFieldProps(
+              decoration: InputDecoration(
+                hintText: 'Search variants...',
+                border: OutlineInputBorder(),
+                contentPadding: EdgeInsets.symmetric(horizontal: 12),
+              ),
+            ),
+          ),
+          onChanged: (selectedVariant) {
+            onVariantSelected(selectedVariant);
           },
         );
       },

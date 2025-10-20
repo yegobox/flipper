@@ -1,6 +1,5 @@
 import 'package:flipper_dashboard/constants/import_options.dart';
 import './variant_selection_dropdown.dart';
-import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:supabase_models/brick/models/all_models.dart';
@@ -75,18 +74,36 @@ class ImportInputRow extends HookConsumerWidget {
     required String hintText,
     String? Function(String?)? validator,
   }) {
-    return StyledTextFormField.create(
-      context: context,
-      labelText: hintText,
-      hintText: hintText,
+    return TextFormField(
       controller: controller,
+      decoration: InputDecoration(
+        hintText: hintText,
+        hintStyle: TextStyle(color: Colors.grey[400]),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: Colors.grey[300]!),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: Colors.grey[300]!),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(
+            color: Color(0xFF0078D4),
+            width: 2,
+          ),
+        ),
+        filled: true,
+        fillColor: Colors.grey[50],
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
+      ),
       keyboardType: TextInputType.multiline,
       maxLines: 3,
       minLines: 1,
-      onChanged: (value) {
-        // This onChanged callback is available if needed for immediate reactions
-        // to text field changes, though currently not used for state updates here.
-      },
       validator: validator,
     );
   }
@@ -94,31 +111,109 @@ class ImportInputRow extends HookConsumerWidget {
   Widget _buildActionButtons(BuildContext context) {
     return Row(
       children: [
-        FlipperButton(
+        ElevatedButton(
           onPressed: anyLoading ? null : saveChangeMadeOnItemCallback,
-          text: 'Save Changes',
-          textColor: Colors.black,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF0078D4),
+            foregroundColor: Colors.white,
+            elevation: 0,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
+          child: const Text(
+            'Save Changes',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
+            ),
+          ),
         ),
         const SizedBox(width: 8),
-        FlipperIconButton(
+        ElevatedButton.icon(
           onPressed:
               anyLoading ? null : () => acceptAllImportCallback(finalItemList),
-          icon: Icons.done_all,
-          text: 'Accept All',
+          icon: const Icon(Icons.done_all, size: 18),
+          label: const Text('Accept All'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF10B981),
+            foregroundColor: Colors.white,
+            elevation: 0,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+          ),
         ),
       ],
     );
   }
 
+  Widget _buildStatusFilterDropdown(BuildContext context) {
+    return DropdownButtonFormField<String?>(
+      initialValue: selectedFilterStatus,
+      decoration: InputDecoration(
+        labelText: 'Filter by Status',
+        labelStyle: TextStyle(
+          color: Colors.grey[600],
+          fontSize: 14,
+          fontWeight: FontWeight.w500,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: Colors.grey[300]!),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: BorderSide(color: Colors.grey[300]!),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(8),
+          borderSide: const BorderSide(
+            color: Color(0xFF0078D4),
+            width: 2,
+          ),
+        ),
+        filled: true,
+        fillColor: Colors.grey[50],
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
+      ),
+      items: importStatusOptions.entries.map((entry) {
+        return DropdownMenuItem<String?>(
+          value: entry.key,
+          child: Text(
+            entry.value,
+            style: const TextStyle(fontSize: 14),
+          ),
+        );
+      }).toList(),
+      onChanged: onFilterStatusChanged,
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Card(
-      elevation: 2,
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12, left: 16, right: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         child: Row(
-          crossAxisAlignment:
-              CrossAxisAlignment.start, // Align items to the top
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
               child: _buildTextField(
@@ -155,10 +250,15 @@ class ImportInputRow extends HookConsumerWidget {
                 initialSelectedVariantId: selectedItemForDropdown?.id,
                 onVariantSelected: (selectedVariant) {
                   if (variantSelectedWhenClickingOnRow != null) {
-                    if (selectedVariant != null && selectedVariant.id != variantSelectedWhenClickingOnRow!.id) {
+                    if (selectedVariant != null &&
+                        selectedVariant.id !=
+                            variantSelectedWhenClickingOnRow!.id) {
                       // User explicitly selected a DIFFERENT variant to map to
-                      variantMap[variantSelectedWhenClickingOnRow!.id] = selectedVariant;
-                    } else if (selectedVariant == null || selectedVariant.id == variantSelectedWhenClickingOnRow!.id) {
+                      variantMap[variantSelectedWhenClickingOnRow!.id] =
+                          selectedVariant;
+                    } else if (selectedVariant == null ||
+                        selectedVariant.id ==
+                            variantSelectedWhenClickingOnRow!.id) {
                       // User unselected or selected the same item, so remove any existing mapping for this imported item
                       variantMap.remove(variantSelectedWhenClickingOnRow!.id);
                     }
@@ -173,20 +273,7 @@ class ImportInputRow extends HookConsumerWidget {
             // Status Filter Dropdown
             Expanded(
               flex: 1,
-              child: DropdownButtonFormField<String?>(
-                value: selectedFilterStatus,
-                decoration: const InputDecoration(
-                  labelText: 'Filter by Status',
-                  border: OutlineInputBorder(),
-                ),
-                items: importStatusOptions.entries.map((entry) {
-                  return DropdownMenuItem<String?>(
-                    value: entry.key,
-                    child: Text(entry.value),
-                  );
-                }).toList(),
-                onChanged: onFilterStatusChanged,
-              ),
+              child: _buildStatusFilterDropdown(context),
             ),
           ],
         ),
