@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +8,13 @@ import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:supabase_models/brick/models/stock.model.dart';
+
+final stockProvider =
+    FutureProvider.family<Stock, String>((ref, stockId) async {
+  return await ProxyService.getStrategy(Strategy.capella)
+      .getStockById(id: stockId);
+});
 
 class ItemsDialog extends StatefulHookConsumerWidget {
   final DialogRequest request;
@@ -135,13 +143,6 @@ class _ItemsDialogState extends ConsumerState<ItemsDialog> {
                         WidgetsBinding.instance.addPostFrameCallback((_) {
                           toast(
                               'Found ${transactions.length} transactions synced');
-                          // ScaffoldMessenger.of(context).showSnackBar(
-                          //   SnackBar(
-                          //     content: Text(
-                          //         'Found ${transactions.length} transactions synced'),
-                          //     duration: const Duration(seconds: 2),
-                          //   ),
-                          // );
                         });
                         return const Center(
                             child: Text('Transactions synced successfully'));
@@ -184,8 +185,20 @@ class _ItemsDialogState extends ConsumerState<ItemsDialog> {
                                 trailing: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Text(
-                                        'Stock: ${variant.stock?.currentStock ?? 0}'),
+                                    if (variant.stock != null)
+                                      ref
+                                          .watch(
+                                              stockProvider(variant.stock!.id))
+                                          .when(
+                                            data: (stock) => Text(
+                                                'Stock: ${stock.currentStock ?? 0}'),
+                                            loading: () =>
+                                                const Text('Stock: loading...'),
+                                            error: (err, stack) =>
+                                                const Text('Stock: error'),
+                                          )
+                                    else
+                                      const Text('Stock: 0'),
                                     IconButton(
                                       icon: const Icon(Icons.copy),
                                       onPressed: () {
