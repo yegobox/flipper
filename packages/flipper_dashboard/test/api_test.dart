@@ -202,12 +202,12 @@ void main() {
 
     // Tests that acceptPurchase correctly handles variant mappings.
     // - Verifies that getVariant is called to retrieve the existing variant.
-    // - Ensures that updateStock is called to merge the stock of the incoming variant with the existing mapped variant.
+    // - Ensures that updateVariant and updateIoFunc are called to merge the stock of the incoming variant with the existing mapped variant.
     test('#acceptPurchase should handle variant mappings', () async {
       final incomingVariant = _createTestVariant();
       final testPurchase = _createTestPurchase(variants: [incomingVariant]);
       final itemMapper = {
-        "existing_variant_1": incomingVariant,
+        "existing_variant_1": [incomingVariant],
       };
 
       // Stub getVariant to return a different existing variant
@@ -218,15 +218,22 @@ void main() {
         ),
       );
 
-      // Stub updateStock for the variant mapping scenario
-      when(() => mockDbSync.updateStock(
-            stockId: any(named: 'stockId'),
-            appending: any(named: 'appending'),
-            rsdQty: any(named: 'rsdQty'),
-            initialStock: any(named: 'initialStock'),
-            currentStock: any(named: 'currentStock'),
-            value: any(named: 'value'),
-          )).thenAnswer((_) async {});
+      // Stub updateVariant for the variant mapping scenario
+      when(() => mockDbSync.updateVariant(
+            updatables: any(named: 'updatables'),
+            purchase: any(named: 'purchase'),
+            approvedQty: any(named: 'approvedQty'),
+            invoiceNumber: any(named: 'invoiceNumber'),
+            updateIo: any(named: 'updateIo'),
+            updateStock: any(named: 'updateStock'),
+          )).thenAnswer((_) async => 1);
+
+      // Stub updateIoFunc
+      when(() => mockDbSync.updateIoFunc(
+            variant: any(named: 'variant'),
+            purchase: any(named: 'purchase'),
+            approvedQty: any(named: 'approvedQty'),
+          )).thenAnswer((_) async => 1);
 
       // Act
       await coreViewModel.acceptPurchase(
@@ -238,13 +245,18 @@ void main() {
 
       // Assert
       verify(() => mockDbSync.getVariant(id: "existing_variant_1")).called(1);
-      verify(() => mockDbSync.updateStock(
-            stockId: "existing_variant_1_stock",
-            appending: true,
-            rsdQty: 15.0,
-            initialStock: 15.0,
-            currentStock: 15.0,
-            value: 15.0 * 150.0,
+      verify(() => mockDbSync.updateVariant(
+            updatables: any(named: 'updatables'),
+            purchase: testPurchase,
+            approvedQty: 15.0,
+            invoiceNumber: 1,
+            updateIo: false,
+            updateStock: true,
+          )).called(1);
+      verify(() => mockDbSync.updateIoFunc(
+            variant: any(named: 'variant'),
+            purchase: testPurchase,
+            approvedQty: 15.0,
           )).called(1);
     });
 
