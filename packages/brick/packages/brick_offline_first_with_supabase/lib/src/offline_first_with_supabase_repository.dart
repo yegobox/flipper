@@ -434,3 +434,4 @@ abstract class OfflineFirstWithSupabaseRepository<
     return (client, RestOfflineRequestQueue(client: client));
   }
 }
+

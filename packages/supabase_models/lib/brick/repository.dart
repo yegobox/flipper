@@ -464,6 +464,34 @@ class Repository extends OfflineFirstWithSupabaseRepository {
   }
 
   @override
+  Future<bool> delete<TModel extends OfflineFirstWithSupabaseModel>(
+    TModel instance, {
+    OfflineFirstDeletePolicy policy = OfflineFirstDeletePolicy.optimisticLocal,
+    Query? query,
+  }) async {
+    try {
+      final result = await super.delete(instance,
+          policy: OfflineFirstDeletePolicy.optimisticLocal, query: query);
+      if (result) {
+        unawaited(DittoSyncCoordinator.instance.notifyLocalDelete(instance));
+      }
+      return result;
+    } on PostgrestException catch (e) {
+      logger.warning('#delete supabase failure: $e');
+      if (policy == OfflineFirstDeletePolicy.requireRemote) {
+        throw OfflineFirstException(e);
+      }
+    } on AuthRetryableFetchException catch (e) {
+      logger.warning('#delete supabase failure: $e');
+      if (policy == OfflineFirstDeletePolicy.requireRemote) {
+        throw OfflineFirstException(e);
+      }
+    }
+
+    return false;
+  }
+
+  @override
   Future<TModel> upsert<TModel extends OfflineFirstWithSupabaseModel>(
     TModel instance, {
     OfflineFirstUpsertPolicy policy = OfflineFirstUpsertPolicy.optimisticLocal,
@@ -494,39 +522,6 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       return instance;
     } catch (e) {
       _logger.severe('Error during upsert: $e');
-      rethrow;
-    }
-  }
-
-  @override
-  Future<bool> delete<TModel extends OfflineFirstWithSupabaseModel>(
-    TModel instance, {
-    OfflineFirstDeletePolicy policy = OfflineFirstDeletePolicy.optimisticLocal,
-    Query? query,
-  }) async {
-    if (_isDisposed) {
-      _logger.warning(
-          'Attempted to call delete on a disposed Repository. Operation aborted.');
-      throw StateError('Repository is disposed');
-    }
-    try {
-      if (instance is Counter) {
-        // Only delete locally for Counter
-        final result = await super.delete(instance,
-            policy: OfflineFirstDeletePolicy.optimisticLocal, query: query);
-        if (result) {
-          unawaited(DittoSyncCoordinator.instance.notifyLocalDelete(instance));
-        }
-        return result;
-      }
-      final success =
-          await super.delete(instance, policy: policy, query: query);
-      if (success) {
-        unawaited(DittoSyncCoordinator.instance.notifyLocalDelete(instance));
-      }
-      return success;
-    } catch (e) {
-      _logger.severe('Error during delete: $e');
       rethrow;
     }
   }

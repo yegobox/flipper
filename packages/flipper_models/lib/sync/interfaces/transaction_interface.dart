@@ -133,7 +133,7 @@ abstract class TransactionInterface {
       required ITransaction pendingTransaction,
       required bool ignoreForReport,
       bool isDoneWithTransaction = false});
-  FutureOr<void> updateTransaction({
+  Future<void> updateTransaction({
     ITransaction? transaction,
     String? receiptType,
     double? subTotal,

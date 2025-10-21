@@ -535,7 +535,7 @@ class CustomersState extends ConsumerState<Customers> {
             SlidableAction(
               onPressed: (_) {
                 model.assignToSale(
-                    customerId: customer.id, transactionId: transaction.id);
+                    customer: customer, transactionId: transaction.id);
                 model.getTransactionById();
               },
               backgroundColor: successColor,
@@ -581,7 +581,7 @@ class CustomersState extends ConsumerState<Customers> {
             borderRadius: BorderRadius.circular(12),
             onTap: () {
               model.assignToSale(
-                  customerId: customer.id, transactionId: transaction.id);
+                  customer: customer, transactionId: transaction.id);
               model.getTransactionById();
             },
             child: Padding(
@@ -780,7 +780,7 @@ class CustomersState extends ConsumerState<Customers> {
       );
     } else {
       final customer = filteredCustomers.first;
-      model.assignToSale(customerId: customer.id, transactionId: id);
+      model.assignToSale(customer: customer, transactionId: id);
     }
   }
 }

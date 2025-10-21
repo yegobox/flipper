@@ -194,7 +194,7 @@ class _SearchInputWithDropdownState
     final transaction = ref.read(pendingTransactionStreamProvider(
       isExpense: false,
     ));
-
+    ProxyService.box.remove(key: 'customerTin');
     if (transaction.value?.id != null) {
       await ProxyService.strategy.removeCustomerFromTransaction(
         transaction: transaction.value!,
@@ -249,24 +249,9 @@ class _SearchInputWithDropdownState
     try {
       customerNameController.text = customer.custNm!;
       await ProxyService.strategy.assignCustomerToTransaction(
-        customerId: customer.id,
+        customer: customer,
         transactionId: transaction.id,
       );
-
-      // Persist the selected customer details onto the pending transaction
-      // so that transaction.customerId, customerName and customerTin are stored
-      // and available to tax/receipt builders and other consumers.
-      try {
-        await ProxyService.strategy.updateTransaction(
-          transaction: transaction,
-          customerId: customer.id,
-          customerName: customer.custNm,
-          customerTin: customer.custTin,
-        );
-      } catch (e, s) {
-        talker.error(
-            'Failed to persist selected customer on transaction', e, s);
-      }
 
       // Save customer information to ProxyService.box for receipt generation
       await ProxyService.box
