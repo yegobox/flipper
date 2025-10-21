@@ -8,7 +8,6 @@ import 'package:uuid/uuid.dart';
 import 'package:supabase_models/sync/ditto_sync_adapter.dart';
 import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
 import 'package:supabase_models/sync/ditto_sync_generated.dart';
-import 'package:brick_core/query.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:brick_ditto_generators/ditto_sync_adapter.dart';
@@ -21,9 +20,7 @@ part 'variant.model.ditto_sync_adapter.g.dart';
 )
 @DittoAdapter(
   'variants',
-  syncDirection: SyncDirection.sendOnly,
-  hydrateOnStartup: true,
-  // includeFields: ['id'],
+  syncDirection: SyncDirection.bidirectional,
 )
 class Variant extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)

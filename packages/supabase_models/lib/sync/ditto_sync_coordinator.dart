@@ -113,7 +113,7 @@ class DittoSyncCoordinator {
     if (docId == null) {
       return;
     }
-    
+
     if (_suppressedIds[T]?.remove(docId) == true) {
       // Skip feedback loops caused by remote upserts.
       return;
@@ -150,9 +150,9 @@ class DittoSyncCoordinator {
     }
 
     try {
-      // Use EVICT instead of REMOVE FROM COLLECTION for DQL compatibility
+      //
       await ditto.store.execute(
-        'EVICT FROM ${adapter.collectionName} WHERE _id = :id',
+        'DELETE FROM ${adapter.collectionName} WHERE _id = :id',
         arguments: {'id': docId},
       );
     } catch (error, stack) {
