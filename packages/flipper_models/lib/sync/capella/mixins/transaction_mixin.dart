@@ -148,7 +148,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
   /// meaning it is neither income nor expense. This helps avoid incorrect computations
   /// on the dashboard.
   @override
-  FutureOr<void> updateTransaction({
+  Future<void> updateTransaction({
     ITransaction? transaction,
     String? receiptType,
     double? subTotal,

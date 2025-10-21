@@ -1269,10 +1269,10 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                 isExpense: ProxyService.box.isOrdering() ?? false));
             final transaction = transactionAsync.asData?.value;
             if (transaction != null && transaction.id.isNotEmpty) {
-              await ProxyService.strategy.updateTransaction(
+              unawaited(ProxyService.strategy.updateTransaction(
                 transaction: transaction,
                 customerName: value,
-              );
+              ));
             }
           } catch (e, s) {
             talker.error(
@@ -1344,31 +1344,6 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                     key: 'currentSaleCustomerPhoneNumber',
                     value: value,
                   );
-                  if (ProxyService.box.customerTin() == null) {
-                    ProxyService.box
-                        .writeString(key: 'customerTin', value: value);
-                  }
-
-                  // Persist customerTin (if present) to the pending transaction
-                  // so tax/receipt builders can read it from the transaction.
-                  try {
-                    final transactionAsync = ref.read(
-                        pendingTransactionStreamProvider(
-                            isExpense: ProxyService.box.isOrdering() ?? false));
-                    final transaction = transactionAsync.asData?.value;
-                    if (transaction != null && transaction.id.isNotEmpty) {
-                      final customerTin = ProxyService.box.customerTin();
-                      if (customerTin != null && customerTin.isNotEmpty) {
-                        await ProxyService.strategy.updateTransaction(
-                          transaction: transaction,
-                          customerTin: customerTin,
-                        );
-                      }
-                    }
-                  } catch (e, s) {
-                    talker.error(
-                        'Failed to update transaction with customer TIN', e, s);
-                  }
                 },
                 validator: (String? value) {
                   final customerTin = ProxyService.box.customerTin();

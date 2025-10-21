@@ -320,6 +320,7 @@ class _RefundState extends ConsumerState<Refund> {
               final ebmSyncService = TurboTaxService(repository);
               await ebmSyncService.syncTransactionWithEbm(
                 instance: widget.transaction!,
+                transactionCompleted: true,
                 serverUrl: (await ProxyService.box.getServerUrl())!,
                 sarTyCd: StockInOutType.returnIn,
               );

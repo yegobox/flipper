@@ -193,11 +193,14 @@ class CoreSync extends AiStrategyImpl
 
   @override
   Future<void> assignCustomerToTransaction(
-      {required String customerId, String? transactionId}) async {
+      {required Customer customer, String? transactionId}) async {
     try {
       final transaction = (await transactions(id: transactionId!)).firstOrNull;
       if (transaction != null) {
-        transaction.customerId = customerId;
+        transaction.customerId = customer.id;
+        transaction.customerName = customer.custNm;
+        transaction.customerTin = customer.custTin;
+        transaction.customerPhone = customer.telNo;
         repository.upsert<ITransaction>(transaction);
       } else {
         throw Exception('Try to add item to a transaction.');
@@ -1128,6 +1131,7 @@ class CoreSync extends AiStrategyImpl
   FutureOr<void> removeCustomerFromTransaction(
       {required ITransaction transaction}) {
     transaction.customerId = null;
+    transaction.customerTin = null;
     repository.upsert(transaction);
   }
 

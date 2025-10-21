@@ -324,9 +324,10 @@ class TurboTaxService {
       {required ITransaction instance,
       required String serverUrl,
       String? sarTyCd,
+      bool transactionCompleted = false,
       int? invoiceNumber}) async {
     try {
-      if (instance.status == COMPLETE) {
+      if (instance.status == COMPLETE || transactionCompleted == true) {
         talker.info("Syncing transaction with ${instance.items?.length} items");
 
         await stockIo(

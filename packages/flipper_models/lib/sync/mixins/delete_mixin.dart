@@ -29,17 +29,6 @@ mixin DeleteMixin implements DeleteInterface {
     return result.firstOrNull;
   }
 
-  Future<Variant?> getVariant(
-      {String? id,
-      String? modrId,
-      String? name,
-      String? itemCd,
-      String? bcd,
-      String? productId,
-      String? taskCd,
-      String? itemClsCd,
-      String? itemNm,
-      String? stockId});
   Future<Stock?> getStockById({required String id});
   FutureOr<List<Customer>> customers({int? branchId, String? key, String? id});
   // FutureOr<List<InventoryRequest>> requests({int? branchId, String? requestId});
@@ -104,7 +93,7 @@ mixin DeleteMixin implements DeleteInterface {
         break;
       case 'variant':
         try {
-          final variant = await getVariant(id: id);
+          final variant = await ProxyService.strategy.getVariant(id: id);
           final stock = await getStockById(id: variant!.stockId ?? "");
 
           await repository.delete<Variant>(
@@ -118,9 +107,13 @@ mixin DeleteMixin implements DeleteInterface {
                 action: QueryAction.delete, where: [Where('id').isExactly(id)]),
           );
         } catch (e, s) {
-          final variant = await getVariant(id: id);
+          final variant = await ProxyService.strategy.getVariant(id: id);
+          if (variant == null) {
+            talker.error('Variant with id $id not found for deletion.');
+            rethrow;
+          }
           await repository.delete<Variant>(
-            variant!,
+            variant,
             query: Query(
                 action: QueryAction.delete, where: [Where('id').isExactly(id)]),
           );

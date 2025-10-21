@@ -842,7 +842,7 @@ mixin TransactionMixin implements TransactionInterface {
   /// meaning it is neither income nor expense. This helps avoid incorrect computations
   /// on the dashboard.
   @override
-  FutureOr<ITransaction> updateTransaction({
+  Future<ITransaction> updateTransaction({
     ITransaction? transaction,
     num taxAmount = 0.0,
     String? receiptType,
