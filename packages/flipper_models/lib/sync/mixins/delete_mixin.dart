@@ -117,7 +117,7 @@ mixin DeleteMixin implements DeleteInterface {
             query: Query(
                 action: QueryAction.delete, where: [Where('id').isExactly(id)]),
           );
-          talker.warning(s);
+          //talker.warning(s);
           rethrow;
         }
 

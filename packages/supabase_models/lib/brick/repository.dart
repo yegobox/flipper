@@ -477,6 +477,8 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       }
       return result;
     } on PostgrestException catch (e) {
+      unawaited(DittoSyncCoordinator.instance.notifyLocalDelete(instance));
+
       logger.warning('#delete supabase failure: $e');
       if (policy == OfflineFirstDeletePolicy.requireRemote) {
         throw OfflineFirstException(e);
