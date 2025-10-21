@@ -1365,8 +1365,8 @@ class CoreViewModel extends FlipperBaseModel
         // Persist the merged stock via updateVariant so updateStock is invoked once
         await ProxyService.strategy.updateVariant(
             updatables: [existingVariantToUpdate],
-            approvedQty: existingVariantToUpdate.stock?.currentStock,
-            updateStock: false);
+            approvedQty: incomingImportVariant.stock?.currentStock,
+            updateStock: true);
 
         // Refresh the existing variant from storage to get the authoritative state
         existingVariantToUpdate = await ProxyService.strategy
@@ -1377,15 +1377,12 @@ class CoreViewModel extends FlipperBaseModel
         /// syncing it again.
         // item.imptItemSttsCd = "3";
         incomingImportVariant.ebmSynced = true;
+        
         incomingImportVariant.imptItemSttsCd = "3";
         existingVariantToUpdate.ebmSynced = true;
         incomingImportVariant.assigned = true;
         await ProxyService.strategy.updateVariant(
             updatables: [incomingImportVariant], updateStock: false);
-        await ProxyService.strategy.updateVariant(
-            updatables: [existingVariantToUpdate],
-            approvedQty: incomingImportVariant.stock?.currentStock,
-            updateStock: true);
       }
     } else {
       existingVariantToUpdate = incomingImportVariant;

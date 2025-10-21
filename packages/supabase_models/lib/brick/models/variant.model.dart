@@ -252,7 +252,7 @@ class Variant extends OfflineFirstWithSupabaseModel {
         isShared = isShared ?? false,
         modrId = modrId ?? const Uuid().v4().substring(0, 5);
 
-  // fromJson method
+  /// fromJson method
   factory Variant.fromJson(Map<String, dynamic> json) {
     try {
       // Parse safely with type checks and default values
@@ -264,15 +264,16 @@ class Variant extends OfflineFirstWithSupabaseModel {
 
       // Extract stock information if present
       Stock? stock;
-      String? stockId = parseOrDefault<String?>(json['stockId'], null);
+      String? stockId =
+          parseOrDefault<String?>(json['stockId'], const Uuid().v4());
 
       stock = Stock(
         id: stockId,
         lastTouched: DateTime.now().toUtc(),
-        rsdQty: (json['qty'] as num?)?.toDouble() ?? 1.0,
-        initialStock: (json['qty'] as num?)?.toDouble() ?? 1.0,
+        rsdQty: (json['qty'] as num?)?.toDouble() ?? 0.0,
+        initialStock: (json['qty'] as num?)?.toDouble() ?? 0.0,
         branchId: ProxyService.box.getBranchId(),
-        currentStock: (json['qty'] as num?)?.toDouble() ?? 1.0,
+        currentStock: (json['qty'] as num?)?.toDouble() ?? 0.0,
       );
 
       return Variant(

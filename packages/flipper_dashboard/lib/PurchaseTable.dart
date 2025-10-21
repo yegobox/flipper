@@ -1,3 +1,4 @@
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/providers/variants_provider.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -56,6 +57,8 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
   final Talker talker = TalkerFlutter.init();
   final Map<String, bool> _expandedPurchases = {};
   final Map<String, String?> _loadingAction = {};
+  final Map<String, Stock> _stockMap = {};
+  final Set<String> _fetchedStockIds = {}; // Track already fetched stock IDs
 
   // Pagination state
   int _currentPage = 0;
@@ -72,6 +75,33 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
   void dispose() {
     _dataSource?.dispose();
     super.dispose();
+  }
+
+  Future<void> _fetchStocks(List<Variant> variants) async {
+    final stockIds = variants
+        .where((v) => v.stock?.id != null)
+        .map((v) => v.stock!.id)
+        .toSet();
+
+    // Only fetch stocks that haven't been fetched yet
+    final newStockIds = stockIds.difference(_fetchedStockIds);
+    if (newStockIds.isEmpty) return;
+
+    final futures = newStockIds.map((id) =>
+        ProxyService.getStrategy(Strategy.capella).getStockById(id: id));
+    final stocks = await Future.wait(futures);
+    final newStockMap = Map<String, Stock>.fromEntries(
+      newStockIds
+          .toList()
+          .asMap()
+          .entries
+          .map((e) => MapEntry(e.value, stocks[e.key])),
+    );
+    setState(() {
+      _stockMap.addAll(newStockMap); // Merge with existing stocks
+      _fetchedStockIds.addAll(newStockIds); // Mark as fetched
+      _dataSource?.updateStockMap(_stockMap);
+    });
   }
 
   @override
@@ -529,7 +559,9 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
                                       _editedSupplyPrices,
                                       talker,
                                       () => setState(() {}),
+                                      _stockMap,
                                     );
+                                    _fetchStocks(filteredPurchaseVariants);
                                     return Padding(
                                       padding: EdgeInsets.symmetric(
                                           horizontal: 16, vertical: 8),

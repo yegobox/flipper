@@ -15,6 +15,7 @@ class PurchaseDataSource extends DataGridSource {
   final Map<String, double> _editedSupplyPrices;
   final Talker talker;
   final VoidCallback updateCallback;
+  final Map<String, Stock> stockMap;
 
   List<DataGridRow> _dataGridRows = [];
 
@@ -24,6 +25,7 @@ class PurchaseDataSource extends DataGridSource {
     this._editedSupplyPrices,
     this.talker,
     this.updateCallback,
+    this.stockMap,
   ) {
     _buildDataGridRows();
   }
@@ -39,7 +41,10 @@ class PurchaseDataSource extends DataGridSource {
           DataGridCell<String>(columnName: 'Name', value: variant.name),
           DataGridCell<String>(
             columnName: 'Qty',
-            value: variant.stock?.currentStock?.toString() ?? '0',
+            value: (stockMap[variant.stock?.id]?.currentStock ??
+                        variant.stock?.currentStock)
+                    ?.toString() ??
+                '0',
           ),
           DataGridCell<double>(
             columnName: 'Supply Price',
@@ -105,5 +110,12 @@ class PurchaseDataSource extends DataGridSource {
         }
       }).toList(),
     );
+  }
+
+  void updateStockMap(Map<String, Stock> newStockMap) {
+    stockMap.clear();
+    stockMap.addAll(newStockMap);
+    _buildDataGridRows();
+    notifyListeners();
   }
 }

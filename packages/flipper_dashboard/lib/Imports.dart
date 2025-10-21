@@ -1,3 +1,5 @@
+import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/variants_provider.dart';
 import 'package:flipper_dashboard/widgets/import_input_row.dart';
@@ -52,6 +54,8 @@ class ImportsState extends ConsumerState<Imports> {
   Variant? variantSelectedWhenClickingOnRow;
   final DataGridController _dataGridController = DataGridController();
   int _rowsPerPage = 10;
+  Map<String, Stock> _stockMap = {};
+  Set<String> _fetchedStockIds = {}; // Track already fetched stock IDs
 
   Widget _buildStatusWidget(Variant variant) {
     final isWaitingApproval = variant.imptItemSttsCd == "2";
@@ -155,6 +159,7 @@ class ImportsState extends ConsumerState<Imports> {
       state: this,
       buildStatusWidget: _buildStatusWidget,
       buildActionsWidget: _buildActionsWidget,
+      stockMap: _stockMap,
     );
   }
 
@@ -194,6 +199,34 @@ class ImportsState extends ConsumerState<Imports> {
       // Important: Always update the state when the operation completes
       _variantDataSource.setRejectLoading(item.id, false);
     }
+  }
+
+  Future<void> _fetchStocks(List<Variant> variants) async {
+    final stockIds = variants
+        .where((v) => v.stock?.id != null)
+        .map((v) => v.stock!.id)
+        .toSet();
+
+    // Only fetch stocks that haven't been fetched yet
+    final newStockIds = stockIds.difference(_fetchedStockIds);
+    if (newStockIds.isEmpty) return;
+
+    final futures = newStockIds.map((id) =>
+        ProxyService.getStrategy(Strategy.capella).getStockById(id: id));
+    final stocks = await Future.wait(futures);
+    final newStockMap = Map<String, Stock>.fromEntries(
+      newStockIds
+          .toList()
+          .asMap()
+          .entries
+          .map((e) => MapEntry(e.value, stocks[e.key])),
+    );
+
+    setState(() {
+      _stockMap.addAll(newStockMap); // Merge with existing stocks
+      _fetchedStockIds.addAll(newStockIds); // Mark as fetched
+      _variantDataSource.updateStockMap(_stockMap);
+    });
   }
 
   @override
@@ -239,6 +272,7 @@ class ImportsState extends ConsumerState<Imports> {
           ..clear()
           ..addAll(filteredItemList);
         _variantDataSource.updateVariants(filteredItemList);
+        _fetchStocks(filteredItemList);
 
         return Padding(
           padding: const EdgeInsets.all(16.0),
@@ -478,12 +512,14 @@ class VariantDataSource extends DataGridSource {
   final Map<String, bool> _approveLoadingState = {};
   final Map<String, bool> _rejectLoadingState = {};
   List<Variant> _paginatedVariants = [];
+  Map<String, Stock> stockMap;
 
   VariantDataSource({
     required List<Variant> variants,
     required ImportsState state,
     required this.buildStatusWidget,
     required this.buildActionsWidget,
+    required this.stockMap,
   })  : _variants = variants,
         _state = state {
     for (final variant in _variants) {
@@ -505,6 +541,12 @@ class VariantDataSource extends DataGridSource {
       }
     }
     _paginatedVariants = _variants.take(_state._rowsPerPage).toList();
+    updateDataSource();
+    notifyListeners();
+  }
+
+  void updateStockMap(Map<String, Stock> newStockMap) {
+    stockMap = newStockMap;
     updateDataSource();
     notifyListeners();
   }
@@ -576,7 +618,8 @@ class VariantDataSource extends DataGridSource {
         ),
         DataGridCell<String>(
           columnName: 'quantity',
-          value: '${variant.stock?.currentStock} ${variant.qtyUnitCd}',
+          value:
+              '${stockMap[variant.stock?.id]?.currentStock ?? variant.stock?.currentStock} ${variant.qtyUnitCd}',
         ),
         DataGridCell<double>(
           columnName: 'retailPrice',
