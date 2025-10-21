@@ -268,6 +268,9 @@ mixin PurchaseMixin
               processedBarcodes.add(barCode);
 
               Future<void> saveVariant() async {
+                if (variant.stock != null) {
+                  await repository.upsert<Stock>(variant.stock!);
+                }
                 final createdProduct = await createProduct(
                   saleListId: savedPurchase.id,
                   businessId: businessId,

@@ -2,6 +2,7 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 
 part 'variants_provider.g.dart';
 
@@ -42,4 +43,13 @@ Future<List<Variant>> purchaseVariant(
   print('Fetched!! ${variants.length} variants for branchId: $branchId');
 
   return variants;
+}
+
+@riverpod
+Future<Stock?> stockById(
+  Ref ref, {
+  required String stockId,
+}) async {
+  return await ProxyService.getStrategy(Strategy.capella)
+      .getStockById(id: stockId);
 }

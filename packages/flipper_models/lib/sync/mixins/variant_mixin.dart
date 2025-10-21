@@ -399,20 +399,18 @@ mixin VariantMixin implements VariantInterface {
         if (updatables[i].stock == null) {
           await addStockToVariant(variant: updatables[i]);
         } else if (updateStock == true) {
-          updatables[i].stock!.currentStock =
-              approvedQty?.toDouble() ?? updatables[i].stock!.currentStock;
-          unawaited(
-            ProxyService.strategy.updateStock(
-              stockId: updatables[i].stock!.id,
-              appending: true,
-              rsdQty:
-                  approvedQty?.toDouble() ?? updatables[i].stock!.currentStock,
-              initialStock: updatables[i].stock!.currentStock,
-              currentStock:
-                  approvedQty?.toDouble() ?? updatables[i].stock!.currentStock,
-              value: updatables[i].stock!.currentStock! *
-                  updatables[i].retailPrice!,
-            ),
+          talker.debug(
+              'Updating stock for variant ${updatables[i].id} with approvedQty: $approvedQty');
+          await ProxyService.strategy.updateStock(
+            stockId: updatables[i].stock!.id,
+            appending: true,
+            rsdQty:
+                approvedQty?.toDouble() ?? updatables[i].stock!.currentStock,
+            initialStock: updatables[i].stock!.currentStock,
+            currentStock:
+                approvedQty?.toDouble() ?? updatables[i].stock!.currentStock,
+            value:
+                updatables[i].stock!.currentStock! * updatables[i].retailPrice!,
           );
         }
 

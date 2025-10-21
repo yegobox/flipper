@@ -352,5 +352,134 @@ class _PurchaseVariantProviderElement
   @override
   String? get purchaseId => (origin as PurchaseVariantProvider).purchaseId;
 }
+
+String _$stockByIdHash() => r'0656c9babb20066f9f25c8b657359d6112ff8428';
+
+/// See also [stockById].
+@ProviderFor(stockById)
+const stockByIdProvider = StockByIdFamily();
+
+/// See also [stockById].
+class StockByIdFamily extends Family<AsyncValue<Stock?>> {
+  /// See also [stockById].
+  const StockByIdFamily();
+
+  /// See also [stockById].
+  StockByIdProvider call({
+    required String stockId,
+  }) {
+    return StockByIdProvider(
+      stockId: stockId,
+    );
+  }
+
+  @override
+  StockByIdProvider getProviderOverride(
+    covariant StockByIdProvider provider,
+  ) {
+    return call(
+      stockId: provider.stockId,
+    );
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'stockByIdProvider';
+}
+
+/// See also [stockById].
+class StockByIdProvider extends AutoDisposeFutureProvider<Stock?> {
+  /// See also [stockById].
+  StockByIdProvider({
+    required String stockId,
+  }) : this._internal(
+          (ref) => stockById(
+            ref as StockByIdRef,
+            stockId: stockId,
+          ),
+          from: stockByIdProvider,
+          name: r'stockByIdProvider',
+          debugGetCreateSourceHash:
+              const bool.fromEnvironment('dart.vm.product')
+                  ? null
+                  : _$stockByIdHash,
+          dependencies: StockByIdFamily._dependencies,
+          allTransitiveDependencies: StockByIdFamily._allTransitiveDependencies,
+          stockId: stockId,
+        );
+
+  StockByIdProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.stockId,
+  }) : super.internal();
+
+  final String stockId;
+
+  @override
+  Override overrideWith(
+    FutureOr<Stock?> Function(StockByIdRef provider) create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: StockByIdProvider._internal(
+        (ref) => create(ref as StockByIdRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        stockId: stockId,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<Stock?> createElement() {
+    return _StockByIdProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is StockByIdProvider && other.stockId == stockId;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, stockId.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin StockByIdRef on AutoDisposeFutureProviderRef<Stock?> {
+  /// The parameter `stockId` of this provider.
+  String get stockId;
+}
+
+class _StockByIdProviderElement extends AutoDisposeFutureProviderElement<Stock?>
+    with StockByIdRef {
+  _StockByIdProviderElement(super.provider);
+
+  @override
+  String get stockId => (origin as StockByIdProvider).stockId;
+}
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
