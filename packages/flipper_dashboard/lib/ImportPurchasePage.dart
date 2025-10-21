@@ -106,12 +106,12 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
     });
   }
 
-  Map<String, model.Variant> itemMapper = {};
+  Map<String, List<model.Variant>> itemMapper = {};
   void _asignPurchaseItem(
       {required model.Variant itemToAssign,
       required model.Variant itemFromPurchase}) {
     setState(() {
-      itemMapper.putIfAbsent(itemToAssign.id, () => itemFromPurchase);
+      itemMapper.putIfAbsent(itemToAssign.id, () => []).add(itemFromPurchase);
     });
   }
 

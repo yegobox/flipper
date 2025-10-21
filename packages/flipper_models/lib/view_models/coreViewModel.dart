@@ -990,7 +990,7 @@ class CoreViewModel extends FlipperBaseModel
   Future<void> acceptPurchase({
     @deprecated required List<Purchase> purchases,
     required String pchsSttsCd,
-    Map<String, Variant>? itemMapper,
+    Map<String, List<Variant>>? itemMapper,
     required Purchase purchase,
     Variant? clickedVariant,
   }) async {
@@ -1019,14 +1019,13 @@ class CoreViewModel extends FlipperBaseModel
   Future<void> _processPurchaseVariants({
     required Purchase purchase,
     required String pchsSttsCd,
-    required Map<String, Variant>? itemMapper,
+    required Map<String, List<Variant>>? itemMapper,
   }) async {
     talker.debug(
-        "itemMapper contents: ${itemMapper?.keys.toList()} -> ${itemMapper?.values.map((v) => v.id).toList()}");
+        "itemMapper contents: ${itemMapper?.keys.toList()} -> ${itemMapper?.values.map((list) => list.map((v) => v.id)).toList()}");
 
     for (final purchaseVariant in purchase.variants!) {
       final originalStatus = purchaseVariant.pchsSttsCd;
-      final isMapped = itemMapper?.containsKey(purchaseVariant.id) ?? false;
 
       // Skip already handled variants
       if (originalStatus == "02" ||
@@ -1040,17 +1039,11 @@ class CoreViewModel extends FlipperBaseModel
       talker.debug(
           "Processing variant: ${purchaseVariant.name} (${purchaseVariant.id})");
       talker.debug(
-          " - Incoming status: $pchsSttsCd, Original status: $originalStatus, isMapped: $isMapped");
-
-      if (isMapped) {
-        final mappedVariant = itemMapper![purchaseVariant.id];
-        talker.debug(
-            " - Mapped to variant: ${mappedVariant?.name} (${mappedVariant?.id})");
-      }
+          " - Incoming status: $pchsSttsCd, Original status: $originalStatus");
 
       bool shouldPersist = false;
 
-      if (pchsSttsCd == "02" && !isMapped) {
+      if (pchsSttsCd == "02") {
         // Treat as new variant
         purchaseVariant.assigned = false;
         purchaseVariant.pchsSttsCd = "02";
@@ -1159,16 +1152,17 @@ class CoreViewModel extends FlipperBaseModel
       await ProxyService.strategy.updateVariant(
         updatables: [variant],
         purchase: purchase,
-        approvedQty: 0, // Explicitly set to 0 for services
+        approvedQty:
+            null, // Explicitly set to null for services (no stock assignment)
         invoiceNumber: purchase.spplrInvcNo,
         updateIo: updateIo,
       );
 
-      // Still update IO but with 0 approvedQty for services
+      // Still update IO but with null approvedQty for services
       await ProxyService.strategy.updateIoFunc(
         variant: variant,
         purchase: purchase,
-        approvedQty: 0,
+        approvedQty: null,
       );
     } else {
       // Normal handling for non-service items
@@ -1190,68 +1184,51 @@ class CoreViewModel extends FlipperBaseModel
   }
 
   bool _shouldProcessMappings(
-      String pchsSttsCd, Map<String, Variant>? itemMapper) {
+      String pchsSttsCd, Map<String, List<Variant>>? itemMapper) {
     return itemMapper != null && pchsSttsCd == "02" && itemMapper.isNotEmpty;
   }
 
   Future<void> _handleVariantMappings(
-    Map<String, Variant> itemMapper,
+    Map<String, List<Variant>> itemMapper,
     Purchase purchase,
   ) async {
     for (final entry in itemMapper.entries) {
       final existingVariantId = entry.key;
-      final variantFromPurchase = entry.value;
+      final purchaseVariants = entry.value;
       // variantFromPurchase.assi
-
-      if (existingVariantId == variantFromPurchase.id) {
-        talker.debug(
-            "Skipping self-mapping for variant ID: ${variantFromPurchase.id}");
-        continue;
-      }
 
       final existingVariant = await ProxyService.strategy.getVariant(
         id: existingVariantId,
       );
 
-      if (existingVariant != null && variantFromPurchase.pchsSttsCd != "03") {
-        await _updateMappedVariant(
-          existingVariant: existingVariant,
-          purchaseVariant: variantFromPurchase,
+      if (existingVariant != null) {
+        double totalQty = 0;
+        for (final pv in purchaseVariants) {
+          totalQty += pv.stock?.currentStock ?? 0;
+          pv.assigned = true;
+          pv.pchsSttsCd = "03";
+          await ProxyService.strategy.updateVariant(
+            updatables: [pv],
+            updateStock: false,
+          );
+        }
+
+        existingVariant.ebmSynced = false;
+        await ProxyService.strategy.updateVariant(
+          updatables: [existingVariant],
           purchase: purchase,
+          approvedQty: totalQty,
+          invoiceNumber: purchase.spplrInvcNo,
+          updateIo: false,
+        );
+        // update io
+        await ProxyService.strategy.updateIoFunc(
+          variant: existingVariant,
+          purchase: purchase,
+          approvedQty: totalQty,
         );
       }
     }
-  }
-
-  Future<void> _updateMappedVariant({
-    required Variant existingVariant,
-    required Variant purchaseVariant,
-    required Purchase purchase,
-  }) async {
-    // When mapping, the item from the purchase should be marked as assigned.
-    purchaseVariant.assigned = true;
-
-    purchaseVariant.pchsSttsCd = "03"; // Mapped status
-
-    await ProxyService.strategy.updateVariant(
-      updatables: [purchaseVariant],
-      updateStock: false,
-    );
-
-    existingVariant.ebmSynced = false;
-    await ProxyService.strategy.updateVariant(
-      updatables: [existingVariant],
-      purchase: purchase,
-      approvedQty: purchaseVariant.stock?.currentStock,
-      invoiceNumber: purchase.spplrInvcNo,
-      updateIo: false,
-    );
-    // update io
-    await ProxyService.strategy.updateIoFunc(
-      variant: existingVariant,
-      purchase: purchase,
-      approvedQty: purchaseVariant.stock?.currentStock,
-    );
   }
 
 // Private helper methods
@@ -1377,7 +1354,7 @@ class CoreViewModel extends FlipperBaseModel
         /// syncing it again.
         // item.imptItemSttsCd = "3";
         incomingImportVariant.ebmSynced = true;
-        
+
         incomingImportVariant.imptItemSttsCd = "3";
         existingVariantToUpdate.ebmSynced = true;
         incomingImportVariant.assigned = true;
