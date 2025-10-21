@@ -73,6 +73,7 @@ class ImportInputRow extends HookConsumerWidget {
     required TextEditingController controller,
     required String hintText,
     String? Function(String?)? validator,
+    bool isNumeric = false,
   }) {
     return TextFormField(
       controller: controller,
@@ -101,15 +102,19 @@ class ImportInputRow extends HookConsumerWidget {
           vertical: 12,
         ),
       ),
-      keyboardType: TextInputType.multiline,
-      maxLines: 3,
+      keyboardType: isNumeric
+          ? const TextInputType.numberWithOptions(decimal: true)
+          : TextInputType.multiline,
+      maxLines: isNumeric ? 1 : 3,
       minLines: 1,
       validator: validator,
     );
   }
 
   Widget _buildActionButtons(BuildContext context) {
-    return Row(
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
       children: [
         ElevatedButton(
           onPressed: anyLoading ? null : saveChangeMadeOnItemCallback,
@@ -130,7 +135,6 @@ class ImportInputRow extends HookConsumerWidget {
             ),
           ),
         ),
-        const SizedBox(width: 8),
         ElevatedButton.icon(
           onPressed:
               anyLoading ? null : () => acceptAllImportCallback(finalItemList),
@@ -215,37 +219,42 @@ class ImportInputRow extends HookConsumerWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(
+            Flexible(
+              flex: 2,
               child: _buildTextField(
                 context: context,
                 controller: nameController,
                 hintText: 'Enter a name',
               ),
             ),
-            const SizedBox(width: 16),
-            Expanded(
+            const SizedBox(width: 10),
+            Flexible(
+              flex: 2,
               child: _buildTextField(
                 context: context,
                 controller: supplyPriceController,
                 hintText: 'Enter supply price',
+                isNumeric: true,
                 validator: (value) =>
                     value?.isEmpty ?? true ? 'Supply price is required' : null,
               ),
             ),
-            const SizedBox(width: 16),
-            Expanded(
+            const SizedBox(width: 10),
+            Flexible(
+              flex: 2,
               child: _buildTextField(
                 context: context,
                 controller: retailPriceController,
                 hintText: 'Enter retail price',
+                isNumeric: true,
                 validator: (value) =>
                     value?.isEmpty ?? true ? 'Retail price is required' : null,
               ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 10),
             // Variant Selection Dropdown
-            Expanded(
-              flex: 2,
+            Flexible(
+              flex: 3,
               child: VariantSelectionDropdown(
                 initialSelectedVariantId: selectedItemForDropdown?.id,
                 onVariantSelected: (selectedVariant) {
@@ -253,13 +262,11 @@ class ImportInputRow extends HookConsumerWidget {
                     if (selectedVariant != null &&
                         selectedVariant.id !=
                             variantSelectedWhenClickingOnRow!.id) {
-                      // User explicitly selected a DIFFERENT variant to map to
                       variantMap[variantSelectedWhenClickingOnRow!.id] =
                           selectedVariant;
                     } else if (selectedVariant == null ||
                         selectedVariant.id ==
                             variantSelectedWhenClickingOnRow!.id) {
-                      // User unselected or selected the same item, so remove any existing mapping for this imported item
                       variantMap.remove(variantSelectedWhenClickingOnRow!.id);
                     }
                   }
@@ -267,12 +274,16 @@ class ImportInputRow extends HookConsumerWidget {
                 },
               ),
             ),
-            const SizedBox(width: 16),
-            _buildActionButtons(context),
-            const SizedBox(width: 16),
+            const SizedBox(width: 10),
+            // Action Buttons
+            Flexible(
+              flex: 3,
+              child: _buildActionButtons(context),
+            ),
+            const SizedBox(width: 10),
             // Status Filter Dropdown
-            Expanded(
-              flex: 1,
+            Flexible(
+              flex: 2,
               child: _buildStatusFilterDropdown(context),
             ),
           ],
