@@ -18,12 +18,8 @@ class ImportInputRow extends HookConsumerWidget {
   /// Controller for the retail price text field.
   final TextEditingController retailPriceController;
 
-  /// The variant currently selected in the dropdown, used to pre-fill the dropdown state.
-  /// This typically represents the variant associated with the item being edited.
-  final Variant? selectedItemForDropdown;
-
   /// A map to store and manage variant selections, keyed by the original item's ID.
-  final Map<String, Variant> variantMap;
+  final Map<String, List<Variant>> variantMap;
 
   /// The variant that was selected when a row in the data grid was clicked.
   /// This helps maintain context for which item's variant is being manipulated.
@@ -56,7 +52,6 @@ class ImportInputRow extends HookConsumerWidget {
     required this.nameController,
     required this.supplyPriceController,
     required this.retailPriceController,
-    required this.selectedItemForDropdown,
     required this.variantMap,
     required this.variantSelectedWhenClickingOnRow,
     required this.finalItemList,
@@ -201,6 +196,16 @@ class ImportInputRow extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    String? initialSelectedVariantId;
+    if (variantSelectedWhenClickingOnRow != null) {
+      for (final entry in variantMap.entries) {
+        if (entry.value
+            .any((v) => v.id == variantSelectedWhenClickingOnRow!.id)) {
+          initialSelectedVariantId = entry.key;
+          break;
+        }
+      }
+    }
     return Container(
       margin: const EdgeInsets.only(bottom: 12, left: 16, right: 16),
       decoration: BoxDecoration(
@@ -256,18 +261,20 @@ class ImportInputRow extends HookConsumerWidget {
             Flexible(
               flex: 3,
               child: VariantSelectionDropdown(
-                initialSelectedVariantId: selectedItemForDropdown?.id,
+                initialSelectedVariantId: initialSelectedVariantId,
                 onVariantSelected: (selectedVariant) {
                   if (variantSelectedWhenClickingOnRow != null) {
+                    // Remove the import from any existing lists
+                    for (final list in variantMap.values) {
+                      list.removeWhere(
+                          (v) => v.id == variantSelectedWhenClickingOnRow!.id);
+                    }
                     if (selectedVariant != null &&
                         selectedVariant.id !=
                             variantSelectedWhenClickingOnRow!.id) {
-                      variantMap[variantSelectedWhenClickingOnRow!.id] =
-                          selectedVariant;
-                    } else if (selectedVariant == null ||
-                        selectedVariant.id ==
-                            variantSelectedWhenClickingOnRow!.id) {
-                      variantMap.remove(variantSelectedWhenClickingOnRow!.id);
+                      variantMap[selectedVariant.id] ??= [];
+                      variantMap[selectedVariant.id]!
+                          .add(variantSelectedWhenClickingOnRow!);
                     }
                   }
                   selectItemCallback(selectedVariant);

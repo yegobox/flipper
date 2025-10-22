@@ -91,6 +91,7 @@ dev_dependencies:
   dart_mappable_builder: ^4.4.0
   json_serializable: ^6.9.4
   # cloud_firestore_odm_generator: ^1.0.0-dev.89
+  mocktail: ^1.0.4
   riverpod_generator: ^2.6.5
   riverpod_lint: ^2.6.3
   test: ^1.26.2

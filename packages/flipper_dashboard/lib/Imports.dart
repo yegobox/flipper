@@ -18,11 +18,10 @@ class Imports extends StatefulHookConsumerWidget {
   final void Function() saveChangeMadeOnItem;
   final void Function(List<Variant> variants) acceptAllImport;
   final void Function(Variant? selectedItem) selectItem;
-  final Variant? selectedItem;
   final List<Variant> finalItemList;
-  final Map<String, Variant> variantMap;
-  final Future<void> Function(Variant, Map<String, Variant>) onApprove;
-  final Future<void> Function(Variant, Map<String, Variant>) onReject;
+  final Map<String, List<Variant>> variantMap;
+  final Future<void> Function(Variant, Map<String, List<Variant>>) onApprove;
+  final Future<void> Function(Variant, Map<String, List<Variant>>) onReject;
   final List<Variant> variants;
 
   const Imports({
@@ -35,7 +34,6 @@ class Imports extends StatefulHookConsumerWidget {
     required this.saveChangeMadeOnItem,
     required this.acceptAllImport,
     required this.selectItem,
-    required this.selectedItem,
     required this.finalItemList,
     required this.variantMap,
     required this.onApprove,
@@ -283,7 +281,6 @@ class ImportsState extends ConsumerState<Imports> {
                 nameController: widget.nameController,
                 supplyPriceController: widget.supplyPriceController,
                 retailPriceController: widget.retailPriceController,
-                selectedItemForDropdown: widget.selectedItem,
                 variantMap: widget.variantMap,
                 variantSelectedWhenClickingOnRow:
                     variantSelectedWhenClickingOnRow,
@@ -355,7 +352,6 @@ class ImportsState extends ConsumerState<Imports> {
                   setState(() {
                     variantSelectedWhenClickingOnRow = selectedVariant;
                   });
-                  widget.variantMap.clear();
                   if (selectedVariant != null) {
                     _updateTextFields(selectedVariant);
                   }

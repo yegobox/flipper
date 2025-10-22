@@ -37,7 +37,8 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
   GlobalKey<FormState> _importFormKey = GlobalKey<FormState>();
   bool isLoading = false;
   // bool isImport = true; // Removed, will use ViewModel
-  final Map<String, model.Variant> _variantMap = {}; // Initialize the map here
+  final Map<String, List<model.Variant>> _variantMap =
+      {}; // Initialize the map here
 
   @override
   void initState() {
@@ -327,11 +328,18 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
           saveChangeMadeOnItem: _saveChangeMadeOnItem,
           acceptAllImport: (List<model.Variant> variants) async {
             for (model.Variant variant in variants) {
-              if (!_variantMap.containsKey(variant.id) &&
-                      variant.retailPrice == null ||
-                  variant.supplyPrice == null ||
-                  variant.retailPrice! <= 0 ||
-                  variant.supplyPrice! <= 0) {
+              bool isAssigned = false;
+              for (final list in _variantMap.values) {
+                if (list.contains(variant)) {
+                  isAssigned = true;
+                  break;
+                }
+              }
+              if (!isAssigned &&
+                  (variant.retailPrice == null ||
+                      variant.supplyPrice == null ||
+                      variant.retailPrice! <= 0 ||
+                      variant.supplyPrice! <= 0)) {
                 toast(
                     "One of the items to be approved is missing required pricing");
                 return;
@@ -343,13 +351,18 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
             combinedNotifier.performActions(productName: "", scanMode: true);
           },
           selectItem: _selectItem,
-          selectedItem: _selectedItem,
           finalItemList: finalItemList,
           variantMap: _variantMap,
           onApprove: (model.Variant item,
-              Map<String, model.Variant> variantMap) async {
-            final condition = variantMap.containsKey(item.id);
-            if (!condition &&
+              Map<String, List<model.Variant>> variantMap) async {
+            bool isAssigned = false;
+            for (final list in variantMap.values) {
+              if (list.contains(item)) {
+                isAssigned = true;
+                break;
+              }
+            }
+            if (!isAssigned &&
                 (item.retailPrice == null ||
                     item.supplyPrice == null ||
                     item.retailPrice! <= 0 ||
@@ -362,7 +375,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
             combinedNotifier.performActions(productName: "", scanMode: true);
           },
           onReject: (model.Variant item,
-              Map<String, model.Variant> variantMap) async {
+              Map<String, List<model.Variant>> variantMap) async {
             await coreViewModel.rejectImportItem(item);
           },
           variants: ref
