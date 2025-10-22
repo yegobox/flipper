@@ -973,9 +973,14 @@ class CoreViewModel extends FlipperBaseModel
   }) async {
     isLoading = true;
     notifyListeners();
-    final url = await ProxyService.box.getServerUrl();
+    final url = (await ProxyService.strategy
+            .ebm(branchId: ProxyService.box.getBranchId()!))
+        ?.taxServerUrl;
+    if (url == null || url.isEmpty) {
+      throw Exception("Tax server URL is not available");
+    }
     final rwResponse = await ProxyService.tax.selectTrnsPurchaseSales(
-      URI: url!,
+      URI: url,
       tin: ProxyService.box.tin(),
       bhfId: (await ProxyService.box.bhfId()) ?? "00",
       lastReqDt: convertDateToString(selectedDate),
@@ -1261,16 +1266,13 @@ class CoreViewModel extends FlipperBaseModel
       return;
     }
 
-    final bhfId = (await ProxyService.strategy
-                .ebm(branchId: ProxyService.box.getBranchId()!))
-            ?.bhfId ??
-        await ProxyService.box.bhfId();
-    final serverUrl = await ProxyService.box.getServerUrl() ?? "";
+    final ebm = await ProxyService.strategy
+        .ebm(branchId: ProxyService.box.getBranchId()!);
+    final bhfId = ebm?.bhfId ?? await ProxyService.box.bhfId();
+    final serverUrl = ebm?.taxServerUrl ?? "";
 
-    // Skip tax service call in test environment
     if (serverUrl.isEmpty) {
-      talker.warning("Tax service unavailable in test environment");
-      return;
+      throw Exception("Tax server URL is not available");
     }
 
     final rwApiResponse = await ProxyService.tax.savePurchases(
@@ -1296,17 +1298,84 @@ class CoreViewModel extends FlipperBaseModel
   }
 
   Future<void> approveAllImportItems(List<Variant> importItems,
-      {required Map<String, Variant> variantMap}) async {
+      {required Map<String, List<Variant>> variantMap}) async {
     try {
       setBusy(true);
 
-      final tasks = <Future>[];
-      for (final variant in importItems) {
-        if (variant.imptItemSttsCd == "2") {
-          tasks.add(processImportItem(variant, variantMap));
+      final URI = (await ProxyService.strategy
+                  .ebm(branchId: ProxyService.box.getBranchId()!))
+              ?.taxServerUrl ??
+          "";
+
+      if (URI.isEmpty) {
+        throw Exception("Tax server URL is not available");
+      }
+
+      // Group imports by their target existing variant
+      Map<String, List<Variant>> groupedImports = {};
+      for (final entry in variantMap.entries) {
+        final existingId = entry.key;
+        final imports = entry.value;
+        groupedImports[existingId] = imports;
+      }
+
+      // Collect all mapped import IDs
+      Set<String> mappedImportIds = {};
+      for (final imports in variantMap.values) {
+        for (final import in imports) {
+          mappedImportIds.add(import.id);
         }
       }
-      await Future.wait(tasks);
+
+      // Process grouped imports (mapped to existing variants)
+      for (final entry in groupedImports.entries) {
+        final existingId = entry.key;
+        final imports = entry.value;
+
+        final existingVariant =
+            await ProxyService.strategy.getVariant(id: existingId);
+        if (existingVariant != null) {
+          double totalIncomingQty = 0;
+          for (final import in imports) {
+            totalIncomingQty += import.stock?.currentStock ?? 0.0;
+            import.imptItemSttsCd = "3";
+            import.assigned = true;
+            import.ebmSynced = true;
+            await ProxyService.strategy
+                .updateVariant(updatables: [import], updateStock: false);
+            await ProxyService.tax.updateImportItems(item: import, URI: URI);
+          }
+
+          existingVariant.ebmSynced = false;
+          existingVariant.stock!.currentStock =
+              (existingVariant.stock!.currentStock ?? 0.0) + totalIncomingQty;
+          await ProxyService.strategy.updateVariant(
+            updatables: [existingVariant],
+            approvedQty: totalIncomingQty,
+            updateStock: true,
+          );
+        }
+      }
+
+      // Process unmapped imports (create new variants)
+      for (final variant in importItems) {
+        if (!mappedImportIds.contains(variant.id) &&
+            variant.imptItemSttsCd == "2") {
+          variant.itemCd = await ProxyService.strategy.itemCode(
+            countryCode: variant.orgnNatCd ?? "RW",
+            productType: "2",
+            packagingUnit: variant.pkgUnitCd ?? "CT",
+            quantityUnit: variant.qtyUnitCd ?? "BJ",
+            branchId: ProxyService.box.getBranchId()!,
+          );
+          variant.imptItemSttsCd = "3";
+          variant.assigned = false;
+          await _updateVariant(variant,
+              approvedQty: variant.stock?.currentStock, updateIo: true);
+          await ProxyService.tax.updateImportItems(item: variant, URI: URI);
+        }
+      }
+
       notifyListeners();
     } catch (e, s) {
       talker.error(s);
@@ -1318,83 +1387,79 @@ class CoreViewModel extends FlipperBaseModel
 
   Future<void> processImportItem(
     Variant incomingImportVariant,
-    Map<String, Variant> variantToMapTo,
+    Map<String, List<Variant>> variantMap,
   ) async {
     incomingImportVariant.taxName = "B";
     incomingImportVariant.taxTyCd = "B";
 
-    final URI = await ProxyService.box.getServerUrl() ?? "";
-    Variant? existingVariantToUpdate;
+    final URI = (await ProxyService.strategy
+                .ebm(branchId: ProxyService.box.getBranchId()!))
+            ?.taxServerUrl ??
+        "";
 
-    /// we have item to map, this means we are taking incoming import's Qty
-    /// and assign it to existing variant's stock.
-    if (variantToMapTo.isNotEmpty) {
-      existingVariantToUpdate = variantToMapTo[incomingImportVariant.id];
-      if (existingVariantToUpdate != null) {
-        existingVariantToUpdate.ebmSynced = false;
-
-        // Merge incoming quantity into the existing variant's stock locally
-        final double incomingQty =
-            incomingImportVariant.stock?.currentStock ?? 0.0;
-        existingVariantToUpdate.stock!.currentStock =
-            (existingVariantToUpdate.stock!.currentStock ?? 0.0) + incomingQty;
-
-        // Persist the merged stock via updateVariant so updateStock is invoked once
-        await ProxyService.strategy.updateVariant(
-            updatables: [existingVariantToUpdate],
-            approvedQty: incomingImportVariant.stock?.currentStock,
-            updateStock: true);
-
-        // Refresh the existing variant from storage to get the authoritative state
-        existingVariantToUpdate = await ProxyService.strategy
-                .getVariant(id: existingVariantToUpdate.id) ??
-            incomingImportVariant;
-
-        /// we mark this item as 3 approved since it's stock has been merged with existing, and also as ebm synced to avoid accidental
-        /// syncing it again.
-        // item.imptItemSttsCd = "3";
-        incomingImportVariant.ebmSynced = true;
-
-        incomingImportVariant.imptItemSttsCd = "3";
-        existingVariantToUpdate.ebmSynced = true;
-        incomingImportVariant.assigned = true;
-        await ProxyService.strategy.updateVariant(
-            updatables: [incomingImportVariant], updateStock: false);
-      }
-    } else {
-      existingVariantToUpdate = incomingImportVariant;
-      existingVariantToUpdate.itemCd = await ProxyService.strategy.itemCode(
-        countryCode: existingVariantToUpdate.orgnNatCd ?? "RW",
-        productType: "2",
-        packagingUnit: existingVariantToUpdate.pkgUnitCd ?? "CT",
-        quantityUnit: existingVariantToUpdate.qtyUnitCd ?? "BJ",
-        branchId: ProxyService.box.getBranchId()!,
-      );
-      existingVariantToUpdate.imptItemSttsCd = "3";
-      existingVariantToUpdate.assigned = false;
-
-      await _updateVariant(
-        existingVariantToUpdate,
-        approvedQty: incomingImportVariant.stock?.currentStock,
-      );
-      // get freshly updated Variant with its updated stock.
-      existingVariantToUpdate = await ProxyService.strategy
-              .getVariant(id: existingVariantToUpdate.id) ??
-          incomingImportVariant;
+    if (URI.isEmpty) {
+      throw Exception("Tax server URL is not available");
     }
 
-    // Use sarTyCd = ""0"2" for imports (same as purchases) to ensure consistent recording
-    // "02" is the code for Incoming purchase/import in the system
+    // Find if this import is mapped to an existing variant
+    String? existingId;
+    for (final entry in variantMap.entries) {
+      if (entry.value.contains(incomingImportVariant)) {
+        existingId = entry.key;
+        break;
+      }
+    }
 
-    await ProxyService.tax
-        .updateImportItems(item: incomingImportVariant, URI: URI);
+    if (existingId != null) {
+      // This import is mapped to an existing variant
+      final imports = variantMap[existingId]!;
+      final existingVariant =
+          await ProxyService.strategy.getVariant(id: existingId);
+      if (existingVariant != null) {
+        double totalIncomingQty = 0;
+        for (final import in imports) {
+          totalIncomingQty += import.stock?.currentStock ?? 0.0;
+          import.imptItemSttsCd = "3";
+          import.assigned = true;
+          import.ebmSynced = true;
+          await ProxyService.strategy
+              .updateVariant(updatables: [import], updateStock: false);
+          await ProxyService.tax.updateImportItems(item: import, URI: URI);
+        }
+
+        existingVariant.ebmSynced = false;
+        existingVariant.stock!.currentStock =
+            (existingVariant.stock!.currentStock ?? 0.0) + totalIncomingQty;
+        await ProxyService.strategy.updateVariant(
+          updatables: [existingVariant],
+          approvedQty: totalIncomingQty,
+          updateStock: true,
+        );
+      }
+    } else {
+      // Create new variant
+      incomingImportVariant.itemCd = await ProxyService.strategy.itemCode(
+        countryCode: incomingImportVariant.orgnNatCd ?? "RW",
+        productType: "2",
+        packagingUnit: incomingImportVariant.pkgUnitCd ?? "CT",
+        quantityUnit: incomingImportVariant.qtyUnitCd ?? "BJ",
+        branchId: ProxyService.box.getBranchId()!,
+      );
+      incomingImportVariant.imptItemSttsCd = "3";
+      incomingImportVariant.assigned = false;
+
+      await _updateVariant(incomingImportVariant,
+          approvedQty: incomingImportVariant.stock?.currentStock,
+          updateIo: true);
+      await ProxyService.tax
+          .updateImportItems(item: incomingImportVariant, URI: URI);
+    }
   }
 
-  Future<void> _updateVariant(Variant variant, {double? approvedQty}) async {
+  Future<void> _updateVariant(Variant variant,
+      {double? approvedQty, required bool updateIo}) async {
     await ProxyService.strategy.updateVariant(
-      updatables: [variant],
-      approvedQty: approvedQty,
-    );
+        updatables: [variant], approvedQty: approvedQty, updateIo: updateIo);
   }
 
   Future<void> rejectImportItem(Variant item) async {
@@ -1403,9 +1468,18 @@ class CoreViewModel extends FlipperBaseModel
       item.ebmSynced = false;
       await ProxyService.strategy.updateVariant(updatables: [item]);
 
+      final URI = (await ProxyService.strategy
+                  .ebm(branchId: ProxyService.box.getBranchId()!))
+              ?.taxServerUrl ??
+          "";
+
+      if (URI.isEmpty) {
+        throw Exception("Tax server URL is not available");
+      }
+
       await ProxyService.tax.updateImportItems(
         item: item,
-        URI: await ProxyService.box.getServerUrl() ?? "",
+        URI: URI,
       );
 
       item.ebmSynced = true;

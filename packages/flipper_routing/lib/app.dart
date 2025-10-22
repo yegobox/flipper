@@ -866,3 +866,6 @@ class App {}
 // https://github.com/features/copilot/plans
 // small vs big peer
 // https://docs.ditto.live/sdk/latest/sync/sync-scopes#configuring-collection-sync
+
+
+// git diff --no-prefix --unified=0 path/to/file | grep -E "^\+|^\-"
