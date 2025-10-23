@@ -53,8 +53,8 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     _scrollController.addListener(_scrollListener);
     _loadInitialProducts();
 
-    // Set up a timer to periodically check for branch switches
-    _branchSwitchTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+    // Set up a timer to periodically check for branch switches (less frequent)
+    _branchSwitchTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
       _checkForBranchSwitch();
     });
   }
@@ -111,39 +111,29 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     if (branchId > 0) {
       print('Refreshing variants for branch ID: $branchId');
 
-      // Force clear the provider cache for this branch
+      // Instead of invalidating providers, just refresh the data
       try {
-        // Invalidate and refresh the variant providers
-        ref.invalidate(outerVariantsProvider(branchId));
-        ref.invalidate(productsProvider(branchId));
+        // Use the provider's refresh method instead of invalidation
+        ref.read(outerVariantsProvider(branchId).notifier).refresh();
 
-        // Use the searchStringProvider to trigger a refresh
-        // First emit "search" to trigger the refresh
-        ref.read(searchStringProvider.notifier).emitString(value: "search");
-        // Then clear it to reset the search state
-        ref.read(searchStringProvider.notifier).emitString(value: "");
+        // Force reload initial products
+        _loadInitialProducts();
 
-        // Force reload initial products with a small delay to ensure state is updated
-        Future.delayed(const Duration(milliseconds: 100), () {
-          _loadInitialProducts();
-
-          // Explicitly refresh the UI
-          if (mounted) {
-            setState(() {
-              // Trigger a rebuild with the new branch data
-              print('Rebuilding ProductView with new branch data');
-              // Show a snackbar to notify the user
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).clearSnackBars();
-                showCustomSnackBarUtil(
-                  context,
-                  'Products refreshed for new branch',
-                  duration: const Duration(seconds: 2),
-                );
-              }
-            });
-          }
-        });
+        // Explicitly refresh the UI
+        if (mounted) {
+          setState(() {
+            print('Rebuilding ProductView with new branch data');
+            // Show a snackbar to notify the user
+            if (context.mounted) {
+              ScaffoldMessenger.of(context).clearSnackBars();
+              showCustomSnackBarUtil(
+                context,
+                'Products refreshed for new branch',
+                duration: const Duration(seconds: 2),
+              );
+            }
+          });
+        }
       } catch (e) {
         print('Error refreshing providers: $e');
       }
@@ -346,7 +336,9 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
           child: _buildMainContentSection(
               context,
               model,
-              _shouldApplySorting(ref) ? _sortVariants(variants, ref) : variants,
+              _shouldApplySorting(ref)
+                  ? _sortVariants(variants, ref)
+                  : variants,
               showProductList,
               startDate,
               endDate,
@@ -463,6 +455,8 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
       return ListView.builder(
         controller: _scrollController,
         itemCount: variants.length,
+        // Add itemExtent for better performance with uniform item heights
+        // itemExtent: 120.0, // Adjust based on your actual item height
         itemBuilder: (context, index) {
           return buildVariantRow(
             forceRemoteUrl: false,
@@ -474,6 +468,8 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
           );
         },
         physics: const AlwaysScrollableScrollPhysics(),
+        // Add cacheExtent for smoother scrolling
+        cacheExtent: 500.0,
       );
     } else {
       return GridView.builder(
@@ -482,6 +478,8 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
           maxCrossAxisExtent: 200,
           mainAxisSpacing: 5.0,
           crossAxisSpacing: 2.0,
+          // Add childAspectRatio for consistent item sizing
+          childAspectRatio: 1.0,
         ),
         itemCount: variants.length,
         itemBuilder: (context, index) {
@@ -495,6 +493,8 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
           );
         },
         physics: const AlwaysScrollableScrollPhysics(),
+        // Add cacheExtent for smoother scrolling
+        cacheExtent: 1000.0,
       );
     }
   }
@@ -582,11 +582,18 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
 
   List<Variant> _sortVariants(List<Variant> variants, WidgetRef ref) {
     final sortOption = ref.watch(productSortProvider);
+
+    // Return original list if no sorting needed
+    if (sortOption == ProductSortOption.latest) {
+      return variants;
+    }
+
+    // Create a copy only when sorting is needed
     final sortedVariants = List<Variant>.from(variants);
 
     switch (sortOption) {
       case ProductSortOption.defaultSorting:
-        return sortedVariants;
+        return variants; // Already handled above
       case ProductSortOption.popularity:
         sortedVariants.sort((a, b) => (b.qty ?? 0).compareTo(a.qty ?? 0));
         break;

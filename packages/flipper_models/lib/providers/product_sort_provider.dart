@@ -15,5 +15,5 @@ enum ProductSortOption {
 }
 
 final productSortProvider = StateProvider<ProductSortOption>((ref) {
-  return ProductSortOption.defaultSorting;
+  return ProductSortOption.latest;
 });

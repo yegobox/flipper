@@ -457,11 +457,12 @@ mixin VariantMixin implements VariantInterface {
 
         final updated = await repository.upsert<Variant>(updatables[i]);
 
-        /// still experimenting bellow.
         if (updateIo == true) {
+          /// get fresh stock
           await updateIoFunc(
               variant: updated,
               purchase: purchase,
+              stockMasterQty: updated.stock!.currentStock!,
               approvedQty: approvedQty?.toDouble());
         }
       }
@@ -475,12 +476,14 @@ mixin VariantMixin implements VariantInterface {
   Future<void> updateIoFunc(
       {required Variant variant,
       Purchase? purchase,
+      double? stockMasterQty,
       double? approvedQty}) async {
     final ebmSyncService = TurboTaxService(repository);
 
     final sar = await ProxyService.strategy
         .getSar(branchId: ProxyService.box.getBranchId()!);
     await ebmSyncService.stockIo(
+      stockMasterQty: stockMasterQty,
       approvedQty: approvedQty,
       invoiceNumber: sar?.sarNo ?? 1,
       variant: variant,

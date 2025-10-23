@@ -325,7 +325,10 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
   /// we just borrow properties to simplify the accesibility
   @override
   Future<RwApiResponse> saveStockMaster(
-      {required Variant variant, required String URI, num? approvedQty}) async {
+      {required Variant variant,
+      required String URI,
+      num? approvedQty,
+      double? stockMasterQty}) async {
     try {
       final url = Uri.parse(URI)
           .replace(path: Uri.parse(URI).path + 'stockMaster/saveStockMaster')
@@ -372,6 +375,12 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       final rsdSource =
           approvedQty != null ? 'approvedQty' : 'stock.currentStock';
       talker.warning("RSD QTY (from $rsdSource): ${variant.toFlipperJson()}");
+
+      /// the stockMasterQty is set when during refund to provide acturate stock qty
+      if (stockMasterQty != null) {
+        variant.qty = stockMasterQty;
+        variant.rsdQty = stockMasterQty;
+      }
       // if variant?.itemTyCd  == '3' it means it is a servcice, keep qty to 0, as service does not have stock.
       if (variant.itemTyCd == '3') {
         variant.rsdQty = 0;
