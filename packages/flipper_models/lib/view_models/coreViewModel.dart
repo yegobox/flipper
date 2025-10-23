@@ -1161,6 +1161,7 @@ class CoreViewModel extends FlipperBaseModel
             null, // Explicitly set to null for services (no stock assignment)
         invoiceNumber: purchase.spplrInvcNo,
         updateIo: updateIo,
+        updateStock: false,
       );
 
       // Still update IO but with null approvedQty for services
@@ -1177,6 +1178,7 @@ class CoreViewModel extends FlipperBaseModel
         approvedQty: variant.stock?.currentStock,
         invoiceNumber: purchase.spplrInvcNo,
         updateIo: updateIo,
+        updateStock: false,
       );
 
       // update io
@@ -1371,7 +1373,9 @@ class CoreViewModel extends FlipperBaseModel
           variant.imptItemSttsCd = "3";
           variant.assigned = false;
           await _updateVariant(variant,
-              approvedQty: variant.stock?.currentStock, updateIo: true);
+              updateStock: false,
+              approvedQty: variant.stock?.currentStock,
+              updateIo: true);
           await ProxyService.tax.updateImportItems(item: variant, URI: URI);
         }
       }
@@ -1450,6 +1454,7 @@ class CoreViewModel extends FlipperBaseModel
 
       await _updateVariant(incomingImportVariant,
           approvedQty: incomingImportVariant.stock?.currentStock,
+          updateStock: false,
           updateIo: true);
       await ProxyService.tax
           .updateImportItems(item: incomingImportVariant, URI: URI);
@@ -1457,16 +1462,22 @@ class CoreViewModel extends FlipperBaseModel
   }
 
   Future<void> _updateVariant(Variant variant,
-      {double? approvedQty, required bool updateIo}) async {
+      {double? approvedQty,
+      required bool updateIo,
+      required bool updateStock}) async {
     await ProxyService.strategy.updateVariant(
-        updatables: [variant], approvedQty: approvedQty, updateIo: updateIo);
+        updatables: [variant],
+        approvedQty: approvedQty,
+        updateIo: updateIo,
+        updateStock: updateStock);
   }
 
   Future<void> rejectImportItem(Variant item) async {
     try {
       item.imptItemSttsCd = "4";
       item.ebmSynced = false;
-      await ProxyService.strategy.updateVariant(updatables: [item]);
+      await ProxyService.strategy.updateVariant(
+          updatables: [item], updateIo: false, updateStock: false);
 
       final URI = (await ProxyService.strategy
                   .ebm(branchId: ProxyService.box.getBranchId()!))
@@ -1483,7 +1494,8 @@ class CoreViewModel extends FlipperBaseModel
       );
 
       item.ebmSynced = true;
-      ProxyService.strategy.updateVariant(updatables: [item]);
+      ProxyService.strategy.updateVariant(
+          updatables: [item], updateIo: false, updateStock: false);
     } catch (e) {
       rethrow; // Re-throw the exception to be caught in the UI
     }
