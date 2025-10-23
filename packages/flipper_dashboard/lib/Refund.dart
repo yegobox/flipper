@@ -310,11 +310,6 @@ class _RefundState extends ConsumerState<Refund> {
                   ebmSynced: false,
                   updateIo: true,
                   approvedQty: item.qty);
-              // Update the stock
-              ProxyService.strategy.updateStock(
-                  stockId: variant.stock!.id,
-                  currentStock: variant.stock!.currentStock! + item.qty,
-                  ebmSynced: false);
 
               // Sync with EBM for stock return
               final ebmSyncService = TurboTaxService(repository);
@@ -330,6 +325,7 @@ class _RefundState extends ConsumerState<Refund> {
                   updateIo: false,
                   updatables: [variant],
                   variantId: variant.id,
+                  updateStock: false,
                   ebmSynced: true);
             }
           }
