@@ -277,7 +277,9 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       unit: 'Per Item',
       productName: product.name,
       branchId: branchId,
-      taxTyCd: isVatEnabled ? "B" : "D", // Set correct tax type based on EBM VAT status
+      taxTyCd: isVatEnabled
+          ? "B"
+          : "D", // Set correct tax type based on EBM VAT status
       lastTouched: DateTime.now().toUtc(),
     );
     final stock = Stock(
@@ -554,7 +556,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
             supplyPrice: supplyPrice != 0 ? supplyPrice : null,
             retailPrice: retailPrice != 0 ? retailPrice : null,
             updateIo: false,
-            updateStock:false,
+            updateStock: false,
           );
         }
 

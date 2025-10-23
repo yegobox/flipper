@@ -656,7 +656,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
           throw exception;
         } else {
           // remove any tin saved in local storage on success
-          // ProxyService.box.remove(key: 'customerTin');
+          ProxyService.box.remove(key: 'customerTin');
           if (receiptType != 'NR' &&
               receiptType != 'CR' &&
               receiptType != 'TR') {
