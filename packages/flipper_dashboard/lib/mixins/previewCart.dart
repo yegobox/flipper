@@ -341,19 +341,6 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
             currentStock: originalStock,
             rsdQty: originalStock);
       }
-
-      /// first check if there is other pending transaction delete it before we set this transaction to pending, this
-      /// facilitate to get items back on QuickSell as there is only one pending transaction at a time
-      final pendingTransactions = await ProxyService.strategy
-          .pendingTransactionFuture(
-              branchId: ProxyService.box.getBranchId()!,
-              transactionType: TransactionType.sale,
-              isExpense: false);
-
-      if (pendingTransactions != null) {
-        await ProxyService.strategy
-            .flipperDelete(id: pendingTransactions.id, endPoint: 'transaction');
-      }
       await ProxyService.strategy.updateTransaction(
         transactionId: transactionId,
         status: PENDING,
