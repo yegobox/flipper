@@ -553,6 +553,8 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
             dates: dates?.map((key, value) => MapEntry(key, value.text)),
             supplyPrice: supplyPrice != 0 ? supplyPrice : null,
             retailPrice: retailPrice != 0 ? retailPrice : null,
+            updateIo: false,
+            updateStock:false,
           );
         }
 
