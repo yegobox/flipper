@@ -256,10 +256,10 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
         // Refresh asset provider to show the newly uploaded image immediately
         if (productRef.id.isNotEmpty) {
           // Invalidate the asset provider cache to force a refresh
-          ref.invalidate(assetProvider(productRef.id));
+          // ref.invalidate(assetProvider(productRef.id));
 
           // Also refresh the product provider to ensure all data is up-to-date
-          ref.invalidate(productProvider(productRef.id));
+          // ref.invalidate(productProvider(productRef.id));
         }
 
         ref.read(loadingProvider.notifier).stopLoading();
@@ -438,10 +438,10 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
       // Refresh asset provider to show the newly uploaded image immediately
       if (product.id.isNotEmpty) {
         // Invalidate the asset provider cache to force a refresh
-        ref.invalidate(assetProvider(product.id));
+        // ref.invalidate(assetProvider(product.id));
 
         // Also refresh the product provider to ensure all data is up-to-date
-        ref.invalidate(productProvider(product.id));
+        // ref.invalidate(productProvider(product.id));
       }
 
       ref.read(loadingProvider.notifier).stopLoading();

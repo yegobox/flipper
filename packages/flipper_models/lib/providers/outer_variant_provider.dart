@@ -23,11 +23,9 @@ class OuterVariants extends _$OuterVariants {
 
   @override
   FutureOr<List<Variant>> build(int branchId) async {
-    // Initialize itemsPerPage once. Use a sane default (20) and cap user
-    // preference to avoid extremely large defaults coming from storage
-    // (SharedPreferenceStorage previously defaulted to 1000).
-    final int _defaultPageSize = 20;
-    const int _maxPageSize = 100;
+    // Initialize itemsPerPage once. Use a smaller default for better performance
+    final int _defaultPageSize = 15; // Reduced from 20 for better performance
+    const int _maxPageSize = 50; // Reduced max from 100
     final int? prefIpp = ProxyService.box.itemPerPage();
     _itemsPerPage ??=
         (prefIpp != null && prefIpp > 0 && prefIpp <= _maxPageSize)
@@ -60,6 +58,11 @@ class OuterVariants extends _$OuterVariants {
 
     // Always fetch remote for searches to get server-side filtering
     bool fetchRemote = searchString.isNotEmpty || page == 0;
+
+    // For subsequent pages of the same search, don't fetch remote again
+    if (page > 0 && searchString == _currentSearch) {
+      fetchRemote = false;
+    }
 
     final paged = await ProxyService.getStrategy(Strategy.capella).variants(
       name: searchString.toLowerCase(),

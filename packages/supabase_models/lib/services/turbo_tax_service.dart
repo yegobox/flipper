@@ -54,6 +54,7 @@ class TurboTaxService {
     required String serverUrl,
     ITransaction? transaction,
     String? sarTyCd,
+    double? stockMasterQty,
     required int invoiceNumber,
     num? approvedQty,
     Purchase? purchase,
@@ -107,7 +108,10 @@ class TurboTaxService {
       }
 
       final saveStockMasterResponse = await ProxyService.tax.saveStockMaster(
-          variant: variant, URI: serverUrl, approvedQty: approvedQty);
+          variant: variant,
+          URI: serverUrl,
+          approvedQty: approvedQty,
+          stockMasterQty: stockMasterQty);
 
       if (saveStockMasterResponse.resultCd != "000") {
         await _handleFailedSync(

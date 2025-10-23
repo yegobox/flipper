@@ -169,6 +169,15 @@ class DittoSyncCoordinator {
   /// fetch. If the adapter or Ditto instance is unavailable, the call is a
   /// no-op.
   Future<void> hydrate<T extends OfflineFirstWithSupabaseModel>() async {
+    // Skip hydration if initial fetch is disabled (startup optimization)
+    if (_skipInitialFetch) {
+      if (kDebugMode) {
+        debugPrint(
+            '⏭️  Skipping manual hydration for $T (skipInitialFetch enabled)');
+      }
+      return;
+    }
+
     final adapter = _adapters[T];
     final ditto = _ditto;
     if (adapter == null || ditto == null) {
@@ -269,7 +278,7 @@ class DittoSyncCoordinator {
             '⏭️  Skipping Ditto initial fetch for $type (startup optimization)');
       }
 
-      if (adapter.shouldHydrateOnStartup) {
+      if (!_skipInitialFetch && adapter.shouldHydrateOnStartup) {
         try {
           final hydrationQuery = await adapter.buildHydrationQuery();
           if (hydrationQuery != null) {
@@ -298,6 +307,15 @@ class DittoSyncCoordinator {
     dynamic result, {
     bool isInitialFetch = false,
   }) async {
+    // Skip processing if initial fetch is disabled (startup optimization)
+    if (_skipInitialFetch) {
+      if (kDebugMode) {
+        debugPrint(
+            '⏭️  Skipping query result processing for $type (skipInitialFetch enabled)');
+      }
+      return;
+    }
+
     final adapter = _adapters[type];
     if (adapter == null) {
       return;

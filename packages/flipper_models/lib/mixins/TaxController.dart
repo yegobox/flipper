@@ -319,7 +319,7 @@ class TaxController<OBJ> with TransactionDelegationMixin {
               rcptNo: receipt.rcptNo ?? 0,
               totRcptNo: receipt.totRcptNo ?? 0,
               brandName: business.name!,
-              brandAddress: business.adrs ?? "N/A",
+              brandAddress: business.adrs ?? "",
               brandTel: business.phoneNumber ?? "",
               brandTIN:
                   (ebm?.tinNumber ?? business.tinNumber ?? business.tinNumber)

@@ -5,8 +5,12 @@ import 'package:flipper_models/sync/interfaces/notice_interface.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as brick;
 
 abstract class TaxApi implements NoticeInterface {
-  Future<RwApiResponse> saveStockMaster(
-      {required Variant variant, required String URI, num? approvedQty});
+  Future<RwApiResponse> saveStockMaster({
+    required Variant variant,
+    required String URI,
+    num? approvedQty,
+    double? stockMasterQty,
+  });
 
   Future<bool> stockIn(
       {required Map<String, Object?> json,
@@ -41,10 +45,14 @@ abstract class TaxApi implements NoticeInterface {
       required double totalAmount,
       required String remark,
       required DateTime ocrnDt,
-      /// when doing sale we send it as invoice no otherwise for import and purchase we send 
+
+      /// when doing sale we send it as invoice no otherwise for import and purchase we send
       String? sarNo,
-      required String URI, num? invoiceNumber, num? approvedQty});
-  Future<RwApiResponse> saveCustomer({required ICustomer customer, required String URI});
+      required String URI,
+      num? invoiceNumber,
+      num? approvedQty});
+  Future<RwApiResponse> saveCustomer(
+      {required ICustomer customer, required String URI});
   Future<BusinessInfo> initApi(
       {required String tinNumber,
       required String bhfId,
