@@ -26,7 +26,7 @@ class Ebm extends OfflineFirstWithSupabaseModel {
   @Supabase(name: "vat_enabled")
   bool? vatEnabled;
   @Supabase(name: "mrc")
-  final String mrc;
+  String mrc;
 
   Ebm({
     String? id,

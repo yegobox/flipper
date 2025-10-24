@@ -37,7 +37,7 @@ mixin EbmMixin implements EbmInterface {
 
     final existingEbm = ebm.firstOrNull;
 
-    final updatedEbm = existingEbm ??
+    Ebm updatedEbm = existingEbm ??
         Ebm(
           mrc: mrc,
           bhfId: bhFId,
@@ -53,6 +53,7 @@ mixin EbmMixin implements EbmInterface {
     if (existingEbm != null) {
       updatedEbm.taxServerUrl = severUrl;
       updatedEbm.vatEnabled = vatEnabled;
+      updatedEbm.mrc = mrc;
     }
 
     await repository.upsert(updatedEbm);

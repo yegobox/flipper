@@ -981,7 +981,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
 
     final topMessage = [
       business?.name ?? 'Our Business',
-      business?.adrs?.isNotEmpty == true ? business!.adrs : 'Kigali, Rwanda',
+      business?.adrs?.isNotEmpty == true ? business!.adrs : '',
       'TEL: ${business?.phoneNumber?.replaceAll("+", "") ?? '0780000000'}',
       'Email: ${business?.email ?? 'info@yegobox.com'}',
       'TIN: ${business?.tinNumber ?? '999909695'}',
@@ -1093,7 +1093,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         "prchrAcptcYn": "Y",
         // Use highest invoice number in the receipt sub-object as well
         "rptNo": highestInvcNo,
-        "adrs": "Kigali, Rwanda",
+        "adrs": business?.adrs ?? "",
         "topMsg": topMessage,
         "btmMsg": "THANK YOU COME BACK AGAIN",
         "custMblNo": resolvedCustomer == null
