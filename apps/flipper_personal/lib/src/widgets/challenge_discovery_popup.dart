@@ -1,6 +1,6 @@
+import 'package:flipper_models/models/challenge_code.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/models.dart';
 import '../providers/providers.dart';
 
 /// Popup that appears when a challenge code is discovered nearby
@@ -167,8 +167,10 @@ class _ChallengeDiscoveryPopupState
                                   );
 
                               if (mounted && claimState.value == true) {
-                                Navigator.of(context).pop();
-                                _showSuccessSnackBar(context);
+                                if (mounted) {
+                                  Navigator.of(context).pop();
+                                  _showSuccessSnackBar(context);
+                                }
                               }
                             },
                       style: ElevatedButton.styleFrom(

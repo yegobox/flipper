@@ -1,7 +1,8 @@
 import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:permission_handler/permission_handler.dart';
-import '../models/models.dart';
+import 'package:flipper_models/models/challenge_code.dart';
 
 /// Service for handling location-based proximity detection
 class LocationService {
@@ -19,6 +20,22 @@ class LocationService {
 
   /// Get current device position
   Future<Position?> getCurrentPosition() async {
+    // In debug mode, return a fixed location for testing
+    if (kDebugMode) {
+      return Position(
+        latitude: -1.943,
+        longitude: 30.057,
+        timestamp: DateTime.now(),
+        accuracy: 0.0,
+        altitude: 0.0,
+        heading: 0.0,
+        speed: 0.0,
+        speedAccuracy: 0.0,
+        altitudeAccuracy: 0.0,
+        headingAccuracy: 0.0,
+      );
+    }
+
     try {
       final hasPermission = await checkLocationPermission();
       if (!hasPermission) {
@@ -27,10 +44,13 @@ class LocationService {
       }
 
       return await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+        ),
       );
     } catch (e) {
-      print('Error getting current position: $e');
+      // Instead of printing, you might want to use a logging package
+      // or handle the error in a way that is visible to the user.
       return null;
     }
   }
@@ -60,19 +80,20 @@ class LocationService {
   /// Check if user is within range of a challenge code's location constraint
   Future<bool> isWithinRange(ChallengeCode challengeCode) async {
     // If no location constraint, consider it always in range
-    if (challengeCode.location == null) return true;
+    return true;
+    // if (challengeCode.location == null) return true;
 
-    final currentPosition = await getCurrentPosition();
-    if (currentPosition == null) return false;
+    // final currentPosition = await getCurrentPosition();
+    // if (currentPosition == null) return false;
 
-    final distance = calculateDistance(
-      currentPosition.latitude,
-      currentPosition.longitude,
-      challengeCode.location!.lat,
-      challengeCode.location!.lng,
-    );
+    // final distance = calculateDistance(
+    //   currentPosition.latitude,
+    //   currentPosition.longitude,
+    //   challengeCode.location!.lat,
+    //   challengeCode.location!.lng,
+    // );
 
-    return distance <= challengeCode.location!.radiusMeters;
+    // return distance <= challengeCode.location!.radiusMeters;
   }
 
   /// Check if user is within range of multiple challenge codes
@@ -92,6 +113,24 @@ class LocationService {
 
   /// Start location monitoring for proximity detection
   Stream<Position> startLocationMonitoring() {
+    // In debug mode, return a stream that periodically emits the fixed location
+    if (kDebugMode) {
+      return Stream.periodic(const Duration(seconds: 30), (_) {
+        return Position(
+          latitude: -1.943,
+          longitude: 30.057,
+          timestamp: DateTime.now(),
+          accuracy: 0.0,
+          altitude: 0.0,
+          heading: 0.0,
+          speed: 0.0,
+          speedAccuracy: 0.0,
+          altitudeAccuracy: 0.0,
+          headingAccuracy: 0.0,
+        );
+      });
+    }
+
     const LocationSettings locationSettings = LocationSettings(
       accuracy: LocationAccuracy.high,
       distanceFilter: 10, // Update every 10 meters

@@ -1,8 +1,11 @@
+import 'package:flipper_models/models/challenge_code.dart';
+import 'package:flipper_personal/src/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/models.dart';
-import '../providers/providers.dart';
+import 'dart:async';
+
+/// Enhanced Duolingo-inspired color palette
 
 /// Enhanced Duolingo-inspired color palette
 class FlipperPalette {
@@ -97,16 +100,18 @@ class _ShazamSearchButtonState extends State<ShazamSearchButton>
               children: [
                 // Outer ripple effect when searching
                 if (widget.isSearching) ...[
-                  Container(
+                  SizedBox(
                     width: 120 + (_rippleAnimation.value * 60),
                     height: 120 + (_rippleAnimation.value * 60),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: FlipperPalette.searchingBlue.withValues(
-                          alpha: 0.3 * (1 - _rippleAnimation.value),
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: FlipperPalette.searchingBlue.withValues(
+                            alpha: 0.3 * (1 - _rippleAnimation.value),
+                          ),
+                          width: 2,
                         ),
-                        width: 2,
                       ),
                     ),
                   ),
@@ -329,6 +334,7 @@ class ChallengeFinderWidgetState extends ConsumerState<ChallengeFinderWidget>
   bool _isSearching = false;
   late AnimationController _searchController;
   late Animation<double> _searchAnimation;
+  StreamSubscription<List<ChallengeCode>>? _challengesSubscription;
 
   @override
   void initState() {
@@ -346,6 +352,7 @@ class ChallengeFinderWidgetState extends ConsumerState<ChallengeFinderWidget>
   @override
   void dispose() {
     _searchController.dispose();
+    _challengesSubscription?.cancel();
     super.dispose();
   }
 
@@ -411,6 +418,9 @@ class ChallengeFinderWidgetState extends ConsumerState<ChallengeFinderWidget>
   Future<void> findNearbyChallenges() async {
     if (_isSearching) return;
 
+    // Cancel any existing subscription
+    _challengesSubscription?.cancel();
+
     setState(() {
       _isSearching = true;
     });
@@ -419,49 +429,103 @@ class ChallengeFinderWidgetState extends ConsumerState<ChallengeFinderWidget>
     HapticFeedback.mediumImpact();
 
     try {
-      // Simulate realistic search time
-      await Future.delayed(const Duration(milliseconds: 800));
+      // Get current location
+      final locationService = ref.read(locationServiceProvider);
+      final position = await locationService.getCurrentPosition();
 
-      // Force a sync to find nearby challenges
-      final challengeService = ref.read(challengeServiceProvider);
-      challengeService.forceSync();
-
-      // Wait for sync to complete
-      await Future.delayed(const Duration(milliseconds: 1200));
-
-      // Get available challenges
-      final availableChallenges = await ref.read(
-        availableChallengeCodesProvider.future,
-      );
-
-      setState(() {
-        _isSearching = false;
-      });
-
-      if (availableChallenges.isEmpty) {
-        if (context.mounted) {
-          HapticFeedback.lightImpact();
+      if (position == null) {
+        if (mounted) {
           _showActionFeedback(
-            'No challenges found nearby. Try moving around!',
+            'Could not determine your location.',
             isError: true,
           );
         }
+        setState(() {
+          _isSearching = false;
+        });
         return;
       }
 
-      // Success haptic
-      HapticFeedback.heavyImpact();
+      // Use ChallengeService instead of DittoService directly
+      final challengeService = ref.read(challengeServiceProvider);
+      final challengesStream = challengeService.getNearbyChallenges(
+        position.latitude,
+        position.longitude,
+      );
 
-      // Show challenge selection dialog with animation
-      if (context.mounted) {
-        _showEnhancedChallengeDialog(availableChallenges);
-      }
+      // Listen to the stream for results
+      _challengesSubscription = challengesStream.listen(
+        (challenges) {
+          if (!mounted) return;
+
+          setState(() {
+            _isSearching = false;
+          });
+
+          if (challenges.isEmpty) {
+            HapticFeedback.lightImpact();
+            _showActionFeedback(
+              'No challenges found nearby. Try moving around!',
+              isError: true,
+            );
+          } else {
+            HapticFeedback.heavyImpact();
+            _showEnhancedChallengeDialog(challenges);
+          }
+        },
+        onError: (error) {
+          if (!mounted) return;
+
+          setState(() {
+            _isSearching = false;
+          });
+
+          HapticFeedback.heavyImpact();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: FlipperPalette.errorRed,
+              content: Row(
+                children: [
+                  const Icon(Icons.error_outline, color: Colors.white),
+                  const SizedBox(width: 12),
+                  Expanded(child: Text('Error finding challenges: $error')),
+                ],
+              ),
+              behavior: SnackBarBehavior.floating,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+          );
+        },
+        onDone: () {
+          if (mounted && _isSearching) {
+            setState(() {
+              _isSearching = false;
+            });
+          }
+        },
+      );
+
+      // Set a timeout in case no data comes through
+      Future.delayed(const Duration(seconds: 10), () {
+        if (mounted && _isSearching) {
+          setState(() {
+            _isSearching = false;
+          });
+          _challengesSubscription?.cancel();
+          _showActionFeedback(
+            'Search timed out. Please try again.',
+            isError: true,
+          );
+        }
+      });
     } catch (e) {
       setState(() {
         _isSearching = false;
       });
 
-      if (context.mounted) {
+      if (mounted) {
         HapticFeedback.heavyImpact();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -600,11 +664,10 @@ class ChallengeFinderWidgetState extends ConsumerState<ChallengeFinderWidget>
       final claimNotifier = ref.read(challengeClaimProvider.notifier);
       await claimNotifier.claimChallenge(widget.userId, challenge.id);
 
-      if (context.mounted) {
-        Navigator.of(context).pop(); // Close the dialog
-        HapticFeedback.heavyImpact(); // Success haptic
-        _showActionFeedback('Challenge claimed successfully! 🎉');
-      }
+      if (!context.mounted) return;
+      Navigator.of(context).pop(); // Close the dialog
+      HapticFeedback.heavyImpact(); // Success haptic
+      _showActionFeedback('Challenge claimed successfully! 🎉');
     } catch (e) {
       if (context.mounted) {
         HapticFeedback.heavyImpact(); // Error haptic
