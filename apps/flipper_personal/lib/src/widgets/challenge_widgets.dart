@@ -1,6 +1,7 @@
+import 'package:flipper_models/models/challenge_code.dart';
+import 'package:flipper_models/models/claim.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../models/models.dart';
 import '../providers/providers.dart';
 import 'challenge_discovery_popup.dart';
 

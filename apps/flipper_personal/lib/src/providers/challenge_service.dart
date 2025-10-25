@@ -1,8 +1,10 @@
 import 'dart:async';
+import 'package:flipper_models/models/challenge_code.dart';
+import 'package:flipper_models/models/claim.dart';
+
 import 'package:flutter/foundation.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'location_service.dart';
-import '../models/models.dart';
 
 /// Service for managing challenge codes and claims with Ditto
 class ChallengeService {
@@ -75,9 +77,9 @@ class ChallengeService {
     if (!code.isValid) return false;
 
     // Check location proximity if location constraint exists
-    if (code.location != null) {
-      return await _locationService.isWithinRange(code);
-    }
+    // if (code.location != null) {
+    //   return await _locationService.isWithinRange(code);
+    // }
 
     return true;
   }

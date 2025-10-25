@@ -132,20 +132,48 @@ class PDesktop extends StatelessWidget with CoreMiscellaneous {
               await logOut();
               routeService.clearStackAndShow(LoginRoute());
             }
+            if (value == 'personal') {
+              routeService.clearStackAndShow(PersonalHomeRoute());
+            }
           },
           itemBuilder: (BuildContext context) => [
             PopupMenuItem<String>(
+              value: 'personal',
+              child: Row(
+                children: [
+                  const Icon(Icons.person, color: Colors.black),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Personal',
+                    style: primaryTextStyle,
+                  ),
+                ],
+              ),
+            ),
+            PopupMenuItem<String>(
               value: 'logOut',
-              child: Text(
-                'Log out',
-                style: primaryTextStyle,
+              child: Row(
+                children: [
+                  const Icon(Icons.logout, color: Colors.black),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Log out',
+                    style: primaryTextStyle,
+                  ),
+                ],
               ),
             ),
             PopupMenuItem<String>(
               value: 'syncCounter',
-              child: Text(
-                'Sync counter',
-                style: primaryTextStyle,
+              child: Row(
+                children: [
+                  const Icon(Icons.sync, color: Colors.black),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Sync counter',
+                    style: primaryTextStyle,
+                  ),
+                ],
               ),
             ),
           ],
@@ -175,27 +203,64 @@ class PMobile extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return GestureDetector(
-      onLongPress: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ScannView(
-              intent: LOGIN,
-              scannerActions: AuthScannerActions(context, ref),
-            ),
+    final routeService = locator<RouterService>();
+    return PopupMenuButton<String>(
+      color: Colors.white,
+      onSelected: (value) async {
+        if (value == 'logOut') {
+          dialogService.showCustomDialog(
+              variant: DialogType.logOut, title: 'Log out');
+        }
+        if (value == 'personal') {
+          routeService.clearStackAndShow(PersonalHomeRoute());
+        }
+      },
+      itemBuilder: (BuildContext context) => [
+        PopupMenuItem<String>(
+          value: 'personal',
+          child: Row(
+            children: [
+              const Icon(Icons.person, color: Colors.black),
+              const SizedBox(width: 8),
+              Text(
+                'Personal',
+                style: primaryTextStyle,
+              ),
+            ],
           ),
-        );
-      },
-      onTap: () {
-        dialogService.showCustomDialog(
-            variant: DialogType.logOut, title: 'Log out');
-      },
-      child: GmailLikeLetter(
-        key: Key(widget.branch.id.toString()),
-        branch: widget.branch,
-        size: widget.size,
-        sessionActive: sessionActive,
+        ),
+        PopupMenuItem<String>(
+          value: 'logOut',
+          child: Row(
+            children: [
+              const Icon(Icons.logout, color: Colors.black),
+              const SizedBox(width: 8),
+              Text(
+                'Log out',
+                style: primaryTextStyle,
+              ),
+            ],
+          ),
+        ),
+      ],
+      child: GestureDetector(
+        onLongPress: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ScannView(
+                intent: LOGIN,
+                scannerActions: AuthScannerActions(context, ref),
+              ),
+            ),
+          );
+        },
+        child: GmailLikeLetter(
+          key: Key(widget.branch.id.toString()),
+          branch: widget.branch,
+          size: widget.size,
+          sessionActive: sessionActive,
+        ),
       ),
     );
   }

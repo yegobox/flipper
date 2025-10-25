@@ -295,6 +295,9 @@ class DittoService {
   /// Get the Ditto instance (for use by cache implementations)
   Ditto? get dittoInstance => _ditto;
 
+  /// Get the Ditto store for direct access to Ditto operations
+  Store? get store => _ditto?.store;
+
   /// Starts Ditto sync if Ditto is initialized
   void startSync() {
     if (_ditto != null) {

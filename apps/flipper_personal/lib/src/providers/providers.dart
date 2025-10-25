@@ -1,7 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'challenge_service.dart';
-import '../models/models.dart';
+import 'package:flipper_models/models/challenge_code.dart';
+import 'package:flipper_models/models/claim.dart';
 
 // Provider for DittoService from flipper_web
 final dittoServiceProvider = Provider<DittoService>((ref) {

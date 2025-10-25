@@ -36,6 +36,7 @@ import 'firebase_messaging.dart';
 import 'locator.dart';
 import 'product_service.dart';
 import 'package:flipper_models/tax_api.dart';
+import 'package:flipper_web/services/ditto_service.dart';
 
 abstract class ProxyService {
   /// A settable link to the sync strategy implementation.
@@ -91,4 +92,5 @@ abstract class ProxyService {
   static NotificationStream notie = NotificationStream();
   static PayStackServiceInterface payStack = getIt<PayStackServiceInterface>();
   static HttpApiInterface httpApi = getIt<HttpApiInterface>();
+  static DittoService ditto = DittoService.instance;
 }
