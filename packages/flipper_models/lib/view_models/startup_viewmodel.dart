@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:flipper_services/ebm_sync_service.dart';
+import 'package:flutter/foundation.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:flipper_models/AppInitializer.dart';
 import 'package:flipper_models/helperModels/talker.dart';
@@ -74,7 +75,8 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       // Set up payment verification callback and start periodic verification
       _paymentVerificationService
           .setPaymentStatusChangeCallback(_handlePaymentStatusChange);
-      _paymentVerificationService.startPeriodicVerification();
+      _paymentVerificationService.startPeriodicVerification(
+          intervalMinutes: kDebugMode ? 2 : 30);
 
       // Start periodic internet connection check (check every 6 hours)
       _internetConnectionService.startPeriodicConnectionCheck();

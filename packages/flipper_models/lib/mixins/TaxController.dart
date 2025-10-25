@@ -279,6 +279,7 @@ class TaxController<OBJ> with TransactionDelegationMixin {
                 await ProxyService.strategy
                     .getPaymentType(transactionId: transaction.id);
             await print.print(
+              vatEnabled: ebm!.vatEnabled ?? false,
               taxTT: totalTT,
               totalTaxTT: calculateTotalTax(totalTT, taxConfigTaxTT!),
               customerPhone: (transaction.customerPhone?.isNotEmpty ?? false)
@@ -322,7 +323,7 @@ class TaxController<OBJ> with TransactionDelegationMixin {
               brandAddress: business.adrs ?? "",
               brandTel: business.phoneNumber ?? "",
               brandTIN:
-                  (ebm?.tinNumber ?? business.tinNumber ?? business.tinNumber)
+                  (ebm.tinNumber)
                       .toString(),
               brandDescription: business.name!,
               brandFooter: business.name!,

@@ -10,6 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as models;
 import 'package:supabase_models/brick/repository.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:brick_offline_first/brick_offline_first.dart';
 
 class FailedPayment extends StatefulWidget {
   const FailedPayment({Key? key}) : super(key: key);
@@ -37,6 +38,8 @@ class _FailedPaymentState extends State<FailedPayment>
   models.Plan? _plan;
   bool _usePhoneNumber = false;
   bool _mounted = true;
+  bool _waitingForPaymentCompletion = false;
+  Timer? _paymentTimeoutTimer;
   StreamSubscription<List<models.Plan>>? _subscription;
 
   @override
@@ -82,6 +85,7 @@ class _FailedPaymentState extends State<FailedPayment>
     _phoneNumberController.dispose();
     _shakeController.dispose();
     _fadeController.dispose();
+    _paymentTimeoutTimer?.cancel();
     super.dispose();
   }
 
@@ -133,6 +137,7 @@ class _FailedPaymentState extends State<FailedPayment>
       // Set up real-time subscription
       _subscription = Repository()
           .subscribeToRealtime<models.Plan>(
+        policy: OfflineFirstGetPolicy.alwaysHydrate,
         query: Query(
           where: [const Where('businessId').isExactly(businessId)],
         ),
@@ -147,6 +152,12 @@ class _FailedPaymentState extends State<FailedPayment>
           });
 
           if (updatedPlan.paymentCompletedByUser == true) {
+            _paymentTimeoutTimer?.cancel();
+            if (_mounted) {
+              setState(() {
+                _waitingForPaymentCompletion = false;
+              });
+            }
             _showSuccessAndNavigate();
           }
         }
@@ -235,26 +246,28 @@ class _FailedPaymentState extends State<FailedPayment>
       ),
       body: _isLoading
           ? _buildLoadingState()
-          : FadeTransition(
-              opacity: _fadeAnimation,
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  children: [
-                    _buildHeaderSection(),
-                    const SizedBox(height: 32),
-                    if (_plan != null) _buildPlanDetails(_plan!),
-                    if (_errorMessage != null) _buildErrorMessage(),
-                    const SizedBox(height: 24),
-                    if (_plan != null) _buildPhoneNumberSection(),
-                    const SizedBox(height: 32),
-                    _buildRetryButton(context),
-                    const SizedBox(height: 24),
-                    _buildHelpSection(),
-                  ],
+          : _waitingForPaymentCompletion
+              ? _buildPaymentWaitingState()
+              : FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Column(
+                      children: [
+                        _buildHeaderSection(),
+                        const SizedBox(height: 32),
+                        if (_plan != null) _buildPlanDetails(_plan!),
+                        if (_errorMessage != null) _buildErrorMessage(),
+                        const SizedBox(height: 24),
+                        if (_plan != null) _buildPhoneNumberSection(),
+                        const SizedBox(height: 32),
+                        _buildRetryButton(context),
+                        const SizedBox(height: 24),
+                        _buildHelpSection(),
+                      ],
+                    ),
+                  ),
                 ),
-              ),
-            ),
     );
   }
 
@@ -276,6 +289,72 @@ class _FailedPaymentState extends State<FailedPayment>
                   .onSurface
                   .withValues(alpha: 0.7),
               fontSize: 16,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPaymentWaitingState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              color: Colors.blue.shade50,
+              borderRadius: BorderRadius.circular(40),
+              border: Border.all(
+                color: Colors.blue.shade200,
+                width: 2,
+              ),
+            ),
+            child: const Icon(
+              Icons.hourglass_top,
+              size: 40,
+              color: Colors.blue,
+            ),
+          ),
+          const SizedBox(height: 24),
+          Text(
+            'Waiting for Payment Completion',
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Theme.of(context).colorScheme.onSurface,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Please complete the payment in your\npayment app or browser.',
+            style: TextStyle(
+              fontSize: 16,
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.7),
+              height: 1.4,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 32),
+          CircularProgressIndicator(
+            strokeWidth: 2,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'This may take a few moments...',
+            style: TextStyle(
+              fontSize: 14,
+              color: Theme.of(context)
+                  .colorScheme
+                  .onSurface
+                  .withValues(alpha: 0.6),
             ),
           ),
         ],
@@ -444,7 +523,7 @@ class _FailedPaymentState extends State<FailedPayment>
                 }
               });
             },
-            activeColor: Theme.of(context).colorScheme.primary,
+            activeThumbColor: Theme.of(context).colorScheme.primary,
             contentPadding: EdgeInsets.zero,
           ),
           if (_usePhoneNumber) ...[
@@ -514,43 +593,67 @@ class _FailedPaymentState extends State<FailedPayment>
           width: double.infinity,
           height: 48,
           child: ElevatedButton(
-            onPressed: _isLoading || _plan == null
-                ? null
-                : () async {
-                    setState(() {
-                      _isLoading = true;
-                      _errorMessage = null;
-                    });
-
-                    try {
-                      await _retryPayment(
-                        context,
-                        plan: _plan!,
-                        isLoading: _isLoading,
-                        phoneNumber: _usePhoneNumber
-                            ? _phoneNumberController.text
-                            : null,
-                      );
-                    } catch (e) {
-                      if (!_mounted) return;
-                      setState(() {
-                        _errorMessage = 'Payment failed: $e';
-                      });
-
-                      // Add shake animation on error
-                      _shakeController.forward().then((_) {
-                        _shakeController.reset();
-                      });
-
-                      _showErrorSnackBar('Payment failed: ${e.toString()}');
-                    } finally {
-                      if (_mounted) {
+            onPressed:
+                _isLoading || _plan == null || _waitingForPaymentCompletion
+                    ? null
+                    : () async {
                         setState(() {
-                          _isLoading = false;
+                          _isLoading = true;
+                          _errorMessage = null;
                         });
-                      }
-                    }
-                  },
+
+                        try {
+                          await _retryPayment(
+                            context,
+                            plan: _plan!,
+                            isLoading: _isLoading,
+                            phoneNumber: _usePhoneNumber
+                                ? _phoneNumberController.text
+                                : null,
+                          );
+                          // If payment initiation succeeds, show waiting state
+                          if (_mounted) {
+                            setState(() {
+                              _waitingForPaymentCompletion = true;
+                              _isLoading = false;
+                            });
+                            // Start timeout timer (5 minutes)
+                            _paymentTimeoutTimer?.cancel();
+                            _paymentTimeoutTimer =
+                                Timer(const Duration(minutes: 5), () {
+                              if (_mounted) {
+                                setState(() {
+                                  _waitingForPaymentCompletion = false;
+                                  _errorMessage =
+                                      'Payment timeout. Please try again.';
+                                });
+                                _showErrorSnackBar(
+                                    'Payment timed out. Please try again.');
+                              }
+                            });
+                          }
+                        } catch (e) {
+                          _paymentTimeoutTimer?.cancel();
+                          if (!_mounted) return;
+                          setState(() {
+                            _errorMessage = 'Payment failed: $e';
+                            _waitingForPaymentCompletion = false;
+                          });
+
+                          // Add shake animation on error
+                          _shakeController.forward().then((_) {
+                            _shakeController.reset();
+                          });
+
+                          _showErrorSnackBar('Payment failed: ${e.toString()}');
+                        } finally {
+                          if (_mounted && !_waitingForPaymentCompletion) {
+                            setState(() {
+                              _isLoading = false;
+                            });
+                          }
+                        }
+                      },
             style: ElevatedButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.primary,
               foregroundColor: Colors.white,
@@ -771,45 +874,32 @@ class _FailedPaymentState extends State<FailedPayment>
     required bool isLoading,
     String? phoneNumber,
   }) async {
-    try {
-      isLoading = true;
-
-      // Validate phone number if it's a mobile payment
-      if ((plan.paymentMethod?.toLowerCase() != 'card') && _usePhoneNumber) {
-        final phoneError = _getPhoneNumberError(phoneNumber ?? '');
-        if (phoneError != null) {
-          throw Exception(phoneError);
-        }
-
-        // Store the validated phone number for payment
-        if (phoneNumber != null) {
-          await ProxyService.box.writeString(
-            key: "customPhoneNumberForPayment",
-            value: phoneNumber.replaceAll(' ', ''),
-          );
-        }
+    // Validate phone number if it's a mobile payment
+    if ((plan.paymentMethod?.toLowerCase() != 'card') && _usePhoneNumber) {
+      final phoneError = _getPhoneNumberError(phoneNumber ?? '');
+      if (phoneError != null) {
+        throw Exception(phoneError);
       }
 
-      if (plan.paymentMethod?.toLowerCase() == 'card') {
-        await cardPayment(
-          plan.totalPrice!.toInt(),
-          plan,
-          plan.paymentMethod!,
-          plan: plan,
-        );
-      } else {
-        // Handle mobile payment
-        await handleMomoPayment(plan.totalPrice!.toInt(), plan: plan);
-      }
-    } catch (e, s) {
-      talker.error(e.toString());
-      talker.error(s.toString());
-      // Show error to the user
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Payment failed: ${e.toString()}')),
+      // Store the validated phone number for payment
+      if (phoneNumber != null) {
+        await ProxyService.box.writeString(
+          key: "customPhoneNumberForPayment",
+          value: phoneNumber.replaceAll(' ', ''),
         );
       }
+    }
+
+    if (plan.paymentMethod?.toLowerCase() == 'card') {
+      await cardPayment(
+        plan.totalPrice!.toInt(),
+        plan,
+        plan.paymentMethod!,
+        plan: plan,
+      );
+    } else {
+      // Handle mobile payment
+      await handleMomoPayment(plan.totalPrice!.toInt(), plan: plan);
     }
   }
 }

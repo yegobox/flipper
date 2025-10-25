@@ -44,7 +44,8 @@ mixin PaymentHandler {
       );
     }
     // upsert plan with new payment method
-
+    // refresh a plan as it might have updted remotely.
+   
     ProxyService.strategy.saveOrUpdatePaymentPlan(
       additionalDevices: plan.additionalDevices!,
       businessId: (await ProxyService.strategy.activeBusiness())!.id,
