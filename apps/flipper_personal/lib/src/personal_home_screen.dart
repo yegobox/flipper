@@ -52,7 +52,17 @@ class _PersonalHomeScreenState extends ConsumerState<PersonalHomeScreen>
   Future<void> _openChallengeFinder() async {
     await showDialog(
       context: context,
-      builder: (context) => ChallengeFinderWidget(userId: currentUserId),
+      builder: (context) => Dialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        child: Container(
+          constraints: BoxConstraints(
+            maxWidth: MediaQuery.of(context).size.width * 0.9,
+            maxHeight: MediaQuery.of(context).size.height * 0.7,
+          ),
+          padding: const EdgeInsets.all(24),
+          child: ChallengeFinderWidget(userId: currentUserId),
+        ),
+      ),
     );
   }
 
