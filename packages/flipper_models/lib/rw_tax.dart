@@ -575,6 +575,9 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     // Get business details
     Business? business = await ProxyService.strategy
         .getBusiness(businessId: ProxyService.box.getBusinessId()!);
+
+    Ebm? ebm = await ProxyService.strategy
+        .ebm(branchId: ProxyService.box.getBranchId()!);
     List<TransactionItem> items = await ProxyService.strategy.transactionItems(
         // never pass in isDoneTransaction param here!
         transactionId: transaction.id,
@@ -613,6 +616,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     Map<String, dynamic> requestData = await buildRequestData(
         business: business,
         counter: counter,
+        ebm: ebm,
         bhFId: bhfId,
         salesSttsCd: salesSttsCd,
         transaction: transaction,
@@ -948,6 +952,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
 // Helper function to build request data
   Future<Map<String, dynamic>> buildRequestData({
     required Business? business,
+    required Ebm? ebm,
     required odm.Counter counter,
     required ITransaction transaction,
     required String date,
@@ -984,12 +989,12 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       business?.adrs?.isNotEmpty == true ? business!.adrs : '',
       'TEL: ${business?.phoneNumber?.replaceAll("+", "") ?? '0780000000'}',
       'Email: ${business?.email ?? 'info@yegobox.com'}',
-      'TIN: ${business?.tinNumber ?? '999909695'}',
+      'TIN: ${ebm?.tinNumber ?? '999909695'}',
       'WELCOME TO OUR SHOP'
     ].join('\n');
 
     talker.error("TopMessage: $topMessage");
-    talker.error("TINN: ${business?.tinNumber}");
+    talker.error("TINN: ${ebm?.tinNumber}");
     final pmtTyCd = ProxyService.box.pmtTyCd();
     // Resolve customer object if transaction has a customerId but no
     // customer object was provided by the caller.
@@ -1020,7 +1025,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         _counters.fold<int>(0, (prev, c) => math.max(prev, c.invcNo ?? 0));
 
     Map<String, dynamic> json = {
-      "tin": business?.tinNumber.toString() ?? "999909695",
+      "tin": ebm?.tinNumber.toString() ?? "999909695",
       "bhfId": bhFId,
       // Use highest counter value for invoice number (as requested)
       "invcNo": highestInvcNo,
@@ -1226,9 +1231,10 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     final url = Uri.parse(URI)
         .replace(path: Uri.parse(URI).path + 'trnsPurchase/savePurchases')
         .toString();
-
+    Ebm? ebm = await ProxyService.strategy
+        .ebm(branchId: ProxyService.box.getBranchId()!);
     Map<String, dynamic> data = item.toFlipperJson();
-    data['tin'] = business.tinNumber ?? 999909695;
+    data['tin'] = ebm?.tinNumber ?? 999909695;
     data['bhfId'] = bhfId;
     data['pchsDt'] = convertDateToString(DateTime.now()).substring(0, 8);
     data['invcNo'] = item.spplrInvcNo;

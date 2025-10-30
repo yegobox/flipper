@@ -23,8 +23,8 @@ class LocationService {
     // In debug mode, return a fixed location for testing
     if (kDebugMode) {
       return Position(
-        latitude: -1.943,
-        longitude: 30.057,
+        latitude: -1.28,
+        longitude: 36.83,
         timestamp: DateTime.now(),
         accuracy: 0.0,
         altitude: 0.0,

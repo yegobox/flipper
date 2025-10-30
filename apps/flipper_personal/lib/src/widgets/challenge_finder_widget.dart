@@ -3,7 +3,6 @@ import 'package:flipper_personal/src/providers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'dart:async';
 
 /// Enhanced Duolingo-inspired color palette
 
@@ -329,83 +328,151 @@ class ChallengeFinderWidget extends ConsumerStatefulWidget {
       ChallengeFinderWidgetState();
 }
 
-class ChallengeFinderWidgetState extends ConsumerState<ChallengeFinderWidget>
-    with TickerProviderStateMixin {
-  bool _isSearching = false;
-  late AnimationController _searchController;
-  late Animation<double> _searchAnimation;
-  StreamSubscription<List<ChallengeCode>>? _challengesSubscription;
-
+class ChallengeFinderWidgetState extends ConsumerState<ChallengeFinderWidget> {
   @override
   void initState() {
     super.initState();
-    _searchController = AnimationController(
-      duration: const Duration(milliseconds: 500),
-      vsync: this,
-    );
-    _searchAnimation = CurvedAnimation(
-      parent: _searchController,
-      curve: Curves.easeInOut,
-    );
   }
 
   @override
   void dispose() {
-    _searchController.dispose();
-    _challengesSubscription?.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final challengeState = ref.watch(challengeFinderProvider);
+
+    // Show dialog when challenges are found
+    ref.listen(challengeFinderProvider, (previous, next) {
+      next.whenOrNull(
+        data: (challenges) {
+          if (challenges.isNotEmpty &&
+              (previous?.valueOrNull?.isEmpty ?? true)) {
+            // Only show dialog if we have challenges and didn't have them before
+            HapticFeedback.heavyImpact();
+            _showEnhancedChallengeDialog(challenges);
+          } else if (challenges.isEmpty && previous?.isLoading == true) {
+            // Show feedback when no challenges found
+            HapticFeedback.lightImpact();
+            _showActionFeedback(
+              'No challenges found nearby. Try moving around!',
+              isError: true,
+            );
+          }
+        },
+        error: (error, stack) {
+          _showActionFeedback(error.toString(), isError: true);
+        },
+      );
+    });
+
+    return challengeState.when(
+      data: (challenges) => _buildContent(challenges),
+      loading: () => _buildLoadingContent(),
+      error: (error, stack) => _buildErrorContent(error.toString()),
+    );
+  }
+
+  Widget _buildContent(List<ChallengeCode> challenges) {
     return Column(
       children: [
         // Shazam-like search button
         AnimatedContainer(
           duration: const Duration(milliseconds: 300),
-          padding: EdgeInsets.all(_isSearching ? 40 : 20),
+          padding: EdgeInsets.all(20),
           child: Column(
             children: [
               ShazamSearchButton(
                 onTap: () {
                   findNearbyChallenges();
                 },
-                isSearching: _isSearching,
+                isSearching: false,
               ),
               const SizedBox(height: 16),
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
-                child: _isSearching
-                    ? Column(
-                        key: const ValueKey('searching'),
-                        children: [
-                          Text(
-                            'Searching for nearby challenges...',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w600,
-                              color: FlipperPalette.searchingBlue,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          LinearProgressIndicator(
-                            backgroundColor: FlipperPalette.searchingBlue
-                                .withValues(alpha: 0.2),
-                            valueColor: AlwaysStoppedAnimation<Color>(
-                              FlipperPalette.searchingBlue,
-                            ),
-                          ),
-                        ],
-                      )
-                    : Text(
-                        key: const ValueKey('idle'),
-                        'Tap to discover challenges nearby',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w500,
-                          color: FlipperPalette.textSecondary,
-                        ),
-                      ),
+              Text(
+                challenges.isEmpty
+                    ? 'Tap to discover challenges nearby'
+                    : 'Tap to search again',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: FlipperPalette.textSecondary,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLoadingContent() {
+    return Column(
+      children: [
+        // Shazam-like search button
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          padding: EdgeInsets.all(40),
+          child: Column(
+            children: [
+              ShazamSearchButton(
+                onTap: () {}, // Disabled during search
+                isSearching: true,
+              ),
+              const SizedBox(height: 16),
+              Column(
+                key: const ValueKey('searching'),
+                children: [
+                  Text(
+                    'Searching for nearby challenges...',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: FlipperPalette.searchingBlue,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  LinearProgressIndicator(
+                    backgroundColor: FlipperPalette.searchingBlue.withValues(
+                      alpha: 0.2,
+                    ),
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      FlipperPalette.searchingBlue,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildErrorContent(String error) {
+    return Column(
+      children: [
+        // Shazam-like search button
+        AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          padding: EdgeInsets.all(20),
+          child: Column(
+            children: [
+              ShazamSearchButton(
+                onTap: () {
+                  findNearbyChallenges();
+                },
+                isSearching: false,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Tap to discover challenges nearby',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                  color: FlipperPalette.textSecondary,
+                ),
               ),
             ],
           ),
@@ -416,135 +483,10 @@ class ChallengeFinderWidgetState extends ConsumerState<ChallengeFinderWidget>
 
   /// Finds nearby challenges with Shazam-like experience
   Future<void> findNearbyChallenges() async {
-    if (_isSearching) return;
-
-    // Cancel any existing subscription
-    _challengesSubscription?.cancel();
-
-    setState(() {
-      _isSearching = true;
-    });
-
     // Haptic feedback
     HapticFeedback.mediumImpact();
 
-    try {
-      // Get current location
-      final locationService = ref.read(locationServiceProvider);
-      final position = await locationService.getCurrentPosition();
-
-      if (position == null) {
-        if (mounted) {
-          _showActionFeedback(
-            'Could not determine your location.',
-            isError: true,
-          );
-        }
-        setState(() {
-          _isSearching = false;
-        });
-        return;
-      }
-
-      // Use ChallengeService instead of DittoService directly
-      final challengeService = ref.read(challengeServiceProvider);
-      final challengesStream = challengeService.getNearbyChallenges(
-        position.latitude,
-        position.longitude,
-      );
-
-      // Listen to the stream for results
-      _challengesSubscription = challengesStream.listen(
-        (challenges) {
-          if (!mounted) return;
-
-          setState(() {
-            _isSearching = false;
-          });
-
-          if (challenges.isEmpty) {
-            HapticFeedback.lightImpact();
-            _showActionFeedback(
-              'No challenges found nearby. Try moving around!',
-              isError: true,
-            );
-          } else {
-            HapticFeedback.heavyImpact();
-            _showEnhancedChallengeDialog(challenges);
-          }
-        },
-        onError: (error) {
-          if (!mounted) return;
-
-          setState(() {
-            _isSearching = false;
-          });
-
-          HapticFeedback.heavyImpact();
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              backgroundColor: FlipperPalette.errorRed,
-              content: Row(
-                children: [
-                  const Icon(Icons.error_outline, color: Colors.white),
-                  const SizedBox(width: 12),
-                  Expanded(child: Text('Error finding challenges: $error')),
-                ],
-              ),
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          );
-        },
-        onDone: () {
-          if (mounted && _isSearching) {
-            setState(() {
-              _isSearching = false;
-            });
-          }
-        },
-      );
-
-      // Set a timeout in case no data comes through
-      Future.delayed(const Duration(seconds: 10), () {
-        if (mounted && _isSearching) {
-          setState(() {
-            _isSearching = false;
-          });
-          _challengesSubscription?.cancel();
-          _showActionFeedback(
-            'Search timed out. Please try again.',
-            isError: true,
-          );
-        }
-      });
-    } catch (e) {
-      setState(() {
-        _isSearching = false;
-      });
-
-      if (mounted) {
-        HapticFeedback.heavyImpact();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            backgroundColor: FlipperPalette.errorRed,
-            content: Row(
-              children: [
-                const Icon(Icons.error_outline, color: Colors.white),
-                const SizedBox(width: 12),
-                Expanded(child: Text('Error finding challenges: $e')),
-              ],
-            ),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-        );
-      }
-    }
+    await ref.read(challengeFinderProvider.notifier).findNearbyChallenges();
   }
 
   void _showEnhancedChallengeDialog(List<ChallengeCode> challenges) {
@@ -664,30 +606,29 @@ class ChallengeFinderWidgetState extends ConsumerState<ChallengeFinderWidget>
       final claimNotifier = ref.read(challengeClaimProvider.notifier);
       await claimNotifier.claimChallenge(widget.userId, challenge.id);
 
-      if (!context.mounted) return;
+      if (!mounted) return;
       Navigator.of(context).pop(); // Close the dialog
       HapticFeedback.heavyImpact(); // Success haptic
       _showActionFeedback('Challenge claimed successfully! 🎉');
     } catch (e) {
-      if (context.mounted) {
-        HapticFeedback.heavyImpact(); // Error haptic
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            backgroundColor: FlipperPalette.errorRed,
-            content: Row(
-              children: [
-                const Icon(Icons.error_outline, color: Colors.white),
-                const SizedBox(width: 12),
-                Expanded(child: Text('Failed to claim challenge: $e')),
-              ],
-            ),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
+      if (!mounted) return;
+      HapticFeedback.heavyImpact(); // Error haptic
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: FlipperPalette.errorRed,
+          content: Row(
+            children: [
+              const Icon(Icons.error_outline, color: Colors.white),
+              const SizedBox(width: 12),
+              Expanded(child: Text('Failed to claim challenge: $e')),
+            ],
           ),
-        );
-      }
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      );
     }
   }
 
