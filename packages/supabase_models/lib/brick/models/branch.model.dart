@@ -21,6 +21,7 @@ class Branch extends OfflineFirstWithSupabaseModel {
   String? longitude;
   bool? isDefault;
   bool? isOnline;
+  String? tinNumber;
 
   Branch({
     String? id,
@@ -32,6 +33,7 @@ class Branch extends OfflineFirstWithSupabaseModel {
     this.businessId,
     this.latitude,
     this.longitude,
+    this.tinNumber,
     this.isDefault = false,
     this.isOnline = false,
   }) : id = id ?? const Uuid().v4();
@@ -48,6 +50,7 @@ class Branch extends OfflineFirstWithSupabaseModel {
     String? longitude,
     bool? isDefault,
     bool? isOnline,
+    String? tinNumber,
   }) {
     return Branch(
       id: id ?? this.id,
@@ -61,6 +64,7 @@ class Branch extends OfflineFirstWithSupabaseModel {
       longitude: longitude ?? this.longitude,
       isDefault: isDefault ?? this.isDefault,
       isOnline: isOnline ?? this.isOnline,
+      tinNumber: tinNumber?? this.tinNumber
     );
   }
 
@@ -77,6 +81,7 @@ class Branch extends OfflineFirstWithSupabaseModel {
       'longitude': longitude,
       'isDefault': isDefault,
       'isOnline': isOnline,
+      'tinNumber': tinNumber
     };
   }
 }

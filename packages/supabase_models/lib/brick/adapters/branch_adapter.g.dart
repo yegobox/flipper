@@ -22,6 +22,9 @@ Future<Branch> _$BranchFromSupabase(
     longitude: data['longitude'] == null ? null : data['longitude'] as String?,
     isDefault: data['is_default'] == null ? null : data['is_default'] as bool?,
     isOnline: data['is_online'] == null ? null : data['is_online'] as bool?,
+    tinNumber: data['tin_number'] == null
+        ? null
+        : data['tin_number'] as String?,
   );
 }
 
@@ -42,6 +45,7 @@ Future<Map<String, dynamic>> _$BranchToSupabase(
     'longitude': instance.longitude,
     'is_default': instance.isDefault,
     'is_online': instance.isOnline,
+    'tin_number': instance.tinNumber,
   };
 }
 
@@ -66,6 +70,9 @@ Future<Branch> _$BranchFromSqlite(
     longitude: data['longitude'] == null ? null : data['longitude'] as String?,
     isDefault: data['is_default'] == null ? null : data['is_default'] == 1,
     isOnline: data['is_online'] == null ? null : data['is_online'] == 1,
+    tinNumber: data['tin_number'] == null
+        ? null
+        : data['tin_number'] as String?,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -90,6 +97,7 @@ Future<Map<String, dynamic>> _$BranchToSqlite(
     'is_online': instance.isOnline == null
         ? null
         : (instance.isOnline! ? 1 : 0),
+    'tin_number': instance.tinNumber,
   };
 }
 
@@ -146,6 +154,10 @@ class BranchAdapter extends OfflineFirstWithSupabaseAdapter<Branch> {
     'isOnline': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'is_online',
+    ),
+    'tinNumber': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'tin_number',
     ),
   };
   @override
@@ -225,6 +237,12 @@ class BranchAdapter extends OfflineFirstWithSupabaseAdapter<Branch> {
       columnName: 'is_online',
       iterable: false,
       type: bool,
+    ),
+    'tinNumber': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'tin_number',
+      iterable: false,
+      type: String,
     ),
   };
   @override
