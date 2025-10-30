@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/ebm_helper.dart';
 import 'package:syncfusion_flutter_datagrid_export/export.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 import '../models/export_config.dart';
@@ -17,9 +18,9 @@ class CustomPdfHeaderFooterDetails {
 /// Utility class for PDF-related operations
 class PdfUtils {
   /// Exports data to PDF with header
-  static void exportToPdf(
+  static Future<void> exportToPdf(
       dynamic headerFooterExport, Business business, ExportConfig config,
-      {required String headerTitle}) {
+      {required String headerTitle}) async {
     final double width =
         headerFooterExport is DataGridPdfHeaderFooterExportDetails
             ? headerFooterExport.pdfPage.getClientSize().width
@@ -62,12 +63,14 @@ class PdfUtils {
     currentY += 20; // Reduced space between sections
 
     // Draw the first row of information
+    final tinString =
+        (await effectiveTin(business: business))?.toString() ?? '';
     _drawLabelValuePair(
       header,
       headerBoldFont,
       headerFont,
       'TIN Number:',
-      business.tinNumber?.toString() ?? '',
+      tinString,
       0,
       currentY,
       width,

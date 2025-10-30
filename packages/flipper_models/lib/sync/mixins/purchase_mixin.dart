@@ -7,6 +7,7 @@ import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/purchase_report_item.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_models/ebm_helper.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 import 'package:flipper_services/kafka_service.dart';
@@ -32,7 +33,7 @@ mixin PurchaseMixin
       Variant item, Business business, int branchId) async {
     await createProduct(
       bhFId: (await ProxyService.box.bhfId()) ?? "00",
-      tinNumber: business.tinNumber!,
+      tinNumber: (await effectiveTin(business: business))!,
       businessId: ProxyService.box.getBusinessId()!,
       branchId: branchId,
       totWt: item.totWt,
@@ -185,7 +186,7 @@ mixin PurchaseMixin
 
       final businessId = ProxyService.box.getBusinessId()!;
 
-      final tinNumber = business.tinNumber!;
+      final tinNumber = (await effectiveTin(business: business))!;
 
       // Fetch last request date for purchases
       final lastRequestRecords = await repository.get<ImportPurchaseDates>(
@@ -268,6 +269,8 @@ mixin PurchaseMixin
               processedBarcodes.add(barCode);
 
               Future<void> saveVariant() async {
+                int? tin = await effectiveTin(
+                    branchId: ProxyService.box.getBranchId()!);
                 if (variant.stock != null) {
                   await repository.upsert<Stock>(variant.stock!);
                 }
@@ -324,7 +327,7 @@ mixin PurchaseMixin
                   variant.isrcAplcbYn = "N";
                   variant.imptItemSttsCd = null;
                   variant.bhfId = (await ProxyService.box.bhfId()) ?? "00";
-                  variant.tin = business.tinNumber ?? ProxyService.box.tin();
+                  variant.tin = tin!;
                   variant.modrNm = variant.itemNm;
                   variant.regrNm = variant.itemNm;
                   variant.modrId = randomNumber().toString().substring(0, 5);

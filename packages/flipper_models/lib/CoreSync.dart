@@ -38,6 +38,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/helper_models.dart' as ext;
 import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/Booting.dart';
+import 'package:flipper_models/ebm_helper.dart';
 import 'package:supabase_models/brick/models/credit.model.dart';
 import 'dart:async';
 import 'package:supabase_models/brick/repository/storage.dart' as storage;
@@ -1453,9 +1454,10 @@ class CoreSync extends AiStrategyImpl
 // Helper method to save a variant
   Future<void> saveVariant(
       Variant item, Business business, int branchId) async {
+    final resolvedTin = (await effectiveTin(business: business))!;
     await createProduct(
       bhFId: (await ProxyService.box.bhfId()) ?? "00",
-      tinNumber: business.tinNumber!,
+      tinNumber: resolvedTin,
       businessId: ProxyService.box.getBusinessId()!,
       branchId: branchId,
       totWt: item.totWt,
@@ -2570,7 +2572,7 @@ class CoreSync extends AiStrategyImpl
     try {
       final String requestId = const Uuid().v4();
       final String? bhfId = await ProxyService.box.bhfId();
-      final int? tinNumber = ProxyService.box.tin();
+      int? tin = await effectiveTin(branchId: ProxyService.box.getBranchId()!);
 
       FinanceProvider? provider;
       if (financingId != null) {
@@ -2604,7 +2606,7 @@ class CoreSync extends AiStrategyImpl
         deliveryNote: deliveryNote,
         orderNote: orderNote,
         bhfId: bhfId,
-        tinNumber: tinNumber.toString(),
+        tinNumber: tin!.toString(),
         branchId: (await ProxyService.strategy.activeBranch()).id,
         financingId: financingId,
         itemCounts: items.length,
@@ -2652,6 +2654,7 @@ class CoreSync extends AiStrategyImpl
     required Map<String, String> itemTypes,
   }) async {
     try {
+      int? tin = await effectiveTin(branchId: ProxyService.box.getBranchId()!);
       if (item.bcdU != null && item.bcdU!.isNotEmpty) {
         print('Searching for variant with modrId: ${item.barCode}');
 
@@ -2761,7 +2764,7 @@ class CoreSync extends AiStrategyImpl
           // Create a new variant with the product
           await createProduct(
             bhFId: bhfId ?? "00",
-            tinNumber: business?.tinNumber ?? ProxyService.box.tin(),
+            tinNumber: tin!,
             businessId: ProxyService.box.getBusinessId()!,
             branchId: ProxyService.box.getBranchId()!,
             totWt: item.totWt,

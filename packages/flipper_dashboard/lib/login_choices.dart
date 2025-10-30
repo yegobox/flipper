@@ -12,9 +12,9 @@ import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 import 'package:flipper_personal/flipper_personal.dart';
-// ignore: unnecessary_import unused_result
-import 'package:supabase_models/sync/ditto_sync_registry.dart';
+// removed unused import
 import 'dart:async';
+import 'package:flipper_models/ebm_helper.dart';
 import 'package:flipper_dashboard/BranchSelectionMixin.dart';
 import 'package:flipper_dashboard/utils/error_handler.dart';
 import 'package:flipper_models/providers/branch_business_provider.dart';
@@ -451,12 +451,13 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
       ..writeString(
           key: 'bhfId', value: (await ProxyService.box.bhfId()) ?? "00");
 
-    // Only update tin if business.tinNumber is not null or there's no existing value
-    if (business.tinNumber != null || existingTin == null) {
+    // Resolve effective TIN (prefer Ebm for active branch) and update box if needed
+    final resolvedTin = await effectiveTin(business: business);
+    if (resolvedTin != null || existingTin == null) {
       ProxyService.box
-          .writeInt(key: 'tin', value: business.tinNumber ?? existingTin ?? 0);
+          .writeInt(key: 'tin', value: resolvedTin ?? existingTin ?? 0);
       talker.debug(
-          'Setting tin to ${business.tinNumber ?? existingTin ?? 0} (from ${business.tinNumber != null ? 'business' : 'existing value'})');
+          'Setting tin to ${resolvedTin ?? existingTin ?? 0} (from ${resolvedTin != null ? 'ebm/business' : 'existing value'})');
     } else {
       talker.debug('Preserving existing tin value: $existingTin');
     }

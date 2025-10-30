@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'package:flipper_models/ebm_helper.dart';
 import 'package:flutter/services.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as odm;
@@ -588,7 +589,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         .toIso8601String()
         .replaceAll(RegExp(r'[:-\sT]'), '')
         .substring(0, 14);
-    final bhfId = (await ProxyService.box.bhfId()) ?? "00";
+    final bhfId = ebm!.bhfId;
     // Build item list
     List<Future<Map<String, dynamic>>> itemsFutures =
         items.map((item) => mapItemToJson(item, bhfId: bhfId)).toList();
@@ -1168,10 +1169,11 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     final url = Uri.parse(URI)
         .replace(path: Uri.parse(URI).path + 'branches/saveBrancheCustomers')
         .toString();
+    int? tin = await effectiveTin(branchId: ProxyService.box.getBranchId()!);
 
     try {
       final requiredObjc = {
-        "tin": ProxyService.box.tin(),
+        "tin": tin!,
         "bhfId": customer.bhfId,
         "custNo": customer.custNo,
         "custTin": customer.custTin,

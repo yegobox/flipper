@@ -2,6 +2,7 @@
 import 'package:flipper_dashboard/Imports.dart';
 import 'package:flipper_dashboard/Purchases.dart';
 import 'package:flipper_dashboard/refresh.dart';
+import 'package:flipper_models/ebm_helper.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart' as brick;
 import 'package:flipper_models/providers/outer_variant_provider.dart';
@@ -47,6 +48,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
   }
 
   Future<void> _loadData() async {
+    int? tin = await effectiveTin(branchId: ProxyService.box.getBranchId()!);
     final isImportState =
         ref.read(importPurchaseViewModelProvider).value?.isImport ?? true;
     setState(() => isLoading = true);
@@ -61,7 +63,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
       } else {
         _futurePurchases = ProxyService.strategy.selectPurchases(
           bhfId: (await ProxyService.box.bhfId()) ?? "00",
-          tin: business?.tinNumber ?? ProxyService.box.tin(),
+          tin: tin!,
           url: await ProxyService.box.getServerUrl() ?? "",
         );
 
@@ -85,8 +87,9 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
   Future<List<model.Variant>> _fetchDataImport(
       {required DateTime selectedDate,
       required brick.Business? business}) async {
+    int? tin = await effectiveTin(branchId: ProxyService.box.getBranchId()!);
     final data = await ProxyService.strategy.selectImportItems(
-      tin: business?.tinNumber ?? ProxyService.box.tin(),
+      tin: tin!,
       bhfId: (await ProxyService.box.bhfId()) ?? "00",
     );
     return data; // Return data directly

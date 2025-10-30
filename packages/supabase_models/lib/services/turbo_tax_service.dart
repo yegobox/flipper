@@ -261,13 +261,16 @@ class TurboTaxService {
     totalvat = totalTaxB;
 
     try {
+      Ebm? ebm = await ProxyService.strategy
+          .ebm(branchId: ProxyService.box.getBranchId()!);
+
       /// stock io will be used to either save stock out or stock in, this will be determined by sarTyCd
       /// if sarTyCd is 11 then it is a sale
       /// if sarTyCd is 06 then it is a stock adjustment
       final responseSaveStockInput = await ProxyService.tax.saveStockItems(
         transaction: pendingTransaction,
-        tinNumber: ProxyService.box.tin().toString(),
-        bhFId: (await ProxyService.box.bhfId()) ?? "00",
+        tinNumber: ebm!.tinNumber.toString(),
+        bhFId: ebm.bhfId,
         customerName: null,
         custTin: null,
         invoiceNumber: invoiceNumber,

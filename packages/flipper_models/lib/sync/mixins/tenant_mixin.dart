@@ -12,6 +12,7 @@ import 'package:supabase_models/brick/models/user.model.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:http/http.dart' as http;
+import 'package:flipper_models/ebm_helper.dart';
 
 mixin TenantMixin implements TenantInterface {
   String get apihub;
@@ -242,7 +243,7 @@ mixin TenantMixin implements TenantInterface {
               email: business.email,
               lastDbBackup: business.lastDbBackup,
               fullName: business.fullName,
-              tinNumber: business.tinNumber,
+              tinNumber: await effectiveTin(business: business),
               bhfId: business.bhfId,
               dvcSrlNo: business.dvcSrlNo,
               adrs: business.adrs,

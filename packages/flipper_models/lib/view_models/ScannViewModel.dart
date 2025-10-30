@@ -210,7 +210,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
   Future<void> initialize() async {
     setProductName(name: null);
     pkgUnits = RRADEFAULTS.packagingUnit;
-    log(ProxyService.box.tin().toString(), name: "ScannViewModel");
+
     log((await ProxyService.box.bhfId()).toString(), name: "ScannViewModel");
 
     /// when ebm enabled,additional feature will start to appear on UI e.g when adding new product on desktop
@@ -237,8 +237,6 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       required bool editmode,
       required String countryCode}) async {
     int branchId = ProxyService.box.getBranchId()!;
-    Business? business = await ProxyService.strategy
-        .getBusiness(businessId: ProxyService.box.getBusinessId()!);
 
     /// scan item if the same item is scanned more than once
     /// then its quantity will be incremented otherwise if the item is not found
@@ -287,7 +285,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       branchId: branchId,
       initialStock: 0,
       rsdQty: 0,
-      tin: business?.tinNumber ?? ProxyService.box.tin(),
+      tin: ebm!.tinNumber,
       value: 0 * retailPrice,
       ebmSynced: false,
       active: false,

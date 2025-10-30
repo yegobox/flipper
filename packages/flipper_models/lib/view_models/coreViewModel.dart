@@ -5,6 +5,7 @@ library flipper_models;
 import 'dart:async';
 import 'dart:developer';
 
+import 'package:flipper_models/ebm_helper.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -249,10 +250,12 @@ class CoreViewModel extends FlipperBaseModel
       ITransaction? pendingTransaction, double amount) async {
     // double amount = double.parse(ProxyService.keypad.key);
 
+    int? tin = await effectiveTin(branchId: ProxyService.box.getBranchId()!);
+
     if (amount == 0) return;
 
     Variant? variation = await ProxyService.strategy.getCustomVariant(
-        tinNumber: ProxyService.box.tin(),
+        tinNumber: tin!,
         bhFId: (await ProxyService.box.bhfId()) ?? "00",
         businessId: ProxyService.box.getBusinessId()!,
         branchId: ProxyService.box.getBranchId()!);
@@ -283,8 +286,9 @@ class CoreViewModel extends FlipperBaseModel
   void handleMultipleDigitKey(List<TransactionItem> items,
       ITransaction? pendingTransaction, double amount) async {
     // double amount = double.parse(ProxyService.keypad.key);
+    int? tin = await effectiveTin(branchId: ProxyService.box.getBranchId()!);
     Variant? variation = await ProxyService.strategy.getCustomVariant(
-        tinNumber: ProxyService.box.tin(),
+        tinNumber: tin!,
         bhFId: (await ProxyService.box.bhfId()) ?? "00",
         businessId: ProxyService.box.getBusinessId()!,
         branchId: ProxyService.box.getBranchId()!);
@@ -952,11 +956,9 @@ class CoreViewModel extends FlipperBaseModel
     isLoading = true;
     notifyListeners();
 
-    brick.Business? business = await ProxyService.strategy
-        .getBusiness(businessId: ProxyService.box.getBusinessId()!);
-
+    int? tin = await effectiveTin(branchId: ProxyService.box.getBranchId()!);
     final data = await ProxyService.strategy.selectImportItems(
-      tin: business?.tinNumber ?? ProxyService.box.tin(),
+      tin: tin!,
       bhfId: (await ProxyService.box.bhfId()) ?? "00",
     );
 
@@ -971,6 +973,7 @@ class CoreViewModel extends FlipperBaseModel
     required DateTime selectedDate,
     required bool isImport,
   }) async {
+    int? tin = await effectiveTin(branchId: ProxyService.box.getBranchId()!);
     isLoading = true;
     notifyListeners();
     final url = (await ProxyService.strategy
@@ -981,7 +984,7 @@ class CoreViewModel extends FlipperBaseModel
     }
     final rwResponse = await ProxyService.tax.selectTrnsPurchaseSales(
       URI: url,
-      tin: ProxyService.box.tin(),
+      tin: tin!,
       bhfId: (await ProxyService.box.bhfId()) ?? "00",
       lastReqDt: convertDateToString(selectedDate),
     );
