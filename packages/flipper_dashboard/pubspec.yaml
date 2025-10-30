@@ -127,7 +127,7 @@ dependencies:
   flipper_auth: any
   realm_dart: ^20.1.1
   flutter_soloud: ^3.3.1
-  ditto_live: ^4.12.3
+  ditto_live: ^4.12.4
   flipper_personal: any
 
 dependency_overrides:
