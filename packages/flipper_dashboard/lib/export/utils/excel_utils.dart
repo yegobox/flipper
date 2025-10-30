@@ -1,4 +1,5 @@
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/ebm_helper.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:syncfusion_flutter_xlsio/xlsio.dart' as excel;
@@ -44,8 +45,11 @@ class ExcelUtils {
     final taxRate = 18;
     final taxAmount = ((config.grossProfit ?? 0) * taxRate) / 118;
 
+    final tinString =
+        (await effectiveTin(business: business))?.toString() ?? '';
+
     final infoData = [
-      ['TIN Number', business.tinNumber?.toString() ?? ''],
+      ['TIN Number', tinString],
       ['BHF ID', await ProxyService.box.bhfId() ?? '00'],
       ['Start Date', config.startDate?.toIso8601String() ?? '-'],
       ['End Date', config.endDate?.toIso8601String() ?? '-'],

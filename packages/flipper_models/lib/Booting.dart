@@ -7,6 +7,7 @@ import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:http/http.dart' as http;
+import 'package:flipper_models/ebm_helper.dart';
 
 mixin Booting {
   Future<void> saveNeccessaryData(IUser user,
@@ -155,6 +156,7 @@ mixin Booting {
   Future<void> addOrUpdateBusinesses(List<IBusiness> businesses, String userId,
       {required bool usenewVersion}) async {
     for (IBusiness business in businesses) {
+      final resolvedTin = await effectiveTin(business: business);
       await ProxyService.strategy.addBusiness(
         id: business.id,
         phoneNumber: business.phoneNumber!,
@@ -193,7 +195,7 @@ mixin Booting {
         email: business.email,
         lastDbBackup: business.lastDbBackup,
         fullName: business.fullName,
-        tinNumber: business.tinNumber,
+        tinNumber: resolvedTin,
         bhfId: "00",
         dvcSrlNo: business.dvcSrlNo,
         adrs: business.adrs,

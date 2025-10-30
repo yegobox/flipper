@@ -2,6 +2,7 @@ library flipper_models;
 
 import 'dart:developer';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/ebm_helper.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flutter/cupertino.dart';
@@ -106,11 +107,11 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
         notifyListeners();
         return product;
       }
-
+       int? tin = await effectiveTin(branchId: ProxyService.box.getBranchId()!);
       /// create a temp product or return it if it exists
       Product? product = await ProxyService.strategy.createProduct(
         createItemCode: true,
-        tinNumber: ProxyService.box.tin(),
+        tinNumber: tin!,
         bhFId: (await ProxyService.box.bhfId()) ?? "00",
         businessId: ProxyService.box.getBusinessId()!,
         branchId: ProxyService.box.getBranchId()!,

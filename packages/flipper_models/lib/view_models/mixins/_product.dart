@@ -3,6 +3,7 @@ import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/product_service.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_models/ebm_helper.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as newMod;
 import 'package:flipper_services/locator.dart' as loc;
 import 'package:flutter/material.dart';
@@ -132,14 +133,16 @@ mixin ProductMixin {
         /// taxation type code - set this BEFORE calling setTaxPercentage
         /// Tax type must be set - no fallback allowed
         if (variations[i].taxTyCd == null || variations[i].taxTyCd!.isEmpty) {
-          throw Exception('Fatal Error: Tax type (taxTyCd) must be set for variant ${variations[i].id}. This is a required field.');
+          throw Exception(
+              'Fatal Error: Tax type (taxTyCd) must be set for variant ${variations[i].id}. This is a required field.');
         }
         variations[i].taxName = variations[i].taxTyCd!;
 
         // Now we can safely call setTaxPercentage since taxTyCd is set
         variations[i].taxPercentage = await setTaxPercentage(variations[i]);
 
-        variations[i].tin = business?.tinNumber;
+        // Prefer EBM-provided tin when available; fall back to business or box via helper
+        variations[i].tin = await effectiveTin(business: business);
 
         variations[i].bhfId = business?.bhfId ?? "00";
         variations[i].bcd = variations[i].bcd;

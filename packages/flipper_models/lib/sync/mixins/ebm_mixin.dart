@@ -5,6 +5,7 @@ import 'package:supabase_models/brick/repository.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/services/sqlite_service.dart';
+import 'package:flipper_models/ebm_helper.dart';
 import 'package:path/path.dart' as path;
 
 mixin EbmMixin implements EbmInterface {
@@ -37,11 +38,14 @@ mixin EbmMixin implements EbmInterface {
 
     final existingEbm = ebm.firstOrNull;
 
+    final resolvedTin =
+        (await effectiveTin(business: business, branchId: branchId));
+
     Ebm updatedEbm = existingEbm ??
         Ebm(
           mrc: mrc,
           bhfId: bhFId,
-          tinNumber: business.tinNumber!,
+          tinNumber: resolvedTin!,
           dvcSrlNo: business.dvcSrlNo ?? "vsdcyegoboxltd",
           userId: ProxyService.box.getUserId()!,
           taxServerUrl: severUrl,

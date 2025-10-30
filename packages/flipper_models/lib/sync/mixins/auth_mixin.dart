@@ -22,6 +22,7 @@ import 'package:flipper_services/locator.dart' as loc;
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
+import 'package:flipper_models/ebm_helper.dart';
 
 mixin AuthMixin implements AuthInterface {
   String get apihub;
@@ -406,13 +407,13 @@ mixin AuthMixin implements AuthInterface {
             // Get existing tin value if available
             final existingTin = ProxyService.box.readInt(key: 'tin');
 
-            // Only update tin if selectedBusiness.tinNumber is not null or there's no existing value
-            if (selectedBusiness.tinNumber != null || existingTin == null) {
-              await ProxyService.box.writeInt(
-                  key: 'tin',
-                  value: selectedBusiness.tinNumber ?? existingTin ?? 0);
+            // Resolve effective TIN (prefer Ebm) and update box if needed
+            final resolvedTin = await effectiveTin(business: selectedBusiness);
+            if (resolvedTin != null || existingTin == null) {
+              await ProxyService.box
+                  .writeInt(key: 'tin', value: resolvedTin ?? existingTin ?? 0);
               talker.debug(
-                  'Setting tin to ${selectedBusiness.tinNumber ?? existingTin ?? 0} (from ${selectedBusiness.tinNumber != null ? 'business' : 'existing value'})');
+                  'Setting tin to ${resolvedTin ?? existingTin ?? 0} (from ${resolvedTin != null ? 'ebm/business' : 'existing value'})');
             } else {
               talker.debug('Preserving existing tin value: $existingTin');
             }
