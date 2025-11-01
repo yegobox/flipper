@@ -44,6 +44,10 @@ abstract class TenantInterface {
   Future<List<ITenant>> tenantsFromOnline(
       {required int businessId,
       required HttpClientInterface flipperHttpClient});
+
+  /// Delete tenants that have a null `pin` value. If [businessId] is provided,
+  /// only tenants for that business will be checked and deleted.
+  Future<void> deleteTenantsWithNullPin({int? businessId});
   Future<void> updateTenant(
       {String? tenantId,
       String? name,

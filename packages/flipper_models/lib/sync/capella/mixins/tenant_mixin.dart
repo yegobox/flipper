@@ -12,8 +12,7 @@ mixin CapellaTenantMixin implements TenantInterface {
   Repository get repository;
   Talker get talker;
   @override
-  Future<Branch> activeBranch() {
-    // TODO: implement activeBranch
+  Future<void> deleteTenantsWithNullPin({int? businessId}) {
     throw UnimplementedError();
   }
 

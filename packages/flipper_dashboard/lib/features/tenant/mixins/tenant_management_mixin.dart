@@ -1,5 +1,6 @@
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -55,24 +56,19 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
       validator: validator,
       decoration: InputDecoration(
         labelText: labelText,
-        prefixIcon: Icon(icon, color: Theme.of(context).colorScheme.primary),
+        prefixIcon: Icon(icon),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12), // More rounded
-          borderSide: BorderSide.none, // Remove the default border
+          borderRadius: BorderRadius.circular(12),
         ),
         filled: true,
-        fillColor: Theme.of(context)
-            .colorScheme
-            .surfaceContainerHighest, // Use theme color
-        contentPadding: EdgeInsets.symmetric(
-            vertical: 16, horizontal: 16), // add padding inside input
+        fillColor: Colors.grey[200],
       ),
     );
   }
 
   Widget buildUserTypeDropdown() {
     return DropdownButtonFormField<String>(
-      value: selectedUserType,
+      initialValue: selectedUserType,
       onChanged: (String? newValue) {
         setState(() {
           selectedUserType = newValue!;
@@ -87,15 +83,12 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
       }).toList(),
       decoration: InputDecoration(
         labelText: "Select User Type",
-        prefixIcon: Icon(Icons.person_outline,
-            color: Theme.of(context).colorScheme.primary),
+        prefixIcon: Icon(Icons.person_outline),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide.none,
         ),
         filled: true,
-        fillColor: Theme.of(context).colorScheme.surfaceContainerHighest,
-        contentPadding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+        fillColor: Colors.grey[200],
       ),
     );
   }
@@ -255,10 +248,7 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
             children: [
               Text(
                 editMode ? "Edit User" : "Add New User",
-                style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
-                    color: Theme.of(context).colorScheme.primary), // Use theme
+                style: Theme.of(context).textTheme.titleMedium,
                 textAlign: TextAlign.center,
               ),
               SizedBox(height: 24),
@@ -290,57 +280,54 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
               SizedBox(height: 20),
               buildPermissionsSection(),
               SizedBox(height: 24),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  // Customize button style
-                  padding: const EdgeInsets.all(16.0),
-                  textStyle: TextStyle(fontSize: 16),
-                  backgroundColor: Theme.of(context)
-                      .colorScheme
-                      .primary, // Use primary color
-                  foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12)),
-                ),
-                onPressed: isAddingUser
-                    ? null // Disable when processing
-                    : () async {
-                        if (formKey.currentState!.validate()) {
-                          formKey.currentState!.save(); // trigger onSaved
-                          setState(() => isAddingUser = true);
-                          try {
-                            await addUser(
-                              model,
-                              context,
-                              editMode: editMode,
-                              name: nameController.text,
-                              phone: phoneController.text,
-                              userType: selectedUserType,
-                              userId: editMode && editedTenant != null
-                                  ? editedTenant?.userId
-                                  : null,
-                            );
-                            resetForm();
-                          } catch (e) {
-                            // Error is already handled in the `addUser` method
-                          } finally {
-                            setState(() => isAddingUser = false);
-                          }
-                        }
-                      },
-                child: isAddingUser
-                    ? SizedBox(
-                        // CircularProgressIndicator with size constraint
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                              Theme.of(context)
-                                  .colorScheme
-                                  .onPrimary), // Use correct color
-                        ),
-                      )
-                    : Text(editMode ? "Update User" : "Add User"),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Expanded(
+                    child: FlipperButton(
+                      color: Colors.blue,
+                      textColor: Colors.white,
+                      onPressed: isAddingUser
+                          ? null
+                          : () async {
+                              if (formKey.currentState!.validate()) {
+                                formKey.currentState!.save();
+                                setState(() => isAddingUser = true);
+                                try {
+                                  await addUser(
+                                    model,
+                                    context,
+                                    editMode: editMode,
+                                    name: nameController.text,
+                                    phone: phoneController.text,
+                                    userType: selectedUserType,
+                                    userId: editMode && editedTenant != null
+                                        ? editedTenant?.userId
+                                        : null,
+                                  );
+                                  resetForm();
+                                } catch (e) {
+                                  // Error is already handled in the `addUser` method
+                                } finally {
+                                  setState(() => isAddingUser = false);
+                                }
+                              }
+                            },
+                      text: editMode ? "Update User" : "Add User",
+                    ),
+                  ),
+                  if (editMode) ...[
+                    SizedBox(width: 16),
+                    Expanded(
+                      child: FlipperButton(
+                        onPressed: () => resetForm(),
+                        text: 'Cancel',
+                        textColor: Colors.blue,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ],
           ),

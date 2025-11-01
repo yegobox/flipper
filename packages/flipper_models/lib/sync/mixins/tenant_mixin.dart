@@ -169,7 +169,10 @@ mixin TenantMixin implements TenantInterface {
               policy: fetchRemote
                   ? OfflineFirstGetPolicy.awaitRemote
                   : OfflineFirstGetPolicy.localOnly,
-              query: Query(where: [Where('userId').isExactly(userId)])))
+              query: Query(where: [
+                Where('userId').isExactly(userId),
+                Where('pin').isExactly(userId),
+              ])))
           .firstOrNull;
     } else {
       return (await repository.get<Tenant>(
@@ -347,5 +350,26 @@ mixin TenantMixin implements TenantInterface {
       pin: pin ?? tenant?.pin,
       sessionActive: sessionActive ?? tenant?.sessionActive,
     ));
+  }
+
+  @override
+  Future<void> deleteTenantsWithNullPin({int? businessId}) async {
+    // Fetch tenants scoped by businessId if provided, otherwise all tenants.
+    final query = Query(where: [
+      if (businessId != null) Where('businessId').isExactly(businessId),
+    ]);
+
+    final tenants = await repository.get<Tenant>(query: query);
+
+    for (final tenant in tenants) {
+      try {
+        if (tenant.pin == null) {
+          await repository.delete<Tenant>(tenant);
+        }
+      } catch (e) {
+        // Swallow errors for now but continue deleting others. Caller can
+        // rely on logs or higher-level handling if necessary.
+      }
+    }
   }
 }

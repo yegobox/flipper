@@ -85,17 +85,6 @@ class CronService {
       ProxyService.strategy.ebm(branchId: branchId, fetchRemote: true);
       final queueLength = await ProxyService.strategy.queueLength();
 
-      ///temporaly work around for missing bhf_id column in Counter table
-      try {
-        // Get the database directory and construct the path using Repository.dbFileName
-        final dbDir = await DatabasePath.getDatabaseDirectory();
-        // Use the imported path package correctly
-        final dbPath = path.join(dbDir, Repository.dbFileName);
-        // SqliteService.addColumnIfNotExists(
-        //     dbPath, 'Counter', 'bhf_id', 'TEXT DEFAULT "00"');
-      } catch (e) {
-        talker.error("Failed to add columns to tables: $e");
-      }
       ProxyService.tax.taxConfigs(branchId: branchId).then((_) {});
       ProxyService.strategy
           .hydrateDate(
@@ -103,6 +92,16 @@ class CronService {
           .then((_) {});
       ProxyService.strategy
           .access(userId: ProxyService.box.getUserId()!, fetchRemote: true);
+
+      // Clean up any tenant records that don't have a PIN set. This prevents
+      // orphaned tenant entries from lingering; scoped to current business if
+      // available.
+      try {
+        await ProxyService.strategy.deleteTenantsWithNullPin(
+            businessId: ProxyService.box.getBusinessId());
+      } catch (e) {
+        talker.error('Failed to delete tenants with null pin: $e');
+      }
       ProxyService.strategy.hydrateCodes(branchId: branchId).then((_) {});
       ProxyService.strategy.hydrateSars(branchId: branchId).then((_) {});
       if (queueLength == 0) {
@@ -114,21 +113,7 @@ class CronService {
         // Hydrate essential data
         try {
           await Future.wait<void>([
-            // ProxyService.strategy
-            //     .getCounters(branchId: branchId, fetchRemote: true)
-            //     .then((_) {}),
-
             ProxyService.tax.fetchNotices(URI: uri!).then((_) {}),
-
-            // ProxyService.strategy
-            //     .variants(branchId: branchId, fetchRemote: true)
-            //     .then((_) {}),
-            // ProxyService.strategy
-            //     .transactions(branchId: branchId, fetchRemote: true)
-            //     .then((_) {}),
-
-            // Future.value(ProxyService.strategy.tenant(
-            //     userId: ProxyService.box.getUserId()!, fetchRemote: true))
           ]);
         } catch (e) {
           talker.error("Error hydrating initial data: $e");
