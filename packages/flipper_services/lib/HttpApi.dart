@@ -6,6 +6,7 @@ import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:supabase_models/brick/models/business.model.dart';
 import 'package:supabase_models/brick/models/credit.model.dart';
 import 'package:supabase_models/brick/models/customer_payments.model.dart';
 import 'package:supabase_models/brick/models/variant.model.dart';
@@ -306,6 +307,10 @@ class HttpApi implements HttpApiInterface {
       required String payeemessage,
       required int amount,
       required String phoneNumber}) async {
+    // get active business or profile
+    Business? business =
+        await ProxyService.strategy.getBusiness(businessId: businessId);
+
     final response = await flipperHttpClient.post(
         headers: {'Content-Type': 'application/json'},
         Uri.parse('${AppSecrets.coreApi}/v2/api/payNow'),
@@ -318,12 +323,12 @@ class HttpApi implements HttpApiInterface {
           },
           "payerMessage": "Flipper Subscription",
           "payeeNote": payeemessage,
-          "businessId": ProxyService.box.getBusinessId()!,
+          "businessId": business!.id,
           "branchId": branchId,
           "paymentType": paymentType,
           "externalId": externalId
         }));
-    talker.warning(response.body);
+    talker.debug(response.body);
     final status = response.statusCode;
     if (status == 400) {
       throw Exception("Bad request");
