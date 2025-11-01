@@ -38,14 +38,16 @@ mixin PaymentHandler {
         paymentType: "Subscription",
         payeemessage: "Flipper Subscription",
         branchId: "2f83b8b1-6d41-4d80-b0e7-de8ab36910af",
-        businessId: ProxyService.box.getBusinessId()!,
+        businessId: (await ProxyService.strategy
+                .getBusiness(businessId: ProxyService.box.getBusinessId()!))!
+            .id,
         amount: finalPrice,
         flipperHttpClient: ProxyService.http,
       );
     }
     // upsert plan with new payment method
     // refresh a plan as it might have updted remotely.
-   
+
     ProxyService.strategy.saveOrUpdatePaymentPlan(
       additionalDevices: plan.additionalDevices!,
       businessId: (await ProxyService.strategy.activeBusiness())!.id,

@@ -18,7 +18,6 @@ class PaymentService {
         paymentType: "PaymentNormal",
         phoneNumber: phoneNumber.replaceAll("+", ""),
         branchId: branchId,
-        businessId: ProxyService.box.getBusinessId()!,
         amount: finalPrice,
         flipperHttpClient: ProxyService.http,
       );

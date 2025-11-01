@@ -6,7 +6,6 @@ import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:supabase_models/brick/models/business.model.dart';
 import 'package:supabase_models/brick/models/credit.model.dart';
 import 'package:supabase_models/brick/models/customer_payments.model.dart';
 import 'package:supabase_models/brick/models/variant.model.dart';
@@ -23,7 +22,7 @@ abstract class HttpApiInterface {
       required int businessId});
   Future<bool> makePayment(
       {required HttpClientInterface flipperHttpClient,
-      required int businessId,
+      String? businessId,
       required String phoneNumber,
       String? externalId,
       required String branchId,
@@ -300,7 +299,7 @@ class HttpApi implements HttpApiInterface {
   @override
   Future<bool> makePayment(
       {required HttpClientInterface flipperHttpClient,
-      required int businessId,
+      String? businessId,
       required String branchId,
       required String paymentType,
       String? externalId,
@@ -308,8 +307,6 @@ class HttpApi implements HttpApiInterface {
       required int amount,
       required String phoneNumber}) async {
     // get active business or profile
-    Business? business =
-        await ProxyService.strategy.getBusiness(businessId: businessId);
 
     final response = await flipperHttpClient.post(
         headers: {'Content-Type': 'application/json'},
@@ -323,7 +320,7 @@ class HttpApi implements HttpApiInterface {
           },
           "payerMessage": "Flipper Subscription",
           "payeeNote": payeemessage,
-          "businessId": business!.id,
+          "businessId": businessId,
           "branchId": branchId,
           "paymentType": paymentType,
           "externalId": externalId
@@ -554,7 +551,7 @@ class RealmViaHttpServiceMock implements HttpApiInterface {
   @override
   Future<bool> makePayment(
       {required HttpClientInterface flipperHttpClient,
-      required int businessId,
+       String businessId,
       required String paymentType,
       required String phoneNumber,
       String? externalId,

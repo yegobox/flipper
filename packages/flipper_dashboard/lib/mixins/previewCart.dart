@@ -691,7 +691,6 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         externalId: externalId,
         phoneNumber: phoneNumber.replaceAll("+", ""),
         branchId: branchId,
-        businessId: ProxyService.box.getBusinessId()!,
         amount: finalPrice,
         flipperHttpClient: ProxyService.http,
       );
