@@ -158,14 +158,6 @@ class HttpApi implements HttpApiInterface {
 
       // Check if the request was successful
       if (response.statusCode == 200 || response.statusCode == 202) {
-        // Expected successful response format:
-        // {
-        //   "status": "success",
-        //   "message": "",
-        //   "statusCode": 202,
-        //   "paymentReference": "eaa09f4d-1a9d-4aa8-bd99-9a9877687a6c",
-        //   "externalId": "eaa09f4d-1a9d-4aa8-bd99-9a9877687a6c"
-        // }
         await ProxyService.strategy.upsertPayment(CustomerPayments(
           phoneNumber: paymentData['phoneNumber'],
           paymentStatus: "pending",
@@ -551,7 +543,7 @@ class RealmViaHttpServiceMock implements HttpApiInterface {
   @override
   Future<bool> makePayment(
       {required HttpClientInterface flipperHttpClient,
-       String businessId,
+      String? businessId,
       required String paymentType,
       required String phoneNumber,
       String? externalId,
