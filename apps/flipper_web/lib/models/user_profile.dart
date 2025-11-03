@@ -52,7 +52,7 @@ class Tenant {
   final List<dynamic> permissions;
   final List<Branch> branches;
   final List<Business> businesses;
-  final int businessId;
+  final int? businessId;
   final bool nfcEnabled;
   final int userId;
   final int pin;
@@ -68,7 +68,7 @@ class Tenant {
     required this.permissions,
     required this.branches,
     required this.businesses,
-    required this.businessId,
+    this.businessId,
     required this.nfcEnabled,
     required this.userId,
     required this.pin,
@@ -84,17 +84,17 @@ class Tenant {
       email: json['email'] ?? 'null',
       imageUrl: json['imageUrl'] ?? 'null',
       permissions: json['permissions'] ?? [],
-      branches: (json['branches'] as List)
+      branches: (json['branches'] as List? ?? [])
           .map((e) => Branch.fromJson(e))
           .toList(),
-      businesses: (json['businesses'] as List)
+      businesses: (json['businesses'] as List? ?? [])
           .map((e) => Business.fromJson(e))
           .toList(),
-      businessId: json['businessId'],
-      nfcEnabled: json['nfcEnabled'],
-      userId: json['userId'],
-      pin: json['pin'],
-      isDefault: json['is_default'],
+      businessId: json['businessId'] as int?,
+      nfcEnabled: json['nfcEnabled'] ?? false,
+      userId: json['userId'] as int,
+      pin: json['pin'] as int,
+      isDefault: json['is_default'] ?? false,
       type: json['type'],
     );
   }
@@ -145,12 +145,12 @@ class Branch {
   factory Branch.fromJson(Map<String, dynamic> json) {
     return Branch(
       id: json['id'],
-      description: json['description'],
-      name: json['name'],
-      longitude: json['longitude'],
-      latitude: json['latitude'],
-      businessId: json['businessId'],
-      serverId: json['serverId'],
+      description: json['description'] ?? '',
+      name: json['name'] ?? '',
+      longitude: json['longitude'] ?? '',
+      latitude: json['latitude'] ?? '',
+      businessId: json['businessId'] as int? ?? 0,
+      serverId: json['serverId'] as int? ?? 0,
       active: json['active'] ?? false,
       isDefault: json['is_default'] ?? false,
     );
@@ -215,24 +215,24 @@ class Business {
   factory Business.fromJson(Map<String, dynamic> json) {
     return Business(
       id: json['id'],
-      name: json['name'],
-      country: json['country'],
-      currency: json['currency'],
-      latitude: json['latitude'],
-      longitude: json['longitude'],
-      active: json['active'],
-      userId: json['userId'],
-      phoneNumber: json['phoneNumber'],
-      lastSeen: json['lastSeen'],
-      backUpEnabled: json['backUpEnabled'],
-      fullName: json['fullName'],
-      tinNumber: json['tinNumber'],
-      taxEnabled: json['taxEnabled'],
-      businessTypeId: json['businessTypeId'],
-      serverId: json['serverId'],
-      isDefault: json['is_default'],
+      name: json['name'] ?? '',
+      country: json['country'] ?? '',
+      currency: json['currency'] ?? '',
+      latitude: json['latitude'] ?? '',
+      longitude: json['longitude'] ?? '',
+      active: json['active'] ?? false,
+      userId: json['userId'] ?? '',
+      phoneNumber: json['phoneNumber'] ?? '',
+      lastSeen: json['lastSeen'] as int? ?? 0,
+      backUpEnabled: json['backUpEnabled'] ?? false,
+      fullName: json['fullName'] ?? '',
+      tinNumber: json['tinNumber'] as int? ?? 0,
+      taxEnabled: json['taxEnabled'] ?? false,
+      businessTypeId: json['businessTypeId'] as int? ?? 0,
+      serverId: json['serverId'] as int? ?? 0,
+      isDefault: json['is_default'] ?? false,
       lastSubscriptionPaymentSucceeded:
-          json['lastSubscriptionPaymentSucceeded'],
+          json['lastSubscriptionPaymentSucceeded'] ?? false,
     );
   }
 

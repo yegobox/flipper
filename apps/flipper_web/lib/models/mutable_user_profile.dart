@@ -127,7 +127,7 @@ class MutableTenant {
       businesses: tenant.businesses
           .map((e) => MutableBusiness.fromBusiness(e))
           .toList(),
-      businessId: tenant.businessId,
+      businessId: tenant.businessId ?? 0,
       nfcEnabled: tenant.nfcEnabled,
       userId: tenant.userId,
       pin: tenant.pin,
