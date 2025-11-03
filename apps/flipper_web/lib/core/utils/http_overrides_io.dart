@@ -1,6 +1,11 @@
 import 'dart:io';
 
-// This class is only used on non-web platforms
+import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' as foundation;
+import 'package:flutter/services.dart';
+
+// Non-web implementation for setting HTTP overrides
+
 class DevHttpOverrides extends HttpOverrides {
   @override
   HttpClient createHttpClient(SecurityContext? context) {
@@ -10,7 +15,10 @@ class DevHttpOverrides extends HttpOverrides {
   }
 }
 
-// Non-web implementation for setting HTTP overrides
-void setDevHttpOverrides() {
-  HttpOverrides.global = DevHttpOverrides();
+Future<void> initializeCriticalDependencies() async {
+  // Configure HTTP overrides for SSL/TLS connections
+  if (!foundation.kIsWeb) {
+    HttpOverrides.global = DevHttpOverrides();
+    debugPrint('HTTP overrides configured for secure connections');
+  }
 }
