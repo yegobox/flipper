@@ -97,3 +97,4 @@ supabase
 proprietary/*
 proprietary/.*
 proprietary
+/apps/flipper_web/macos/Pods
