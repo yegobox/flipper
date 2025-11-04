@@ -610,6 +610,20 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     // Get sales and receipt type codes
     Map<String, String> receiptCodes = getReceiptCodes(receiptType);
     Map<String, double> taxTotals = calculateTaxTotals(itemsList);
+    Future<void> _handleInvoiceDuplicate() async {
+      print("Invoice number already exists.");
+      final branchId = ProxyService.box.getBranchId()!;
+      final counters = await ProxyService.strategy.getCounters(
+        branchId: branchId,
+        fetchRemote: false,
+      );
+
+      for (Counter c in counters) {
+        c.invcNo = (c.invcNo ?? 0) + 1;
+        c.curRcptNo = (c.curRcptNo ?? 0) + 1;
+        await repository.upsert(c);
+      }
+    }
 
     // Retrieve customer information
 
@@ -644,20 +658,16 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         ProxyService.box.writeBool(key: 'transactionInProgress', value: false);
         final data = RwApiResponse.fromJson(response.data);
         if (data.resultCd != "000") {
-          // Use GlobalErrorHandler to log the error
-          final errorMessage = data.resultMsg;
-          final exception = Exception(errorMessage);
-          if (data.resultMsg == "Invoice number already exists.") {
-            print("Invoice number already exists.");
-            // Update all counters to keep them in sync
-            List<Counter> allCounters = await ProxyService.strategy.getCounters(
-                branchId: ProxyService.box.getBranchId()!, fetchRemote: false);
-            for (Counter c in allCounters) {
-              c.invcNo = (c.invcNo ?? 0) + 1;
-              c.curRcptNo = (c.curRcptNo ?? 0) + 1;
-              await repository.upsert(c);
-            }
+          final msg = data.resultMsg;
+          Exception exception = Exception(msg);
+
+          if (msg == "Invoice number already exists.") {
+            await _handleInvoiceDuplicate();
+            exception = Exception(
+              "Error occurred, please try again. If the problem persists, contact support.",
+            );
           }
+
           GlobalErrorHandler.logError(
             exception,
             type: "tax_error",
@@ -667,6 +677,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
               'timestamp': DateTime.now().toIso8601String(),
             },
           );
+
           throw exception;
         } else {
           // remove any tin saved in local storage on success

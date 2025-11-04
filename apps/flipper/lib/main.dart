@@ -42,7 +42,7 @@ Future<void> _initializeFirebase() async {
   }
 }
 
-// Function to initialize Supabase. 
+// Function to initialize Supabase.
 Future<void> _initializeSupabase() async {
   try {
     // Wrap in a microtask to allow UI thread to continue
@@ -62,7 +62,7 @@ Future<void> _initializeTransactionDelegation() async {
   try {
     await Future<void>.microtask(() async {
       // Use the new real-time Ditto-based monitoring
-      final delegationService = RealtimeDelegationService();  
+      final delegationService = RealtimeDelegationService();
       await delegationService.initialize();
       debugPrint('✅ Real-time Transaction Delegation initialized');
     });
@@ -103,8 +103,7 @@ Future<void> main() async {
       setupBottomSheetUi();
       await initDependencies();
       await DittoSyncRegistry.registerDefaults();
-      
-    
+
       // Initialize transaction delegation service (desktop only)
       await _initializeTransactionDelegation();
     }
