@@ -309,7 +309,8 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
     String bhfid = (await ProxyService.box.bhfId()) ?? "00";
     return await ProxyService.strategy.createProduct(
       createItemCode: false,
-      tinNumber: ProxyService.box.tin(),
+      tinNumber:
+          (await ProxyService.strategy.ebm(branchId: branchId))!.tinNumber,
       bhFId: bhfid,
       businessId: ProxyService.box.getBusinessId()!,
       branchId: ProxyService.box.getBranchId()!,

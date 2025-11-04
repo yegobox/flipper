@@ -242,9 +242,7 @@ class TaxController<OBJ> with TransactionDelegationMixin {
                 // Add to respective totals based on tax type code
                 switch (item.taxTyCd) {
                   case "B":
-                    if (item.ttCatCd != 'TT') {
-                      totalB += itemTotal;
-                    }
+                    totalB += itemTotal;
                     break;
                   case "C":
                     totalC += itemTotal;
