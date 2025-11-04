@@ -25,7 +25,7 @@ class ImportPurchasePage extends StatefulHookConsumerWidget {
 class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
     with Refresh {
   DateTime _selectedDate = DateTime.now();
-  late Future<List<model.Variant>> _futureImportResponse;
+  Future<List<model.Variant>>? _futureImportResponse;
   Future<List<model.Purchase>>? _futurePurchases;
   model.Variant? _selectedItem;
   model.Variant? _selectedPurchaseItem;
@@ -308,7 +308,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
 
   Widget _buildImportView(brick.CoreViewModel coreViewModel) {
     return FutureBuilder<List<model.Variant>>(
-      future: _futureImportResponse,
+      future: _futureImportResponse ?? Future.value([]),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return _buildLoadingIndicator();

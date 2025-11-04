@@ -51,6 +51,7 @@ mixin PurchaseMixin
       pkgUnitCd: "BJ",
       createItemCode: item.itemCd?.isEmpty == true,
       dclNo: item.dclNo,
+      taxTyCd: item.taxTyCd,
       taskCd: item.taskCd,
       dclDe: item.dclDe,
       orgnNatCd: item.orgnNatCd,
@@ -80,6 +81,8 @@ mixin PurchaseMixin
     required String bhfId,
   }) async {
     try {
+      Ebm? ebm = await ProxyService.strategy
+          .ebm(branchId: ProxyService.box.getBranchId()!);
       final activeBranch =
           await branch(serverId: ProxyService.box.getBranchId()!);
       if (activeBranch == null) throw Exception("Active branch not found");
@@ -103,7 +106,7 @@ mixin PurchaseMixin
 
       final lastReqDt = lastRequestRecords.firstOrNull?.lastRequestDate ??
           DateTime.now().toYYYYMMddHHmmss();
-      final URI = await ProxyService.box.getServerUrl() ?? "";
+      final URI = ebm?.taxServerUrl ?? "";
 
       final response = await ProxyService.tax.selectImportItems(
         tin: tin,
@@ -123,7 +126,8 @@ mixin PurchaseMixin
         final paged = await variants(
           branchId: branchId,
           forImportScreen: true,
-          taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D'],
+          taxTyCds:
+              ebm?.vatEnabled == true ? ['A', 'B', 'C', 'TT'] : ['D', 'TT'],
         );
         return List<Variant>.from(paged.variants);
       }
@@ -132,8 +136,9 @@ mixin PurchaseMixin
       for (final item in response.data!.itemList!) {
         item.imptItemSttsCd = "2";
         item.itemClsCd = "2";
+        item.taxTyCd = ebm?.vatEnabled == true ? "B" : "D";
         item.color = randomizeColor();
-        item.itemCd = "2"; // Assuming this is a placeholder or default
+        item.itemCd = "2"; 
         saveVariantTasks
             .add(saveVariant(item, business, activeBranch.serverId!));
       }
@@ -157,7 +162,8 @@ mixin PurchaseMixin
       final paged = await variants(
           branchId: branchId,
           forImportScreen: true,
-          taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D']);
+          taxTyCds:
+              ebm?.vatEnabled == true ? ['A', 'B', 'C', 'TT'] : ['D', 'TT']);
       return List<Variant>.from(paged.variants);
     } catch (e, stackTrace) {
       talker.error("Error in selectImportItems: $e", stackTrace);
@@ -173,6 +179,8 @@ mixin PurchaseMixin
     String? pchsSttsCd,
   }) async {
     try {
+      Ebm? ebm = await ProxyService.strategy
+          .ebm(branchId: ProxyService.box.getBranchId()!);
       RwApiResponse response;
       // Fetch active branch
       final activeBranch =
@@ -206,8 +214,8 @@ mixin PurchaseMixin
       try {
         response = await ProxyService.tax.selectTrnsPurchaseSales(
           URI: url,
-          tin: tin,
-          bhfId: (await ProxyService.box.bhfId()) ?? "00",
+          tin: tinNumber,
+          bhfId: ebm?.bhfId ?? "00",
           lastReqDt: lastRequestRecords.firstOrNull?.lastRequestDate ??
               DateTime.now().toYYYYMMddHHmmss(),
         );
@@ -269,8 +277,6 @@ mixin PurchaseMixin
               processedBarcodes.add(barCode);
 
               Future<void> saveVariant() async {
-                int? tin = await effectiveTin(
-                    branchId: ProxyService.box.getBranchId()!);
                 if (variant.stock != null) {
                   await repository.upsert<Stock>(variant.stock!);
                 }
@@ -326,8 +332,8 @@ mixin PurchaseMixin
                   variant.stockSynchronized = true;
                   variant.isrcAplcbYn = "N";
                   variant.imptItemSttsCd = null;
-                  variant.bhfId = (await ProxyService.box.bhfId()) ?? "00";
-                  variant.tin = tin!;
+                  variant.bhfId = ebm?.bhfId ?? "00";
+                  variant.tin = tinNumber;
                   variant.modrNm = variant.itemNm;
                   variant.regrNm = variant.itemNm;
                   variant.modrId = randomNumber().toString().substring(0, 5);
