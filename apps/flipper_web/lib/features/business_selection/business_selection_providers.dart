@@ -46,65 +46,22 @@ final currentUserProfileProvider = FutureProvider<UserProfile?>((ref) async {
     final authService = ref.watch(authServiceProvider);
     final userRepository = ref.watch(userRepositoryProvider);
 
-    // Get current authenticated user
-    final currentUser = await authService.getCurrentUser();
-    debugPrint(
-      'CurrentUserProfileProvider - Current user: ${currentUser?.id ?? 'null'}',
-    );
-
-    if (currentUser == null) {
-      debugPrint(
-        'CurrentUserProfileProvider - No current user found in Supabase',
-      );
+    // Get current session
+    final session = await authService.getCurrentSession();
+    if (session == null) {
+      debugPrint('CurrentUserProfileProvider - No current session found');
       return null;
     }
 
-    // Get user profile from Ditto
-    try {
-      final userProfile = await userRepository.getCurrentUserProfile(
-        currentUser.id,
-      );
+    // Use the fallback method that handles Ditto cache and API fallback
+    final userProfile = await userRepository.getUserProfileWithFallback(
+      session,
+    );
+    debugPrint(
+      'CurrentUserProfileProvider - Profile ${userProfile != null ? 'found' : 'not found'}',
+    );
 
-      debugPrint(
-        'CurrentUserProfileProvider - User profile from Ditto: ${userProfile != null ? 'found' : 'not found'}',
-      );
-
-      if (userProfile == null) {
-        // If profile is not found in Ditto, try to fetch it from API
-        debugPrint(
-          'CurrentUserProfileProvider - Profile not found in Ditto, fetching from API',
-        );
-
-        // Get current session to fetch user profile
-        final session = await authService.getCurrentSession();
-        if (session != null) {
-          // This will fetch and save the profile to Ditto
-          try {
-            final apiProfile = await userRepository.fetchAndSaveUserProfile(
-              session,
-            );
-            debugPrint(
-              'CurrentUserProfileProvider - Successfully fetched profile from API',
-            );
-            // Return the profile directly from API instead of trying to get it from Ditto again
-            return apiProfile;
-          } catch (apiError) {
-            debugPrint(
-              'CurrentUserProfileProvider - API fetch error: $apiError',
-            );
-            // If we fail to get from API, return null
-            return null;
-          }
-        }
-      }
-
-      return userProfile;
-    } catch (innerError) {
-      debugPrint(
-        'CurrentUserProfileProvider - Error getting user profile from Ditto: $innerError',
-      );
-      rethrow;
-    }
+    return userProfile;
   } catch (e) {
     debugPrint('CurrentUserProfileProvider - Error: $e');
     rethrow;

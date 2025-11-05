@@ -87,6 +87,28 @@ class UserRepository {
     }
   }
 
+  /// Get user profile with fallback to API if not in Ditto
+  ///
+  /// This method first tries to get data from Ditto, and if not available,
+  /// fetches from API and saves to Ditto
+  Future<UserProfile?> getUserProfileWithFallback(Session session) async {
+    try {
+      // First try to get from Ditto
+      final cachedProfile = await getCurrentUserProfile(session.user.id);
+      if (cachedProfile != null && cachedProfile.tenants.isNotEmpty) {
+        debugPrint('Using cached profile from Ditto');
+        return cachedProfile;
+      }
+      
+      // If not in Ditto or empty, fetch from API
+      debugPrint('No cached profile found, fetching from API');
+      return await fetchAndSaveUserProfile(session);
+    } catch (e) {
+      debugPrint('Error in getUserProfileWithFallback: $e');
+      return null;
+    }
+  }
+
   /// Get the current user profile from Ditto
   ///
   /// This method is used to get the cached user data from Ditto
