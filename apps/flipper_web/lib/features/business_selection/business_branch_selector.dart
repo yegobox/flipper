@@ -1,5 +1,6 @@
 import 'package:flipper_web/models/user_profile.dart';
 import 'package:flipper_web/repositories/user_repository.dart';
+import 'package:flipper_web/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -104,12 +105,17 @@ class _BusinessBranchSelectorState
   }
 
   Widget _buildBusinessList({required Tenant? tenant}) {
-    if (tenant == null) {
-      return const Center(child: Text('No businesses available'));
-    }
-
-    if (tenant.businesses.isEmpty) {
-      return const Center(child: Text('No businesses available'));
+    if (tenant == null || tenant.businesses.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text('No businesses available'),
+            const SizedBox(height: 16),
+            ElevatedButton(onPressed: _logout, child: const Text('Logout')),
+          ],
+        ),
+      );
     }
 
     final selectedBusiness = ref.watch(selectedBusinessProvider);
@@ -246,73 +252,12 @@ class _BusinessBranchSelectorState
     ref.read(selectedBusinessProvider.notifier).state = business;
 
     try {
-      // Get the user repository from the provider
-      final userRepository = ref.read(userRepositoryProvider);
+      // Load branches for the selected business from tenant data (already in memory)
+      _businessBranches = tenant.branches
+          .where((branch) => branch.businessId == business.serverId)
+          .toList();
 
-      // Get all businesses for this user
-      final allBusinesses = await userRepository.getBusinessesForUser(
-        widget.userProfile.id,
-      );
-
-      // Update all businesses to inactive first
-      for (final biz in allBusinesses) {
-        final updatedBusiness = Business(
-          id: biz.id,
-          name: biz.name,
-          country: biz.country,
-          currency: biz.currency,
-          latitude: biz.latitude,
-          longitude: biz.longitude,
-          active: false, // Set to inactive
-          userId: biz.userId,
-          phoneNumber: biz.phoneNumber,
-          lastSeen: biz.lastSeen,
-          backUpEnabled: biz.backUpEnabled,
-          fullName: biz.fullName,
-          tinNumber: biz.tinNumber,
-          taxEnabled: biz.taxEnabled,
-          businessTypeId: biz.businessTypeId,
-          serverId: biz.serverId,
-          isDefault: false, // Set to not default
-          lastSubscriptionPaymentSucceeded:
-              biz.lastSubscriptionPaymentSucceeded,
-        );
-        await userRepository.updateBusiness(updatedBusiness);
-      }
-
-      // Update the selected business to active and default
-      final selectedBusiness = Business(
-        id: business.id,
-        name: business.name,
-        country: business.country,
-        currency: business.currency,
-        latitude: business.latitude,
-        longitude: business.longitude,
-        active: true, // Set to active
-        userId: business.userId,
-        phoneNumber: business.phoneNumber,
-        lastSeen: business.lastSeen,
-        backUpEnabled: business.backUpEnabled,
-        fullName: business.fullName,
-        tinNumber: business.tinNumber,
-        taxEnabled: business.taxEnabled,
-        businessTypeId: business.businessTypeId,
-        serverId: business.serverId,
-        isDefault: true, // Set to default
-        lastSubscriptionPaymentSucceeded:
-            business.lastSubscriptionPaymentSucceeded,
-      );
-      await userRepository.updateBusiness(selectedBusiness);
-
-      // After successful update of the user profile
       if (mounted) {
-        // Load branches for the selected business
-        final userRepository = ref.read(userRepositoryProvider);
-        final branches = await userRepository.getBranchesForBusiness(
-          business.serverId.toString(),
-        );
-        _businessBranches = branches;
-
         setState(() {
           _loadingItemId = null;
           _isLoading = false;
@@ -345,75 +290,11 @@ class _BusinessBranchSelectorState
   }
 
   void _handleBranchSelection(Branch branch) async {
-    setState(() {
-      _loadingItemId = branch.id;
-      _isLoading = true;
-    });
-
     // Set the selected branch in the provider
     ref.read(selectedBranchProvider.notifier).state = branch;
 
-    try {
-      // Get the user repository
-      final userRepository = ref.read(userRepositoryProvider);
-
-      // Get all branches for the selected business
-      final selectedBusiness = ref.read(selectedBusinessProvider);
-      if (selectedBusiness == null) {
-        throw Exception("No business selected");
-      }
-
-      final allBranches = await userRepository.getBranchesForBusiness(
-        selectedBusiness.id,
-      );
-
-      // Update all branches to inactive first
-      for (final br in allBranches) {
-        final updatedBranch = Branch(
-          id: br.id,
-          description: br.description,
-          name: br.name,
-          longitude: br.longitude,
-          latitude: br.latitude,
-          businessId: br.businessId,
-          serverId: br.serverId,
-          active: false, // Set to inactive
-          isDefault: false, // Set to not default
-        );
-        await userRepository.updateBranch(updatedBranch);
-      }
-
-      // Update the selected branch to active and default
-      final selectedBranch = Branch(
-        id: branch.id,
-        description: branch.description,
-        name: branch.name,
-        longitude: branch.longitude,
-        latitude: branch.latitude,
-        businessId: branch.businessId,
-        serverId: branch.serverId,
-        active: true, // Set to active
-        isDefault: true, // Set to default
-      );
-      await userRepository.updateBranch(selectedBranch);
-
-      // Complete the flow and navigate to the dashboard
-      _navigateToDashboard();
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Could not set branch. Please try again.'),
-            backgroundColor: Colors.red,
-          ),
-        );
-
-        setState(() {
-          _loadingItemId = null;
-          _isLoading = false;
-        });
-      }
-    }
+    // Complete the flow and navigate to the dashboard
+    _navigateToDashboard();
   }
 
   // Method removed as it's no longer needed
@@ -421,5 +302,20 @@ class _BusinessBranchSelectorState
   void _navigateToDashboard() {
     // Navigate to the dashboard
     context.goNamed(AppRoute.dashboard.name);
+  }
+
+  void _logout() async {
+    try {
+      final authService = ref.read(authServiceProvider);
+      await authService.signOut();
+      if (mounted) {
+        context.goNamed(AppRoute.login.name);
+      }
+    } catch (e) {
+      // If signOut fails, still navigate to login
+      if (mounted) {
+        context.goNamed(AppRoute.login.name);
+      }
+    }
   }
 }
