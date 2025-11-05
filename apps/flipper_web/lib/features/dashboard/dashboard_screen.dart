@@ -1,5 +1,4 @@
 import 'package:flipper_web/features/dashboard/widgets/performance_dashboard.dart';
-import 'package:flipper_web/features/dashboard/widgets/quick_actions.dart';
 import 'package:flipper_web/features/dashboard/widgets/setup_progress.dart';
 import 'package:flipper_web/features/dashboard/widgets/side_nav_bar.dart';
 import 'package:flipper_web/features/dashboard/widgets/top_bar.dart';
@@ -62,7 +61,6 @@ class DashboardScreen extends ConsumerWidget {
                             ),
                           ),
                           const SizedBox(width: 24),
-                          const Expanded(flex: 1, child: QuickActions()),
                         ],
                       ),
                     ),
