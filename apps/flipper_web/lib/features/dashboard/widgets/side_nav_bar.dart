@@ -14,27 +14,13 @@ class SideNavBar extends ConsumerWidget {
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 300),
-      width: isCollapsed ? 48 : 48,
-      decoration: const BoxDecoration(
-        color: Color(0xFF354A5F),
-      ),
+      width: isCollapsed ? 0 : 48,
+      decoration: const BoxDecoration(color: Color(0xFF354A5F)),
       child: Column(
         children: [
           // Navigation items
-          _buildNavItem(
-            Icons.home,
-            'Home',
-            0,
-            selectedIndex,
-            ref,
-          ),
-          _buildNavItem(
-            Icons.folder,
-            'Folder',
-            1,
-            selectedIndex,
-            ref,
-          ),
+          _buildNavItem(Icons.home, 'Home', 0, selectedIndex, ref),
+          _buildNavItem(Icons.folder, 'Folder', 1, selectedIndex, ref),
           _buildNavItem(
             Icons.chat_bubble_outline,
             'Chat',
@@ -42,27 +28,9 @@ class SideNavBar extends ConsumerWidget {
             selectedIndex,
             ref,
           ),
-          _buildNavItem(
-            Icons.star_outline,
-            'Favorites',
-            3,
-            selectedIndex,
-            ref,
-          ),
-          _buildNavItem(
-            Icons.share,
-            'Share',
-            4,
-            selectedIndex,
-            ref,
-          ),
-          _buildNavItem(
-            Icons.send,
-            'Send',
-            5,
-            selectedIndex,
-            ref,
-          ),
+          _buildNavItem(Icons.star_outline, 'Favorites', 3, selectedIndex, ref),
+          _buildNavItem(Icons.share, 'Share', 4, selectedIndex, ref),
+          _buildNavItem(Icons.send, 'Send', 5, selectedIndex, ref),
           _buildNavItem(
             Icons.video_camera_back,
             'Video',
@@ -70,13 +38,7 @@ class SideNavBar extends ConsumerWidget {
             selectedIndex,
             ref,
           ),
-          _buildNavItem(
-            Icons.extension,
-            'Extensions',
-            7,
-            selectedIndex,
-            ref,
-          ),
+          _buildNavItem(Icons.extension, 'Extensions', 7, selectedIndex, ref),
           _buildNavItem(
             Icons.calendar_today,
             'Calendar',
@@ -84,45 +46,15 @@ class SideNavBar extends ConsumerWidget {
             selectedIndex,
             ref,
           ),
-          _buildNavItem(
-            Icons.people,
-            'People',
-            9,
-            selectedIndex,
-            ref,
-          ),
-          _buildNavItem(
-            Icons.description,
-            'Documents',
-            10,
-            selectedIndex,
-            ref,
-          ),
-          _buildNavItem(
-            Icons.lock,
-            'Security',
-            11,
-            selectedIndex,
-            ref,
-          ),
-          _buildNavItem(
-            Icons.settings,
-            'Settings',
-            12,
-            selectedIndex,
-            ref,
-          ),
-          
+          _buildNavItem(Icons.people, 'People', 9, selectedIndex, ref),
+          _buildNavItem(Icons.description, 'Documents', 10, selectedIndex, ref),
+          _buildNavItem(Icons.lock, 'Security', 11, selectedIndex, ref),
+          _buildNavItem(Icons.settings, 'Settings', 12, selectedIndex, ref),
+
           const Spacer(),
-          
+
           // Bottom icon
-          _buildNavItem(
-            Icons.info_outline,
-            'Info',
-            13,
-            selectedIndex,
-            ref,
-          ),
+          _buildNavItem(Icons.info_outline, 'Info', 13, selectedIndex, ref),
         ],
       ),
     );
@@ -136,7 +68,7 @@ class SideNavBar extends ConsumerWidget {
     WidgetRef ref,
   ) {
     final isSelected = selectedIndex == index;
-    
+
     return Tooltip(
       message: tooltip,
       child: Container(
@@ -151,14 +83,12 @@ class SideNavBar extends ConsumerWidget {
             },
             child: Container(
               decoration: BoxDecoration(
-                color: isSelected ? const Color(0xFF0070F2) : Colors.transparent,
+                color: isSelected
+                    ? const Color(0xFF0070F2)
+                    : Colors.transparent,
                 borderRadius: BorderRadius.circular(4),
               ),
-              child: Icon(
-                icon,
-                color: Colors.white,
-                size: 20,
-              ),
+              child: Icon(icon, color: Colors.white, size: 20),
             ),
           ),
         ),

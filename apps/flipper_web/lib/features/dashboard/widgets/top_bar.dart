@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flipper_web/features/dashboard/widgets/side_nav_bar.dart';
 
 class TopBar extends ConsumerWidget implements PreferredSizeWidget {
   const TopBar({super.key});
@@ -16,13 +17,16 @@ class TopBar extends ConsumerWidget implements PreferredSizeWidget {
       ),
       child: Row(
         children: [
-          // Left section with hamburger and SAP logo
+          // Left section with hamburger and Flipper's TAP logo
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
               children: [
                 IconButton(
-                  onPressed: () {},
+                  onPressed: () {
+                    ref.read(sideNavCollapsedProvider.notifier).state = 
+                        !ref.read(sideNavCollapsedProvider);
+                  },
                   icon: const Icon(Icons.menu, color: Colors.white, size: 20),
                 ),
                 const SizedBox(width: 8),
@@ -38,7 +42,7 @@ class TopBar extends ConsumerWidget implements PreferredSizeWidget {
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: const Text(
-                    'SAP',
+                    'TAP',
                     style: TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
