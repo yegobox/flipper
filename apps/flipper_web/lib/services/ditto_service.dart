@@ -167,9 +167,9 @@ class DittoService {
       // Use user's ID as document ID for easier retrieval
       final docId = userProfile.id.toString();
 
-      // Use DQL INSERT syntax to insert document
+      // Use DQL INSERT syntax with conflict resolution
       await _ditto!.store.execute(
-        "INSERT INTO users DOCUMENTS (:profile)",
+        "INSERT INTO users DOCUMENTS (:profile) ON ID CONFLICT DO UPDATE",
         arguments: {
           "profile": {"_id": docId, ...userProfile.toJson()},
         },
