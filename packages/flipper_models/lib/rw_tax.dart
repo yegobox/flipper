@@ -228,10 +228,8 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       );
       if (items.isEmpty) items = transaction.items ?? [];
 
-      /// Ensure no service items are included for stock in or out
-      if (items.any((item) => item.itemTyCd == "3")) {
-        throw Exception("Service item cannot be saved in IO");
-      }
+      /// Filter out service items as they cannot be saved in IO
+      items = items.where((item) => item.itemTyCd != "3").toList();
       List<Map<String, dynamic>> itemsList = await Future.wait(items
           .map((item) async =>
               await mapItemToJson(item, bhfId: bhFId, approvedQty: approvedQty))
@@ -1454,7 +1452,9 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         .replace(path: Uri.parse(URI).path + 'notices/selectNotices')
         .toString();
     final data = {
-      "tin": ProxyService.box.tin(),
+      "tin": (await ProxyService.strategy
+              .ebm(branchId: ProxyService.box.getBranchId()!))
+          ?.tinNumber,
       "bhfId": await ProxyService.box.bhfId(),
       "lastReqDt": "20200218191141",
     };
