@@ -247,7 +247,6 @@ mixin TransactionMixinOld {
         customerPhone: customer?.telNo ??
             ProxyService.box.currentSaleCustomerPhoneNumber(),
       );
-      // final tinNumber = ProxyService.box.tin();
       // Clean up temporary storage
       ProxyService.box.remove(key: 'pendingCustomerName');
       ProxyService.box.remove(key: 'pendingCustomerTin');

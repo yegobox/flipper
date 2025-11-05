@@ -302,7 +302,9 @@ class TaxController<OBJ> with TransactionDelegationMixin {
               currencySymbol: "RW",
               originalInvoiceNumber: originalInvoiceNumber,
               transaction: transaction,
-              totalTax: (totalB * 18 / 118).toStringAsFixed(2),
+              totalTax: ebm.vatEnabled == true
+                  ? (totalB * 18 / 118).toStringAsFixed(2)
+                  : 0.toStringAsFixed(2),
               items: transactionItems,
               cash: transaction.subTotal!,
               received: transaction.cashReceived!,
@@ -322,9 +324,7 @@ class TaxController<OBJ> with TransactionDelegationMixin {
               brandName: business.name!,
               brandAddress: business.adrs ?? "",
               brandTel: business.phoneNumber ?? "",
-              brandTIN:
-                  (ebm.tinNumber)
-                      .toString(),
+              brandTIN: (ebm.tinNumber).toString(),
               brandDescription: business.name!,
               brandFooter: business.name!,
               emails: [business.email ?? ""],
