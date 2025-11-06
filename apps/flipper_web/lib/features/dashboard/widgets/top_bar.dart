@@ -29,15 +29,6 @@ class TopBar extends ConsumerWidget implements PreferredSizeWidget {
                   },
                   icon: const Icon(Icons.menu, color: Colors.white, size: 20),
                 ),
-                const SizedBox(width: 8),
-                IconButton(
-                  onPressed: () {},
-                  icon: const Icon(
-                    Icons.arrow_back,
-                    color: Colors.white,
-                    size: 20,
-                  ),
-                ),
                 const SizedBox(width: 16),
                 Container(
                   padding: const EdgeInsets.symmetric(
