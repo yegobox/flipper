@@ -165,11 +165,13 @@ abstract class TransactionInterface {
     /// this help us having wrong computation on dashboard of what is income or expenses.
     bool isUnclassfied = false,
     bool? isTrainingMode,
-    num taxAmount = 0.0,
     String? transactionId,
   });
   Future<ITransaction?> getTransaction(
-      {String? sarNo, required int branchId, String? id, bool awaitRemote = false});
+      {String? sarNo,
+      required int branchId,
+      String? id,
+      bool awaitRemote = false});
   Future<bool> deleteTransaction({required ITransaction transaction});
 
   Future<bool> migrateToNewDateTime({required int branchId});

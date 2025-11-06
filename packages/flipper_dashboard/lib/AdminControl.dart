@@ -1,12 +1,10 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:flipper_dashboard/ReinitializeEbm.dart';
 import 'package:flipper_dashboard/TaxSettingsModal.dart';
 import 'package:flipper_dashboard/TenantManagement.dart';
 import 'package:flipper_dashboard/widgets/transaction_delegation_settings.dart';
-import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/proxy.dart';
@@ -16,7 +14,6 @@ import 'package:flutter/material.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_models/brick/models/stock.model.dart';
-import 'package:supabase_models/brick/models/variant.model.dart';
 import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
 import 'modals/_isBranchEnableForPayment.dart';
 

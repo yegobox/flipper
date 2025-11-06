@@ -15,13 +15,15 @@ abstract class DynamicDataSource<T> extends DataGridSource {
     data = initialData;
     _rowsPerPage = rowsPerPage;
     _dataGridRows = buildPaginatedDataGridRows();
-    talker.info('DynamicDataSource: Constructor - initialData.length: ${initialData.length}, _rowsPerPage: $_rowsPerPage, _dataGridRows.length: ${_dataGridRows.length}');
+    talker.info(
+        'DynamicDataSource: Constructor - initialData.length: ${initialData.length}, _rowsPerPage: $_rowsPerPage, _dataGridRows.length: ${_dataGridRows.length}');
   }
 
   void updateData(List<T> newData) {
     data = newData;
     _dataGridRows = buildPaginatedDataGridRows();
-    talker.info('DynamicDataSource: updateData - newData.length: ${newData.length}, _dataGridRows.length: ${_dataGridRows.length}');
+    talker.info(
+        'DynamicDataSource: updateData - newData.length: ${newData.length}, _dataGridRows.length: ${_dataGridRows.length}');
     notifyListeners();
   }
 
@@ -29,13 +31,15 @@ abstract class DynamicDataSource<T> extends DataGridSource {
     data = newData;
     showPluReport = newShowPluReport;
     _dataGridRows = buildPaginatedDataGridRows();
-    talker.info('DynamicDataSource: updateDataSource - newData.length: ${newData.length}, newShowPluReport: $newShowPluReport, _dataGridRows.length: ${_dataGridRows.length}');
+    talker.info(
+        'DynamicDataSource: updateDataSource - newData.length: ${newData.length}, newShowPluReport: $newShowPluReport, _dataGridRows.length: ${_dataGridRows.length}');
     notifyListeners();
   }
 
   @override
   Future<bool> handlePageChange(int oldPageIndex, int newPageIndex) async {
-    talker.info('DynamicDataSource: handlePageChange - oldPageIndex: $oldPageIndex, newPageIndex: $newPageIndex');
+    talker.info(
+        'DynamicDataSource: handlePageChange - oldPageIndex: $oldPageIndex, newPageIndex: $newPageIndex');
     int startIndex = newPageIndex * _rowsPerPage;
     int endIndex = startIndex + _rowsPerPage;
     if (endIndex > data.length) {
@@ -49,11 +53,15 @@ abstract class DynamicDataSource<T> extends DataGridSource {
       } else if (item is Variant) {
         return _buildStockRow(item);
       } else {
-        final int numberOfColumns = showPluReport ? 10 : 5; // 10 for detailed, 5 for summary
-        return DataGridRow(cells: List.generate(numberOfColumns, (index) => DataGridCell(columnName: 'empty', value: '')));
+        final int numberOfColumns =
+            showPluReport ? 10 : 5; // 10 for detailed, 5 for summary
+        return DataGridRow(
+            cells: List.generate(numberOfColumns,
+                (index) => DataGridCell(columnName: 'empty', value: '')));
       }
     }).toList();
-    talker.info('DynamicDataSource: handlePageChange - _dataGridRows.length: ${_dataGridRows.length}');
+    talker.info(
+        'DynamicDataSource: handlePageChange - _dataGridRows.length: ${_dataGridRows.length}');
     notifyListeners();
     return true;
   }
@@ -72,9 +80,12 @@ abstract class DynamicDataSource<T> extends DataGridSource {
         row = _buildStockRow(item);
       } else {
         final int numberOfColumns = showPluReport ? 10 : 5;
-        row = DataGridRow(cells: List.generate(numberOfColumns, (index) => DataGridCell(columnName: 'empty', value: '')));
+        row = DataGridRow(
+            cells: List.generate(numberOfColumns,
+                (index) => DataGridCell(columnName: 'empty', value: '')));
       }
-      debugPrint('[DynamicDataSource] buildPaginatedDataGridRows: mode=${showPluReport ? 'detailed' : 'summary'}, cells=${row.getCells().length}');
+      debugPrint(
+          '[DynamicDataSource] buildPaginatedDataGridRows: mode=${showPluReport ? 'detailed' : 'summary'}, cells=${row.getCells().length}');
       return row;
     }).toList();
   }
@@ -151,16 +162,7 @@ abstract class DynamicDataSource<T> extends DataGridSource {
   }
 
   DataGridRow _buildITransactionRow(ITransaction trans) {
-    // Calculate tax as 18% of subtotal (same estimation as in DataView.dart)
-
-    // Debug logging for tax amount issues
-    // print(
-    //     'DEBUG: Transaction #${trans.id} - taxAmount: ${trans.taxAmount}, runtimeType: ${trans.taxAmount?.runtimeType}');
-
-    // Convert taxAmount to double explicitly with debug info
     final taxValue = (trans.taxAmount ?? 0.0).toDouble();
-    // print(
-    //     'DEBUG: After conversion - taxValue: $taxValue, runtimeType: ${taxValue.runtimeType}');
 
     return DataGridRow(cells: [
       DataGridCell<String>(

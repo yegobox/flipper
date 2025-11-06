@@ -298,7 +298,6 @@ mixin TransactionItemMixin implements TransactionItemInterface {
           transaction: latestTransaction,
           subTotal: newSubTotal,
           cashReceived: ProxyService.box.getCashReceived(),
-          taxAmount: (latestTransaction.taxAmount ?? 0) + taxAmt,
           updatedAt: DateTime.now(),
           lastTouched: DateTime.now(),
         );

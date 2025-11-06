@@ -607,7 +607,6 @@ mixin TransactionMixin implements TransactionInterface {
     final transaction = await updateTransaction(
       transaction: pendingTransaction,
       status: PARKED,
-      taxAmount: pendingTransaction.taxAmount ?? 0,
       sarNo: effectiveInvoiceNumber?.toString(),
       orgSarNo: effectiveInvoiceNumber?.toString(),
       sarTyCd: sarTyCd,
@@ -844,7 +843,6 @@ mixin TransactionMixin implements TransactionInterface {
   @override
   Future<ITransaction> updateTransaction({
     ITransaction? transaction,
-    num taxAmount = 0.0,
     String? receiptType,
     double? subTotal,
     String? note,
@@ -903,7 +901,6 @@ mixin TransactionMixin implements TransactionInterface {
     transaction.supplierId = supplierId ?? transaction.supplierId;
     transaction.status = status ?? transaction.status;
     transaction.ticketName = ticketName ?? transaction.ticketName;
-    transaction.taxAmount = taxAmount;
     transaction.updatedAt = updatedAt ?? transaction.updatedAt;
     transaction.customerId = customerId ?? transaction.customerId;
     transaction.isRefunded = isRefunded ?? transaction.isRefunded;

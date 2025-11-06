@@ -92,8 +92,8 @@ class TransactionListState extends ConsumerState<TransactionList>
               final receiptNumber = transaction.receiptNumber?.toString() ?? '';
 
               return receiptNumber
-                      .toLowerCase()
-                      .contains(_searchQuery.toLowerCase()) ;
+                  .toLowerCase()
+                  .contains(_searchQuery.toLowerCase());
             }).toList();
           } else {
             transactions = allTransactions;
@@ -141,9 +141,7 @@ class TransactionListState extends ConsumerState<TransactionList>
                         OutlinedButton.icon(
                           icon: Icon(Icons.edit_calendar, size: 18),
                           label: Text('Change Date'),
-                          onPressed: () {
-                            // TODO: Show date range picker
-                          },
+                          onPressed: null,
                         ),
                       ],
                     ),
@@ -163,8 +161,7 @@ class TransactionListState extends ConsumerState<TransactionList>
                       child: TextField(
                         controller: _searchController,
                         decoration: InputDecoration(
-                          hintText:
-                              'Search by receipt number, SAR number, customer name...',
+                          hintText: 'Search by receipt number',
                           prefixIcon: Icon(Icons.search),
                           suffixIcon: _searchQuery.isNotEmpty
                               ? IconButton(

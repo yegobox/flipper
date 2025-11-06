@@ -3,11 +3,13 @@ import 'dart:async';
 import 'package:flipper_models/sync/interfaces/transaction_item_interface.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:supabase_models/brick/repository.dart';
+import 'package:flipper_web/services/ditto_service.dart';
 import 'package:talker/talker.dart';
 
 mixin CapellaTransactionItemMixin implements TransactionItemInterface {
   Repository get repository;
   Talker get talker;
+  DittoService get dittoService => DittoService.instance;
   @override
   Future<void> addTransactionItem(
       {ITransaction? transaction,
@@ -28,7 +30,7 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
   }
 
   @override
-  FutureOr<List<TransactionItem>> transactionItems({
+  Future<List<TransactionItem>> transactionItems({
     String? transactionId,
     bool? doneWithTransaction,
     String? branchId,
@@ -39,8 +41,116 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
     String? requestId,
     bool forceRealData = true,
     List<String>? itemIds,
-  }) {
-    throw UnimplementedError();
+  }) async {
+    try {
+      final ditto = dittoService.dittoInstance;
+      if (ditto == null) {
+        talker.error('Ditto not initialized');
+        return [];
+      }
+
+      String query = 'SELECT * FROM transaction_items';
+      final arguments = <String, dynamic>{};
+      final conditions = <String>[];
+
+      if (transactionId != null) {
+        conditions.add('transactionId = :transactionId');
+        arguments['transactionId'] = transactionId;
+      }
+      if (branchId != null) {
+        conditions.add('branchId = :branchId');
+        arguments['branchId'] = branchId;
+      }
+      if (active != null) {
+        conditions.add('active = :active');
+        arguments['active'] = active;
+      }
+      if (doneWithTransaction != null) {
+        conditions.add('doneWithTransaction = :doneWithTransaction');
+        arguments['doneWithTransaction'] = doneWithTransaction;
+      }
+
+      if (conditions.isNotEmpty) {
+        query += ' WHERE ' + conditions.join(' AND ');
+      }
+
+      final result = await ditto.store.execute(query, arguments: arguments);
+
+      return result.items.map((doc) {
+        final data = Map<String, dynamic>.from(doc.value);
+        return _convertFromDittoDocument(data);
+      }).toList();
+    } catch (e) {
+      talker.error('Error getting transaction items: $e');
+      return [];
+    }
+  }
+
+  /// Convert Ditto document to TransactionItem model
+  TransactionItem _convertFromDittoDocument(Map<String, dynamic> data) {
+    DateTime? lastTouched;
+    if (data['lastTouched'] != null) {
+      if (data['lastTouched'] is String) {
+        lastTouched = DateTime.parse(data['lastTouched']);
+      } else {
+        lastTouched = data['lastTouched'];
+      }
+    }
+
+    return TransactionItem(
+      id: data['_id'] ?? data['id'],
+      name: data['name'] ?? '',
+      transactionId: data['transactionId'],
+      variantId: data['variantId'],
+      qty: (data['qty'] as num?)?.toDouble() ?? 0.0,
+      price: (data['price'] as num?)?.toDouble() ?? 0.0,
+      discount: (data['discount'] as num?)?.toDouble() ?? 0.0,
+      taxAmt: (data['taxAmt'] as num?)?.toDouble() ?? 0.0,
+      remainingStock: (data['remainingStock'] as num?)?.toDouble() ?? 0.0,
+      active: data['active'] ?? true,
+      doneWithTransaction: data['doneWithTransaction'] ?? false,
+      lastTouched: lastTouched,
+      branchId: data['branchId'],
+      taxTyCd: data['taxTyCd'],
+      bcd: data['bcd'],
+      itemClsCd: data['itemClsCd'],
+      itemTyCd: data['itemTyCd'],
+      itemStdNm: data['itemStdNm'],
+      orgnNatCd: data['orgnNatCd'],
+      pkgUnitCd: data['pkgUnitCd'],
+      qtyUnitCd: data['qtyUnitCd'],
+      totAmt: (data['totAmt'] as num?)?.toDouble() ?? 0.0,
+      prc: (data['prc'] as num?)?.toDouble() ?? 0.0,
+      splyAmt: (data['splyAmt'] as num?)?.toDouble() ?? 0.0,
+      tin: data['tin'],
+      bhfId: data['bhfId'],
+      dftPrc: (data['dftPrc'] as num?)?.toDouble() ?? 0.0,
+      addInfo: data['addInfo'],
+      isrccCd: data['isrccCd'],
+      isrccNm: data['isrccNm'],
+      isrcRt: (data['isrcRt'] as num?)?.toInt() ?? 0,
+      isrcAmt: (data['isrcAmt'] as num?)?.toInt() ?? 0,
+      taxblAmt: (data['taxblAmt'] as num?)?.toDouble() ?? 0.0,
+      dcRt: (data['dcRt'] as num?)?.toDouble() ?? 0.0,
+      dcAmt: (data['dcAmt'] as num?)?.toDouble() ?? 0.0,
+      isrcAplcbYn: data['isrccAplcbYn'],
+      useYn: data['useYn'],
+      regrId: data['regrId'],
+      regrNm: data['regrNm'],
+      modrId: data['modrId'],
+      modrNm: data['modrNm'],
+      itemSeq: data['itemSeq'],
+      itemCd: data['itemCd'],
+      itemNm: data['itemNm'],
+      pkg: data['pkg'],
+      ebmSynced: data['ebmSynced'],
+      isRefunded: data['isRefunded'],
+      ttCatCd: data['ttCatCd'],
+      createdAt:
+          data['createdAt'] != null ? DateTime.parse(data['createdAt']) : null,
+      updatedAt:
+          data['updatedAt'] != null ? DateTime.parse(data['updatedAt']) : null,
+    );
   }
 
   @override

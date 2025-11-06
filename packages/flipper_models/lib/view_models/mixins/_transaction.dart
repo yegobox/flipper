@@ -1,3 +1,4 @@
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -226,7 +227,18 @@ mixin TransactionMixinOld {
       // Prioritize ProxyService.box.customerName() over other sources
       final finalCustomerName =
           ProxyService.box.customerName() ?? customer?.custNm ?? customerName;
+      // Calculate and update tax amount before finalizing payment
+      final items =
+          await ProxyService.getStrategy(Strategy.capella).transactionItems(
+        transactionId: transaction.id,
+      );
+      double totalTax = 0.0;
+      for (final item in items) {
+        totalTax += item.taxAmt?.toDouble() ?? 0.0;
+      }
 
+      // Update transaction with calculated tax amount
+      transaction.taxAmount = totalTax;
       // First collect the payment
       ProxyService.strategy.collectPayment(
         branchId: ProxyService.box.getBranchId()!,
