@@ -53,7 +53,8 @@ class TransactionItemAdder {
         // Get the latest stock from cache
         Stock? cachedStock;
         if (variant.id.isNotEmpty) {
-          cachedStock = await ProxyService.getStrategy(Strategy.capella).getStockById(id: variant.stockId!);
+          cachedStock = await ProxyService.getStrategy(Strategy.capella)
+              .getStockById(id: variant.stockId!);
         }
 
         // Use cached stock if available, otherwise fall back to variant.stock
@@ -85,6 +86,8 @@ class TransactionItemAdder {
 
       // Use a lock to prevent multiple simultaneous operations
       await _lock.synchronized(() async {
+        Stock stock = await ProxyService.getStrategy(Strategy.capella)
+            .getStockById(id: variant.stockId!);
         if (product != null && product.isComposite == true) {
           // Handle composite product
           final composites =
@@ -100,7 +103,7 @@ class TransactionItemAdder {
                 ignoreForReport: false,
                 amountTotal: compositeVariant.retailPrice!,
                 customItem: false,
-                currentStock: compositeVariant.stock?.currentStock ?? 0,
+                currentStock: stock.currentStock ?? 0,
                 pendingTransaction: pendingTransaction,
                 partOfComposite: true,
                 compositePrice: composite.actualPrice,
@@ -115,7 +118,7 @@ class TransactionItemAdder {
             ignoreForReport: false,
             amountTotal: variant.retailPrice ?? 0,
             customItem: false,
-            currentStock: variant.stock?.currentStock ?? 0,
+            currentStock: stock.currentStock ?? 0,
             pendingTransaction: pendingTransaction,
             partOfComposite: false,
           );

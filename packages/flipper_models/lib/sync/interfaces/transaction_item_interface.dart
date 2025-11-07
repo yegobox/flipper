@@ -43,7 +43,7 @@ abstract class TransactionItemInterface {
     bool forceRealData = true,
   });
 
-  FutureOr<void> updateTransactionItem({
+  Future<void> updateTransactionItem({
     double? qty,
     required String transactionItemId,
     double? discount,

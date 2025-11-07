@@ -457,7 +457,7 @@ mixin TransactionItemMixin implements TransactionItemInterface {
   }
 
   @override
-  FutureOr<void> updateTransactionItem(
+  Future<void> updateTransactionItem(
       {double? qty,
       bool? ignoreForReport,
       required String transactionItemId,
@@ -535,6 +535,8 @@ mixin TransactionItemMixin implements TransactionItemInterface {
       item.taxblAmt = taxblAmt ?? calculatedTaxblAmt;
       item.totAmt = totAmt ?? calculatedTotAmt;
       item.dcAmt = dcAmt ?? calculatedDcAmt;
+      item.remainingStock =
+          item.remainingStock != null ? item.remainingStock! - item.qty : 0;
 
       // Update splyAmt if variant is available
       Variant? variant =

@@ -252,6 +252,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           originalStockQuantities[stock.id] =
               stock.currentStock!; // Store original
           final newStock = stock.currentStock! - item.qty;
+          // save new transaction item with remaining stock
           await ProxyService.strategy.updateStock(
               stockId: stock.id, currentStock: newStock, rsdQty: newStock);
         }

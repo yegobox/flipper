@@ -169,7 +169,7 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
     throw UnimplementedError();
   }
 
-  FutureOr<void> updateTransactionItem(
+  Future<void> updateTransactionItem(
       {double? qty,
       required String transactionItemId,
       double? discount,
