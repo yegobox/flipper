@@ -282,6 +282,12 @@ class CapellaSync extends AiStrategyImpl
         throw Exception('Ditto not initialized');
       }
 
+      // Subscribe to the collection first
+      await ditto.sync.registerSubscription(
+        'SELECT * FROM business_analytics WHERE branchId = :branchId',
+        arguments: {'branchId': branchId},
+      );
+
       final result = await ditto.store.execute(
         'SELECT * FROM business_analytics WHERE branchId = :branchId ORDER BY date DESC',
         arguments: {'branchId': branchId},
@@ -291,24 +297,27 @@ class CapellaSync extends AiStrategyImpl
         final data = Map<String, dynamic>.from(item.value);
         return BusinessAnalytic(
           id: data['_id'] ?? data['id'],
-          stockRemainedAtTheTimeOfSale:
-              data['stockRemainedAtTheTimeOfSale'] ?? 0,
+          stockRemainedAtTheTimeOfSale: double.tryParse(
+                  data['stockRemainedAtTheTimeOfSale']?.toString() ?? '0') ??
+              0.0,
           transactionId: data['transactionId'],
           branchId: data['branchId'],
           date: data['date'] != null
               ? DateTime.parse(data['date'])
               : DateTime.now(),
           itemName: data['itemName'] ?? 'Unknown Item',
-          price: (data['price'] as num?)?.toDouble() ?? 0.0,
-          profit: (data['profit'] as num?)?.toDouble() ?? 0.0,
-          unitsSold: (data['unitsSold'] as int?) ?? 0,
-          taxRate: (data['taxRate'] as num?)?.toDouble() ?? 0.0,
-          trafficCount: (data['trafficCount'] as int?) ?? 0,
+          price: double.tryParse(data['price']?.toString() ?? '0') ?? 0.0,
+          profit: double.tryParse(data['profit']?.toString() ?? '0') ?? 0.0,
+          unitsSold: int.tryParse(data['unitsSold']?.toString() ?? '0') ?? 0,
+          taxRate: double.tryParse(data['taxRate']?.toString() ?? '0') ?? 0.0,
+          trafficCount:
+              int.tryParse(data['trafficCount']?.toString() ?? '0') ?? 0,
           categoryName: data['categoryName'],
           categoryId: data['categoryId'],
         );
       }).toList();
     } catch (e) {
+      talker.error('Error fetching analytics: $e');
       // get it from sqlite as fallback upsert it for it to be saved into ditto next time
       final data = await repository.get<BusinessAnalytic>(
         /// since we always want fresh data and assumption is that ai is supposed to work with internet on, then this make sense.
