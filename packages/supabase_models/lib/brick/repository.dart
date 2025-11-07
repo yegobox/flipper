@@ -31,7 +31,6 @@ import 'repository/database_manager.dart';
 import 'repository/queue_manager.dart';
 import 'repository/platform_helpers.dart';
 import 'repository/local_storage.dart';
-import 'models/counter.model.dart';
 import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
 
 /// Main repository class that serves as an entry point to the database operations

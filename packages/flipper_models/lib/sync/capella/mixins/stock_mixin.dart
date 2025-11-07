@@ -34,6 +34,16 @@ mixin CapellaStockMixin implements StockInterface {
       }
       throw Exception('Stock with ID $id not found');
     } catch (e) {
+      // find it in sqlite then update ditto to have it next time
+      final stock = await repository.get<Stock>(
+          query: Query(where: [
+        Where('id').isExactly(id),
+      ]));
+      if (stock.isNotEmpty) {
+        //upsert this so it is saved into ditto next time
+        repository.upsert<Stock>(stock.first);
+        return stock.first;
+      }
       talker.error('Error getting stock by ID: $e');
       rethrow;
     }

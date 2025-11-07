@@ -176,8 +176,15 @@ class IconRowState extends ConsumerState<IconRow>
     if (index == 3) {
       showDialog(
         context: context,
+        barrierDismissible: true,
         builder: (BuildContext context) {
-          return const ReportsDashboardDialogWrapper();
+          return Dialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 600, maxWidth: 800),
+              child: const ReportsDashboard(isInDialog: true),
+            ),
+          );
         },
       );
     } else if (index == 2) {

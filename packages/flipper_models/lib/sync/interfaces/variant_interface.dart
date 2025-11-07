@@ -80,4 +80,7 @@ abstract class VariantInterface {
     int? daysToExpiry,
     int? limit,
   });
+  Future<List<Variant>> variantsByStockId({
+    required String stockId,
+  });
 }

@@ -580,4 +580,13 @@ mixin VariantMixin implements VariantInterface {
       return [];
     }
   }
+
+  @override
+  Future<List<Variant>> variantsByStockId({
+    required String stockId,
+  }) async {
+    return await repository.get<Variant>(
+      query: Query(where: [Where('stockId').isExactly(stockId)]),
+    );
+  }
 }

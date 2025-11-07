@@ -6,7 +6,7 @@ part of 'total_sale_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$totalSaleHash() => r'49fcf494739f38b2bf3659e3b3947ead9c2e8461';
+String _$totalSaleHash() => r'44cb13ae76d9ab03086a7cdcf06f95cc7799f5fc';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -72,7 +72,7 @@ class TotalSaleFamily extends Family<AsyncValue<double>> {
 }
 
 /// See also [TotalSale].
-class TotalSaleProvider extends AutoDisposeStreamProvider<double> {
+class TotalSaleProvider extends AutoDisposeFutureProvider<double> {
   /// See also [TotalSale].
   TotalSaleProvider({
     required int branchId,
@@ -106,7 +106,7 @@ class TotalSaleProvider extends AutoDisposeStreamProvider<double> {
 
   @override
   Override overrideWith(
-    Stream<double> Function(TotalSaleRef provider) create,
+    FutureOr<double> Function(TotalSaleRef provider) create,
   ) {
     return ProviderOverride(
       origin: this,
@@ -123,7 +123,7 @@ class TotalSaleProvider extends AutoDisposeStreamProvider<double> {
   }
 
   @override
-  AutoDisposeStreamProviderElement<double> createElement() {
+  AutoDisposeFutureProviderElement<double> createElement() {
     return _TotalSaleProviderElement(this);
   }
 
@@ -143,12 +143,12 @@ class TotalSaleProvider extends AutoDisposeStreamProvider<double> {
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-mixin TotalSaleRef on AutoDisposeStreamProviderRef<double> {
+mixin TotalSaleRef on AutoDisposeFutureProviderRef<double> {
   /// The parameter `branchId` of this provider.
   int get branchId;
 }
 
-class _TotalSaleProviderElement extends AutoDisposeStreamProviderElement<double>
+class _TotalSaleProviderElement extends AutoDisposeFutureProviderElement<double>
     with TotalSaleRef {
   _TotalSaleProviderElement(super.provider);
 

@@ -7,7 +7,7 @@ part of 'business_analytic_provider.dart';
 // **************************************************************************
 
 String _$fetchStockPerformanceHash() =>
-    r'e493a3159e414f4487405c8c3307dc4f21add7d5';
+    r'dec5a38c965aacf12cac0dc65f02e57f5b70e971';
 
 /// Copied from Dart SDK
 class _SystemHash {

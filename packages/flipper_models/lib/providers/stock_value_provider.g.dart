@@ -6,7 +6,7 @@ part of 'stock_value_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$stockValueHash() => r'071e71ab9f6617f26c052623da3ada72e8707b08';
+String _$stockValueHash() => r'6d9ca4f9bf413f53d488989e4a70b822a4c5f0d5';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -72,7 +72,7 @@ class StockValueFamily extends Family<AsyncValue<double>> {
 }
 
 /// See also [StockValue].
-class StockValueProvider extends AutoDisposeStreamProvider<double> {
+class StockValueProvider extends AutoDisposeFutureProvider<double> {
   /// See also [StockValue].
   StockValueProvider({
     required int branchId,
@@ -107,7 +107,7 @@ class StockValueProvider extends AutoDisposeStreamProvider<double> {
 
   @override
   Override overrideWith(
-    Stream<double> Function(StockValueRef provider) create,
+    FutureOr<double> Function(StockValueRef provider) create,
   ) {
     return ProviderOverride(
       origin: this,
@@ -124,7 +124,7 @@ class StockValueProvider extends AutoDisposeStreamProvider<double> {
   }
 
   @override
-  AutoDisposeStreamProviderElement<double> createElement() {
+  AutoDisposeFutureProviderElement<double> createElement() {
     return _StockValueProviderElement(this);
   }
 
@@ -144,13 +144,13 @@ class StockValueProvider extends AutoDisposeStreamProvider<double> {
 
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
-mixin StockValueRef on AutoDisposeStreamProviderRef<double> {
+mixin StockValueRef on AutoDisposeFutureProviderRef<double> {
   /// The parameter `branchId` of this provider.
   int get branchId;
 }
 
 class _StockValueProviderElement
-    extends AutoDisposeStreamProviderElement<double> with StockValueRef {
+    extends AutoDisposeFutureProviderElement<double> with StockValueRef {
   _StockValueProviderElement(super.provider);
 
   @override

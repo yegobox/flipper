@@ -9,7 +9,8 @@ import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/business_type.dart';
 import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:flipper_models/sync/mixins/category_mixin.dart';
-
+import 'package:brick_offline_first/brick_offline_first.dart';
+import 'package:brick_core/query.dart' as brick;
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:http/src/base_request.dart';
 import 'package:http/src/response.dart';
@@ -43,6 +44,7 @@ import 'package:flipper_models/sync/capella/mixins/counter_mixin.dart';
 import 'package:flipper_services/ai_strategy_impl.dart';
 import 'package:flipper_models/sync/mixins/stock_recount_mixin.dart';
 import 'package:supabase_models/brick/models/all_models.dart';
+import 'package:flipper_web/services/ditto_service.dart';
 
 class CapellaSync extends AiStrategyImpl
     with
@@ -72,6 +74,8 @@ class CapellaSync extends AiStrategyImpl
         StockRecountMixin
     implements DatabaseSyncInterface {
   CapellaSync();
+
+  DittoService get dittoService => DittoService.instance;
   @override
   Future<void> initCollections() async {
     throw UnimplementedError('initCollections needs to be implemented');
@@ -270,9 +274,53 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  Future<List<BusinessAnalytic>> analytics({required int branchId}) {
-    // TODO: implement analytics
-    throw UnimplementedError();
+  Future<List<BusinessAnalytic>> analytics({required int branchId}) async {
+    try {
+      final ditto = dittoService.dittoInstance;
+      if (ditto == null) {
+        talker.error('Ditto not initialized');
+        throw Exception('Ditto not initialized');
+      }
+
+      final result = await ditto.store.execute(
+        'SELECT * FROM business_analytics WHERE branchId = :branchId ORDER BY date DESC',
+        arguments: {'branchId': branchId},
+      );
+
+      return result.items.map((item) {
+        final data = Map<String, dynamic>.from(item.value);
+        return BusinessAnalytic(
+          id: data['_id'] ?? data['id'],
+          branchId: data['branchId'],
+          date: data['date'] != null
+              ? DateTime.parse(data['date'])
+              : DateTime.now(),
+          itemName: data['itemName'] ?? 'Unknown Item',
+          price: (data['price'] as num?)?.toDouble() ?? 0.0,
+          profit: (data['profit'] as num?)?.toDouble() ?? 0.0,
+          unitsSold: (data['unitsSold'] as int?) ?? 0,
+          taxRate: (data['taxRate'] as num?)?.toDouble() ?? 0.0,
+          trafficCount: (data['trafficCount'] as int?) ?? 0,
+          categoryName: data['categoryName'],
+          categoryId: data['categoryId'],
+        );
+      }).toList();
+    } catch (e) {
+      // get it from sqlite as fallback upsert it for it to be saved into ditto next time
+      final data = await repository.get<BusinessAnalytic>(
+        /// since we always want fresh data and assumption is that ai is supposed to work with internet on, then this make sense.
+        policy: OfflineFirstGetPolicy.alwaysHydrate,
+        query: brick.Query(
+          // limit: 100,
+          where: [brick.Where('branchId').isExactly(branchId)],
+          orderBy: [brick.OrderBy('date', ascending: false)],
+        ),
+      );
+      for (var element in data) {
+        repository.upsert<BusinessAnalytic>(element);
+      }
+      return data;
+    }
   }
 
   @override

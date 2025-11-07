@@ -255,4 +255,31 @@ mixin CapellaVariantMixin implements VariantInterface {
     throw UnimplementedError(
         'getExpiredItems needs to be implemented for Capella');
   }
+
+  @override
+  Future<List<Variant>> variantsByStockId({
+    required String stockId,
+  }) async {
+    // Implement fetching variants by stockId using Ditto
+    try {
+      final ditto = dittoService.dittoInstance;
+      if (ditto == null) {
+        talker.error('Ditto not initialized');
+        return [];
+      }
+
+      String query = 'SELECT * FROM variants WHERE stockId = :stockId';
+      final arguments = <String, dynamic>{'stockId': stockId};
+
+      final result = await ditto.store.execute(query, arguments: arguments);
+      var items = result.items;
+      return items
+          .map(
+              (item) => Variant.fromJson(Map<String, dynamic>.from(item.value)))
+          .toList();
+    } catch (e) {
+      talker.error('Error fetching variants by stockId: $e');
+      return [];
+    }
+  }
 }
