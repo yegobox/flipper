@@ -5,7 +5,7 @@ import 'package:brick_ditto_generators/ditto_sync_adapter.dart';
 import 'package:uuid/uuid.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:supabase_models/sync/ditto_sync_adapter.dart';
 import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
 import 'package:supabase_models/sync/ditto_sync_generated.dart';
@@ -29,15 +29,20 @@ class BusinessAnalytic extends OfflineFirstWithSupabaseModel {
   final num price;
   final num profit;
   final int unitsSold;
+
+  final num stockRemainedAtTheTimeOfSale;
   final num taxRate;
   final int trafficCount;
   int? branchId;
   String? categoryName;
   String? categoryId;
+  String? transactionId;
 
   BusinessAnalytic({
     String? id,
+    required this.transactionId,
     required this.date,
+    required this.stockRemainedAtTheTimeOfSale,
     required this.itemName,
     required this.price,
     required this.profit,

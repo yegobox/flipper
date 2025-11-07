@@ -58,6 +58,8 @@ void main() {
       id: 'fallback_analytic',
       branchId: 1,
       date: DateTime.now(),
+      stockRemainedAtTheTimeOfSale: 0,
+      transactionId: 'fallback_transaction',
       itemName: 'fallback',
       price: 0.0,
       profit: 0.0,

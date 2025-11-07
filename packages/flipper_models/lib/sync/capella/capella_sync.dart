@@ -291,6 +291,9 @@ class CapellaSync extends AiStrategyImpl
         final data = Map<String, dynamic>.from(item.value);
         return BusinessAnalytic(
           id: data['_id'] ?? data['id'],
+          stockRemainedAtTheTimeOfSale:
+              data['stockRemainedAtTheTimeOfSale'] ?? 0,
+          transactionId: data['transactionId'],
           branchId: data['branchId'],
           date: data['date'] != null
               ? DateTime.parse(data['date'])

@@ -11,7 +11,7 @@ import 'package:supabase_models/sync/ditto_sync_generated.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:brick_ditto_generators/ditto_sync_adapter.dart';
-import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
+import 'package:flutter/foundation.dart' hide Category;
 
 part 'variant.model.ditto_sync_adapter.g.dart';
 

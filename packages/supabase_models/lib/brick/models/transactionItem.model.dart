@@ -7,7 +7,7 @@ import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:brick_core/query.dart';
 import 'package:brick_ditto_generators/ditto_sync_adapter.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:supabase_models/sync/ditto_sync_adapter.dart';
 import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
 import 'package:supabase_models/sync/ditto_sync_generated.dart';

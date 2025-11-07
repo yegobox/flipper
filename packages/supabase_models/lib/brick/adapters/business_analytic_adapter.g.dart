@@ -13,6 +13,8 @@ Future<BusinessAnalytic> _$BusinessAnalyticFromSupabase(
     price: data['price'] as num,
     profit: data['profit'] as num,
     unitsSold: data['units_sold'] as int,
+    stockRemainedAtTheTimeOfSale:
+        data['stock_remained_at_the_time_of_sale'] as num,
     taxRate: data['tax_rate'] as num,
     trafficCount: data['traffic_count'] as int,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
@@ -22,6 +24,9 @@ Future<BusinessAnalytic> _$BusinessAnalyticFromSupabase(
     categoryId: data['category_id'] == null
         ? null
         : data['category_id'] as String?,
+    transactionId: data['transaction_id'] == null
+        ? null
+        : data['transaction_id'] as String?,
   );
 }
 
@@ -37,11 +42,13 @@ Future<Map<String, dynamic>> _$BusinessAnalyticToSupabase(
     'price': instance.price,
     'profit': instance.profit,
     'units_sold': instance.unitsSold,
+    'stock_remained_at_the_time_of_sale': instance.stockRemainedAtTheTimeOfSale,
     'tax_rate': instance.taxRate,
     'traffic_count': instance.trafficCount,
     'branch_id': instance.branchId,
     'category_name': instance.categoryName,
     'category_id': instance.categoryId,
+    'transaction_id': instance.transactionId,
   };
 }
 
@@ -57,6 +64,8 @@ Future<BusinessAnalytic> _$BusinessAnalyticFromSqlite(
     price: data['price'] as num,
     profit: data['profit'] as num,
     unitsSold: data['units_sold'] as int,
+    stockRemainedAtTheTimeOfSale:
+        data['stock_remained_at_the_time_of_sale'] as num,
     taxRate: data['tax_rate'] as num,
     trafficCount: data['traffic_count'] as int,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
@@ -66,6 +75,9 @@ Future<BusinessAnalytic> _$BusinessAnalyticFromSqlite(
     categoryId: data['category_id'] == null
         ? null
         : data['category_id'] as String?,
+    transactionId: data['transaction_id'] == null
+        ? null
+        : data['transaction_id'] as String?,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -81,11 +93,13 @@ Future<Map<String, dynamic>> _$BusinessAnalyticToSqlite(
     'price': instance.price,
     'profit': instance.profit,
     'units_sold': instance.unitsSold,
+    'stock_remained_at_the_time_of_sale': instance.stockRemainedAtTheTimeOfSale,
     'tax_rate': instance.taxRate,
     'traffic_count': instance.trafficCount,
     'branch_id': instance.branchId,
     'category_name': instance.categoryName,
     'category_id': instance.categoryId,
+    'transaction_id': instance.transactionId,
   };
 }
 
@@ -124,6 +138,10 @@ class BusinessAnalyticAdapter
       association: false,
       columnName: 'units_sold',
     ),
+    'stockRemainedAtTheTimeOfSale': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'stock_remained_at_the_time_of_sale',
+    ),
     'taxRate': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'tax_rate',
@@ -143,6 +161,10 @@ class BusinessAnalyticAdapter
     'categoryId': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'category_id',
+    ),
+    'transactionId': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'transaction_id',
     ),
   };
   @override
@@ -193,6 +215,12 @@ class BusinessAnalyticAdapter
       iterable: false,
       type: int,
     ),
+    'stockRemainedAtTheTimeOfSale': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'stock_remained_at_the_time_of_sale',
+      iterable: false,
+      type: num,
+    ),
     'taxRate': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'tax_rate',
@@ -220,6 +248,12 @@ class BusinessAnalyticAdapter
     'categoryId': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'category_id',
+      iterable: false,
+      type: String,
+    ),
+    'transactionId': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'transaction_id',
       iterable: false,
       type: String,
     ),

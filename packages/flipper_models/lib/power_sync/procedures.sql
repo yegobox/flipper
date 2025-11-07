@@ -64,66 +64,80 @@ RETURNS TRIGGER AS $$
 DECLARE
     total_value NUMERIC := 0;
     item_name_list TEXT := '';
-    category_name_list TEXT := ''; -- Stores category names
-    category_id_list TEXT := '';   -- Stores category IDs
+    category_name_list TEXT := '';
+    category_id_list TEXT := '';
     item_count INT := 0;
     total_profit NUMERIC := 0;
     total_price NUMERIC := 0;
     average_price NUMERIC := 0;
     total_quantity INT := 0;
+    total_stock_remained NUMERIC := 0;
+    current_stock NUMERIC := 0;
     transaction_item RECORD;
+    analytics_exists BOOLEAN := FALSE;
 BEGIN
-    -- Check if the status is updated to 'completed'
+    -- Check if the status is updated to 'completed' and analytics doesn't exist yet
     IF NEW.status = 'completed' AND OLD.status IS DISTINCT FROM NEW.status THEN
-        -- Calculate the total value and concatenate item names
-        FOR transaction_item IN
-            SELECT ti.price * ti.qty AS item_value, 
-                   v.item_nm AS item_name, 
-                   ti.qty, 
-                   v.tax_ty_cd, 
-                   ti.price, 
-                   v.category_name,  -- ✅ Fetch category_name from variants
-                   v.category_id,     -- ✅ Fetch category_id from variants
-                   v.supply_price    -- ✅ Fetch supply_price from variants
-            FROM transaction_items ti
-            JOIN variants v ON ti.variant_id = v.id  -- ✅ Ensure v is from variants
-            WHERE ti.transaction_id = NEW.id
-        LOOP
-            total_value := total_value + transaction_item.item_value;
-            item_name_list := item_name_list || ', ' || transaction_item.item_name;
-            category_name_list := category_name_list || ', ' || transaction_item.category_name;
-            category_id_list := category_id_list || ', ' || transaction_item.category_id;
-            item_count := item_count + 1;
-            total_price := total_price + transaction_item.price;
-            total_quantity := total_quantity + transaction_item.qty;
+        -- Check if business analytics already exists for this transaction
+        SELECT EXISTS(SELECT 1 FROM business_analytics WHERE transaction_id = NEW.id) INTO analytics_exists;
+        
+        IF NOT analytics_exists THEN
+            -- Calculate the total value and concatenate item names
+            FOR transaction_item IN
+                SELECT ti.price * ti.qty AS item_value, 
+                       v.item_nm AS item_name, 
+                       ti.qty, 
+                       v.tax_ty_cd, 
+                       ti.price, 
+                       v.category_name,
+                       v.category_id,
+                       COALESCE(v.supply_price, 0) AS supply_price,
+                       COALESCE(ti.remaining_stock, 0) AS remaining_stock
+                FROM transaction_items ti
+                JOIN variants v ON ti.variant_id = v.id
+                WHERE ti.transaction_id = NEW.id
+            LOOP
+                total_value := total_value + transaction_item.item_value;
+                item_name_list := item_name_list || ', ' || transaction_item.item_name;
+                category_name_list := category_name_list || ', ' || transaction_item.category_name;
+                category_id_list := category_id_list || ', ' || transaction_item.category_id;
+                item_count := item_count + 1;
+                total_price := total_price + transaction_item.price;
+                total_quantity := total_quantity + transaction_item.qty;
 
-            -- Calculate profit based on selling price and supply price
-            total_profit := total_profit + (transaction_item.price - transaction_item.supply_price) * transaction_item.qty;
-        END LOOP;
+                -- Calculate profit based on selling price and supply price
+                total_profit := total_profit + (transaction_item.price - transaction_item.supply_price) * transaction_item.qty;
+                
+                -- Accumulate remaining stock from transaction items
+                total_stock_remained := total_stock_remained + transaction_item.remaining_stock;
+            END LOOP;
 
-        -- Remove the leading comma and space if there are items
-        IF item_count > 0 THEN
-            item_name_list := substring(item_name_list FROM 3);
-            category_name_list := substring(category_name_list FROM 3);
-            category_id_list := substring(category_id_list FROM 3);
-            average_price := total_price / item_count;
+            -- Remove the leading comma and space if there are items
+            IF item_count > 0 THEN
+                item_name_list := substring(item_name_list FROM 3);
+                category_name_list := substring(category_name_list FROM 3);
+                category_id_list := substring(category_id_list FROM 3);
+                average_price := total_price / item_count;
+            END IF;
+
+            -- Insert into business_analytics
+            INSERT INTO business_analytics (date, value, item_name, category_name, category_id, units_sold, traffic_count, tax_rate, price, profit, branch_id, stock_remained_at_the_time_of_sale, transaction_id)
+            VALUES (
+                now(),
+                total_value,
+                item_name_list,
+                category_name_list,
+                category_id_list,
+                total_quantity,
+                total_quantity,
+                0.18,
+                average_price,
+                total_profit,
+                NEW.branch_id,
+                total_stock_remained,
+                NEW.id
+            );
         END IF;
-
-        -- Insert into business_analytics
-        INSERT INTO business_analytics (date, value, item_name, category_name, category_id, units_sold, traffic_count, tax_rate, price, profit, branch_id)
-        VALUES (
-            now(),
-            total_value,
-            item_name_list,
-            category_name_list,  -- ✅ Correct category_name
-            category_id_list,    -- ✅ Correct category_id
-            total_quantity,
-            total_quantity,
-            0.18,
-            average_price,
-            total_profit,
-            NEW.branch_id
-        );
     END IF;
 
     RETURN NEW;

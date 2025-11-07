@@ -15,7 +15,7 @@ import 'package:uuid/uuid.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:flipper_services/proxy.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
-import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
+import 'package:flutter/foundation.dart' hide Category;
 // ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:supabase_models/sync/ditto_sync_adapter.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
@@ -30,6 +30,8 @@ import 'package:supabase_models/brick/models/message.model.dart';
 import 'package:flipper_models/helperModels/random.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:supabase_models/brick/models/transactionItem.model.dart';
+// ignore: unused_import, unused_shown_name, unnecessary_import
+import 'package:flutter/foundation.dart' show debugPrint, kDebugMode;
 // ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:supabase_models/brick/models/finance_provider.model.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
