@@ -76,6 +76,7 @@ DECLARE
     total_retail_price NUMERIC := 0;
     total_current_stock NUMERIC := 0;
     total_stock_value NUMERIC := 0;
+    branch_total_stock_value NUMERIC := 0;
     transaction_item RECORD;
     analytics_exists BOOLEAN := FALSE;
 BEGIN
@@ -85,6 +86,12 @@ BEGIN
         SELECT EXISTS(SELECT 1 FROM business_analytics WHERE transaction_id = NEW.id) INTO analytics_exists;
         
         IF NOT analytics_exists THEN
+            -- Calculate total branch stock value (all variants in branch)
+            SELECT COALESCE(SUM(s.current_stock * COALESCE(v.retail_price, v.prc, 0)), 0)
+            INTO branch_total_stock_value
+            FROM stocks s
+            JOIN variants v ON s.id = v.stock_id
+            WHERE v.branch_id = NEW.branch_id;
             -- Calculate comprehensive analytics data
             FOR transaction_item IN
                 SELECT ti.price * ti.qty AS item_value, 
@@ -113,6 +120,7 @@ BEGIN
                 total_supply_price := total_supply_price + transaction_item.supply_price;
                 total_retail_price := total_retail_price + transaction_item.retail_price;
                 total_current_stock := total_current_stock + transaction_item.current_stock;
+                -- Keep transaction-specific stock for reference
                 total_stock_value := total_stock_value + (transaction_item.current_stock * transaction_item.retail_price);
 
                 -- Calculate profit based on selling price and supply price
@@ -154,7 +162,7 @@ BEGIN
                 CASE WHEN item_count > 0 THEN total_supply_price / item_count ELSE 0 END,
                 CASE WHEN item_count > 0 THEN total_retail_price / item_count ELSE 0 END,
                 total_current_stock,
-                total_stock_value,
+                branch_total_stock_value,
                 COALESCE(NEW.payment_type, 'cash'),
                 COALESCE(NEW.customer_type, 'walk-in'),
                 COALESCE(NEW.discount_amount, 0),
