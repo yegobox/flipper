@@ -50,20 +50,26 @@ class IconText extends StatelessWidget {
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Padding(
-            padding: const EdgeInsets.all(10.0),
+            padding: const EdgeInsets.all(6.0),
             child: Icon(
               icon,
               color: isSelected ? Colors.white : Colors.black,
-              size: 20.0,
+              size: 18.0,
             ),
           ),
-          Text(
-            text,
-            style: TextStyle(
-              color: isSelected ? Colors.white : Colors.black,
-              fontSize: 15.0,
+          Flexible(
+            child: Text(
+              text,
+              style: TextStyle(
+                color: isSelected ? Colors.white : Colors.black,
+                fontSize: 11.0,
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
@@ -107,12 +113,12 @@ class IconRowState extends ConsumerState<IconRow>
                   const Key('home_desktop'), () {
                 _showTaxDialog(context);
               }),
-              _buildIconText(context, Icons.sync_outlined, 'Reports', 1,
-                  const Key('reports_desktop')),
+              _buildIconText(context, Icons.sync_outlined, 'Transactions', 1,
+                  const Key('transactions_desktop')),
               _buildIconText(context, Icons.payment_outlined, 'EOD', 2,
                   const Key('eod_desktop')),
-              _buildIconText(context, Icons.dashboard_outlined, 'Reports', 3,
-                  const Key('reports_desktop')),
+              _buildIconText(context, Icons.dashboard_outlined, 'Analytics', 3,
+                  const Key('analytics_desktop')),
               _buildIconText(context, Icons.maps_home_work_outlined,
                   'Locations', 4, const Key('locations'), () {
                 final deviceType = _getDeviceType(context);
