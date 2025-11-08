@@ -37,6 +37,17 @@ class BusinessAnalytic extends OfflineFirstWithSupabaseModel {
   String? categoryName;
   String? categoryId;
   String? transactionId;
+  
+  // Additional fields for comprehensive analytics
+  final num value; // Total transaction value
+  final num supplyPrice; // Cost of goods sold per item
+  final num retailPrice; // Retail price per item
+  final num currentStock; // Current stock level
+  final num stockValue; // Value of current stock
+  final String paymentMethod; // Payment method used
+  final String customerType; // Customer type (walk-in, regular, etc.)
+  final num discountAmount; // Discount applied
+  final num taxAmount; // Tax amount
 
   BusinessAnalytic({
     String? id,
@@ -49,6 +60,15 @@ class BusinessAnalytic extends OfflineFirstWithSupabaseModel {
     required this.unitsSold,
     required this.taxRate,
     required this.trafficCount,
+    required this.value,
+    required this.supplyPrice,
+    required this.retailPrice,
+    required this.currentStock,
+    required this.stockValue,
+    required this.paymentMethod,
+    required this.customerType,
+    required this.discountAmount,
+    required this.taxAmount,
     this.categoryName,
     this.categoryId,
     this.branchId,
@@ -56,6 +76,6 @@ class BusinessAnalytic extends OfflineFirstWithSupabaseModel {
 
   @override
   String toString() {
-    return 'BusinessAnalytic{id: $id, date: $date, itemName: $itemName, price: $price, profit: $profit, unitsSold: $unitsSold, taxRate: $taxRate, trafficCount: $trafficCount, branchId: $branchId, categoryName: $categoryName, categoryId: $categoryId}';
+    return 'BusinessAnalytic{id: $id, date: $date, itemName: $itemName, price: $price, profit: $profit, unitsSold: $unitsSold, value: $value, stockValue: $stockValue, paymentMethod: $paymentMethod, customerType: $customerType}';
   }
 }

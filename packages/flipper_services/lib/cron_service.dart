@@ -10,10 +10,7 @@ import 'package:flipper_services/drive_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:supabase_models/brick/databasePath.dart';
 // import 'package:flipper_models/services/sqlite_service.dart';
-import 'package:path/path.dart' as path;
-import 'package:supabase_models/brick/repository.dart';
 
 /// A service class that manages scheduled tasks and periodic operations for the Flipper app.
 ///

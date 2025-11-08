@@ -314,6 +314,21 @@ class CapellaSync extends AiStrategyImpl
               int.tryParse(data['trafficCount']?.toString() ?? '0') ?? 0,
           categoryName: data['categoryName'],
           categoryId: data['categoryId'],
+          value: double.tryParse(data['value']?.toString() ?? '0') ?? 0.0,
+          supplyPrice:
+              double.tryParse(data['supplyPrice']?.toString() ?? '0') ?? 0.0,
+          retailPrice:
+              double.tryParse(data['retailPrice']?.toString() ?? '0') ?? 0.0,
+          currentStock:
+              double.tryParse(data['currentStock']?.toString() ?? '0') ?? 0.0,
+          stockValue:
+              double.tryParse(data['stockValue']?.toString() ?? '0') ?? 0.0,
+          paymentMethod: data['paymentMethod'] ?? 'cash',
+          customerType: data['customerType'] ?? 'walk-in',
+          discountAmount:
+              double.tryParse(data['discountAmount']?.toString() ?? '0') ?? 0.0,
+          taxAmount:
+              double.tryParse(data['taxAmount']?.toString() ?? '0') ?? 0.0,
         );
       }).toList();
     } catch (e) {

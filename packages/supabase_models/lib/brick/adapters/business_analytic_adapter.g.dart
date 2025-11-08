@@ -27,6 +27,15 @@ Future<BusinessAnalytic> _$BusinessAnalyticFromSupabase(
     transactionId: data['transaction_id'] == null
         ? null
         : data['transaction_id'] as String?,
+    value: data['value'] as num,
+    supplyPrice: data['supply_price'] as num,
+    retailPrice: data['retail_price'] as num,
+    currentStock: data['current_stock'] as num,
+    stockValue: data['stock_value'] as num,
+    paymentMethod: data['payment_method'] as String,
+    customerType: data['customer_type'] as String,
+    discountAmount: data['discount_amount'] as num,
+    taxAmount: data['tax_amount'] as num,
   );
 }
 
@@ -49,6 +58,15 @@ Future<Map<String, dynamic>> _$BusinessAnalyticToSupabase(
     'category_name': instance.categoryName,
     'category_id': instance.categoryId,
     'transaction_id': instance.transactionId,
+    'value': instance.value,
+    'supply_price': instance.supplyPrice,
+    'retail_price': instance.retailPrice,
+    'current_stock': instance.currentStock,
+    'stock_value': instance.stockValue,
+    'payment_method': instance.paymentMethod,
+    'customer_type': instance.customerType,
+    'discount_amount': instance.discountAmount,
+    'tax_amount': instance.taxAmount,
   };
 }
 
@@ -78,6 +96,15 @@ Future<BusinessAnalytic> _$BusinessAnalyticFromSqlite(
     transactionId: data['transaction_id'] == null
         ? null
         : data['transaction_id'] as String?,
+    value: data['value'] as num,
+    supplyPrice: data['supply_price'] as num,
+    retailPrice: data['retail_price'] as num,
+    currentStock: data['current_stock'] as num,
+    stockValue: data['stock_value'] as num,
+    paymentMethod: data['payment_method'] as String,
+    customerType: data['customer_type'] as String,
+    discountAmount: data['discount_amount'] as num,
+    taxAmount: data['tax_amount'] as num,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -100,6 +127,15 @@ Future<Map<String, dynamic>> _$BusinessAnalyticToSqlite(
     'category_name': instance.categoryName,
     'category_id': instance.categoryId,
     'transaction_id': instance.transactionId,
+    'value': instance.value,
+    'supply_price': instance.supplyPrice,
+    'retail_price': instance.retailPrice,
+    'current_stock': instance.currentStock,
+    'stock_value': instance.stockValue,
+    'payment_method': instance.paymentMethod,
+    'customer_type': instance.customerType,
+    'discount_amount': instance.discountAmount,
+    'tax_amount': instance.taxAmount,
   };
 }
 
@@ -165,6 +201,42 @@ class BusinessAnalyticAdapter
     'transactionId': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'transaction_id',
+    ),
+    'value': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'value',
+    ),
+    'supplyPrice': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'supply_price',
+    ),
+    'retailPrice': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'retail_price',
+    ),
+    'currentStock': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'current_stock',
+    ),
+    'stockValue': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'stock_value',
+    ),
+    'paymentMethod': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'payment_method',
+    ),
+    'customerType': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'customer_type',
+    ),
+    'discountAmount': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'discount_amount',
+    ),
+    'taxAmount': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'tax_amount',
     ),
   };
   @override
@@ -256,6 +328,60 @@ class BusinessAnalyticAdapter
       columnName: 'transaction_id',
       iterable: false,
       type: String,
+    ),
+    'value': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'value',
+      iterable: false,
+      type: num,
+    ),
+    'supplyPrice': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'supply_price',
+      iterable: false,
+      type: num,
+    ),
+    'retailPrice': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'retail_price',
+      iterable: false,
+      type: num,
+    ),
+    'currentStock': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'current_stock',
+      iterable: false,
+      type: num,
+    ),
+    'stockValue': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'stock_value',
+      iterable: false,
+      type: num,
+    ),
+    'paymentMethod': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'payment_method',
+      iterable: false,
+      type: String,
+    ),
+    'customerType': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'customer_type',
+      iterable: false,
+      type: String,
+    ),
+    'discountAmount': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'discount_amount',
+      iterable: false,
+      type: num,
+    ),
+    'taxAmount': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'tax_amount',
+      iterable: false,
+      type: num,
     ),
   };
   @override

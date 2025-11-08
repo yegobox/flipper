@@ -66,6 +66,15 @@ void main() {
       unitsSold: 0,
       taxRate: 0.0,
       trafficCount: 0,
+      value: 0.0,
+      supplyPrice: 0.0,
+      retailPrice: 0.0,
+      currentStock: 0.0,
+      stockValue: 0.0,
+      paymentMethod: 'cash',
+      customerType: 'walk-in',
+      discountAmount: 0.0,
+      taxAmount: 0.0,
     ));
     registerFallbackValue(Conversation(
       id: 'fallback_conversation',

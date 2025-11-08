@@ -9,21 +9,10 @@ part 'stock_value_provider.g.dart';
 Future<double> StockValue(Ref ref, {required int branchId}) async {
   try {
     final capella = await ProxyService.getStrategy(Strategy.capella);
-    final variants = await capella.variants(branchId: branchId, taxTyCds: ['A','B','C','D','TT']);
-    double totalValue = 0;
+    final analytics = await capella.analytics(branchId: branchId);
     
-    for (final variant in variants.variants) {
-      if (variant.stockId != null) {
-        try {
-          final stock = await capella.getStockById(id: variant.stockId!);
-          totalValue += (stock.currentStock ?? 0) * (variant.retailPrice ?? 0);
-        } catch (e) {
-          // Skip this variant if stock not found
-          continue;
-        }
-      }
-    }
-    return totalValue;
+    // Sum up stock values from the latest analytics records
+    return analytics.fold<double>(0, (sum, analytic) => sum + analytic.stockValue);
   } catch (e) {
     return 0.0;
   }

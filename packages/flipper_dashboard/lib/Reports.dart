@@ -3,12 +3,8 @@
 import 'package:flipper_models/providers/date_range_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_services/navigation_guard_service.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:flipper_models/providers/stock_value_provider.dart';
-import 'package:flipper_models/providers/total_sale_provider.dart';
-import 'package:flipper_models/providers/profit_provider.dart';
 import 'package:flipper_models/providers/business_analytic_provider.dart';
 import 'package:flipper_models/providers/metric_provider.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -20,10 +16,27 @@ class ReportsDashboard extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final branchId = ProxyService.box.getBranchId()!;
-    final totalSales = ref.watch(totalSaleProvider(branchId: branchId));
-    final stockValue = ref.watch(stockValueProvider(branchId: branchId));
-    final profitVsCost = ref.watch(profitProvider(branchId));
-    final stockPerformance = ref.watch(fetchStockPerformanceProvider(branchId));
+    final analytics = ref.watch(fetchStockPerformanceProvider(branchId));
+
+    // Calculate all metrics from single analytics data
+    final totalSales = analytics.when<AsyncValue<double>>(
+      data: (data) =>
+          AsyncValue.data(data.fold<double>(0, (sum, a) => sum + a.value)),
+      loading: () => const AsyncValue.loading(),
+      error: (e, s) => AsyncValue.error(e, s),
+    );
+    final stockValue = analytics.when<AsyncValue<double>>(
+      data: (data) =>
+          AsyncValue.data(data.fold<double>(0, (sum, a) => sum + a.stockValue)),
+      loading: () => const AsyncValue.loading(),
+      error: (e, s) => AsyncValue.error(e, s),
+    );
+    final profitVsCost = analytics.when<AsyncValue<double>>(
+      data: (data) =>
+          AsyncValue.data(data.fold<double>(0, (sum, a) => sum + a.profit)),
+      loading: () => const AsyncValue.loading(),
+      error: (e, s) => AsyncValue.error(e, s),
+    );
 
     if (!isInDialog) {
       return Scaffold(
@@ -47,19 +60,16 @@ class ReportsDashboard extends HookConsumerWidget {
             ),
           ],
         ),
-        body: _buildContent(context, ref, totalSales, stockValue, profitVsCost,
-            stockPerformance),
+        body: _buildContent(
+            context, ref, totalSales, stockValue, profitVsCost, analytics),
       );
     }
     return _buildContent(
-        context, ref, totalSales, stockValue, profitVsCost, stockPerformance);
+        context, ref, totalSales, stockValue, profitVsCost, analytics);
   }
 
   void _refreshData(WidgetRef ref) {
     final branchId = ProxyService.box.getBranchId()!;
-    ref.refresh(totalSaleProvider(branchId: branchId));
-    ref.refresh(stockValueProvider(branchId: branchId));
-    ref.refresh(profitProvider(branchId));
     ref.refresh(fetchStockPerformanceProvider(branchId));
   }
 
@@ -112,27 +122,33 @@ class ReportsDashboard extends HookConsumerWidget {
         Expanded(
           child: _buildMetricCard(
             title: 'Stock Value',
-            value: stockValue.valueOrNull?.toCurrencyFormatted() ?? 'N/A',
+            value:
+                stockValue.valueOrNull?.toCurrencyFormatted() ?? 'Loading...',
             icon: Icons.inventory_2_rounded,
             color: const Color(0xFF0078D4),
+            isLoading: stockValue.isLoading,
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: _buildMetricCard(
             title: 'Total Sales',
-            value: totalSales.valueOrNull?.toCurrencyFormatted() ?? 'N/A',
+            value:
+                totalSales.valueOrNull?.toCurrencyFormatted() ?? 'Loading...',
             icon: Icons.trending_up_rounded,
             color: const Color(0xFF10B981),
+            isLoading: totalSales.isLoading,
           ),
         ),
         const SizedBox(width: 12),
         Expanded(
           child: _buildMetricCard(
             title: 'Profit',
-            value: profitVsCost.valueOrNull?.toCurrencyFormatted() ?? 'N/A',
+            value:
+                profitVsCost.valueOrNull?.toCurrencyFormatted() ?? 'Loading...',
             icon: Icons.account_balance_wallet_rounded,
             color: const Color(0xFF8B5CF6),
+            isLoading: profitVsCost.isLoading,
           ),
         ),
       ],
@@ -144,6 +160,7 @@ class ReportsDashboard extends HookConsumerWidget {
     required String value,
     required IconData icon,
     required Color color,
+    bool isLoading = false,
   }) {
     return Container(
       padding: const EdgeInsets.all(20),
@@ -179,14 +196,38 @@ class ReportsDashboard extends HookConsumerWidget {
             ),
           ),
           const SizedBox(height: 4),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Colors.black87,
-            ),
-          ),
+          isLoading
+              ? SizedBox(
+                  height: 22,
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(color),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Loading...',
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[500],
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : Text(
+                  value,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
         ],
       ),
     );
@@ -264,7 +305,7 @@ class ReportsDashboard extends HookConsumerWidget {
               }
               final spots = analytics.asMap().entries.map((entry) {
                 return FlSpot(
-                    entry.key.toDouble(), entry.value.price.toDouble());
+                    entry.key.toDouble(), entry.value.value.toDouble());
               }).toList();
               return SizedBox(
                 height: 200,
@@ -426,26 +467,33 @@ class ReportsDashboard extends HookConsumerWidget {
   }
 }
 
-class ReportsDashboardDialogWrapper extends StatefulWidget {
-  const ReportsDashboardDialogWrapper({Key? key}) : super(key: key);
-
-  @override
-  State<ReportsDashboardDialogWrapper> createState() =>
-      _ReportsDashboardDialogWrapperState();
+void preloadReportsData(WidgetRef ref) {
+  final branchId = ProxyService.box.getBranchId()!;
+  ref.read(fetchStockPerformanceProvider(branchId));
+  ref.read(fetchMetricsProvider(branchId));
 }
 
-class _ReportsDashboardDialogWrapperState
-    extends State<ReportsDashboardDialogWrapper> {
+class FastReportsDialog extends StatefulWidget {
+  const FastReportsDialog({Key? key}) : super(key: key);
+
+  @override
+  State<FastReportsDialog> createState() => _FastReportsDialogState();
+}
+
+class _FastReportsDialogState extends State<FastReportsDialog> {
+  bool _showContent = false;
+
   @override
   void initState() {
     super.initState();
-    NavigationGuardService().startCriticalWorkflow();
-  }
-
-  @override
-  void dispose() {
-    NavigationGuardService().endCriticalWorkflow();
-    super.dispose();
+    // Show content after a minimal delay to ensure dialog appears first
+    Future.microtask(() {
+      if (mounted) {
+        setState(() {
+          _showContent = true;
+        });
+      }
+    });
   }
 
   @override
@@ -454,15 +502,23 @@ class _ReportsDashboardDialogWrapperState
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxHeight: 700, maxWidth: 800),
-        child: const ReportsDashboard(isInDialog: true),
+        child: _showContent
+            ? const ReportsDashboard(isInDialog: true)
+            : Container(
+                height: 400,
+                padding: const EdgeInsets.all(20),
+                child: const Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CircularProgressIndicator(),
+                      SizedBox(height: 16),
+                      Text('Loading Reports...'),
+                    ],
+                  ),
+                ),
+              ),
       ),
     );
   }
-}
-
-void showReportsDialog(BuildContext context) {
-  showDialog(
-    context: context,
-    builder: (context) => const ReportsDashboardDialogWrapper(),
-  );
 }

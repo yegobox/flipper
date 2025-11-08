@@ -1,5 +1,7 @@
 import 'dart:isolate';
 import 'dart:ui';
+import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_models/brick/repository.dart';
 
@@ -12,6 +14,7 @@ class IsolateHandler {
 
     DartPluginRegistrant.ensureInitialized();
     BackgroundIsolateBinaryMessenger.ensureInitialized(rootIsolateToken);
+    DittoService dittoService = DittoService.instance;
 
     ReceivePort port = ReceivePort();
 
@@ -20,7 +23,12 @@ class IsolateHandler {
     port.listen((message) async {
       if (message is Map<String, dynamic>) {
         if (message['task'] == 'taxService') {
-          print("dealing with isolate");
+          final ditto = dittoService.dittoInstance;
+          if (ditto == null) {
+            talker.error('Ditto not initialized');
+          } else {
+            talker.error('Ditto is initialized');
+          }
         }
       }
     });

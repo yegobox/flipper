@@ -174,18 +174,11 @@ class IconRowState extends ConsumerState<IconRow>
       _showReport(context);
     }
     if (index == 3) {
+      preloadReportsData(ref);
       showDialog(
         context: context,
         barrierDismissible: true,
-        builder: (BuildContext context) {
-          return Dialog(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxHeight: 600, maxWidth: 800),
-              child: const ReportsDashboard(isInDialog: true),
-            ),
-          );
-        },
+        builder: (BuildContext context) => const FastReportsDialog(),
       );
     } else if (index == 2) {
       showBranchSwitchDialog(

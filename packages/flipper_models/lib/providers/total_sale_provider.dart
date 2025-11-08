@@ -6,6 +6,7 @@ part 'total_sale_provider.g.dart';
 
 @riverpod
 Future<double> TotalSale(Ref ref, {required int branchId}) async {
-  final analytics = await ref.watch(fetchStockPerformanceProvider(branchId).future);
-  return analytics.fold<double>(0, (sum, analytic) => sum + (analytic.price ?? 0));
+  final analytics =
+      await ref.watch(fetchStockPerformanceProvider(branchId).future);
+  return analytics.fold<double>(0, (sum, analytic) => sum + analytic.value);
 }

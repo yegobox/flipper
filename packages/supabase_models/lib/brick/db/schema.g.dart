@@ -1,6 +1,7 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
+part '20251108140031.migration.dart';
 part '20251005152725.migration.dart';
 part '20251030100041.migration.dart';
 part '20251107092253.migration.dart';
@@ -8,6 +9,7 @@ part '20251107092908.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
+  const Migration20251108140031(),
   const Migration20251005152725(),
   const Migration20251030100041(),
   const Migration20251107092253(),
@@ -227,6 +229,15 @@ final schema = Schema(
         SchemaColumn('category_name', Column.varchar),
         SchemaColumn('category_id', Column.varchar),
         SchemaColumn('transaction_id', Column.varchar),
+        SchemaColumn('value', Column.num),
+        SchemaColumn('supply_price', Column.num),
+        SchemaColumn('retail_price', Column.num),
+        SchemaColumn('current_stock', Column.num),
+        SchemaColumn('stock_value', Column.num),
+        SchemaColumn('payment_method', Column.varchar),
+        SchemaColumn('customer_type', Column.varchar),
+        SchemaColumn('discount_amount', Column.num),
+        SchemaColumn('tax_amount', Column.num),
       },
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['id'], unique: true),

@@ -183,6 +183,15 @@ class BusinessAnalyticDittoAdapter extends DittoSyncAdapter<BusinessAnalytic> {
       "categoryName": model.categoryName,
       "categoryId": model.categoryId,
       "transactionId": model.transactionId,
+      "value": model.value,
+      "supplyPrice": model.supplyPrice,
+      "retailPrice": model.retailPrice,
+      "currentStock": model.currentStock,
+      "stockValue": model.stockValue,
+      "paymentMethod": model.paymentMethod,
+      "customerType": model.customerType,
+      "discountAmount": model.discountAmount,
+      "taxAmount": model.taxAmount,
     };
   }
 
@@ -230,6 +239,15 @@ class BusinessAnalyticDittoAdapter extends DittoSyncAdapter<BusinessAnalytic> {
       categoryName: document["categoryName"],
       categoryId: document["categoryId"],
       transactionId: document["transactionId"],
+      value: document["value"],
+      supplyPrice: document["supplyPrice"],
+      retailPrice: document["retailPrice"],
+      currentStock: document["currentStock"],
+      stockValue: document["stockValue"],
+      paymentMethod: document["paymentMethod"],
+      customerType: document["customerType"],
+      discountAmount: document["discountAmount"],
+      taxAmount: document["taxAmount"],
     );
   }
 

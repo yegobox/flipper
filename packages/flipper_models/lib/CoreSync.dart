@@ -1927,7 +1927,7 @@ class CoreSync extends AiStrategyImpl
         // Touch variants' lastTouched asynchronously to aid reporting without blocking the flow.
         Future.microtask(() async {
           final items = transaction.items ?? const <TransactionItem>[];
-          
+
           final variantIds =
               items.map((i) => i.variantId).whereType<String>().toSet();
           for (final id in variantIds) {
@@ -2711,7 +2711,6 @@ class CoreSync extends AiStrategyImpl
         final businessId = await ProxyService.box.getBusinessId()!;
         // TO DO: fix this when sql is fixed.
         final bhfId = await ProxyService.box.bhfId();
-
 
         talker.warning("ItemClass${itemClasses[item.barCode] ?? "5020230602"}");
         // is this exist using name

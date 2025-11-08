@@ -72,7 +72,10 @@ DECLARE
     average_price NUMERIC := 0;
     total_quantity INT := 0;
     total_stock_remained NUMERIC := 0;
-    current_stock NUMERIC := 0;
+    total_supply_price NUMERIC := 0;
+    total_retail_price NUMERIC := 0;
+    total_current_stock NUMERIC := 0;
+    total_stock_value NUMERIC := 0;
     transaction_item RECORD;
     analytics_exists BOOLEAN := FALSE;
 BEGIN
@@ -82,7 +85,7 @@ BEGIN
         SELECT EXISTS(SELECT 1 FROM business_analytics WHERE transaction_id = NEW.id) INTO analytics_exists;
         
         IF NOT analytics_exists THEN
-            -- Calculate the total value and concatenate item names
+            -- Calculate comprehensive analytics data
             FOR transaction_item IN
                 SELECT ti.price * ti.qty AS item_value, 
                        v.item_nm AS item_name, 
@@ -92,9 +95,12 @@ BEGIN
                        v.category_name,
                        v.category_id,
                        COALESCE(v.supply_price, 0) AS supply_price,
-                       COALESCE(ti.remaining_stock, 0) AS remaining_stock
+                       COALESCE(v.retail_price, ti.price) AS retail_price,
+                       COALESCE(ti.remaining_stock, 0) AS remaining_stock,
+                       COALESCE(s.current_stock, 0) AS current_stock
                 FROM transaction_items ti
                 JOIN variants v ON ti.variant_id = v.id
+                LEFT JOIN stocks s ON v.stock_id = s.id
                 WHERE ti.transaction_id = NEW.id
             LOOP
                 total_value := total_value + transaction_item.item_value;
@@ -104,6 +110,10 @@ BEGIN
                 item_count := item_count + 1;
                 total_price := total_price + transaction_item.price;
                 total_quantity := total_quantity + transaction_item.qty;
+                total_supply_price := total_supply_price + transaction_item.supply_price;
+                total_retail_price := total_retail_price + transaction_item.retail_price;
+                total_current_stock := total_current_stock + transaction_item.current_stock;
+                total_stock_value := total_stock_value + (transaction_item.current_stock * transaction_item.retail_price);
 
                 -- Calculate profit based on selling price and supply price
                 total_profit := total_profit + (transaction_item.price - transaction_item.supply_price) * transaction_item.qty;
@@ -120,8 +130,13 @@ BEGIN
                 average_price := total_price / item_count;
             END IF;
 
-            -- Insert into business_analytics
-            INSERT INTO business_analytics (date, value, item_name, category_name, category_id, units_sold, traffic_count, tax_rate, price, profit, branch_id, stock_remained_at_the_time_of_sale, transaction_id)
+            -- Insert comprehensive analytics data
+            INSERT INTO business_analytics (
+                date, value, item_name, category_name, category_id, units_sold, traffic_count, 
+                tax_rate, price, profit, branch_id, stock_remained_at_the_time_of_sale, 
+                transaction_id, supply_price, retail_price, current_stock, stock_value,
+                payment_method, customer_type, discount_amount, tax_amount
+            )
             VALUES (
                 now(),
                 total_value,
@@ -135,7 +150,15 @@ BEGIN
                 total_profit,
                 NEW.branch_id,
                 total_stock_remained,
-                NEW.id
+                NEW.id,
+                CASE WHEN item_count > 0 THEN total_supply_price / item_count ELSE 0 END,
+                CASE WHEN item_count > 0 THEN total_retail_price / item_count ELSE 0 END,
+                total_current_stock,
+                total_stock_value,
+                COALESCE(NEW.payment_type, 'cash'),
+                COALESCE(NEW.customer_type, 'walk-in'),
+                COALESCE(NEW.discount_amount, 0),
+                COALESCE(NEW.tax_amount, 0)
             );
         END IF;
     END IF;
