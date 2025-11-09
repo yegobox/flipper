@@ -1,6 +1,5 @@
 import 'dart:isolate';
 import 'dart:ui';
-import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_models/brick/repository.dart';
@@ -25,9 +24,9 @@ class IsolateHandler {
         if (message['task'] == 'taxService') {
           final ditto = dittoService.dittoInstance;
           if (ditto == null) {
-            talker.error('Ditto not initialized');
+            // talker.error('Ditto not initialized');
           } else {
-            talker.error('Ditto is initialized');
+            // talker.error('Ditto is initialized');
           }
         }
       }

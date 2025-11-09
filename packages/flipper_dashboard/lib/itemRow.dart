@@ -917,7 +917,7 @@ class _RowItemState extends ConsumerState<RowItem>
                 final stock =
                     await strategy.getStockById(id: widget.variant!.stockId!);
 
-                if ((stock.currentStock ?? 0) > 0) {
+                if ((stock.currentStock ?? 0) > 0 && !kDebugMode) {
                   final dialogService = locator<DialogService>();
                   dialogService.showCustomDialog(
                     variant: DialogType.info,
