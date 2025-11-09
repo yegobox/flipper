@@ -591,12 +591,8 @@ class TaxController<OBJ> with TransactionDelegationMixin {
             receiptSignature, transaction, qrCode, counter, receiptNumber,
             whenCreated: now, invoiceNumber: highestInvcNo);
 
-        /// by incrementing this by 1 we get ready for next value to use so there will be no need to increment it
-        /// at the time of passing in data, I have to remember to clean it in rw_tax.dart
-        /// since curRcptNo need to be update when one change to keep track on current then we find all
-        // Fetch the counters from the database
-
-        ProxyService.strategy.updateCounters(
+        /// Ensure all counters of the same branch are synchronized
+        await ProxyService.strategy.updateCounters(
           counters: counters,
           receiptSignature: receiptSignature,
         );
