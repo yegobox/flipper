@@ -74,6 +74,9 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
         query += ' WHERE ' + conditions.join(' AND ');
       }
 
+      // Subscribe to ensure we have the latest data
+      await ditto.sync.registerSubscription(query, arguments: arguments);
+
       final result = await ditto.store.execute(query, arguments: arguments);
 
       return result.items.map((doc) {
@@ -189,7 +192,53 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
       double? taxblAmt,
       double? totAmt,
       double? dcRt,
-      double? dcAmt}) {
-    throw UnimplementedError();
+      double? dcAmt}) async {
+    try {
+      final ditto = dittoService.dittoInstance;
+      if (ditto == null) {
+        talker.error('Ditto not initialized');
+        return;
+      }
+
+      final updates = <String, dynamic>{};
+      if (qty != null)
+        updates['qty'] = incrementQty == true ? 'qty + $qty' : qty;
+      if (discount != null) updates['discount'] = discount;
+      if (active != null) updates['active'] = active;
+      if (taxAmt != null) updates['taxAmt'] = taxAmt;
+      if (ebmSynced != null) updates['ebmSynced'] = ebmSynced;
+      if (isRefunded != null) updates['isRefunded'] = isRefunded;
+      if (price != null) updates['price'] = price;
+      if (prc != null) updates['prc'] = prc;
+      if (splyAmt != null) updates['splyAmt'] = splyAmt;
+      if (doneWithTransaction != null)
+        updates['doneWithTransaction'] = doneWithTransaction;
+      if (taxblAmt != null) updates['taxblAmt'] = taxblAmt;
+      if (totAmt != null) updates['totAmt'] = totAmt;
+      if (dcRt != null) updates['dcRt'] = dcRt;
+      if (dcAmt != null) updates['dcAmt'] = dcAmt;
+
+      if (updates.isEmpty) return;
+
+      updates['updatedAt'] = DateTime.now().toIso8601String();
+
+      final setClause = updates.keys
+          .map((key) => key == 'qty' && incrementQty == true
+              ? '$key = $key + :qty'
+              : '$key = :$key')
+          .join(', ');
+
+      final query =
+          'UPDATE transaction_items SET $setClause WHERE _id = :id OR id = :id';
+      final arguments = Map<String, dynamic>.from(updates);
+      arguments['id'] = transactionItemId;
+      if (incrementQty == true && qty != null) {
+        arguments['qty'] = qty;
+      }
+
+      await ditto.store.execute(query, arguments: arguments);
+    } catch (e) {
+      talker.error('Error updating transaction item: $e');
+    }
   }
 }
