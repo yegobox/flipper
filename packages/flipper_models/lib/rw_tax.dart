@@ -230,9 +230,10 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
 
       /// Filter out service items as they cannot be saved in IO
       items = items.where((item) => item.itemTyCd != "3").toList();
+      // TOTAL D: 
       List<Map<String, dynamic>> itemsList = await Future.wait(items
           .map((item) async =>
-              await mapItemToJson(item, bhfId: bhFId, approvedQty: approvedQty))
+              await mapItemToJson(item, bhfId: bhFId, approvedQty: item.qty))
           .toList());
       if (itemsList.isEmpty) throw Exception("No items to save");
 
