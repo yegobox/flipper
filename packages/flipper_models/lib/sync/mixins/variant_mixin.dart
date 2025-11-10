@@ -7,6 +7,7 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/models/sars.model.dart';
+import 'package:supabase_models/brick/models/transactionItemUtil.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:supabase_models/services/turbo_tax_service.dart';
@@ -268,29 +269,60 @@ mixin VariantMixin implements VariantInterface {
               await repository.upsert<Stock>(variantToSave.stock!);
             }
           }
+          Ebm? ebm = await ProxyService.strategy
+              .ebm(branchId: ProxyService.box.getBranchId()!);
+          // save items
 
-          final newVariantSaved =
-              await repository.upsert<Variant>(variantToSave);
-          final ebmSyncService = TurboTaxService(repository);
-          if (newVariantSaved.imptItemSttsCd != "1" ||
-              newVariantSaved.pchsSttsCd != "1") {
-            // get the sar
-            Sar? sar = await ProxyService.strategy.getSar(branchId: branchId);
-            await ebmSyncService.stockIo(
-              invoiceNumber: sar?.sarNo ?? 1,
-              variant: newVariantSaved,
-              serverUrl: (await ProxyService.box.getServerUrl())!,
-            );
-            // increament sar and save
-
-            if (sar == null) {
-              sar = Sar(branchId: branchId, sarNo: 1);
-            } else {
-              sar.sarNo = sar.sarNo + 1;
-            }
-            await repository.upsert<Sar>(sar);
+          if (variant.itemCd == null ||
+              variant.itemCd?.isEmpty == true ||
+              variant.pchsSttsCd == "01" ||
+              variant.pchsSttsCd == "03" ||
+              variant.pchsSttsCd == "04" ||
+              variant.pchsSttsCd == "1" ||
+              variant.imptItemSttsCd == "4" ||
+              variant.imptItemSttsCd == "2" ||
+              // variant.itemCd == "3" ||
+              variant.assigned == true) {
+            /// save it anyway so we do not miss things
+            talker.info("Skipped: ${variant.name}:${variant.itemCd}");
+            variant.ebmSynced = true;
+            return true;
+          } else {
+            await ProxyService.tax
+                .saveItem(variation: variant, URI: ebm!.taxServerUrl);
           }
-          return newVariantSaved;
+          // save io
+          final sar = await ProxyService.strategy
+              .getSar(branchId: ProxyService.box.getBranchId()!);
+
+          sar!.sarNo = sar.sarNo + 1;
+          await repository.upsert<Sar>(sar);
+
+          await ProxyService.tax.saveStockItems(
+            updateMaster: false,
+            items: [TransactionItemUtil.fromVariant(variantToSave, itemSeq: 1)],
+            tinNumber: ebm.tinNumber.toString(),
+            bhFId: ebm.bhfId,
+            totalSupplyPrice: variantToSave.supplyPrice ?? 0,
+            totalvat: 0,
+            totalAmount: variantToSave.retailPrice ?? 0,
+            sarTyCd: "06",
+            sarNo: sar.sarNo.toString(),
+            invoiceNumber: sar.sarNo,
+            remark: "Stock In from adding new item",
+            ocrnDt: DateTime.now().toUtc(),
+            URI: ebm.taxServerUrl,
+          );
+
+          // save master
+
+          await ProxyService.tax.saveStockMaster(
+            variant: variant,
+            URI: ebm.taxServerUrl,
+            stockMasterQty: variantToSave.stock?.currentStock!,
+          );
+          // return newV
+          repository.upsert<Variant>(variantToSave);
         } catch (e, stackTrace) {
           talker.error('Error adding variant', e, stackTrace);
           rethrow;
@@ -456,17 +488,43 @@ mixin VariantMixin implements VariantInterface {
             (approvedQty ?? updatables[i].stock?.currentStock)?.toDouble();
 
         final updated = await repository.upsert<Variant>(updatables[i]);
+        Ebm? ebm = await ProxyService.strategy
+            .ebm(branchId: ProxyService.box.getBranchId()!);
+        if (updateIo == true && approvedQty != null) {
+          // save io
+          final sar = await ProxyService.strategy
+              .getSar(branchId: ProxyService.box.getBranchId()!);
 
-        if (updateIo == true) {
-          /// get fresh stock
-          await updateIoFunc(
-              variant: updated,
-              purchase: purchase,
-              stockMasterQty: approvedQty != null
-                  ? approvedQty.toDouble()
-                  : updated.stock!.currentStock!,
-              approvedQty: approvedQty?.toDouble());
+          sar!.sarNo = sar.sarNo + 1;
+          await repository.upsert<Sar>(sar);
+
+          await ProxyService.tax.saveStockItems(
+            updateMaster: false,
+            items: [
+              TransactionItemUtil.fromVariant(updatables[i],
+                  itemSeq: 1, approvedQty: approvedQty.toDouble())
+            ],
+            tinNumber: ebm!.tinNumber.toString(),
+            bhFId: ebm.bhfId,
+            totalSupplyPrice: updatables[i].supplyPrice ?? 0,
+            totalvat: 0,
+            totalAmount: updatables[i].retailPrice ?? 0,
+            sarTyCd: "06",
+            sarNo: sar.sarNo.toString(),
+            invoiceNumber: sar.sarNo,
+            remark: "Stock In from adding new item",
+            ocrnDt: DateTime.now().toUtc(),
+            URI: ebm.taxServerUrl,
+          );
+
+          await ProxyService.tax.saveStockMaster(
+            variant: updatables[i],
+            URI: ebm.taxServerUrl,
+            // approvedQty: approvedQty,
+            stockMasterQty: updated.stock!.currentStock! + (approvedQty),
+          );
         } else {
+          // save master
           Ebm? ebm = await ProxyService.strategy
               .ebm(branchId: ProxyService.box.getBranchId()!);
           await ProxyService.tax.saveStockMaster(
@@ -481,29 +539,6 @@ mixin VariantMixin implements VariantInterface {
       talker.error('Error updating variant', e, stackTrace);
       rethrow;
     }
-  }
-
-  @override
-  Future<void> updateIoFunc(
-      {required Variant variant,
-      Purchase? purchase,
-      double? stockMasterQty,
-      double? approvedQty}) async {
-    final ebmSyncService = TurboTaxService(repository);
-
-    final sar = await ProxyService.strategy
-        .getSar(branchId: ProxyService.box.getBranchId()!);
-    await ebmSyncService.stockIo(
-      stockMasterQty: stockMasterQty,
-      approvedQty: approvedQty,
-      invoiceNumber: sar?.sarNo ?? 1,
-      variant: variant,
-      purchase: purchase,
-      serverUrl: (await ProxyService.box.getServerUrl())!,
-    );
-    // increament sar and save
-    sar!.sarNo = sar.sarNo + 1;
-    await repository.upsert<Sar>(sar);
   }
 
   @override

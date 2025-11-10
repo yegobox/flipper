@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:flipper_models/helperModels/ICustomer.dart';
+import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:supabase_models/brick/models/customer.model.dart';
 import 'package:flipper_services/event_bus.dart';
@@ -26,11 +28,17 @@ class EbmSyncService {
     try {
       final serverUrl = await ProxyService.box.getServerUrl();
       if (serverUrl != null) {
-        final turboTaxService = TurboTaxService(repository);
-        await turboTaxService.syncCustomerWithEbm(
-          instance: customer,
-          serverUrl: serverUrl,
+        RwApiResponse response = await ProxyService.tax.saveCustomer(
+          customer: ICustomer.fromJson(customer.toFlipperJson()),
+          URI: serverUrl,
         );
+        if (response.resultCd == "000") {
+          ProxyService.notification
+              .sendLocalNotification(body: "Customer Synced");
+        } else {
+          final message = response.resultMsg.extractMeaningfulMessage();
+          ProxyService.notification.sendLocalNotification(body: message);
+        }
         talker.info('EBM Sync successful for customer ${customer.id}');
       }
     } catch (e) {

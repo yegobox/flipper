@@ -2,9 +2,12 @@ import 'dart:async';
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:flipper_models/sync/interfaces/stock_recount_interface.dart';
 import 'package:flipper_models/sync/interfaces/variant_interface.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:supabase_models/brick/models/sars.model.dart';
 import 'package:supabase_models/brick/models/stock_recount.model.dart';
 import 'package:supabase_models/brick/models/stock_recount_item.model.dart';
 import 'package:supabase_models/brick/models/stock.model.dart';
+import 'package:supabase_models/brick/models/transactionItem.model.dart';
 import 'package:supabase_models/brick/models/variant.model.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:uuid/uuid.dart';
@@ -248,13 +251,58 @@ mixin StockRecountMixin implements StockRecountInterface, VariantInterface {
       await repository.upsert<Stock>(stock);
 
       // Trigger RRA stock IO for the variant
-      final variantQuery = Query(where: [Where('id').isExactly(item.variantId)]);
+      final variantQuery =
+          Query(where: [Where('id').isExactly(item.variantId)]);
       final variants = await repository.get<Variant>(query: variantQuery);
       if (variants.isNotEmpty) {
-        await updateIoFunc(
-          variant: variants.first,
-          approvedQty: item.countedQuantity,
-        );
+        final variant = variants.first;
+        final ebm = await ProxyService.strategy.ebm(branchId: recount.branchId);
+        final sar =
+            await ProxyService.strategy.getSar(branchId: recount.branchId);
+
+        if (ebm != null && sar != null) {
+          sar.sarNo = sar.sarNo + 1;
+          await repository.upsert<Sar>(sar);
+
+          await ProxyService.tax.saveStockItems(
+            items: [
+              TransactionItem(
+                pkgUnitCd: variant.pkgUnitCd,
+                itemSeq: 1,
+                itemCd: variant.itemCd!,
+                itemClsCd: variant.itemClsCd!,
+                itemNm: variant.itemNm!,
+                qty: item.countedQuantity,
+                prc: variant.retailPrice ?? 0,
+                dcRt: variant.dcRt ?? 0,
+                taxTyCd: variant.taxTyCd ?? "A",
+                name: variant.name,
+                price: variant.retailPrice ?? 0,
+                discount: variant.dcRt != null
+                    ? ((variant.dcRt! / 100) * (variant.retailPrice ?? 0))
+                    : 0,
+                ttCatCd: variant.ttCatCd,
+              )
+            ],
+            tinNumber: ebm.tinNumber.toString(),
+            bhFId: ebm.bhfId,
+            totalSupplyPrice: variant.supplyPrice ?? 0,
+            totalvat: 0,
+            totalAmount: variant.retailPrice ?? 0,
+            sarTyCd: "06",
+            sarNo: sar.sarNo.toString(),
+            remark: "Stock recount adjustment",
+            ocrnDt: DateTime.now().toUtc(),
+            URI: ebm.taxServerUrl,
+          );
+          // save master stock
+          await ProxyService.tax.saveStockMaster(
+            variant: variant,
+            URI: ebm.taxServerUrl,
+            // approvedQty: approvedQty,
+            stockMasterQty: item.countedQuantity,
+          );
+        }
       }
     }
 

@@ -197,7 +197,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
   /// This update stock IO given on the input data.
   @override
   Future<RwApiResponse> saveStockItems(
-      {required ITransaction transaction,
+      {required List<TransactionItem> items,
       required String tinNumber,
       required String bhFId,
       String? customerName,
@@ -215,19 +215,13 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       num? invoiceNumber,
       String? sarNo,
       num? approvedQty,
+      bool updateMaster = true,
       required String URI}) async {
     try {
       final url = Uri.parse(URI)
           .replace(path: Uri.parse(URI).path + 'stock/saveStockItems')
           .toString();
       final mod = randomNumber().toString();
-
-      // Query active, done items only
-      List<TransactionItem> items =
-          await ProxyService.strategy.transactionItems(
-        transactionId: transaction.id,
-      );
-      if (items.isEmpty) items = transaction.items ?? [];
 
       /// Filter out service items as they cannot be saved in IO
       items = items.where((item) => item.itemTyCd != "3").toList();
@@ -271,7 +265,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         "modrId": mod,
         "modrNm": mod,
         "sarNo": sarNo,
-        "orgSarNo": invoiceNumber ?? transaction.orgSarNo,
+        "orgSarNo": invoiceNumber,
         "itemList": itemsList
       };
       // if custTin is invalid remove it from the json
@@ -287,29 +281,17 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
 
       /// save stock master for  the involved variants
       /// to keep stock master in sync
-      for (var item in items) {
-        Variant? variant =
-            await ProxyService.strategy.getVariant(id: item.variantId!);
-        if (variant != null) {
-          await saveStockMaster(variant: variant, URI: URI);
+      if (updateMaster) {
+        for (var item in items) {
+          Variant? variant =
+              await ProxyService.strategy.getVariant(id: item.variantId!);
+          if (variant != null) {
+            await saveStockMaster(variant: variant, URI: URI);
+          }
         }
       }
 
-      if (data.resultCd == "000" && sarTyCd != "06") {
-        // save the same but with the sarNo 06 Adjustment
-        // json['sarTyCd'] = "06";
-        // json['modrId'] = randomNumber().toString().substring(0, 5);
-        // json['modrNm'] = randomNumber().toString().substring(0, 5);
-        // // json['sarNo'] = randomNumber().toString();
-        // json['remark'] = "Adjustment";
-        // Response responseAdjustment = await sendPostRequest(url, json);
-        // final dataAdjustment = RwApiResponse.fromJson(
-        //   responseAdjustment.data,
-        // );
-        // if (dataAdjustment.resultCd != "000") {
-        //   throw Exception(dataAdjustment.resultMsg);
-        // }
-      }
+      if (data.resultCd == "000" && sarTyCd != "06") {}
 
       return data;
     } catch (e) {
@@ -687,7 +669,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
               receiptType != 'CR' &&
               receiptType != 'TR') {
             await saveStockItems(
-              transaction: transaction,
+              items: items,
               tinNumber: ebm.tinNumber.toString(),
               bhFId: ebm.bhfId,
               customerName: null,
@@ -725,7 +707,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
             await repository.upsert<Sar>(sar);
 
             await saveStockItems(
-              transaction: transaction,
+              items: items,
               tinNumber: ebm.tinNumber.toString(),
               bhFId: ebm.bhfId,
               customerName: transaction.customerName,
@@ -845,7 +827,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       lastTouched: DateTime.now().toUtc(),
       qty: quantity,
       discount: item.discount,
-      remainingStock: item.remainingStock!.toDouble().roundToTwoDecimalPlaces(),
+      remainingStock: item.remainingStock?.toDouble().roundToTwoDecimalPlaces(),
       itemCd: item.itemCd,
       variantId: item.variantId,
       qtyUnitCd: item.qtyUnitCd,
@@ -881,7 +863,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       prc: item.price,
       useYn: "Y",
       regrId:
-          item.regrId?.toString() ?? randomNumber().toString().substring(0, 20),
+          item.regrId?.toString() ?? randomNumber().toString().substring(0, 15),
       modrId: item.modrId ?? randomString().substring(0, 8),
       modrNm: item.modrNm ?? randomString().substring(0, 8),
       name: item.name,

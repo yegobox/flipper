@@ -33,8 +33,8 @@ abstract class VariantInterface {
   Future<List<IUnit>> units({required int branchId});
 
   Future<int> addUnits<T>({required List<Map<String, dynamic>> units});
-  Future<void> updateIoFunc(
-      {required Variant variant, Purchase? purchase, double? approvedQty});
+  // Future<void> updateIoFunc(
+  //     {required Variant variant, Purchase? purchase, double? approvedQty});
   FutureOr<void> updateVariant(
       {required List<Variant> updatables,
       String? color,

@@ -1160,19 +1160,18 @@ class CoreViewModel extends FlipperBaseModel
       await ProxyService.strategy.updateVariant(
         updatables: [variant],
         purchase: purchase,
-        approvedQty:
-            null, // Explicitly set to null for services (no stock assignment)
+        approvedQty: null,
         invoiceNumber: purchase.spplrInvcNo,
         updateIo: updateIo,
         updateStock: false,
       );
 
       // Still update IO but with null approvedQty for services
-      await ProxyService.strategy.updateIoFunc(
-        variant: variant,
-        purchase: purchase,
-        approvedQty: null,
-      );
+      // await ProxyService.strategy.updateIoFunc(
+      //   variant: variant,
+      //   purchase: purchase,
+      //   approvedQty: null,
+      // );
     } else {
       // Normal handling for non-service items
       await ProxyService.strategy.updateVariant(
@@ -1185,11 +1184,11 @@ class CoreViewModel extends FlipperBaseModel
       );
 
       // update io
-      await ProxyService.strategy.updateIoFunc(
-        variant: variant,
-        purchase: purchase,
-        approvedQty: variant.stock?.currentStock,
-      );
+      // await ProxyService.strategy.updateIoFunc(
+      //   variant: variant,
+      //   purchase: purchase,
+      //   approvedQty: variant.stock?.currentStock,
+      // );
     }
   }
 
@@ -1233,11 +1232,11 @@ class CoreViewModel extends FlipperBaseModel
           updateIo: false,
         );
         // update io
-        await ProxyService.strategy.updateIoFunc(
-          variant: existingVariant,
-          purchase: purchase,
-          approvedQty: totalQty,
-        );
+        // await ProxyService.strategy.updateIoFunc(
+        //   variant: existingVariant,
+        //   purchase: purchase,
+        //   approvedQty: totalQty,
+        // );
       }
     }
   }

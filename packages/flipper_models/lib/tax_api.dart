@@ -30,7 +30,8 @@ abstract class TaxApi implements NoticeInterface {
     required String pchsSttsCd,
   });
   Future<RwApiResponse> saveStockItems(
-      {required ITransaction transaction,
+      {required List<TransactionItem> items,
+       bool updateMaster = true,
       required String tinNumber,
       required String bhFId,
       String? customerName,
