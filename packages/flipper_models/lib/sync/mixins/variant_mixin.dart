@@ -486,54 +486,6 @@ mixin VariantMixin implements VariantInterface {
         updatables[i].lastTouched = DateTime.now().toUtc();
         updatables[i].qty =
             (approvedQty ?? updatables[i].stock?.currentStock)?.toDouble();
-
-        final updated = await repository.upsert<Variant>(updatables[i]);
-        Ebm? ebm = await ProxyService.strategy
-            .ebm(branchId: ProxyService.box.getBranchId()!);
-        if (updateIo == true && approvedQty != null) {
-          // save io
-          final sar = await ProxyService.strategy
-              .getSar(branchId: ProxyService.box.getBranchId()!);
-
-          sar!.sarNo = sar.sarNo + 1;
-          await repository.upsert<Sar>(sar);
-
-          await ProxyService.tax.saveStockItems(
-            updateMaster: false,
-            items: [
-              TransactionItemUtil.fromVariant(updatables[i],
-                  itemSeq: 1, approvedQty: approvedQty.toDouble())
-            ],
-            tinNumber: ebm!.tinNumber.toString(),
-            bhFId: ebm.bhfId,
-            totalSupplyPrice: updatables[i].supplyPrice ?? 0,
-            totalvat: 0,
-            totalAmount: updatables[i].retailPrice ?? 0,
-            sarTyCd: "06",
-            sarNo: sar.sarNo.toString(),
-            invoiceNumber: sar.sarNo,
-            remark: "Stock In from adding new item",
-            ocrnDt: DateTime.now().toUtc(),
-            URI: ebm.taxServerUrl,
-          );
-
-          await ProxyService.tax.saveStockMaster(
-            variant: updatables[i],
-            URI: ebm.taxServerUrl,
-            // approvedQty: approvedQty,
-            stockMasterQty: updated.stock!.currentStock! + (approvedQty),
-          );
-        } else {
-          // save master
-          Ebm? ebm = await ProxyService.strategy
-              .ebm(branchId: ProxyService.box.getBranchId()!);
-          await ProxyService.tax.saveStockMaster(
-            variant: updatables[i],
-            URI: ebm!.taxServerUrl,
-            // approvedQty: approvedQty,
-            stockMasterQty: updated.stock!.currentStock! + (approvedQty ?? 0),
-          );
-        }
       }
     } catch (e, stackTrace) {
       talker.error('Error updating variant', e, stackTrace);

@@ -9,6 +9,7 @@ import 'package:flipper_models/ebm_helper.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/sync/utils/stock_io_util.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/drive_service.dart';
@@ -17,7 +18,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import 'package:stacked/stacked.dart';
-import 'package:flipper_models/db_model_export.dart' as brick;
+import 'package:supabase_models/brick/repository.dart';
 import 'mixins/all.dart';
 
 // Constants for magic values
@@ -1224,6 +1225,11 @@ class CoreViewModel extends FlipperBaseModel
         }
 
         existingVariant.ebmSynced = false;
+
+        // Store original stock before updating
+        final originalStock = existingVariant.stock?.currentStock ?? 0;
+        final newTotalStock = originalStock + totalQty;
+
         await ProxyService.strategy.updateVariant(
           updatables: [existingVariant],
           purchase: purchase,
@@ -1231,12 +1237,11 @@ class CoreViewModel extends FlipperBaseModel
           invoiceNumber: purchase.spplrInvcNo,
           updateIo: false,
         );
-        // update io
-        // await ProxyService.strategy.updateIoFunc(
-        //   variant: existingVariant,
-        //   purchase: purchase,
-        //   approvedQty: totalQty,
-        // );
+
+        await StockIOUtil.saveStockMaster(
+          variant: existingVariant,
+          stockMasterQty: newTotalStock,
+        );
       }
     }
   }
@@ -1378,7 +1383,17 @@ class CoreViewModel extends FlipperBaseModel
           await _updateVariant(variant,
               updateStock: false,
               approvedQty: variant.stock?.currentStock,
-              updateIo: true);
+              updateIo: false);
+          await StockIOUtil.saveStockIO(
+            repository: Repository(),
+            variant: variant,
+            approvedQty: variant.stock?.currentStock ?? 0,
+            remark: "New import item",
+          );
+          await StockIOUtil.saveStockMaster(
+            variant: variant,
+            stockMasterQty: variant.stock?.currentStock ?? 0,
+          );
           await ProxyService.tax.updateImportItems(item: variant, URI: URI);
         }
       }
@@ -1439,8 +1454,18 @@ class CoreViewModel extends FlipperBaseModel
             (existingVariant.stock!.currentStock ?? 0.0) + totalIncomingQty;
         await ProxyService.strategy.updateVariant(
           updatables: [existingVariant],
-          approvedQty: totalIncomingQty,
           updateStock: true,
+          updateIo: false,
+        );
+        await StockIOUtil.saveStockIO(
+          repository: Repository(),
+          variant: existingVariant,
+          approvedQty: totalIncomingQty,
+          remark: "Import item approval",
+        );
+        await StockIOUtil.saveStockMaster(
+          variant: existingVariant,
+          stockMasterQty: existingVariant.stock!.currentStock!,
         );
       }
     } else {
@@ -1458,7 +1483,17 @@ class CoreViewModel extends FlipperBaseModel
       await _updateVariant(incomingImportVariant,
           approvedQty: incomingImportVariant.stock?.currentStock,
           updateStock: false,
-          updateIo: true);
+          updateIo: false);
+      await StockIOUtil.saveStockIO(
+        repository: Repository(),
+        variant: incomingImportVariant,
+        approvedQty: incomingImportVariant.stock?.currentStock ?? 0,
+        remark: "New import item processing",
+      );
+      await StockIOUtil.saveStockMaster(
+        variant: incomingImportVariant,
+        stockMasterQty: incomingImportVariant.stock?.currentStock ?? 0,
+      );
       await ProxyService.tax
           .updateImportItems(item: incomingImportVariant, URI: URI);
     }

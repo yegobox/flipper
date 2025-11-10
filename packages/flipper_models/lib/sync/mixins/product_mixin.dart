@@ -247,17 +247,7 @@ mixin ProductMixin implements ProductInterface {
           branchId: branchId,
         );
 
-        // Refresh the variant to ensure we have the latest data
-        final refreshedVariants = await repository.get<Variant>(
-          query:
-              brick.Query(where: [brick.Where('id').isExactly(newVariant.id)]),
-        );
-
-        if (refreshedVariants.isEmpty) {
-          throw Exception('Failed to retrieve saved variant');
-        }
-
-        final savedVariant = refreshedVariants.first;
+        final savedVariant = newVariant;
         if (savedVariant.stockId == null) {
           talker.error('Variant ${savedVariant.id} has no stockId after save!');
         }

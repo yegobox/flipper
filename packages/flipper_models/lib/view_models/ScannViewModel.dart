@@ -3,10 +3,12 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/sync/utils/stock_io_util.dart';
 import 'package:flipper_models/view_models/mixins/rraConstants.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:intl/intl.dart';
+import 'package:supabase_models/brick/repository.dart';
 
 import 'package:talker_flutter/talker_flutter.dart';
 import 'package:flutter/material.dart';
@@ -457,9 +459,20 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
         scannedVariants[index] = updatedVariant;
 
         //Persit to db
-        ProxyService.strategy.updateVariant(
-          updatables: [updatedVariant],
-          variantId: updatedVariant.id,
+        // ProxyService.strategy.updateVariant(
+        //   updatables: [updatedVariant],
+        //   variantId: updatedVariant.id,
+        // );
+        // // update io
+        // await StockIOUtil.saveStockIO(
+        //   repository: Repository(),
+        //   variant: updatedVariant,
+        //   approvedQty: updatedVariant.stock?.currentStock ?? 0,
+        //   remark: "New import item processing",
+        // );
+        await StockIOUtil.saveStockMaster(
+          variant: updatedVariant,
+          stockMasterQty: updatedVariant.stock?.currentStock ?? 0,
         );
 
         // Notify listeners to rebuild the UI

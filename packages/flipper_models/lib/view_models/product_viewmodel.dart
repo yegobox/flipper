@@ -107,7 +107,8 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
         notifyListeners();
         return product;
       }
-       int? tin = await effectiveTin(branchId: ProxyService.box.getBranchId()!);
+      int? tin = await effectiveTin(branchId: ProxyService.box.getBranchId()!);
+
       /// create a temp product or return it if it exists
       Product? product = await ProxyService.strategy.createProduct(
         createItemCode: true,
@@ -325,6 +326,17 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
               productId: variation.productId!,
               supplyPrice: supplyPrice,
               retailPrice: retailPrice);
+          // update io
+          // await StockIOUtil.saveStockIO(
+          //   repository: Repository(),
+          //   variant: variation,
+          //   approvedQty: variation.stock?.currentStock ?? 0,
+          //   remark: "New import item processing",
+          // );
+          // await StockIOUtil.saveStockMaster(
+          //   variant: variation,
+          //   stockMasterQty: variation.stock?.currentStock ?? 0,
+          // );
         }
       }
     }
@@ -338,6 +350,17 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
               productName: product!.name,
               productId: variation.productId!,
               retailPrice: retailPrice);
+          // update io
+          // await StockIOUtil.saveStockIO(
+          //   repository: Repository(),
+          //   variant: variation,
+          //   approvedQty: variation.stock?.currentStock ?? 0,
+          //   remark: "New import item processing",
+          // );
+          // await StockIOUtil.saveStockMaster(
+          //   variant: variation,
+          //   stockMasterQty: variation.stock?.currentStock ?? 0,
+          // );
         }
       }
     }
