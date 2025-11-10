@@ -396,9 +396,9 @@ mixin VariantMixin implements VariantInterface {
       for (var i = 0; i < updatables.length; i++) {
         final name = (productName ?? updatables[i].productName)!;
         updatables[i].productName = name;
-        if (updatables[i].stock == null) {
+        if (updatables[i].stock == null && updatables[i].itemTyCd != "3") {
           await addStockToVariant(variant: updatables[i]);
-        } else if (updateStock == true) {
+        } else if (updateStock == true && updatables[i].itemTyCd != "3") {
           talker.debug(
               'Updating stock for variant ${updatables[i].id} with approvedQty: $approvedQty');
           await ProxyService.strategy.updateStock(

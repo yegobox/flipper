@@ -193,6 +193,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
   /// The [sarTyCd] parameter indicates the type of stock movement:
   /// - '11' for sales (stock out)
   /// - Other codes for different stock movement types
+  /// This update stock IO given on the input data.
   @override
   Future<RwApiResponse> saveStockItems(
       {required ITransaction transaction,
@@ -230,10 +231,11 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
 
       /// Filter out service items as they cannot be saved in IO
       items = items.where((item) => item.itemTyCd != "3").toList();
-      // TOTAL D: 
+      // TOTAL D:
       List<Map<String, dynamic>> itemsList = await Future.wait(items
-          .map((item) async =>
-              await mapItemToJson(item, bhfId: bhFId, approvedQty: item.qty))
+          .map((item) async => await mapItemToJson(item,
+              bhfId: bhFId,
+              approvedQty: item.qty == 0 ? approvedQty : item.qty))
           .toList());
       if (itemsList.isEmpty) throw Exception("No items to save");
 

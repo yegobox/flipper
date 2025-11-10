@@ -308,19 +308,9 @@ class _RefundState extends ConsumerState<Refund> {
               ProxyService.strategy.updateVariant(
                   updatables: [variant],
                   ebmSynced: false,
-                  updateIo: true,
+                  updateIo: false,
                   approvedQty: item.qty);
 
-              // Sync with EBM for stock return
-              final ebmSyncService = TurboTaxService(repository);
-              await ebmSyncService.syncTransactionWithEbm(
-                instance: widget.transaction!,
-                transactionCompleted: true,
-                serverUrl: (await ProxyService.box.getServerUrl())!,
-                sarTyCd: StockInOutType.returnIn,
-              );
-
-              // Since syncTransactionWithEbm calls the method for IO, we pass updateIo as false below
               ProxyService.strategy.updateVariant(
                   updateIo: false,
                   updatables: [variant],
@@ -330,6 +320,26 @@ class _RefundState extends ConsumerState<Refund> {
             }
           }
         }
+        Ebm? ebm = await ProxyService.strategy
+            .ebm(branchId: ProxyService.box.getBranchId()!);
+        await ProxyService.tax.saveStockItems(
+          transaction: widget.transaction!,
+          tinNumber: ebm!.tinNumber.toString(),
+          bhFId: ebm.bhfId,
+          customerName: null,
+          custTin: null,
+          invoiceNumber: widget.transaction!.invoiceNumber,
+          regTyCd: "A",
+          sarNo: widget.transaction!.invoiceNumber.toString(),
+          sarTyCd: widget.transaction!.sarTyCd!,
+          custBhfId: widget.transaction!.customerBhfId,
+          totalSupplyPrice: widget.transaction!.subTotal!,
+          totalvat: widget.transaction!.taxAmount!.toDouble(),
+          totalAmount: widget.transaction!.subTotal!,
+          remark: widget.transaction!.remark ?? "",
+          ocrnDt: widget.transaction!.updatedAt ?? DateTime.now().toUtc(),
+          URI: ebm.taxServerUrl,
+        );
         await handleReceipt(filterType: FilterType.NR);
         talker.info(
             "Original transaction ${widget.transaction!.id} marked as refunded");
