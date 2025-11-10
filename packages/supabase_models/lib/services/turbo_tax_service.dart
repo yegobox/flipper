@@ -220,7 +220,9 @@ class TurboTaxService {
         purchase: purchase,
         doneWithTransaction: true,
         invoiceNumber: invoiceNumber,
-        updatableQty: variant.stock?.currentStock,
+        updatableQty: approvedQty != null
+            ? approvedQty.toDouble()
+            : variant.stock?.currentStock,
         pendingTransaction: pendingTransaction!,
         business: business!,
         randomNumber: DateTime.now().millisecondsSinceEpoch % 1000000,

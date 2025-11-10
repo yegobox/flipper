@@ -1220,6 +1220,7 @@ class CoreViewModel extends FlipperBaseModel
           await ProxyService.strategy.updateVariant(
             updatables: [pv],
             updateStock: false,
+            updateIo: false,
           );
         }
 
@@ -1429,8 +1430,8 @@ class CoreViewModel extends FlipperBaseModel
           import.imptItemSttsCd = "3";
           import.assigned = true;
           import.ebmSynced = true;
-          await ProxyService.strategy
-              .updateVariant(updatables: [import], updateStock: false);
+          await ProxyService.strategy.updateVariant(
+              updatables: [import], updateStock: false, updateIo: false);
           await ProxyService.tax.updateImportItems(item: import, URI: URI);
         }
 

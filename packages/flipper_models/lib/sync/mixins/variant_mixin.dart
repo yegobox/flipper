@@ -462,8 +462,19 @@ mixin VariantMixin implements VariantInterface {
           await updateIoFunc(
               variant: updated,
               purchase: purchase,
-              stockMasterQty: updated.stock!.currentStock!,
+              stockMasterQty: approvedQty != null
+                  ? approvedQty.toDouble()
+                  : updated.stock!.currentStock!,
               approvedQty: approvedQty?.toDouble());
+        } else {
+          Ebm? ebm = await ProxyService.strategy
+              .ebm(branchId: ProxyService.box.getBranchId()!);
+          await ProxyService.tax.saveStockMaster(
+            variant: updatables[i],
+            URI: ebm!.taxServerUrl,
+            // approvedQty: approvedQty,
+            stockMasterQty: updated.stock!.currentStock! + (approvedQty ?? 0),
+          );
         }
       }
     } catch (e, stackTrace) {

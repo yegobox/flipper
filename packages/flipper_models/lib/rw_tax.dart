@@ -686,14 +686,55 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
           if (receiptType != 'NR' &&
               receiptType != 'CR' &&
               receiptType != 'TR') {
-            final ebmSyncService = TurboTaxService(repository);
-            // record stock Out sarTyCd = StockInOutType.sale
-            await ebmSyncService.syncTransactionWithEbm(
-              instance: transaction,
-              transactionCompleted: true,
-              serverUrl: (await ProxyService.box.getServerUrl())!,
-              sarTyCd: sarTyCd,
+            await ProxyService.tax.saveStockItems(
+              transaction: transaction,
+              tinNumber: ebm.tinNumber.toString(),
+              bhFId: ebm.bhfId,
+              customerName: null,
+              custTin: null,
               invoiceNumber: counter.invcNo!,
+              regTyCd: "A",
+              sarNo: sarTyCd,
+              sarTyCd: sarTyCd!,
+              custBhfId: transaction.customerBhfId,
+              totalSupplyPrice: transaction.subTotal!,
+              totalvat: transaction.taxAmount!.toDouble(),
+              totalAmount: transaction.subTotal!,
+              remark: transaction.remark ?? "",
+              ocrnDt: transaction.updatedAt ?? DateTime.now().toUtc(),
+              URI: ebm.taxServerUrl,
+            );
+            for (var item in items) {
+              Variant? variant =
+                  await ProxyService.strategy.getVariant(id: item.variantId!);
+              Stock stock = await ProxyService.strategy
+                  .getStockById(id: variant!.stockId!);
+
+              await ProxyService.tax.saveStockMaster(
+                variant: variant,
+                URI: ebm.taxServerUrl,
+                // approvedQty: approvedQty,
+                stockMasterQty: stock.currentStock!,
+              );
+            }
+          } else if (receiptType == 'NR' || receiptType == 'TR') {
+            await ProxyService.tax.saveStockItems(
+              transaction: transaction,
+              tinNumber: ebm.tinNumber.toString(),
+              bhFId: ebm.bhfId,
+              customerName: transaction.customerName,
+              custTin: transaction.customerTin,
+              invoiceNumber: transaction.invoiceNumber!,
+              regTyCd: "A",
+              sarNo: transaction.sarNo,
+              sarTyCd: "06",
+              custBhfId: transaction.customerBhfId,
+              totalSupplyPrice: transaction.subTotal!,
+              totalvat: transaction.taxAmount!.toDouble(),
+              totalAmount: transaction.subTotal!,
+              remark: transaction.remark ?? "",
+              ocrnDt: transaction.updatedAt ?? DateTime.now().toUtc(),
+              URI: ebm.taxServerUrl,
             );
           }
           return data;

@@ -309,17 +309,12 @@ class _RefundState extends ConsumerState<Refund> {
                   updatables: [variant],
                   ebmSynced: false,
                   updateIo: false,
+                  updateStock: true,
                   approvedQty: item.qty);
-
-              ProxyService.strategy.updateVariant(
-                  updateIo: false,
-                  updatables: [variant],
-                  variantId: variant.id,
-                  updateStock: false,
-                  ebmSynced: true);
             }
           }
         }
+
         Ebm? ebm = await ProxyService.strategy
             .ebm(branchId: ProxyService.box.getBranchId()!);
         await ProxyService.tax.saveStockItems(
