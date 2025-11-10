@@ -4,6 +4,7 @@ import 'package:flipper_models/ebm_helper.dart';
 import 'package:flutter/services.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as odm;
+import 'package:supabase_models/brick/models/sars.model.dart';
 import 'package:supabase_models/services/turbo_tax_service.dart';
 import 'package:uuid/uuid.dart';
 import 'package:dio/dio.dart';
@@ -220,7 +221,6 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
           .replace(path: Uri.parse(URI).path + 'stock/saveStockItems')
           .toString();
       final mod = randomNumber().toString();
-      final sar = randomNumber();
 
       // Query active, done items only
       List<TransactionItem> items =
@@ -268,9 +268,9 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         "remark": remark,
         "regrId": mod,
         "regrNm": mod,
-        "modrId": sar,
+        "modrId": mod,
         "modrNm": mod,
-        "sarNo": invoiceNumber?.toString() ?? sar.toString(),
+        "sarNo": sarNo,
         "orgSarNo": invoiceNumber ?? transaction.orgSarNo,
         "itemList": itemsList
       };
@@ -686,7 +686,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
           if (receiptType != 'NR' &&
               receiptType != 'CR' &&
               receiptType != 'TR') {
-            await ProxyService.tax.saveStockItems(
+            await saveStockItems(
               transaction: transaction,
               tinNumber: ebm.tinNumber.toString(),
               bhFId: ebm.bhfId,
@@ -694,7 +694,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
               custTin: null,
               invoiceNumber: counter.invcNo!,
               regTyCd: "A",
-              sarNo: sarTyCd,
+              sarNo: counter.invcNo!.toString(),
               sarTyCd: sarTyCd!,
               custBhfId: transaction.customerBhfId,
               totalSupplyPrice: transaction.subTotal!,
@@ -718,7 +718,13 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
               );
             }
           } else if (receiptType == 'NR' || receiptType == 'TR') {
-            await ProxyService.tax.saveStockItems(
+            final sar = await ProxyService.strategy
+                .getSar(branchId: ProxyService.box.getBranchId()!);
+
+            sar!.sarNo = sar.sarNo + 1;
+            await repository.upsert<Sar>(sar);
+
+            await saveStockItems(
               transaction: transaction,
               tinNumber: ebm.tinNumber.toString(),
               bhFId: ebm.bhfId,
@@ -726,7 +732,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
               custTin: transaction.customerTin,
               invoiceNumber: transaction.invoiceNumber!,
               regTyCd: "A",
-              sarNo: transaction.sarNo,
+              sarNo: sar.sarNo.toString(),
               sarTyCd: "06",
               custBhfId: transaction.customerBhfId,
               totalSupplyPrice: transaction.subTotal!,

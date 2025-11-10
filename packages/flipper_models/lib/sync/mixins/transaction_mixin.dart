@@ -1097,6 +1097,9 @@ mixin TransactionMixin implements TransactionInterface {
         .firstOrNull;
   }
 
+//   See ‘4.15.
+// Stock In/Out
+
   @override
   Future<Sar?> getSar({required int branchId}) async {
     return (await repository.get<Sar>(

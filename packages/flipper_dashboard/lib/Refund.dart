@@ -8,6 +8,7 @@ import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
+import 'package:supabase_models/brick/models/sars.model.dart';
 import 'package:supabase_models/services/turbo_tax_service.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
@@ -315,26 +316,31 @@ class _RefundState extends ConsumerState<Refund> {
           }
         }
 
-        Ebm? ebm = await ProxyService.strategy
-            .ebm(branchId: ProxyService.box.getBranchId()!);
-        await ProxyService.tax.saveStockItems(
-          transaction: widget.transaction!,
-          tinNumber: ebm!.tinNumber.toString(),
-          bhFId: ebm.bhfId,
-          customerName: null,
-          custTin: null,
-          invoiceNumber: widget.transaction!.invoiceNumber,
-          regTyCd: "A",
-          sarNo: widget.transaction!.invoiceNumber.toString(),
-          sarTyCd: widget.transaction!.sarTyCd!,
-          custBhfId: widget.transaction!.customerBhfId,
-          totalSupplyPrice: widget.transaction!.subTotal!,
-          totalvat: widget.transaction!.taxAmount!.toDouble(),
-          totalAmount: widget.transaction!.subTotal!,
-          remark: widget.transaction!.remark ?? "",
-          ocrnDt: widget.transaction!.updatedAt ?? DateTime.now().toUtc(),
-          URI: ebm.taxServerUrl,
-        );
+        // Ebm? ebm = await ProxyService.strategy
+        //     .ebm(branchId: ProxyService.box.getBranchId()!);
+        // final sar = await ProxyService.strategy
+        //     .getSar(branchId: ProxyService.box.getBranchId()!);
+
+        // sar!.sarNo = sar.sarNo + 1;
+        // await repository.upsert<Sar>(sar);
+        // await ProxyService.tax.saveStockItems(
+        //   transaction: widget.transaction!,
+        //   tinNumber: ebm!.tinNumber.toString(),
+        //   bhFId: ebm.bhfId,
+        //   customerName: widget.transaction!.customerName,
+        //   custTin: widget.transaction!.customerTin,
+        //   invoiceNumber: widget.transaction!.invoiceNumber,
+        //   regTyCd: "A",
+        //   sarNo: sar.sarNo.toString(),
+        //   sarTyCd: "06",
+        //   custBhfId: widget.transaction!.customerBhfId,
+        //   totalSupplyPrice: widget.transaction!.subTotal!,
+        //   totalvat: widget.transaction!.taxAmount!.toDouble(),
+        //   totalAmount: widget.transaction!.subTotal!,
+        //   remark: widget.transaction!.remark ?? "",
+        //   ocrnDt: widget.transaction!.updatedAt ?? DateTime.now().toUtc(),
+        //   URI: ebm.taxServerUrl,
+        // );
         await handleReceipt(filterType: FilterType.NR);
         talker.info(
             "Original transaction ${widget.transaction!.id} marked as refunded");
