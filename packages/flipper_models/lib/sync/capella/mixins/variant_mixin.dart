@@ -233,7 +233,6 @@ mixin CapellaVariantMixin implements VariantInterface {
       String? propertyTyCd,
       String? roomTypeCd,
       String? ttCatCd,
-      bool updateStock = true,
       Map<String, String>? dates}) {
     throw UnimplementedError(
         'updateVariant needs to be implemented for Capella');

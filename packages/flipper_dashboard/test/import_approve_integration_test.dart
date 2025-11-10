@@ -59,7 +59,7 @@ void main() {
     when(() => env.mockDbSync.updateVariant(
         updatables: any(named: 'updatables'),
         approvedQty: any(named: 'approvedQty'),
-        updateStock: any(named: 'updateStock'))).thenAnswer((inv) async {
+        )).thenAnswer((inv) async {
       // emulate persisting by doing nothing
       return Future.value();
     });
@@ -88,11 +88,11 @@ void main() {
 
     // Verify updateVariant calls
     verify(() => env.mockDbSync
-        .updateVariant(updatables: [imp1], updateStock: false)).called(1);
+        .updateVariant(updatables: [imp1])).called(1);
     verify(() => env.mockDbSync
-        .updateVariant(updatables: [imp2], updateStock: false)).called(1);
+        .updateVariant(updatables: [imp2])).called(1);
     verify(() => env.mockDbSync.updateVariant(
-        updatables: [existing], approvedQty: 8.0, updateStock: true)).called(1);
+        updatables: [existing], approvedQty: 8.0)).called(1);
   });
 
   test('approving unmapped imports creates new variants', () async {
@@ -130,7 +130,7 @@ void main() {
     when(() => env.mockDbSync.updateVariant(
         updatables: any(named: 'updatables'),
         approvedQty: any(named: 'approvedQty'),
-        updateStock: any(named: 'updateStock'),
+       
         updateIo: any(named: 'updateIo'))).thenAnswer((inv) async {
       // emulate persisting by doing nothing
       return Future.value();
@@ -188,7 +188,6 @@ void main() {
     when(() => env.mockDbSync.updateVariant(
         updatables: any(named: 'updatables'),
         approvedQty: any(named: 'approvedQty'),
-        updateStock: any(named: 'updateStock'),
         updateIo: any(named: 'updateIo'))).thenAnswer((inv) async {
       // emulate persisting by doing nothing
       return Future.value();

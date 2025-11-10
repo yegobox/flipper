@@ -5,6 +5,7 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
+import 'package:uuid/uuid.dart';
 
 mixin StockMixin implements StockInterface {
   Repository get repository;

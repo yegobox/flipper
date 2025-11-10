@@ -65,8 +65,7 @@ abstract class VariantInterface {
       double? dftPrc,
       String? propertyTyCd,
       String? roomTypeCd,
-      String? ttCatCd,
-      bool updateStock = true});
+      String? ttCatCd});
 
   FutureOr<Variant> addStockToVariant({required Variant variant, Stock? stock});
 

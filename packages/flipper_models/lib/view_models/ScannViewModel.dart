@@ -568,7 +568,6 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
             supplyPrice: supplyPrice != 0 ? supplyPrice : null,
             retailPrice: retailPrice != 0 ? retailPrice : null,
             updateIo: false,
-            updateStock: false,
           );
         }
 

@@ -400,8 +400,7 @@ mixin VariantMixin implements VariantInterface {
       String? propertyTyCd,
       String? roomTypeCd,
       String? ttCatCd,
-      bool? ebmSynced,
-      bool updateStock = true}) async {
+      bool? ebmSynced}) async {
     if (variantId != null) {
       Variant? variant = await getVariant(id: variantId);
       if (variant != null) {
@@ -430,20 +429,6 @@ mixin VariantMixin implements VariantInterface {
         updatables[i].productName = name;
         if (updatables[i].stock == null && updatables[i].itemTyCd != "3") {
           await addStockToVariant(variant: updatables[i]);
-        } else if (updateStock == true && updatables[i].itemTyCd != "3") {
-          talker.debug(
-              'Updating stock for variant ${updatables[i].id} with approvedQty: $approvedQty');
-          await ProxyService.strategy.updateStock(
-            stockId: updatables[i].stock!.id,
-            appending: true,
-            rsdQty:
-                approvedQty?.toDouble() ?? updatables[i].stock!.currentStock,
-            initialStock: updatables[i].stock!.currentStock,
-            currentStock:
-                approvedQty?.toDouble() ?? updatables[i].stock!.currentStock,
-            value:
-                updatables[i].stock!.currentStock! * updatables[i].retailPrice!,
-          );
         }
 
         updatables[i].name = name;
