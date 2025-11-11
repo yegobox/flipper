@@ -21,13 +21,13 @@ import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:amplify_storage_s3/amplify_storage_s3.dart';
-import 'package:path/path.dart' as path;
 import 'package:flutter/foundation.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:synchronized/synchronized.dart';
 import 'package:flipper_services/DeviceType.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_dashboard/transaction_item_adder.dart';
+import 'package:path_provider/path_provider.dart';
 
 Map<int, String> positionString = {
   0: 'first',
@@ -610,116 +610,79 @@ class _RowItemState extends ConsumerState<RowItem>
       return _buildImageErrorPlaceholder();
     }
 
-    // Ensure asset path future is initialized
-    if (_cachedAssetPathFuture == null && widget.imageUrl != null) {
-      _cachedAssetPathFuture =
-          _lock.synchronized(() => _tryLoadFromAssetPath(widget.imageUrl!));
-    }
-
-    return (widget.forceRemoteUrl)
-        ? FutureBuilder<String>(
-            key: ValueKey('remote-${widget.variant?.id}-${widget.imageUrl}'),
-            future: _cachedRemoteUrlFuture,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return _buildImageLoadingIndicator();
-              } else if (snapshot.hasError || !snapshot.hasData) {
-                // Try to load from local storage if remote fails
-                return FutureBuilder<String?>(
-                  key: ValueKey('fallback-local-${widget.imageUrl}'),
-                  future: _cachedAssetPathFuture!,
-                  builder: (context, assetSnapshot) {
-                    if (assetSnapshot.connectionState ==
-                        ConnectionState.waiting) {
-                      return _buildImageLoadingIndicator();
-                    } else if (assetSnapshot.hasData &&
-                        assetSnapshot.data != null) {
-                      return Image.file(
-                        File(assetSnapshot.data!),
-                        key: ValueKey('file-${assetSnapshot.data}'),
-                        fit: BoxFit.cover,
-                        cacheWidth: 300,
-                        cacheHeight: 300,
-                        errorBuilder: (context, error, stackTrace) =>
-                            _buildImageErrorPlaceholder(),
-                      );
-                    } else {
-                      return _buildImageErrorPlaceholder();
-                    }
-                  },
-                );
-              } else {
-                return CachedNetworkImage(
-                  key: ValueKey('cached-${snapshot.data}'),
-                  imageUrl: snapshot.data!,
-                  fit: BoxFit.cover,
-                  memCacheWidth: 300,
-                  memCacheHeight: 300,
-                  placeholder: (context, url) => _buildImageLoadingIndicator(),
-                  errorWidget: (context, url, error) {
-                    // If network image fails, try local storage
-                    return FutureBuilder<String?>(
-                      key: ValueKey('error-local-${widget.imageUrl}'),
-                      future: _cachedAssetPathFuture!,
-                      builder: (context, assetSnapshot) {
-                        if (assetSnapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          return _buildImageLoadingIndicator();
-                        } else if (assetSnapshot.hasData &&
-                            assetSnapshot.data != null) {
-                          return Image.file(
-                            File(assetSnapshot.data!),
-                            key: ValueKey('file-${assetSnapshot.data}'),
-                            fit: BoxFit.cover,
-                            cacheWidth: 300,
-                            cacheHeight: 300,
-                            errorBuilder: (context, error, stackTrace) =>
-                                _buildImageErrorPlaceholder(),
-                          );
-                        } else {
-                          return _buildImageErrorPlaceholder();
-                        }
-                      },
+    // Always try local paths first (consistent with DesktopProductAdd.dart)
+    return FutureBuilder<String?>(
+      key: ValueKey('local-${widget.variant?.id}-${widget.imageUrl}'),
+      future: getImageFilePath(imageFileName: widget.imageUrl!),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return _buildImageLoadingIndicator();
+        } else if (snapshot.hasData && snapshot.data != null) {
+          return Image.file(
+            File(snapshot.data!),
+            key: ValueKey('file-${snapshot.data}'),
+            fit: BoxFit.cover,
+            cacheWidth: 300,
+            cacheHeight: 300,
+            errorBuilder: (context, error, stackTrace) {
+              // If local file fails, try asset path
+              return FutureBuilder<String?>(
+                future: _tryLoadFromAssetPath(widget.imageUrl!),
+                builder: (context, assetSnapshot) {
+                  if (assetSnapshot.hasData && assetSnapshot.data != null) {
+                    return Image.file(
+                      File(assetSnapshot.data!),
+                      fit: BoxFit.cover,
+                      cacheWidth: 300,
+                      cacheHeight: 300,
+                      errorBuilder: (context, error, stackTrace) =>
+                          _buildImageErrorPlaceholder(),
                     );
-                  },
-                );
-              }
+                  } else {
+                    return _buildImageErrorPlaceholder();
+                  }
+                },
+              );
             },
-          )
-        : FutureBuilder<String?>(
-            key: ValueKey('local-${widget.variant?.id}-${widget.imageUrl}'),
-            future: _cachedLocalPathFuture,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
+          );
+        } else {
+          // Try to load from asset's local path in database
+          return FutureBuilder<String?>(
+            key: ValueKey('db-local-${widget.imageUrl}'),
+            future: _tryLoadFromAssetPath(widget.imageUrl!),
+            builder: (context, assetSnapshot) {
+              if (assetSnapshot.connectionState == ConnectionState.waiting) {
                 return _buildImageLoadingIndicator();
-              } else if (snapshot.hasData && snapshot.data != null) {
+              } else if (assetSnapshot.hasData && assetSnapshot.data != null) {
                 return Image.file(
-                  File(snapshot.data!),
-                  key: ValueKey('file-${snapshot.data}'),
+                  File(assetSnapshot.data!),
+                  key: ValueKey('file-${assetSnapshot.data}'),
                   fit: BoxFit.cover,
                   cacheWidth: 300,
                   cacheHeight: 300,
                   errorBuilder: (context, error, stackTrace) =>
                       _buildImageErrorPlaceholder(),
                 );
-              } else {
-                // Try to load from asset's local path in database
-                return FutureBuilder<String?>(
-                  key: ValueKey('db-local-${widget.imageUrl}'),
-                  future: _cachedAssetPathFuture!,
-                  builder: (context, assetSnapshot) {
-                    if (assetSnapshot.connectionState ==
+              } else if (widget.forceRemoteUrl && _branchId != null) {
+                // Only try remote URL as last resort if forceRemoteUrl is true
+                return FutureBuilder<String>(
+                  future: preSignedUrl(
+                    imageInS3: widget.imageUrl!,
+                    branchId: _branchId!,
+                  ),
+                  builder: (context, remoteSnapshot) {
+                    if (remoteSnapshot.connectionState ==
                         ConnectionState.waiting) {
                       return _buildImageLoadingIndicator();
-                    } else if (assetSnapshot.hasData &&
-                        assetSnapshot.data != null) {
-                      return Image.file(
-                        File(assetSnapshot.data!),
-                        key: ValueKey('file-${assetSnapshot.data}'),
+                    } else if (remoteSnapshot.hasData) {
+                      return CachedNetworkImage(
+                        imageUrl: remoteSnapshot.data!,
                         fit: BoxFit.cover,
-                        cacheWidth: 300,
-                        cacheHeight: 300,
-                        errorBuilder: (context, error, stackTrace) =>
+                        memCacheWidth: 300,
+                        memCacheHeight: 300,
+                        placeholder: (context, url) =>
+                            _buildImageLoadingIndicator(),
+                        errorWidget: (context, url, error) =>
                             _buildImageErrorPlaceholder(),
                       );
                     } else {
@@ -727,9 +690,14 @@ class _RowItemState extends ConsumerState<RowItem>
                     }
                   },
                 );
+              } else {
+                return _buildImageErrorPlaceholder();
               }
             },
           );
+        }
+      },
+    );
   }
 
   Widget _buildImageLoadingIndicator() {
@@ -801,9 +769,9 @@ class _RowItemState extends ConsumerState<RowItem>
   }
 
   Future<String?> getImageFilePath({required String imageFileName}) async {
-    Directory appSupportDir = await getSupportDir();
+    Directory appSupportDir = await getApplicationSupportDirectory();
 
-    final imageFilePath = path.join(appSupportDir.path, imageFileName);
+    final imageFilePath = '${appSupportDir.path}/$imageFileName';
     final file = File(imageFilePath);
 
     if (await file.exists()) {
