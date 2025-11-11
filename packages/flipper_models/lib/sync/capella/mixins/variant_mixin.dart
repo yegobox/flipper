@@ -41,6 +41,20 @@ mixin CapellaVariantMixin implements VariantInterface {
       String query = 'SELECT * FROM variants WHERE branchId = :branchId';
       final arguments = <String, dynamic>{'branchId': branchId};
 
+      // Handle conditional screens first
+      if (forImportScreen) {
+        query +=
+            ' AND (imptItemSttsCd = "2" OR imptItemSttsCd = "3" OR imptItemSttsCd = "4" OR dclDe IS NOT NULL)';
+      } else if (forPurchaseScreen) {
+        query += ' AND pchsSttsCd IN ("01", "02", "04", "03")';
+      } else {
+        // Exclude specific status codes when not in special screens
+        query += ' AND (imptItemSttsCd != "2" OR imptItemSttsCd IS NULL)';
+        query += ' AND (imptItemSttsCd != "4" OR imptItemSttsCd IS NULL)';
+        query += ' AND (pchsSttsCd != "04" OR pchsSttsCd IS NULL)';
+        query += ' AND (pchsSttsCd != "01" OR pchsSttsCd IS NULL)';
+      }
+
       // Handle tax filters
       if (taxTyCds != null && taxTyCds.isNotEmpty) {
         final taxConditions = taxTyCds
@@ -92,6 +106,20 @@ mixin CapellaVariantMixin implements VariantInterface {
         try {
           String countQuery =
               'SELECT COUNT(*) as cnt FROM variants WHERE branchId = :branchId';
+          // Handle conditional screens in count query
+          if (forImportScreen) {
+            countQuery +=
+                ' AND (imptItemSttsCd = "2" OR imptItemSttsCd = "3" OR imptItemSttsCd = "4" OR dclDe IS NOT NULL)';
+          } else if (forPurchaseScreen) {
+            countQuery += ' AND pchsSttsCd IN ("01", "02", "04", "03")';
+          } else {
+            countQuery +=
+                ' AND (imptItemSttsCd != "2" OR imptItemSttsCd IS NULL)';
+            countQuery +=
+                ' AND (imptItemSttsCd != "4" OR imptItemSttsCd IS NULL)';
+            countQuery += ' AND (pchsSttsCd != "04" OR pchsSttsCd IS NULL)';
+            countQuery += ' AND (pchsSttsCd != "01" OR pchsSttsCd IS NULL)';
+          }
           if (taxTyCds != null && taxTyCds.isNotEmpty) {
             final taxConditions = taxTyCds
                 .asMap()

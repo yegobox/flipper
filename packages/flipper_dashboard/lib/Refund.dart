@@ -283,7 +283,7 @@ class _RefundState extends ConsumerState<Refund> {
     return purchaseCodeReceived;
   }
 
-// Common refund logic
+  // Common refund logic
   Future<void> proceed({required String receiptType}) async {
     try {
       // Perform refund operations

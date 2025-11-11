@@ -172,7 +172,7 @@ mixin VariantMixin implements VariantInterface {
           final isCancelledPurchase = v.pchsSttsCd == "04";
           final isWaitingPurchase = v.pchsSttsCd == "01";
 
-          // First check status conditions
+          // First check status conditions - exclude these statuses
           final statusCheck = !isWaitingImport &&
               !isCancelledImport &&
               !isCancelledPurchase &&
