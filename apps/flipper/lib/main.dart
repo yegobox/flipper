@@ -29,7 +29,7 @@ import 'package:flipper_web/core/utils/initialization.dart';
 import 'package:supabase_models/sync/ditto_sync_registry.dart';
 import 'package:flipper_services/realtime_delegation_service.dart';
 
-// Function to initialize Firebase
+// Function to initialize Firebase 
 Future<void> _initializeFirebase() async {
   try {
     // Don't use microtask for Firebase as critical services depend on it

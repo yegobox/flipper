@@ -284,29 +284,35 @@ mixin VariantMixin implements VariantInterface {
           sar!.sarNo = sar.sarNo + 1;
           await repository.upsert<Sar>(sar);
 
-          await ProxyService.tax.saveStockItems(
-            updateMaster: false,
-            items: [TransactionItemUtil.fromVariant(variantToSave, itemSeq: 1)],
-            tinNumber: ebm.tinNumber.toString(),
-            bhFId: ebm.bhfId,
-            totalSupplyPrice: variantToSave.supplyPrice ?? 0,
-            totalvat: 0,
-            totalAmount: variantToSave.retailPrice ?? 0,
-            sarTyCd: "06",
-            sarNo: sar.sarNo.toString(),
-            invoiceNumber: sar.sarNo,
-            remark: "Stock In from adding new item",
-            ocrnDt: DateTime.now().toUtc(),
-            URI: ebm.taxServerUrl,
-          );
+          // Skip stock reporting for services (itemTyCd: "3")
+          if (variantToSave.itemTyCd != "3") {
+            await ProxyService.tax.saveStockItems(
+              updateMaster: false,
+              items: [
+                TransactionItemUtil.fromVariant(variantToSave, itemSeq: 1)
+              ],
+              tinNumber: ebm.tinNumber.toString(),
+              bhFId: ebm.bhfId,
+              totalSupplyPrice: variantToSave.supplyPrice ?? 0,
+              totalvat: 0,
+              totalAmount: variantToSave.retailPrice ?? 0,
+              sarTyCd: "06",
+              sarNo: sar.sarNo.toString(),
+              invoiceNumber: sar.sarNo,
+              remark: "Stock In from adding new item",
+              ocrnDt: DateTime.now().toUtc(),
+              URI: ebm.taxServerUrl,
+            );
+          }
 
-          // save master
-
-          await ProxyService.tax.saveStockMaster(
-            variant: variant,
-            URI: ebm.taxServerUrl,
-            stockMasterQty: variantToSave.stock?.currentStock!,
-          );
+          // Skip stock master reporting for services (itemTyCd: "3")
+          if (variantToSave.itemTyCd != "3") {
+            await ProxyService.tax.saveStockMaster(
+              variant: variant,
+              URI: ebm.taxServerUrl,
+              stockMasterQty: variantToSave.stock?.currentStock!,
+            );
+          }
         } catch (e, stackTrace) {
           talker.error('Error adding variant', e, stackTrace);
           rethrow;

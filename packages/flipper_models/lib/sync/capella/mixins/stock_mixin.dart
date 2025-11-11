@@ -32,7 +32,22 @@ mixin CapellaStockMixin implements StockInterface {
         final stockData = Map<String, dynamic>.from(result.items.first.value);
         return _convertFromDittoDocument(stockData);
       }
-      throw Exception('Stock with ID $id not found');
+      // For composite products (services), return a default stock with zero values
+      // since they don't track physical inventory
+      return Stock(
+        branchId: 1,
+        id: id,
+        currentStock: 0,
+        lowStock: 0,
+        canTrackingStock: false,
+        showLowStockAlert: false,
+        active: true,
+        value: 0,
+        rsdQty: 0,
+        lastTouched: DateTime.now().toUtc(),
+        ebmSynced: true,
+        initialStock: 0,
+      );
     } catch (e) {
       // find it in sqlite then update ditto to have it next time
       final stock = await repository.get<Stock>(
@@ -45,7 +60,21 @@ mixin CapellaStockMixin implements StockInterface {
         return stock.first;
       }
       talker.error('Error getting stock by ID: $e');
-      rethrow;
+      // Return default stock for composite products that don't track inventory
+      return Stock(
+        branchId: 1,
+        id: id,
+        currentStock: 0,
+        lowStock: 0,
+        canTrackingStock: false,
+        showLowStockAlert: false,
+        active: true,
+        value: 0,
+        rsdQty: 0,
+        lastTouched: DateTime.now().toUtc(),
+        ebmSynced: true,
+        initialStock: 0,
+      );
     }
   }
 

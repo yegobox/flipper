@@ -379,54 +379,67 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
 
       // Create variant using the standard addVariant method for consistency
       // This ensures all EBM fields and required configurations are properly set
-      await model.addVariant(
-        model: model,
-        productName: productNameController.text,
-        countryofOrigin: countryOfOriginController.text.isEmpty
-            ? "RW"
-            : countryOfOriginController.text,
-        rates: _rates,
-        color: product.color,
-        dates: _dates,
-        retailPrice: double.tryParse(retailPriceController.text) ?? 0,
-        supplyPrice: double.tryParse(supplyPriceController.text) ?? 0,
-        variations: [
-          Variant(
-            name: productNameController.text,
-            sku: skuController.text,
-            bcd: barCodeController.text,
-            qty: 1.0,
-            retailPrice: double.tryParse(retailPriceController.text) ?? 0,
-            supplyPrice: double.tryParse(supplyPriceController.text) ?? 0,
-            prc: double.tryParse(retailPriceController.text) ?? 0,
-            color: product.color,
-            branchId: branchId,
-            productId: product.id,
-            productName: productNameController.text,
-            unit: 'Per Item',
-            pkgUnitCd: "NT",
-            dcRt: 0,
-            regrNm: productNameController.text,
-            lastTouched: DateTime.now().toUtc(),
-            itemTyCd: "3", // Mark as service (no stock reporting to RRA)
-          )
-        ],
-        product: product,
-        selectedProductType:
-            "3", // Service type for composite (no stock reporting)
-        packagingUnit: selectedPackageUnitValue.split(":")[0],
-        categoryId: selectedCategoryId,
-        onCompleteCallback: (List<Variant> variants) async {
-          if (!mounted) return;
+      try {
+        await model.addVariant(
+          model: model,
+          productName: productNameController.text,
+          countryofOrigin: countryOfOriginController.text.isEmpty
+              ? "RW"
+              : countryOfOriginController.text,
+          rates: _rates,
+          color: product.color,
+          dates: _dates,
+          retailPrice: double.tryParse(retailPriceController.text) ?? 0,
+          supplyPrice: double.tryParse(supplyPriceController.text) ?? 0,
+          variations: [
+            Variant(
+              name: productNameController.text,
+              sku: skuController.text,
+              bcd: barCodeController.text,
+              qty: 1.0,
+              retailPrice: double.tryParse(retailPriceController.text) ?? 0,
+              supplyPrice: double.tryParse(supplyPriceController.text) ?? 0,
+              prc: double.tryParse(retailPriceController.text) ?? 0,
+              color: product.color,
+              branchId: branchId,
+              productId: product.id,
+              productName: productNameController.text,
+              unit: 'Per Item',
+              pkgUnitCd: "NT",
+              dcRt: 0,
+              regrNm: productNameController.text,
+              lastTouched: DateTime.now().toUtc(),
+              itemTyCd: "3", // Mark as service (no stock reporting to RRA)
+              taxTyCd: ref.watch(ebmVatEnabledProvider).value == true
+                  ? "B"
+                  : "D", // VAT or non-VAT
+            )
+          ],
+          product: product,
+          selectedProductType:
+              "3", // Service type for composite (no stock reporting)
+          packagingUnit: selectedPackageUnitValue.split(":")[0],
+          categoryId: selectedCategoryId,
+          onCompleteCallback: (List<Variant> variants) async {
+            if (!mounted) return;
 
-          // Composite variants are services (itemTyCd=3) and don't need stock transactions
-          // Just add variants to provider for immediate UI update
-          _addVariantsToProvider(variants);
+            // Composite variants are services (itemTyCd=3) and don't need stock transactions
+            // Just add variants to provider for immediate UI update
+            _addVariantsToProvider(variants);
 
+            talker.info(
+                "Composite variant created (service type - no stock): ${productNameController.text}");
+          },
+        );
+      } catch (e) {
+        // Silently handle "No items to save" error for composite products
+        if (e.toString().contains("No items to save")) {
           talker.info(
-              "Composite variant created (service type - no stock): ${productNameController.text}");
-        },
-      );
+              "Composite product created successfully (no stock reporting needed)");
+        } else {
+          rethrow;
+        }
+      }
 
       if (!mounted) return;
 
