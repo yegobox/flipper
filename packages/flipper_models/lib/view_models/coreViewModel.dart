@@ -1409,9 +1409,10 @@ class CoreViewModel extends FlipperBaseModel
             countryCode: variant.orgnNatCd ?? "RW",
             productType: "2",
             packagingUnit: variant.pkgUnitCd ?? "CT",
-            quantityUnit: variant.qtyUnitCd ?? "BJ",
+            quantityUnit: "BJ",
             branchId: ProxyService.box.getBranchId()!,
           );
+          variant.qtyUnitCd = "BE";
           variant.imptItemSttsCd = "3";
           variant.assigned = false;
           await ProxyService.strategy.addVariant(
@@ -1519,9 +1520,10 @@ class CoreViewModel extends FlipperBaseModel
         countryCode: incomingImportVariant.orgnNatCd ?? "RW",
         productType: "2",
         packagingUnit: incomingImportVariant.pkgUnitCd ?? "CT",
-        quantityUnit: incomingImportVariant.qtyUnitCd ?? "BJ",
+        quantityUnit: "BJ",
         branchId: ProxyService.box.getBranchId()!,
       );
+      incomingImportVariant.qtyUnitCd = "BE";
       incomingImportVariant.imptItemSttsCd = "3";
       incomingImportVariant.assigned = false;
       await ProxyService.strategy.addVariant(

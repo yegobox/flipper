@@ -10,7 +10,6 @@ import 'package:supabase_models/brick/models/sars.model.dart';
 import 'package:supabase_models/brick/models/transactionItemUtil.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
-import 'package:supabase_models/services/turbo_tax_service.dart';
 import 'package:uuid/uuid.dart';
 
 mixin VariantMixin implements VariantInterface {
@@ -271,27 +270,13 @@ mixin VariantMixin implements VariantInterface {
           }
           Ebm? ebm = await ProxyService.strategy
               .ebm(branchId: ProxyService.box.getBranchId()!);
-          // save items
+          variant.splyAmt = variant.splyAmt!.toPrecision(0);
+          await repository.upsert<Variant>(variant);
 
-          if (variant.itemCd == null ||
-              variant.itemCd?.isEmpty == true ||
-              variant.pchsSttsCd == "01" ||
-              variant.pchsSttsCd == "03" ||
-              variant.pchsSttsCd == "04" ||
-              variant.pchsSttsCd == "1" ||
-              variant.imptItemSttsCd == "4" ||
-              variant.imptItemSttsCd == "2" ||
-              // variant.itemCd == "3" ||
-              variant.assigned == true) {
-            /// save it anyway so we do not miss things
-            talker.info("Skipped: ${variant.name}:${variant.itemCd}");
-            variant.ebmSynced = true;
-            await repository.upsert<Variant>(variant);
-            return true;
-          } else {
-            await ProxyService.tax
-                .saveItem(variation: variant, URI: ebm!.taxServerUrl);
-          }
+          // save items
+          await ProxyService.tax
+              .saveItem(variation: variant, URI: ebm!.taxServerUrl);
+
           // save io
           final sar = await ProxyService.strategy
               .getSar(branchId: ProxyService.box.getBranchId()!);
@@ -322,8 +307,6 @@ mixin VariantMixin implements VariantInterface {
             URI: ebm.taxServerUrl,
             stockMasterQty: variantToSave.stock?.currentStock!,
           );
-          // return newV
-          repository.upsert<Variant>(variantToSave);
         } catch (e, stackTrace) {
           talker.error('Error adding variant', e, stackTrace);
           rethrow;

@@ -18,12 +18,10 @@ Future<BusinessAnalytic> _$BusinessAnalyticFromSupabase(
     taxRate: data['tax_rate'] as num,
     trafficCount: data['traffic_count'] as int,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-    categoryName: data['category_name'] == null
-        ? null
-        : data['category_name'] as String?,
-    categoryId: data['category_id'] == null
-        ? null
-        : data['category_id'] as String?,
+    categoryName:
+        data['category_name'] == null ? null : data['category_name'] as String?,
+    categoryId:
+        data['category_id'] == null ? null : data['category_id'] as String?,
     transactionId: data['transaction_id'] == null
         ? null
         : data['transaction_id'] as String?,
@@ -87,12 +85,10 @@ Future<BusinessAnalytic> _$BusinessAnalyticFromSqlite(
     taxRate: data['tax_rate'] as num,
     trafficCount: data['traffic_count'] as int,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
-    categoryName: data['category_name'] == null
-        ? null
-        : data['category_name'] as String?,
-    categoryId: data['category_id'] == null
-        ? null
-        : data['category_id'] as String?,
+    categoryName:
+        data['category_name'] == null ? null : data['category_name'] as String?,
+    categoryId:
+        data['category_id'] == null ? null : data['category_id'] as String?,
     transactionId: data['transaction_id'] == null
         ? null
         : data['transaction_id'] as String?,
@@ -411,39 +407,43 @@ class BusinessAnalyticAdapter
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$BusinessAnalyticFromSupabase(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$BusinessAnalyticFromSupabase(
+        input,
+        provider: provider,
+        repository: repository,
+      );
   @override
   Future<Map<String, dynamic>> toSupabase(
     BusinessAnalytic input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$BusinessAnalyticToSupabase(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$BusinessAnalyticToSupabase(
+        input,
+        provider: provider,
+        repository: repository,
+      );
   @override
   Future<BusinessAnalytic> fromSqlite(
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$BusinessAnalyticFromSqlite(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$BusinessAnalyticFromSqlite(
+        input,
+        provider: provider,
+        repository: repository,
+      );
   @override
   Future<Map<String, dynamic>> toSqlite(
     BusinessAnalytic input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$BusinessAnalyticToSqlite(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$BusinessAnalyticToSqlite(
+        input,
+        provider: provider,
+        repository: repository,
+      );
 }

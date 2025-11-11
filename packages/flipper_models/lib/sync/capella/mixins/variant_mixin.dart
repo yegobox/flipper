@@ -9,7 +9,6 @@ import 'package:talker/talker.dart';
 mixin CapellaVariantMixin implements VariantInterface {
   DittoService get dittoService => DittoService.instance;
   Talker get talker;
-
   @override
   Future<PagedVariants> variants({
     required int branchId,
@@ -37,25 +36,30 @@ mixin CapellaVariantMixin implements VariantInterface {
         return PagedVariants(variants: [], totalCount: 0);
       }
 
-      // Start query
+      // Base query
       String query = 'SELECT * FROM variants WHERE branchId = :branchId';
       final arguments = <String, dynamic>{'branchId': branchId};
 
-      // Handle conditional screens first
-      if (forImportScreen) {
-        query +=
-            ' AND (imptItemSttsCd = "2" OR imptItemSttsCd = "3" OR imptItemSttsCd = "4" OR dclDe IS NOT NULL)';
-      } else if (forPurchaseScreen) {
-        query += ' AND pchsSttsCd IN ("01", "02", "04", "03")';
-      } else {
-        // Exclude specific status codes when not in special screens
-        query += ' AND (imptItemSttsCd != "2" OR imptItemSttsCd IS NULL)';
-        query += ' AND (imptItemSttsCd != "4" OR imptItemSttsCd IS NULL)';
-        query += ' AND (pchsSttsCd != "04" OR pchsSttsCd IS NULL)';
-        query += ' AND (pchsSttsCd != "01" OR pchsSttsCd IS NULL)';
+      // Assigned filter for specific screens
+      if (forImportScreen || forPurchaseScreen) {
+        query += ' AND assigned = :assigned';
+        arguments['assigned'] = false;
       }
 
-      // Handle tax filters
+      // Screen-specific filters
+      if (forImportScreen) {
+        query +=
+            " AND (imptItemSttsCd IN ('2', '3', '4') OR dclDe IS NOT NULL)";
+      } else if (forPurchaseScreen) {
+        query += " AND pchsSttsCd IN ('01', '02', '03', '04')";
+      } else {
+        // Exclude certain statuses but still allow NULL
+        query +=
+            " AND (imptItemSttsCd IS NULL OR imptItemSttsCd NOT IN ('2', '4'))";
+        query += " AND (pchsSttsCd IS NULL OR pchsSttsCd NOT IN ('01', '04'))";
+      }
+
+      // Tax filters
       if (taxTyCds != null && taxTyCds.isNotEmpty) {
         final taxConditions = taxTyCds
             .asMap()
@@ -68,28 +72,25 @@ mixin CapellaVariantMixin implements VariantInterface {
         }
       }
 
-      // Name / barcode filtering
+      // Name / barcode search
       if (name != null && name.isNotEmpty) {
-        // Case-insensitive search for name, exact match for barcode
         query +=
-            " AND (LOWER(name) LIKE '%' || LOWER(:name) || '%' OR bcd = :bcd)";
-        arguments['name'] = name;
-        arguments['bcd'] = name;
+            " AND (UPPER(name) LIKE UPPER(:namePattern) OR UPPER(bcd) LIKE UPPER(:bcdPattern))";
+        arguments['namePattern'] = '%$name%';
+        arguments['bcdPattern'] = '%$name%';
+        talker.info('Added name filter: $name');
       }
 
-      // Filter by product
+      // Product filter
       if (productId != null) {
         query += ' AND productId = :productId';
         arguments['productId'] = productId;
       }
 
-      // Add sorting
+      // Sorting
       query += ' ORDER BY lastTouched DESC';
 
-      talker.info('Executing Ditto query: $query with args: $arguments');
-
-      // Execute query for items
-      // If pagination requested and Ditto supports LIMIT/OFFSET via SQL, append it.
+      // Pagination
       if (page != null && itemsPerPage != null) {
         final offset = page * itemsPerPage;
         query += ' LIMIT :limit OFFSET :offset';
@@ -97,29 +98,38 @@ mixin CapellaVariantMixin implements VariantInterface {
         arguments['offset'] = offset;
       }
 
-      final result = await ditto.store.execute(query, arguments: arguments);
-      var items = result.items;
+      talker.info('Executing Ditto query: $query with args: $arguments');
 
-      // Attempt to get total count when paginating by running a COUNT query
+      // Execute paged query
+      final result = await ditto.store.execute(query, arguments: arguments);
+      final items = result.items;
+
+      // Prepare count query if pagination enabled
       int? totalCount;
       if (page != null && itemsPerPage != null) {
         try {
           String countQuery =
               'SELECT COUNT(*) as cnt FROM variants WHERE branchId = :branchId';
-          // Handle conditional screens in count query
+          final countArgs = Map<String, dynamic>.from(arguments)
+            ..remove('limit')
+            ..remove('offset');
+
+          if (forImportScreen || forPurchaseScreen) {
+            countQuery += ' AND assigned = :assigned';
+          }
+
           if (forImportScreen) {
             countQuery +=
-                ' AND (imptItemSttsCd = "2" OR imptItemSttsCd = "3" OR imptItemSttsCd = "4" OR dclDe IS NOT NULL)';
+                " AND (imptItemSttsCd IN ('2', '3', '4') OR dclDe IS NOT NULL)";
           } else if (forPurchaseScreen) {
-            countQuery += ' AND pchsSttsCd IN ("01", "02", "04", "03")';
+            countQuery += " AND pchsSttsCd IN ('01', '02', '03', '04')";
           } else {
             countQuery +=
-                ' AND (imptItemSttsCd != "2" OR imptItemSttsCd IS NULL)';
+                " AND (imptItemSttsCd IS NULL OR imptItemSttsCd NOT IN ('2', '4'))";
             countQuery +=
-                ' AND (imptItemSttsCd != "4" OR imptItemSttsCd IS NULL)';
-            countQuery += ' AND (pchsSttsCd != "04" OR pchsSttsCd IS NULL)';
-            countQuery += ' AND (pchsSttsCd != "01" OR pchsSttsCd IS NULL)';
+                " AND (pchsSttsCd IS NULL OR pchsSttsCd NOT IN ('01', '04'))";
           }
+
           if (taxTyCds != null && taxTyCds.isNotEmpty) {
             final taxConditions = taxTyCds
                 .asMap()
@@ -128,27 +138,31 @@ mixin CapellaVariantMixin implements VariantInterface {
                 .join(' OR ');
             countQuery += ' AND ($taxConditions)';
           }
+
           if (name != null && name.isNotEmpty) {
             countQuery +=
-                " AND (LOWER(name) LIKE '%' || LOWER(:name) || '%' OR bcd = :bcd)";
+                " AND (UPPER(name) LIKE UPPER(:namePattern) OR UPPER(bcd) LIKE UPPER(:bcdPattern))";
           }
+
           if (productId != null) {
             countQuery += ' AND productId = :productId';
           }
+
+          talker
+              .info('Executing count query: $countQuery with args: $countArgs');
           final countResult =
-              await ditto.store.execute(countQuery, arguments: arguments);
+              await ditto.store.execute(countQuery, arguments: countArgs);
+
           if (countResult.items.isNotEmpty) {
             final v = countResult.items.first.value;
-            if (v['cnt'] != null) {
-              totalCount = (v['cnt'] as num).toInt();
-            }
+            if (v['cnt'] != null) totalCount = (v['cnt'] as num).toInt();
           }
         } catch (e) {
-          talker.info('Count query failed: $e');
+          talker.warning('Count query failed: $e');
         }
       }
 
-      // Parse to Variant objects
+      // Parse results
       final variants = items
           .map((doc) => Variant.fromJson(Map<String, dynamic>.from(doc.value)))
           .toList();

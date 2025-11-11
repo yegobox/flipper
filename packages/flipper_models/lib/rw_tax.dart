@@ -228,9 +228,12 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       items = items.where((item) => item.itemTyCd != "3").toList();
       // TOTAL D:
       List<Map<String, dynamic>> itemsList = await Future.wait(items
-          .map((item) async => await mapItemToJson(item,
+          .asMap()
+          .entries
+          .map((entry) async => await mapItemToJson(entry.value,
               bhfId: bhFId,
-              approvedQty: item.qty == 0 ? approvedQty : item.qty))
+              approvedQty: entry.value.qty == 0 ? approvedQty : entry.value.qty,
+              itemSeq: entry.key + 1))
           .toList());
       if (itemsList.isEmpty) throw Exception("No items to save");
 
@@ -284,8 +287,8 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       /// to keep stock master in sync
       if (updateMaster) {
         for (var item in items) {
-          Variant? variant =
-              await ProxyService.getStrategy(Strategy.capella).getVariant(id: item.variantId!);
+          Variant? variant = await ProxyService.getStrategy(Strategy.capella)
+              .getVariant(id: item.variantId!);
           if (variant != null) {
             await saveStockMaster(variant: variant, URI: URI);
           }
@@ -573,9 +576,13 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         .replaceAll(RegExp(r'[:-\sT]'), '')
         .substring(0, 14);
     final bhfId = ebm!.bhfId;
-    // Build item list
-    List<Future<Map<String, dynamic>>> itemsFutures =
-        items.map((item) => mapItemToJson(item, bhfId: bhfId)).toList();
+    // Build item list with proper sequence
+    List<Future<Map<String, dynamic>>> itemsFutures = items
+        .asMap()
+        .entries
+        .map((entry) =>
+            mapItemToJson(entry.value, bhfId: bhfId, itemSeq: entry.key + 1))
+        .toList();
     List<Map<String, dynamic>> itemsList = await Future.wait(itemsFutures);
 
     // Calculate total for non-tax-exempt items
@@ -740,7 +747,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
 
 // Helper function to map TransactionItem to JSON
   Future<Map<String, dynamic>> mapItemToJson(TransactionItem item,
-      {required String bhfId, num? approvedQty}) async {
+      {required String bhfId, num? approvedQty, int? itemSeq}) async {
     final repository = Repository();
 
     List<Configurations> taxConfigs = await repository.get<Configurations>(
@@ -842,7 +849,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       taxAmt: taxAmount.roundToTwoDecimalPlaces(),
       itemClsCd: item.itemClsCd,
       itemNm: item.name,
-      itemSeq: item.itemSeq,
+      itemSeq: itemSeq ?? item.itemSeq ?? 1,
       isrccCd: "",
       isrccNm: "",
       isrcRt: 0,
@@ -853,7 +860,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       itemStdNm: item.name,
       orgnNatCd: item.orgnNatCd ?? "RW",
       pkgUnitCd: item.pkgUnitCd,
-      splyAmt: item.price * quantity,
+      splyAmt: (item.price * quantity).toDouble().toPrecision(0),
       price: item.price,
       bhfId: item.bhfId ?? bhfId,
       // removed this as in richard example it was not there.
@@ -1309,8 +1316,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         // update variant with the new rcptTyCd
         Variant variant = variants.first;
         variant.pchsSttsCd = pchsSttsCd;
-        ProxyService.strategy
-            .updateVariant(updatables: [variant]);
+        ProxyService.strategy.updateVariant(updatables: [variant]);
         return respond;
       } else {
         throw Exception(
