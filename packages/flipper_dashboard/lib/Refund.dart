@@ -1,5 +1,5 @@
 import 'package:flipper_dashboard/RefundReasonForm.dart';
-import 'package:flipper_models/isolateHandelr.dart' show repository;
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
@@ -8,8 +8,6 @@ import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
-import 'package:supabase_models/brick/models/sars.model.dart';
-import 'package:supabase_models/services/turbo_tax_service.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
 class Refund extends StatefulHookConsumerWidget {
@@ -296,24 +294,17 @@ class _RefundState extends ConsumerState<Refund> {
       } else if (receiptType == "TR") {
         await handleReceipt(filterType: FilterType.TR);
       } else if (receiptType == "NR") {
-        List<TransactionItem> items = await ProxyService.strategy
-            .transactionItems(transactionId: widget.transactionId);
-        talker.info("Items to Refund: ${items.length}");
+        List<TransactionItem> items =
+            await ProxyService.getStrategy(Strategy.capella)
+                .transactionItems(transactionId: widget.transactionId);
 
         for (TransactionItem item in items) {
-          Variant? variant =
-              await ProxyService.strategy.getVariant(id: item.variantId);
+          Variant? variant = await ProxyService.getStrategy(Strategy.capella)
+              .getVariant(id: item.variantId);
           if (variant != null) {
-            if (variant.stock != null) {
-              // Mark the variant.ebmSynced to false (for re-sync if needed)
-              // ProxyService.strategy.updateVariant(
-              //     updatables: [variant],
-              //     ebmSynced: false,
-              //     updateIo: false,
-              //     approvedQty: item.qty);
-              // TODO: test if we are adding back the qty when refunded
+            if (variant.itemCd != "3") {
               await ProxyService.strategy.updateStock(
-                stockId: variant.stock!.id,
+                stockId: variant.stockId!,
                 currentStock: item.qty.toDouble(),
                 appending: true,
               );
