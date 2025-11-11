@@ -306,11 +306,17 @@ class _RefundState extends ConsumerState<Refund> {
           if (variant != null) {
             if (variant.stock != null) {
               // Mark the variant.ebmSynced to false (for re-sync if needed)
-              ProxyService.strategy.updateVariant(
-                  updatables: [variant],
-                  ebmSynced: false,
-                  updateIo: false,
-                  approvedQty: item.qty);
+              // ProxyService.strategy.updateVariant(
+              //     updatables: [variant],
+              //     ebmSynced: false,
+              //     updateIo: false,
+              //     approvedQty: item.qty);
+              // TODO: test if we are adding back the qty when refunded
+              await ProxyService.strategy.updateStock(
+                stockId: variant.stock!.id,
+                currentStock: item.qty.toDouble(),
+                appending: true,
+              );
             }
           }
         }

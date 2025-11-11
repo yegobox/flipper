@@ -286,6 +286,7 @@ mixin VariantMixin implements VariantInterface {
             /// save it anyway so we do not miss things
             talker.info("Skipped: ${variant.name}:${variant.itemCd}");
             variant.ebmSynced = true;
+            await repository.upsert<Variant>(variant);
             return true;
           } else {
             await ProxyService.tax
@@ -431,6 +432,19 @@ mixin VariantMixin implements VariantInterface {
           await addStockToVariant(variant: updatables[i]);
         }
 
+        if (updatables[i].itemCd == null ||
+            updatables[i].itemCd?.isEmpty == true ||
+            updatables[i].pchsSttsCd == "01" ||
+            updatables[i].pchsSttsCd == "03" ||
+            updatables[i].pchsSttsCd == "04" ||
+            updatables[i].pchsSttsCd == "1" ||
+            updatables[i].imptItemSttsCd == "4" ||
+            updatables[i].imptItemSttsCd == "2" ||
+            // variant.itemCd == "3" ||
+            updatables[i].assigned == true) {
+          updatables[i].ebmSynced = true;
+        }
+
         updatables[i].name = name;
         updatables[i].categoryId = category?.id ?? updatables[i].categoryId;
         updatables[i].categoryName =
@@ -471,6 +485,7 @@ mixin VariantMixin implements VariantInterface {
         updatables[i].lastTouched = DateTime.now().toUtc();
         updatables[i].qty =
             (approvedQty ?? updatables[i].stock?.currentStock)?.toDouble();
+        await repository.upsert<Variant>(updatables[i]);
       }
     } catch (e, stackTrace) {
       talker.error('Error updating variant', e, stackTrace);
