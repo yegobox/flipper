@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:developer';
-import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/ebm_helper.dart';
 import 'package:flutter/services.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
@@ -286,8 +285,8 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       /// to keep stock master in sync
       if (updateMaster) {
         for (var item in items) {
-          Variant? variant = await ProxyService.getStrategy(Strategy.capella)
-              .getVariant(id: item.variantId!);
+          Variant? variant =
+              await ProxyService.strategy.getVariant(id: item.variantId!);
           if (variant != null) {
             await saveStockMaster(variant: variant, URI: URI);
           }
@@ -713,6 +712,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
             await repository.upsert<Sar>(sar);
 
             await saveStockItems(
+              updateMaster: true,
               items: items,
               tinNumber: ebm.tinNumber.toString(),
               bhFId: ebm.bhfId,
