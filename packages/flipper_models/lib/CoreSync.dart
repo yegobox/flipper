@@ -975,7 +975,7 @@ class CoreSync extends AiStrategyImpl
 
     if (foundation.defaultTargetPlatform == foundation.TargetPlatform.android) {
       AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-      return androidInfo.serialNumber;
+      return androidInfo.id;
     } else if (foundation.defaultTargetPlatform ==
         foundation.TargetPlatform.iOS) {
       IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
