@@ -941,8 +941,71 @@ class CapellaSync extends AiStrategyImpl
   @override
   Stream<List<BusinessAnalytic>> streamRemoteAnalytics(
       {required int branchId}) {
-    // TODO: implement streamRemoteAnalytics
-    throw UnimplementedError();
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      _talker.error('Ditto not initialized');
+      return Stream.value([]);
+    }
+
+    final controller = StreamController<List<BusinessAnalytic>>.broadcast();
+    dynamic observer;
+
+    observer = ditto.store.registerObserver(
+      'SELECT * FROM business_analytics WHERE branchId = :branchId',
+      arguments: {'branchId': branchId},
+      onChange: (queryResult) {
+        if (controller.isClosed) return;
+
+        final analytics = <BusinessAnalytic>[];
+        for (final item in queryResult.items) {
+          final data = Map<String, dynamic>.from(item.value);
+          final analytic = _convertBusinessAnalyticFromDitto(data);
+          if (analytic != null) analytics.add(analytic);
+        }
+        controller.add(analytics);
+      },
+    );
+
+    controller.onCancel = () async {
+      await observer?.cancel();
+      await controller.close();
+    };
+
+    return controller.stream;
+  }
+
+  BusinessAnalytic? _convertBusinessAnalyticFromDitto(
+      Map<String, dynamic> data) {
+    try {
+      return BusinessAnalytic(
+        id: data['id'] ?? data['_id'],
+        date:
+            DateTime.tryParse(data['date']?.toString() ?? '') ?? DateTime.now(),
+        itemName: data['itemName'],
+        price: data['price']?.toDouble() ?? 0.0,
+        profit: data['profit']?.toDouble() ?? 0.0,
+        unitsSold: data['unitsSold'] ?? 0,
+        stockRemainedAtTheTimeOfSale: data['stockRemainedAtTheTimeOfSale'] ?? 0,
+        taxRate: data['taxRate']?.toDouble() ?? 0.0,
+        trafficCount: data['trafficCount'] ?? 0,
+        branchId: data['branchId'],
+        categoryName: data['categoryName'],
+        categoryId: data['categoryId'],
+        transactionId: data['transactionId'],
+        value: data['value']?.toDouble() ?? 0.0,
+        supplyPrice: data['supplyPrice']?.toDouble() ?? 0.0,
+        retailPrice: data['retailPrice']?.toDouble() ?? 0.0,
+        currentStock: data['currentStock']?.toDouble() ?? 0.0,
+        stockValue: data['stockValue']?.toDouble() ?? 0.0,
+        paymentMethod: data['paymentMethod'],
+        customerType: data['customerType'],
+        discountAmount: data['discountAmount']?.toDouble() ?? 0.0,
+        taxAmount: data['taxAmount']?.toDouble() ?? 0.0,
+      );
+    } catch (e) {
+      _talker.error('Error converting BusinessAnalytic from Ditto: $e');
+      return null;
+    }
   }
 
   @override

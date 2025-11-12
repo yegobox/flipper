@@ -32,7 +32,6 @@ class _AiScreenState extends ConsumerState<AiScreen> {
   StreamSubscription<List<Message>>? _subscription;
   final ScrollController _scrollController = ScrollController();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  bool _analyticsSubscribed = false;
   String? _attachedFilePath; // New variable to store attached file path
   List<Content> _conversationHistory =
       []; // To store conversation history for AI
@@ -145,8 +144,8 @@ class _AiScreenState extends ConsumerState<AiScreen> {
       if (mounted) {
         setState(() {
           _messages = messages;
-          final index = _conversations
-              .indexWhere((c) => c.id == _currentConversationId);
+          final index =
+              _conversations.indexWhere((c) => c.id == _currentConversationId);
           if (index != -1) {
             _conversations[index].messages = messages;
           }
@@ -305,28 +304,6 @@ class _AiScreenState extends ConsumerState<AiScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final branchId = ProxyService.box.getBranchId();
-    if (branchId != null && !_analyticsSubscribed) {
-      // Subscribe to analytics only once
-      _analyticsSubscribed = true;
-      ref.listen(
-        streamedBusinessAnalyticsProvider(branchId),
-        (previous, next) {
-          next.when(
-            data: (data) {
-              talker.info('Received new analytics data: ${data.length} items');
-            },
-            loading: () {
-              talker.info('Analytics data is loading...');
-            },
-            error: (error, stackTrace) {
-              talker.error('Error receiving analytics data: $error');
-            },
-          );
-        },
-      );
-    }
-
     return LayoutBuilder(builder: (context, constraints) {
       final isMobile = constraints.maxWidth < 600;
       return Scaffold(
@@ -361,9 +338,10 @@ class _AiScreenState extends ConsumerState<AiScreen> {
         onConversationSelected: (id) {
           setState(() {
             _currentConversationId = id;
-            _messages = _conversations.firstWhere((c) => c.id == id).messages ?? [];
-            _conversationHistory =
-                []; // Clear history on conversation selection
+            _messages =
+                _conversations.firstWhere((c) => c.id == id).messages ?? [];
+            // Clear history on conversation selection
+            _conversationHistory = [];
           });
           _subscribeToCurrentConversation();
           _scrollToBottom();
@@ -401,7 +379,8 @@ class _AiScreenState extends ConsumerState<AiScreen> {
           onConversationSelected: (id) {
             setState(() {
               _currentConversationId = id;
-              _messages = _conversations.firstWhere((c) => c.id == id).messages ?? [];
+              _messages =
+                  _conversations.firstWhere((c) => c.id == id).messages ?? [];
             });
             _subscribeToCurrentConversation();
             _scrollToBottom();
