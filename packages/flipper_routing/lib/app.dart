@@ -869,3 +869,5 @@ class App {}
 
 
 // git diff --no-prefix --unified=0 path/to/file | grep -E "^\+|^\-"
+
+// flutter build apk --release

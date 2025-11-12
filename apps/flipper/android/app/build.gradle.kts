@@ -18,7 +18,7 @@ if (keystorePropertiesFile.exists()) {
 android {
     namespace = "rw.flipper"
     compileSdk = 36
-    ndkVersion = "27.0.12077973"
+    ndkVersion = "28.0.12674087"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
@@ -88,6 +88,9 @@ android {
     packagingOptions {
         resources {
             excludes += setOf("/META-INF/{AL2.0,LGPL2.1}")
+        }
+        jniLibs {
+            useLegacyPackaging = true
         }
     }
 }
