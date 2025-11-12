@@ -433,6 +433,11 @@ jobs:
         with:
           distribution: "zulu"
           java-version: "17" #defines the java version
+      
+      - name: Accept Android licenses
+        run: |
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "ndk;28.0.12674087"
       - name: Configure Git with PAT
         env:
           PAT_TOKEN: ${{ secrets.PAT_TOKEN }}
