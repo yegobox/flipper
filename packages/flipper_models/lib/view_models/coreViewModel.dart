@@ -1036,10 +1036,26 @@ class CoreViewModel extends FlipperBaseModel
     for (final purchaseVariant in purchase.variants!) {
       final originalStatus = purchaseVariant.pchsSttsCd;
 
-      // Skip already handled variants
+      /// Skip already handled variants
       if (originalStatus == "02" ||
           originalStatus == "03" ||
           originalStatus == "04") {
+        /// just update IO and master for this. this is because
+        /// we might receive item with pchs_stts_cd = 2 means approved
+        /// not calling the bellow method and it is already in approved state
+        /// it will not be reported in IO and master, assume this method the caller
+        /// is approving something that was not approved before or atleast it should be forbidden
+        /// from UI side to forbit the user doing so otherwise if it is truly from the purchase it make sense.
+        await StockIOUtil.saveStockIO(
+          repository: Repository(),
+          variant: purchaseVariant,
+          approvedQty: purchaseVariant.stock?.currentStock ?? 0,
+          remark: "Purchase item approval",
+        );
+        await StockIOUtil.saveStockMaster(
+          variant: purchaseVariant,
+          stockMasterQty: purchaseVariant.stock?.currentStock ?? 0,
+        );
         talker.debug(
             "Skipping already-processed variant: ${purchaseVariant.name} (status: $originalStatus)");
         continue;
@@ -1162,37 +1178,12 @@ class CoreViewModel extends FlipperBaseModel
         variations: [variant],
         branchId: ProxyService.box.getBranchId()!,
       );
-
-      // Still update IO but with null approvedQty for services
-      // await ProxyService.strategy.updateIoFunc(
-      //   variant: variant,
-      //   purchase: purchase,
-      //   approvedQty: null,
-      // );
     } else {
       // Normal handling for non-service items
       await ProxyService.strategy.addVariant(
         variations: [variant],
         branchId: ProxyService.box.getBranchId()!,
       );
-
-      await StockIOUtil.saveStockIO(
-        repository: Repository(),
-        variant: variant,
-        approvedQty: variant.stock?.currentStock ?? 0,
-        remark: "New purchase item",
-      );
-      await StockIOUtil.saveStockMaster(
-        variant: variant,
-        stockMasterQty: variant.stock?.currentStock ?? 0,
-      );
-
-      // update io
-      // await ProxyService.strategy.updateIoFunc(
-      //   variant: variant,
-      //   purchase: purchase,
-      //   approvedQty: variant.stock?.currentStock,
-      // );
     }
   }
 
