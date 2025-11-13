@@ -7,6 +7,8 @@ environment:
   sdk: ^3.5.3
 
 dependencies:
+  flutter:
+    sdk: fluttepr
   analyzer: ">=6.11.0 <8.0.0"
   brick_build: any
   brick_core: any
