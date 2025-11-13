@@ -146,10 +146,7 @@ dependencies:
   sqflite_common_ffi: ^2.3.6
   sqflite_common_ffi_web: ^1.0.1+1
   posthog_flutter: ^5.4.3
-  # nfc_manager: ^4.1.1
-  # realm: ^20.1.1
-  # realm_dart: ^20.1.1
-  # flipper_web: any
+  flipper_web: any
   
 dependency_overrides:
   

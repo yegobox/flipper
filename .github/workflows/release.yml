@@ -271,6 +271,11 @@ jobs:
           channel: stable
           cache: true
 
+      - name: Setup melos
+        run: |
+          dart pub global activate melos 6.3.2
+          melos bootstrap
+
       - name: Configure Missing files
         shell: bash
         run: |
@@ -292,8 +297,6 @@ jobs:
 
       - name: Build and Package
         run: |
-          dart pub global activate melos 6.3.2
-          melos bootstrap
           cd apps/flipper
           flutter clean
           dart run msix:create -v --install-certificate false --signtool-options "/td SHA256"
@@ -366,8 +369,6 @@ jobs:
 
       - name: Build and Package
         run: |
-          dart pub global activate melos 6.3.2
-          melos bootstrap
           cd apps/flipper
           flutter clean
           dart run msix:create --store
