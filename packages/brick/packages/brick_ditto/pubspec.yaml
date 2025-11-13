@@ -8,7 +8,7 @@ environment:
 
 dependencies:
   brick_core: any
-  ditto_live: ^4.12.4
+  ditto_live: ^4.13.0
   meta: ^1.16.0
 
 dev_dependencies:

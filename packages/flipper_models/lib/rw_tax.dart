@@ -677,6 +677,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
               items: items,
               tinNumber: ebm.tinNumber.toString(),
               bhFId: ebm.bhfId,
+              updateMaster: false,
               customerName: null,
               custTin: null,
               invoiceNumber: counter.invcNo!,
@@ -700,7 +701,6 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
               await ProxyService.tax.saveStockMaster(
                 variant: variant,
                 URI: ebm.taxServerUrl,
-                // approvedQty: approvedQty,
                 stockMasterQty: stock.currentStock!,
               );
             }

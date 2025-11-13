@@ -18,7 +18,7 @@ Add the ditto_live dependency to your pubspec.yaml:
 
 ```yaml
 dependencies:
-  ditto_live: ^4.12.4
+  ditto_live: ^4.13.0
 ```
 
 ### Configuration
