@@ -5,8 +5,11 @@ homepage: https://github.com/yegobox/flipper
 
 environment:
   sdk: ^3.5.3
+  flutter: ">=3.3.0"
 
 dependencies:
+  flutter:
+    sdk: flutter
   brick_core: any
   ditto_live: ^4.13.0
   meta: ^1.16.0
