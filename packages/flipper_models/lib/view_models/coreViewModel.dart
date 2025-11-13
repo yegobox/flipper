@@ -1046,16 +1046,6 @@ class CoreViewModel extends FlipperBaseModel
         /// it will not be reported in IO and master, assume this method the caller
         /// is approving something that was not approved before or atleast it should be forbidden
         /// from UI side to forbit the user doing so otherwise if it is truly from the purchase it make sense.
-        await StockIOUtil.saveStockIO(
-          repository: Repository(),
-          variant: purchaseVariant,
-          approvedQty: purchaseVariant.stock?.currentStock ?? 0,
-          remark: "Purchase item approval",
-        );
-        await StockIOUtil.saveStockMaster(
-          variant: purchaseVariant,
-          stockMasterQty: purchaseVariant.stock?.currentStock ?? 0,
-        );
         talker.debug(
             "Skipping already-processed variant: ${purchaseVariant.name} (status: $originalStatus)");
         continue;
