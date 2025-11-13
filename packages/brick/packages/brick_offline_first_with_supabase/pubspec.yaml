@@ -11,11 +11,11 @@ environment:
   sdk: ">=3.4.0 <4.0.0"
 
 dependencies:
-  brick_core: ">=2.0.0 <3.0.0"
-  brick_offline_first: ">=4.0.0 <5.0.0"
-  brick_offline_first_with_rest: ">=4.0.0 <5.0.0"
-  brick_sqlite: ">=4.0.0 <5.0.0"
-  brick_supabase: ">=2.1.0 <3.0.0"
+  brick_core: any
+  brick_offline_first: any
+  brick_offline_first_with_rest: any
+  brick_sqlite: any
+  brick_supabase: any
   http: ">=1.0.0 <2.0.0"
   logging: ">=1.0.0 <2.0.0"
   meta: ">=1.3.0 <2.0.0"
