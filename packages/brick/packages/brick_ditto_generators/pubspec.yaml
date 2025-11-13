@@ -7,14 +7,14 @@ environment:
   sdk: ^3.5.3
 
 dependencies:
-  flutter:
-    sdk: fluttepr
   analyzer: ">=6.11.0 <8.0.0"
   brick_build: any
   brick_core: any
   brick_ditto: any
   build: ^2.4.2
   dart_style: ^3.1.1
+  flutter:
+    sdk: flutter
   source_gen: ^2.0.0
 
 dev_dependencies:
