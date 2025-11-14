@@ -311,8 +311,9 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: apps/flipper/build/windows/x64/runner/Release/flipper_rw.msix
-          tag_name: ${{ steps.get_version.outputs.version }}
-          name: Debug Release ${{ steps.get_version.outputs.version }}
+          tag_name: v${{ steps.get_version.outputs.version }}_windows_debug
+          name: Windows Debug Release ${{ steps.get_version.outputs.version }}
+          draft: false
           body: |
             Debug Release for QA
         env:
@@ -383,8 +384,9 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: apps/flipper/build/windows/x64/runner/Release/flipper_rw.msix
-          tag_name: ${{ steps.get_version.outputs.version }}
-          name: Release ${{ steps.get_version.outputs.version }}
+          tag_name: v${{ steps.get_version.outputs.version }}_windows_prod
+          name: Windows Production Release ${{ steps.get_version.outputs.version }}
+          draft: false
           body: |
             Production Release for Windows App Store
         env:
@@ -572,6 +574,7 @@ jobs:
         with:
           name: ${{ matrix.app }} Android AAB Release - ${{ github.ref_name }}
           tag_name: v${{ steps.get_version.outputs.version }}_${{ matrix.app }}
+          draft: false
           body: |
             Debug Release for QA
         env:

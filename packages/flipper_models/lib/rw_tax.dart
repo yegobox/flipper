@@ -516,8 +516,10 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     required String tinNumber,
     required String bhfId,
     required String URI,
-    String lastReqDt = "20210523000000",
+    String? lastReqDt,
   }) async {
+    // Use current date if lastReqDt is not provided
+    lastReqDt ??= DateFormat('yyyyMMddHHmmss').format(DateTime.now());
     models.Ebm? ebm = await ProxyService.strategy
         .ebm(branchId: ProxyService.box.getBranchId()!);
     if (ebm == null) {
