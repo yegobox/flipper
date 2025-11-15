@@ -31,7 +31,7 @@ abstract class TaxApi implements NoticeInterface {
   });
   Future<RwApiResponse> saveStockItems(
       {required List<TransactionItem> items,
-       bool updateMaster = true,
+      bool updateMaster = true,
       required String tinNumber,
       required String bhFId,
       String? customerName,
@@ -68,7 +68,6 @@ abstract class TaxApi implements NoticeInterface {
   Future<RwApiResponse> generateReceiptSignature(
       {required ITransaction transaction,
       required String receiptType,
-      required brick.Counter counter,
       String? purchaseCode,
       required String URI,
       required String salesSttsCd,

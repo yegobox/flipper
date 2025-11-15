@@ -47,31 +47,43 @@ mixin CounterMixin implements CounterInterface {
   Future<void> updateCounters(
       {required List<Counter> counters,
       RwApiResponse? receiptSignature}) async {
-    // build brick Counter to pass in to upsert
+    if (counters.isEmpty) return;
+
+    // Use receiptSignature as the source of truth for receipt numbers
+    final newCurRcptNo = receiptSignature?.data?.rcptNo ?? 0;
+    final newTotRcptNo = receiptSignature?.data?.totRcptNo ?? 0;
+
+    // Find the highest invoice number and increment it
+    final highestInvcNo =
+        counters.map((c) => c.invcNo ?? 0).reduce((a, b) => a > b ? a : b);
+    final newInvcNo = highestInvcNo + 1;
+
+    // Update all counters to the same values
     for (Counter counter in counters) {
       counter.createdAt = DateTime.now().toUtc();
       counter.lastTouched = DateTime.now().toUtc();
+      counter.curRcptNo = newCurRcptNo;
+      counter.totRcptNo = newTotRcptNo;
+      counter.invcNo = newInvcNo;
 
-      counter.curRcptNo = receiptSignature!.data?.rcptNo ?? 0;
-      counter.totRcptNo = receiptSignature.data?.totRcptNo ?? 0;
-      counter.invcNo = counter.invcNo! + 1;
       await repository.upsert(counter);
+    }
 
-      /// also update sar
-      // get the sar
-      final sar = await getSar(branchId: counter.branchId!);
+    // Update SAR once per unique branch
+    final uniqueBranchIds = counters.map((c) => c.branchId!).toSet();
+
+    for (final branchId in uniqueBranchIds) {
+      final sar = await getSar(branchId: branchId);
       if (sar != null) {
-        sar.sarNo = sar.sarNo + 1;
+        sar.sarNo = newTotRcptNo;
         await repository.upsert(sar);
       } else {
-        final sar = Sar(
-          sarNo: counter.totRcptNo!,
-          branchId: counter.branchId!,
+        final newSar = Sar(
+          sarNo: newTotRcptNo,
+          branchId: branchId,
         );
-        await repository.upsert(sar);
+        await repository.upsert(newSar);
       }
-      // in erference https://github.com/GetDutchie/brick/issues/580#issuecomment-2845610769
-      // Repository().sqliteProvider.upsert<Counter>(upCounter);
     }
   }
 

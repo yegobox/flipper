@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:ditto_live/ditto_live.dart';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_models/sync/ditto_sync_adapter.dart';
 
@@ -121,6 +122,8 @@ class DittoSyncCoordinator {
     debugPrint('DittoSyncCoordinator: notifyLocalUpsert for $T ($docId)');
     try {
       final document = await adapter.toDittoDocument(model);
+      talker.debug(
+          'Ditto upsert document for $T ($docId): ${document.toString()}');
       await ditto.store.execute(
         'INSERT INTO ${adapter.collectionName} DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE',
         arguments: {

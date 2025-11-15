@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:developer';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/ebm_helper.dart';
 import 'package:flutter/services.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
@@ -551,7 +552,6 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
   Future<RwApiResponse> generateReceiptSignature({
     required ITransaction transaction,
     required String receiptType,
-    required odm.Counter counter,
     String? purchaseCode,
     required DateTime timeToUser,
     required String URI,
@@ -615,12 +615,18 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       }
     }
 
+    List<odm.Counter> _counters =
+        await ProxyService.getStrategy(Strategy.capella).getCounters(
+            branchId: ProxyService.box.getBranchId()!, fetchRemote: false);
+    final int highestInvcNo =
+        _counters.fold<int>(0, (prev, c) => math.max(prev, c.invcNo ?? 0));
+
     // Retrieve customer information
 
     // Build request data
     Map<String, dynamic> requestData = await buildRequestData(
         business: business,
-        counter: counter,
+        highestInvcNo: highestInvcNo,
         ebm: ebm,
         bhFId: bhfId,
         salesSttsCd: salesSttsCd,
@@ -682,9 +688,9 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
               updateMaster: false,
               customerName: null,
               custTin: null,
-              invoiceNumber: counter.invcNo!,
+              invoiceNumber: highestInvcNo,
               regTyCd: "A",
-              sarNo: counter.invcNo!.toString(),
+              sarNo: highestInvcNo.toString(),
               sarTyCd: sarTyCd!,
               custBhfId: transaction.customerBhfId,
               totalSupplyPrice: transaction.subTotal!,
@@ -1003,7 +1009,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
   Future<Map<String, dynamic>> buildRequestData({
     required Business? business,
     required Ebm? ebm,
-    required odm.Counter counter,
+    required int highestInvcNo,
     required ITransaction transaction,
     required String date,
     required double totalTaxable,
@@ -1069,10 +1075,6 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     // intentionally fetch local counters (fetchRemote: false) to avoid blocking
     // remote calls during request build; this mirrors the behavior used when
     // resolving counters elsewhere.
-    List<odm.Counter> _counters = await ProxyService.strategy.getCounters(
-        branchId: ProxyService.box.getBranchId()!, fetchRemote: false);
-    final int highestInvcNo =
-        _counters.fold<int>(0, (prev, c) => math.max(prev, c.invcNo ?? 0));
 
     Map<String, dynamic> json = {
       "tin": ebm?.tinNumber.toString() ?? "999909695",

@@ -14,7 +14,7 @@ mixin ReceiptMixin implements ReceiptInterface {
       required ITransaction transaction,
       required String qrCode,
       required String receiptType,
-      required Counter counter,
+      required int highestInvcNo,
       required String timeReceivedFromserver,
       required int invoiceNumber}) async {
     int branchId = ProxyService.box.getBranchId()!;
@@ -34,7 +34,7 @@ mixin ReceiptMixin implements ReceiptInterface {
         totRcptNo: signature.data?.totRcptNo ?? 0,
         mrcNo: signature.data?.mrcNo ?? "",
         transactionId: transaction.id,
-        invcNo: counter.invcNo,
+        invcNo: highestInvcNo,
         whenCreated: whenCreated,
         resultDt: signature.resultDt ?? "");
     Receipt? existingReceipt = (await repository.get<Receipt>(

@@ -419,12 +419,10 @@ class TaxController<OBJ> with TransactionDelegationMixin {
       // as the invoiceNumber so it reflects the latest counter globally.
       final int highestInvcNo =
           counters.fold<int>(0, (prev, c) => math.max(prev, c.invcNo ?? 0));
-      brick.Counter? counter = await ProxyService.strategy.getCounter(
-          branchId: branchId,
-          receiptType: receiptType,
-          fetchRemote: !Platform.isWindows);
-      if (counter == null) {
-        throw Exception('Counter not found for receiptType: $receiptType, branchId: $branchId. Counter must be properly initialized.');
+
+      if (counters.isEmpty) {
+        throw Exception(
+            'Counter not found for receiptType: $receiptType, branchId: $branchId. Counter must be properly initialized.');
       }
 
       /// check if counter.curRcptNo or counter.totRcptNo is zero increment it first
@@ -440,7 +438,6 @@ class TaxController<OBJ> with TransactionDelegationMixin {
           await ProxyService.tax.generateReceiptSignature(
         transaction: transaction,
         receiptType: receiptType,
-        counter: counter,
         salesSttsCd: salesSttsCd,
         originalInvoiceNumber: originalInvoiceNumber,
         URI: await ProxyService.box.getServerUrl() ?? "",
@@ -470,11 +467,11 @@ class TaxController<OBJ> with TransactionDelegationMixin {
           final newTransaction = ITransaction(
             originalTransactionId: transaction.id,
             isOriginalTransaction: false,
-            receiptNumber: counter.invcNo,
+            receiptNumber: highestInvcNo,
             customerPhone: (transaction.customerPhone?.isNotEmpty ?? false)
                 ? transaction.customerPhone!
                 : ProxyService.box.currentSaleCustomerPhoneNumber(),
-            totalReceiptNumber: counter.totRcptNo,
+            totalReceiptNumber: highestInvcNo,
             // Use the highest invoice number across counters as requested
             invoiceNumber: highestInvcNo,
             customerName: (transaction.customerName?.isNotEmpty ?? false)
@@ -553,9 +550,9 @@ class TaxController<OBJ> with TransactionDelegationMixin {
           ProxyService.strategy.updateTransaction(
             transaction: transaction,
             receiptType: receiptType,
-            sarNo: counter.invcNo.toString(),
-            receiptNumber: counter.invcNo,
-            totalReceiptNumber: counter.totRcptNo,
+            sarNo: highestInvcNo.toString(),
+            receiptNumber: highestInvcNo,
+            totalReceiptNumber: highestInvcNo,
             // Prefer an existing transaction.invoiceNumber, otherwise use the
             // highest invoice number across counters.
             invoiceNumber: transaction.invoiceNumber ?? highestInvcNo,
@@ -565,7 +562,7 @@ class TaxController<OBJ> with TransactionDelegationMixin {
         }
 
         await saveReceipt(
-            receiptSignature, transaction, qrCode, counter, receiptNumber,
+            receiptSignature, transaction, qrCode, highestInvcNo, receiptNumber,
             whenCreated: now, invoiceNumber: highestInvcNo);
 
         /// Ensure all counters of the same branch are synchronized
@@ -586,7 +583,7 @@ class TaxController<OBJ> with TransactionDelegationMixin {
       RwApiResponse receiptSignature,
       ITransaction transaction,
       String qrCode,
-      brick.Counter counter,
+      int highestInvcNo,
       String receiptType,
       {required DateTime whenCreated,
       required int invoiceNumber}) async {
@@ -596,7 +593,7 @@ class TaxController<OBJ> with TransactionDelegationMixin {
         transaction: transaction,
         qrCode: qrCode,
         timeReceivedFromserver: receiptSignature.data!.vsdcRcptPbctDate!,
-        counter: counter,
+        highestInvcNo: highestInvcNo,
         receiptType: receiptType,
         whenCreated: whenCreated,
         invoiceNumber: invoiceNumber,
