@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'dart:math' as math;
 
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
@@ -410,9 +411,10 @@ class TaxController<OBJ> with TransactionDelegationMixin {
   }) async {
     try {
       int branchId = ProxyService.box.getBranchId()!;
-      List<brick.Counter> counters = await ProxyService.strategy.getCounters(
-          branchId: ProxyService.box.getBranchId()!,
-          fetchRemote: !Platform.isWindows);
+      List<brick.Counter> counters =
+          await ProxyService.getStrategy(Strategy.capella).getCounters(
+              branchId: ProxyService.box.getBranchId()!,
+              fetchRemote: !Platform.isWindows);
       // Determine the highest invoice number across all counters and use that
       // when assigning invoiceNumber. We still pass the specific `counter`
       // instance to the external tax service, but persist the highest value

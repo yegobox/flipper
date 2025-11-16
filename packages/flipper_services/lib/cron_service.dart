@@ -198,15 +198,6 @@ class CronService {
       }
     }));
 
-    _activeTimers.add(Timer.periodic(Duration(seconds: 2), (Timer t) async {
-      try {
-        ProxyService.getStrategy(Strategy.capella)
-            .listenCounters(branchId: ProxyService.box.getBranchId()!);
-      } catch (e) {
-        talker.error("Transaction refresh failed: $e");
-      }
-    }));
-
     // Setup isolate message timer
     _activeTimers.add(Timer.periodic(Duration(seconds: _isolateMessageSeconds),
         (Timer t) async {
