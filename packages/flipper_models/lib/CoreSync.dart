@@ -685,6 +685,7 @@ class CoreSync extends AiStrategyImpl
       product = await createProduct(
           tinNumber: tinNumber,
           bhFId: bhFId,
+          skipRRaCall: false,
           createItemCode: true,
           branchId: branchId,
           businessId: businessId,
@@ -1451,11 +1452,13 @@ class CoreSync extends AiStrategyImpl
     }
   }
 
+  @override
 // Helper method to save a variant
-  Future<void> saveVariant(
-      Variant item, Business business, int branchId) async {
+  Future<void> saveVariant(Variant item, Business business, int branchId,
+      {required bool skipRRaCall}) async {
     final resolvedTin = (await effectiveTin(business: business))!;
     await createProduct(
+      skipRRaCall: skipRRaCall,
       bhFId: (await ProxyService.box.bhfId()) ?? "00",
       tinNumber: resolvedTin,
       businessId: ProxyService.box.getBusinessId()!,
@@ -2697,6 +2700,7 @@ class CoreSync extends AiStrategyImpl
 
           // Use ProxyService.strategy.addVariant for consistency with DesktopProductAdd
           await ProxyService.strategy.addVariant(
+            skipRRaCall: false,
             variations: [variant],
             branchId: ProxyService.box.getBranchId()!,
           );
@@ -2754,6 +2758,7 @@ class CoreSync extends AiStrategyImpl
           await ProxyService.strategy.addVariant(
             variations: [variant],
             branchId: branchId,
+            skipRRaCall: false,
           );
         } else {
           // Get category information if available
@@ -2762,6 +2767,7 @@ class CoreSync extends AiStrategyImpl
 
           // Create a new variant with the product
           await createProduct(
+            skipRRaCall: false,
             bhFId: bhfId ?? "00",
             tinNumber: tin!,
             businessId: ProxyService.box.getBusinessId()!,
@@ -2817,6 +2823,7 @@ class CoreSync extends AiStrategyImpl
               // Use ProxyService.strategy.addVariant for consistency
               await ProxyService.strategy.addVariant(
                 variations: [variant],
+                skipRRaCall: false,
                 branchId: branchId,
               );
             }

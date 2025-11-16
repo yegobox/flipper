@@ -237,6 +237,7 @@ mixin VariantMixin implements VariantInterface {
   Future<int> addVariant({
     required List<Variant> variations,
     required int branchId,
+    required bool skipRRaCall,
   }) async {
     final results = await Future.wait(
       variations.map((variant) async {
@@ -272,7 +273,9 @@ mixin VariantMixin implements VariantInterface {
               .ebm(branchId: ProxyService.box.getBranchId()!);
           variant.splyAmt = variant.splyAmt!.toPrecision(0);
           await repository.upsert<Variant>(variant);
-
+          if (skipRRaCall) {
+            return;
+          }
           // save items
           await ProxyService.tax
               .saveItem(variation: variant, URI: ebm!.taxServerUrl);

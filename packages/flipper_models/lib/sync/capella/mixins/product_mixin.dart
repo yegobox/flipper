@@ -61,6 +61,7 @@ mixin CapellaProductMixin implements ProductInterface {
   Future<Product?> createProduct({
     required Product product,
     required int businessId,
+    required bool skipRRaCall,
     required int branchId,
     required int tinNumber,
     required String bhFId,

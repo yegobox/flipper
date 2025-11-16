@@ -95,6 +95,7 @@ mixin ProductMixin implements ProductInterface {
       required int branchId,
       required int tinNumber,
       required String bhFId,
+      required bool skipRRaCall,
       Map<String, String>? taxTypes,
       Map<String, String>? itemClasses,
       Map<String, String>? itemTypes,
@@ -245,6 +246,7 @@ mixin ProductMixin implements ProductInterface {
         await ProxyService.strategy.addVariant(
           variations: [newVariant],
           branchId: branchId,
+          skipRRaCall: skipRRaCall,
         );
 
         final savedVariant = newVariant;

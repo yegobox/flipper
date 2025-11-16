@@ -174,7 +174,9 @@ mixin ProductMixin {
       }
 
       await ProxyService.strategy.addVariant(
-          variations: updatables, branchId: ProxyService.box.getBranchId()!);
+          skipRRaCall: false,
+          variations: updatables,
+          branchId: ProxyService.box.getBranchId()!);
       // add this variant to rra
 
       onCompleteCallback(updatables);

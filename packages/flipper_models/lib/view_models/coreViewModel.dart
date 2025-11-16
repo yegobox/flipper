@@ -1167,12 +1167,14 @@ class CoreViewModel extends FlipperBaseModel
       await ProxyService.strategy.addVariant(
         variations: [variant],
         branchId: ProxyService.box.getBranchId()!,
+        skipRRaCall: false,
       );
     } else {
       // Normal handling for non-service items
       await ProxyService.strategy.addVariant(
         variations: [variant],
         branchId: ProxyService.box.getBranchId()!,
+        skipRRaCall: false,
       );
     }
   }
@@ -1399,6 +1401,7 @@ class CoreViewModel extends FlipperBaseModel
           await ProxyService.strategy.addVariant(
             variations: [variant],
             branchId: ProxyService.box.getBranchId()!,
+            skipRRaCall: false,
           );
 
           await StockIOUtil.saveStockIO(
@@ -1509,6 +1512,7 @@ class CoreViewModel extends FlipperBaseModel
       incomingImportVariant.assigned = false;
       await ProxyService.strategy.addVariant(
           variations: [incomingImportVariant],
+          skipRRaCall: false,
           branchId: ProxyService.box.getBranchId()!);
 
       await ProxyService.tax

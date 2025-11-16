@@ -78,6 +78,7 @@ abstract class ProductInterface {
     String? itemCd,
     String? taxTyCd,
     double? splyAmt,
+    required bool skipRRaCall,
   });
 
   Future<void> hydrateDate({required String branchId});

@@ -20,11 +20,8 @@ abstract class PurchaseInterface {
   Future<List<Variant>> allImportsToDate();
   Future<List<PurchaseReportItem>> allPurchasesToDate();
 
-  Future<void> saveVariant(
-    Variant item,
-    Business business,
-    int branchId,
-  );
+  Future<void> saveVariant(Variant item, Business business, int branchId,
+      {required bool skipRRaCall});
   FutureOr<Purchase?> getPurchase({
     required String id,
   });

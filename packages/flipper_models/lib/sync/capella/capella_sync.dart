@@ -170,12 +170,7 @@ class CapellaSync extends AiStrategyImpl
     throw UnimplementedError();
   }
 
-  @override
-  Future<void> updateIoFunc(
-      {required Variant variant, Purchase? purchase, double? approvedQty}) {
-    // TODO: implement updateIoFunc
-    throw UnimplementedError();
-  }
+ 
 
   @override
   Future<void> mergeTransactions(
