@@ -82,4 +82,57 @@ mixin CapellaCounterMixin implements CounterInterface {
     // TODO: implement updateCounters
     throw UnimplementedError();
   }
+
+  Stream<List<Counter>> listenCounters({required int branchId}) {
+    try {
+      final ditto = DittoService.instance.dittoInstance;
+      if (ditto == null) {
+        talker.error('Ditto not initialized');
+        return Stream.value([]);
+      }
+
+      final controller = StreamController<List<Counter>>.broadcast();
+      dynamic observer;
+
+      observer = ditto.store.registerObserver(
+        'SELECT * FROM counters WHERE branchId = :branchId',
+        arguments: {'branchId': branchId},
+        onChange: (queryResult) {
+          if (controller.isClosed) return;
+
+          final counters = queryResult.items.map((doc) {
+            final data = Map<String, dynamic>.from(doc.value);
+            return Counter(
+              id: data['id'],
+              branchId: data['branchId'],
+              curRcptNo: data['curRcptNo'],
+              totRcptNo: data['totRcptNo'],
+              invcNo: data['invcNo'],
+              businessId: data['businessId'],
+              createdAt: data['createdAt'] != null
+                  ? DateTime.parse(data['createdAt'])
+                  : null,
+              lastTouched: data['lastTouched'] != null
+                  ? DateTime.parse(data['lastTouched'])
+                  : null,
+              receiptType: data['receiptType'],
+              bhfId: data['bhfId'] ?? '',
+            );
+          }).toList();
+
+          controller.add(counters);
+        },
+      );
+
+      controller.onCancel = () async {
+        await observer?.cancel();
+        await controller.close();
+      };
+
+      return controller.stream;
+    } catch (e) {
+      talker.error('Error watching counters: $e');
+      return Stream.value([]);
+    }
+  }
 }

@@ -94,4 +94,8 @@ mixin CounterMixin implements CounterInterface {
     ])))
         .firstOrNull;
   }
+
+  Stream<List<Counter>> listenCounters({required int branchId}) {
+    throw UnimplementedError();
+  }
 }
