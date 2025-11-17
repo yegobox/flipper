@@ -21,10 +21,19 @@ int highestCounter(Ref ref, int branchId) {
       if (counters.isEmpty) {
         return 0;
       }
-      // Sort by invcNo descending and take the first
-      final sortedCounters = [...counters];
-      sortedCounters.sort((a, b) => b.invcNo!.compareTo(a.invcNo!));
-      return sortedCounters.first.invcNo!;
+      // Filter out null invcNo values and extract non-null integers
+      final validInvcNos = counters
+          .where((counter) => counter.invcNo != null)
+          .map((counter) => counter.invcNo as int)
+          .toList();
+
+      // Return 0 if no valid invcNo values exist
+      if (validInvcNos.isEmpty) {
+        return 0;
+      }
+
+      // Find and return the maximum value
+      return validInvcNos.reduce((a, b) => a > b ? a : b);
     },
     loading: () => 0,
     error: (err, stack) => 0,

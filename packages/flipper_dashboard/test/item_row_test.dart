@@ -1,18 +1,14 @@
 // import 'package:flipper_dashboard/itemRow.dart';
 // import 'package:flipper_models/db_model_export.dart';
 // import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
-// import 'package:flipper_models/providers/transactions_provider.dart';
-// import 'package:flipper_rw/dependencyInitializer.dart';
+// import 'package:flipper_rw/dependency_initializer.dart';
 // import 'package:flutter/material.dart';
 // import 'package:flutter_test/flutter_test.dart';
 // import 'package:hooks_riverpod/hooks_riverpod.dart';
 // import 'package:mockito/mockito.dart';
 // import 'package:mockito/annotations.dart';
 // import 'package:overlay_support/overlay_support.dart';
-// import 'package:stacked_services/stacked_services.dart';
-// import 'package:flipper_routing/app.locator.dart';
 // import 'dart:async';
-// import 'dart:io';
 
 // @GenerateMocks([ProductViewModel])
 // class MockProductViewModel extends Mock implements ProductViewModel {}
@@ -67,17 +63,17 @@
 //     mockVariant = MockVariant();
 
 //     // Set up mock behavior
-//     when(mockModel.saveTransaction(
-//       variation: mockVariant,
-//       amountTotal: 100.0,
-//       customItem: false,
-//       currentStock: 10.0,
-//       pendingTransaction: argThat(isA<ITransaction>()),
-//       partOfComposite: false,
-//       compositePrice: null,
-//       useTransactionItemForQty: false,
-//       item: null,
-//     )).thenAnswer((_) async => true);
+//     // when(mockModel.saveTransaction(
+//     //   variation: mockVariant,
+//     //   amountTotal: 100.0,
+//     //   customItem: false,
+//     //   currentStock: 10.0,
+//     //   pendingTransaction: argThat(isA<ITransaction>()),
+//     //   partOfComposite: false,
+//     //   compositePrice: null,
+//     //   useTransactionItemForQty: false,
+//     //   item: null,
+//     // )).thenAnswer((_) async => true);
 
 //     // Create a ProviderContainer with overridden providers
 //     container = ProviderContainer(

@@ -38,6 +38,7 @@ dependency_overrides:
     path: ../../packages/flipper_models
   http: ^1.2.2
   archive: ^3.6.1
+  sqlite3: ^3.0.1
 
 dev_dependencies:
   flutter_test:

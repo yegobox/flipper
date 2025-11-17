@@ -49,17 +49,28 @@ mixin CounterMixin implements CounterInterface {
       RwApiResponse? receiptSignature}) async {
     if (counters.isEmpty) return;
 
+    if (receiptSignature == null) {
+      talker.warning("receiptSignature is null, skipping counter update.");
+      return;
+    }
+
     // Use receiptSignature as the source of truth for receipt numbers
-    final newCurRcptNo = receiptSignature?.data?.rcptNo ?? 0;
-    final newTotRcptNo = receiptSignature?.data?.totRcptNo ?? 0;
+    final newCurRcptNo = receiptSignature.data?.rcptNo ?? 0;
+    final newTotRcptNo = receiptSignature.data?.totRcptNo ?? 0;
 
     // Find the highest invoice number and increment it
     final highestInvcNo =
         counters.map((c) => c.invcNo ?? 0).reduce((a, b) => a > b ? a : b);
     final newInvcNo = highestInvcNo + 1;
 
+    final Set<int> uniqueBranchIds = {};
+
     // Update all counters to the same values
     for (Counter counter in counters) {
+      if (counter.branchId == null) {
+        talker.warning("Counter with null branchId found, skipping.");
+        continue;
+      }
       counter.createdAt = DateTime.now().toUtc();
       counter.lastTouched = DateTime.now().toUtc();
       counter.curRcptNo = newCurRcptNo;
@@ -67,11 +78,10 @@ mixin CounterMixin implements CounterInterface {
       counter.invcNo = newInvcNo;
 
       await repository.upsert(counter);
+      uniqueBranchIds.add(counter.branchId!);
     }
 
     // Update SAR once per unique branch
-    final uniqueBranchIds = counters.map((c) => c.branchId!).toSet();
-
     for (final branchId in uniqueBranchIds) {
       final sar = await getSar(branchId: branchId);
       if (sar != null) {
@@ -96,6 +106,8 @@ mixin CounterMixin implements CounterInterface {
   }
 
   Stream<List<Counter>> listenCounters({required int branchId}) {
-    throw UnimplementedError();
+    // TODO: implement a safe repository-backed stream/polling observer
+    throw UnsupportedError(
+        'Streaming is not supported by this strategy. Please use a repository-backed stream or polling observer.');
   }
 }
