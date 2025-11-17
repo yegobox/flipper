@@ -11,7 +11,7 @@ environment:
   sdk: ">=3.4.0 <4.0.0"
 
 dependencies:
-  brick_core: ">=2.0.0 <3.0.0"
+  brick_core: any
   brick_offline_first: ">=4.0.0 <5.0.0"
   brick_rest: ">=4.0.0 <5.0.0"
   brick_sqlite: ">=4.0.0 <5.0.0"

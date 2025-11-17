@@ -10,7 +10,7 @@ environment:
   sdk: ">=3.4.0 <4.0.0"
 
 dependencies:
-  brick_core: ">=2.0.0 <3.0.0"
+  brick_core: any
   collection: ">=1.15.0 <2.0.0"
   gql: ">=0.13.0 <2.0.0"
   gql_exec: ">=0.3.0 <2.0.0"
