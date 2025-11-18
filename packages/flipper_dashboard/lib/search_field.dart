@@ -7,7 +7,7 @@ import 'package:flipper_dashboard/BulkAddProduct.dart';
 import 'package:flipper_dashboard/DateCoreWidget.dart';
 import 'package:flipper_dashboard/HandleScannWhileSelling.dart';
 import 'package:flipper_dashboard/notice.dart';
-import 'package:flipper_models/providers/orders_provider.dart';
+// import 'package:flipper_models/providers/orders_provider.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/DeviceType.dart';
@@ -87,8 +87,7 @@ class SearchFieldState extends ConsumerState<SearchField>
 
   @override
   Widget build(BuildContext context) {
-    final stringValue = ref.watch(searchStringProvider);
-
+   
     final screenWidth = MediaQuery.of(context).size.width;
     final padding = screenWidth * 0.001;
 

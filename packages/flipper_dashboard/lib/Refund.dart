@@ -302,7 +302,7 @@ class _RefundState extends ConsumerState<Refund> {
           Variant? variant = await ProxyService.getStrategy(Strategy.capella)
               .getVariant(id: item.variantId);
           if (variant != null) {
-            if (variant.itemCd != "3") {
+            if (variant.itemTyCd != "3") {
               await ProxyService.strategy.updateStock(
                 stockId: variant.stockId!,
                 currentStock: item.qty.toDouble(),
