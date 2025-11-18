@@ -47,7 +47,7 @@ dependencies:
   flipper_login: any
   intl: ^0.20.2
 
-  connectivity_plus: ^6.0.5
+  connectivity_plus: ^7.0.0
   provider: ^6.0.2
   gap: ^2.0.0
   barcode: ^2.2.0
@@ -55,7 +55,7 @@ dependencies:
   receipt: ^1.0.0
   # Splash screen handle
   flutter_native_splash: ^2.3.2
-  permission_handler: ^11.3.1
+  permission_handler: ^12.0.1
   flutter_svg: ^2.0.0
   modal_bottom_sheet: ^3.0.0-pre
   flipper_ui: ^1.0.3
@@ -122,13 +122,12 @@ dependencies:
   brick_offline_first: ^4.0.0
   # speech_to_text: ^7.1.0
   record: ^6.0.0
-  just_audio: ^0.10.4
   markdown_widget: ^2.3.2
   flipper_auth: any
-  realm_dart: ^20.1.1
-  flutter_soloud: ^3.3.1
+  flutter_soloud: ^3.4.4
   ditto_live: ^4.13.0
   flipper_personal: any
+  just_audio: ^0.10.5
 
 dependency_overrides:
   http: ^1.2.2
@@ -141,6 +140,7 @@ dependency_overrides:
   excel: ^4.0.6
   mime: ^2.0.0
   cbor: ^6.3.7
+  jni: ^0.14.2
   
 
 flutter:

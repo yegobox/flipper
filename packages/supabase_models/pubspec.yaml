@@ -14,7 +14,7 @@ dependencies:
   brick_supabase: ^2.0.1
   supabase_flutter: ^2.10.0
   sqflite_common: ^2.5.4+6 
-  sqflite_common_ffi: ^2.3.6
+  sqflite_common_ffi: ^2.4.0
   path_provider: ^2.1.5
   path: ^1.9.0
   uuid: ^4.5.1
@@ -40,7 +40,7 @@ dependency_overrides:
   archive: ^3.6.1
   excel: ^4.0.6
   cbor: ^6.3.7
-  
+  jni: ^0.14.2
   meta: ^1.16.0
 
 

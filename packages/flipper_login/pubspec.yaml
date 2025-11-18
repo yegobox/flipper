@@ -23,7 +23,7 @@ dependencies:
   google_fonts: ^6.1.0
   firebase_auth: ^6.0.1
   flipper_routing: ^1.0.0
-  connectivity_plus: ^6.0.5
+  connectivity_plus: ^7.0.0
   firebase_ui_localizations: ^2.0.0
   firebase_ui_oauth: ^2.0.0
   firebase_ui_oauth_google: ^2.0.0
@@ -39,7 +39,7 @@ dependencies:
   hooks_riverpod: ^2.0.0
   loading_animation_widget: ^1.2.0+4
   sentry: ^9.6.0
-  sentry_flutter: ^9.6.0
+  sentry_flutter: ^9.8.0
   flipper_models: any
   google_sign_in: ^6.2.2
   firebase_ui_oauth_apple: ^2.0.0
@@ -56,6 +56,7 @@ dependency_overrides:
   archive: ^3.6.1
   excel: ^4.0.6
   cbor: ^6.3.7
+  jni: ^0.14.2
   
 
 flutter:

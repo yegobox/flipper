@@ -28,7 +28,7 @@ dependencies:
 
   # Location services for proximity detection
   geolocator: ^13.0.2
-  permission_handler: ^11.3.1
+  permission_handler: ^12.0.1
   uuid: ^4.5.1
   flipper_models: ^0.0.1-dev.7
   ditto: ^0.0.1
@@ -39,6 +39,7 @@ dependency_overrides:
   http: ^1.2.2
   archive: ^3.6.1
   sqlite3: ^3.0.1
+  jni: ^0.14.2
 
 dev_dependencies:
   flutter_test:

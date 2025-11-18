@@ -14,7 +14,7 @@ dependencies:
    # Check latest version
   overlay_support: ^2.1.0 # Check latest version
   mobile_scanner: ^7.0.1
-  connectivity_plus: ^6.0.5 # Check latest version
+  connectivity_plus: ^7.0.0 # Check latest version
   flipper_models: any
   flipper_services: any
   flipper_ui: any
@@ -25,7 +25,7 @@ dependency_overrides:
   mime: ^2.0.0  # satisfy supabase_flutter's mime requirement
   sqlite3: ^3.0.1  # keep sqlite3 consistent
   cbor: ^6.3.7
-  
+  jni: ^0.14.2
   meta: ^1.16.0
 
 dev_dependencies:

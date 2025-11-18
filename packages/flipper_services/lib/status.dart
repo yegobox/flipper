@@ -1,12 +1,11 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:flutter_statusbarcolor_ns/flutter_statusbarcolor_ns.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:http/http.dart' as http;
 
-///TODO: use https://pub.dev/packages/internet_connection_checker_plus to check if we have internet
 abstract class Status {
   Future<void> appBarColor(Color color);
   void updateStatusColor();
@@ -112,7 +111,14 @@ class StatusAppBarForAndroidAndIos
 
   @override
   Future<void> appBarColor(Color color) async {
-    await FlutterStatusbarcolor.setStatusBarColor(color);
+    SystemChrome.setSystemUIOverlayStyle(
+      SystemUiOverlayStyle(
+        statusBarColor: color, // Android physical status bar
+        statusBarIconBrightness:
+            color.computeLuminance() > 0.5 ? Brightness.dark : Brightness.light,
+      ),
+    );
+
     _statusColor.value = color;
   }
 
