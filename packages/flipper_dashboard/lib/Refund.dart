@@ -311,6 +311,7 @@ class _RefundState extends ConsumerState<Refund> {
             }
           }
         }
+        //TODO: handle failures what happen if failure happen in handleReceipt yet we have added stock back to the inventory??
         await handleReceipt(filterType: FilterType.NR);
         talker.info(
             "Original transaction ${widget.transaction!.id} marked as refunded");
