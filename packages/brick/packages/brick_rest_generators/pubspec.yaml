@@ -11,9 +11,9 @@ environment:
 
 dependencies:
   analyzer: ">=6.11.0 <8.0.0"
-  brick_build: ">=4.0.0 <5.0.0"
+  brick_build: any
   brick_core: any
-  brick_json_generators: ">=4.0.0 <5.0.0"
+  brick_json_generators: any
   brick_rest: ">=4.0.0 <5.0.0"
   build: ">=2.4.2 <2.5.0"
   dart_style: ">=3.0.0 <4.0.0"

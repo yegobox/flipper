@@ -13,8 +13,8 @@ environment:
 dependencies:
   brick_core: any
   brick_graphql: ">=4.0.0 <5.0.0"
-  brick_offline_first: ">=4.0.0 <5.0.0"
-  brick_sqlite: ">=4.0.0 <5.0.0"
+  brick_offline_first: any
+  brick_sqlite: any
   gql: ">=0.13.0 <2.0.0"
   gql_exec: ">=0.3.0 <2.0.0"
   gql_link: ">=0.4.0 <2.0.0"
