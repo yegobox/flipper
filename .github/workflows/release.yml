@@ -58,7 +58,7 @@ jobs:
           git submodule update --init
       - name: Load melos
         run: |
-          dart pub global activate melos 6.3.2
+          dart pub global activate melos 7.3.0
           melos bootstrap
           melos run generate:icons
 
@@ -151,7 +151,7 @@ jobs:
 
       - name: Bootstrap dependencies
         run: |
-          dart pub global activate melos 6.3.2
+          dart pub global activate melos 7.3.0
           melos bootstrap
 
       - name: Build Flipper app
@@ -225,7 +225,7 @@ jobs:
       - name: submodule init
         run: |
           git submodule update --init
-          dart pub global activate melos 6.3.2
+          dart pub global activate melos 7.3.0
           melos bootstrap
       - name: Configure Missing files
         shell: bash
@@ -273,7 +273,7 @@ jobs:
 
       - name: Setup melos
         run: |
-          dart pub global activate melos 6.3.2
+          dart pub global activate melos 7.3.0
           melos bootstrap
 
       - name: Configure Missing files
@@ -346,7 +346,7 @@ jobs:
 
       - name: Setup melos
         run: |
-          dart pub global activate melos 6.3.2
+          dart pub global activate melos 7.3.0
           melos bootstrap
 
       - name: Configure Missing files 
@@ -453,7 +453,7 @@ jobs:
         run: git submodule update --init
       - name: Setup melos
         run: |
-          dart pub global activate melos 6.3.2
+          dart pub global activate melos 7.3.0
           melos bootstrap
       - name: Configure Missing files
         run: |
@@ -484,7 +484,7 @@ jobs:
           ls -la apps/${{ matrix.app }}/
           ls -la apps/${{ matrix.app }}/android/
       - run: |
-          dart pub global activate melos 6.3.2
+          dart pub global activate melos 7.3.0
           melos bootstrap
       
       # Get version from pubspec.yaml
