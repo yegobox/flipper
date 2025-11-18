@@ -160,24 +160,25 @@ class SearchFieldState extends ConsumerState<SearchField>
                       return notices(notice: notice.value ?? []);
                     },
                   ),
-                  Consumer(
-                    builder: (context, ref, child) {
-                      final orders = ref.watch(stockRequestsProvider(
-                          status: RequestStatus.pending,
-                          search: stringValue.isNotEmpty ? stringValue : null));
-                      return orders.when(
-                        data: (orders) => widget.showOrderButton
-                            ? orderButton(orders.length).shouldSeeTheApp(ref,
-                                featureName: AppFeature.Orders)
-                            : const SizedBox.shrink(),
-                        loading: () => widget.showOrderButton
-                            ? orderButton(0).shouldSeeTheApp(ref,
-                                featureName: AppFeature.Orders)
-                            : const SizedBox.shrink(),
-                        error: (err, stack) => Text('Error: $err'),
-                      );
-                    },
-                  ),
+                  // TODO: resume this when orders are back
+                  // Consumer(
+                  //   builder: (context, ref, child) {
+                  //     final orders = ref.watch(stockRequestsProvider(
+                  //         status: RequestStatus.pending,
+                  //         search: stringValue.isNotEmpty ? stringValue : null));
+                  //     return orders.when(
+                  //       data: (orders) => widget.showOrderButton
+                  //           ? orderButton(orders.length).shouldSeeTheApp(ref,
+                  //               featureName: AppFeature.Orders)
+                  //           : const SizedBox.shrink(),
+                  //       loading: () => widget.showOrderButton
+                  //           ? orderButton(0).shouldSeeTheApp(ref,
+                  //               featureName: AppFeature.Orders)
+                  //           : const SizedBox.shrink(),
+                  //       error: (err, stack) => Text('Error: $err'),
+                  //     );
+                  //   },
+                  // ),
                   Consumer(
                     builder: (context, ref, child) {
                       final appMode = ref.watch(appModeProvider);
