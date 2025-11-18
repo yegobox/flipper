@@ -24,8 +24,8 @@ dev_dependencies:
 
 dependency_overrides:
   brick_build:
-    path: ../brick_build
+    path: any
   brick_build_test:
-    path: ../brick_build_test
+    path: any
   brick_core:
-    path: ../brick_core
+    path: any
