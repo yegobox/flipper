@@ -11,12 +11,18 @@ environment:
 
 dependencies:
   analyzer: ">=6.11.0 <8.0.0"
-  brick_build: any
-  brick_core: any
-  brick_json_generators: any
-  brick_offline_first: any
-  brick_sqlite: any
-  brick_sqlite_generators: any
+  brick_build:
+    path: ../brick_build
+  brick_core:
+    path: ../brick_core
+  brick_json_generators:
+    path: ../brick_json_generators
+  brick_offline_first:
+    path: ../brick_offline_first
+  brick_sqlite:
+    path: ../brick_sqlite
+  brick_sqlite_generators:
+    path: ../brick_sqlite_generators
   build: ">=2.4.2 <2.5.0"
   dart_style: ">=3.0.0 <4.0.0"
   logging: ">=1.0.0 <2.0.0"
@@ -30,6 +36,7 @@ dev_dependencies:
   brick_offline_first_with_rest:
     path: ../brick_offline_first_with_rest
   brick_rest:
+    path: ../brick_rest
   brick_rest_generators:
     path: ../brick_rest_generators
   build_verify:
