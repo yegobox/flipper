@@ -8,7 +8,8 @@ environment:
   flutter: ">=3.3.0"
 
 dependencies:
-  brick_core: any
+  brick_core:
+    path: ../brick_core
   ditto_live: ^4.13.0
   flutter:
     sdk: flutter
