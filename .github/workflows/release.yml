@@ -725,6 +725,14 @@ jobs:
           SEARCH_DIR="apps/${{ matrix.app }}"
           echo "Searching for build artifact in $SEARCH_DIR..."
           
+          # Debug: List directory structure
+          echo "=== Debug: Listing build directories ==="
+          ls -la "$SEARCH_DIR/" 2>/dev/null || echo "Directory $SEARCH_DIR not found"
+          ls -la "$SEARCH_DIR/build/" 2>/dev/null || echo "Directory $SEARCH_DIR/build not found"
+          ls -la "build/" 2>/dev/null || echo "Directory build/ not found"
+          find "build/" -name "*.aab" -o -name "*.apk" 2>/dev/null || echo "No artifacts in build/"
+          echo "=== End Debug ==="
+          
           # Prioritize standard output directories
           ARTIFACT_PATH=$(find "$SEARCH_DIR/build/app/outputs/bundle" -name "*.aab" 2>/dev/null | head -n 1)
           if [ -z "$ARTIFACT_PATH" ]; then
