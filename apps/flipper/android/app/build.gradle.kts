@@ -40,7 +40,15 @@ android {
         vectorDrawables.useSupportLibrary = true
         
         ndk {
-            abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86_64")
+            abiFilters.clear()
+            abiFilters.addAll(listOf("arm64-v8a", "armeabi-v7a", "x86_64"))
+        }
+
+        // 16KB page size support
+        externalNativeBuild {
+            cmake {
+                arguments += listOf("-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON")
+            }
         }
 
         manifestPlaceholders.put(
@@ -90,7 +98,7 @@ android {
             excludes += setOf("/META-INF/{AL2.0,LGPL2.1}")
         }
         jniLibs {
-            useLegacyPackaging = false
+            useLegacyPackaging = true
         }
     }
 }
