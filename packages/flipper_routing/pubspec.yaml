@@ -15,7 +15,6 @@ dependencies:
   flipper_models: any
   stacked_services: ^1.6.0
   stacked: ^3.5.0
-  url_strategy: ^0.2.0
   logger: ^2.5.0
   firebase_ui_auth: ^3.0.0
   flipper_actionable: 0.0.1
