@@ -1,0 +1,228 @@
+
+[*] Dependency Check
+Verifying required tools are available
+────────────────────────────────────────────────────────────────────────────────
+  [OK] objdump
+    /usr/bin/objdump
+  [OK] unzip
+    /usr/bin/unzip
+  [OK] file
+    /usr/bin/file
+  [OK] All dependencies satisfied
+    3 tools available
+
+════════════════════════════════════════════════════════════════════════════════════════
+║                                 ANALYSIS IN PROGRESS                                 ║
+║                        Checking 16KB Page Size Compatibility                        ║
+════════════════════════════════════════════════════════════════════════════════════════
+
+  [*] Target: app-release.apk
+  [i] Compliance Deadline: November 1st, 2025
+  [i] Requirement: Apps targeting Android 15+ must support 16KB pages
+
+[P] APK Analysis
+Processing Android Package file
+────────────────────────────────────────────────────────────────────────────────
+  [!] zipalign not found in PATH
+  [i] Ensure Android SDK build-tools are installed and in PATH
+  [*] Extracting native libraries from APK...
+
+[*] ELF Segment Analysis
+Scanning native libraries for 16KB alignment compliance
+────────────────────────────────────────────────────────────────────────────────
+  [i] Found native libraries - analyzing ELF segment alignment...
+
+┌─────────────────────────────┬──────────────────┬───────────────┬─────────────┐
+│ Library                     │ Architecture     │ Alignment     │ Status      │
+├─────────────────────────────┼──────────────────┼───────────────┼─────────────┤
+│ libsentry.so                │ armeabi-v7a      │ 2**14         │ [OK] PASS    │
+│ libflutter.so               │ armeabi-v7a      │ 2**16         │ [OK] PASS    │
+│ libvorbisfile.so            │ armeabi-v7a      │ 2**14         │ [OK] PASS    │
+│ libdittoffi.so              │ armeabi-v7a      │ 2**14         │ [OK] PASS    │
+│ libapp.so                   │ armeabi-v7a      │ 2**14         │ [OK] PASS    │
+│ libflutter_soloud_plugin.so │ armeabi-v7a      │ 2**14         │ [OK] PASS    │
+│ libopus.so                  │ armeabi-v7a      │ 2**14         │ [OK] PASS    │
+│ libsentry-android.so        │ armeabi-v7a      │ 2**14         │ [OK] PASS    │
+│ libbarhopper_v3.so          │ armeabi-v7a      │ 2**12         │ [X] WARN    │
+│ libvorbis.so                │ armeabi-v7a      │ 2**14         │ [OK] PASS    │
+│ libsurface_util_jni.so      │ armeabi-v7a      │ 2**14         │ [OK] PASS    │
+│ libFLAC.so                  │ armeabi-v7a      │ 2**14         │ [OK] PASS    │
+│ libflutter_plugin.so        │ armeabi-v7a      │ 2**12         │ [X] WARN    │
+│ libsqlite3.arm.android.so   │ armeabi-v7a      │ 2**14         │ [OK] PASS    │
+│ libdartjni.so               │ armeabi-v7a      │ 2**14         │ [OK] PASS    │
+│ libsqlite3.so               │ armeabi-v7a      │ 2**12         │ [X] WARN    │
+│ libimage_processing_util... │ armeabi-v7a      │ 2**14         │ [OK] PASS    │
+│ libdatastore_shared_coun... │ armeabi-v7a      │ 2**14         │ [OK] PASS    │
+│ libogg.so                   │ armeabi-v7a      │ 2**14         │ [OK] PASS    │
+│ libsentry.so                │ arm64-v8a        │ 2**14         │ [OK] PASS    │
+│ libflutter.so               │ arm64-v8a        │ 2**16         │ [OK] PASS    │
+│ libvorbisfile.so            │ arm64-v8a        │ 2**14         │ [OK] PASS    │
+│ libdittoffi.so              │ arm64-v8a        │ 2**14         │ [OK] PASS    │
+│ libapp.so                   │ arm64-v8a        │ 2**16         │ [OK] PASS    │
+│ libsqlite3.arm64.android.so │ arm64-v8a        │ 2**14         │ [OK] PASS    │
+│ libflutter_soloud_plugin.so │ arm64-v8a        │ 2**14         │ [OK] PASS    │
+│ libopus.so                  │ arm64-v8a        │ 2**14         │ [OK] PASS    │
+│ libsentry-android.so        │ arm64-v8a        │ 2**14         │ [OK] PASS    │
+│ libbarhopper_v3.so          │ arm64-v8a        │ 2**14         │ [OK] PASS    │
+│ libvorbis.so                │ arm64-v8a        │ 2**14         │ [OK] PASS    │
+│ libsurface_util_jni.so      │ arm64-v8a        │ 2**14         │ [OK] PASS    │
+│ libFLAC.so                  │ arm64-v8a        │ 2**14         │ [OK] PASS    │
+│ libflutter_plugin.so        │ arm64-v8a        │ 2**12         │ [X] FAIL    │
+│   [!] CRITICAL: Required for Google Play compliance!                        │
+│ libdartjni.so               │ arm64-v8a        │ 2**14         │ [OK] PASS    │
+│ libsqlite3.so               │ arm64-v8a        │ 2**14         │ [OK] PASS    │
+│ libimage_processing_util... │ arm64-v8a        │ 2**14         │ [OK] PASS    │
+│ libdatastore_shared_coun... │ arm64-v8a        │ 2**14         │ [OK] PASS    │
+│ libogg.so                   │ arm64-v8a        │ 2**14         │ [OK] PASS    │
+│ libsentry.so                │ x86_64           │ 2**14         │ [OK] PASS    │
+│ libflutter.so               │ x86_64           │ 2**16         │ [OK] PASS    │
+│ libvorbisfile.so            │ x86_64           │ 2**14         │ [OK] PASS    │
+│ libdittoffi.so              │ x86_64           │ 2**14         │ [OK] PASS    │
+│ libapp.so                   │ x86_64           │ 2**16         │ [OK] PASS    │
+│ libflutter_soloud_plugin.so │ x86_64           │ 2**14         │ [OK] PASS    │
+│ libopus.so                  │ x86_64           │ 2**14         │ [OK] PASS    │
+│ libsentry-android.so        │ x86_64           │ 2**14         │ [OK] PASS    │
+│ libbarhopper_v3.so          │ x86_64           │ 2**14         │ [OK] PASS    │
+│ libvorbis.so                │ x86_64           │ 2**14         │ [OK] PASS    │
+│ libsurface_util_jni.so      │ x86_64           │ 2**14         │ [OK] PASS    │
+│ libFLAC.so                  │ x86_64           │ 2**14         │ [OK] PASS    │
+│ libflutter_plugin.so        │ x86_64           │ 2**12         │ [X] FAIL    │
+│   [!] CRITICAL: Required for Google Play compliance!                        │
+│ libdartjni.so               │ x86_64           │ 2**14         │ [OK] PASS    │
+│ libsqlite3.so               │ x86_64           │ 2**14         │ [OK] PASS    │
+│ libsqlite3.x64.android.so   │ x86_64           │ 2**14         │ [OK] PASS    │
+│ libimage_processing_util... │ x86_64           │ 2**14         │ [OK] PASS    │
+│ libdatastore_shared_coun... │ x86_64           │ 2**14         │ [OK] PASS    │
+│ libogg.so                   │ x86_64           │ 2**14         │ [OK] PASS    │
+└─────────────────────────────┴──────────────────┴───────────────┴─────────────┘
+
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│                         COMPATIBILITY CHECK FAILED                         │
+├────────────────────────────────────────────────────────────────────────────┤
+│ [!] ACTION REQUIRED: Unaligned native libraries detected!                  │
+│                                                                            │
+│ Analysis Results:                                                          │
+│   • Total libraries scanned: 57                                          │
+│   • Critical architectures (64-bit): 38                                  │
+│   • Libraries aligned: 52                                                │
+│   • Libraries UNALIGNED: 5                                               │
+│   • Critical failures: 2 (MUST FIX)                                      │
+│   • Non-critical warnings: 3 (SHOULD FIX)                                │
+│                                                                            │
+│ Google Play Compliance: FAILED                                             │
+│ Deadline: November 1st, 2025                                               │
+└────────────────────────────────────────────────────────────────────────────┘
+
+
+  > Critical Libraries Requiring Immediate Attention
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+  [X] libflutter_plugin.so
+    ARM64 architecture - Required for Google Play
+  [X] libflutter_plugin.so
+    x86_64 architecture - Required for Google Play
+
+  > Non-Critical Libraries (Recommended to Fix)
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+  [!] libbarhopper_v3.so
+    ARMv7 architecture
+  [!] libflutter_plugin.so
+    ARMv7 architecture
+  [!] libsqlite3.so
+    ARMv7 architecture
+
+[T] How to Fix Unaligned Libraries
+Step-by-step guide to achieve 16KB compatibility
+────────────────────────────────────────────────────────────────────────────────
+
+  > Step 1: Update Your Build Environment
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+  [i] Android Gradle Plugin (AGP)
+    Upgrade to version 8.5.1 or higher
+  [i] Android NDK
+    Update to NDK r27 or higher (r28+ recommended)
+  [i] Build Tools
+    Ensure Android SDK build-tools 35.0.0+ for zipalign
+
+  > Step 2: Configure 16KB ELF Alignment
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+
+For NDK r28 and newer:
+  [OK] Automatic Support
+    16KB alignment enabled by default - no changes needed!
+
+For NDK r27:
+  [i] Gradle Configuration
+    Add to your app/build.gradle:
+    android {
+        defaultConfig {
+            externalNativeBuild {
+                cmake {
+                    arguments '-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON'
+                }
+            }
+        }
+    }
+  [i] NDK-Build Configuration
+    Add to Application.mk:
+    APP_SUPPORT_FLEXIBLE_PAGE_SIZES := true
+
+For NDK r26 and older:
+  [i] Manual Linker Flags
+    Add to your native build configuration:
+    # For Android.mk:
+    LOCAL_LDFLAGS += "-Wl,-z,max-page-size=16384"
+
+    # For CMakeLists.txt:
+    target_link_options(${CMAKE_PROJECT_NAME} PRIVATE "-Wl,-z,max-page-size=16384")
+
+  > Step 3: Update Library Packaging
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+  [i] AGP 8.5.1+
+    Uncompressed libraries used by default (no changes needed)
+  [i] Older AGP versions
+    Add to app/build.gradle:
+    android {
+        packagingOptions {
+            jniLibs {
+                useLegacyPackaging = true
+            }
+        }
+    }
+
+  > Step 4: Build and Verify
+┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈
+  [*] Clean Build
+    Run ./gradlew clean
+  [*] Rebuild Project
+    Run ./gradlew assembleRelease
+  [*] Re-run This Script
+    Verify all libraries are now aligned
+  [*] Test on Device
+    Use Android 15 emulator with 16KB system image
+
+[B] Additional Resources
+Learn more about 16KB page size support
+────────────────────────────────────────────────────────────────────────────────
+  [i] Official Guide
+    https://developer.android.com/guide/practices/page-sizes
+  [i] NDK Documentation
+    https://developer.android.com/ndk/guides/
+  [i] Testing Guide
+    Use 'adb shell getconf PAGE_SIZE' (should return 16384)
+  [i] Emulator Setup
+    Android 15 system images with 16KB page size
+
+┌────────────────────────────────────────────────────────────────────────────┐
+│                                 NEXT STEPS                                 │
+├────────────────────────────────────────────────────────────────────────────┤
+│ CRITICAL: Fix required for Google Play compliance by November 1st, 2025!   │
+│                                                                            │
+│ 1. Update your build tools and NDK version                                 │
+│ 2. Apply the configuration changes above                                   │
+│ 3. Clean and rebuild your project                                          │
+│ 4. Run this script again to verify fixes                                   │
+│ 5. Test thoroughly on 16KB devices/emulator                                │
+└────────────────────────────────────────────────────────────────────────────┘
+
+  [*] Cleaning up temporary files...
