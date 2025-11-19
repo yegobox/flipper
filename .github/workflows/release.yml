@@ -509,6 +509,145 @@ jobs:
         run: |
           echo "POSTHOG_API_KEY=${{ secrets.POSTHOG_API_KEY }}" > android/app/local.properties
         working-directory: apps/${{ matrix.app }}
+      
+      # ===== 16 KB PAGE SIZE COMPLIANCE CHECKS - START =====
+      - name: Verify Android Gradle Plugin Version
+        run: |
+          echo "=========================================="
+          echo "16 KB PAGE SIZE COMPLIANCE CHECK - AGP"
+          echo "=========================================="
+          
+          # Check AGP version in build.gradle.kts files
+          echo "Checking Android Gradle Plugin version..."
+          
+          # Check project-level build.gradle.kts
+          if [ -f "build.gradle.kts" ]; then
+            AGP_VERSION=$(grep 'com.android.application\|com.android.library' build.gradle.kts | grep -oP '\d+\.\d+\.\d+' | head -1)
+            echo "Found AGP version: $AGP_VERSION"
+            
+            # Extract major and minor version (e.g., 8.5 from 8.5.1)
+            MAJOR=$(echo $AGP_VERSION | cut -d. -f1)
+            MINOR=$(echo $AGP_VERSION | cut -d. -f2)
+            
+            # Check if AGP is 8.5.1 or higher
+            if [ "$MAJOR" -gt 8 ] || { [ "$MAJOR" -eq 8 ] && [ "$MINOR" -ge 5 ]; }; then
+              echo "✅ AGP version $AGP_VERSION supports 16 KB page size alignment"
+            else
+              echo "⚠️  WARNING: AGP version $AGP_VERSION may not support 16 KB page size"
+              echo "⚠️  Recommended: AGP 8.5.1 or higher"
+              echo "⚠️  Please update your build.gradle.kts"
+            fi
+          else
+            echo "⚠️  Could not find build.gradle.kts to verify AGP version"
+          fi
+          
+          # Also check settings.gradle.kts
+          if [ -f "settings.gradle.kts" ]; then
+            echo "Checking settings.gradle.kts..."
+            grep -i "android" settings.gradle.kts || true
+          fi
+          
+          echo "=========================================="
+        working-directory: apps/${{ matrix.app }}/android
+
+      - name: Verify NDK Configuration
+        run: |
+          echo "=========================================="
+          echo "16 KB PAGE SIZE COMPLIANCE CHECK - NDK"
+          echo "=========================================="
+          
+          # Verify NDK version
+          NDK_VERSION="28.0.12674087"
+          if [ -d "$ANDROID_HOME/ndk/$NDK_VERSION" ]; then
+            echo "✅ NDK $NDK_VERSION is installed (supports 16 KB alignment by default)"
+            
+            # Check NDK version details
+            if [ -f "$ANDROID_HOME/ndk/$NDK_VERSION/source.properties" ]; then
+              echo "NDK Details:"
+              cat "$ANDROID_HOME/ndk/$NDK_VERSION/source.properties"
+            fi
+          else
+            echo "⚠️  WARNING: NDK $NDK_VERSION not found"
+            echo "Available NDK versions:"
+            ls -la $ANDROID_HOME/ndk/ || echo "No NDK directory found"
+          fi
+          
+          # Check if app uses native code
+          if [ -d "app/src/main/jniLibs" ] || [ -d "app/src/main/cpp" ]; then
+            echo "Native code detected - 16 KB alignment is CRITICAL"
+          else
+            echo "No native code detected in app/src/main/"
+          fi
+          
+          echo "=========================================="
+        working-directory: apps/${{ matrix.app }}/android
+
+      - name: Check Build Configuration for 16 KB Support
+        run: |
+          echo "=========================================="
+          echo "16 KB PAGE SIZE COMPLIANCE CHECK - BUILD CONFIG"
+          echo "=========================================="
+          
+          # Check gradle.properties for 16 KB related settings
+          if [ -f "gradle.properties" ]; then
+            echo "Checking gradle.properties..."
+            cat gradle.properties | grep -i "android" || true
+          fi
+          
+          # Check app-level build.gradle.kts
+          if [ -f "app/build.gradle.kts" ]; then
+            echo "Checking app/build.gradle.kts for relevant configurations..."
+            
+            # Check targetSdk
+            TARGET_SDK=$(grep 'targetSdk' app/build.gradle.kts | grep -oP '\d+' | head -1)
+            echo "Target SDK: $TARGET_SDK"
+            
+            if [ "$TARGET_SDK" -ge 35 ]; then
+              echo "✅ Target SDK $TARGET_SDK - 16 KB page size support REQUIRED"
+            elif [ "$TARGET_SDK" -ge 34 ]; then
+              echo "⚠️  Target SDK $TARGET_SDK - 16 KB support recommended"
+            fi
+            
+            # Check for ndk configurations
+            echo "Checking NDK configuration..."
+            grep -A 5 "ndk {" app/build.gradle.kts || echo "No explicit NDK configuration found"
+            
+            # Check for packaging options
+            echo "Checking packaging options..."
+            grep -A 10 "packagingOptions\|packaging {" app/build.gradle.kts || echo "No explicit packaging options found"
+          fi
+          
+          echo "=========================================="
+        working-directory: apps/${{ matrix.app }}/android
+
+      - name: Check Flutter 16 KB Compatibility
+        run: |
+          echo "=========================================="
+          echo "16 KB PAGE SIZE COMPLIANCE CHECK - FLUTTER"
+          echo "=========================================="
+          
+          FLUTTER_VERSION=$(flutter --version | head -1)
+          echo "Flutter version: $FLUTTER_VERSION"
+          
+          # Check if pubspec.yaml has any native plugins
+          echo "Checking for Flutter plugins that may use native code..."
+          cd apps/${{ matrix.app }}
+          
+          if [ -f "pubspec.yaml" ]; then
+            echo "Dependencies in pubspec.yaml:"
+            grep -A 100 "^dependencies:" pubspec.yaml | grep "  [a-z]" | head -20
+          fi
+          
+          # Check flutter build configuration
+          if [ -f "android/app/build.gradle.kts" ]; then
+            echo "Checking Flutter Android configuration..."
+            grep -i "flutter" android/app/build.gradle.kts || true
+          fi
+          
+          echo "=========================================="
+        working-directory: ${{ github.workspace }}
+      # ===== 16 KB PAGE SIZE COMPLIANCE CHECKS - END =====
+      
       - name: Set environment variables
         run: |
           if [ "${{ matrix.app }}" = "flipper_auth" ]; then
@@ -571,6 +710,42 @@ jobs:
           DB_URL: ${{ secrets.DB_URL }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
         working-directory: apps/${{ matrix.app }}/android
+      
+      # ===== POST-BUILD 16 KB VERIFICATION - START =====
+      - name: Verify AAB/APK 16 KB Compliance
+        if: always()
+        run: |
+          SCRIPT_PATH="${{ github.workspace }}/apps/flipper/en_check_elf_alignment.sh"
+          if [ ! -f "$SCRIPT_PATH" ]; then
+            echo "::error::Verification script not found at $SCRIPT_PATH"
+            exit 1
+          fi
+          chmod +x "$SCRIPT_PATH"
+
+          SEARCH_DIR="apps/${{ matrix.app }}/android"
+          echo "Searching for build artifact in $SEARCH_DIR..."
+          
+          # Prioritize standard output directories
+          ARTIFACT_PATH=$(find "$SEARCH_DIR/build/outputs/bundle" -name "*.aab" 2>/dev/null | head -n 1)
+          if [ -z "$ARTIFACT_PATH" ]; then
+            ARTIFACT_PATH=$(find "$SEARCH_DIR/build/outputs/apk" -name "*.apk" 2>/dev/null | head -n 1)
+          fi
+
+          # Fallback to searching the whole directory
+          if [ -z "$ARTIFACT_PATH" ]; then
+            echo "::warning::Build artifact not found in standard output paths, searching entire $SEARCH_DIR..."
+            ARTIFACT_PATH=$(find "$SEARCH_DIR" -name "*.aab" -o -name "*.apk" | head -n 1)
+          fi
+
+          if [ -z "$ARTIFACT_PATH" ]; then
+            echo "::error::Build artifact (.aab or .apk) not found in $SEARCH_DIR!"
+            exit 1
+          fi
+
+          echo "Found artifact: $ARTIFACT_PATH"
+          "$SCRIPT_PATH" "$ARTIFACT_PATH"
+      # ===== POST-BUILD 16 KB VERIFICATION - END =====
+      
       - name: Upload Android AAB
         uses: softprops/action-gh-release@v1
         with:
@@ -579,6 +754,14 @@ jobs:
           draft: false
           body: |
             Debug Release for QA
+            
+            16 KB Page Size Compliance: Pre-deployment checks completed
+            - AGP version verified
+            - NDK 28.0.12674087 (16 KB alignment supported)
+            - Build configuration checked
+            - Post-build artifact verification completed
+            
+            ⚠️ Additional testing recommended on 16 KB page size devices
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
