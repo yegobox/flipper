@@ -3,7 +3,7 @@
 # Enhanced ELF Alignment Checker for Android 16KB Page Size Compatibility
 # This script checks if your app's native libraries are compatible with 16KB page size devices
 # as required by Google Play starting November 1st, 2025 for apps targeting Android 15+
-
+# 
 progname="${0##*/}"
 progname="${progname%.sh}"
 

@@ -716,6 +716,12 @@ jobs:
         if: always()
         run: |
           SCRIPT_PATH="${{ github.workspace }}/apps/flipper/en_check_elf_alignment.sh"
+          echo "=== Debug: Checking for script ===" 
+          echo "Looking for script at: $SCRIPT_PATH"
+          echo "Workspace directory:"
+          ls -la "${{ github.workspace }}/apps/flipper/" 2>/dev/null || echo "apps/flipper directory not found"
+          echo "=== End Debug ==="
+          
           if [ ! -f "$SCRIPT_PATH" ]; then
             echo "::error::Verification script not found at $SCRIPT_PATH"
             exit 1
