@@ -4,7 +4,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # 1.170.4252223234854+1755779343
 # 1.180.4252223234901+1756527939
 
-version: 1.180.4252223234901+1756528391
+version: 1.180.4252223234901+1756528392
 
 
 environment:
@@ -47,7 +47,7 @@ dependencies:
   # url_launcher: ^6.3.0
   google_fonts: ^6.1.0
   number_display: ^3.0.0
-  firebase_core: ^4.0.0
+  firebase_core: ^4.2.1
   cupertino_icons: ^1.0.2
   connectivity_plus: ^7.0.0
   provider: ^6.0.1
@@ -197,7 +197,7 @@ msix_config:
   identity_name: yegobox.yegoboxflipper
 
 
-  msix_version: 1.170.5051.452
+  msix_version: 1.170.5051.453
 
 
   publisher: CN=B0F334A1E-8AET-4B2C-BD1B-F239D4F791AE

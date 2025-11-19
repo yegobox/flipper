@@ -60,7 +60,7 @@ dependencies:
   #   path: packages/flutter_form_bloc
   
   # firebase_auth_desktop: ^1.0.2-flipper
-  firebase_core: ^4.0.0
+  firebase_core: ^4.2.1
   # firebase_core_desktop: ^1.0.2-dev
   
   # The following adds the Cupertino Icons font to your application.
