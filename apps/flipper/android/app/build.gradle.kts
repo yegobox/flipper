@@ -49,6 +49,9 @@ android {
             cmake {
                 arguments += listOf("-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON")
             }
+            ndkBuild {
+                arguments += "APP_SUPPORT_FLEXIBLE_PAGE_SIZES=true"
+            }
         }
 
         manifestPlaceholders.put(
@@ -98,7 +101,7 @@ android {
             excludes += setOf("/META-INF/{AL2.0,LGPL2.1}")
         }
         jniLibs {
-            useLegacyPackaging = false
+            useLegacyPackaging = true  // CRITICAL: Required for 16KB page size support with extractNativeLibs=false
         }
     }
 }
