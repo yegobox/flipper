@@ -4,7 +4,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # 1.170.4252223234854+1755779343
 # 1.180.4252223234901+1756527939
 
-version: 1.180.4252223234901+1756528397
+version: 1.180.4252223234901+1756528398
 
 
 environment:
@@ -62,7 +62,7 @@ dependencies:
   easy_sidemenu: ^0.6.0
   flipper_localize: ^1.0.0-dev
   tray_manager: ^0.2.3
-  pinput: ^4.0.0
+  pinput: ^6.0.0
   local_auth: ^2.1.7
   flutter_riverpod: ^2.4.5
   riverpod_annotation: ^2.3.0
@@ -197,7 +197,7 @@ msix_config:
   identity_name: yegobox.yegoboxflipper
 
 
-  msix_version: 1.170.5051.458
+  msix_version: 1.170.5051.459
 
 
   publisher: CN=B0F334A1E-8AET-4B2C-BD1B-F239D4F791AE
