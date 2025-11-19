@@ -722,13 +722,13 @@ jobs:
           fi
           chmod +x "$SCRIPT_PATH"
 
-          SEARCH_DIR="apps/${{ matrix.app }}/android"
+          SEARCH_DIR="apps/${{ matrix.app }}"
           echo "Searching for build artifact in $SEARCH_DIR..."
           
           # Prioritize standard output directories
-          ARTIFACT_PATH=$(find "$SEARCH_DIR/build/outputs/bundle" -name "*.aab" 2>/dev/null | head -n 1)
+          ARTIFACT_PATH=$(find "$SEARCH_DIR/build/app/outputs/bundle" -name "*.aab" 2>/dev/null | head -n 1)
           if [ -z "$ARTIFACT_PATH" ]; then
-            ARTIFACT_PATH=$(find "$SEARCH_DIR/build/outputs/apk" -name "*.apk" 2>/dev/null | head -n 1)
+            ARTIFACT_PATH=$(find "$SEARCH_DIR/build/app/outputs/apk" -name "*.apk" 2>/dev/null | head -n 1)
           fi
 
           # Fallback to searching the whole directory
