@@ -731,6 +731,15 @@ jobs:
             ARTIFACT_PATH=$(find "$SEARCH_DIR/build/app/outputs/apk" -name "*.apk" 2>/dev/null | head -n 1)
           fi
 
+          # Check custom build directory (build.gradle.kts redirects to workspace root)
+          if [ -z "$ARTIFACT_PATH" ]; then
+            echo "Checking custom build directory at workspace root..."
+            ARTIFACT_PATH=$(find "build/app/outputs/bundle" -name "*.aab" 2>/dev/null | head -n 1)
+            if [ -z "$ARTIFACT_PATH" ]; then
+              ARTIFACT_PATH=$(find "build/app/outputs/apk" -name "*.apk" 2>/dev/null | head -n 1)
+            fi
+          fi
+
           # Fallback to searching the whole directory
           if [ -z "$ARTIFACT_PATH" ]; then
             echo "::warning::Build artifact not found in standard output paths, searching entire $SEARCH_DIR..."
