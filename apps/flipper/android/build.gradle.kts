@@ -26,9 +26,21 @@ rootProject.layout.buildDirectory.value(newBuildDir)
 subprojects {
     val newSubprojectBuildDir: Directory = newBuildDir.dir(project.name)
     project.layout.buildDirectory.value(newSubprojectBuildDir)
+    
+    // Set NDK version before evaluation
+    afterEvaluate {
+        val androidExt = extensions.findByName("android")
+        if (androidExt is com.android.build.gradle.BaseExtension) {
+            androidExt.ndkVersion = "28.2.13676358"
+        }
+    }
 }
+
+// Move this AFTER the afterEvaluate block
 subprojects {
-    project.evaluationDependsOn(":app")
+    if (project.path != ":app") {
+        project.evaluationDependsOn(":app")
+    }
 }
 
 tasks.register<Delete>("clean") {

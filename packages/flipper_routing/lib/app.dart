@@ -146,7 +146,7 @@ class App {}
 ///git commit -m "Remove submodule open-sources/flutter_launcher_icons"
 /// rm -rf path/to/submodule
 /// git submodule add https://github.com/Stacked-Org/generator.git open-sources/generator
-/// find ./ -name pubspec.lock -type f -delete
+/// find ./ -name pubspec.lock -type f -delete && find ./ -name pubspec_overrides.yaml -type f -delete && find ./ -name dependencies.txt -type f -delete
 /// find ./ -name pubspec_overrides.yaml -type f -delete
 /// find ./ -name dependencies.txt -type f -delete
 /// https://developer.apple.com/in-app-purchase/
