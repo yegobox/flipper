@@ -31,7 +31,10 @@ target_compile_definitions(${BINARY_NAME} PRIVATE "FLUTTER_VERSION_BUILD=${FLUTT
 # Disable Windows macros that collide with C++ standard library functions.
 target_compile_definitions(${BINARY_NAME} PRIVATE "NOMINMAX")
 
-target_link_libraries(${BINARY_NAME} PRIVATE flutter flutter_wrapper_app sqlite3)
+#this is what we had
+# target_link_libraries(${BINARY_NAME} PRIVATE flutter flutter_wrapper_app sqlite3)
+
+target_link_libraries(${BINARY_NAME} PRIVATE flutter flutter_wrapper_app)
 
 # Add dependency libraries and include directories. Add any application-specific
 # dependencies here.
