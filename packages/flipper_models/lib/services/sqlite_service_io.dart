@@ -30,7 +30,7 @@ class SqliteService {
       print('SQLite addColumnIfNotExists error: $e');
       rethrow;
     } finally {
-      db?.dispose();
+      db?.close();
     }
   }
 
@@ -52,14 +52,14 @@ class SqliteService {
         // unless a transaction is explicitly started.  We don't need COMMIT.
         return db.updatedRows; // Return number of rows affected.
       } finally {
-        stmt.dispose();
+        stmt.close();
       }
     } catch (e) {
       // Log the error and rethrow for the caller to handle.
       print('SQLite execute error: $e');
       rethrow; // Important: rethrow the exception
     } finally {
-      db?.dispose(); // Ensure disposal even on error.
+      db?.close(); // Ensure disposal even on error.
     }
   }
 
@@ -117,7 +117,7 @@ class SqliteService {
       rethrow;
     } finally {
       // Always close the database connection
-      db.dispose();
+      db.close();
     }
   }
 
@@ -135,7 +135,7 @@ class SqliteService {
       print('SQLite select error: $e');
       rethrow;
     } finally {
-      db?.dispose(); // Ensure disposal.
+      db?.close(); // Ensure disposal.
     }
   }
 
@@ -172,7 +172,7 @@ class SqliteService {
           stmt.execute(paramsList[i]);
           totalChanges += db.updatedRows; // Accumulate changes.
         } finally {
-          stmt.dispose();
+          stmt.close();
         }
       }
 
@@ -183,7 +183,7 @@ class SqliteService {
       db?.execute('ROLLBACK TRANSACTION'); // Rollback on error.
       rethrow; // Rethrow to signal failure to the caller.
     } finally {
-      db?.dispose();
+      db?.close();
     }
   }
 }
