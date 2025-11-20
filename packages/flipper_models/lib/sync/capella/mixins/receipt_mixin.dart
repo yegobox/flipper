@@ -15,7 +15,7 @@ mixin CapellaReceiptMixin implements ReceiptInterface {
     required ITransaction transaction,
     required String qrCode,
     required String receiptType,
-    required Counter counter,
+    required int highestInvcNo,
     required int invoiceNumber,
     required String timeReceivedFromserver,
   }) async {

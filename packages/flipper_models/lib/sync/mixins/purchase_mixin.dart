@@ -29,9 +29,11 @@ mixin PurchaseMixin
   Talker get talker;
   String get apihub;
 
-  Future<void> saveVariant(
-      Variant item, Business business, int branchId) async {
+  @override
+  Future<void> saveVariant(Variant item, Business business, int branchId,
+      {required bool skipRRaCall}) async {
     await createProduct(
+      skipRRaCall: skipRRaCall,
       bhFId: (await ProxyService.box.bhfId()) ?? "00",
       tinNumber: (await effectiveTin(business: business))!,
       businessId: ProxyService.box.getBusinessId()!,
@@ -138,9 +140,9 @@ mixin PurchaseMixin
         item.itemClsCd = "2";
         item.taxTyCd = ebm?.vatEnabled == true ? "B" : "D";
         item.color = randomizeColor();
-        item.itemCd = "2"; 
-        saveVariantTasks
-            .add(saveVariant(item, business, activeBranch.serverId!));
+        item.itemCd = "2";
+        saveVariantTasks.add(saveVariant(item, business, activeBranch.serverId!,
+            skipRRaCall: true));
       }
       await Future.wait(saveVariantTasks);
 
@@ -281,6 +283,7 @@ mixin PurchaseMixin
                   await repository.upsert<Stock>(variant.stock!);
                 }
                 final createdProduct = await createProduct(
+                  skipRRaCall: true,
                   saleListId: savedPurchase.id,
                   businessId: businessId,
                   branchId: branchId,

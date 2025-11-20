@@ -158,7 +158,7 @@ class _GeminiSummaryProviderElement
 }
 
 String _$streamedBusinessAnalyticsHash() =>
-    r'50dfe5f380d2280d57f8190d0e478f37f1ac226c';
+    r'e08be810e878598fc06f65775e1bbfb585aff745';
 
 /// See also [streamedBusinessAnalytics].
 @ProviderFor(streamedBusinessAnalytics)
@@ -454,7 +454,7 @@ class _GeminiResponseProviderElement
 }
 
 String _$geminiBusinessAnalyticsHash() =>
-    r'c686b1e484380933605bdf1e69ce48a7c8dabc9e';
+    r'612a9acb20665a4ee5c7b2efda811770cf8c307e';
 
 abstract class _$GeminiBusinessAnalytics
     extends BuildlessAutoDisposeAsyncNotifier<String> {

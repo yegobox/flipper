@@ -18,16 +18,16 @@ if (keystorePropertiesFile.exists()) {
 android {
     namespace = "rw.flipper"
     compileSdk = 36
-    ndkVersion = "27.0.12077973"
+    ndkVersion = "29.0.14206865"
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
         isCoreLibraryDesugaringEnabled = true
     }
 
     kotlinOptions {
-        jvmTarget = JavaVersion.VERSION_11.toString()
+        jvmTarget = "17"
     }
 
     sourceSets["main"].java.srcDirs("src/main/kotlin")
@@ -38,6 +38,18 @@ android {
         targetSdk = 36
         multiDexEnabled = true
         vectorDrawables.useSupportLibrary = true
+        
+        ndk {
+            abiFilters.clear()
+            abiFilters.addAll(listOf("arm64-v8a", "armeabi-v7a", "x86_64"))
+        }
+
+        // 16KB page size support
+        externalNativeBuild {
+            ndkBuild {
+                arguments += "APP_SUPPORT_FLEXIBLE_PAGE_SIZES=true"
+            }
+        }
 
         manifestPlaceholders.put(
             "POSTHOG_API_KEY",
@@ -85,6 +97,9 @@ android {
         resources {
             excludes += setOf("/META-INF/{AL2.0,LGPL2.1}")
         }
+        jniLibs {
+            useLegacyPackaging = true  // CRITICAL: Required for 16KB page size support with extractNativeLibs=false
+        }
     }
 }
 
@@ -111,5 +126,5 @@ dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
 
     // Smart POS
-    implementation(files("libs/SmartPos_1.9.4_R250117.jar"))
+    // implementation(files("libs/SmartPos_1.9.4_R250117.jar"))
 }

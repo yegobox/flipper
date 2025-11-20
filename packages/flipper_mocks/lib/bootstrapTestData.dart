@@ -46,6 +46,7 @@ class CreateMockdata {
         bhFId: "00",
         tinNumber: 111,
         branchId: 1,
+        skipRRaCall: false,
         businessId: 1,
         qty: 100,
         product: Product(

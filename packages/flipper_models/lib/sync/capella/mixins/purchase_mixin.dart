@@ -37,6 +37,7 @@ mixin CapellaPurchaseMixin implements PurchaseInterface {
     Variant item,
     Business business,
     int branchId,
+      {required bool skipRRaCall}
   ) async {
     throw UnimplementedError('saveVariant needs to be implemented for Capella');
   }

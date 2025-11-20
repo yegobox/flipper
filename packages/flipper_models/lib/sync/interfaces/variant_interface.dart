@@ -27,7 +27,7 @@ abstract class VariantInterface {
 
   Future<int> addVariant({
     required List<Variant> variations,
-    required int branchId,
+    required int branchId, required bool skipRRaCall,
   });
 
   Future<List<IUnit>> units({required int branchId});

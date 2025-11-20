@@ -4,7 +4,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # 1.170.4252223234854+1755779343
 # 1.180.4252223234901+1756527939
 
-version: 1.180.4252223234901+1756528330
+version: 1.180.4252223234901+1756528408
 
 
 environment:
@@ -14,10 +14,10 @@ dependencies:
   flutter:
     sdk: flutter
   sentry: ^9.6.0
-  sentry_flutter: ^9.6.0
+  sentry_flutter: ^9.8.0
   jni: ^0.14.2
   firebase_crashlytics: ^5.0.2
-  flutter_local_notifications: ^19.1.0
+  flutter_local_notifications: ^19.5.0
   intl: ^0.20.2
   injectable: ^2.5.0
   get_it: ^8.0.3
@@ -47,14 +47,14 @@ dependencies:
   # url_launcher: ^6.3.0
   google_fonts: ^6.1.0
   number_display: ^3.0.0
-  firebase_core: ^4.0.0
+  firebase_core: ^4.2.1
   cupertino_icons: ^1.0.2
-  connectivity_plus: ^6.0.5
+  connectivity_plus: ^7.0.0
   provider: ^6.0.1
   gap: ^2.0.0
   barcode: ">=2.2.3 <3.0.0"
   flutter_native_splash: ^2.3.2
-  permission_handler: ^11.3.1
+  permission_handler: ^12.0.1
   flutter_svg: ^2.0.0
   modal_bottom_sheet: ^3.0.0-pre
   flipper_ui: ^1.0.3
@@ -62,7 +62,7 @@ dependencies:
   easy_sidemenu: ^0.6.0
   flipper_localize: ^1.0.0-dev
   tray_manager: ^0.2.3
-  pinput: ^4.0.0
+  pinput: ^6.0.0
   local_auth: ^2.1.7
   flutter_riverpod: ^2.4.5
   riverpod_annotation: ^2.3.0
@@ -134,7 +134,7 @@ dependencies:
   flipper_services: any
   flipper_login: any
   supabase_models: any
-  sqlite3_flutter_libs: ^0.5.40
+  sqlite3: ^3.0.1
   amplify_core: ^2.6.5
   amplify_api: ^2.6.5
   amplify_flutter: ^2.6.5
@@ -143,20 +143,17 @@ dependencies:
   shared_preferences: ^2.5.2
   easy_localization: ^3.0.7 
   supabase_flutter: ^2.10.0
-  sqflite_common_ffi: ^2.3.6
+  sqflite_common_ffi: ^2.4.0
   sqflite_common_ffi_web: ^1.0.1+1
   posthog_flutter: ^5.4.3
-  # nfc_manager: ^4.1.1
-  # realm: ^20.1.1
-  # realm_dart: ^20.1.1
   flipper_web: any
   
 dependency_overrides:
-  
+  jni: ^0.14.2
   http: ^1.2.2
   meta: ^1.16.0
   web: ^1.1.0
-  sqlite3: ^2.9.2
+  sqlite3: ^3.0.1
   stacked_services: ^1.6.0
   stacked: ^3.5.0
   device_info_plus: ^11.3.3
@@ -173,7 +170,7 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^3.0.0
   msix: ^3.16.12
-  patrol: ^3.14.0
+  patrol: ^3.20.0
   # Java interop code generation
   jnigen: ^0.14.2
   flutter_launcher_icons: ^0.14.4
@@ -200,7 +197,7 @@ msix_config:
   identity_name: yegobox.yegoboxflipper
 
 
-  msix_version: 1.170.5051.391
+  msix_version: 1.170.5051.469
 
 
   publisher: CN=B0F334A1E-8AET-4B2C-BD1B-F239D4F791AE

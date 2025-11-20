@@ -36,7 +36,9 @@
         android:label="flipper"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon"
-        android:allowBackup="false">
+        android:allowBackup="false"
+        android:supportsRtl="true"
+        android:extractNativeLibs="false">
          <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver" />
         <receiver android:exported="false" android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver">
             <intent-filter>
@@ -59,6 +61,9 @@
             <meta-data android:name="notificationId" android:value="1001" />
         </service>
 
+         <property
+            android:name="android.app.property.16KB_PAGE_SIZE"
+            android:value="true" />
          <!-- Configure admob-->
         <meta-data
             android:name="com.google.android.gms.version"

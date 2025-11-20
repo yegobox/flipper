@@ -1,3 +1,15 @@
+buildscript {
+    val kotlin_version = "2.2.0"
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath("com.android.tools.build:gradle:8.12.1")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version")
+    }
+}
+
 allprojects {
     repositories {
         google()
@@ -14,9 +26,23 @@ rootProject.layout.buildDirectory.value(newBuildDir)
 subprojects {
     val newSubprojectBuildDir: Directory = newBuildDir.dir(project.name)
     project.layout.buildDirectory.value(newSubprojectBuildDir)
+    
+    // Set NDK version before evaluation
+    afterEvaluate {
+        val androidExt = extensions.findByName("android")
+        if (androidExt is com.android.build.gradle.BaseExtension) {
+            androidExt.ndkVersion = "29.0.14206865"
+            androidExt.compileSdkVersion(36)
+            androidExt.defaultConfig.targetSdkVersion(36)
+        }
+    }
 }
+
+// Move this AFTER the afterEvaluate block
 subprojects {
-    project.evaluationDependsOn(":app")
+    if (project.path != ":app") {
+        project.evaluationDependsOn(":app")
+    }
 }
 
 tasks.register<Delete>("clean") {

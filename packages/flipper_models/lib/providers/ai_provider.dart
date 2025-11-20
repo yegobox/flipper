@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io'; // Import for File
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/proxy.dart';
@@ -148,7 +149,8 @@ class GeminiBusinessAnalytics extends _$GeminiBusinessAnalytics {
   Future<String> build(int branchId, String userPrompt,
       {String? filePath, List<Content>? history}) async {
     final businessAnalyticsData =
-        await ProxyService.strategy.analytics(branchId: branchId);
+        await ProxyService.getStrategy(Strategy.capella)
+            .analytics(branchId: branchId);
 
     // Get current time for temporal context
     final now = DateTime.now();
@@ -304,5 +306,6 @@ Future<String> geminiSummary(Ref ref, String prompt) async {
 @riverpod
 Stream<List<BusinessAnalytic>> streamedBusinessAnalytics(
     Ref ref, int branchId) {
-  return ProxyService.strategy.streamRemoteAnalytics(branchId: branchId);
+  return ProxyService.getStrategy(Strategy.capella)
+      .streamRemoteAnalytics(branchId: branchId);
 }

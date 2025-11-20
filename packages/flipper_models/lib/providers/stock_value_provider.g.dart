@@ -6,7 +6,7 @@ part of 'stock_value_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$stockValueHash() => r'6d9ca4f9bf413f53d488989e4a70b822a4c5f0d5';
+String _$stockValueHash() => r'05115dbb6ae561966acda2375534ba486dc81f73';
 
 /// Copied from Dart SDK
 class _SystemHash {

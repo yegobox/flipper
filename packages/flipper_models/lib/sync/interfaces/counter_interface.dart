@@ -14,6 +14,8 @@ abstract class CounterInterface {
     bool fetchRemote = false,
   });
 
+  Stream<List<Counter>> listenCounters({required int branchId});
+
   Future<void> updateCounters({
     required List<Counter> counters,
     RwApiResponse? receiptSignature,

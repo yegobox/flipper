@@ -23,10 +23,10 @@ dependencies:
   built_collection: ^5.1.1
   flipper_services: any
   flipper_routing: ^1.0.0
-  connectivity_plus: ^6.0.5
+  connectivity_plus: ^7.0.0
   
   sentry: ^9.6.0
-  sentry_flutter: ^9.6.0
+  sentry_flutter: ^9.8.0
   
   path_provider: ^2.1.5
   http: ^1.2.2
@@ -54,9 +54,10 @@ dependencies:
   async: ^2.11.0
   archive: ^3.6.1
   mime: ^2.0.0
-  firebase_core: ^4.0.0
-  sqlite3_flutter_libs: '>=0.5.31 <0.6.0'
-  permission_handler: ^11.3.1
+  firebase_core: ^4.2.1
+  # sqlite3_flutter_libs: ^0.5.40
+  sqlite3: ^3.0.1
+  permission_handler: ^12.0.1
   json_annotation: ^4.9.0
   supabase_flutter: ^2.10.0
   supabase_models: any
@@ -75,10 +76,10 @@ dependencies:
 dependency_overrides:
   http: ^1.2.2
   meta: ^1.16.0
-  
+  jni: ^0.14.2
   web: ^1.0.0
   json_annotation: ^4.9.0
-  sqlite3: ^2.9.2
+  sqlite3: ^3.0.1
   stacked_services: ^1.6.0
   device_info_plus: ^11.3.3
   archive: ^3.6.1

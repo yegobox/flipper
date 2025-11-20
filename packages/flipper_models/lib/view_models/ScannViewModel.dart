@@ -8,7 +8,6 @@ import 'package:flipper_models/view_models/mixins/rraConstants.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:intl/intl.dart';
-import 'package:supabase_models/brick/repository.dart';
 
 import 'package:talker_flutter/talker_flutter.dart';
 import 'package:flutter/material.dart';
@@ -310,6 +309,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
     int branchId = ProxyService.box.getBranchId()!;
     String bhfid = (await ProxyService.box.bhfId()) ?? "00";
     return await ProxyService.strategy.createProduct(
+      skipRRaCall: false,
       createItemCode: false,
       tinNumber:
           (await ProxyService.strategy.ebm(branchId: branchId))!.tinNumber,

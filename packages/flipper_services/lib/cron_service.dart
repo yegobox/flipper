@@ -198,22 +198,6 @@ class CronService {
       }
     }));
 
-    // Setup counter synchronization timer
-    // _activeTimers.add(
-    //     Timer.periodic(Duration(minutes: _counterSyncMinutes), (Timer t) async {
-    //   try {
-    //     final branchId = ProxyService.box.getBranchId();
-    //     if (branchId != null) {
-    //       await ProxyService.strategy
-    //           .getCounters(branchId: branchId, fetchRemote: true);
-    //     } else {
-    //       talker.warning("Skipping counter sync: Branch ID is null");
-    //     }
-    //   } catch (e) {
-    //     talker.error("Counter sync failed: $e");
-    //   }
-    // }));
-
     // Setup isolate message timer
     _activeTimers.add(Timer.periodic(Duration(seconds: _isolateMessageSeconds),
         (Timer t) async {

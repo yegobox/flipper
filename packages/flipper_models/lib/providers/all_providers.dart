@@ -19,3 +19,4 @@ export 'variants_provider.dart';
 export 'access_provider.dart';
 export 'credit_provider.dart';
 export 'product_sort_provider.dart';
+export 'counter_provider.dart';

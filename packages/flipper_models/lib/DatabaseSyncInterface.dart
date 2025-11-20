@@ -12,6 +12,7 @@ import 'package:flipper_models/sync/interfaces/auth_interface.dart';
 import 'package:flipper_models/sync/interfaces/branch_interface.dart';
 import 'package:flipper_models/sync/interfaces/business_interface.dart';
 import 'package:flipper_models/sync/interfaces/category_interface.dart';
+import 'package:flipper_models/sync/interfaces/counter_interface.dart';
 import 'package:flipper_models/sync/interfaces/customer_interface.dart';
 import 'package:flipper_models/sync/interfaces/delete_interface.dart';
 import 'package:flipper_models/sync/interfaces/ebm_interface.dart';
@@ -74,6 +75,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
         StockRecountInterface,
         ShiftApi,
         StockInterface,
+        CounterInterface,
         ReceiptInterface,
         LogInterface {
   // Repository get repository;
@@ -241,7 +243,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
       String? itemCd,
       String? productId});
   Future<bool> isTaxEnabled({required int businessId});
- 
+
   Future<Receipt?> getReceipt({required String transactionId});
 
   Future<void> refund({required int itemId});
@@ -514,8 +516,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
       required String userType}) {}
 
   FutureOr<List<LPermission>> permissions({required int userId});
-
-  getCounters({required int branchId, bool fetchRemote = false}) {}
 
   void notify({required AppNotification notification}) {}
 

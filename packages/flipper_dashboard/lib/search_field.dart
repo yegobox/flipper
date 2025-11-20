@@ -7,7 +7,7 @@ import 'package:flipper_dashboard/BulkAddProduct.dart';
 import 'package:flipper_dashboard/DateCoreWidget.dart';
 import 'package:flipper_dashboard/HandleScannWhileSelling.dart';
 import 'package:flipper_dashboard/notice.dart';
-import 'package:flipper_models/providers/orders_provider.dart';
+// import 'package:flipper_models/providers/orders_provider.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/DeviceType.dart';
@@ -87,8 +87,7 @@ class SearchFieldState extends ConsumerState<SearchField>
 
   @override
   Widget build(BuildContext context) {
-    final stringValue = ref.watch(searchStringProvider);
-
+   
     final screenWidth = MediaQuery.of(context).size.width;
     final padding = screenWidth * 0.001;
 
@@ -160,24 +159,25 @@ class SearchFieldState extends ConsumerState<SearchField>
                       return notices(notice: notice.value ?? []);
                     },
                   ),
-                  Consumer(
-                    builder: (context, ref, child) {
-                      final orders = ref.watch(stockRequestsProvider(
-                          status: RequestStatus.pending,
-                          search: stringValue.isNotEmpty ? stringValue : null));
-                      return orders.when(
-                        data: (orders) => widget.showOrderButton
-                            ? orderButton(orders.length).shouldSeeTheApp(ref,
-                                featureName: AppFeature.Orders)
-                            : const SizedBox.shrink(),
-                        loading: () => widget.showOrderButton
-                            ? orderButton(0).shouldSeeTheApp(ref,
-                                featureName: AppFeature.Orders)
-                            : const SizedBox.shrink(),
-                        error: (err, stack) => Text('Error: $err'),
-                      );
-                    },
-                  ),
+                  // TODO: resume this when orders are back
+                  // Consumer(
+                  //   builder: (context, ref, child) {
+                  //     final orders = ref.watch(stockRequestsProvider(
+                  //         status: RequestStatus.pending,
+                  //         search: stringValue.isNotEmpty ? stringValue : null));
+                  //     return orders.when(
+                  //       data: (orders) => widget.showOrderButton
+                  //           ? orderButton(orders.length).shouldSeeTheApp(ref,
+                  //               featureName: AppFeature.Orders)
+                  //           : const SizedBox.shrink(),
+                  //       loading: () => widget.showOrderButton
+                  //           ? orderButton(0).shouldSeeTheApp(ref,
+                  //               featureName: AppFeature.Orders)
+                  //           : const SizedBox.shrink(),
+                  //       error: (err, stack) => Text('Error: $err'),
+                  //     );
+                  //   },
+                  // ),
                   Consumer(
                     builder: (context, ref, child) {
                       final appMode = ref.watch(appModeProvider);

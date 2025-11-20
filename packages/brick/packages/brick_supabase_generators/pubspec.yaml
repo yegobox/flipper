@@ -11,10 +11,14 @@ environment:
 
 dependencies:
   analyzer: ">=6.11.0 <8.0.0"
-  brick_build: ">=4.0.0 <5.0.0"
-  brick_core: ">=2.0.0 <3.0.0"
-  brick_json_generators: ">=4.0.0 <5.0.0"
-  brick_supabase: ">=2.0.0 <3.0.0"
+  brick_build:
+    path: ../brick_build
+  brick_core:
+    path: ../brick_core
+  brick_json_generators:
+    path: ../brick_json_generators
+  brick_supabase:
+    path: ../brick_supabase
   build: ">=2.4.2 <2.5.0"
   dart_style: ">=3.0.0 <4.0.0"
   source_gen: ">=1.5.0 <3.0.0"

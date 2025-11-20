@@ -6,7 +6,7 @@ part of 'total_sale_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$totalSaleHash() => r'44cb13ae76d9ab03086a7cdcf06f95cc7799f5fc';
+String _$totalSaleHash() => r'215b9fe6bbc5561984b25840af3cd9cff891235f';
 
 /// Copied from Dart SDK
 class _SystemHash {

@@ -233,7 +233,9 @@ mixin CapellaVariantMixin implements VariantInterface {
 
   @override
   Future<int> addVariant(
-      {required List<Variant> variations, required int branchId}) {
+      {required List<Variant> variations,
+      required int branchId,
+      required bool skipRRaCall}) {
     throw UnimplementedError('addVariant needs to be implemented for Capella');
   }
 

@@ -112,6 +112,7 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
       /// create a temp product or return it if it exists
       Product? product = await ProxyService.strategy.createProduct(
         createItemCode: true,
+        skipRRaCall: false,
         tinNumber: tin!,
         bhFId: (await ProxyService.box.bhfId()) ?? "00",
         businessId: ProxyService.box.getBusinessId()!,

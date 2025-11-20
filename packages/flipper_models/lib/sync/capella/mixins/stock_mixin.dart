@@ -86,9 +86,6 @@ mixin CapellaStockMixin implements StockInterface {
         talker.error('Ditto not initialized');
         return Stream.value(null);
       }
-      if (id == "47f23ea5-c922-4f5b-bc11-cb6871eb59f0") {
-        debugPrint("we got the stock requested");
-      }
 
       final controller = StreamController<Stock?>.broadcast();
       dynamic observer;
@@ -138,17 +135,26 @@ mixin CapellaStockMixin implements StockInterface {
       tin: data['tin'],
       bhfId: data['bhfId'],
       branchId: data['branchId'],
-      currentStock: (data['currentStock'] as num?)?.toDouble(),
-      lowStock: (data['lowStock'] as num?)?.toDouble(),
+      currentStock: _parseDouble(data['currentStock']),
+      lowStock: _parseDouble(data['lowStock']),
       canTrackingStock: data['canTrackingStock'],
       showLowStockAlert: data['showLowStockAlert'],
       active: data['active'],
-      value: (data['value'] as num?)?.toDouble(),
-      rsdQty: (data['rsdQty'] as num?)?.toDouble(),
+      value: _parseDouble(data['value']),
+      rsdQty: _parseDouble(data['rsdQty']),
       lastTouched: lastTouched,
       ebmSynced: data['ebmSynced'],
-      initialStock: (data['initialStock'] as num?)?.toDouble(),
+      initialStock: _parseDouble(data['initialStock']),
     );
+  }
+
+  double? _parseDouble(dynamic value) {
+    if (value == null) return null;
+    if (value is num) return value.toDouble();
+    if (value is String) {
+      return double.tryParse(value);
+    }
+    return null;
   }
 
   @override

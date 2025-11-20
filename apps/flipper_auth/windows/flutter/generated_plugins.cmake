@@ -21,7 +21,6 @@ list(APPEND FLUTTER_PLUGIN_LIST
   screen_retriever_windows
   sentry_flutter
   share_plus
-  smart_auth
   sqlite3_flutter_libs
   tray_manager
   url_launcher_windows
@@ -29,6 +28,7 @@ list(APPEND FLUTTER_PLUGIN_LIST
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST
+  ditto_live
   flutter_local_notifications_windows
   flutter_soloud
   jni

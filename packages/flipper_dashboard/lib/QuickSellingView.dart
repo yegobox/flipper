@@ -6,6 +6,7 @@ import 'package:flipper_dashboard/TransactionItemTable.dart';
 import 'package:flipper_dashboard/payable_view.dart';
 import 'package:flipper_dashboard/mixins/previewCart.dart';
 import 'package:flipper_dashboard/refresh.dart';
+import 'package:flipper_models/providers/counter_provider.dart';
 import 'package:flipper_models/providers/active_branch_provider.dart';
 import 'package:flipper_models/providers/pay_button_provider.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
@@ -71,6 +72,32 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         double.tryParse(widget.discountController.text) ?? 0.0;
     final discountAmount = (grandTotal * discountPercent) / 100;
     return grandTotal - discountAmount;
+  }
+
+  Widget _buildInvoiceNumber() {
+    final branchId = ProxyService.box.getBranchId();
+    if (branchId == null) {
+      return SizedBox.shrink();
+    }
+    final highestInvoiceNumber = ref.watch(highestCounterProvider(branchId));
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.end,
+        children: [
+          Text(
+            'Invoice No: ',
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          Text(
+            '${highestInvoiceNumber}',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -363,6 +390,10 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         // Transaction Summary Header
         SliverToBoxAdapter(
           child: _buildTransactionSummaryCard(transactionAsyncValue),
+        ),
+
+        SliverToBoxAdapter(
+          child: _buildInvoiceNumber(),
         ),
 
         // Items Section
@@ -968,6 +999,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       padding: const EdgeInsets.all(2.0),
       child: Column(
         children: [
+          _buildInvoiceNumber(),
           SizedBox(height: 20),
           Semantics(
             label: 'Transaction items list',

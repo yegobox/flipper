@@ -23,7 +23,7 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:amplify_storage_s3/amplify_storage_s3.dart';
 import 'package:flutter/foundation.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:synchronized/synchronized.dart';
+
 import 'package:flipper_services/DeviceType.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_dashboard/transaction_item_adder.dart';
@@ -120,12 +120,9 @@ class _RowItemState extends ConsumerState<RowItem>
 
   // Image loading state management
   Future<String>? _cachedRemoteUrlFuture;
-  Future<String?>? _cachedLocalPathFuture;
-  // Cache for asset path lookup to prevent unnecessary reloading
-  Future<String?>? _cachedAssetPathFuture;
   String? _imageUrl;
   int? _branchId;
-  final _lock = Lock();
+  Widget? _cachedImageWidget;
 
   @override
   void initState() {
@@ -144,16 +141,10 @@ class _RowItemState extends ConsumerState<RowItem>
       _branchId = ProxyService.box.getBranchId();
 
       if (_imageUrl != null && _imageUrl!.isNotEmpty && _branchId != null) {
-        // Initialize image loading futures
         _cachedRemoteUrlFuture = preSignedUrl(
           imageInS3: _imageUrl!,
           branchId: _branchId!,
         );
-
-        // Try to load from asset path
-        if (!widget.forceRemoteUrl) {
-          _cachedAssetPathFuture = _tryLoadFromAssetPath(_imageUrl!);
-        }
       }
     } catch (e) {
       talker.error('Error initializing image cache: $e');
@@ -169,19 +160,12 @@ class _RowItemState extends ConsumerState<RowItem>
       _imageUrl = widget.imageUrl;
       _branchId = widget.variant?.branchId;
 
-      if (widget.imageUrl != null) {
-        if (widget.forceRemoteUrl && widget.variant?.branchId != null) {
-          _cachedRemoteUrlFuture = _lock.synchronized(
-              () => preSignedUrl(branchId: _branchId!, imageInS3: _imageUrl!));
-        } else {
-          _cachedLocalPathFuture = _lock
-              .synchronized(() => getImageFilePath(imageFileName: _imageUrl!));
-        }
+      // Clear cached futures and widget when image URL changes
+      _cachedRemoteUrlFuture = null;
+      _cachedImageWidget = null;
 
-        // Update the asset path cache when the image URL changes
-        _cachedAssetPathFuture =
-            _lock.synchronized(() => _tryLoadFromAssetPath(_imageUrl!));
-      }
+      // Reinitialize cache
+      _initImageCache();
     }
   }
 
@@ -392,23 +376,25 @@ class _RowItemState extends ConsumerState<RowItem>
           ),
 
         // Stock display with live updates from Riverpod
-        Consumer(
-          builder: (context, ref, child) {
-            final stockAsync = ref
-                .watch(stockByVariantProvider(widget.variant?.stockId ?? ''));
-            final stockValue = stockAsync.value?.currentStock ?? 0;
+        RepaintBoundary(
+          child: Consumer(
+            builder: (context, ref, child) {
+              final stockAsync = ref
+                  .watch(stockByVariantProvider(widget.variant?.stockId ?? ''));
+              final stockValue = stockAsync.value?.currentStock ?? 0;
 
-            return Text(
-              '$stockValue in stock',
-              style: textTheme.bodySmall?.copyWith(
-                color: stockValue > 0 ? Colors.green[700] : Colors.red[700],
-                fontSize: 10,
-                fontWeight: FontWeight.w500,
-              ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            );
-          },
+              return Text(
+                '$stockValue in stock',
+                style: textTheme.bodySmall?.copyWith(
+                  color: stockValue > 0 ? Colors.green[700] : Colors.red[700],
+                  fontSize: 10,
+                  fontWeight: FontWeight.w500,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              );
+            },
+          ),
         ),
       ],
     );
@@ -492,25 +478,27 @@ class _RowItemState extends ConsumerState<RowItem>
                   ),
 
                 // Stock display with live updates from Riverpod
-                Consumer(
-                  builder: (context, ref, child) {
-                    final stockAsync = ref.watch(
-                        stockByVariantProvider(widget.variant?.stockId ?? ''));
-                    final stockValue = stockAsync.value?.currentStock ?? 0;
+                RepaintBoundary(
+                  child: Consumer(
+                    builder: (context, ref, child) {
+                      final stockAsync = ref.watch(stockByVariantProvider(
+                          widget.variant?.stockId ?? ''));
+                      final stockValue = stockAsync.value?.currentStock ?? 0;
 
-                    return Text(
-                      '$stockValue in stock',
-                      style: textTheme.bodySmall?.copyWith(
-                        color: stockValue > 0
-                            ? Colors.green[700]
-                            : Colors.red[700],
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    );
-                  },
+                      return Text(
+                        '$stockValue in stock',
+                        style: textTheme.bodySmall?.copyWith(
+                          color: stockValue > 0
+                              ? Colors.green[700]
+                              : Colors.red[700],
+                          fontSize: 11,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      );
+                    },
+                  ),
                 ),
               ],
             ),
@@ -625,24 +613,8 @@ class _RowItemState extends ConsumerState<RowItem>
             cacheWidth: 300,
             cacheHeight: 300,
             errorBuilder: (context, error, stackTrace) {
-              // If local file fails, try asset path
-              return FutureBuilder<String?>(
-                future: _tryLoadFromAssetPath(widget.imageUrl!),
-                builder: (context, assetSnapshot) {
-                  if (assetSnapshot.hasData && assetSnapshot.data != null) {
-                    return Image.file(
-                      File(assetSnapshot.data!),
-                      fit: BoxFit.cover,
-                      cacheWidth: 300,
-                      cacheHeight: 300,
-                      errorBuilder: (context, error, stackTrace) =>
-                          _buildImageErrorPlaceholder(),
-                    );
-                  } else {
-                    return _buildImageErrorPlaceholder();
-                  }
-                },
-              );
+              // If local file fails, try remote URL
+              return _buildRemoteImageFallback();
             },
           );
         } else {
@@ -661,40 +633,65 @@ class _RowItemState extends ConsumerState<RowItem>
                   cacheWidth: 300,
                   cacheHeight: 300,
                   errorBuilder: (context, error, stackTrace) =>
-                      _buildImageErrorPlaceholder(),
-                );
-              } else if (widget.forceRemoteUrl && _branchId != null) {
-                // Only try remote URL as last resort if forceRemoteUrl is true
-                return FutureBuilder<String>(
-                  future: preSignedUrl(
-                    imageInS3: widget.imageUrl!,
-                    branchId: _branchId!,
-                  ),
-                  builder: (context, remoteSnapshot) {
-                    if (remoteSnapshot.connectionState ==
-                        ConnectionState.waiting) {
-                      return _buildImageLoadingIndicator();
-                    } else if (remoteSnapshot.hasData) {
-                      return CachedNetworkImage(
-                        imageUrl: remoteSnapshot.data!,
-                        fit: BoxFit.cover,
-                        memCacheWidth: 300,
-                        memCacheHeight: 300,
-                        placeholder: (context, url) =>
-                            _buildImageLoadingIndicator(),
-                        errorWidget: (context, url, error) =>
-                            _buildImageErrorPlaceholder(),
-                      );
-                    } else {
-                      return _buildImageErrorPlaceholder();
-                    }
-                  },
+                      _buildRemoteImageFallback(),
                 );
               } else {
-                return _buildImageErrorPlaceholder();
+                // No local images found, try remote URL
+                return _buildRemoteImageFallback();
               }
             },
           );
+        }
+      },
+    );
+  }
+
+  Widget _buildRemoteImageFallback() {
+    if (_branchId == null) {
+      return _buildImageErrorPlaceholder();
+    }
+
+    // Return cached widget if available
+    if (_cachedImageWidget != null) {
+      return _cachedImageWidget!;
+    }
+
+    _cachedRemoteUrlFuture ??= preSignedUrl(
+      imageInS3: widget.imageUrl!,
+      branchId: _branchId!,
+    );
+
+    return FutureBuilder<String>(
+      key: ValueKey('remote-${widget.imageUrl}-${_branchId}'),
+      future: _cachedRemoteUrlFuture,
+      builder: (context, remoteSnapshot) {
+        if (remoteSnapshot.connectionState == ConnectionState.waiting) {
+          return _buildImageLoadingIndicator();
+        } else if (remoteSnapshot.hasError) {
+          talker.error('Error loading remote image: ${remoteSnapshot.error}');
+          return _buildImageErrorPlaceholder();
+        } else if (remoteSnapshot.hasData) {
+          // Cache the widget to prevent rebuilds
+          _cachedImageWidget ??= RepaintBoundary(
+            child: CachedNetworkImage(
+              useOldImageOnUrlChange: true,
+              key: ValueKey('cached-${remoteSnapshot.data}'),
+              imageUrl: remoteSnapshot.data!,
+              fit: BoxFit.cover,
+              memCacheWidth: 300,
+              memCacheHeight: 300,
+              fadeInDuration: Duration.zero,
+              fadeOutDuration: Duration.zero,
+              placeholder: (context, url) => _buildImageLoadingIndicator(),
+              errorWidget: (context, url, error) {
+                talker.error('CachedNetworkImage error: $error');
+                return _buildImageErrorPlaceholder();
+              },
+            ),
+          );
+          return _cachedImageWidget!;
+        } else {
+          return _buildImageErrorPlaceholder();
         }
       },
     );
@@ -805,16 +802,26 @@ class _RowItemState extends ConsumerState<RowItem>
 
   Future<String> preSignedUrl(
       {required String imageInS3, required int branchId}) async {
-    final filePath = 'public/branch-$branchId/$imageInS3';
-    talker.warning("GettingPreSignedURL:$filePath");
-    final file = await Amplify.Storage.getUrl(
-        path: StoragePath.fromString(filePath),
-        options: StorageGetUrlOptions(
-            pluginOptions: S3GetUrlPluginOptions(
-          validateObjectExistence: true,
-          expiresIn: Duration(minutes: 30),
-        ))).result;
-    return file.url.toString();
+    try {
+      final filePath = 'public/branch-$branchId/$imageInS3';
+      talker.warning("GettingPreSignedURL:$filePath");
+
+      final file = await Amplify.Storage.getUrl(
+          path: StoragePath.fromString(filePath),
+          options: StorageGetUrlOptions(
+              pluginOptions: S3GetUrlPluginOptions(
+            validateObjectExistence:
+                false, // Don't validate existence to avoid delays
+            expiresIn: Duration(minutes: 30),
+          ))).result;
+
+      final url = file.url.toString();
+      talker.info('Generated presigned URL: $url');
+      return url;
+    } catch (e) {
+      talker.error('Error generating presigned URL: $e');
+      rethrow;
+    }
   }
 
   Future<void> onRowClick(BuildContext context) async {

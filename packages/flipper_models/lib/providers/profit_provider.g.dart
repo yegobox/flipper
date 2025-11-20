@@ -6,7 +6,7 @@ part of 'profit_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$profitHash() => r'0b6bd12097b998dba0959fc84c03cd7c3d3f8150';
+String _$profitHash() => r'4037d30b933801a9be6f98b15c7164dcf3f74955';
 
 /// Copied from Dart SDK
 class _SystemHash {
