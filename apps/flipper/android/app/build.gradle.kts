@@ -46,9 +46,6 @@ android {
 
         // 16KB page size support
         externalNativeBuild {
-            cmake {
-                arguments += listOf("-DANDROID_SUPPORT_FLEXIBLE_PAGE_SIZES=ON")
-            }
             ndkBuild {
                 arguments += "APP_SUPPORT_FLEXIBLE_PAGE_SIZES=true"
             }
