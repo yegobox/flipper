@@ -31,7 +31,7 @@ subprojects {
     afterEvaluate {
         val androidExt = extensions.findByName("android")
         if (androidExt is com.android.build.gradle.BaseExtension) {
-            androidExt.ndkVersion = "28.2.13676358"
+            androidExt.ndkVersion = "29.0.14206865"
             androidExt.compileSdkVersion(36)
             androidExt.defaultConfig.targetSdkVersion(36)
         }
