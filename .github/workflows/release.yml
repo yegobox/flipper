@@ -325,7 +325,8 @@ jobs:
     name: "Build windows app-store"
     if: github.ref == 'refs/heads/main'
     runs-on: windows-latest
-# integration-testing-windows,build_web_deploy_firebase
+    # integration-testing-windows,build_web_deploy_firebase
+    # For now intrested in unit testing as web deployment is broken we will re-add need to depend on integration-testing-windows,build_web_deploy_firebase later
     needs: [unit-testing] # Requires Supabase to be initialized
     steps:
       - uses: actions/checkout@v4
