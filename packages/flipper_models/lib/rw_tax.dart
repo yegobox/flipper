@@ -234,7 +234,10 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
               approvedQty: entry.value.qty == 0 ? approvedQty : entry.value.qty,
               itemSeq: entry.key + 1))
           .toList());
-      if (itemsList.isEmpty) throw Exception("No items to save");
+      if (itemsList.isEmpty) {
+        return RwApiResponse(
+            resultCd: "000", resultMsg: "No stock items to save");
+      }
 
       itemsList.forEach((item) {
         item['totDcAmt'] = "0";
@@ -691,7 +694,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
               invoiceNumber: highestInvcNo,
               regTyCd: "A",
               sarNo: highestInvcNo.toString(),
-              sarTyCd: sarTyCd!,
+              sarTyCd: sarTyCd ?? "06",
               custBhfId: transaction.customerBhfId,
               totalSupplyPrice: transaction.subTotal!,
               totalvat: transaction.taxAmount!.toDouble(),
