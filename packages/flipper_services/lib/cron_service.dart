@@ -64,13 +64,16 @@ class CronService {
   /// Initializes data by hydrating from remote if queue is empty
   Future<void> _initializeData() async {
     // get counters touch them
-    List<Counter> counters = await ProxyService.strategy.getCounters(
-        branchId: ProxyService.box.getBranchId()!, fetchRemote: false);
-    for (Counter counter in counters) {
-      counter.lastTouched = DateTime.now();
-      repository.upsert(counter);
-    }
+
     try {
+      if (ProxyService.box.getBranchId() != null) {
+        List<Counter> counters = await ProxyService.strategy.getCounters(
+            branchId: ProxyService.box.getBranchId()!, fetchRemote: false);
+        for (Counter counter in counters) {
+          counter.lastTouched = DateTime.now();
+          repository.upsert(counter);
+        }
+      }
       final uri = await ProxyService.box.getServerUrl();
       ProxyService.http
           .getUniversalProducts(Uri.parse('${uri}itemClass/selectItemsClass'),
