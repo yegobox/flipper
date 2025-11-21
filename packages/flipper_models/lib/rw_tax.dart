@@ -234,7 +234,10 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
               approvedQty: entry.value.qty == 0 ? approvedQty : entry.value.qty,
               itemSeq: entry.key + 1))
           .toList());
-      if (itemsList.isEmpty) throw Exception("No items to save");
+      if (itemsList.isEmpty) {
+        return RwApiResponse(
+            resultCd: "000", resultMsg: "No stock items to save");
+      }
 
       itemsList.forEach((item) {
         item['totDcAmt'] = "0";
@@ -691,7 +694,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
               invoiceNumber: highestInvcNo,
               regTyCd: "A",
               sarNo: highestInvcNo.toString(),
-              sarTyCd: sarTyCd!,
+              sarTyCd: sarTyCd ?? "06",
               custBhfId: transaction.customerBhfId,
               totalSupplyPrice: transaction.subTotal!,
               totalvat: transaction.taxAmount!.toDouble(),
@@ -867,7 +870,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       itemStdNm: item.name,
       orgnNatCd: item.orgnNatCd ?? "RW",
       pkgUnitCd: item.pkgUnitCd,
-      splyAmt: (item.price * quantity).toDouble().toPrecision(0),
+      splyAmt: (item.price * quantity).toDouble().roundToTwoDecimalPlaces(),
       price: item.price,
       bhfId: item.bhfId ?? bhfId,
       // removed this as in richard example it was not there.
@@ -1092,11 +1095,11 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       "totItemCnt": itemsList.length,
 
       // Ensure tax amounts and taxable amounts are set to 0 if null
-      "taxblAmtA": taxTotals['A'] ?? 0.0,
-      "taxblAmtB": (taxTotals['B'] ?? 0.0),
-      "taxblAmtC": taxTotals['C'] ?? 0.0,
-      "taxblAmtD": taxTotals['D'] ?? 0.0,
-      "taxblAmtTt": taxTotals['ttTaxblAmt'] ?? 0.0,
+      "taxblAmtA": (taxTotals['A'] ?? 0.0).roundToTwoDecimalPlaces(),
+      "taxblAmtB": (taxTotals['B'] ?? 0.0).roundToTwoDecimalPlaces(),
+      "taxblAmtC": (taxTotals['C'] ?? 0.0).roundToTwoDecimalPlaces(),
+      "taxblAmtD": (taxTotals['D'] ?? 0.0).roundToTwoDecimalPlaces(),
+      "taxblAmtTt": (taxTotals['ttTaxblAmt'] ?? 0.0).roundToTwoDecimalPlaces(),
 
       "taxAmtA": ((taxTotals['A'] ?? 0.0) *
               (taxConfigTaxA!.taxPercentage ?? 0) /
