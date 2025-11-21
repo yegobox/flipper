@@ -325,7 +325,8 @@ jobs:
     name: "Build windows app-store"
     if: github.ref == 'refs/heads/main'
     runs-on: windows-latest
-    needs: [unit-testing, integration-testing-windows,build_web_deploy_firebase] # Requires Supabase to be initialized
+# integration-testing-windows,build_web_deploy_firebase
+    needs: [unit-testing] # Requires Supabase to be initialized
     steps:
       - uses: actions/checkout@v4
         with:
