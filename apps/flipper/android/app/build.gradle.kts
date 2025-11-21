@@ -39,10 +39,10 @@ android {
         multiDexEnabled = true
         vectorDrawables.useSupportLibrary = true
         
-        ndk {
-            abiFilters.clear()
-            abiFilters.addAll(listOf("arm64-v8a", "armeabi-v7a", "x86_64"))
-        }
+        // ndk {
+        //     abiFilters.clear()
+        //     abiFilters.addAll(listOf("arm64-v8a", "armeabi-v7a", "x86_64"))
+        // }
 
         // 16KB page size support
         externalNativeBuild {

@@ -8,9 +8,6 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
-import 'package:amplify_flutter/amplify_flutter.dart' as apmplify;
-import 'package:amplify_auth_cognito/amplify_auth_cognito.dart' as cognito;
-import 'package:amplify_storage_s3/amplify_storage_s3.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
@@ -31,22 +28,6 @@ import 'package:flipper_services/notifications/notification_manager.dart';
 import 'package:flipper_services/locator.dart';
 
 import 'new_relic.dart' if (dart.library.html) 'new_relic_web.dart';
-import 'amplifyconfiguration.dart';
-
-Future<void> _configureAmplify() async {
-  final authPlugin = cognito.AmplifyAuthCognito();
-  AmplifyStorageS3 amplifyStorageS3 = AmplifyStorageS3();
-  await apmplify.Amplify.addPlugins([
-    authPlugin,
-    amplifyStorageS3,
-  ]);
-
-  try {
-    await apmplify.Amplify.configure(amplifyconfig);
-  } catch (e) {
-    debugPrint(e.toString());
-  }
-}
 
 Future<void> backgroundHandler(RemoteMessage message) async {}
 
@@ -92,8 +73,6 @@ Future<void> _initializeSecondaryDependencies() async {
 }
 
 Future<void> _initializeNonCriticalDependencies() async {
-  _configureAmplify();
-
   const isTest = bool.fromEnvironment('EMULATOR_ENABLED', defaultValue: false);
   if (isTest) {
     // FirebaseFirestore.instance.useFirestoreEmulator('localhost', 8081);
