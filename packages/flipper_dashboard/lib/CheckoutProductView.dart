@@ -39,7 +39,9 @@ class CheckoutProductView extends StatefulHookConsumerWidget {
   final TabController tabController;
   final TextEditingController textEditController;
   final Future<bool> Function(
-      ITransaction transaction, bool immediateCompletion, [Function? onPaymentConfirmed, Function(String)? onPaymentFailed]) onCompleteTransaction;
+      ITransaction transaction, bool immediateCompletion,
+      [Function? onPaymentConfirmed,
+      Function(String)? onPaymentFailed]) onCompleteTransaction;
 
   @override
   _CheckoutProductViewState createState() => _CheckoutProductViewState();
@@ -382,8 +384,10 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
         context: context,
         ref: ref,
         transactionId: transaction.id,
-        onCharge: (transactionId, total, onPaymentConfirmed, onPaymentFailed) async {
-          return await widget.onCompleteTransaction(transaction, false, onPaymentConfirmed, onPaymentFailed);
+        onCharge: (transactionId, total, onPaymentConfirmed, onPaymentFailed,
+            [bool immediateCompletion = false]) async {
+          return await widget.onCompleteTransaction(transaction,
+              immediateCompletion, onPaymentConfirmed, onPaymentFailed);
         },
         doneDelete: () {
           ref.refresh(transactionItemsStreamProvider(

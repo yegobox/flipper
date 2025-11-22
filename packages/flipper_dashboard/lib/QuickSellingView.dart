@@ -1390,7 +1390,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                     final phoneExp = RegExp(r'^[1-9]\d{8}$');
                     if (!phoneExp.hasMatch(value)) {
                       ref.read(payButtonStateProvider.notifier).stopLoading();
-                      return 'Please enter a valid 9-digit phone number without a leading zero';
+                      return 'Invalid Number';
                     }
                   }
 
