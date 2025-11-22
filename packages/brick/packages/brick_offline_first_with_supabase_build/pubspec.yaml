@@ -10,7 +10,7 @@ environment:
   sdk: ">=3.4.0 <4.0.0"
 
 dependencies:
-  analyzer: ">=6.11.0 <8.0.0"
+  analyzer: ">=6.11.0 <9.0.0"
   brick_build:
     path: ../brick_build
   brick_offline_first:

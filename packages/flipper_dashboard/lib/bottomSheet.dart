@@ -137,6 +137,7 @@ class _BottomSheetContent extends ConsumerStatefulWidget {
 class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
     with TickerProviderStateMixin {
   ChargeButtonState _chargeState = ChargeButtonState.initial;
+  bool _isImmediateCompletion = false; // Track which button was clicked
   late final TextEditingController _customerPhoneController;
   String? _customerPhoneError;
   bool _digitalPaymentEnabled = false;
@@ -508,12 +509,16 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
       }
     }
 
-    // Only show waiting state if not immediate completion
-    if (!immediateCompletion) {
-      setState(() {
+    // Set appropriate state based on completion type
+    setState(() {
+      _isImmediateCompletion = immediateCompletion;
+      if (!immediateCompletion) {
         _chargeState = ChargeButtonState.waitingForPayment;
-      });
-    }
+      } else {
+        // For immediate completion, set to printingReceipt to show loading spinner
+        _chargeState = ChargeButtonState.printingReceipt;
+      }
+    });
     ref.read(oldProvider.loadingProvider.notifier).startLoading();
 
     try {
@@ -910,7 +915,8 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                           topLeft: Radius.circular(12),
                           bottomLeft: Radius.circular(12),
                         ),
-                        isLoading: _shouldShowSpinner(),
+                        isLoading:
+                            !_isImmediateCompletion && _shouldShowSpinner(),
                         onPressed: _getButtonEnabled(items.isEmpty)
                             ? () => _handleCharge(
                                   widget.transactionIdInt.toString(),
@@ -937,7 +943,8 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                           topRight: Radius.circular(12),
                           bottomRight: Radius.circular(12),
                         ),
-                        isLoading: _shouldShowSpinner(),
+                        isLoading:
+                            _isImmediateCompletion && _shouldShowSpinner(),
                         onPressed: _getButtonEnabled(items.isEmpty)
                             ? () => _handleCharge(
                                   widget.transactionIdInt.toString(),
