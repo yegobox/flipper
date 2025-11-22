@@ -49,9 +49,17 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       final List<String> whereClauses = [];
       final Map<String, dynamic> arguments = {};
 
-      // Status filter
-      whereClauses.add('status = :status');
-      arguments['status'] = status ?? COMPLETE;
+      // Status filter - conditional based on includePending
+      if (includePending) {
+        // Include both COMPLETE and PENDING statuses
+        whereClauses.add('(status = :status OR status = :pendingStatus)');
+        arguments['status'] = status ?? COMPLETE;
+        arguments['pendingStatus'] = PENDING;
+      } else {
+        // Only include the specified status (default COMPLETE)
+        whereClauses.add('status = :status');
+        arguments['status'] = status ?? COMPLETE;
+      }
 
       // SubTotal filter
       whereClauses.add('subTotal > 0');
@@ -92,16 +100,10 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         arguments['transactionType'] = transactionType;
       }
 
-      // Include pending transactions
-      if (includePending) {
-        whereClauses.add('(status = :status OR status = :pendingStatus)');
-        arguments['pendingStatus'] = PENDING;
-      }
-
       // Filter type handling (maps to 'type' field in database)
       if (filterType != null) {
         whereClauses.add('type = :filterType');
-        arguments['filterType'] = filterType.toString();
+        arguments['filterType'] = filterType.name;
       }
 
       // Date filtering

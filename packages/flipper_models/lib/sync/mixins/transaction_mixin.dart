@@ -113,7 +113,7 @@ mixin TransactionMixin implements TransactionInterface {
         if (branchId != null) Where('branchId').isExactly(branchId),
         Where('isExpense').isExactly(isExpense),
         if (includePending) Where('status').isExactly(PENDING),
-        if (filterType != null) Where('type').isExactly(filterType.toString()),
+        if (filterType != null) Where('type').isExactly(filterType.name),
         if (transactionType != null)
           Where('transactionType').isExactly(transactionType),
       ]
