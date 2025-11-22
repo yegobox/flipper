@@ -138,6 +138,7 @@ class ITransactionDittoAdapter extends DittoSyncAdapter<ITransaction> {
       "totalReceiptNumber": model.totalReceiptNumber,
       "invoiceNumber": model.invoiceNumber,
       "isDigitalReceiptGenerated": model.isDigitalReceiptGenerated,
+      "receiptPrinted": model.receiptPrinted,
       "receiptFileName": model.receiptFileName,
       "currentSaleCustomerPhoneNumber": model.currentSaleCustomerPhoneNumber,
       "sarNo": model.sarNo,
@@ -227,6 +228,7 @@ class ITransactionDittoAdapter extends DittoSyncAdapter<ITransaction> {
       totalReceiptNumber: document["totalReceiptNumber"],
       invoiceNumber: document["invoiceNumber"],
       isDigitalReceiptGenerated: document["isDigitalReceiptGenerated"],
+      receiptPrinted: document["receiptPrinted"],
       receiptFileName: document["receiptFileName"],
       currentSaleCustomerPhoneNumber:
           document["currentSaleCustomerPhoneNumber"],

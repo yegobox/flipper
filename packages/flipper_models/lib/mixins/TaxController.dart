@@ -196,9 +196,17 @@ class TaxController<OBJ> with TransactionDelegationMixin {
       Uint8List? bytes;
       if (!skiGenerateRRAReceiptSignature) {
         try {
-          //
           if (await isDelegationEnabled() && isMobileDevice) {
-            throw Exception("Delegation enabled, skipping local processing");
+           return await _handleDelegationFallback(
+              transaction: transaction,
+              receiptType: receiptType,
+              purchaseCode: purchaseCode,
+              salesSttsCd: salesSttsCd,
+              originalInvoiceNumber: originalInvoiceNumber,
+              sarTyCd: sarTyCd,
+              transactionItems: transactionItems,
+              skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
+            );
           }
           responses = await generateRRAReceiptSignature(
             transaction: transaction,
@@ -341,6 +349,13 @@ class TaxController<OBJ> with TransactionDelegationMixin {
                 bytes = data;
               },
             );
+
+            // Update receiptPrinted to true after successful printing
+            await ProxyService.strategy.updateTransaction(
+              transactionId: transaction.id,
+              receiptPrinted: true,
+            );
+
             return (response: responses, bytes: bytes);
           }
           throw Exception("Invalid action");
@@ -350,45 +365,7 @@ class TaxController<OBJ> with TransactionDelegationMixin {
       }
       throw Exception("invalid action");
     } catch (e) {
-      // If normal processing fails and we're on mobile with delegation enabled, try delegation
-      if (isMobileDevice &&
-          await isDelegationEnabled() &&
-          !skiGenerateRRAReceiptSignature) {
-        try {
-          talker.warning(
-              'Normal receipt processing failed, delegating to desktop: $e');
-
-          // Delegate to desktop for processing
-          await delegateTransactionToDesktop(
-            transaction: transaction,
-            receiptType: receiptType,
-            purchaseCode: purchaseCode,
-            salesSttsCd: salesSttsCd,
-            originalInvoiceNumber: originalInvoiceNumber,
-            sarTyCd: sarTyCd,
-            items: transactionItems,
-          );
-
-          // Return a placeholder response indicating delegation
-          return (
-            response: RwApiResponse(
-              resultCd: '001',
-              resultMsg:
-                  'Transaction delegated to desktop for processing after local failure',
-              resultDt: DateTime.now().toIso8601String(),
-            ),
-            bytes: null,
-          );
-        } catch (delegationError) {
-          // If delegation also fails, rethrow the original error
-          talker.error(
-              'Both normal processing and delegation failed: $e, delegation error: $delegationError');
-          rethrow;
-        }
-      } else {
-        // Not mobile or delegation not enabled, rethrow the original error
-        rethrow;
-      }
+      rethrow;
     }
   }
 
@@ -623,5 +600,51 @@ class TaxController<OBJ> with TransactionDelegationMixin {
     ];
 
     return qrCodeParts.join('#');
+  }
+
+  /// Handles delegation fallback when normal receipt processing fails on mobile
+  ///
+  /// If delegation is enabled and we're on a mobile device, this method will
+  /// attempt to delegate the transaction to a desktop for processing.
+  ///
+  /// Returns a placeholder response if delegation succeeds, or rethrows the
+  /// original error if delegation is not available or fails.
+  Future<({RwApiResponse response, Uint8List? bytes})>
+      _handleDelegationFallback({
+    required ITransaction transaction,
+    required String receiptType,
+    String? purchaseCode,
+    required String salesSttsCd,
+    int? originalInvoiceNumber,
+    String? sarTyCd,
+    required List<TransactionItem> transactionItems,
+    required bool skiGenerateRRAReceiptSignature,
+  }) async {
+    if (isMobileDevice &&
+        await isDelegationEnabled() &&
+        !skiGenerateRRAReceiptSignature) {
+      try {
+        // Delegate to desktop for processing
+        await delegateTransactionToDesktop(
+          transaction: transaction,
+          receiptType: receiptType,
+          purchaseCode: purchaseCode,
+          salesSttsCd: salesSttsCd,
+          originalInvoiceNumber: originalInvoiceNumber,
+          sarTyCd: sarTyCd,
+          items: transactionItems,
+        );
+
+        /// return dummy data
+        Uint8List? bytes;
+        return (
+          response: RwApiResponse(resultCd: "000", resultMsg: "Delegated"),
+          bytes: bytes
+        );
+      } catch (delegationError) {
+        throw delegationError;
+      }
+    }
+    throw "Invalid action";
   }
 }

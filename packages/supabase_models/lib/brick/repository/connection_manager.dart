@@ -36,94 +36,14 @@ class ConnectionManager {
     final db = await _databaseFactory.openDatabase(
       path,
       options: OpenDatabaseOptions(
-        version: 1,
-        singleInstance: true,
-        onConfigure: (db) async {
-          if (configurePragmas) {
-            // Configure PRAGMA settings during database initialization
-            // This is the ONLY place where some PRAGMA commands work on certain platforms
-            print(
-                '🔧 [ConnectionManager] Configuring PRAGMA settings in onConfigure...');
-
-            try {
-              // Enable WAL mode for better concurrency and crash resistance
-              if (Platform.isAndroid) {
-                await db.rawQuery('PRAGMA journal_mode=WAL;');
-              } else {
-                await db.execute('PRAGMA journal_mode=WAL;');
-              }
-              print('✅ [ConnectionManager] WAL mode enabled');
-
-              // FULL synchronous mode - safest against corruption
-              if (Platform.isAndroid) {
-                await db.rawQuery('PRAGMA synchronous=FULL;');
-              } else {
-                await db.execute('PRAGMA synchronous=FULL;');
-              }
-              print('✅ [ConnectionManager] Synchronous mode set to FULL');
-
-              // Enable auto_vacuum to prevent database bloat
-              if (Platform.isAndroid) {
-                await db.rawQuery('PRAGMA auto_vacuum=FULL;');
-              } else {
-                await db.execute('PRAGMA auto_vacuum=FULL;');
-              }
-              print('✅ [ConnectionManager] Auto-vacuum enabled');
-
-              // Set busy timeout to 30 seconds for better handling of concurrent access
-              if (Platform.isAndroid) {
-                await db.rawQuery('PRAGMA busy_timeout=30000;');
-              } else {
-                await db.execute('PRAGMA busy_timeout=30000;');
-              }
-              print('✅ [ConnectionManager] Busy timeout set to 30 seconds');
-
-              // Platform-specific optimizations
-              if (Platform.isWindows || Platform.isLinux) {
-                // Increase cache size for better performance
-                await db.execute('PRAGMA cache_size=-8192;'); // ~8MB cache
-                print('✅ [ConnectionManager] Cache size set to 8MB (Desktop)');
-
-                // Set page size (must be done before any tables are created)
-                await db.execute('PRAGMA page_size=4096;');
-                print('✅ [ConnectionManager] Page size set to 4096');
-
-                // Set temp store to memory for better performance
-                await db.execute('PRAGMA temp_store=MEMORY;');
-                print('✅ [ConnectionManager] Temp store set to MEMORY');
-              } else if (Platform.isAndroid || Platform.isIOS) {
-                // Mobile devices: More conservative cache
-                if (Platform.isAndroid) {
-                  await db.rawQuery('PRAGMA cache_size=-4096;'); // ~4MB cache
-                } else {
-                  await db.execute('PRAGMA cache_size=-4096;'); // ~4MB cache
-                }
-                print('✅ [ConnectionManager] Cache size set to 4MB (Mobile)');
-              }
-
-              // Enable checkpointing on close for WAL mode
-              if (Platform.isAndroid) {
-                await db.rawQuery('PRAGMA wal_autocheckpoint=1000;');
-              } else {
-                await db.execute('PRAGMA wal_autocheckpoint=1000;');
-              }
-              print('✅ [ConnectionManager] WAL autocheckpoint enabled');
-
-              print(
-                  '🎉 [ConnectionManager] PRAGMA configuration completed in onConfigure!');
-            } catch (e) {
-              print(
-                  '❌ [ConnectionManager] Error configuring PRAGMA in onConfigure: $e');
-              _logger.warning('Error configuring PRAGMA settings: $e');
+          version: 1,
+          singleInstance: true,
+          onConfigure: (db) async {
+            if (configurePragmas) {
+              /// NOTE: I removed pragma for new sqlite3 that is embeded with it to test if it need pragma configurations
+              /// we might need to add them back if we run into issues
             }
-          } else {
-            // Legacy behavior: Set busy timeout only
-            if (!(Platform.isIOS || Platform.isMacOS)) {
-              await db.execute('PRAGMA busy_timeout = $busyTimeout');
-            }
-          }
-        },
-      ),
+          }),
     );
     _connections[path] = db;
     return db;

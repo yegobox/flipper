@@ -4,7 +4,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # 1.170.4252223234854+1755779343
 # 1.180.4252223234901+1756527939
 
-version: 1.180.4252223234901+1756528413
+version: 1.180.4252223234901+1756528421
 
 
 environment:
@@ -135,11 +135,11 @@ dependencies:
   flipper_login: any
   supabase_models: any
   sqlite3: ^3.0.1
-  amplify_core: ^2.6.5
-  amplify_api: ^2.6.5
-  amplify_flutter: ^2.6.5
-  amplify_auth_cognito: ^2.6.5
-  amplify_storage_s3: ^2.6.5
+  amplify_core: ^2.7.0
+  amplify_api: ^2.7.0
+  amplify_flutter: ^2.7.0
+  amplify_auth_cognito: ^2.7.0
+  amplify_storage_s3: ^2.7.0
   shared_preferences: ^2.5.2
   easy_localization: ^3.0.7 
   supabase_flutter: ^2.10.0
@@ -197,7 +197,7 @@ msix_config:
   identity_name: yegobox.yegoboxflipper
 
 
-  msix_version: 1.170.5051.474
+  msix_version: 1.170.5051.482
 
 
   publisher: CN=B0F334A1E-8AET-4B2C-BD1B-F239D4F791AE

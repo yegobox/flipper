@@ -1,6 +1,5 @@
 // import 'package:flipper_models/helperModels/talker.dart';
 import 'dart:async';
-import 'package:flutter/foundation.dart';
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_rw/dependency_initializer.dart';
@@ -8,7 +7,7 @@ import 'package:flipper_rw/state_observer.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_routing/app.locator.dart' as loc;
-import 'package:flipper_routing/app.dialogs.dart';  
+import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_routing/app.bottomsheets.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/locator.dart';
@@ -29,7 +28,7 @@ import 'package:flipper_web/core/utils/initialization.dart';
 import 'package:supabase_models/sync/ditto_sync_registry.dart';
 import 'package:flipper_services/realtime_delegation_service.dart';
 
-// Function to initialize Firebase 
+// Function to initialize Firebase
 Future<void> _initializeFirebase() async {
   try {
     // Don't use microtask for Firebase as critical services depend on it
@@ -45,13 +44,9 @@ Future<void> _initializeFirebase() async {
 // Function to initialize Supabase.
 Future<void> _initializeSupabase() async {
   try {
-    // Wrap in a microtask to allow UI thread to continue
-    await Future<void>.microtask(() async {
-      await loadSupabase();
+    await loadSupabase();
 
-      await initializeDitto();
-      // talker.info('Supabase initialized successfully');
-    });
+    await initializeDitto();
   } catch (e) {
     // talker.info('Supabase initialization error: $e');
   }
@@ -79,22 +74,14 @@ Future<void> main() async {
   // Initialize GlobalErrorHandler first to capture early errors
   GlobalErrorHandler.initialize();
 
+  // FIXED: Initialize WidgetsBinding BEFORE Sentry
+  WidgetsFlutterBinding.ensureInitialized();
   final widgetsBinding = SentryWidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
   // Centralized initialization function
   Future<void> initializeApp() async {
     if (!skipDependencyInitialization) {
-      // Pre-cleanup for hot restart scenarios
-      try {
-        if (kDebugMode) {
-          debugPrint('🔧 Performing pre-initialization cleanup...');
-          // Add any additional cleanup here if needed
-        }
-      } catch (e) {
-        debugPrint('⚠️  Pre-cleanup error (non-critical): $e');
-      }
-
       await _initializeFirebase();
       await initializeDependencies();
       await _initializeSupabase();

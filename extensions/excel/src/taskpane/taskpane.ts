@@ -209,7 +209,7 @@ class FlipperApp {
         const phoneNumber = formData.get('phoneNumber') as string;
 
         if (!phoneNumber) {
-            this.showNotification('Please enter a phone number or email', 'error');
+            this.showNotification('Enter valid number or email', 'error');
             return;
         }
 

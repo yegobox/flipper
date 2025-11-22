@@ -54,6 +54,7 @@ class SalesSttsCd {
 // Classes
 class RequestStatus {
   static const String pending = 'pending';
+  static const String processing = 'processing';
   static const String approved = 'approved';
   static const String partiallyApproved = 'partiallyApproved';
   static const String rejected = 'rejected';
@@ -176,6 +177,7 @@ const String defaultApp = 'defaultApp';
 const String PARKED = 'parked';
 const String WAITING = 'waiting';
 const String PENDING = 'pending';
+const String PROCESSING = 'processing';
 const String BARCODE = 'BARCODE';
 const String CUSTOM_PRODUCT = "Custom Amount";
 const String TEMP_PRODUCT = "temp";

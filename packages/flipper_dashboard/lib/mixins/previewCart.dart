@@ -369,8 +369,10 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       status: COMPLETE,
       cashReceived: ProxyService.box.getCashReceived(),
       subTotal: finalSubTotal,
+      lastTouched: DateTime.now(),
     );
     transaction.subTotal = finalSubTotal; // Update the local object's subTotal
+    transaction.lastTouched = DateTime.now();
     // Save payment methods
     for (var payment in paymentMethods) {
       await ProxyService.strategy.savePaymentType(

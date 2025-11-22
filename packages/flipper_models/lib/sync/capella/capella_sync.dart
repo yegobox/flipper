@@ -104,24 +104,6 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  Stream<List<ITransaction>> transactionsStream(
-      {String? status,
-      String? transactionType,
-      int? branchId,
-      bool isCashOut = false,
-      String? id,
-      FilterType? filterType,
-      bool includePending = false,
-      DateTime? startDate,
-      bool removeAdjustmentTransactions = false,
-      bool forceRealData = true,
-      required bool skipOriginalTransactionCheck,
-      DateTime? endDate}) {
-    // TODO: implement transactionsStream
-    throw UnimplementedError();
-  }
-
-  @override
   Future<List<BusinessType>> businessTypes() {
     // TODO: implement businessTypes
     throw UnimplementedError();
@@ -169,8 +151,6 @@ class CapellaSync extends AiStrategyImpl
     // TODO: implement pendingTransaction
     throw UnimplementedError();
   }
-
- 
 
   @override
   Future<void> mergeTransactions(

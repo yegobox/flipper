@@ -98,6 +98,9 @@ Future<ITransaction> _$ITransactionFromSupabase(
     isDigitalReceiptGenerated: data['is_digital_receipt_generated'] == null
         ? null
         : data['is_digital_receipt_generated'] as bool?,
+    receiptPrinted: data['receipt_printed'] == null
+        ? null
+        : data['receipt_printed'] as bool? ?? false,
     receiptFileName: data['receipt_file_name'] == null
         ? null
         : data['receipt_file_name'] as String?,
@@ -211,6 +214,7 @@ Future<Map<String, dynamic>> _$ITransactionToSupabase(
     'total_receipt_number': instance.totalReceiptNumber,
     'invoice_number': instance.invoiceNumber,
     'is_digital_receipt_generated': instance.isDigitalReceiptGenerated,
+    'receipt_printed': instance.receiptPrinted,
     'receipt_file_name': instance.receiptFileName,
     'current_sale_customer_phone_number':
         instance.currentSaleCustomerPhoneNumber,
@@ -326,6 +330,9 @@ Future<ITransaction> _$ITransactionFromSqlite(
     isDigitalReceiptGenerated: data['is_digital_receipt_generated'] == null
         ? null
         : data['is_digital_receipt_generated'] == 1,
+    receiptPrinted: data['receipt_printed'] == null
+        ? null
+        : data['receipt_printed'] == 1,
     receiptFileName: data['receipt_file_name'] == null
         ? null
         : data['receipt_file_name'] as String?,
@@ -471,6 +478,9 @@ Future<Map<String, dynamic>> _$ITransactionToSqlite(
     'is_digital_receipt_generated': instance.isDigitalReceiptGenerated == null
         ? null
         : (instance.isDigitalReceiptGenerated! ? 1 : 0),
+    'receipt_printed': instance.receiptPrinted == null
+        ? null
+        : (instance.receiptPrinted! ? 1 : 0),
     'receipt_file_name': instance.receiptFileName,
     'current_sale_customer_phone_number':
         instance.currentSaleCustomerPhoneNumber,
@@ -645,6 +655,10 @@ class ITransactionAdapter
     'isDigitalReceiptGenerated': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'is_digital_receipt_generated',
+    ),
+    'receiptPrinted': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'receipt_printed',
     ),
     'receiptFileName': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -950,6 +964,12 @@ class ITransactionAdapter
     'isDigitalReceiptGenerated': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'is_digital_receipt_generated',
+      iterable: false,
+      type: bool,
+    ),
+    'receiptPrinted': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'receipt_printed',
       iterable: false,
       type: bool,
     ),

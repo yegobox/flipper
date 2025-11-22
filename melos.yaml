@@ -20,7 +20,7 @@ command:
 dependency_overrides:
   archive: ^3.6.1
   flutter_native_splash: ^2.3.2
-  analyzer: ^8.0.0
+  analyzer: ^9.0.0
 
 scripts:
   generate:icons:

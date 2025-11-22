@@ -46,11 +46,11 @@ dependencies:
   rxdart: ^0.28.0
   collection: ^1.19.0
   intl: ^0.20.2
-  amplify_core: ^2.6.5
-  amplify_api: ^2.6.5
-  amplify_flutter: ^2.6.5
-  amplify_auth_cognito: ^2.6.5
-  amplify_storage_s3: ^2.6.5
+  amplify_core: ^2.7.0
+  amplify_api: ^2.7.0
+  amplify_flutter: ^2.7.0
+  amplify_auth_cognito: ^2.7.0
+  amplify_storage_s3: ^2.7.0
   async: ^2.11.0
   archive: ^3.6.1
   mime: ^2.0.0

@@ -1,24 +1,26 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20251108140031.migration.dart';
-part '20251005152725.migration.dart';
-part '20251030100041.migration.dart';
+part '20251122051839.migration.dart';
 part '20251107092253.migration.dart';
+part '20251030100041.migration.dart';
+part '20251005152725.migration.dart';
 part '20251107092908.migration.dart';
+part '20251108140031.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20251108140031(),
-  const Migration20251005152725(),
-  const Migration20251030100041(),
+  const Migration20251122051839(),
   const Migration20251107092253(),
+  const Migration20251030100041(),
+  const Migration20251005152725(),
   const Migration20251107092908(),
+  const Migration20251108140031(),
 };
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
-  20251107092908,
+  20251108140031,
   generatorVersion: 1,
   tables: <SchemaTable>{
     SchemaTable(
@@ -442,6 +444,7 @@ final schema = Schema(
         SchemaColumn('total_receipt_number', Column.integer),
         SchemaColumn('invoice_number', Column.integer),
         SchemaColumn('is_digital_receipt_generated', Column.boolean),
+        SchemaColumn('receipt_printed', Column.boolean),
         SchemaColumn('receipt_file_name', Column.varchar),
         SchemaColumn('current_sale_customer_phone_number', Column.varchar),
         SchemaColumn('sar_no', Column.varchar),
