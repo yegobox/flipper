@@ -86,6 +86,24 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         arguments['adjustmentType'] = 'Adjustment';
       }
 
+      // Transaction type filter
+      if (transactionType != null) {
+        whereClauses.add('transactionType = :transactionType');
+        arguments['transactionType'] = transactionType;
+      }
+
+      // Include pending transactions
+      if (includePending) {
+        whereClauses.add('(status = :status OR status = :pendingStatus)');
+        arguments['pendingStatus'] = PENDING;
+      }
+
+      // Filter type handling (maps to 'type' field in database)
+      if (filterType != null) {
+        whereClauses.add('type = :filterType');
+        arguments['filterType'] = filterType.toString();
+      }
+
       // Date filtering
       if (startDate != null && endDate != null) {
         final localStartDate =

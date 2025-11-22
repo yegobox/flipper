@@ -17,7 +17,7 @@ class TenantFormMixin {
 
   static String? validatePhoneOrEmailStatic(String? value) {
     if (value == null || value.isEmpty) {
-      return "Please enter a phone number or email address";
+      return "Enter valid number or email address";
     }
 
     if (EmailValidatorFlutter().validateEmail(value)) {
