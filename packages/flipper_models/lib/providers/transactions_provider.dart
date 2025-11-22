@@ -1,3 +1,4 @@
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -22,7 +23,7 @@ final dashboardTransactionsProvider = StreamProvider<List<ITransaction>>((ref) {
   // Only log once when this provider is created
   talker.debug('Dashboard transactions provider initialized with 30-day range');
 
-  return ProxyService.strategy.transactionsStream(
+  return ProxyService.getStrategy(Strategy.capella).transactionsStream(
     status: COMPLETE,
     branchId: branchId,
     skipOriginalTransactionCheck: true,

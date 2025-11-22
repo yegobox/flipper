@@ -75,7 +75,7 @@ class BottomSheets {
                     child: Row(
                       children: [
                         Text(
-                          'Complete Your Sale!',
+                          'Complete Your Sale',
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.w600,
@@ -139,10 +139,7 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
   ChargeButtonState _chargeState = ChargeButtonState.initial;
   late final TextEditingController _customerPhoneController;
   String? _customerPhoneError;
-  late AnimationController _buttonAnimationController;
-  late Animation<double> _buttonScaleAnimation;
-  late AnimationController _pulseAnimationController;
-  late Animation<double> _pulseAnimation;
+  bool _digitalPaymentEnabled = false;
 
   @override
   void initState() {
@@ -151,48 +148,46 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
       text: ProxyService.box.currentSaleCustomerPhoneNumber(),
     );
 
-    _buttonAnimationController = AnimationController(
-      duration: Duration(milliseconds: 150),
-      vsync: this,
-    );
-    _buttonScaleAnimation = Tween<double>(
-      begin: 1.0,
-      end: 0.95,
-    ).animate(CurvedAnimation(
-      parent: _buttonAnimationController,
-      curve: Curves.easeInOut,
-    ));
+    // Check if digital payment is enabled for this branch
+    _checkDigitalPayment();
+  }
 
-    // Pulse animation for waiting state
-    _pulseAnimationController = AnimationController(
-      duration: Duration(milliseconds: 1500),
-      vsync: this,
-    );
-    _pulseAnimation = Tween<double>(
-      begin: 1.0,
-      end: 1.05,
-    ).animate(CurvedAnimation(
-      parent: _pulseAnimationController,
-      curve: Curves.easeInOut,
-    ));
+  Future<void> _checkDigitalPayment() async {
+    final branchId = (await ProxyService.strategy.activeBranch()).id;
+    try {
+      final enabled = await ProxyService.strategy.isBranchEnableForPayment(
+        currentBranchId: branchId,
+      );
+      if (mounted) {
+        setState(() {
+          _digitalPaymentEnabled = enabled;
+        });
+      }
+    } catch (e) {
+      talker.error('Error checking digital payment status: $e');
+      // Default to false if there's an error
+      if (mounted) {
+        setState(() {
+          _digitalPaymentEnabled = false;
+        });
+      }
+    }
   }
 
   @override
   void dispose() {
     _customerPhoneController.dispose();
-    _buttonAnimationController.dispose();
-    _pulseAnimationController.dispose();
     super.dispose();
   }
 
   String? _validatePhone(String? value) {
     if (value == null || value.isEmpty) {
-      return 'Please enter a phone number';
+      return 'Enter valid number';
     }
     // Must be 9 digits, starting with 7, 8, or 9, and no leading zero
     final phoneExp = RegExp(r'^[7-9]\d{8}$');
     if (!phoneExp.hasMatch(value)) {
-      return 'Please enter a valid 9-digit phone number (e.g. 783054874)';
+      return 'Invalid Number';
     }
     return null;
   }
@@ -488,34 +483,37 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
     ));
   }
 
-  Future<void> _handleCharge(String transactionId, double total) async {
+  Future<void> _handleCharge(
+    String transactionId,
+    double total, {
+    bool immediateCompletion = false,
+  }) async {
     // Haptic feedback
     HapticFeedback.lightImpact();
 
-    // Button animation
-    _buttonAnimationController.forward().then((_) {
-      _buttonAnimationController.reverse();
-    });
-
-    // Validate phone before charging
-    final phoneError = _validatePhone(_customerPhoneController.text);
-    setState(() {
-      _customerPhoneError = phoneError;
-    });
-    if (phoneError != null) {
-      showCustomSnackBarUtil(
-        context,
-        phoneError,
-        backgroundColor: Colors.red[600],
-        showCloseButton: true,
-      );
-      return;
+    // Validate phone before charging (only required for digital payments)
+    if (!immediateCompletion) {
+      final phoneError = _validatePhone(_customerPhoneController.text);
+      setState(() {
+        _customerPhoneError = phoneError;
+      });
+      if (phoneError != null) {
+        showCustomSnackBarUtil(
+          context,
+          phoneError,
+          backgroundColor: Colors.red[600],
+          showCloseButton: true,
+        );
+        return;
+      }
     }
 
-    setState(() {
-      _chargeState = ChargeButtonState.waitingForPayment;
-    });
-    _pulseAnimationController.repeat(reverse: true);
+    // Only show waiting state if not immediate completion
+    if (!immediateCompletion) {
+      setState(() {
+        _chargeState = ChargeButtonState.waitingForPayment;
+      });
+    }
     ref.read(oldProvider.loadingProvider.notifier).startLoading();
 
     try {
@@ -533,8 +531,6 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
           setState(() {
             _chargeState = ChargeButtonState.failed;
           });
-          _pulseAnimationController.stop();
-          _pulseAnimationController.reset();
           ref.read(oldProvider.loadingProvider.notifier).stopLoading();
           showCustomSnackBarUtil(
             context,
@@ -545,17 +541,20 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
         }
       }
 
-      // Call onCharge with callbacks
+      // Call onCharge with callbacks and immediateCompletion flag
       final shouldWaitForPayment = await widget.onCharge(
-          transactionId, total, onPaymentConfirmed, onPaymentFailed);
+        transactionId,
+        total,
+        onPaymentConfirmed,
+        onPaymentFailed,
+        immediateCompletion,
+      );
 
-      // Handle immediate completion (cash payments)
-      if (mounted && shouldWaitForPayment != true) {
+      // Handle immediate completion (cash payments or immediate completion button)
+      if (mounted && (shouldWaitForPayment != true || immediateCompletion)) {
         setState(() {
           _chargeState = ChargeButtonState.initial;
         });
-        _pulseAnimationController.stop();
-        _pulseAnimationController.reset();
         ref.read(oldProvider.loadingProvider.notifier).stopLoading();
       }
     } catch (e) {
@@ -564,12 +563,10 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
         setState(() {
           _chargeState = ChargeButtonState.failed;
         });
-        _pulseAnimationController.stop();
-        _pulseAnimationController.reset();
         ref.read(oldProvider.loadingProvider.notifier).stopLoading();
         showCustomSnackBarUtil(
           context,
-          'Error processing payment',
+          "Error occurred",
           backgroundColor: Colors.red[600],
           showCloseButton: true,
         );
@@ -599,11 +596,8 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
           setState(() {
             _chargeState = ChargeButtonState.initial;
           });
-          _pulseAnimationController.stop();
-          _pulseAnimationController.reset();
-          Navigator.of(context)
-              .pop(); // Close the sheet after payment completes
         }
+        Navigator.of(context).pop(); // Close the sheet after payment completes
       }
     });
 
@@ -898,57 +892,79 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
               ],
             ),
             SizedBox(height: 20),
-            AnimatedBuilder(
-              animation: Listenable.merge([
-                _buttonScaleAnimation,
-                _pulseAnimation,
-              ]),
-              builder: (context, child) {
-                return Transform.scale(
-                  scale: _shouldPulse()
-                      ? _pulseAnimation.value
-                      : _buttonScaleAnimation.value,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: _getButtonColor(items.isEmpty),
-                      foregroundColor: Colors.white,
-                      minimumSize: Size(double.infinity, 48),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+            // Conditional button layout based on digital payment status
+            if (_digitalPaymentEnabled) ...[
+              // Two-button layout when digital payment is enabled
+              SizedBox(
+                height: 56,
+                child: Row(
+                  children: [
+                    // Left button: Charge (waits for payment)
+                    Expanded(
+                      child: FlipperButton(
+                        height: 56,
+                        color: Colors.blue.shade700,
+                        text: _getButtonText(items.isEmpty, total),
+                        textColor: Colors.white,
+                        borderRadius: BorderRadius.only(
+                          topLeft: Radius.circular(12),
+                          bottomLeft: Radius.circular(12),
+                        ),
+                        isLoading: _shouldShowSpinner(),
+                        onPressed: _getButtonEnabled(items.isEmpty)
+                            ? () => _handleCharge(
+                                  widget.transactionIdInt.toString(),
+                                  total,
+                                  immediateCompletion: false,
+                                )
+                            : null,
                       ),
                     ),
-                    onPressed: _getButtonEnabled(items.isEmpty)
-                        ? () => _handleCharge(
-                            widget.transactionIdInt.toString(), total)
-                        : null,
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        if (_shouldShowSpinner()) ...[
-                          SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor:
-                                  AlwaysStoppedAnimation<Color>(Colors.white),
-                            ),
-                          ),
-                          SizedBox(width: 8),
-                        ],
-                        Text(
-                          _getButtonText(items.isEmpty, total),
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
+                    // Divider
+                    Container(
+                      width: 1,
+                      height: 56,
+                      color: Colors.grey.shade300,
                     ),
-                  ),
-                );
-              },
-            ),
+                    // Right button: Complete Now (immediate)
+                    Expanded(
+                      child: FlipperButton(
+                        height: 56,
+                        color: Colors.green,
+                        text: 'Complete Now',
+                        textColor: Colors.white,
+                        borderRadius: BorderRadius.only(
+                          topRight: Radius.circular(12),
+                          bottomRight: Radius.circular(12),
+                        ),
+                        isLoading: _shouldShowSpinner(),
+                        onPressed: _getButtonEnabled(items.isEmpty)
+                            ? () => _handleCharge(
+                                  widget.transactionIdInt.toString(),
+                                  total,
+                                  immediateCompletion: true,
+                                )
+                            : null,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ] else ...[
+              // Single button when digital payment is disabled
+              FlipperButton(
+                height: 56,
+                color: _getButtonColor(items.isEmpty),
+                text: _getButtonText(items.isEmpty, total),
+                textColor: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                isLoading: _shouldShowSpinner(),
+                onPressed: _getButtonEnabled(items.isEmpty)
+                    ? () =>
+                        _handleCharge(widget.transactionIdInt.toString(), total)
+                    : null,
+              ),
+            ],
           ],
         ),
       );
@@ -1015,11 +1031,6 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
         ),
       ),
     );
-  }
-
-  bool _shouldPulse() {
-    return _chargeState == ChargeButtonState.waitingForPayment ||
-        _chargeState == ChargeButtonState.printingReceipt;
   }
 
   Color _getButtonColor(bool isEmpty) {

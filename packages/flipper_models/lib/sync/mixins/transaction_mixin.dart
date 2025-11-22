@@ -867,6 +867,7 @@ mixin TransactionMixin implements TransactionInterface {
     bool? isProformaMode,
     String? sarNo,
     String? orgSarNo,
+    bool? receiptPrinted,
 
     /// because transaction is involved in account reporting
     /// and in other ways to facilitate that everything in flipper has attached transaction
@@ -921,6 +922,7 @@ mixin TransactionMixin implements TransactionInterface {
     transaction.cashReceived = cashReceived ?? transaction.cashReceived;
     transaction.customerName = customerName ?? transaction.customerName;
     transaction.lastTouched = lastTouched ?? transaction.lastTouched;
+    transaction.receiptPrinted = receiptPrinted ?? transaction.receiptPrinted;
     transaction.isExpense = isUnclassfied ? null : transaction.isExpense;
     transaction.isIncome = isUnclassfied ? null : transaction.isIncome;
 
@@ -1055,7 +1057,7 @@ mixin TransactionMixin implements TransactionInterface {
     // Directly return the stream from the repository
     return repository
         .subscribe<ITransaction>(
-            query: queryString, policy: OfflineFirstGetPolicy.localOnly)
+            query: queryString, policy: OfflineFirstGetPolicy.alwaysHydrate)
         .map((data) {
       talker.info('Transaction stream returned: ${data.length} records');
       return data;

@@ -166,6 +166,7 @@ abstract class TransactionInterface {
     bool isUnclassfied = false,
     bool? isTrainingMode,
     String? transactionId,
+    bool? receiptPrinted,
   });
   Future<ITransaction?> getTransaction(
       {String? sarNo,

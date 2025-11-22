@@ -83,6 +83,8 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
   int? totalReceiptNumber;
   int? invoiceNumber;
   bool? isDigitalReceiptGenerated;
+  @Supabase(defaultValue: "false")
+  bool? receiptPrinted;
   String? receiptFileName;
   String? currentSaleCustomerPhoneNumber;
   String? sarNo;
@@ -173,6 +175,7 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
     this.receiptNumber,
     this.totalReceiptNumber,
     bool? isDigitalReceiptGenerated,
+    bool? receiptPrinted,
     this.invoiceNumber,
     String? sarNo,
     this.orgSarNo,
@@ -212,6 +215,7 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
         lastPaymentAmount = lastPaymentAmount ?? 0.0,
         subTotal = subTotal ?? 0.0,
         isDigitalReceiptGenerated = isDigitalReceiptGenerated ?? false,
+        receiptPrinted = receiptPrinted ?? false,
         customerId =
             (customerId != null && customerId.isEmpty) ? null : customerId,
         categoryId =
@@ -255,6 +259,7 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
     int? totalReceiptNumber,
     int? invoiceNumber,
     bool? isDigitalReceiptGenerated,
+    bool? receiptPrinted,
     String? receiptFileName,
     String? currentSaleCustomerPhoneNumber,
     String? sarNo,
@@ -315,6 +320,7 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
       invoiceNumber: invoiceNumber ?? this.invoiceNumber,
       isDigitalReceiptGenerated:
           isDigitalReceiptGenerated ?? this.isDigitalReceiptGenerated,
+      receiptPrinted: receiptPrinted ?? this.receiptPrinted,
       receiptFileName: receiptFileName ?? this.receiptFileName,
       currentSaleCustomerPhoneNumber:
           currentSaleCustomerPhoneNumber ?? this.currentSaleCustomerPhoneNumber,
