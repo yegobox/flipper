@@ -42,7 +42,7 @@ mixin DelegationMixin implements Delegationinterface {
         'subTotal': subTotal,
         'paymentType': paymentType,
         'updatedAt': now,
-        ...?additionalData,
+        'additionalData': additionalData,
       };
 
       // Use DQL INSERT with conflict resolution (upsert)
