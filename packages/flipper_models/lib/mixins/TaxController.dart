@@ -44,7 +44,7 @@ class TaxController<OBJ> {
       if (filterType == FilterType.CR) {
         try {
           return await printReceipt(
-            custMblNo: custMblNo!,
+            custMblNo: custMblNo,
             customerName: customerName,
             customer: customer,
             receiptType: TransactionReceptType.CR,
@@ -61,7 +61,7 @@ class TaxController<OBJ> {
       } else if (filterType == FilterType.NS) {
         try {
           return await printReceipt(
-            custMblNo: custMblNo!,
+            custMblNo: custMblNo,
             customerName: customerName,
             customer: customer,
             receiptType: TransactionReceptType.NS,
@@ -77,7 +77,7 @@ class TaxController<OBJ> {
       } else if (filterType == FilterType.NR) {
         try {
           return await printReceipt(
-            custMblNo: custMblNo!,
+            custMblNo: custMblNo,
             customerName: customerName,
             customer: customer,
             purchaseCode: purchaseCode,
@@ -94,7 +94,7 @@ class TaxController<OBJ> {
       } else if (filterType == FilterType.TS) {
         try {
           return await printReceipt(
-            custMblNo: custMblNo!,
+            custMblNo: custMblNo,
             customerName: customerName,
             customer: customer,
             purchaseCode: purchaseCode,
@@ -110,7 +110,7 @@ class TaxController<OBJ> {
       } else if (filterType == FilterType.PS) {
         try {
           return await printReceipt(
-            custMblNo: custMblNo!,
+            custMblNo: custMblNo,
             customerName: customerName,
             customer: customer,
             purchaseCode: purchaseCode,
@@ -126,7 +126,7 @@ class TaxController<OBJ> {
       } else if (filterType == FilterType.TR) {
         try {
           return await printReceipt(
-            custMblNo: custMblNo!,
+            custMblNo: custMblNo,
             customerName: customerName,
             customer: customer,
             purchaseCode: purchaseCode,
@@ -143,7 +143,7 @@ class TaxController<OBJ> {
       } else if (filterType == FilterType.CS) {
         try {
           return await printReceipt(
-            custMblNo: custMblNo!,
+            custMblNo: custMblNo,
             customerName: customerName,
             customer: customer,
             purchaseCode: purchaseCode,
@@ -211,7 +211,7 @@ class TaxController<OBJ> {
     int? originalInvoiceNumber,
     String? sarTyCd,
     List<TransactionItem>? items,
-    required String custMblNo,
+    String? custMblNo,
     required String customerName,
     Customer? customer,
   }) async {
@@ -433,7 +433,7 @@ class TaxController<OBJ> {
     required String salesSttsCd,
     int? originalInvoiceNumber,
     String? sarTyCd,
-    required String custMblNo,
+    String? custMblNo,
     required String customerName,
     Customer? customer,
   }) async {

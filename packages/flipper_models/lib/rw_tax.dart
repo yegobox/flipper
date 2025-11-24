@@ -561,7 +561,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     required String salesSttsCd,
     int? originalInvoiceNumber,
     String? sarTyCd,
-    required String custMblNo,
+    String? custMblNo,
     required String customerName,
     Customer? customer,
   }) async {
@@ -1032,7 +1032,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     required String bhFId,
     required String salesSttsCd,
     int? originalInvoiceNumber,
-    required String custMblNo,
+    String? custMblNo,
     required String customerName,
   }) async {
     odm.Configurations? taxConfigTaxB =
