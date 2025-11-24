@@ -32,14 +32,32 @@ class TaxController<OBJ> {
         talker.warning(
             'Failed to resolve customer for id ${transaction.customerId}: $e');
       }
-      String? custMblNo = transaction.customerPhone ??
-          (ProxyService.box.currentSaleCustomerPhoneNumber() != null
-              ? "0${ProxyService.box.currentSaleCustomerPhoneNumber()!}"
-              : null);
-      String customerName = transaction.customerName ??
+      // Resolve phone number with normalization and null safety
+      String? rawPhone = transaction.customerPhone ??
+          ProxyService.box.currentSaleCustomerPhoneNumber();
+      String? custMblNo;
+      if (rawPhone != null) {
+        // Remove non-digit characters and trim whitespace
+        var normalized = rawPhone.trim().replaceAll(RegExp(r'\\D'), '');
+        // Prepend a leading "0" if it does not already start with "0" or a country prefix
+        if (!normalized.startsWith('0')) {
+          normalized = '0' + normalized;
+        }
+        custMblNo = normalized;
+      } else {
+        custMblNo = null;
+      }
+
+      // Resolve customer name with fallback and whitespace guard
+      var name = transaction.customerName ??
           ProxyService.box.customerName() ??
           customer?.custNm ??
-          "";
+          '';
+      name = name.trim();
+      if (name.isEmpty) {
+        name = 'Walk-in Customer';
+      }
+      String customerName = name;
 
       if (filterType == FilterType.CR) {
         try {
