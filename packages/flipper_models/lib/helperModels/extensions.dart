@@ -460,3 +460,15 @@ DateTimeRange localDayRangeToUtc(DateTime localDate) {
   final localEnd = localStart.add(Duration(days: 1));
   return DateTimeRange(start: localStart.toUtc(), end: localEnd.toUtc());
 }
+
+extension RemoveCountryCode on String {
+  /// Removes the country code from a phone number.
+  /// Examples:
+  /// "+250788123456" → "788123456"
+  /// "+1 415 555 2671" → "4155552671"
+  /// "+91-9876543210" → "9876543210"
+  String withoutCountryCode() {
+    final cleaned = replaceAll(RegExp(r'[^\d+]'), ''); // keep only digits and +
+    return cleaned.replaceFirst(RegExp(r'^\+\d{1,3}'), '');
+  }
+}

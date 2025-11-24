@@ -8,6 +8,7 @@ import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/business_type.dart';
 import 'package:flipper_models/helperModels/tenant.dart';
+import 'package:flipper_models/sync/capella/mixins/delegation_mixin.dart';
 import 'package:flipper_models/sync/mixins/category_mixin.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:brick_core/query.dart' as brick;
@@ -71,6 +72,7 @@ class CapellaSync extends AiStrategyImpl
         CapellaShiftMixin,
         CapellaStockMixin,
         CategoryMixin,
+        CapellaDelegationMixin,
         StockRecountMixin
     implements DatabaseSyncInterface {
   CapellaSync();

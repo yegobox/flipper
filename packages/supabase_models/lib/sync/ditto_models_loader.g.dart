@@ -10,6 +10,7 @@ import 'package:supabase_models/brick/models/stock_recount.model.dart' as stock_
 import 'package:supabase_models/brick/models/business_analytic.model.dart' as business_analytic_model;
 import 'package:supabase_models/brick/models/transaction.model.dart' as transaction_model;
 import 'package:supabase_models/brick/models/transactionItem.model.dart' as transactionItem_model;
+import 'package:supabase_models/brick/models/transaction_delegation.model.dart' as transaction_delegation_model;
 import 'package:supabase_models/brick/models/variant.model.dart' as variant_model;
 import 'package:supabase_models/brick/models/stock_recount_item.model.dart' as stock_recount_item_model;
 
@@ -24,6 +25,7 @@ void ensureDittoAdaptersLoaded() {
   business_analytic_model.BusinessAnalyticDittoAdapter.registryToken; // ignore: unnecessary_statements
   transaction_model.ITransactionDittoAdapter.registryToken; // ignore: unnecessary_statements
   transactionItem_model.TransactionItemDittoAdapter.registryToken; // ignore: unnecessary_statements
+  transaction_delegation_model.TransactionDelegationDittoAdapter.registryToken; // ignore: unnecessary_statements
   variant_model.VariantDittoAdapter.registryToken; // ignore: unnecessary_statements
   stock_recount_item_model.StockRecountItemDittoAdapter.registryToken; // ignore: unnecessary_statements
 }

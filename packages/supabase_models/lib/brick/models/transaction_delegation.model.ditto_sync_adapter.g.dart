@@ -1,7 +1,7 @@
 // dart format width=80
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'transaction.model.dart';
+part of 'transaction_delegation.model.dart';
 
 // **************************************************************************
 // DittoSyncAdapterGenerator
@@ -11,7 +11,7 @@ part of 'transaction.model.dart';
 // DittoSyncAdapterGenerator
 // **************************************************************************
 //
-// REQUIRED IMPORTS in parent file (itransaction.model.dart):
+// REQUIRED IMPORTS in parent file (transactiondelegation.model.dart):
 // - import 'package:brick_core/query.dart';
 // - import 'package:brick_offline_first/brick_offline_first.dart';
 // - import 'package:flipper_services/proxy.dart';
@@ -26,11 +26,12 @@ part of 'transaction.model.dart';
 // This adapter supports full bidirectional sync (send and receive).
 // **************************************************************************
 
-class ITransactionDittoAdapter extends DittoSyncAdapter<ITransaction> {
-  ITransactionDittoAdapter._internal();
+class TransactionDelegationDittoAdapter
+    extends DittoSyncAdapter<TransactionDelegation> {
+  TransactionDelegationDittoAdapter._internal();
 
-  static final ITransactionDittoAdapter instance =
-      ITransactionDittoAdapter._internal();
+  static final TransactionDelegationDittoAdapter instance =
+      TransactionDelegationDittoAdapter._internal();
 
   // Observer management to prevent live query buildup
   dynamic _activeObserver;
@@ -64,7 +65,7 @@ class ITransactionDittoAdapter extends DittoSyncAdapter<ITransaction> {
   }
 
   @override
-  String get collectionName => "transactions";
+  String get collectionName => "transaction_delegations";
 
   @override
   bool get shouldHydrateOnStartup => false;
@@ -87,7 +88,7 @@ class ITransactionDittoAdapter extends DittoSyncAdapter<ITransaction> {
     }
     if (branchId == null && kDebugMode) {
       debugPrint(
-          "Ditto hydration for ITransaction timed out waiting for branchId");
+          "Ditto hydration for TransactionDelegation timed out waiting for branchId");
     }
     return branchId;
   }
@@ -138,22 +139,22 @@ class ITransactionDittoAdapter extends DittoSyncAdapter<ITransaction> {
       if (waitForBranchId) {
         if (kDebugMode) {
           debugPrint(
-              "Ditto hydration for ITransaction skipped because branch context is unavailable");
+              "Ditto hydration for TransactionDelegation skipped because branch context is unavailable");
         }
         return null;
       }
       if (kDebugMode) {
         debugPrint(
-            "Ditto observation for ITransaction deferred until branch context is available");
+            "Ditto observation for TransactionDelegation deferred until branch context is available");
       }
       return const DittoSyncQuery(
-        query: "SELECT * FROM transactions WHERE 1 = 0",
+        query: "SELECT * FROM transaction_delegations WHERE 1 = 0",
       );
     }
 
     final whereClause = whereParts.join(" OR ");
     return DittoSyncQuery(
-      query: "SELECT * FROM transactions WHERE $whereClause",
+      query: "SELECT * FROM transaction_delegations WHERE $whereClause",
       arguments: arguments,
     );
   }
@@ -164,75 +165,35 @@ class ITransactionDittoAdapter extends DittoSyncAdapter<ITransaction> {
   }
 
   @override
-  Future<String?> documentIdForModel(ITransaction model) async => model.id;
+  Future<String?> documentIdForModel(TransactionDelegation model) async =>
+      model.id;
 
   @override
-  Future<Map<String, dynamic>> toDittoDocument(ITransaction model) async {
+  Future<Map<String, dynamic>> toDittoDocument(
+      TransactionDelegation model) async {
     return {
       "_id": model.id,
       "id": model.id,
-      "reference": model.reference,
-      "categoryId": model.categoryId,
-      "transactionNumber": model.transactionNumber,
+      "transactionId": model.transactionId,
       "branchId": model.branchId,
       "status": model.status,
-      "transactionType": model.transactionType,
-      "subTotal": model.subTotal,
-      "paymentType": model.paymentType,
-      "cashReceived": model.cashReceived,
-      "customerChangeDue": model.customerChangeDue,
-      "createdAt": model.createdAt?.toIso8601String(),
       "receiptType": model.receiptType,
-      "updatedAt": model.updatedAt?.toIso8601String(),
-      "customerId": model.customerId,
-      "customerType": model.customerType,
-      "note": model.note,
-      "lastTouched": model.lastTouched?.toIso8601String(),
-      "ticketName": model.ticketName,
-      "supplierId": model.supplierId,
-      "ebmSynced": model.ebmSynced,
-      "isIncome": model.isIncome,
-      "isExpense": model.isExpense,
-      "isRefunded": model.isRefunded,
+      "paymentType": model.paymentType,
+      "subTotal": model.subTotal,
       "customerName": model.customerName,
       "customerTin": model.customerTin,
-      "remark": model.remark,
       "customerBhfId": model.customerBhfId,
-      "sarTyCd": model.sarTyCd,
-      "receiptNumber": model.receiptNumber,
-      "totalReceiptNumber": model.totalReceiptNumber,
-      "invoiceNumber": model.invoiceNumber,
-      "isDigitalReceiptGenerated": model.isDigitalReceiptGenerated,
-      "receiptPrinted": model.receiptPrinted,
-      "receiptFileName": model.receiptFileName,
-      "currentSaleCustomerPhoneNumber": model.currentSaleCustomerPhoneNumber,
-      "sarNo": model.sarNo,
-      "orgSarNo": model.orgSarNo,
-      "shiftId": model.shiftId,
-      "isLoan": model.isLoan,
-      "dueDate": model.dueDate?.toIso8601String(),
-      "isAutoBilled": model.isAutoBilled,
-      "nextBillingDate": model.nextBillingDate?.toIso8601String(),
-      "billingFrequency": model.billingFrequency,
-      "billingAmount": model.billingAmount,
-      "totalInstallments": model.totalInstallments,
-      "paidInstallments": model.paidInstallments,
-      "lastBilledDate": model.lastBilledDate?.toIso8601String(),
-      "originalLoanAmount": model.originalLoanAmount,
-      "remainingBalance": model.remainingBalance,
-      "lastPaymentDate": model.lastPaymentDate?.toIso8601String(),
-      "lastPaymentAmount": model.lastPaymentAmount,
-      "originalTransactionId": model.originalTransactionId,
-      "isOriginalTransaction": model.isOriginalTransaction,
-      "taxAmount": model.taxAmount,
-      "numberOfItems": model.numberOfItems,
-      "discountAmount": model.discountAmount,
-      "customerPhone": model.customerPhone,
+      "isAutoPrint": model.isAutoPrint,
+      "delegatedFromDevice": model.delegatedFromDevice,
+      "delegatedAt": model.delegatedAt.toIso8601String(),
+      "updatedAt": model.updatedAt.toIso8601String(),
+      "additionalData": model.additionalData,
     };
   }
 
   @override
-  Future<ITransaction?> fromDittoDocument(Map<String, dynamic> document) async {
+  Future<TransactionDelegation?> fromDittoDocument(
+      Map<String, dynamic> document) async {
     final id = document["_id"] ?? document["id"];
     if (id == null) return null;
 
@@ -259,70 +220,25 @@ class ITransactionDittoAdapter extends DittoSyncAdapter<ITransaction> {
       }
     }
 
-    return ITransaction(
+    return TransactionDelegation(
       id: id,
-      reference: document["reference"],
-      categoryId: document["categoryId"],
-      transactionNumber: document["transactionNumber"],
+      transactionId: document["transactionId"],
       branchId: document["branchId"],
       status: document["status"],
-      transactionType: document["transactionType"],
-      subTotal: document["subTotal"],
-      paymentType: document["paymentType"],
-      cashReceived: document["cashReceived"],
-      customerChangeDue: document["customerChangeDue"],
-      createdAt: DateTime.tryParse(document["createdAt"]?.toString() ?? ""),
       receiptType: document["receiptType"],
-      updatedAt: DateTime.tryParse(document["updatedAt"]?.toString() ?? ""),
-      customerId: document["customerId"],
-      customerType: document["customerType"],
-      note: document["note"],
-      lastTouched: DateTime.tryParse(document["lastTouched"]?.toString() ?? ""),
-      ticketName: document["ticketName"],
-      supplierId: document["supplierId"],
-      ebmSynced: document["ebmSynced"],
-      isIncome: document["isIncome"],
-      isExpense: document["isExpense"],
-      isRefunded: document["isRefunded"],
+      paymentType: document["paymentType"],
+      subTotal: document["subTotal"],
       customerName: document["customerName"],
       customerTin: document["customerTin"],
-      remark: document["remark"],
       customerBhfId: document["customerBhfId"],
-      sarTyCd: document["sarTyCd"],
-      receiptNumber: document["receiptNumber"],
-      totalReceiptNumber: document["totalReceiptNumber"],
-      invoiceNumber: document["invoiceNumber"],
-      isDigitalReceiptGenerated: document["isDigitalReceiptGenerated"],
-      receiptPrinted: document["receiptPrinted"],
-      receiptFileName: document["receiptFileName"],
-      currentSaleCustomerPhoneNumber:
-          document["currentSaleCustomerPhoneNumber"],
-      sarNo: document["sarNo"],
-      orgSarNo: document["orgSarNo"],
-      shiftId: document["shiftId"],
-      isLoan: document["isLoan"],
-      dueDate: DateTime.tryParse(document["dueDate"]?.toString() ?? ""),
-      isAutoBilled: document["isAutoBilled"],
-      nextBillingDate:
-          DateTime.tryParse(document["nextBillingDate"]?.toString() ?? ""),
-      billingFrequency: document["billingFrequency"],
-      billingAmount: document["billingAmount"],
-      totalInstallments: document["totalInstallments"],
-      paidInstallments: document["paidInstallments"],
-      lastBilledDate:
-          DateTime.tryParse(document["lastBilledDate"]?.toString() ?? ""),
-      originalLoanAmount: document["originalLoanAmount"],
-      remainingBalance: document["remainingBalance"],
-      lastPaymentDate:
-          DateTime.tryParse(document["lastPaymentDate"]?.toString() ?? ""),
-      lastPaymentAmount: document["lastPaymentAmount"],
-      originalTransactionId: document["originalTransactionId"],
-      isOriginalTransaction: document["isOriginalTransaction"],
-      taxAmount: document["taxAmount"],
-      numberOfItems: document["numberOfItems"],
-      discountAmount: document["discountAmount"],
-      items: null, // Excluded from Ditto sync
-      customerPhone: document["customerPhone"],
+      isAutoPrint: document["isAutoPrint"],
+      delegatedFromDevice: document["delegatedFromDevice"],
+      delegatedAt:
+          DateTime.tryParse(document["delegatedAt"]?.toString() ?? "") ??
+              DateTime.now().toUtc(),
+      updatedAt: DateTime.tryParse(document["updatedAt"]?.toString() ?? "") ??
+          DateTime.now().toUtc(),
+      additionalData: document["additionalData"],
     );
   }
 
@@ -344,7 +260,8 @@ class ITransactionDittoAdapter extends DittoSyncAdapter<ITransaction> {
   static Future<void> _seed(DittoSyncCoordinator coordinator) async {
     if (_seeded) {
       if (kDebugMode) {
-        debugPrint('Ditto seeding skipped for ITransaction (already seeded)');
+        debugPrint(
+            'Ditto seeding skipped for TransactionDelegation (already seeded)');
       }
       return;
     }
@@ -357,42 +274,44 @@ class ITransactionDittoAdapter extends DittoSyncAdapter<ITransaction> {
         query = Query(where: [Where('branchId').isExactly(branchId)]);
       }
 
-      final models = await Repository().get<ITransaction>(
+      final models = await Repository().get<TransactionDelegation>(
         query: query,
         policy: OfflineFirstGetPolicy.alwaysHydrate,
       );
       var seededCount = 0;
       for (final model in models) {
-        await coordinator.notifyLocalUpsert<ITransaction>(model);
+        await coordinator.notifyLocalUpsert<TransactionDelegation>(model);
         seededCount++;
       }
       if (kDebugMode) {
         debugPrint('Ditto seeded ' +
             seededCount.toString() +
-            ' ITransaction record' +
+            ' TransactionDelegation record' +
             (seededCount == 1 ? '' : 's'));
       }
     } catch (error, stack) {
       if (kDebugMode) {
-        debugPrint('Ditto seeding failed for ITransaction: $error\n$stack');
+        debugPrint(
+            'Ditto seeding failed for TransactionDelegation: $error\n$stack');
       }
     }
 
     _seeded = true;
   }
 
-  static final int _$ITransactionDittoAdapterRegistryToken =
+  static final int _$TransactionDelegationDittoAdapterRegistryToken =
       DittoSyncGeneratedRegistry.register(
           (coordinator) async {
-            await coordinator.registerAdapter<ITransaction>(
-                ITransactionDittoAdapter.instance);
+            await coordinator.registerAdapter<TransactionDelegation>(
+                TransactionDelegationDittoAdapter.instance);
           },
-          modelType: ITransaction,
+          modelType: TransactionDelegation,
           seed: (coordinator) async {
             await _seed(coordinator);
           },
           reset: _resetSeedFlag);
 
   /// Public accessor to ensure static initializer runs
-  static int get registryToken => _$ITransactionDittoAdapterRegistryToken;
+  static int get registryToken =>
+      _$TransactionDelegationDittoAdapterRegistryToken;
 }

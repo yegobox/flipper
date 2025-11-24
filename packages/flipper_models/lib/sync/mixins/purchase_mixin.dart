@@ -11,7 +11,6 @@ import 'package:flipper_models/ebm_helper.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 import 'package:flipper_services/kafka_service.dart';
-
 import '../interfaces/purchase_interface.dart';
 import '../interfaces/branch_interface.dart';
 import '../interfaces/business_interface.dart';

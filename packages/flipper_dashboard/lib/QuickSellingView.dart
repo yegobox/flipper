@@ -1372,10 +1372,36 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                 suffixIcon:
                     Icon(FluentIcons.call_20_regular, color: Colors.blue),
                 onChanged: (value) async {
+                  // Store the customer phone number
                   ProxyService.box.writeString(
                     key: 'currentSaleCustomerPhoneNumber',
                     value: value,
                   );
+
+                  // For debugging
+                  talker.info('Customer phone set to: $value');
+
+                  // Persist to the pending transaction if one exists. Avoid creating a
+                  // new transaction by only updating when there is an existing pending
+                  // transaction instance available from the provider.
+                  try {
+                    final transactionAsync = ref.read(
+                        pendingTransactionStreamProvider(
+                            isExpense: ProxyService.box.isOrdering() ?? false));
+                    final transaction = transactionAsync.asData?.value;
+                    if (transaction != null && transaction.id.isNotEmpty) {
+                      unawaited(ProxyService.strategy.updateTransaction(
+                        transaction: transaction,
+                        customerPhone:
+                            widget.countryCodeController.text + value,
+                      ));
+                    }
+                  } catch (e, s) {
+                    talker.error(
+                        'Failed to update transaction with customer phone',
+                        e,
+                        s);
+                  }
                 },
                 validator: (String? value) {
                   final customerTin = ProxyService.box.customerTin();

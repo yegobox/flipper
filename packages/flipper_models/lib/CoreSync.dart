@@ -18,6 +18,7 @@ import 'package:flipper_models/sync/mixins/business_mixin.dart';
 import 'package:flipper_models/sync/mixins/category_mixin.dart';
 import 'package:flipper_models/sync/mixins/counter_mixin.dart';
 import 'package:flipper_models/sync/mixins/customer_mixin.dart';
+import 'package:flipper_models/sync/mixins/delegation_mixin.dart';
 import 'package:flipper_models/sync/mixins/delete_mixin.dart';
 import 'package:flipper_models/sync/mixins/ebm_mixin.dart';
 import 'package:flipper_models/sync/mixins/log_mixin.dart';
@@ -89,7 +90,8 @@ class CoreSync extends AiStrategyImpl
         ShiftMixin,
         StockMixin,
         CategoryMixin,
-        CounterMixin
+        CounterMixin,
+        DelegationMixin
     implements DatabaseSyncInterface {
   final String apihub = AppSecrets.apihubProd;
 
@@ -178,7 +180,6 @@ class CoreSync extends AiStrategyImpl
           await repository.upsert<IUnit>(unit);
         }
       }
-
       return 200;
     } catch (e) {
       rethrow;
@@ -202,6 +203,7 @@ class CoreSync extends AiStrategyImpl
         transaction.customerName = customer.custNm;
         transaction.customerTin = customer.custTin;
         transaction.customerPhone = customer.telNo;
+        transaction.currentSaleCustomerPhoneNumber = customer.telNo;
         repository.upsert<ITransaction>(transaction);
       } else {
         throw Exception('Try to add item to a transaction.');

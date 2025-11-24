@@ -8,6 +8,7 @@ import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/social_token.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/sync/interfaces/DelegationInterface.dart';
 import 'package:flipper_models/sync/interfaces/auth_interface.dart';
 import 'package:flipper_models/sync/interfaces/branch_interface.dart';
 import 'package:flipper_models/sync/interfaces/business_interface.dart';
@@ -76,6 +77,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
         ShiftApi,
         StockInterface,
         CounterInterface,
+        Delegationinterface,
         ReceiptInterface,
         LogInterface {
   // Repository get repository;

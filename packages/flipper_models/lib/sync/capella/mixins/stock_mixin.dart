@@ -19,10 +19,6 @@ mixin CapellaStockMixin implements StockInterface {
         talker.error('Ditto not initialized');
         throw Exception('Ditto not initialized');
       }
-      if (id == "47f23ea5-c922-4f5b-bc11-cb6871eb59f0") {
-        debugPrint("we got the stock requested");
-      }
-
       final result = await ditto.store.execute(
         'SELECT * FROM stocks WHERE _id = :id LIMIT 1',
         arguments: {'id': id},

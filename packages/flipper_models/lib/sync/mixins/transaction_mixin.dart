@@ -875,6 +875,7 @@ mixin TransactionMixin implements TransactionInterface {
     /// this help us having wrong computation on dashboard of what is income or expenses.
     bool isUnclassfied = false,
     bool? isTrainingMode,
+    String? customerPhone,
   }) async {
     if (transaction == null) {
       if (transactionId == null) {
@@ -925,6 +926,9 @@ mixin TransactionMixin implements TransactionInterface {
     transaction.receiptPrinted = receiptPrinted ?? transaction.receiptPrinted;
     transaction.isExpense = isUnclassfied ? null : transaction.isExpense;
     transaction.isIncome = isUnclassfied ? null : transaction.isIncome;
+    transaction.customerPhone = customerPhone ?? transaction.customerPhone;
+    transaction.currentSaleCustomerPhoneNumber =
+        customerPhone ?? transaction.customerPhone;
 
     final result = await repository.upsert<ITransaction>(transaction);
     return result;
