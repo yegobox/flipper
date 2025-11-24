@@ -23,7 +23,12 @@ mixin DelegationMixin implements DelegationInterface {
     Map<String, dynamic>? additionalData,
   }) async {
     try {
-      final deviceId = dittoService.dittoInstance!.deviceName;
+      final ditto = dittoService.dittoInstance;
+      if (ditto == null) {
+        debugPrint('❌ Ditto not initialized');
+        return;
+      }
+      final deviceId = ditto.deviceName;
       final now = DateTime.now().toIso8601String();
 
       final delegationData = {
@@ -46,7 +51,7 @@ mixin DelegationMixin implements DelegationInterface {
       };
 
       // Use DQL INSERT with conflict resolution (upsert)
-      await dittoService.dittoInstance!.store.execute(
+      await ditto.store.execute(
         "INSERT INTO $_collectionName DOCUMENTS (:delegation) ON ID CONFLICT DO UPDATE",
         arguments: {
           "delegation": delegationData,
