@@ -2065,6 +2065,22 @@ class CoreSync extends AiStrategyImpl
       }
 
       if (data is Device) {
+        final existingDevice = await repository.get<Device>(
+            query: brick.Query(
+                where: [brick.Where('userId').isExactly(data.userId)]));
+        if (existingDevice.isNotEmpty) {
+          final device = existingDevice.first;
+          device.linkingCode = data.linkingCode;
+          device.deviceName = data.deviceName;
+          device.deviceVersion = data.deviceVersion;
+          device.pubNubPublished = data.pubNubPublished;
+          device.phone = data.phone;
+          device.branchId = data.branchId;
+          device.businessId = data.businessId;
+          device.defaultApp = data.defaultApp;
+          await repository.upsert<Device>(device);
+          return device as T;
+        }
         await repository.upsert<Device>(data);
         return data as T;
       }

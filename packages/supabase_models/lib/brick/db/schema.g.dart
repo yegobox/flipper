@@ -447,7 +447,6 @@ final schema = Schema(
         SchemaColumn('invoice_number', Column.integer),
         SchemaColumn('is_digital_receipt_generated', Column.boolean),
         SchemaColumn('receipt_printed', Column.boolean),
-        SchemaColumn('receipt_printed', Column.boolean),
         SchemaColumn('receipt_file_name', Column.varchar),
         SchemaColumn('current_sale_customer_phone_number', Column.varchar),
         SchemaColumn('sar_no', Column.varchar),
