@@ -38,12 +38,7 @@ class TaxController<OBJ> {
       String? custMblNo;
       if (rawPhone != null) {
         // Remove non-digit characters and trim whitespace
-        var normalized = rawPhone.trim().replaceAll(RegExp(r'\\D'), '');
-        // Prepend a leading "0" if it does not already start with "0" or a country prefix
-        if (!normalized.startsWith('0')) {
-          normalized = '0' + normalized;
-        }
-        custMblNo = normalized;
+        custMblNo = rawPhone.trim().replaceAll(RegExp(r'\D'), '');
       } else {
         custMblNo = null;
       }
