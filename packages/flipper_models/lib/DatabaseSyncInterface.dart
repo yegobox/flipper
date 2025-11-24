@@ -77,7 +77,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
         ShiftApi,
         StockInterface,
         CounterInterface,
-        Delegationinterface,
+        DelegationInterface,
         ReceiptInterface,
         LogInterface {
   // Repository get repository;

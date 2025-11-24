@@ -1,6 +1,6 @@
 import 'package:supabase_models/brick/models/transaction_delegation.model.dart';
 
-abstract class Delegationinterface {
+abstract class DelegationInterface {
   Future<void> createDelegation({
     required String transactionId,
     required int branchId,

@@ -5,7 +5,7 @@ import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_models/brick/models/all_models.dart';
 
-mixin DelegationMixin implements Delegationinterface {
+mixin DelegationMixin implements DelegationInterface {
   DittoService get dittoService => DittoService.instance;
   static const String _collectionName = 'transaction_delegations';
 
