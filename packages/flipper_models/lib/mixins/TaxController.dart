@@ -232,7 +232,8 @@ class TaxController<OBJ> {
     List<TransactionItem> transactionItems = items ?? [];
     if (transactionItems.isEmpty) {
       try {
-        transactionItems = await ProxyService.strategy.transactionItems(
+        transactionItems =
+            await ProxyService.getStrategy(Strategy.capella).transactionItems(
           transactionId: transaction.id,
           branchId: (await ProxyService.strategy.activeBranch()).id,
         );
@@ -559,7 +560,7 @@ class TaxController<OBJ> {
               .addTransaction(transaction: newTransaction);
           //query item and re-assign
           final List<TransactionItem> items =
-              await ProxyService.strategy.transactionItems(
+              await ProxyService.getStrategy(Strategy.capella).transactionItems(
             branchId: (await ProxyService.strategy.activeBranch()).id,
             transactionId: transaction.id,
           );
@@ -695,9 +696,11 @@ class TaxController<OBJ> {
         enableTransactionDelegation &&
         !skiGenerateRRAReceiptSignature) {
       try {
-        await ProxyService.strategy.createDelegation(
+        await ProxyService.getStrategy(Strategy.capella).createDelegation(
           transactionId: transaction.id,
           branchId: transaction.branchId!,
+          selectedDelegationDeviceId:
+              ProxyService.box.selectedDelegationDeviceId(),
           receiptType: receiptType,
           customerName: transaction.customerName,
           customerTin: transaction.customerTin,

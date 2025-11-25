@@ -1,6 +1,7 @@
 // ignore_for_file: unused_result
 
 import 'package:flipper_dashboard/create/category_selector.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -244,7 +245,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
     if (key == 'C') {
       // Properly handle the clear key by calling the CoreViewModel's handleClearKey method
       List<TransactionItem> items =
-          await ProxyService.strategy.transactionItems(
+          await ProxyService.getStrategy(Strategy.capella).transactionItems(
         branchId: (await ProxyService.strategy.activeBranch()).id,
         transactionId: transaction.value?.id,
         doneWithTransaction: false,

@@ -1,3 +1,4 @@
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,7 +12,7 @@ Future<List<TransactionItem>> transactionItems(Ref ref,
     int? branchId,
     bool fetchRemote = false,
     bool doneWithTransaction = false}) async {
-  return await ProxyService.strategy.transactionItems(
+  return await ProxyService.getStrategy(Strategy.capella).transactionItems(
     transactionId: transactionId,
     doneWithTransaction: doneWithTransaction,
     branchId: (await ProxyService.strategy.activeBranch()).id,

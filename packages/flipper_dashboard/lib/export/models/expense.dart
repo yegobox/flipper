@@ -1,3 +1,4 @@
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/proxy.dart';
@@ -34,7 +35,7 @@ class Expense {
       for (var sale in sales) {
         print(
             'EXPENSE TAX CALCULATION - Sale ID: ${sale.id}, Amount: ${sale.subTotal}');
-        final relatedTransactionItems = await ProxyService.strategy
+        final relatedTransactionItems = await ProxyService.getStrategy(Strategy.capella)
             .transactionItems(transactionId: sale.id);
         print(
             'EXPENSE TAX CALCULATION - Found ${relatedTransactionItems.length} items for sale ${sale.id}');

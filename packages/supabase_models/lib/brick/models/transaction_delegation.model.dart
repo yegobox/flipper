@@ -80,6 +80,8 @@ class TransactionDelegation extends OfflineFirstWithSupabaseModel {
   @Supabase(name: 'additional_data')
   final Map<String, dynamic>? additionalData;
 
+  String? selectedDelegationDeviceId;
+
   TransactionDelegation({
     String? id,
     required this.transactionId,
@@ -96,6 +98,7 @@ class TransactionDelegation extends OfflineFirstWithSupabaseModel {
     DateTime? delegatedAt,
     DateTime? updatedAt,
     this.additionalData,
+    this.selectedDelegationDeviceId,
   })  : id = id ?? const Uuid().v4(),
         subTotal = subTotal ?? 0.0,
         isAutoPrint = isAutoPrint ?? false,
@@ -124,6 +127,7 @@ class TransactionDelegation extends OfflineFirstWithSupabaseModel {
           ? DateTime.parse(json['updatedAt'] as String)
           : DateTime.now().toUtc(),
       additionalData: json['additionalData'] as Map<String, dynamic>?,
+      selectedDelegationDeviceId: json['selectedDelegationDeviceId'] as String?,
     );
   }
 
@@ -145,6 +149,7 @@ class TransactionDelegation extends OfflineFirstWithSupabaseModel {
       'delegatedAt': delegatedAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
       'additionalData': additionalData,
+      'selectedDelegationDeviceId': selectedDelegationDeviceId,
     };
   }
 
@@ -165,6 +170,7 @@ class TransactionDelegation extends OfflineFirstWithSupabaseModel {
     DateTime? delegatedAt,
     DateTime? updatedAt,
     Map<String, dynamic>? additionalData,
+    String? selectedDelegationDeviceId,
   }) {
     return TransactionDelegation(
       id: id ?? this.id,
@@ -182,6 +188,8 @@ class TransactionDelegation extends OfflineFirstWithSupabaseModel {
       delegatedAt: delegatedAt ?? this.delegatedAt,
       updatedAt: updatedAt ?? this.updatedAt,
       additionalData: additionalData ?? this.additionalData,
+      selectedDelegationDeviceId:
+          selectedDelegationDeviceId ?? this.selectedDelegationDeviceId,
     );
   }
 }

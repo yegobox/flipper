@@ -188,6 +188,7 @@ class TransactionDelegationDittoAdapter
       "delegatedAt": model.delegatedAt.toIso8601String(),
       "updatedAt": model.updatedAt.toIso8601String(),
       "additionalData": model.additionalData,
+      "selectedDelegationDeviceId": model.selectedDelegationDeviceId,
     };
   }
 
@@ -239,6 +240,7 @@ class TransactionDelegationDittoAdapter
       updatedAt: DateTime.tryParse(document["updatedAt"]?.toString() ?? "") ??
           DateTime.now().toUtc(),
       additionalData: document["additionalData"],
+      selectedDelegationDeviceId: document["selectedDelegationDeviceId"],
     );
   }
 

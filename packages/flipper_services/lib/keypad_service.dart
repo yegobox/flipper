@@ -1,3 +1,4 @@
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
@@ -70,7 +71,8 @@ class KeyPadService with ListenableServiceMixin {
     final int? userId = ProxyService.box.getUserId();
     String? shiftId;
     if (userId != null) {
-      final currentShift = await ProxyService.strategy.getCurrentShift(userId: userId);
+      final currentShift =
+          await ProxyService.strategy.getCurrentShift(userId: userId);
       shiftId = currentShift?.id;
     }
 
@@ -98,8 +100,8 @@ class KeyPadService with ListenableServiceMixin {
   Future<ITransaction?> getTransactionById({required String id}) async {
     ITransaction? od =
         (await ProxyService.strategy.transactions(id: id)).firstOrNull;
-    List<TransactionItem> transactionItems = await ProxyService.strategy
-        .transactionItems(
+    List<TransactionItem> transactionItems =
+        await ProxyService.getStrategy(Strategy.capella).transactionItems(
             transactionId: od!.id,
             branchId: (await ProxyService.strategy.activeBranch()).id);
     _countTransactionItems.value = transactionItems.length;

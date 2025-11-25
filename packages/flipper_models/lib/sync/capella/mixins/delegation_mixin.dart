@@ -21,6 +21,7 @@ mixin CapellaDelegationMixin implements DelegationInterface {
     double? subTotal,
     String? paymentType,
     Map<String, dynamic>? additionalData,
+    String? selectedDelegationDeviceId,
   }) async {
     try {
       final deviceId = dittoService.dittoInstance!.deviceName;
@@ -42,7 +43,8 @@ mixin CapellaDelegationMixin implements DelegationInterface {
         'subTotal': subTotal,
         'paymentType': paymentType,
         'updatedAt': now,
-        ...?additionalData,
+        'additionalData': additionalData,
+        'selectedDelegationDeviceId': selectedDelegationDeviceId,
       };
 
       // Use DQL INSERT with conflict resolution (upsert)
@@ -67,6 +69,7 @@ mixin CapellaDelegationMixin implements DelegationInterface {
   Stream<List<TransactionDelegation>> delegationsStream({
     int? branchId,
     String? status,
+    required String onDeviceId,
   }) {
     try {
       final ditto = dittoService.dittoInstance;
@@ -92,6 +95,9 @@ mixin CapellaDelegationMixin implements DelegationInterface {
         whereParts.add('status = :status');
         arguments['status'] = status;
       }
+
+      whereParts.add('selectedDelegationDeviceId = :onDeviceId');
+      arguments['onDeviceId'] = onDeviceId;
 
       final whereClause =
           whereParts.isNotEmpty ? 'WHERE ${whereParts.join(' AND ')}' : '';
@@ -128,6 +134,39 @@ mixin CapellaDelegationMixin implements DelegationInterface {
     } catch (e) {
       debugPrint('❌ Error watching delegations: $e');
       return Stream.value([]);
+    }
+  }
+
+  @override
+  Future<List<Device>> getDevicesByBranch({
+    required int branchId,
+  }) async {
+    try {
+      final ditto = dittoService.dittoInstance;
+      if (ditto == null) {
+        debugPrint('❌ Ditto not initialized');
+        return [];
+      }
+
+      final query = 'SELECT * FROM devices WHERE branchId = :branchId';
+      debugPrint('🔍 Querying devices with: $query');
+      debugPrint('   Arguments: {branchId: $branchId}');
+
+      final result = await ditto.store.execute(
+        query,
+        arguments: {'branchId': branchId},
+      );
+
+      final devices = result.items.map((doc) {
+        final data = Map<String, dynamic>.from(doc.value);
+        return Device.fromJson(data);
+      }).toList();
+
+      debugPrint('📱 Found ${devices.length} device(s) for branch $branchId');
+      return devices;
+    } catch (e) {
+      debugPrint('❌ Error getting devices by branch: $e');
+      return [];
     }
   }
 }

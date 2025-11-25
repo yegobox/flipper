@@ -11,6 +11,7 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_dashboard/mfa_setup_view.dart';
 import 'package:flipper_dashboard/utils/snack_bar_utils.dart';
+import 'package:flipper_models/providers/device_provider.dart';
 
 class MyDrawer extends ConsumerStatefulWidget {
   const MyDrawer({Key? key}) : super(key: key);
@@ -1118,18 +1119,19 @@ class _ModernMenuItem extends StatelessWidget {
 }
 
 /// Mobile-optimized Transaction Delegation Settings
-class _MobileTransactionDelegationSettings extends StatefulWidget {
+class _MobileTransactionDelegationSettings extends ConsumerStatefulWidget {
   const _MobileTransactionDelegationSettings();
 
   @override
-  State<_MobileTransactionDelegationSettings> createState() =>
+  ConsumerState<_MobileTransactionDelegationSettings> createState() =>
       _MobileTransactionDelegationSettingsState();
 }
 
 class _MobileTransactionDelegationSettingsState
-    extends State<_MobileTransactionDelegationSettings> {
+    extends ConsumerState<_MobileTransactionDelegationSettings> {
   bool _isEnabled = false;
   bool _isLoading = true;
+  String? _selectedDeviceId;
 
   @override
   void initState() {
@@ -1142,8 +1144,13 @@ class _MobileTransactionDelegationSettingsState
       key: 'enableTransactionDelegation',
     );
 
+    final selectedDeviceId = ProxyService.box.readString(
+      key: 'selectedDelegationDeviceId',
+    );
+
     setState(() {
       _isEnabled = enabled ?? false;
+      _selectedDeviceId = selectedDeviceId;
       _isLoading = false;
     });
   }
@@ -1187,6 +1194,141 @@ class _MobileTransactionDelegationSettingsState
         );
       }
     }
+  }
+
+  Future<void> _selectDevice(String deviceId) async {
+    try {
+      await ProxyService.box.writeString(
+        key: 'selectedDelegationDeviceId',
+        value: deviceId,
+      );
+
+      setState(() {
+        _selectedDeviceId = deviceId;
+      });
+
+      if (mounted) {
+        showCustomSnackBarUtil(
+          context,
+          'Delegation device selected',
+          type: NotificationType.success,
+          duration: const Duration(seconds: 2),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        showCustomSnackBarUtil(
+          context,
+          'Error selecting device: ${e.toString()}',
+          type: NotificationType.error,
+        );
+      }
+    }
+  }
+
+  Widget _buildDeviceSelectionSection(BuildContext context) {
+    final branchId = ProxyService.box.getBranchId();
+
+    if (branchId == null) {
+      return const SizedBox.shrink();
+    }
+
+    final devicesAsync =
+        ref.watch(devicesForBranchProvider(branchId: branchId));
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF5F5F5),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.devices_rounded,
+                  color: Color(0xFF0078D4),
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Text(
+                'Select Device',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          devicesAsync.when(
+            data: (devices) {
+              if (devices.isEmpty) {
+                return Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(
+                    'No devices available in this branch',
+                    style: TextStyle(
+                      color: Colors.grey[600],
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                );
+              }
+
+              return RadioGroup<String>(
+                groupValue: _selectedDeviceId,
+                onChanged: (value) {
+                  if (value != null) {
+                    _selectDevice(value);
+                  }
+                },
+                child: Column(
+                  children: devices.map((device) {
+                    return RadioListTile<String>(
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                      title: Text(
+                        device.deviceName ?? 'Unknown Device',
+                        style: const TextStyle(fontWeight: FontWeight.w500),
+                      ),
+                      subtitle: device.phone != null
+                          ? Text('Phone: ${device.phone}')
+                          : null,
+                      value: device.id,
+                      activeColor: const Color(0xFF0078D4),
+                    );
+                  }).toList(),
+                ),
+              );
+            },
+            loading: () => const Center(
+              child: Padding(
+                padding: EdgeInsets.all(16.0),
+                child: CircularProgressIndicator(),
+              ),
+            ),
+            error: (error, stack) => Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                'Error loading devices: ${error.toString()}',
+                style: const TextStyle(color: Colors.red),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -1251,11 +1393,16 @@ class _MobileTransactionDelegationSettingsState
               Switch(
                 value: _isEnabled,
                 onChanged: _toggleDelegation,
-                activeThumbColor: const Color(0xFF0078D4),
+                activeColor: const Color(0xFF0078D4),
               ),
             ],
           ),
         ),
+
+        if (_isEnabled) ...[
+          const SizedBox(height: 16),
+          _buildDeviceSelectionSection(context),
+        ],
 
         const SizedBox(height: 24),
 

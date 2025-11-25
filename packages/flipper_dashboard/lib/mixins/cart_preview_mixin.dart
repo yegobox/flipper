@@ -3,6 +3,7 @@
 import 'dart:async';
 
 import 'package:flipper_dashboard/mixins/base_cart_mixin.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/providers/selected_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
@@ -69,7 +70,7 @@ mixin CartPreviewMixin<T extends ConsumerStatefulWidget>
 
   Future<List<TransactionItem>> _getActiveTransactionItems(
       ITransaction transaction) async {
-    return await ProxyService.strategy.transactionItems(
+    return await ProxyService.getStrategy(Strategy.capella).transactionItems(
       branchId: (await ProxyService.strategy.activeBranch()).id,
       transactionId: transaction.id,
       doneWithTransaction: false,

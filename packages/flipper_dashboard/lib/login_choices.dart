@@ -14,7 +14,10 @@ import 'package:talker_flutter/talker_flutter.dart';
 import 'package:flipper_personal/flipper_personal.dart';
 // removed unused import
 import 'dart:async';
+import 'dart:io';
 import 'package:flipper_models/ebm_helper.dart';
+import 'package:flipper_services/Miscellaneous.dart';
+import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_dashboard/BranchSelectionMixin.dart';
 import 'package:flipper_dashboard/utils/error_handler.dart';
 import 'package:flipper_models/providers/branch_business_provider.dart';
@@ -281,6 +284,9 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     try {
       await _setDefaultBranch(branch);
 
+      // Save device being logged in
+      await _saveDeviceRecord();
+
       // Ensure counters are hydrated now that the branch context is known.
       await DittoSyncCoordinator.instance.hydrate<Counter>();
 
@@ -507,6 +513,50 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     final businessId = ref.read(selectedBusinessIdProvider);
     if (businessId != null) {
       ref.invalidate(branchesProvider(businessId: businessId));
+    }
+  }
+
+  bool get isMobileDevice {
+    return Platform.isAndroid || Platform.isIOS;
+  }
+
+  Future<void> _saveDeviceRecord() async {
+    try {
+      final userId = ProxyService.box.getUserId();
+      final businessId = ProxyService.box.getBusinessId();
+      final branchId = ProxyService.box.getBranchId();
+      final phone = ProxyService.box.getUserPhone();
+      final defaultApp = ProxyService.box.getDefaultApp();
+
+      if (userId == null || businessId == null || branchId == null) {
+        talker.warning('Cannot save device: missing required user data');
+        return;
+      }
+
+      // Get device info
+      final deviceName = Platform.operatingSystem;
+      final deviceVersion = await CoreMiscellaneous.getDeviceVersionStatic();
+
+      // Check if device already exists
+      if (!isMobileDevice) {
+        await ProxyService.strategy.create(
+          data: Device(
+            pubNubPublished: false,
+            branchId: branchId,
+            businessId: businessId,
+            defaultApp: defaultApp ?? 'POS',
+            phone: phone ?? '',
+            userId: userId,
+            deviceName: deviceName,
+            deviceVersion: deviceVersion,
+          ),
+        );
+      }
+
+      talker.debug('Device record created successfully');
+    } catch (e) {
+      talker.error('Error saving device record: $e');
+      // Don't throw - device creation failure shouldn't block login
     }
   }
 }

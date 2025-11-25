@@ -21,7 +21,6 @@ export 'helperModels/subscription.dart';
 export 'helperModels/spenn.dart';
 export 'helperModels/ebm.dart';
 export 'helperModels/token.dart';
-export 'helperModels/device.dart';
 export 'helperModels/permission.dart';
 export 'helperModels/setting.dart';
 export 'helperModels/profile.dart';

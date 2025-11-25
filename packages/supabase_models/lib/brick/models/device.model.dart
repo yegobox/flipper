@@ -48,4 +48,22 @@ class Device extends OfflineFirstWithSupabaseModel {
     this.defaultApp,
     this.deletedAt,
   }) : id = id ?? const Uuid().v4();
+
+  factory Device.fromJson(Map<String, dynamic> json) {
+    return Device(
+      id: json['id'] as String?,
+      linkingCode: json['linkingCode'] as String?,
+      deviceName: json['deviceName'] as String?,
+      deviceVersion: json['deviceVersion'] as String?,
+      pubNubPublished: json['pubNubPublished'] as bool?,
+      phone: json['phone'] as String?,
+      branchId: json['branchId'] as int?,
+      businessId: json['businessId'] as int?,
+      userId: json['userId'] as int?,
+      defaultApp: json['defaultApp'] as String?,
+      deletedAt: json['deletedAt'] != null
+          ? DateTime.tryParse(json['deletedAt'].toString())
+          : null,
+    );
+  }
 }

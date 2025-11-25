@@ -72,9 +72,15 @@ class CronService {
     // Listen for delegated transactions from mobile devices
     /// the script should run on desktop apps only
     if (!isMobileDevice) {
+      // get the device Id from myself which
+      List<Device> devices = await ProxyService.getStrategy(Strategy.capella)
+          .getDevicesByBranch(branchId: ProxyService.box.getBranchId()!);
+
       ProxyService.getStrategy(Strategy.capella)
           .delegationsStream(
-              branchId: ProxyService.box.getBranchId()!, status: 'delegated')
+              branchId: ProxyService.box.getBranchId()!,
+              status: 'delegated',
+              onDeviceId: devices.first.id)
           .listen((delegations) async {
         for (TransactionDelegation delegation in delegations) {
           try {

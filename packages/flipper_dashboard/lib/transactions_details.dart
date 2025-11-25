@@ -1,3 +1,4 @@
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -78,7 +79,7 @@ class _TransactionDetailState extends ConsumerState<TransactionDetail>
       onViewModelReady: (model) async {
         final activeBranch = await ProxyService.strategy.activeBranch();
         List<TransactionItem> items =
-            await ProxyService.strategy.transactionItems(
+            await ProxyService.getStrategy(Strategy.capella).transactionItems(
           branchId: activeBranch.id,
           transactionId: widget.transaction.id,
           fetchRemote: true,

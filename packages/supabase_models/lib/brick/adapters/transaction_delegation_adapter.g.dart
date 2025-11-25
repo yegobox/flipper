@@ -34,6 +34,9 @@ Future<TransactionDelegation> _$TransactionDelegationFromSupabase(
     additionalData: data['additional_data'] == null
         ? null
         : data['additional_data'],
+    selectedDelegationDeviceId: data['selected_delegation_device_id'] == null
+        ? null
+        : data['selected_delegation_device_id'] as String?,
   );
 }
 
@@ -58,6 +61,7 @@ Future<Map<String, dynamic>> _$TransactionDelegationToSupabase(
     'delegated_at': instance.delegatedAt.toIso8601String(),
     'updated_at': instance.updatedAt.toIso8601String(),
     'additional_data': instance.additionalData,
+    'selected_delegation_device_id': instance.selectedDelegationDeviceId,
   };
 }
 
@@ -87,6 +91,9 @@ Future<TransactionDelegation> _$TransactionDelegationFromSqlite(
     delegatedFromDevice: data['delegated_from_device'] as String,
     delegatedAt: DateTime.parse(data['delegated_at'] as String),
     updatedAt: DateTime.parse(data['updated_at'] as String),
+    selectedDelegationDeviceId: data['selected_delegation_device_id'] == null
+        ? null
+        : data['selected_delegation_device_id'] as String?,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -110,6 +117,7 @@ Future<Map<String, dynamic>> _$TransactionDelegationToSqlite(
     'delegated_from_device': instance.delegatedFromDevice,
     'delegated_at': instance.delegatedAt.toIso8601String(),
     'updated_at': instance.updatedAt.toIso8601String(),
+    'selected_delegation_device_id': instance.selectedDelegationDeviceId,
   };
 }
 
@@ -183,6 +191,10 @@ class TransactionDelegationAdapter
     'additionalData': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'additional_data',
+    ),
+    'selectedDelegationDeviceId': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'selected_delegation_device_id',
     ),
   };
   @override
@@ -280,6 +292,12 @@ class TransactionDelegationAdapter
       columnName: 'updated_at',
       iterable: false,
       type: DateTime,
+    ),
+    'selectedDelegationDeviceId': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'selected_delegation_device_id',
+      iterable: false,
+      type: String,
     ),
   };
   @override

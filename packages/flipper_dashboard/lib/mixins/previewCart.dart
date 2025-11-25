@@ -36,7 +36,7 @@ import 'package:uuid/uuid.dart';
 /// Fetches transaction items for the given transaction ID
 Future<List<TransactionItem>> _getTransactionItems(
     {required ITransaction transaction}) async {
-  final items = await ProxyService.strategy.transactionItems(
+  final items = await ProxyService.getStrategy(Strategy.capella).transactionItems(
     branchId: (await ProxyService.strategy.activeBranch()).id,
     transactionId: transaction.id,
     doneWithTransaction: false,
@@ -80,7 +80,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     try {
       String deliveryNote = deliveryNoteCotroller.text;
 
-      final items = await ProxyService.strategy.transactionItems(
+      final items = await ProxyService.getStrategy(Strategy.capella).transactionItems(
         branchId: (await ProxyService.strategy.activeBranch()).id,
         transactionId: transaction.id,
         doneWithTransaction: false,
@@ -139,7 +139,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
   Future<void> applyDiscount(ITransaction transaction) async {
     // get items on cart
-    final items = await ProxyService.strategy.transactionItems(
+    final items = await ProxyService.getStrategy(Strategy.capella).transactionItems(
       branchId: (await ProxyService.strategy.activeBranch()).id,
       transactionId: transaction.id,
       doneWithTransaction: false,

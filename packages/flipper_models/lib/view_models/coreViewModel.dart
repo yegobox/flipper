@@ -5,6 +5,7 @@ library flipper_models;
 import 'dart:async';
 import 'dart:developer';
 
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/ebm_helper.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/helperModels/random.dart';
@@ -166,7 +167,7 @@ class CoreViewModel extends FlipperBaseModel
     /// query for an item that is not active so we can edit it
     /// if the item is not available it will be created, if we are done with working with item
     /// we then change status of active from false to true
-    List<TransactionItem> items = await ProxyService.strategy.transactionItems(
+    List<TransactionItem> items = await ProxyService.getStrategy(Strategy.capella).transactionItems(
         branchId: (await ProxyService.strategy.activeBranch()).id,
         transactionId: pendingTransaction?.id,
         doneWithTransaction: false,
@@ -304,7 +305,7 @@ class CoreViewModel extends FlipperBaseModel
           .getTransactionItem(
               variantId: variation.id, transactionId: pendingTransaction?.id);
 
-      List<TransactionItem> items = await ProxyService.strategy
+      List<TransactionItem> items = await ProxyService.getStrategy(Strategy.capella)
           .transactionItems(
               branchId: (await ProxyService.strategy.activeBranch()).id,
               transactionId: pendingTransaction?.id,
@@ -324,7 +325,7 @@ class CoreViewModel extends FlipperBaseModel
           subTotal: items.fold(0, (a, b) => a! + (b.price * b.qty) + amount),
         );
       } else {
-        List<TransactionItem> items = await ProxyService.strategy
+        List<TransactionItem> items = await ProxyService.getStrategy(Strategy.capella)
             .transactionItems(
                 branchId: (await ProxyService.strategy.activeBranch()).id,
                 transactionId: pendingTransaction?.id,
@@ -642,7 +643,7 @@ class CoreViewModel extends FlipperBaseModel
       }
 
       // If no customer or no existing parked ticket, park the current transaction as new.
-      final items = await ProxyService.strategy
+      final items = await ProxyService.getStrategy(Strategy.capella)
           .transactionItems(transactionId: transaction.id);
       await ProxyService.strategy.updateTransaction(
         transaction: transaction,
@@ -752,7 +753,7 @@ class CoreViewModel extends FlipperBaseModel
         .transactions(branchId: branchId, status: COMPLETE);
     Set<TransactionItem> allItems = {};
     for (ITransaction completedTransaction in completedTransactions) {
-      List<TransactionItem> transactionItems = await ProxyService.strategy
+      List<TransactionItem> transactionItems = await ProxyService.getStrategy(Strategy.capella)
           .transactionItems(
               branchId: (await ProxyService.strategy.activeBranch()).id,
               transactionId: completedTransaction.id);

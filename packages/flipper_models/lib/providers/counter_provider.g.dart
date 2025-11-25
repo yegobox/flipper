@@ -6,7 +6,7 @@ part of 'counter_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$countersHash() => r'36c72f408a48d60f49376ec9817a9f18dd3c15bc';
+String _$countersHash() => r'dd59f67c7a77ff8f4056a21c14922d9fd8acf7e2';
 
 /// Copied from Dart SDK
 class _SystemHash {
@@ -156,7 +156,7 @@ class _CountersProviderElement
   int get branchId => (origin as CountersProvider).branchId;
 }
 
-String _$highestCounterHash() => r'19e5096073fb60e85f220a8f930076b16e200693';
+String _$highestCounterHash() => r'ad3835014d4943737b95e35145ad9b927fc18ac0';
 
 /// See also [highestCounter].
 @ProviderFor(highestCounter)

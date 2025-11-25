@@ -8,6 +8,7 @@ part '20251123182610.migration.dart';
 part '20251107092908.migration.dart';
 part '20251122051839.migration.dart';
 part '20251108140031.migration.dart';
+part '20251124173305.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
@@ -18,11 +19,12 @@ final migrations = <Migration>{
   const Migration20251107092908(),
   const Migration20251122051839(),
   const Migration20251108140031(),
+  const Migration20251124173305(),
 };
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
-  20251123182610,
+  20251124173305,
   generatorVersion: 1,
   tables: <SchemaTable>{
     SchemaTable(
@@ -831,6 +833,7 @@ final schema = Schema(
         SchemaColumn('delegated_from_device', Column.varchar),
         SchemaColumn('delegated_at', Column.datetime),
         SchemaColumn('updated_at', Column.datetime),
+        SchemaColumn('selected_delegation_device_id', Column.varchar),
       },
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['id'], unique: true),

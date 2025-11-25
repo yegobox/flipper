@@ -117,4 +117,6 @@ abstract class LocalStorage {
   String? customerTin();
   bool vatEnabled();
   String? lastZReportDate();
+
+  String? selectedDelegationDeviceId();
 }
