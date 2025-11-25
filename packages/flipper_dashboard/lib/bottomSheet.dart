@@ -553,6 +553,9 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
     // Watch digital payment status
     final digitalPaymentAsync = ref.watch(isDigialPaymentEnabledProvider);
 
+    // Watch customer phone number to update button state
+    final customerPhone = ref.watch(customerPhoneNumberProvider);
+
     double calculateTotal(List<TransactionItem> items) {
       return items.fold(0, (sum, item) => sum + (item.price * item.qty));
     }
@@ -787,7 +790,8 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                       child: FlipperButton(
                         height: 56,
                         color: Colors.blue.shade700,
-                        text: _getButtonText(items.isEmpty, total),
+                        text:
+                            _getButtonText(items.isEmpty, total, customerPhone),
                         textColor: Colors.white,
                         borderRadius: BorderRadius.only(
                           topLeft: Radius.circular(12),
@@ -795,13 +799,14 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                         ),
                         isLoading:
                             !_isImmediateCompletion && _shouldShowSpinner(),
-                        onPressed: _getButtonEnabled(items.isEmpty)
-                            ? () => _handleCharge(
-                                  widget.transactionIdInt.toString(),
-                                  total,
-                                  immediateCompletion: false,
-                                )
-                            : null,
+                        onPressed:
+                            _getButtonEnabled(items.isEmpty, customerPhone)
+                                ? () => _handleCharge(
+                                      widget.transactionIdInt.toString(),
+                                      total,
+                                      immediateCompletion: false,
+                                    )
+                                : null,
                       ),
                     ),
                     // Divider
@@ -823,13 +828,14 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                         ),
                         isLoading:
                             _isImmediateCompletion && _shouldShowSpinner(),
-                        onPressed: _getButtonEnabled(items.isEmpty)
-                            ? () => _handleCharge(
-                                  widget.transactionIdInt.toString(),
-                                  total,
-                                  immediateCompletion: true,
-                                )
-                            : null,
+                        onPressed:
+                            _getButtonEnabled(items.isEmpty, customerPhone)
+                                ? () => _handleCharge(
+                                      widget.transactionIdInt.toString(),
+                                      total,
+                                      immediateCompletion: true,
+                                    )
+                                : null,
                       ),
                     ),
                   ],
@@ -849,7 +855,7 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                   bottomRight: Radius.circular(12),
                 ),
                 isLoading: _isImmediateCompletion && _shouldShowSpinner(),
-                onPressed: _getButtonEnabled(items.isEmpty)
+                onPressed: _getButtonEnabled(items.isEmpty, customerPhone)
                     ? () => _handleCharge(
                           widget.transactionIdInt.toString(),
                           total,
@@ -928,9 +934,8 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
     );
   }
 
-  bool _getButtonEnabled(bool isEmpty) {
+  bool _getButtonEnabled(bool isEmpty, String? customerPhone) {
     // Check if customer has been added
-    final customerPhone = ref.read(customerPhoneNumberProvider);
     final hasCustomer = customerPhone != null && customerPhone.isNotEmpty;
 
     return !isEmpty &&
@@ -944,17 +949,16 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
         _chargeState == ChargeButtonState.printingReceipt;
   }
 
-  String _getButtonText(bool isEmpty, double total) {
+  String _getButtonText(bool isEmpty, double total, String? customerPhone) {
     if (isEmpty) return 'Add items to charge';
 
     // Check if customer has been added
-    final customerPhone = ref.read(customerPhoneNumberProvider);
     final hasCustomer = customerPhone != null && customerPhone.isNotEmpty;
     if (!hasCustomer) return 'Add customer to continue';
 
     switch (_chargeState) {
       case ChargeButtonState.initial:
-        return 'Charge ${total.toCurrencyFormatted()}';
+        return 'Charge Now';
       case ChargeButtonState.waitingForPayment:
         return 'Waiting for payment...';
       case ChargeButtonState.printingReceipt:
