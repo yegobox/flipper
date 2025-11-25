@@ -25,6 +25,7 @@ import 'package:stacked/stacked.dart';
 import 'package:country_code_picker/country_code_picker.dart';
 
 import 'package:flipper_dashboard/providers/customer_provider.dart';
+import 'package:flipper_dashboard/providers/customer_phone_provider.dart';
 import 'package:flipper_dashboard/widgets/payment_methods_card.dart';
 
 class QuickSellingView extends StatefulHookConsumerWidget {
@@ -255,6 +256,13 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   @override
   Widget build(BuildContext context) {
     final isOrdering = ProxyService.box.isOrdering() ?? false;
+
+    // Listen for customer phone number changes from the provider and update the controller
+    ref.listen<String?>(customerPhoneNumberProvider, (previous, next) {
+      if (next != null && widget.customerPhoneNumberController.text != next) {
+        widget.customerPhoneNumberController.text = next;
+      }
+    });
 
     // Check for branch changes and refresh transaction if needed
     final currentBranchId = ProxyService.box.getBranchId();
@@ -752,6 +760,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         ),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
@@ -762,7 +771,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               Spacer(),
-              Expanded(child: datePicker()),
+              Flexible(
+                child: datePicker(),
+              ),
             ],
           ),
           SizedBox(height: 16),
@@ -1013,16 +1024,21 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                 transactionId: transactionAsyncValue.value?.id ?? ""),
           SizedBox(height: 20),
           if (isOrdering) ...[
-            Column(
-              children: [
-                Row(
-                  children: [
-                    Text("Delivery Date"),
-                    datePicker(),
-                  ],
-                ),
-                _deliveryNote()
-              ],
+            Container(
+              margin:
+                  const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+              padding: const EdgeInsets.all(6.0),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Text("Delivery Date"),
+                      datePicker(),
+                    ],
+                  ),
+                  _deliveryNote()
+                ],
+              ),
             ),
           ],
           _buildFooter(transactionAsyncValue),
@@ -1124,7 +1140,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       label: 'Delivery note',
       hint: 'Add any special instructions for delivery',
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        padding: const EdgeInsets.symmetric(vertical: 18.0),
         child: StyledTextFormField.create(
           context: context,
           labelText: 'Delivery Note',

@@ -4,7 +4,6 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:talker/talker.dart';
-import 'package:flutter/foundation.dart';
 
 mixin CapellaStockMixin implements StockInterface {
   Repository get repository;

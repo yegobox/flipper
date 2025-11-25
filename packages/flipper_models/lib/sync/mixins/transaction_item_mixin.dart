@@ -493,9 +493,8 @@ mixin TransactionItemMixin implements TransactionItemInterface {
       item.ebmSynced = ebmSynced ?? item.ebmSynced;
       item.quantityApproved =
           (item.quantityApproved ?? 0) + (quantityApproved ?? 0);
-      item.quantityRequested = incrementQty == true
-          ? (item.qty + 1).toInt()
-          : qty?.toInt() ?? item.qty.toInt();
+      // item.qty was already incremented above if incrementQty is true
+      item.quantityRequested = item.qty.toInt();
 
       // Recalculate based on potentially updated price and quantity
       num currentPrice = item.price;

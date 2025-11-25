@@ -10,13 +10,17 @@ Future<BusinessAnalytic> _$BusinessAnalyticFromSupabase(
     id: data['id'] as String?,
     date: DateTime.parse(data['date'] as String),
     itemName: data['item_name'] as String,
-    price: data['price'] as num,
-    profit: data['profit'] as num,
-    unitsSold: data['units_sold'] as int,
+    price: data['price'] == null ? null : data['price'] as num?,
+    profit: data['profit'] == null ? null : data['profit'] as num?,
+    unitsSold: data['units_sold'] == null ? null : data['units_sold'] as int?,
     stockRemainedAtTheTimeOfSale:
-        data['stock_remained_at_the_time_of_sale'] as num,
-    taxRate: data['tax_rate'] as num,
-    trafficCount: data['traffic_count'] as int,
+        data['stock_remained_at_the_time_of_sale'] == null
+        ? null
+        : data['stock_remained_at_the_time_of_sale'] as num?,
+    taxRate: data['tax_rate'] == null ? null : data['tax_rate'] as num?,
+    trafficCount: data['traffic_count'] == null
+        ? null
+        : data['traffic_count'] as int?,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
     categoryName: data['category_name'] == null
         ? null
@@ -27,15 +31,29 @@ Future<BusinessAnalytic> _$BusinessAnalyticFromSupabase(
     transactionId: data['transaction_id'] == null
         ? null
         : data['transaction_id'] as String?,
-    value: data['value'] as num,
-    supplyPrice: data['supply_price'] as num,
-    retailPrice: data['retail_price'] as num,
-    currentStock: data['current_stock'] as num,
-    stockValue: data['stock_value'] as num,
-    paymentMethod: data['payment_method'] as String,
-    customerType: data['customer_type'] as String,
-    discountAmount: data['discount_amount'] as num,
-    taxAmount: data['tax_amount'] as num,
+    value: data['value'] == null ? null : data['value'] as num?,
+    supplyPrice: data['supply_price'] == null
+        ? null
+        : data['supply_price'] as num?,
+    retailPrice: data['retail_price'] == null
+        ? null
+        : data['retail_price'] as num?,
+    currentStock: data['current_stock'] == null
+        ? null
+        : data['current_stock'] as num?,
+    stockValue: data['stock_value'] == null
+        ? null
+        : data['stock_value'] as num?,
+    paymentMethod: data['payment_method'] == null
+        ? null
+        : data['payment_method'] as String?,
+    customerType: data['customer_type'] == null
+        ? null
+        : data['customer_type'] as String?,
+    discountAmount: data['discount_amount'] == null
+        ? null
+        : data['discount_amount'] as num?,
+    taxAmount: data['tax_amount'] == null ? null : data['tax_amount'] as num?,
   );
 }
 
@@ -79,13 +97,17 @@ Future<BusinessAnalytic> _$BusinessAnalyticFromSqlite(
     id: data['id'] as String,
     date: DateTime.parse(data['date'] as String),
     itemName: data['item_name'] as String,
-    price: data['price'] as num,
-    profit: data['profit'] as num,
-    unitsSold: data['units_sold'] as int,
+    price: data['price'] == null ? null : data['price'] as num?,
+    profit: data['profit'] == null ? null : data['profit'] as num?,
+    unitsSold: data['units_sold'] == null ? null : data['units_sold'] as int?,
     stockRemainedAtTheTimeOfSale:
-        data['stock_remained_at_the_time_of_sale'] as num,
-    taxRate: data['tax_rate'] as num,
-    trafficCount: data['traffic_count'] as int,
+        data['stock_remained_at_the_time_of_sale'] == null
+        ? null
+        : data['stock_remained_at_the_time_of_sale'] as num?,
+    taxRate: data['tax_rate'] == null ? null : data['tax_rate'] as num?,
+    trafficCount: data['traffic_count'] == null
+        ? null
+        : data['traffic_count'] as int?,
     branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
     categoryName: data['category_name'] == null
         ? null
@@ -96,15 +118,29 @@ Future<BusinessAnalytic> _$BusinessAnalyticFromSqlite(
     transactionId: data['transaction_id'] == null
         ? null
         : data['transaction_id'] as String?,
-    value: data['value'] as num,
-    supplyPrice: data['supply_price'] as num,
-    retailPrice: data['retail_price'] as num,
-    currentStock: data['current_stock'] as num,
-    stockValue: data['stock_value'] as num,
-    paymentMethod: data['payment_method'] as String,
-    customerType: data['customer_type'] as String,
-    discountAmount: data['discount_amount'] as num,
-    taxAmount: data['tax_amount'] as num,
+    value: data['value'] == null ? null : data['value'] as num?,
+    supplyPrice: data['supply_price'] == null
+        ? null
+        : data['supply_price'] as num?,
+    retailPrice: data['retail_price'] == null
+        ? null
+        : data['retail_price'] as num?,
+    currentStock: data['current_stock'] == null
+        ? null
+        : data['current_stock'] as num?,
+    stockValue: data['stock_value'] == null
+        ? null
+        : data['stock_value'] as num?,
+    paymentMethod: data['payment_method'] == null
+        ? null
+        : data['payment_method'] as String?,
+    customerType: data['customer_type'] == null
+        ? null
+        : data['customer_type'] as String?,
+    discountAmount: data['discount_amount'] == null
+        ? null
+        : data['discount_amount'] as num?,
+    taxAmount: data['tax_amount'] == null ? null : data['tax_amount'] as num?,
   )..primaryKey = data['_brick_id'] as int;
 }
 

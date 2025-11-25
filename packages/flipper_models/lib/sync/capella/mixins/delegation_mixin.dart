@@ -107,6 +107,7 @@ mixin CapellaDelegationMixin implements DelegationInterface {
       debugPrint('🔍 Watching delegations with query: $query');
       debugPrint('   Arguments: $arguments');
 
+      ditto.sync.registerSubscription(query, arguments: arguments);
       observer = ditto.store.registerObserver(
         query,
         arguments: arguments,
@@ -151,7 +152,8 @@ mixin CapellaDelegationMixin implements DelegationInterface {
       final query = 'SELECT * FROM devices WHERE branchId = :branchId';
       debugPrint('🔍 Querying devices with: $query');
       debugPrint('   Arguments: {branchId: $branchId}');
-
+      await ditto.sync
+          .registerSubscription(query, arguments: {'branchId': branchId});
       final result = await ditto.store.execute(
         query,
         arguments: {'branchId': branchId},

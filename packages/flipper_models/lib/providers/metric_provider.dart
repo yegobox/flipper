@@ -18,35 +18,35 @@ Future<List<Metric>> fetchMetrics(Ref ref, int branchId) async {
   }
 
   // Calculate metrics from analytics data
-  final totalRevenue = analytics.fold<double>(0.0, (sum, a) => sum + a.value);
-  final totalCOGS = analytics.fold<double>(0.0, (sum, a) => sum + (a.supplyPrice * a.unitsSold));
-  final totalInventory = analytics.fold<double>(0.0, (sum, a) => sum + a.currentStock);
-  final totalStockValue = analytics.fold<double>(0.0, (sum, a) => sum + a.stockValue);
-  final totalProfit = analytics.fold<double>(0.0, (sum, a) => sum + a.profit);
+  final totalRevenue = analytics.fold<double>(0.0, (sum, a) => sum + a.value!);
+  final totalCOGS = analytics.fold<double>(
+      0.0, (sum, a) => sum + (a.supplyPrice! * a.unitsSold!));
+  final totalInventory =
+      analytics.fold<double>(0.0, (sum, a) => sum + a.currentStock!);
+  final totalStockValue =
+      analytics.fold<double>(0.0, (sum, a) => sum + a.stockValue!);
+  final totalProfit = analytics.fold<double>(0.0, (sum, a) => sum + a.profit!);
   final totalTransactions = analytics.length;
 
   // Calculate average inventory
   final averageInventory = totalInventory / analytics.length;
 
   // Calculate inventory turnover
-  final inventoryTurnover = (averageInventory > 0 && totalCOGS > 0) 
-      ? totalCOGS / averageInventory 
+  final inventoryTurnover = (averageInventory > 0 && totalCOGS > 0)
+      ? totalCOGS / averageInventory
       : 0.0;
 
   // Calculate stock days
-  final stockDays = (totalCOGS > 0) 
-      ? (averageInventory / totalCOGS) * 365 
-      : 0.0;
+  final stockDays =
+      (totalCOGS > 0) ? (averageInventory / totalCOGS) * 365 : 0.0;
 
   // Calculate gross margin
-  final grossMargin = (totalRevenue > 0) 
-      ? (totalRevenue - totalCOGS) / totalRevenue 
-      : 0.0;
+  final grossMargin =
+      (totalRevenue > 0) ? (totalRevenue - totalCOGS) / totalRevenue : 0.0;
 
   // Calculate average order value
-  final averageOrderValue = (totalTransactions > 0) 
-      ? totalRevenue / totalTransactions 
-      : 0.0;
+  final averageOrderValue =
+      (totalTransactions > 0) ? totalRevenue / totalTransactions : 0.0;
 
   // Calculate net profit (same as total profit from analytics)
   final netProfit = totalProfit;
@@ -120,5 +120,3 @@ Future<List<Metric>> fetchMetrics(Ref ref, int branchId) async {
     ),
   ];
 }
-
-

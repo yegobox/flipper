@@ -329,7 +329,7 @@ class CapellaSync extends AiStrategyImpl
 
   @override
   FutureOr<void> assignCustomerToTransaction(
-      {required Customer customer, String? transactionId}) {
+      {required Customer customer, required ITransaction transaction}) {
     // TODO: implement assignCustomerToTransaction
     throw UnimplementedError();
   }

@@ -26,49 +26,49 @@ class BusinessAnalytic extends OfflineFirstWithSupabaseModel {
 
   final DateTime date;
   final String itemName;
-  final num price;
-  final num profit;
-  final int unitsSold;
+  final num? price;
+  final num? profit;
+  final int? unitsSold;
 
-  final num stockRemainedAtTheTimeOfSale;
-  final num taxRate;
-  final int trafficCount;
+  final num? stockRemainedAtTheTimeOfSale;
+  final num? taxRate;
+  final int? trafficCount;
   int? branchId;
   String? categoryName;
   String? categoryId;
   String? transactionId;
-  
+
   // Additional fields for comprehensive analytics
-  final num value; // Total transaction value
-  final num supplyPrice; // Cost of goods sold per item
-  final num retailPrice; // Retail price per item
-  final num currentStock; // Current stock level
-  final num stockValue; // Value of current stock
-  final String paymentMethod; // Payment method used
-  final String customerType; // Customer type (walk-in, regular, etc.)
-  final num discountAmount; // Discount applied
-  final num taxAmount; // Tax amount
+  final num? value; // Total transaction value
+  final num? supplyPrice; // Cost of goods sold per item
+  final num? retailPrice; // Retail price per item
+  final num? currentStock; // Current stock level
+  final num? stockValue; // Value of current stock
+  final String? paymentMethod; // Payment method used
+  final String? customerType; // Customer type (walk-in, regular, etc.)
+  final num? discountAmount; // Discount applied
+  final num? taxAmount; // Tax amount
 
   BusinessAnalytic({
     String? id,
     required this.transactionId,
     required this.date,
-    required this.stockRemainedAtTheTimeOfSale,
+    this.stockRemainedAtTheTimeOfSale,
     required this.itemName,
-    required this.price,
-    required this.profit,
-    required this.unitsSold,
-    required this.taxRate,
-    required this.trafficCount,
-    required this.value,
-    required this.supplyPrice,
-    required this.retailPrice,
-    required this.currentStock,
-    required this.stockValue,
-    required this.paymentMethod,
-    required this.customerType,
-    required this.discountAmount,
-    required this.taxAmount,
+    this.price,
+    this.profit,
+    this.unitsSold,
+    this.taxRate,
+    this.trafficCount,
+    this.value,
+    this.supplyPrice,
+    this.retailPrice,
+    this.currentStock,
+    this.stockValue,
+    this.paymentMethod,
+    this.customerType,
+    this.discountAmount,
+    this.taxAmount,
     this.categoryName,
     this.categoryId,
     this.branchId,

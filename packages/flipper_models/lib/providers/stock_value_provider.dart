@@ -10,9 +10,10 @@ Future<double> StockValue(Ref ref, {required int branchId}) async {
   try {
     final capella = await ProxyService.getStrategy(Strategy.capella);
     final analytics = await capella.analytics(branchId: branchId);
-    
+
     // Sum up stock values from the latest analytics records
-    return analytics.fold<double>(0, (sum, analytic) => sum + analytic.stockValue);
+    return analytics.fold<double>(
+        0, (sum, analytic) => sum + analytic.stockValue!);
   } catch (e) {
     return 0.0;
   }

@@ -8,5 +8,5 @@ part 'digital_payment_provider.g.dart';
 Future<bool> isDigialPaymentEnabled(Ref ref) async {
   final String branchId = (await ProxyService.strategy.activeBranch()).id;
   return await ProxyService.strategy
-      .isBranchEnableForPayment(currentBranchId: branchId);
+      .isBranchEnableForPayment(currentBranchId: branchId, fetchRemote: true);
 }

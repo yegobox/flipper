@@ -566,9 +566,9 @@ class CoreViewModel extends FlipperBaseModel
   }
 
   void assignToSale(
-      {required Customer customer, required String transactionId}) {
+      {required Customer customer, required ITransaction transaction}) {
     ProxyService.strategy.assignCustomerToTransaction(
-        customer: customer, transactionId: transactionId);
+        customer: customer, transaction: transaction);
   }
 
   /// given a transactionId and a customer, remove the given customer from the

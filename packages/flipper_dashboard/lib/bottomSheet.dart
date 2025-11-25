@@ -13,6 +13,7 @@ import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/providers/pay_button_provider.dart';
+import 'package:flipper_models/providers/digital_payment_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
     as oldProvider;
 import 'package:flipper_dashboard/providers/customer_phone_provider.dart';
@@ -138,59 +139,10 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
     with TickerProviderStateMixin {
   ChargeButtonState _chargeState = ChargeButtonState.initial;
   bool _isImmediateCompletion = false; // Track which button was clicked
-  late final TextEditingController _customerPhoneController;
-  String? _customerPhoneError;
-  bool _digitalPaymentEnabled = false;
 
   @override
   void initState() {
     super.initState();
-    _customerPhoneController = TextEditingController(
-      text: ProxyService.box.currentSaleCustomerPhoneNumber(),
-    );
-
-    // Check if digital payment is enabled for this branch
-    _checkDigitalPayment();
-  }
-
-  Future<void> _checkDigitalPayment() async {
-    final branchId = (await ProxyService.strategy.activeBranch()).id;
-    try {
-      final enabled = await ProxyService.strategy.isBranchEnableForPayment(
-        currentBranchId: branchId,
-      );
-      if (mounted) {
-        setState(() {
-          _digitalPaymentEnabled = enabled;
-        });
-      }
-    } catch (e) {
-      talker.error('Error checking digital payment status: $e');
-      // Default to false if there's an error
-      if (mounted) {
-        setState(() {
-          _digitalPaymentEnabled = false;
-        });
-      }
-    }
-  }
-
-  @override
-  void dispose() {
-    _customerPhoneController.dispose();
-    super.dispose();
-  }
-
-  String? _validatePhone(String? value) {
-    if (value == null || value.isEmpty) {
-      return 'Enter valid number';
-    }
-    // Must be 9 digits, starting with 7, 8, or 9, and no leading zero
-    final phoneExp = RegExp(r'^[7-9]\d{8}$');
-    if (!phoneExp.hasMatch(value)) {
-      return 'Invalid Number';
-    }
-    return null;
   }
 
   static Future<void> edit({
@@ -492,21 +444,16 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
     // Haptic feedback
     HapticFeedback.lightImpact();
 
-    // Validate phone before charging (only required for digital payments)
-    if (!immediateCompletion) {
-      final phoneError = _validatePhone(_customerPhoneController.text);
-      setState(() {
-        _customerPhoneError = phoneError;
-      });
-      if (phoneError != null) {
-        showCustomSnackBarUtil(
-          context,
-          phoneError,
-          backgroundColor: Colors.red[600],
-          showCloseButton: true,
-        );
-        return;
-      }
+    // Validate that a customer has been added
+    final customerPhone = ref.read(customerPhoneNumberProvider);
+    if (customerPhone == null || customerPhone.isEmpty) {
+      showCustomSnackBarUtil(
+        context,
+        'Please add a customer to the sale before completing',
+        backgroundColor: Colors.red[600],
+        showCloseButton: true,
+      );
+      return;
     }
 
     // Set appropriate state based on completion type
@@ -581,13 +528,6 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
 
   @override
   Widget build(BuildContext context) {
-    // Listen for phone number changes
-    ref.listen<String?>(customerPhoneNumberProvider, (previous, next) {
-      if (_customerPhoneController.text != next) {
-        _customerPhoneController.text = next ?? '';
-      }
-    });
-
     // Listen for loading state changes to detect errors during payment
     ref.listen(payButtonStateProvider, (previous, next) {
       // If we're waiting for payment and loading stops, reset the button state.
@@ -609,6 +549,9 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
     final itemsAsync = ref.watch(transactionItemsProvider(
         transactionId: widget.transactionIdInt,
         branchId: ProxyService.box.getBranchId()!));
+
+    // Watch digital payment status
+    final digitalPaymentAsync = ref.watch(isDigialPaymentEnabledProvider);
 
     double calculateTotal(List<TransactionItem> items) {
       return items.fold(0, (sum, item) => sum + (item.price * item.qty));
@@ -693,72 +636,6 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
       );
     }
 
-    Widget _buildPhoneField() {
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-        margin: const EdgeInsets.only(bottom: 16),
-        child: Container(
-          decoration: BoxDecoration(
-            color: Colors.grey[200],
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color:
-                  _customerPhoneError != null ? Colors.red : Colors.grey[300]!,
-              width: 1,
-            ),
-          ),
-          child: TextFormField(
-            controller: _customerPhoneController,
-            keyboardType: TextInputType.number,
-            inputFormatters: [
-              FilteringTextInputFormatter.digitsOnly,
-              LengthLimitingTextInputFormatter(9),
-            ],
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-              color: Colors.grey[800],
-            ),
-            decoration: InputDecoration(
-              labelText: 'Customer Phone Number',
-              labelStyle: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey[600],
-                letterSpacing: 0.5,
-              ),
-              hintText: 'Enter 9-digit phone number',
-              hintStyle: TextStyle(
-                color: Colors.grey[400],
-                fontSize: 14,
-              ),
-              prefixIcon: Icon(
-                Icons.phone_outlined,
-                color:
-                    _customerPhoneError != null ? Colors.red : Colors.grey[600],
-                size: 20,
-              ),
-              errorText: _customerPhoneError,
-              border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 14,
-              ),
-              counterText: '',
-            ),
-            onChanged: (value) {
-              // Clear error when user starts typing
-              if (_customerPhoneError != null && value.isNotEmpty) {
-                setState(() {
-                  _customerPhoneError = null;
-                });
-              }
-            },
-          ),
-        ),
-      );
-    }
-
     Widget _buildItemsList(List<TransactionItem> items) {
       if (items.isEmpty) {
         return Container(
@@ -807,7 +684,8 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
       );
     }
 
-    Widget _buildTotalSection(List<TransactionItem> items) {
+    Widget _buildTotalSection(List<TransactionItem> items,
+        {required bool isDigitalPaymentEnabled}) {
       final total = calculateTotal(items);
 
       return Container(
@@ -898,7 +776,7 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
             ),
             SizedBox(height: 20),
             // Conditional button layout based on digital payment status
-            if (_digitalPaymentEnabled) ...[
+            if (isDigitalPaymentEnabled) ...[
               // Two-button layout when digital payment is enabled
               SizedBox(
                 height: 56,
@@ -961,14 +839,22 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
               // Single button when digital payment is disabled
               FlipperButton(
                 height: 56,
-                color: _getButtonColor(items.isEmpty),
-                text: _getButtonText(items.isEmpty, total),
+                color: Colors.green,
+                text: 'Complete Now',
                 textColor: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                isLoading: _shouldShowSpinner(),
+                borderRadius: BorderRadius.only(
+                  topRight: Radius.circular(12),
+                  topLeft: Radius.circular(12),
+                  bottomLeft: Radius.circular(12),
+                  bottomRight: Radius.circular(12),
+                ),
+                isLoading: _isImmediateCompletion && _shouldShowSpinner(),
                 onPressed: _getButtonEnabled(items.isEmpty)
-                    ? () =>
-                        _handleCharge(widget.transactionIdInt.toString(), total)
+                    ? () => _handleCharge(
+                          widget.transactionIdInt.toString(),
+                          total,
+                          immediateCompletion: true,
+                        )
                     : null,
               ),
             ],
@@ -977,24 +863,26 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
       );
     }
 
-    Widget _buildContent(List<TransactionItem> items) {
-      return SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            SearchInputWithDropdown(),
-            SizedBox(height: 5),
-            _buildPhoneField(),
-            _buildItemsList(items),
-            SizedBox(height: 20),
-            _buildTotalSection(items),
-          ],
-        ),
-      );
-    }
-
     return itemsAsync.when(
-      data: (items) => _buildContent(items),
+      data: (items) {
+        // Get digital payment status, defaulting to false if loading or error
+        final isDigitalPaymentEnabled =
+            digitalPaymentAsync.valueOrNull ?? false;
+
+        return SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              SearchInputWithDropdown(),
+              SizedBox(height: 5),
+              _buildItemsList(items),
+              SizedBox(height: 20),
+              _buildTotalSection(items,
+                  isDigitalPaymentEnabled: isDigitalPaymentEnabled),
+            ],
+          ),
+        );
+      },
       loading: () => Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -1040,22 +928,13 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
     );
   }
 
-  Color _getButtonColor(bool isEmpty) {
-    if (isEmpty) return Colors.grey;
-    switch (_chargeState) {
-      case ChargeButtonState.initial:
-        return Colors.green;
-      case ChargeButtonState.waitingForPayment:
-        return Colors.orange;
-      case ChargeButtonState.printingReceipt:
-        return Colors.blue;
-      case ChargeButtonState.failed:
-        return Colors.red;
-    }
-  }
-
   bool _getButtonEnabled(bool isEmpty) {
+    // Check if customer has been added
+    final customerPhone = ref.read(customerPhoneNumberProvider);
+    final hasCustomer = customerPhone != null && customerPhone.isNotEmpty;
+
     return !isEmpty &&
+        hasCustomer &&
         _chargeState != ChargeButtonState.waitingForPayment &&
         _chargeState != ChargeButtonState.printingReceipt;
   }
@@ -1067,6 +946,12 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
 
   String _getButtonText(bool isEmpty, double total) {
     if (isEmpty) return 'Add items to charge';
+
+    // Check if customer has been added
+    final customerPhone = ref.read(customerPhoneNumberProvider);
+    final hasCustomer = customerPhone != null && customerPhone.isNotEmpty;
+    if (!hasCustomer) return 'Add customer to continue';
+
     switch (_chargeState) {
       case ChargeButtonState.initial:
         return 'Charge ${total.toCurrencyFormatted()}';

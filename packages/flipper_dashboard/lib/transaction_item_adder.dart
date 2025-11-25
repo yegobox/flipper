@@ -1,3 +1,5 @@
+// ignore_for_file: unused_result
+
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
@@ -134,10 +136,10 @@ class TransactionItemAdder {
       // showCustomSnackBarUtil(context, 'Item added to cart!');
 
       // Force refresh the transaction items with a small delay to ensure DB operations complete
-      await Future.delayed(const Duration(milliseconds: 100));
+      //await Future.delayed(const Duration(milliseconds: 100));
 
       // Immediately refresh the transaction items
-      ref.invalidate(transactionItemsStreamProvider(
+      ref.refresh(transactionItemsStreamProvider(
           transactionId: pendingTransaction.id,
           branchId: (await ProxyService.strategy.activeBranch()).id));
 

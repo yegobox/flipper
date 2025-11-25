@@ -250,7 +250,7 @@ class _SearchInputWithDropdownState
       customerNameController.text = customer.custNm!;
       await ProxyService.strategy.assignCustomerToTransaction(
         customer: customer,
-        transactionId: transaction.id,
+        transaction: transaction,
       );
 
       // Save customer information to ProxyService.box for receipt generation
@@ -261,8 +261,8 @@ class _SearchInputWithDropdownState
 
       // Save customer's TIN for future use
       if (customer.custTin != null && customer.custTin!.isNotEmpty) {
-        await ProxyService.box
-            .writeString(key: 'customerTin', value: customer.custTin!);
+        unawaited(ProxyService.box
+            .writeString(key: 'customerTin', value: customer.custTin!));
       }
 
       // Update the Riverpod provider for customer phone number

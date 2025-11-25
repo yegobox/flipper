@@ -197,8 +197,8 @@ class CustomersState extends ConsumerState<Customers> {
                   Expanded(
                     child: _buildCustomerList(model, transaction),
                   ),
-                  _buildAddButton(context, model, customersRef, searchKeyword,
-                      transaction.id),
+                  _buildAddButton(
+                      context, model, customersRef, searchKeyword, transaction),
                 ],
               );
             },
@@ -535,7 +535,7 @@ class CustomersState extends ConsumerState<Customers> {
             SlidableAction(
               onPressed: (_) {
                 model.assignToSale(
-                    customer: customer, transactionId: transaction.id);
+                    customer: customer, transaction: transaction);
                 model.getTransactionById();
               },
               backgroundColor: successColor,
@@ -580,8 +580,7 @@ class CustomersState extends ConsumerState<Customers> {
           child: InkWell(
             borderRadius: BorderRadius.circular(12),
             onTap: () {
-              model.assignToSale(
-                  customer: customer, transactionId: transaction.id);
+              model.assignToSale(customer: customer, transaction: transaction);
               model.getTransactionById();
             },
             child: Padding(
@@ -700,7 +699,7 @@ class CustomersState extends ConsumerState<Customers> {
       CoreViewModel model,
       AsyncValue<List<Customer>> customersRef,
       String searchKeyword,
-      String id) {
+      ITransaction transaction) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -724,8 +723,8 @@ class CustomersState extends ConsumerState<Customers> {
           ),
           elevation: 0,
         ),
-        onPressed: () =>
-            _handleButtonPress(context, model, customersRef, searchKeyword, id),
+        onPressed: () => _handleButtonPress(
+            context, model, customersRef, searchKeyword, transaction),
       ),
     );
   }
@@ -753,7 +752,7 @@ class CustomersState extends ConsumerState<Customers> {
       CoreViewModel model,
       AsyncValue<List<Customer>> customersRef,
       String searchKeyword,
-      String id) async {
+      ITransaction transaction) async {
     final customers = customersRef.asData?.value ?? [];
     final filteredCustomers = ref
         .read(customersProvider.notifier)
@@ -772,7 +771,7 @@ class CustomersState extends ConsumerState<Customers> {
           return Padding(
             padding: MediaQuery.of(context).viewInsets,
             child: AddCustomer(
-              transactionId: id,
+              transactionId: transaction.id,
               searchedKey: searchKeyword,
             ),
           );
@@ -780,7 +779,7 @@ class CustomersState extends ConsumerState<Customers> {
       );
     } else {
       final customer = filteredCustomers.first;
-      model.assignToSale(customer: customer, transactionId: id);
+      model.assignToSale(customer: customer, transaction: transaction);
     }
   }
 }

@@ -839,7 +839,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       _isItemSaving[item.id] = true;
     });
     try {
-      if (!item.partOfComposite!) {
+      if (!(item.partOfComposite ?? false)) {
         await ProxyService.strategy
             .flipperDelete(id: item.id, endPoint: 'transactionItem');
       } else {
@@ -865,8 +865,8 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
         }
       }
       _refreshTransactionItems(isOrdering, transactionId: item.transactionId!);
-    } catch (e) {
-      talker.error('Error deleting item: $e');
+    } catch (e, s) {
+      talker.error('Error deleting item: $e', s);
       setState(() {
         _itemErrors[item.id] = 'Failed to delete item';
       });

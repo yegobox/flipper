@@ -169,7 +169,90 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
     bool fetchRemote = false,
     bool forceRealData = true,
   }) {
-    throw UnimplementedError();
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      talker.error('Ditto not initialized');
+      return Stream.value([]);
+    }
+
+    String query = 'SELECT * FROM transaction_items';
+    final arguments = <String, dynamic>{};
+    final conditions = <String>[];
+
+    if (transactionId != null) {
+      conditions.add('transactionId = :transactionId');
+      arguments['transactionId'] = transactionId;
+    }
+    if (branchId != null) {
+      conditions.add('branchId = :branchId');
+      arguments['branchId'] = branchId;
+    }
+    if (active != null) {
+      conditions.add('active = :active');
+      arguments['active'] = active;
+    }
+    if (doneWithTransaction != null) {
+      conditions.add('doneWithTransaction = :doneWithTransaction');
+      arguments['doneWithTransaction'] = doneWithTransaction;
+    }
+    if (requestId != null) {
+      conditions.add('inventoryRequestId = :requestId');
+      arguments['requestId'] = requestId;
+    }
+
+    // Handle date filtering
+    if (startDate != null || endDate != null) {
+      if (startDate != null && endDate != null) {
+        conditions.add('createdAt >= :startDate');
+        conditions.add('createdAt <= :endDate');
+        arguments['startDate'] = startDate.toIso8601String();
+        arguments['endDate'] =
+            endDate.add(const Duration(days: 1)).toIso8601String();
+      } else if (startDate != null) {
+        conditions.add('createdAt >= :startDate');
+        arguments['startDate'] = startDate.toIso8601String();
+      } else if (endDate != null) {
+        conditions.add('createdAt <= :endDate');
+        arguments['endDate'] =
+            endDate.add(const Duration(days: 1)).toIso8601String();
+      }
+    }
+
+    if (conditions.isNotEmpty) {
+      query += ' WHERE ' + conditions.join(' AND ');
+    }
+
+    // Register subscription to sync data
+    ditto.sync.registerSubscription(query, arguments: arguments);
+
+    final controller = StreamController<List<TransactionItem>>.broadcast();
+    dynamic observer;
+
+    observer = ditto.store.registerObserver(
+      query,
+      arguments: arguments,
+      onChange: (queryResult) {
+        if (controller.isClosed) return;
+
+        final items = <TransactionItem>[];
+        for (final doc in queryResult.items) {
+          try {
+            final data = Map<String, dynamic>.from(doc.value);
+            items.add(_convertFromDittoDocument(data));
+          } catch (e) {
+            talker.error('Error converting transaction item: $e');
+          }
+        }
+        controller.add(items);
+      },
+    );
+
+    controller.onCancel = () async {
+      await observer?.cancel();
+      await controller.close();
+    };
+
+    return controller.stream;
   }
 
   Future<void> updateTransactionItem(

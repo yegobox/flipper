@@ -1181,10 +1181,12 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       required ITransaction transaction,
       Customer? customer,
       String? purchaseCode}) {
-    if (transaction.customerId != null && purchaseCode != null) {
-      json[custTinKey] = transaction.customerTin ??
-          customer?.custTin ??
-          ProxyService.box.customerTin();
+    if (transaction.customerId != null &&
+        purchaseCode != null &&
+        transaction.customerTin != null &&
+        transaction.customerTin!.isNotEmpty) {
+      json[custTinKey] = transaction.customerTin;
+      ProxyService.box.customerTin();
       json[custNmKey] = transaction.customerName ??
           customer?.custNm ??
           ProxyService.box.customerName() ??

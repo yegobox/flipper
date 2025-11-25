@@ -92,6 +92,7 @@ final productFromSupplier =
         productId: item['product_id']?.toString() ?? '',
         branchId: item['branch_id'] ?? 0,
         color: item['color'] ?? '#FFFFFF',
+        stockId: item['stock_id'] ?? 0,
         retailPrice: (item['retail_price'] as num?)?.toDouble() ?? 0.0,
         supplyPrice: (item['supply_price'] as num?)?.toDouble() ?? 0.0,
         // Add other fields as needed
