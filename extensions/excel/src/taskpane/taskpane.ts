@@ -583,7 +583,8 @@ class FlipperApp {
             if (this.dittoService.isReady()) {
                 try {
                     console.log('Fetching transactions from Ditto...');
-                    const dittoTransactions = await this.dittoService.getTransactions(branchId, 10);
+                    // Fetch up to 1000 transactions for today (default date range in DittoService)
+                    const dittoTransactions = await this.dittoService.getTransactions(branchId, 1000);
 
                     // Convert Ditto transactions to the format expected by Excel generation
                     transactions = dittoTransactions.map(tx => ({

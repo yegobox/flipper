@@ -98,19 +98,28 @@ export class DittoService {
     /**
      * Fetch transactions for a specific branch
      */
-    async getTransactions(branchId: number, limit: number = 10): Promise<Transaction[]> {
+    async getTransactions(branchId: number, limit: number = 50, startDate?: Date, endDate?: Date): Promise<Transaction[]> {
         if (!this.isReady()) {
             throw new Error('Ditto is not initialized. Call initialize() first.');
         }
 
+        // Default to today if no dates provided
+        const start = startDate || new Date(new Date().setHours(0, 0, 0, 0));
+        const end = endDate || new Date(new Date().setHours(23, 59, 59, 999));
+
+        const startIso = start.toISOString();
+        const endIso = end.toISOString();
+
         try {
-            console.log(`Fetching transactions for branch ${branchId}...`);
+            console.log(`Fetching transactions for branch ${branchId} between ${startIso} and ${endIso}...`);
 
             // Register a sync subscription for this query
             this.ditto!.sync.registerSubscription(`
                 SELECT * FROM transactions 
                 WHERE branchId = ${branchId} 
                 AND status != 'pending'
+                AND lastTouched >= '${startIso}'
+                AND lastTouched <= '${endIso}'
                 LIMIT ${limit}
             `);
 
@@ -119,11 +128,15 @@ export class DittoService {
                 SELECT * FROM transactions 
                 WHERE branchId = :branchId 
                 AND status != 'pending'
-                ORDER BY createdAt DESC
+                AND lastTouched >= :startIso
+                AND lastTouched <= :endIso
+                ORDER BY lastTouched DESC
                 LIMIT :limit
             `, {
                 branchId,
-                limit
+                limit,
+                startIso,
+                endIso
             });
 
             console.log(`Fetched ${result.items.length} transactions from Ditto`);
