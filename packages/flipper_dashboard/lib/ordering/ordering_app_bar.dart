@@ -1,6 +1,5 @@
-import 'dart:io';
-import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 
 class OrderingAppBar extends StatelessWidget implements PreferredSizeWidget {
   const OrderingAppBar({Key? key, required this.isOrdering}) : super(key: key);
@@ -9,7 +8,12 @@ class OrderingAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (Platform.isAndroid || Platform.isIOS) {
+    // Web-safe platform detection
+    final isMobile = !kIsWeb &&
+        (defaultTargetPlatform == TargetPlatform.android ||
+            defaultTargetPlatform == TargetPlatform.iOS);
+
+    if (isMobile) {
       return AppBar(
         elevation: 0,
         backgroundColor: Theme.of(context).colorScheme.surface,
