@@ -24,7 +24,7 @@ class PreviewSaleButtonWrapper extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final digitalPaymentEnabled =
-        ref.watch(isDigialPaymentEnabledProvider).valueOrNull ?? false;
+        ref.watch(isDigitalPaymentEnabledProvider).valueOrNull ?? false;
     final isPreviewing = ref.watch(previewingCart);
     final buttonText = isPreviewing
         ? "Place order"

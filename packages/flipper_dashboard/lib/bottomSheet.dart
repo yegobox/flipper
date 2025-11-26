@@ -551,7 +551,7 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
         branchId: ProxyService.box.getBranchId()!));
 
     // Watch digital payment status
-    final digitalPaymentAsync = ref.watch(isDigialPaymentEnabledProvider);
+    final digitalPaymentAsync = ref.watch(isDigitalPaymentEnabledProvider);
 
     // Watch customer phone number to update button state
     final customerPhone = ref.watch(customerPhoneNumberProvider);

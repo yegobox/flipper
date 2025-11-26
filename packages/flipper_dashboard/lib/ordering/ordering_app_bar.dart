@@ -43,5 +43,12 @@ class OrderingAppBar extends StatelessWidget implements PreferredSizeWidget {
   }
 
   @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+  Size get preferredSize {
+    // Match the platform check in build()
+    final isMobile = !kIsWeb &&
+        (defaultTargetPlatform == TargetPlatform.android ||
+            defaultTargetPlatform == TargetPlatform.iOS);
+
+    return isMobile ? const Size.fromHeight(kToolbarHeight) : Size.zero;
+  }
 }

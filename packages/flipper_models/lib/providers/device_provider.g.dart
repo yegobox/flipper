@@ -6,7 +6,7 @@ part of 'device_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$devicesForBranchHash() => r'3c5800408aa4a04f5b32eb830ed53acfc907370c';
+String _$devicesForBranchHash() => r'268ba32c393f7251cac837041b1d3f0ba977f117';
 
 /// Copied from Dart SDK
 class _SystemHash {
