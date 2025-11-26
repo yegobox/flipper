@@ -120,44 +120,102 @@ Future<void> main() async {
           const Duration(seconds: 30),
           onTimeout: () {
             debugPrint('❌ App initialization timed out after 30 seconds');
-            throw TimeoutException(
+
+            final exception = TimeoutException(
               'App initialization timed out',
               const Duration(seconds: 30),
             );
+
+            // Report to telemetry (fire-and-forget)
+            try {
+              Sentry.captureException(
+                exception,
+                stackTrace: StackTrace.current,
+                hint: Hint.withMap({
+                  'context': 'App initialization timeout',
+                  'timeout_duration': '30 seconds',
+                }),
+              );
+              GlobalErrorHandler.logError(
+                exception,
+                stackTrace: StackTrace.current,
+                type: 'timeout',
+                context: {'timeout_duration': '30 seconds'},
+              );
+            } catch (e) {
+              debugPrint('Failed to report timeout to telemetry: $e');
+            }
+
+            throw exception;
           },
         ),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
             if (snapshot.hasError) {
-              // Show error screen if initialization failed
+              // Remove splash screen before showing error
+              FlutterNativeSplash.remove();
+
+              // Log full error to Sentry/monitoring
               debugPrint('❌ App initialization error: ${snapshot.error}');
-              return MaterialApp(
+              if (snapshot.stackTrace != null) {
+                debugPrint('Stack trace: ${snapshot.stackTrace}');
+              }
+
+              // Report to telemetry systems
+              try {
+                final stackTrace = snapshot.stackTrace ?? StackTrace.current;
+
+                // Send to Sentry
+                Sentry.captureException(
+                  snapshot.error,
+                  stackTrace: stackTrace,
+                  hint: Hint.withMap({
+                    'context': 'App initialization failed',
+                    'error_type': snapshot.error.runtimeType.toString(),
+                  }),
+                );
+
+                // Send to GlobalErrorHandler
+                GlobalErrorHandler.logError(
+                  snapshot.error!,
+                  stackTrace: stackTrace,
+                  type: 'initialization_error',
+                  context: {
+                    'error_type': snapshot.error.runtimeType.toString()
+                  },
+                );
+              } catch (e) {
+                debugPrint('Failed to report error to telemetry: $e');
+              }
+
+              // Show user-friendly error screen
+              return const MaterialApp(
                 home: Scaffold(
                   backgroundColor: Colors.white,
                   body: Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(
+                        Icon(
                           Icons.error_outline,
                           color: Colors.red,
                           size: 64,
                         ),
-                        const SizedBox(height: 16),
-                        const Text(
+                        SizedBox(height: 16),
+                        Text(
                           'Initialization Failed',
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: 8),
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 32),
+                          padding: EdgeInsets.symmetric(horizontal: 32),
                           child: Text(
-                            '${snapshot.error}',
+                            'Something went wrong while starting the app. Please try again.',
                             textAlign: TextAlign.center,
-                            style: const TextStyle(fontSize: 14),
+                            style: TextStyle(fontSize: 14),
                           ),
                         ),
                       ],
