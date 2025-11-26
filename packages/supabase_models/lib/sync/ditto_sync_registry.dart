@@ -43,17 +43,9 @@ class DittoSyncRegistry {
             debugPrint(
                 '⏳ Waiting for Repository to be ready (timeout: 10s)...');
 
-            // Add timeout to prevent indefinite blocking
-            await Repository.waitUntilReady().timeout(
-              const Duration(seconds: 10),
-              onTimeout: () {
-                debugPrint(
-                    '⚠️  Repository.waitUntilReady() timed out after 10 seconds');
-                throw TimeoutException(
-                  'Repository initialization timed out',
-                  const Duration(seconds: 10),
-                );
-              },
+            // Use the method's built-in timeout parameter
+            await Repository.waitUntilReady(
+              timeout: const Duration(seconds: 10),
             );
 
             debugPrint('✅ Repository is ready');
