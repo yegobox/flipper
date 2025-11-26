@@ -225,7 +225,10 @@ Future<void> main() async {
               );
             }
             // Remove splash screen when the main app is ready
+            debugPrint('🎬 [main.dart] Removing splash screen...');
             FlutterNativeSplash.remove();
+            debugPrint(
+                '🎬 [main.dart] Splash removed, returning FlipperApp...');
             return const FlipperApp();
           } else {
             // While initializing, show the loading screen.
@@ -250,6 +253,7 @@ class FlipperApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('🎬 [FlipperApp] Building FlipperApp widget tree...');
     return ProviderScope(
       observers: [StateObserver()],
       child: OverlaySupport.global(
