@@ -603,7 +603,30 @@ class FlipperApp {
                         transaction_items: tx.transactionItems || []
                     }));
 
+
                     console.log(`Fetched ${transactions.length} transactions from Ditto`);
+
+                    // Fetch transaction items separately
+                    const transactionIds = dittoTransactions.map(tx => tx.id);
+                    const items = await this.fetchTransactionItemsFromDitto(transactionIds);
+                    console.log(`Fetched ${items.length} items from Ditto`);
+
+                    // Join items with transactions
+                    const itemsByTransactionId = items.reduce((acc, item: any) => {
+                        if (!acc[item.transactionId]) {
+                            acc[item.transactionId] = [];
+                        }
+                        acc[item.transactionId].push(item);
+                        return acc;
+                    }, {} as Record<string, any[]>);
+
+                    // Add items to transactions
+                    transactions.forEach(tx => {
+                        tx.transaction_items = itemsByTransactionId[tx.id] || [];
+                    });
+
+                    const totalItems = transactions.reduce((sum, tx) => sum + (tx.transaction_items?.length || 0), 0);
+                    // this.showNotification(`Using Ditto: ${transactions.length} transactions, ${totalItems} items`, 'success');
                 } catch (dittoError) {
                     console.error('Ditto fetch failed, falling back to REST API:', dittoError);
                     this.showNotification('Ditto sync failed, using REST API...', 'warning');
@@ -611,6 +634,7 @@ class FlipperApp {
                 }
             } else {
                 console.log('Ditto not ready, using REST API...');
+                this.showNotification('Ditto not ready, using REST API...', 'warning');
                 transactions = await this.fetchTransactionsFromAPI(branchId);
             }
 
@@ -822,7 +846,7 @@ class FlipperApp {
 
                     console.log('Sales report generation completed successfully');
                     this.addRecentAction('Sales Report', `Generated sales report with ${transactions.length} transactions and ${allItems.length} items`);
-                    this.showNotification(`Sales report generated successfully! Created ${transactions.length} transaction records and ${allItems.length} items in separate sheets.`, 'success');
+                    // this.showNotification(`Sales report generated successfully! Created ${transactions.length} transaction records and ${allItems.length} items in separate sheets.`, 'success');
 
                 } catch (excelError) {
                     console.error('Error in Excel operations:', excelError);
@@ -863,6 +887,48 @@ class FlipperApp {
         return await response.json();
     }
 
+    // Helper method to fetch transaction items from Ditto
+    private async fetchTransactionItemsFromDitto(transactionIds: string[]): Promise<any[]> {
+        if (!this.dittoService.isReady() || transactionIds.length === 0) {
+            return [];
+        }
+
+        try {
+            // Build IN clause for SQL query
+            const placeholders = transactionIds.map((_, i) => `:id${i}`).join(', ');
+            const params: any = {};
+            transactionIds.forEach((id, i) => {
+                params[`id${i}`] = id;
+            });
+
+            // Register subscription for sync - use actual IDs (subscription doesn't support parameters)
+            const idsForSubscription = transactionIds.map(id => `'${id}'`).join(', ');
+            (this.dittoService as any).ditto.sync.registerSubscription(`
+                SELECT * FROM transaction_items
+                WHERE transactionId IN (${idsForSubscription})
+            `);
+
+            const result = await (this.dittoService as any).ditto.store.execute(`
+                SELECT * FROM transaction_items
+                WHERE transactionId IN (${placeholders})
+            `, params);
+            this.showNotification(`Fetched ${result.items.length} transaction items from Ditto`, 'success');
+            return result.items.map((item: any) => ({
+                id: item.value.id || item.value._id || '',
+                name: item.value.name || item.value.itemNm || '',
+                qty: item.value.qty || 0,
+                price: item.value.price || item.value.prc || 0,
+                discount: item.value.discount || item.value.dcAmt || 0,
+                sku: item.value.sku || item.value.bcd || '',
+                unit: item.value.unit || item.value.qtyUnitCd || '',
+                transactionId: item.value.transactionId || ''
+            }));
+        } catch (error) {
+            console.error('Failed to fetch transaction items from Ditto:', error);
+            this.showNotification(`Failed to fetch transaction items from Ditto: ${error}`, 'error');
+            return [];
+        }
+    }
 
     // Helper method to safely delete a worksheet
     private async safeDeleteWorksheet(workbook: Excel.Workbook, sheetName: string): Promise<void> {
