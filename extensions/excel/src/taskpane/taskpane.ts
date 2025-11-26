@@ -6,6 +6,7 @@
 /* global console, document, Excel, Office */
 
 import { DittoService, DittoConfig, Transaction } from './DittoService';
+import { ENV } from './env';
 
 interface RecentAction {
     id: string;
@@ -184,10 +185,11 @@ class FlipperApp {
         try {
             // Load Ditto configuration from environment or use defaults
             // You can also store these in localStorage or fetch from a config endpoint
-            const appID = process.env.DITTO_APP_ID || 'REPLACE_WITH_YOUR_APP_ID';
-            const token = process.env.DITTO_TOKEN || 'REPLACE_WITH_YOUR_TOKEN';
-            const customAuthURL = process.env.DITTO_AUTH_URL;
-            const websocketURL = process.env.DITTO_WEBSOCKET_URL || 'wss://REPLACE_WITH_YOUR_WEBSOCKET_URL';
+            // Load Ditto configuration from env.ts
+            const appID = ENV.DITTO_APP_ID;
+            const token = ENV.DITTO_TOKEN;
+            const customAuthURL = undefined; // Not used for playground
+            const websocketURL = ENV.DITTO_WEBSOCKET_URL;
 
             this.dittoConfig = {
                 appID,
@@ -200,9 +202,10 @@ class FlipperApp {
             console.log('Ditto initialized successfully');
         } catch (error) {
             console.error('Failed to initialize Ditto:', error);
-            this.showNotification('Failed to initialize Ditto', 'error');
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            this.showNotification(`Ditto Error: ${errorMessage}`, 'error');
             // Don't throw - allow app to continue with REST API fallback
-            this.showNotification('Ditto sync unavailable, using fallback mode', 'warning');
+            // this.showNotification('Ditto sync unavailable, using fallback mode', 'warning');
         }
     }
 
