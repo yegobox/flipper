@@ -5,6 +5,8 @@
 
 /* global console, document, Excel, Office */
 
+import { DittoService, DittoConfig, Transaction } from './DittoService';
+
 interface RecentAction {
     id: string;
     action: string;
@@ -122,6 +124,8 @@ class FlipperApp {
     private authToken: string | null = null;
     private selectedBranch: FlipperBranch | null = null;
     private readonly API_BASE_URL = 'https://apihub.yegobox.com';
+    private dittoService: DittoService = new DittoService();
+    private dittoConfig: DittoConfig | null = null;
 
     constructor() {
         this.initializeApp();
@@ -135,6 +139,9 @@ class FlipperApp {
             // Wait for Office to be ready
             await this.waitForOfficeReady();
 
+            // Initialize Ditto
+            await this.initializeDitto();
+
             // Check if user is already authenticated
             const savedToken = localStorage.getItem('flipper_auth_token');
             if (savedToken) {
@@ -145,13 +152,13 @@ class FlipperApp {
             // Initialize the app
             await this.setupEventListeners();
             this.hideLoadingState();
-            
+
             if (this.currentUser) {
                 this.showAppContainer();
             } else {
                 this.showAuthState();
             }
-            
+
             this.isInitialized = true;
 
             console.log('Flipper app initialized successfully');
@@ -164,13 +171,39 @@ class FlipperApp {
     private waitForOfficeReady(): Promise<void> {
         return new Promise((resolve, reject) => {
             Office.onReady((info) => {
-                if (info.host === Office.HostType.Excel) {
+                if ((info.host as any) === Office.HostType.Excel) {
                     resolve();
                 } else {
                     reject(new Error('This add-in only works in Excel'));
                 }
             });
         });
+    }
+
+    private async initializeDitto(): Promise<void> {
+        try {
+            // Load Ditto configuration from environment or use defaults
+            // You can also store these in localStorage or fetch from a config endpoint
+            const appID = process.env.DITTO_APP_ID || 'REPLACE_WITH_YOUR_APP_ID';
+            const token = process.env.DITTO_TOKEN || 'REPLACE_WITH_YOUR_TOKEN';
+            const customAuthURL = process.env.DITTO_AUTH_URL;
+            const websocketURL = process.env.DITTO_WEBSOCKET_URL || 'wss://REPLACE_WITH_YOUR_WEBSOCKET_URL';
+
+            this.dittoConfig = {
+                appID,
+                token,
+                customAuthURL,
+                websocketURL
+            };
+
+            await this.dittoService.initialize(this.dittoConfig);
+            console.log('Ditto initialized successfully');
+        } catch (error) {
+            console.error('Failed to initialize Ditto:', error);
+            this.showNotification('Failed to initialize Ditto', 'error');
+            // Don't throw - allow app to continue with REST API fallback
+            this.showNotification('Ditto sync unavailable, using fallback mode', 'warning');
+        }
     }
 
     private setupEventListeners(): void {
@@ -203,7 +236,7 @@ class FlipperApp {
 
     private async handleLogin(event: Event): Promise<void> {
         event.preventDefault();
-        
+
         const form = event.target as HTMLFormElement;
         const formData = new FormData(form);
         const phoneNumber = formData.get('phoneNumber') as string;
@@ -245,10 +278,10 @@ class FlipperApp {
         const userData: FlipperUser = await response.json();
         this.currentUser = userData;
         this.authToken = userData.token;
-        
+
         // Save token to localStorage
         localStorage.setItem('flipper_auth_token', userData.token);
-        
+
         console.log('User authenticated successfully:', userData.name);
     }
 
@@ -354,13 +387,13 @@ class FlipperApp {
     private handleBranchSelection(event: Event): void {
         const select = event.target as HTMLSelectElement;
         const branchId = select.value;
-        
+
         if (!branchId || !this.currentUser) return;
 
         // Find the selected branch
         const defaultTenant = this.currentUser.tenants.find(t => t.default) || this.currentUser.tenants[0];
         const selectedBranch = defaultTenant.branches.find(b => b.id === branchId);
-        
+
         if (selectedBranch) {
             this.selectedBranch = selectedBranch;
             localStorage.setItem('flipper_selected_branch', branchId);
@@ -435,7 +468,7 @@ class FlipperApp {
                 range.format.font.bold = true;
 
                 await context.sync();
-                
+
                 this.addRecentAction('Highlight Selection', `Highlighted range ${range.address}`);
                 console.log(`Highlighted range: ${range.address}`);
             });
@@ -454,12 +487,12 @@ class FlipperApp {
                 // Create a table from the selected range
                 const table = context.workbook.tables.add(range, true);
                 table.name = `Table_${Date.now()}`;
-                
+
                 // Apply professional table styling
                 table.style = 'TableStyleMedium2';
 
                 await context.sync();
-                
+
                 this.addRecentAction('Create Table', `Created table from range ${range.address}`);
                 console.log(`Created table from range: ${range.address}`);
             });
@@ -482,7 +515,7 @@ class FlipperApp {
                 range.format.verticalAlignment = 'Center';
 
                 await context.sync();
-                
+
                 this.addRecentAction('Format Data', `Applied formatting to range ${range.address}`);
                 console.log(`Formatted range: ${range.address}`);
             });
@@ -501,14 +534,14 @@ class FlipperApp {
                 // Add basic data analysis
                 const worksheet = context.workbook.worksheets.getActiveWorksheet();
                 const analysisRange = worksheet.getRange(`A${range.getRowCount() + 2}`);
-                
+
                 // Add summary statistics
                 analysisRange.values = [['Data Analysis Summary']];
                 analysisRange.format.font.bold = true;
                 analysisRange.format.font.size = 14;
 
                 await context.sync();
-                
+
                 this.addRecentAction('Analyze Data', `Analyzed data in range ${range.address}`);
                 console.log(`Analyzed data in range: ${range.address}`);
             });
@@ -521,66 +554,87 @@ class FlipperApp {
     private async generateSalesReport(): Promise<void> {
         try {
             console.log('Starting sales report generation...');
-            
+
             if (!this.currentUser || !this.authToken) {
                 this.showNotification('User not authenticated. Please log in.', 'error');
                 return;
             }
-    
+
             // Get selected branch
             if (!this.selectedBranch) {
                 this.showNotification('Please select a branch from the connection status section.', 'error');
                 return;
             }
-            
+
             const branchId = this.selectedBranch.serverId;
             if (!branchId) {
                 this.showNotification('Invalid server ID. Please select a different branch.', 'error');
                 return;
             }
-    
+
             this.showNotification('Fetching sales data...', 'warning');
-    
-            // Fetch transactions from API using Basic authentication
-            const url = `${this.API_BASE_URL}/v2/api/transactions/branch/${branchId}?limit=10&excludeTransactionType=adjustment&excludeStatus=pending`;
-            console.log('Fetching from URL:', url);
-            
-            const response = await fetch(url, {
-                headers: {
-                    'Authorization': 'Basic ' + btoa('admin:admin'),
-                    'Content-Type': 'application/json'
+
+            let transactions: any[] = [];
+
+            // Try to fetch from Ditto first, fallback to REST API
+            if (this.dittoService.isReady()) {
+                try {
+                    console.log('Fetching transactions from Ditto...');
+                    const dittoTransactions = await this.dittoService.getTransactions(branchId, 10);
+
+                    // Convert Ditto transactions to the format expected by Excel generation
+                    transactions = dittoTransactions.map(tx => ({
+                        id: tx.id,
+                        reference: tx.reference,
+                        transaction_number: tx.transactionNumber,
+                        status: tx.status,
+                        sub_total: tx.subTotal,
+                        payment_type: tx.paymentType,
+                        created_at: tx.createdAt,
+                        customer_name: tx.customerName,
+                        receipt_number: tx.receiptNumber,
+                        invoice_number: tx.invoiceNumber,
+                        tax_amount: tx.taxAmount,
+                        number_of_items: tx.numberOfItems,
+                        customer_phone: tx.customerPhone,
+                        transaction_items: tx.transactionItems || []
+                    }));
+
+                    console.log(`Fetched ${transactions.length} transactions from Ditto`);
+                } catch (dittoError) {
+                    console.error('Ditto fetch failed, falling back to REST API:', dittoError);
+                    this.showNotification('Ditto sync failed, using REST API...', 'warning');
+                    transactions = await this.fetchTransactionsFromAPI(branchId);
                 }
-            });
-    
-            if (!response.ok) {
-                throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+            } else {
+                console.log('Ditto not ready, using REST API...');
+                transactions = await this.fetchTransactionsFromAPI(branchId);
             }
-    
-            const transactions = await response.json();
+
             console.log('Fetched transactions:', transactions.length);
-            
+
             if (!Array.isArray(transactions) || transactions.length === 0) {
                 this.showNotification('No sales transactions found.', 'warning');
                 return;
             }
-    
+
             // Now let's work with Excel step by step
             await Excel.run(async (context) => {
                 console.log('Starting Excel operations...');
-                
+
                 try {
                     // Step 1: Get the workbook and list existing worksheets
                     const workbook = context.workbook;
                     const worksheets = workbook.worksheets;
                     worksheets.load('items');
-                    
+
                     await context.sync();
                     console.log('Current worksheets:', worksheets.items.map(ws => ws.name));
-                    
+
                     // Step 2: Create or get the sales sheet
                     console.log('Creating/getting sales sheet...');
                     let salesSheet;
-                    
+
                     // Check if sales sheet exists
                     let salesSheetExists = false;
                     for (const ws of worksheets.items) {
@@ -589,17 +643,17 @@ class FlipperApp {
                             break;
                         }
                     }
-                    
+
                     if (salesSheetExists) {
                         console.log('Sales sheet exists, getting it...');
                         salesSheet = workbook.worksheets.getItem('sales');
-                        
+
                         // Clear existing content safely
                         try {
                             const usedRange = salesSheet.getUsedRange();
                             usedRange.load('address');
                             await context.sync();
-                            
+
                             if (usedRange.address) {
                                 console.log('Clearing existing content in range:', usedRange.address);
                                 usedRange.clear();
@@ -611,27 +665,27 @@ class FlipperApp {
                         console.log('Creating new sales sheet...');
                         salesSheet = workbook.worksheets.add('sales');
                     }
-                    
+
                     await context.sync();
                     console.log('Sales sheet ready');
-                    
+
                     // Step 3: Write headers
                     console.log('Writing headers...');
                     const txHeaders = [
-                        'ID', 'Reference', 'Transaction Number', 'Status', 'Sub Total', 
-                        'Payment Type', 'Created At', 'Customer Name', 'Receipt Number', 
+                        'ID', 'Reference', 'Transaction Number', 'Status', 'Sub Total',
+                        'Payment Type', 'Created At', 'Customer Name', 'Receipt Number',
                         'Invoice Number', 'Tax Amount', 'Number of Items', 'Customer Phone'
                     ];
-                    
+
                     const headerRange = salesSheet.getRange('A1:M1');
                     headerRange.values = [txHeaders];
                     headerRange.format.font.bold = true;
                     headerRange.format.fill.color = '#4472C4';
                     headerRange.format.font.color = '#FFFFFF';
-                    
+
                     await context.sync();
                     console.log('Headers written successfully');
-                    
+
                     // Step 4: Prepare and write transaction data
                     console.log('Preparing transaction data...');
                     const txRows = transactions.map(tx => [
@@ -649,144 +703,164 @@ class FlipperApp {
                         tx.number_of_items || 0,
                         tx.customer_phone || ''
                     ]);
-                    
+
                     if (txRows.length > 0) {
                         console.log(`Writing ${txRows.length} transaction rows...`);
                         const dataRange = salesSheet.getRange(`A2:M${txRows.length + 1}`);
                         dataRange.values = txRows;
-                        
+
                         await context.sync();
                         console.log('Transaction data written successfully');
-                        
+
                         // Format the data
                         dataRange.format.autofitColumns();
                         await context.sync();
                         console.log('Data formatted successfully');
                     }
-                    
-                                         // Step 5: Create single items sheet with all transaction items
-                     console.log('Processing items sheet...');
-                     
-                     // Collect all items from all transactions
-                     const allItems: any[] = [];
-                     for (const tx of transactions) {
-                         const items = tx.transaction_items || [];
-                         for (const item of items) {
-                             allItems.push({
-                                 transaction_id: tx.id,
-                                 transaction_reference: tx.reference,
-                                 ...item
-                             });
-                         }
-                     }
-                     
-                     if (allItems.length > 0) {
-                         console.log(`Found ${allItems.length} total items across all transactions`);
-                         
-                         // Create or get the items sheet
-                         let itemsSheet;
-                         let itemsSheetExists = false;
-                         for (const ws of worksheets.items) {
-                             if (ws.name === 'items') {
-                                 itemsSheetExists = true;
-                                 break;
-                             }
-                         }
-                         
-                         if (itemsSheetExists) {
-                             console.log('Items sheet exists, getting it...');
-                             itemsSheet = workbook.worksheets.getItem('items');
-                             
-                             // Clear existing content safely
-                             try {
-                                 const usedRange = itemsSheet.getUsedRange();
-                                 usedRange.load('address');
-                                 await context.sync();
-                                 
-                                 if (usedRange.address) {
-                                     console.log('Clearing existing content in items sheet:', usedRange.address);
-                                     usedRange.clear();
-                                 }
-                             } catch (clearError) {
-                                 console.log('No existing content to clear in items sheet');
-                             }
-                         } else {
-                             console.log('Creating new items sheet...');
-                             itemsSheet = workbook.worksheets.add('items');
-                         }
-                         
-                         await context.sync();
-                         
-                         // Write item headers
-                         const itemHeaders = [
-                             'Transaction ID', 'Transaction Reference', 'Item ID', 'Name', 
-                             'Quantity', 'Price', 'Discount', 'SKU', 'Unit'
-                         ];
-                         const itemHeaderRange = itemsSheet.getRange('A1:I1');
-                         itemHeaderRange.values = [itemHeaders];
-                         itemHeaderRange.format.font.bold = true;
-                         itemHeaderRange.format.fill.color = '#70AD47';
-                         itemHeaderRange.format.font.color = '#FFFFFF';
-                         
-                         await context.sync();
-                         
-                         // Write all item data
-                         const itemRows = allItems.map(item => [
-                             item.transaction_id || '',
-                             item.transaction_reference || '',
-                             item.id || '',
-                             item.name || '',
-                             item.qty || 0,
-                             item.price || 0,
-                             item.discount || 0,
-                             item.sku || '',
-                             item.unit || ''
-                         ]);
-                         
-                         console.log(`Writing ${itemRows.length} item rows...`);
-                         const itemDataRange = itemsSheet.getRange(`A2:I${itemRows.length + 1}`);
-                         itemDataRange.values = itemRows;
-                         
-                         await context.sync();
-                         
-                         // Format the data
-                         itemDataRange.format.autofitColumns();
-                         await context.sync();
-                         
-                         console.log('Items sheet created successfully');
-                     } else {
-                         console.log('No items found in any transactions');
-                     }
-                    
+
+                    // Step 5: Create single items sheet with all transaction items
+                    console.log('Processing items sheet...');
+
+                    // Collect all items from all transactions
+                    const allItems: any[] = [];
+                    for (const tx of transactions) {
+                        const items = tx.transaction_items || [];
+                        for (const item of items) {
+                            allItems.push({
+                                transaction_id: tx.id,
+                                transaction_reference: tx.reference,
+                                ...item
+                            });
+                        }
+                    }
+
+                    if (allItems.length > 0) {
+                        console.log(`Found ${allItems.length} total items across all transactions`);
+
+                        // Create or get the items sheet
+                        let itemsSheet;
+                        let itemsSheetExists = false;
+                        for (const ws of worksheets.items) {
+                            if (ws.name === 'items') {
+                                itemsSheetExists = true;
+                                break;
+                            }
+                        }
+
+                        if (itemsSheetExists) {
+                            console.log('Items sheet exists, getting it...');
+                            itemsSheet = workbook.worksheets.getItem('items');
+
+                            // Clear existing content safely
+                            try {
+                                const usedRange = itemsSheet.getUsedRange();
+                                usedRange.load('address');
+                                await context.sync();
+
+                                if (usedRange.address) {
+                                    console.log('Clearing existing content in items sheet:', usedRange.address);
+                                    usedRange.clear();
+                                }
+                            } catch (clearError) {
+                                console.log('No existing content to clear in items sheet');
+                            }
+                        } else {
+                            console.log('Creating new items sheet...');
+                            itemsSheet = workbook.worksheets.add('items');
+                        }
+
+                        await context.sync();
+
+                        // Write item headers
+                        const itemHeaders = [
+                            'Transaction ID', 'Transaction Reference', 'Item ID', 'Name',
+                            'Quantity', 'Price', 'Discount', 'SKU', 'Unit'
+                        ];
+                        const itemHeaderRange = itemsSheet.getRange('A1:I1');
+                        itemHeaderRange.values = [itemHeaders];
+                        itemHeaderRange.format.font.bold = true;
+                        itemHeaderRange.format.fill.color = '#70AD47';
+                        itemHeaderRange.format.font.color = '#FFFFFF';
+
+                        await context.sync();
+
+                        // Write all item data
+                        const itemRows = allItems.map(item => [
+                            item.transaction_id || '',
+                            item.transaction_reference || '',
+                            item.id || '',
+                            item.name || '',
+                            item.qty || 0,
+                            item.price || 0,
+                            item.discount || 0,
+                            item.sku || '',
+                            item.unit || ''
+                        ]);
+
+                        console.log(`Writing ${itemRows.length} item rows...`);
+                        const itemDataRange = itemsSheet.getRange(`A2:I${itemRows.length + 1}`);
+                        itemDataRange.values = itemRows;
+
+                        await context.sync();
+
+                        // Format the data
+                        itemDataRange.format.autofitColumns();
+                        await context.sync();
+
+                        console.log('Items sheet created successfully');
+                    } else {
+                        console.log('No items found in any transactions');
+                    }
+
                     // Step 6: Activate the sales sheet
                     console.log('Activating sales sheet...');
                     salesSheet.activate();
                     await context.sync();
-                    
-                                         console.log('Sales report generation completed successfully');
-                     this.addRecentAction('Sales Report', `Generated sales report with ${transactions.length} transactions and ${allItems.length} items`);
-                     this.showNotification(`Sales report generated successfully! Created ${transactions.length} transaction records and ${allItems.length} items in separate sheets.`, 'success');
-                    
+
+                    console.log('Sales report generation completed successfully');
+                    this.addRecentAction('Sales Report', `Generated sales report with ${transactions.length} transactions and ${allItems.length} items`);
+                    this.showNotification(`Sales report generated successfully! Created ${transactions.length} transaction records and ${allItems.length} items in separate sheets.`, 'success');
+
                 } catch (excelError) {
                     console.error('Error in Excel operations:', excelError);
                     throw excelError;
                 }
             });
-    
+
         } catch (error) {
             console.error('Error generating sales report:', error);
             let errorMessage = 'Failed to generate sales report. ';
-            
+
             if (error instanceof Error) {
                 errorMessage += error.message;
             } else {
                 errorMessage += 'Please check the console for more details.';
             }
-            
+
             this.showNotification(errorMessage, 'error');
         }
     }
-    
+
+    // Helper method to fetch transactions from REST API (fallback)
+    private async fetchTransactionsFromAPI(branchId: number): Promise<any[]> {
+        const url = `${this.API_BASE_URL}/v2/api/transactions/branch/${branchId}?limit=10&excludeTransactionType=adjustment&excludeStatus=pending`;
+        console.log('Fetching from REST API:', url);
+
+        const response = await fetch(url, {
+            headers: {
+                'Authorization': 'Basic ' + btoa('admin:admin'),
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`API request failed: ${response.status} ${response.statusText}`);
+        }
+
+        return await response.json();
+    }
+
+
     // Helper method to safely delete a worksheet
     private async safeDeleteWorksheet(workbook: Excel.Workbook, sheetName: string): Promise<void> {
         try {
@@ -797,14 +871,14 @@ class FlipperApp {
             console.log(`Worksheet ${sheetName} doesn't exist or couldn't be deleted:`, error);
         }
     }
-    
+
     // Helper method to check if worksheet exists
     private async worksheetExists(workbook: Excel.Workbook, sheetName: string): Promise<boolean> {
         try {
             const worksheets = workbook.worksheets;
             worksheets.load('items');
             await workbook.context.sync();
-            
+
             return worksheets.items.some(ws => ws.name === sheetName);
         } catch (error) {
             console.log(`Error checking if worksheet exists: ${sheetName}`, error);
@@ -815,7 +889,7 @@ class FlipperApp {
     private async applyDataValidation(): Promise<void> {
         try {
             const validationType = (document.getElementById('data-validation') as HTMLSelectElement)?.value;
-            
+
             if (!validationType) {
                 this.showNotification('Please select a validation type', 'warning');
                 return;
@@ -846,7 +920,7 @@ class FlipperApp {
                         range.dataValidation.rule = {
                             date: {
                                 operator: 'GreaterThan',
-                                formula: '=TODAY()-365'
+                                formula1: '=TODAY()-365'
                             }
                         };
                         break;
@@ -854,14 +928,15 @@ class FlipperApp {
                         range.dataValidation.rule = {
                             wholeNumber: {
                                 operator: 'Between',
-                                formula: ['0', '100']
+                                formula1: '0',
+                                formula2: '100'
                             }
                         };
                         break;
                 }
 
                 await context.sync();
-                
+
                 this.addRecentAction('Apply Validation', `Applied ${validationType} validation to range ${range.address}`);
                 console.log(`Applied ${validationType} validation to range: ${range.address}`);
                 this.showNotification(`Applied ${validationType} validation successfully`, 'success');
@@ -875,7 +950,7 @@ class FlipperApp {
     private async applyDataCleanup(): Promise<void> {
         try {
             const cleanupType = (document.getElementById('data-cleanup') as HTMLSelectElement)?.value;
-            
+
             if (!cleanupType) {
                 this.showNotification('Please select a cleanup type', 'warning');
                 return;
@@ -922,7 +997,7 @@ class FlipperApp {
         };
 
         this.recentActions.unshift(newAction);
-        
+
         // Keep only the last 10 actions
         if (this.recentActions.length > 10) {
             this.recentActions = this.recentActions.slice(0, 10);
@@ -961,7 +1036,7 @@ class FlipperApp {
     private formatTime(date: Date): string {
         const now = new Date();
         const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60));
-        
+
         if (diffInMinutes < 1) return 'Just now';
         if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
         if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
@@ -980,7 +1055,7 @@ class FlipperApp {
             if (notification.parentNode) {
                 notification.parentNode.removeChild(notification);
             }
-        }, 5000);
+        }, 15000);
     }
 
     private openSettings(): void {

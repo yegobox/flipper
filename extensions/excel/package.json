@@ -30,6 +30,7 @@
     "test:ci": "jest --ci --coverage --watchAll=false"
   },
   "dependencies": {
+    "@dittolive/ditto": "^4.13.0",
     "core-js": "^3.36.0",
     "regenerator-runtime": "^0.14.1"
   },
