@@ -312,6 +312,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           paymentMethods: paymentMethods,
           discount: discount,
           paymentType: paymentType,
+
           completeTransaction: () async {
             // Show success confirmation before completing
             await markTransactionAsCompleted(

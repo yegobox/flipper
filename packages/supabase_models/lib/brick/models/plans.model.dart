@@ -3,11 +3,24 @@ import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
 import 'package:supabase_models/brick/models/plan_addon.model.dart';
 import 'package:uuid/uuid.dart';
+import 'package:brick_offline_first/brick_offline_first.dart';
+import 'package:flipper_models/helperModels/random.dart';
+import 'package:supabase_models/brick/models/transactionItem.model.dart';
+import 'package:brick_ditto_generators/ditto_sync_adapter.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:flutter/foundation.dart' hide Category;
+import 'package:supabase_models/sync/ditto_sync_adapter.dart';
+import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
+import 'package:supabase_models/sync/ditto_sync_generated.dart';
+import 'package:supabase_models/brick/repository.dart';
+
+part 'plans.model.ditto_sync_adapter.g.dart';
 
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'plans'),
   sqliteConfig: SqliteSerializable(),
 )
+@DittoAdapter('plans', syncDirection: SyncDirection.bidirectional)
 class Plan extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
   @Sqlite(index: true, unique: true)
@@ -26,7 +39,7 @@ class Plan extends OfflineFirstWithSupabaseModel {
   String? rule;
   String? paymentMethod;
 
-  final List<PlanAddon> addons;
+  final List<PlanAddon>? addons;
 
   DateTime? nextBillingDate;
 

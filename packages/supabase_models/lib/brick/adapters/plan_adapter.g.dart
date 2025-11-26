@@ -36,19 +36,21 @@ Future<Plan> _$PlanFromSupabase(
     paymentMethod: data['payment_method'] == null
         ? null
         : data['payment_method'] as String?,
-    addons: await Future.wait<PlanAddon>(
-      data['addons']
-              ?.map(
-                (d) => PlanAddonAdapter().fromSupabase(
-                  d,
-                  provider: provider,
-                  repository: repository,
-                ),
-              )
-              .toList()
-              .cast<Future<PlanAddon>>() ??
-          [],
-    ),
+    addons: data['addons'] == null
+        ? null
+        : await Future.wait<PlanAddon>(
+            data['addons']
+                    ?.map(
+                      (d) => PlanAddonAdapter().fromSupabase(
+                        d,
+                        provider: provider,
+                        repository: repository,
+                      ),
+                    )
+                    .toList()
+                    .cast<Future<PlanAddon>>() ??
+                [],
+          ),
     nextBillingDate: data['next_billing_date'] == null
         ? null
         : data['next_billing_date'] == null
@@ -109,14 +111,15 @@ Future<Map<String, dynamic>> _$PlanToSupabase(
     'payment_method': instance.paymentMethod,
     'addons': await Future.wait<Map<String, dynamic>>(
       instance.addons
-          .map(
-            (s) => PlanAddonAdapter().toSupabase(
-              s,
-              provider: provider,
-              repository: repository,
-            ),
-          )
-          .toList(),
+              ?.map(
+                (s) => PlanAddonAdapter().toSupabase(
+                  s,
+                  provider: provider,
+                  repository: repository,
+                ),
+              )
+              .toList() ??
+          [],
     ),
     'next_billing_date': instance.nextBillingDate?.toIso8601String(),
     'number_of_payments': instance.numberOfPayments,
@@ -319,7 +322,7 @@ class PlanAdapter extends OfflineFirstWithSupabaseAdapter<Plan> {
       association: true,
       columnName: 'addons',
       associationType: PlanAddon,
-      associationIsNullable: false,
+      associationIsNullable: true,
     ),
     'nextBillingDate': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -538,9 +541,8 @@ class PlanAdapter extends OfflineFirstWithSupabaseAdapter<Plan> {
       final addonsOldIds = addonsOldColumns.map(
         (a) => a['f_PlanAddon_brick_id'],
       );
-      final addonsNewIds = instance.addons
-          .map((s) => s.primaryKey)
-          .whereType<int>();
+      final addonsNewIds =
+          instance.addons?.map((s) => s.primaryKey).whereType<int>() ?? [];
       final addonsIdsToDelete = addonsOldIds.where(
         (id) => !addonsNewIds.contains(id),
       );
@@ -557,15 +559,16 @@ class PlanAdapter extends OfflineFirstWithSupabaseAdapter<Plan> {
       );
 
       await Future.wait<int?>(
-        instance.addons.map((s) async {
-          final id =
-              s.primaryKey ??
-              await provider.upsert<PlanAddon>(s, repository: repository);
-          return await provider.rawInsert(
-            'INSERT OR IGNORE INTO `_brick_Plan_addons` (`l_Plan_brick_id`, `f_PlanAddon_brick_id`) VALUES (?, ?)',
-            [instance.primaryKey, id],
-          );
-        }),
+        instance.addons?.map((s) async {
+              final id =
+                  s.primaryKey ??
+                  await provider.upsert<PlanAddon>(s, repository: repository);
+              return await provider.rawInsert(
+                'INSERT OR IGNORE INTO `_brick_Plan_addons` (`l_Plan_brick_id`, `f_PlanAddon_brick_id`) VALUES (?, ?)',
+                [instance.primaryKey, id],
+              );
+            }) ??
+            [],
       );
     }
   }

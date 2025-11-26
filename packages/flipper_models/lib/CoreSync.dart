@@ -197,14 +197,12 @@ class CoreSync extends AiStrategyImpl
   Future<void> assignCustomerToTransaction(
       {required Customer customer, required ITransaction transaction}) async {
     try {
-     
-        transaction.customerId = customer.id;
-        transaction.customerName = customer.custNm;
-        transaction.customerTin = customer.custTin;
-        transaction.customerPhone = customer.telNo;
-        transaction.currentSaleCustomerPhoneNumber = customer.telNo;
-        repository.upsert<ITransaction>(transaction);
-     
+      transaction.customerId = customer.id;
+      transaction.customerName = customer.custNm;
+      transaction.customerTin = customer.custTin;
+      transaction.customerPhone = customer.telNo;
+      transaction.currentSaleCustomerPhoneNumber = customer.telNo;
+      repository.upsert<ITransaction>(transaction);
     } catch (e) {
       print('Failed to assign customer to transaction: $e');
       rethrow;
@@ -1305,7 +1303,10 @@ class CoreSync extends AiStrategyImpl
         policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
       );
 
-      return planWithAddons.expand((plan) => plan.addons).toList();
+      return planWithAddons
+          .expand((plan) => plan.addons ?? [])
+          .cast<models.PlanAddon>()
+          .toList();
     } catch (e) {
       talker.error('Failed to fetch existing addons: $e');
       rethrow;

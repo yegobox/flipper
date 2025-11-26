@@ -14,6 +14,7 @@ import 'package:supabase_models/brick/models/transaction_delegation.model.dart' 
 import 'package:supabase_models/brick/models/variant.model.dart' as variant_model;
 import 'package:supabase_models/brick/models/device.model.dart' as device_model;
 import 'package:supabase_models/brick/models/stock_recount_item.model.dart' as stock_recount_item_model;
+import 'package:supabase_models/brick/models/plans.model.dart' as plans_model;
 
 /// Forces all Ditto adapter static initializers to run.
 /// Call this before using DittoSyncRegistry.
@@ -30,4 +31,5 @@ void ensureDittoAdaptersLoaded() {
   variant_model.VariantDittoAdapter.registryToken; // ignore: unnecessary_statements
   device_model.DeviceDittoAdapter.registryToken; // ignore: unnecessary_statements
   stock_recount_item_model.StockRecountItemDittoAdapter.registryToken; // ignore: unnecessary_statements
+  plans_model.PlanDittoAdapter.registryToken; // ignore: unnecessary_statements
 }

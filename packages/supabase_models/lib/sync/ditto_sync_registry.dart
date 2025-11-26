@@ -40,30 +40,45 @@ class DittoSyncRegistry {
         debugPrint('🚀 Ditto instance received, initializing coordinator...');
         unawaited(() async {
           try {
-            debugPrint('⏳ Waiting for Repository to be ready...');
-            await Repository.waitUntilReady();
+            debugPrint(
+                '⏳ Waiting for Repository to be ready (timeout: 10s)...');
+
+            // Add timeout to prevent indefinite blocking
+            await Repository.waitUntilReady().timeout(
+              const Duration(seconds: 10),
+              onTimeout: () {
+                debugPrint(
+                    '⚠️  Repository.waitUntilReady() timed out after 10 seconds');
+                throw TimeoutException(
+                  'Repository initialization timed out',
+                  const Duration(seconds: 10),
+                );
+              },
+            );
+
             debugPrint('✅ Repository is ready');
 
-            // Add delay before starting Ditto sync to let app fully initialize
-            debugPrint(
-                '⏱️  Delaying Ditto sync for 3 seconds to allow app initialization...');
-            await Future.delayed(const Duration(seconds: 3));
-            debugPrint('✅ Delay completed, starting Ditto sync');
-
-            // Skip initial fetch on startup to prevent mass upserts
+            debugPrint('🔄 Setting Ditto instance in coordinator...');
             await DittoSyncCoordinator.instance
                 .setDitto(ditto, skipInitialFetch: true);
+            debugPrint('✅ Ditto coordinator initialized successfully');
 
             if (kDebugMode) {
               debugPrint(
                 'Ditto coordinator initialized using device: ${ditto.deviceName}',
               );
               debugPrint(
-                  '� Call DittoSyncRegistry.seedAll() or DittoSyncRegistry.seedModel<T>() to seed data');
+                  '💡 Call DittoSyncRegistry.seedAll() or DittoSyncRegistry.seedModel<T>() to seed data');
             }
+          } on TimeoutException catch (e) {
+            debugPrint('❌ Timeout during Ditto initialization: $e');
+            debugPrint(
+                '⚠️  App will continue without Ditto sync functionality');
           } catch (error, stack) {
             if (kDebugMode) {
-              debugPrint('Ditto initialization failed: $error\n$stack');
+              debugPrint('❌ Ditto initialization failed: $error\n$stack');
+              debugPrint(
+                  '⚠️  App will continue without Ditto sync functionality');
             }
           }
         }());

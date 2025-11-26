@@ -1,8 +1,10 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -245,6 +247,11 @@ class TaxController<OBJ> {
 
     // Try normal processing first
     try {
+      // touch the transaction unawaited
+      transaction.lastPaymentDate = DateTime.now();
+      transaction.createdAt = DateTime.now();
+      transaction.updatedAt = DateTime.now();
+      unawaited(repository.upsert(transaction));
       // Normal processing (desktop or mobile)
       RwApiResponse responses;
       Uint8List? bytes;

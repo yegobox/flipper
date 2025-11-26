@@ -68,14 +68,41 @@ Future<void> main() async {
   // Centralized initialization function
   Future<void> initializeApp() async {
     if (!skipDependencyInitialization) {
+      debugPrint('🚀 Starting app initialization...');
+
+      debugPrint('📱 Initializing Firebase...');
       await _initializeFirebase();
+      debugPrint('✅ Firebase initialized');
+
+      debugPrint('🔧 Initializing dependencies...');
       await initializeDependencies();
+      debugPrint('✅ Dependencies initialized');
+
+      debugPrint('🗄️  Initializing Supabase...');
       await _initializeSupabase();
+      debugPrint('✅ Supabase initialized');
+
+      debugPrint('🔌 Setting up locator...');
       loc.setupLocator(stackedRouter: stackedRouter);
+      debugPrint('✅ Locator setup complete');
+
+      debugPrint('💬 Setting up dialogs...');
       setupDialogUi();
+      debugPrint('✅ Dialogs setup complete');
+
+      debugPrint('📋 Setting up bottom sheets...');
       setupBottomSheetUi();
+      debugPrint('✅ Bottom sheets setup complete');
+
+      debugPrint('⚙️  Initializing additional dependencies...');
       await initDependencies();
+      debugPrint('✅ Additional dependencies initialized');
+
+      debugPrint('🔄 Registering Ditto sync defaults...');
       await DittoSyncRegistry.registerDefaults();
+      debugPrint('✅ Ditto sync defaults registered');
+
+      debugPrint('🎉 App initialization completed successfully!');
     }
   }
 
@@ -89,9 +116,56 @@ Future<void> main() async {
       ..attachScreenshot = false,
     appRunner: () => runApp(
       FutureBuilder(
-        future: initializeApp(),
+        future: initializeApp().timeout(
+          const Duration(seconds: 30),
+          onTimeout: () {
+            debugPrint('❌ App initialization timed out after 30 seconds');
+            throw TimeoutException(
+              'App initialization timed out',
+              const Duration(seconds: 30),
+            );
+          },
+        ),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
+            if (snapshot.hasError) {
+              // Show error screen if initialization failed
+              debugPrint('❌ App initialization error: ${snapshot.error}');
+              return MaterialApp(
+                home: Scaffold(
+                  backgroundColor: Colors.white,
+                  body: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.error_outline,
+                          color: Colors.red,
+                          size: 64,
+                        ),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Initialization Failed',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 32),
+                          child: Text(
+                            '${snapshot.error}',
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(fontSize: 14),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }
             // Remove splash screen when the main app is ready
             FlutterNativeSplash.remove();
             return const FlipperApp();

@@ -4,22 +4,22 @@ import 'package:brick_sqlite/db.dart';
 part '20251107092253.migration.dart';
 part '20251030100041.migration.dart';
 part '20251005152725.migration.dart';
+part '20251124173305.migration.dart';
 part '20251123182610.migration.dart';
 part '20251107092908.migration.dart';
 part '20251122051839.migration.dart';
 part '20251108140031.migration.dart';
-part '20251124173305.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
   const Migration20251107092253(),
   const Migration20251030100041(),
   const Migration20251005152725(),
+  const Migration20251124173305(),
   const Migration20251123182610(),
   const Migration20251107092908(),
   const Migration20251122051839(),
   const Migration20251108140031(),
-  const Migration20251124173305(),
 };
 
 /// A consumable database structure including the latest generated migration.

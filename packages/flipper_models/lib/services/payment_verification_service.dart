@@ -97,11 +97,12 @@ class PaymentVerificationService {
   /// Verifies the current business payment status
   /// Returns a detailed response that callers can use to decide what action to take
   Future<PaymentVerificationResponse> verifyPaymentStatus() async {
-    talker.info('Verifying payment status');
+    talker.info('Verifying payment status - starting verification');
 
     try {
       final business = await ProxyService.strategy.activeBusiness();
       if (business?.id == null) {
+        talker.error('Payment verification failed: No active business found');
         return PaymentVerificationResponse(
           result: PaymentVerificationResult.error,
           errorMessage: 'No active business found',
@@ -109,20 +110,27 @@ class PaymentVerificationService {
       }
 
       final businessId = business!.id;
+      talker.info(
+          'Payment verification: Checking plan for business: $businessId');
 
       // First check if a payment plan exists at all
+      // fetchOnline: true ensures we check remote, crucial for new devices
       final plan = await ProxyService.strategy.getPaymentPlan(
         businessId: businessId,
         fetchOnline: true,
       );
 
       if (plan == null) {
-        talker.warning('No payment plan found for business: $businessId');
+        talker.warning(
+            'Payment verification: No payment plan found for business: $businessId (checked remote)');
         return PaymentVerificationResponse(
           result: PaymentVerificationResult.noPlan,
           errorMessage: 'No payment plan exists for this business',
         );
       }
+
+      talker.info(
+          'Payment verification: Found plan ${plan.id} for business $businessId, checking subscription status');
 
       // A plan exists, now check if it's active
       try {
