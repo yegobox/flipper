@@ -12,6 +12,7 @@ import 'package:flipper_services/drive_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 // import 'package:flipper_models/services/sqlite_service.dart';
 
 /// A service class that manages scheduled tasks and periodic operations for the Flipper app.
@@ -587,6 +588,6 @@ class CronService {
   }
 
   /// Platform detection helpers
-  bool get isMacOs => Platform.isMacOS;
-  bool get isIos => Platform.isIOS;
+  bool get isMacOs => defaultTargetPlatform == TargetPlatform.macOS;
+  bool get isIos => defaultTargetPlatform == TargetPlatform.iOS;
 }
