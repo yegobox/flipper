@@ -127,6 +127,8 @@ class FlipperApp {
     private readonly API_BASE_URL = 'https://apihub.yegobox.com';
     private dittoService: DittoService = new DittoService();
     private dittoConfig: DittoConfig | null = null;
+    private salesReportInterval: number | null = null;
+    private isPolling = false;
 
     constructor() {
         this.initializeApp();
@@ -156,6 +158,8 @@ class FlipperApp {
 
             if (this.currentUser) {
                 this.showAppContainer();
+                this.updateUserInterface();
+                this.startSalesReportPolling();
             } else {
                 this.showAuthState();
             }
@@ -219,7 +223,7 @@ class FlipperApp {
         document.getElementById('create-table-button')?.addEventListener('click', () => this.createTable());
         document.getElementById('format-data-button')?.addEventListener('click', () => this.formatData());
         document.getElementById('analyze-data-button')?.addEventListener('click', () => this.analyzeData());
-        document.getElementById('sales-report-button')?.addEventListener('click', () => this.generateSalesReport());
+        document.getElementById('sales-report-button')?.addEventListener('click', () => this.generateSalesReport(true));
 
         // Data Tools
         document.getElementById('apply-validation')?.addEventListener('click', () => this.applyDataValidation());
@@ -255,6 +259,7 @@ class FlipperApp {
             this.hideLoadingState();
             this.showAppContainer();
             this.updateUserInterface();
+            this.startSalesReportPolling();
             this.showNotification('Successfully connected to Flipper', 'success');
         } catch (error) {
             console.error('Authentication failed:', error);
@@ -305,6 +310,7 @@ class FlipperApp {
     }
 
     private handleLogout(): void {
+        this.stopSalesReportPolling();
         this.clearAuthData();
         this.showAuthState();
         this.showNotification('Successfully disconnected from Flipper', 'success');
@@ -351,6 +357,17 @@ class FlipperApp {
 
         // Populate branch selector
         this.populateBranchSelector(defaultTenant.branches);
+
+        // Pre-subscribe to transactions for the default branch
+        if (this.selectedBranch && this.selectedBranch.serverId) {
+            // Default to today's date
+            const startDate = new Date();
+            startDate.setHours(0, 0, 0, 0);
+            const endDate = new Date();
+            endDate.setHours(23, 59, 59, 999);
+
+            this.dittoService.subscribeToTransactions(this.selectedBranch.serverId, startDate, endDate).catch(console.error);
+        }
     }
 
     private populateBranchSelector(branches: FlipperBranch[]): void {
@@ -401,6 +418,40 @@ class FlipperApp {
             this.selectedBranch = selectedBranch;
             localStorage.setItem('flipper_selected_branch', branchId);
             this.showNotification(`Selected branch: ${selectedBranch.name}`, 'success');
+
+            // Subscribe to transactions for the new branch
+            if (selectedBranch.serverId) {
+                // Default to today's date
+                const startDate = new Date();
+                startDate.setHours(0, 0, 0, 0);
+                const endDate = new Date();
+                endDate.setHours(23, 59, 59, 999);
+
+                this.dittoService.subscribeToTransactions(selectedBranch.serverId, startDate, endDate).catch(console.error);
+            }
+        }
+    }
+
+    private startSalesReportPolling(): void {
+        if (this.isPolling) {
+            console.log('Sales report polling is already active.');
+            return;
+        }
+
+        this.isPolling = true;
+        this.salesReportInterval = window.setInterval(() => {
+            this.generateSalesReport(false);
+        }, 30000); // Poll every 30 seconds
+
+        console.log('Started sales report polling.');
+    }
+
+    private stopSalesReportPolling(): void {
+        if (this.salesReportInterval) {
+            clearInterval(this.salesReportInterval);
+            this.salesReportInterval = null;
+            this.isPolling = false;
+            console.log('Stopped sales report polling.');
         }
     }
 
@@ -554,28 +605,28 @@ class FlipperApp {
         }
     }
 
-    private async generateSalesReport(): Promise<void> {
+    private async generateSalesReport(isManual: boolean = false): Promise<void> {
         try {
             console.log('Starting sales report generation...');
 
             if (!this.currentUser || !this.authToken) {
-                this.showNotification('User not authenticated. Please log in.', 'error');
+                if (isManual) this.showNotification('User not authenticated. Please log in.', 'error');
                 return;
             }
 
             // Get selected branch
             if (!this.selectedBranch) {
-                this.showNotification('Please select a branch from the connection status section.', 'error');
+                if (isManual) this.showNotification('Please select a branch from the connection status section.', 'error');
                 return;
             }
 
             const branchId = this.selectedBranch.serverId;
             if (!branchId) {
-                this.showNotification('Invalid server ID. Please select a different branch.', 'error');
+                if (isManual) this.showNotification('Invalid server ID. Please select a different branch.', 'error');
                 return;
             }
 
-            this.showNotification('Fetching sales data...', 'warning');
+            if (isManual) this.showNotification('Fetching sales data...', 'warning');
 
             let transactions: any[] = [];
 
@@ -609,7 +660,7 @@ class FlipperApp {
 
                     // Fetch transaction items separately
                     const transactionIds = dittoTransactions.map(tx => tx.id);
-                    const items = await this.fetchTransactionItemsFromDitto(transactionIds);
+                    const items = await this.fetchTransactionItemsFromDitto(transactionIds, isManual);
                     console.log(`Fetched ${items.length} items from Ditto`);
 
                     // Join items with transactions
@@ -630,19 +681,19 @@ class FlipperApp {
                     // this.showNotification(`Using Ditto: ${transactions.length} transactions, ${totalItems} items`, 'success');
                 } catch (dittoError) {
                     console.error('Ditto fetch failed, falling back to REST API:', dittoError);
-                    this.showNotification('Ditto sync failed, using REST API...', 'warning');
+                    if (isManual) this.showNotification('Ditto sync failed, using REST API...', 'warning');
                     transactions = await this.fetchTransactionsFromAPI(branchId);
                 }
             } else {
                 console.log('Ditto not ready, using REST API...');
-                this.showNotification('Ditto not ready, using REST API...', 'warning');
+                if (isManual) this.showNotification('Ditto not ready, using REST API...', 'warning');
                 transactions = await this.fetchTransactionsFromAPI(branchId);
             }
 
             console.log('Fetched transactions:', transactions.length);
 
             if (!Array.isArray(transactions) || transactions.length === 0) {
-                this.showNotification('No sales transactions found.', 'warning');
+                if (isManual) this.showNotification('No sales transactions found.', 'warning');
                 return;
             }
 
@@ -847,7 +898,7 @@ class FlipperApp {
 
                     console.log('Sales report generation completed successfully');
                     this.addRecentAction('Sales Report', `Generated sales report with ${transactions.length} transactions and ${allItems.length} items`);
-                    // this.showNotification(`Sales report generated successfully! Created ${transactions.length} transaction records and ${allItems.length} items in separate sheets.`, 'success');
+                    if (isManual) this.showNotification(`Sales report generated successfully! Created ${transactions.length} transaction records and ${allItems.length} items in separate sheets.`, 'success');
 
                 } catch (excelError) {
                     console.error('Error in Excel operations:', excelError);
@@ -865,7 +916,7 @@ class FlipperApp {
                 errorMessage += 'Please check the console for more details.';
             }
 
-            this.showNotification(errorMessage, 'error');
+            if (isManual) this.showNotification(errorMessage, 'error');
         }
     }
 
@@ -889,7 +940,7 @@ class FlipperApp {
     }
 
     // Helper method to fetch transaction items from Ditto
-    private async fetchTransactionItemsFromDitto(transactionIds: string[]): Promise<any[]> {
+    private async fetchTransactionItemsFromDitto(transactionIds: string[], isManual = false): Promise<any[]> {
         if (!this.dittoService.isReady() || transactionIds.length === 0) {
             return [];
         }
@@ -913,7 +964,7 @@ class FlipperApp {
                 SELECT * FROM transaction_items
                 WHERE transactionId IN (${placeholders})
             `, params);
-            this.showNotification(`Fetched ${result.items.length} transaction items from Ditto`, 'success');
+            if (isManual) this.showNotification(`Fetched ${result.items.length} transaction items from Ditto`, 'success');
             return result.items.map((item: any) => ({
                 id: item.value.id || item.value._id || '',
                 name: item.value.name || item.value.itemNm || '',
@@ -926,7 +977,7 @@ class FlipperApp {
             }));
         } catch (error) {
             console.error('Failed to fetch transaction items from Ditto:', error);
-            this.showNotification(`Failed to fetch transaction items from Ditto: ${error}`, 'error');
+            if (isManual) this.showNotification(`Failed to fetch transaction items from Ditto: ${error}`, 'error');
             return [];
         }
     }

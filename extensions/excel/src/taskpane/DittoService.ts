@@ -96,6 +96,48 @@ export class DittoService {
     }
 
     /**
+     * Subscribe to transactions for a specific branch to start syncing data
+     */
+    async subscribeToTransactions(branchId: number, startDate?: Date, endDate?: Date): Promise<void> {
+        if (!this.isReady()) {
+            console.warn('Ditto is not initialized, skipping subscription');
+            return;
+        }
+
+        // Default to today if no dates provided
+        const start = startDate || new Date(new Date().setHours(0, 0, 0, 0));
+        const end = endDate || new Date(new Date().setHours(23, 59, 59, 999));
+
+        const startIso = start.toISOString();
+        const endIso = end.toISOString();
+
+        try {
+            console.log(`Subscribing to transactions for branch ${branchId} between ${startIso} and ${endIso}...`);
+
+            // Register a sync subscription for this query
+            // We use a large limit or no limit for subscription to ensure we get the data
+            this.ditto!.sync.registerSubscription(`
+                SELECT * FROM transactions 
+                WHERE branchId = ${branchId} 
+                AND status != 'pending'
+                AND lastTouched >= '${startIso}'
+                AND lastTouched <= '${endIso}'
+            `);
+
+            this.ditto!.sync.registerSubscription(`
+                SELECT * FROM transaction_items 
+                WHERE branchId = ${branchId} 
+                AND lastTouched >= '${startIso}'
+                AND lastTouched <= '${endIso}'
+            `);
+
+            console.log('Subscription registered successfully');
+        } catch (error) {
+            console.error('Failed to register subscription:', error);
+        }
+    }
+
+    /**
      * Fetch transactions for a specific branch
      */
     async getTransactions(branchId: number, limit: number = 50, startDate?: Date, endDate?: Date): Promise<Transaction[]> {
@@ -113,15 +155,8 @@ export class DittoService {
         try {
             console.log(`Fetching transactions for branch ${branchId} between ${startIso} and ${endIso}...`);
 
-            // Register a sync subscription for this query
-            this.ditto!.sync.registerSubscription(`
-                SELECT * FROM transactions 
-                WHERE branchId = ${branchId} 
-                AND status != 'pending'
-                AND lastTouched >= '${startIso}'
-                AND lastTouched <= '${endIso}'
-                LIMIT ${limit}
-            `);
+            // Ensure subscription is registered (idempotent)
+            await this.subscribeToTransactions(branchId, startDate, endDate);
 
             // Execute query to get current data
             const result = await this.ditto!.store.execute(`
