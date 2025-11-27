@@ -172,12 +172,13 @@ export class ExcelOperations {
                 let changesMade = false;
 
                 switch (cleanupType) {
-                    case 'duplicates':
+                    case 'duplicates': {
                         const columns = Array.from({ length: range.columnCount }, (_, i) => i);
                         // Assume header if more than 1 row, otherwise treat single row as data
                         range.removeDuplicates(columns, range.rowCount > 1);
                         changesMade = true;
                         break;
+                    }
                     case 'spaces':
                         range.values = range.values.map(row => 
                             row.map(cell => typeof cell === 'string' ? cell.trim() : cell)
