@@ -287,8 +287,9 @@ class FlipperApp {
         this.currentUser = userData;
         this.authToken = userData.token;
 
-        // Save token to localStorage
+        // Save token and user data to localStorage
         localStorage.setItem('flipper_auth_token', userData.token);
+        localStorage.setItem('flipper_user_data', JSON.stringify(userData));
 
         console.log('User authenticated successfully:', userData.name);
     }
@@ -299,9 +300,18 @@ class FlipperApp {
         }
 
         try {
-            // For now, we'll assume the token is valid if it exists
-            // In a real implementation, you might want to validate with the server
-            console.log('Token validation skipped - assuming valid');
+            console.log('Restoring user data from localStorage...!');
+
+            // Restore user data from localStorage
+            const savedUserData = localStorage.getItem('flipper_user_data');
+            if (!savedUserData) {
+                throw new Error('No saved user data found');
+            }
+
+            const userData: FlipperUser = JSON.parse(savedUserData);
+            this.currentUser = userData;
+
+            console.log('User data restored successfully:', userData.name);
         } catch (error) {
             console.error('Token validation failed:', error);
             this.clearAuthData();
@@ -321,6 +331,7 @@ class FlipperApp {
         this.authToken = null;
         this.selectedBranch = null;
         localStorage.removeItem('flipper_auth_token');
+        localStorage.removeItem('flipper_user_data');
         localStorage.removeItem('flipper_selected_branch');
     }
 
@@ -607,7 +618,7 @@ class FlipperApp {
 
     private async generateSalesReport(isManual: boolean = false): Promise<void> {
         try {
-            console.log('Starting sales report generation...');
+            console.log(`Starting sales report generation (manual: ${isManual})...`);
 
             if (!this.currentUser || !this.authToken) {
                 if (isManual) this.showNotification('User not authenticated. Please log in.', 'error');
@@ -704,10 +715,16 @@ class FlipperApp {
                 try {
                     // Step 1: Get the workbook and list existing worksheets
                     const workbook = context.workbook;
+                    const activeSheet = workbook.worksheets.getActiveWorksheet();
+                    activeSheet.load('name');
                     const worksheets = workbook.worksheets;
                     worksheets.load('items');
 
                     await context.sync();
+
+                    if (activeSheet.name === 'sales' || activeSheet.name === 'items') {
+                        this.showLoadingState();
+                    }
                     console.log('Current worksheets:', worksheets.items.map(ws => ws.name));
 
                     // Step 2: Create or get the sales sheet
@@ -891,11 +908,6 @@ class FlipperApp {
                         console.log('No items found in any transactions');
                     }
 
-                    // Step 6: Activate the sales sheet
-                    console.log('Activating sales sheet...');
-                    salesSheet.activate();
-                    await context.sync();
-
                     console.log('Sales report generation completed successfully');
                     this.addRecentAction('Sales Report', `Generated sales report with ${transactions.length} transactions and ${allItems.length} items`);
                     if (isManual) this.showNotification(`Sales report generated successfully! Created ${transactions.length} transaction records and ${allItems.length} items in separate sheets.`, 'success');
@@ -917,6 +929,8 @@ class FlipperApp {
             }
 
             if (isManual) this.showNotification(errorMessage, 'error');
+        } finally {
+            this.hideLoadingState();
         }
     }
 
