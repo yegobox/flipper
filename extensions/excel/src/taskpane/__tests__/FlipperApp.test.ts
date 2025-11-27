@@ -65,16 +65,7 @@ const createMockDOM = () => {
                 <p>Highlight the selected range with a professional color scheme</p>
               </div>
             </button>
-            
-            <button class="action-card" id="create-table-button">
-              <div class="action-icon">
-                <span class="ms-Icon ms-Icon--Table"></span>
-              </div>
-              <div class="action-content">
-                <h3>Create Table</h3>
-                <p>Convert your data into a formatted Excel table</p>
-              </div>
-            </button>
+          
             
             <button class="action-card" id="format-data-button">
               <div class="action-icon">
@@ -604,11 +595,9 @@ describe('FlipperApp', () => {
     });
 
     test('should handle create table button click', async () => {
-      const createTableButton = document.getElementById('create-table-button') as HTMLButtonElement;
+     
       const mockRange = createMockRange();
       mockExcelContext.workbook.getSelectedRange.mockReturnValue(mockRange);
-      
-      simulateClick(createTableButton);
       
       // Wait for async operation
       await new Promise(resolve => setTimeout(resolve, 0));

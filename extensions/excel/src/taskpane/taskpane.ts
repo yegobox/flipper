@@ -176,9 +176,7 @@ class FlipperApp {
         document.getElementById('highlight-button')?.addEventListener('click', () => {
             void this.highlightSelection();
         });
-        document.getElementById('create-table-button')?.addEventListener('click', () => {
-            void this.createTable();
-        });
+        
         document.getElementById('format-data-button')?.addEventListener('click', () => {
             void this.formatData();
         });
