@@ -246,26 +246,62 @@ class FlipperApp {
 
         const form = event.target as HTMLFormElement;
         const formData = new FormData(form);
-        const phoneNumber = formData.get('phoneNumber') as string;
+        const pin = formData.get('pin') as string;
+        const otpCode = formData.get('otpCode') as string;
 
-        if (!phoneNumber) {
-            this.showNotification('Enter valid number or email', 'error');
+        if (!pin) {
+            this.showError('Enter your PIN');
             return;
         }
 
+        const otpMethodSection = document.getElementById('otp-method-section');
+        const otpFieldSection = document.getElementById('otp-field-section');
+        const showingOtp = otpFieldSection && otpFieldSection.style.display !== 'none';
+
         try {
-            this.showLoadingState();
-            await this.authenticateUser(phoneNumber);
-            this.hideLoadingState();
-            this.showAppContainer();
-            this.updateUserInterface();
-            this.startSalesReportPolling();
-            this.showNotification('Successfully connected to Flipper', 'success');
+            this.setLoginButtonLoading(true);
+            this.hideError();
+
+            if (showingOtp) {
+                // Step 2: Verify OTP
+                if (!otpCode || otpCode.length !== 6) {
+                    this.showError('Please enter a valid 6-digit code');
+                    return;
+                }
+
+                await this.verifyOtpAndLogin(pin, otpCode);
+                this.hideLoadingState();
+                this.showAppContainer();
+                this.updateUserInterface();
+                this.startSalesReportPolling();
+                this.showNotification('Successfully connected to Flipper', 'success');
+            } else {
+                // Step 1: Request OTP or show OTP field
+                const authMethod = this.getSelectedAuthMethod();
+                
+                if (authMethod === 'sms') {
+                    // Request SMS OTP
+                    const response = await this.requestSmsOtp(pin);
+                    if (response.requiresOtp) {
+                        this.showOtpField();
+                        this.updateLoginButtonText('Verify & Sign In');
+                    } else {
+                        // No OTP required: This shouldn't happen with the new flow
+                        // but keeping for backward compatibility
+                        this.showError('OTP is required for login');
+                    }
+                } else {
+                    // Authenticator method - just show OTP field
+                    this.showOtpField();
+                    this.updateLoginButtonText('Verify & Sign In');
+                }
+            }
         } catch (error) {
             console.error('Authentication failed:', error);
-            this.hideLoadingState();
-            this.showAuthState();
-            this.showNotification('Authentication failed. Please check your credentials and try again.', 'error');
+            const errorMessage = error instanceof Error ? error.message : 'Authentication failed. Please try again.';
+            this.showError(errorMessage);
+        } finally {
+            this.setLoginButtonLoading(false);
         }
     }
 
@@ -292,6 +328,151 @@ class FlipperApp {
         localStorage.setItem('flipper_user_data', JSON.stringify(userData));
 
         console.log('User authenticated successfully:', userData.name);
+    }
+
+    private async requestSmsOtp(pin: string): Promise<{ requiresOtp: boolean }> {
+        const response = await fetch(`${this.API_BASE_URL}/v2/api/login/pin`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ pin })
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to request OTP');
+        }
+
+        return await response.json();
+    }
+
+    private async verifyOtpAndLogin(pin: string, otp: string): Promise<void> {
+        const response = await fetch(`${this.API_BASE_URL}/v2/api/login/verify-otp`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ pin, otp })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({ error: 'Invalid OTP code' }));
+            throw new Error(errorData.error || 'Failed to verify OTP');
+        }
+
+        const responseData = await response.json();
+        const phoneNumber = responseData.phoneNumber;
+
+        // Fetch user data using the phone number from the response
+        await this.authenticateUser(phoneNumber);
+    }
+
+    private getSelectedAuthMethod(): 'authenticator' | 'sms' {
+        const authMethodRadios = document.getElementsByName('authMethod') as NodeListOf<HTMLInputElement>;
+        const radiosArray = Array.from(authMethodRadios);
+        for (const radio of radiosArray) {
+            if (radio.checked) {
+                return radio.value as 'authenticator' | 'sms';
+            }
+        }
+        return 'authenticator'; // default
+    }
+
+    private showOtpField(): void {
+        const otpMethodSection = document.getElementById('otp-method-section');
+        const otpFieldSection = document.getElementById('otp-field-section');
+        const otpLabel = document.getElementById('otp-label');
+
+        if (otpMethodSection) otpMethodSection.style.display = 'block';
+        if (otpFieldSection) otpFieldSection.style.display = 'block';
+
+        // Update label based on selected method
+        const authMethod = this.getSelectedAuthMethod();
+        if (otpLabel) {
+            otpLabel.textContent = authMethod === 'authenticator' ? 'Authenticator Code' : 'SMS Code';
+        }
+
+        // Focus on OTP input
+        const otpInput = document.getElementById('otp-code') as HTMLInputElement;
+        if (otpInput) {
+            setTimeout(() => otpInput.focus(), 100);
+        }
+
+        // Setup auth method change listener
+        this.setupAuthMethodChangeListener();
+    }
+
+    private setupAuthMethodChangeListener(): void {
+        const authMethodRadios = document.getElementsByName('authMethod') as NodeListOf<HTMLInputElement>;
+        Array.from(authMethodRadios).forEach(radio => {
+            radio.addEventListener('change', async () => {
+                const otpLabel = document.getElementById('otp-label');
+                const otpInput = document.getElementById('otp-code') as HTMLInputElement;
+                
+                if (radio.value === 'sms') {
+                    if (otpLabel) otpLabel.textContent = 'SMS Code';
+                    if (otpInput) otpInput.value = '';
+                    
+                    // Request SMS OTP when switching to SMS
+                    const pinInput = document.getElementById('pin-input') as HTMLInputElement;
+                    if (pinInput && pinInput.value) {
+                        try {
+                            await this.requestSmsOtp(pinInput.value);
+                            this.showNotification('SMS code sent', 'success');
+                        } catch (error) {
+                            console.error('Failed to send SMS:', error);
+                        }
+                    }
+                } else {
+                    if (otpLabel) otpLabel.textContent = 'Authenticator Code';
+                    if (otpInput) otpInput.value = '';
+                }
+            });
+        });
+    }
+
+    private showError(message: string): void {
+        const errorElement = document.getElementById('error-message');
+        const errorText = document.getElementById('error-text');
+        
+        if (errorElement && errorText) {
+            errorText.textContent = message;
+            errorElement.style.display = 'flex';
+        }
+    }
+
+    private hideError(): void {
+        const errorElement = document.getElementById('error-message');
+        if (errorElement) {
+            errorElement.style.display = 'none';
+        }
+    }
+
+    private setLoginButtonLoading(loading: boolean): void {
+        const button = document.getElementById('login-submit-btn') as HTMLButtonElement;
+        const buttonText = document.getElementById('login-button-text');
+        
+        if (button) {
+            button.disabled = loading;
+            if (loading) {
+                if (buttonText) {
+                    buttonText.innerHTML = '<span class="spinner"></span> Processing...';
+                }
+            } else {
+                if (buttonText) {
+                    const otpFieldSection = document.getElementById('otp-field-section');
+                    const showingOtp = otpFieldSection && otpFieldSection.style.display !== 'none';
+                    buttonText.textContent = showingOtp ? 'Verify & Sign In' : 'Connect to Flipper';
+                }
+            }
+        }
+    }
+
+    private updateLoginButtonText(text: string): void {
+        const buttonText = document.getElementById('login-button-text');
+        if (buttonText) {
+            buttonText.textContent = text;
+        }
     }
 
     private async validateToken(): Promise<void> {

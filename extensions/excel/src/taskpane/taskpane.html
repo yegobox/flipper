@@ -13,7 +13,8 @@
     <script type="text/javascript" src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
 
     <!-- Fluent UI for modern Office styling -->
-    <link rel="stylesheet" href="https://res-1.cdn.office.net/files/fabric-cdn-prod_20230815.002/office-ui-fabric-core/11.1.0/css/fabric.min.css"/>
+    <link rel="stylesheet"
+        href="https://res-1.cdn.office.net/files/fabric-cdn-prod_20230815.002/office-ui-fabric-core/11.1.0/css/fabric.min.css" />
 
     <!-- Template styles -->
     <link href="taskpane.css" rel="stylesheet" type="text/css" />
@@ -34,23 +35,53 @@
                 <h1>Welcome to Flipper</h1>
                 <p>Connect to your Flipper account to access data</p>
             </div>
-            
+
             <form id="login-form" class="login-form">
                 <div class="form-group">
-                    <label for="phone-email">Phone Number or Email</label>
-                    <input 
-                        type="text" 
-                        id="phone-email" 
-                        name="phoneNumber" 
-                        placeholder="+250783054874 or user@example.com"
-                        required
-                        class="form-input"
-                    />
+                    <label for="pin-input">PIN</label>
+                    <input type="password" id="pin-input" name="pin" placeholder="Enter your PIN" required
+                        class="form-input" minlength="4" />
                 </div>
-                
-                <button type="submit" class="primary-button login-button">
+
+                <!-- OTP Method Selection (hidden initially) -->
+                <div id="otp-method-section" class="form-group" style="display: none;">
+                    <label>Verification Method</label>
+                    <div class="method-toggle">
+                        <label class="method-option">
+                            <input type="radio" name="authMethod" value="authenticator" checked />
+                            <span class="method-label">
+                                <span class="ms-Icon ms-Icon--Authenticator"></span>
+                                Authenticator
+                            </span>
+                        </label>
+                        <label class="method-option">
+                            <input type="radio" name="authMethod" value="sms" />
+                            <span class="method-label">
+                                <span class="ms-Icon ms-Icon--Message"></span>
+                                SMS
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- OTP Input Field (hidden initially) -->
+                <div id="otp-field-section" class="form-group" style="display: none;">
+                    <label for="otp-code">
+                        <span id="otp-label">Authenticator Code</span>
+                    </label>
+                    <input type="text" id="otp-code" name="otpCode" placeholder="Enter 6-digit code" maxlength="6"
+                        pattern="[0-9]{6}" class="form-input" />
+                </div>
+
+                <!-- Error Message -->
+                <div id="error-message" class="error-message" style="display: none;">
+                    <span class="ms-Icon ms-Icon--ErrorBadge"></span>
+                    <span id="error-text"></span>
+                </div>
+
+                <button type="submit" class="primary-button login-button" id="login-submit-btn">
                     <span class="ms-Icon ms-Icon--SignIn"></span>
-                    Connect to Flipper
+                    <span id="login-button-text">Connect to Flipper</span>
                 </button>
             </form>
 
