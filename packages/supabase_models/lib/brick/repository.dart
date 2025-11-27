@@ -554,6 +554,35 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     }
   }
 
+  /// Upserts a model from Ditto without triggering a Ditto notification loop.
+  Future<TModel> upsertFromDitto<TModel extends OfflineFirstWithSupabaseModel>(
+    TModel instance, {
+    OfflineFirstUpsertPolicy policy = OfflineFirstUpsertPolicy.optimisticLocal,
+    Query? query,
+  }) async {
+    if (_isDisposed) {
+      _logger.warning(
+          'Attempted to call upsertFromDitto on a disposed Repository. Operation aborted.');
+      throw StateError('Repository is disposed');
+    }
+    try {
+      // Call super.upsert to perform the DB write
+      instance = await super.upsert(instance, policy: policy, query: query);
+
+      // Do NOT notify Ditto (avoids infinite loop)
+
+      // Fire other events if needed
+      if (instance is Customer) {
+        EventBus().fire(CustomerUpserted(instance));
+      }
+
+      return instance;
+    } catch (e) {
+      _logger.severe('Error during upsertFromDitto: $e');
+      rethrow;
+    }
+  }
+
   /// Ensures that the queue database is properly initialized with the required tables
   /// This is especially important for Windows platforms where migrations might fail
   static Future<void> _ensureQueueDatabaseInitialized(String queuePath) async {

@@ -107,23 +107,52 @@ mixin CapellaDelegationMixin implements DelegationInterface {
       debugPrint('🔍 Watching delegations with query: $query');
       debugPrint('   Arguments: $arguments');
 
-      ditto.sync.registerSubscription(query, arguments: arguments);
-      observer = ditto.store.registerObserver(
-        query,
-        arguments: arguments,
-        onChange: (queryResult) {
-          if (controller.isClosed) return;
+      // Initialize async to register subscription first
+      () async {
+        try {
+          // Subscribe to ensure we have the latest data from Ditto mesh
+          await ditto.sync.registerSubscription(query, arguments: arguments);
 
-          final delegations = queryResult.items.map((doc) {
-            final data = Map<String, dynamic>.from(doc.value);
-            return TransactionDelegation.fromJson(data);
-          }).toList();
+          // Use registerObserver with initial data fetch
+          final completer = Completer<List<TransactionDelegation>>();
+          observer = ditto.store.registerObserver(
+            query,
+            arguments: arguments,
+            onChange: (queryResult) {
+              if (controller.isClosed) return;
 
-          debugPrint(
-              '📋 Delegations stream updated: ${delegations.length} records');
-          controller.add(delegations);
-        },
-      );
+              final delegations = queryResult.items.map((doc) {
+                final data = Map<String, dynamic>.from(doc.value);
+                return TransactionDelegation.fromJson(data);
+              }).toList();
+
+              // Complete on first data if not yet completed
+              if (!completer.isCompleted) {
+                completer.complete(delegations);
+              }
+
+              debugPrint(
+                  '📋 Delegations stream updated: ${delegations.length} records');
+              controller.add(delegations);
+            },
+          );
+
+          // Wait for initial data or timeout
+          await completer.future.timeout(
+            const Duration(seconds: 10),
+            onTimeout: () {
+              if (!completer.isCompleted) {
+                debugPrint('⏱️ Timeout waiting for delegations');
+                completer.complete([]);
+              }
+              return [];
+            },
+          );
+        } catch (e) {
+          debugPrint('❌ Error setting up delegations observer: $e');
+          controller.add([]);
+        }
+      }();
 
       controller.onCancel = () async {
         debugPrint('🛑 Delegations stream cancelled');
@@ -150,16 +179,44 @@ mixin CapellaDelegationMixin implements DelegationInterface {
       }
 
       final query = 'SELECT * FROM devices WHERE branchId = :branchId';
+      final arguments = {'branchId': branchId};
+
       debugPrint('🔍 Querying devices with: $query');
-      debugPrint('   Arguments: {branchId: $branchId}');
-      await ditto.sync
-          .registerSubscription(query, arguments: {'branchId': branchId});
-      final result = await ditto.store.execute(
+      debugPrint('   Arguments: $arguments');
+
+      // Subscribe to ensure we have the latest data from Ditto mesh
+      await ditto.sync.registerSubscription(query, arguments: arguments);
+
+      // Use registerObserver to wait for data
+      final completer = Completer<List<dynamic>>();
+      final observer = ditto.store.registerObserver(
         query,
-        arguments: {'branchId': branchId},
+        arguments: arguments,
+        onChange: (result) {
+          if (result.items.isNotEmpty && !completer.isCompleted) {
+            completer.complete(result.items.toList());
+          }
+        },
       );
 
-      final devices = result.items.map((doc) {
+      List<dynamic> items = [];
+      try {
+        // Wait for data or timeout
+        items = await completer.future.timeout(
+          const Duration(seconds: 10),
+          onTimeout: () {
+            if (!completer.isCompleted) {
+              debugPrint('⏱️ Timeout waiting for devices');
+              completer.complete([]);
+            }
+            return [];
+          },
+        );
+      } finally {
+        observer.cancel();
+      }
+
+      final devices = items.map((doc) {
         final data = Map<String, dynamic>.from(doc.value);
         return Device.fromJson(data);
       }).toList();

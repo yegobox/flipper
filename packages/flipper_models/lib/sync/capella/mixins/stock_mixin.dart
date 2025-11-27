@@ -85,22 +85,59 @@ mixin CapellaStockMixin implements StockInterface {
       final controller = StreamController<Stock?>.broadcast();
       dynamic observer;
 
-      observer = ditto.store.registerObserver(
-        'SELECT * FROM stocks WHERE _id = :id',
-        arguments: {'id': id},
-        onChange: (queryResult) {
-          if (controller.isClosed) return;
+      // Initialize async to register subscription first
+      () async {
+        try {
+          final query = 'SELECT * FROM stocks WHERE _id = :id';
+          final arguments = {'id': id};
 
-          if (queryResult.items.isNotEmpty) {
-            final stockData =
-                Map<String, dynamic>.from(queryResult.items.first.value);
-            final stock = _convertFromDittoDocument(stockData);
-            controller.add(stock);
-          } else {
-            controller.add(null);
-          }
-        },
-      );
+          // Subscribe to ensure we have the latest data from Ditto mesh
+          await ditto.sync.registerSubscription(query, arguments: arguments);
+
+          // Use registerObserver with initial data fetch
+          final completer = Completer<Stock?>();
+          observer = ditto.store.registerObserver(
+            query,
+            arguments: arguments,
+            onChange: (queryResult) {
+              if (controller.isClosed) return;
+
+              if (queryResult.items.isNotEmpty) {
+                final stockData =
+                    Map<String, dynamic>.from(queryResult.items.first.value);
+                final stock = _convertFromDittoDocument(stockData);
+
+                // Complete on first data if not yet completed
+                if (!completer.isCompleted) {
+                  completer.complete(stock);
+                }
+
+                controller.add(stock);
+              } else {
+                if (!completer.isCompleted) {
+                  completer.complete(null);
+                }
+                controller.add(null);
+              }
+            },
+          );
+
+          // Wait for initial data or timeout
+          await completer.future.timeout(
+            const Duration(seconds: 10),
+            onTimeout: () {
+              if (!completer.isCompleted) {
+                talker.warning('Timeout waiting for stock: $id');
+                completer.complete(null);
+              }
+              return null;
+            },
+          );
+        } catch (e) {
+          talker.error('Error setting up stock observer: $e');
+          controller.add(null);
+        }
+      }();
 
       controller.onCancel = () async {
         await observer?.cancel();

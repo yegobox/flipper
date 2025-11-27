@@ -58,7 +58,6 @@ bool skipDependencyInitialization = false;
 //1.1.14
 Future<void> main() async {
   // Initialize GlobalErrorHandler first to capture early errors
-  GlobalErrorHandler.initialize();
 
   // FIXED: Initialize WidgetsBinding BEFORE Sentry
   WidgetsFlutterBinding.ensureInitialized();
@@ -80,9 +79,7 @@ Future<void> main() async {
 
       debugPrint('🗄️  Initializing Supabase...');
       await _initializeSupabase();
-      debugPrint('✅ Supabase initialized');
-
-      debugPrint('🔌 Setting up locator...');
+      GlobalErrorHandler.initialize();
       loc.setupLocator(stackedRouter: stackedRouter);
       debugPrint('✅ Locator setup complete');
 
@@ -135,12 +132,6 @@ Future<void> main() async {
                   'context': 'App initialization timeout',
                   'timeout_duration': '30 seconds',
                 }),
-              );
-              GlobalErrorHandler.logError(
-                exception,
-                stackTrace: StackTrace.current,
-                type: 'timeout',
-                context: {'timeout_duration': '30 seconds'},
               );
             } catch (e) {
               debugPrint('Failed to report timeout to telemetry: $e');
