@@ -1,3 +1,4 @@
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_services/proxy.dart';
@@ -6,5 +7,5 @@ import 'package:flipper_services/proxy.dart';
 final transactionItemsProvider =
     FutureProvider.family<List<TransactionItem>, String>(
   (ref, requestId) =>
-      ProxyService.strategy.transactionItems(requestId: requestId),
+      ProxyService.getStrategy(Strategy.capella).transactionItems(requestId: requestId),
 );

@@ -167,6 +167,7 @@ abstract class TransactionInterface {
     bool? isTrainingMode,
     String? transactionId,
     bool? receiptPrinted,
+    String? customerPhone,
   });
   Future<ITransaction?> getTransaction(
       {String? sarNo,

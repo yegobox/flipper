@@ -25,6 +25,7 @@ export 'setting.model.dart';
 export 'sku.model.dart';
 export 'tenant.model.dart';
 export 'transaction.model.dart';
+export 'transaction_delegation.model.dart';
 export 'unit.model.dart';
 export 'universalProduct.model.dart';
 export 'transactionItem.model.dart';

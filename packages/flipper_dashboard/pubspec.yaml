@@ -120,12 +120,12 @@ dependencies:
   email_validator: ^2.1.17
   pasteboard: ^0.4.0
   brick_offline_first: ^4.0.0
-  sqlite3: ^3.0.1
+  sqlite3: ^3.1.0
   record: ^6.0.0
   markdown_widget: ^2.3.2
   flipper_auth: any
   flutter_soloud: ^3.4.4
-  ditto_live: ^4.13.0
+  ditto_live: ^4.13.1
   flipper_personal: any
   just_audio: ^0.10.5
 
@@ -134,8 +134,8 @@ dependency_overrides:
   meta: ^1.16.0
   web: ^1.0.0
   json_annotation: ^4.9.0
-  sqlite3: ^3.0.1
-  device_info_plus: ^11.3.3
+  sqlite3: ^3.1.0
+  device_info_plus: ^12.2.0
   archive: ^3.6.1
   excel: ^4.0.6
   mime: ^2.0.0

@@ -4,7 +4,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # 1.170.4252223234854+1755779343
 # 1.180.4252223234901+1756527939
 
-version: 1.180.4252223234901+1756528421
+version: 1.180.4252223234901+1756528468
 
 
 environment:
@@ -85,7 +85,6 @@ dependencies:
   talker_flutter: ^4.1.5
   collection: ^1.15.0
   stacked_services: ^1.6.0
-  url_strategy: ^0.2.0
   logger: ^2.5.0
   responsive_builder: ^0.7.0
   flutter_animate: ^4.1.0
@@ -134,7 +133,7 @@ dependencies:
   flipper_services: any
   flipper_login: any
   supabase_models: any
-  sqlite3: ^3.0.1
+  sqlite3: ^3.1.0
   amplify_core: ^2.7.0
   amplify_api: ^2.7.0
   amplify_flutter: ^2.7.0
@@ -153,10 +152,10 @@ dependency_overrides:
   http: ^1.2.2
   meta: ^1.16.0
   web: ^1.1.0
-  sqlite3: ^3.0.1
+  sqlite3: ^3.1.0
   stacked_services: ^1.6.0
   stacked: ^3.5.0
-  device_info_plus: ^11.3.3
+  device_info_plus: ^12.2.0
   firebase_ui_auth: ^3.0.0
   archive: ^3.6.1
   mime: ^2.0.0
@@ -197,7 +196,7 @@ msix_config:
   identity_name: yegobox.yegoboxflipper
 
 
-  msix_version: 1.170.5051.482
+  msix_version: 1.170.5051.529
 
 
   publisher: CN=B0F334A1E-8AET-4B2C-BD1B-F239D4F791AE

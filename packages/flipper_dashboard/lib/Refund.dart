@@ -80,8 +80,8 @@ class _RefundState extends ConsumerState<Refund> {
                         return;
                       }
 
-                      if (widget.transaction!.customerId != null &&
-                          widget.transaction!.customerId != 0) {
+                      if (widget.transaction!.customerTin != null &&
+                          widget.transaction!.customerTin!.isNotEmpty) {
                         // Show modal to request purchase code
                         bool purchaseCodeReceived =
                             await showPurchaseCodeModal();
@@ -139,8 +139,8 @@ class _RefundState extends ConsumerState<Refund> {
                       toast("This receipt does not have a copy to print");
                       return;
                     }
-                    if (widget.transaction!.customerId != null &&
-                        widget.transaction!.customerId != 0) {
+                    if (widget.transaction!.customerTin != null &&
+                        widget.transaction!.customerTin!.isNotEmpty) {
                       bool purchaseCodeReceived = await showPurchaseCodeModal();
                       if (purchaseCodeReceived) {
                         try {

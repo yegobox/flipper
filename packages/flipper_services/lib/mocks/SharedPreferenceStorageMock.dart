@@ -457,4 +457,10 @@ class SharedPreferenceStorageMock implements LocalStorage {
     // TODO: implement setReceiptLogoBase64
     throw UnimplementedError();
   }
+  
+  @override
+  String? selectedDelegationDeviceId() {
+    // TODO: implement selectedDelegationDeviceId
+    throw UnimplementedError();
+  }
 }

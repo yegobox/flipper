@@ -21,19 +21,19 @@ class ReportsDashboard extends HookConsumerWidget {
     // Calculate all metrics from single analytics data
     final totalSales = analytics.when<AsyncValue<double>>(
       data: (data) =>
-          AsyncValue.data(data.fold<double>(0, (sum, a) => sum + a.value)),
+          AsyncValue.data(data.fold<double>(0, (sum, a) => sum + a.value!)),
       loading: () => const AsyncValue.loading(),
       error: (e, s) => AsyncValue.error(e, s),
     );
     final stockValue = analytics.when<AsyncValue<double>>(
-      data: (data) =>
-          AsyncValue.data(data.fold<double>(0, (sum, a) => sum + a.stockValue)),
+      data: (data) => AsyncValue.data(
+          data.fold<double>(0, (sum, a) => sum + a.stockValue!)),
       loading: () => const AsyncValue.loading(),
       error: (e, s) => AsyncValue.error(e, s),
     );
     final profitVsCost = analytics.when<AsyncValue<double>>(
       data: (data) =>
-          AsyncValue.data(data.fold<double>(0, (sum, a) => sum + a.profit)),
+          AsyncValue.data(data.fold<double>(0, (sum, a) => sum + a.profit!)),
       loading: () => const AsyncValue.loading(),
       error: (e, s) => AsyncValue.error(e, s),
     );
@@ -305,7 +305,7 @@ class ReportsDashboard extends HookConsumerWidget {
               }
               final spots = analytics.asMap().entries.map((entry) {
                 return FlSpot(
-                    entry.key.toDouble(), entry.value.value.toDouble());
+                    entry.key.toDouble(), entry.value.value!.toDouble());
               }).toList();
               return SizedBox(
                 height: 200,

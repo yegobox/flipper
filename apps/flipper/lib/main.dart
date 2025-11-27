@@ -26,7 +26,6 @@ import 'package:flipper_services/GlobalLogError.dart';
 // Flag to control dependency initialization in tests
 import 'package:flipper_web/core/utils/initialization.dart';
 import 'package:supabase_models/sync/ditto_sync_registry.dart';
-import 'package:flipper_services/realtime_delegation_service.dart';
 
 // Function to initialize Firebase
 Future<void> _initializeFirebase() async {
@@ -53,19 +52,6 @@ Future<void> _initializeSupabase() async {
 }
 
 // Function to initialize Transaction Delegation (Real-time Ditto-based)
-Future<void> _initializeTransactionDelegation() async {
-  try {
-    await Future<void>.microtask(() async {
-      // Use the new real-time Ditto-based monitoring
-      final delegationService = RealtimeDelegationService();
-      await delegationService.initialize();
-      debugPrint('✅ Real-time Transaction Delegation initialized');
-    });
-  } catch (e) {
-    debugPrint(
-        '⚠️  Transaction Delegation initialization error (non-critical): $e');
-  }
-}
 
 bool skipDependencyInitialization = false;
 // net info: billers
@@ -82,17 +68,41 @@ Future<void> main() async {
   // Centralized initialization function
   Future<void> initializeApp() async {
     if (!skipDependencyInitialization) {
-      await _initializeFirebase();
-      await initializeDependencies();
-      await _initializeSupabase();
-      loc.setupLocator(stackedRouter: stackedRouter);
-      setupDialogUi();
-      setupBottomSheetUi();
-      await initDependencies();
-      await DittoSyncRegistry.registerDefaults();
+      debugPrint('🚀 Starting app initialization...');
 
-      // Initialize transaction delegation service (desktop only)
-      await _initializeTransactionDelegation();
+      debugPrint('📱 Initializing Firebase...');
+      await _initializeFirebase();
+      debugPrint('✅ Firebase initialized');
+
+      debugPrint('🔧 Initializing dependencies...');
+      await initializeDependencies();
+      debugPrint('✅ Dependencies initialized');
+
+      debugPrint('🗄️  Initializing Supabase...');
+      await _initializeSupabase();
+      debugPrint('✅ Supabase initialized');
+
+      debugPrint('🔌 Setting up locator...');
+      loc.setupLocator(stackedRouter: stackedRouter);
+      debugPrint('✅ Locator setup complete');
+
+      debugPrint('💬 Setting up dialogs...');
+      setupDialogUi();
+      debugPrint('✅ Dialogs setup complete');
+
+      debugPrint('📋 Setting up bottom sheets...');
+      setupBottomSheetUi();
+      debugPrint('✅ Bottom sheets setup complete');
+
+      debugPrint('⚙️  Initializing additional dependencies...');
+      await initDependencies();
+      debugPrint('✅ Additional dependencies initialized');
+
+      debugPrint('🔄 Registering Ditto sync defaults...');
+      await DittoSyncRegistry.registerDefaults();
+      debugPrint('✅ Ditto sync defaults registered');
+
+      debugPrint('🎉 App initialization completed successfully!');
     }
   }
 
@@ -106,11 +116,119 @@ Future<void> main() async {
       ..attachScreenshot = false,
     appRunner: () => runApp(
       FutureBuilder(
-        future: initializeApp(),
+        future: initializeApp().timeout(
+          const Duration(seconds: 30),
+          onTimeout: () {
+            debugPrint('❌ App initialization timed out after 30 seconds');
+
+            final exception = TimeoutException(
+              'App initialization timed out',
+              const Duration(seconds: 30),
+            );
+
+            // Report to telemetry (fire-and-forget)
+            try {
+              Sentry.captureException(
+                exception,
+                stackTrace: StackTrace.current,
+                hint: Hint.withMap({
+                  'context': 'App initialization timeout',
+                  'timeout_duration': '30 seconds',
+                }),
+              );
+              GlobalErrorHandler.logError(
+                exception,
+                stackTrace: StackTrace.current,
+                type: 'timeout',
+                context: {'timeout_duration': '30 seconds'},
+              );
+            } catch (e) {
+              debugPrint('Failed to report timeout to telemetry: $e');
+            }
+
+            throw exception;
+          },
+        ),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.done) {
+            if (snapshot.hasError) {
+              // Remove splash screen before showing error
+              FlutterNativeSplash.remove();
+
+              // Log full error to Sentry/monitoring
+              debugPrint('❌ App initialization error: ${snapshot.error}');
+              if (snapshot.stackTrace != null) {
+                debugPrint('Stack trace: ${snapshot.stackTrace}');
+              }
+
+              // Report to telemetry systems
+              try {
+                final stackTrace = snapshot.stackTrace ?? StackTrace.current;
+
+                // Send to Sentry
+                Sentry.captureException(
+                  snapshot.error,
+                  stackTrace: stackTrace,
+                  hint: Hint.withMap({
+                    'context': 'App initialization failed',
+                    'error_type': snapshot.error.runtimeType.toString(),
+                  }),
+                );
+
+                // Send to GlobalErrorHandler
+                GlobalErrorHandler.logError(
+                  snapshot.error!,
+                  stackTrace: stackTrace,
+                  type: 'initialization_error',
+                  context: {
+                    'error_type': snapshot.error.runtimeType.toString()
+                  },
+                );
+              } catch (e) {
+                debugPrint('Failed to report error to telemetry: $e');
+              }
+
+              // Show user-friendly error screen
+              return const MaterialApp(
+                home: Scaffold(
+                  backgroundColor: Colors.white,
+                  body: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          color: Colors.red,
+                          size: 64,
+                        ),
+                        SizedBox(height: 16),
+                        Text(
+                          'Initialization Failed',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 32),
+                          child: Text(
+                            'Something went wrong while starting the app. Please try again.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 14),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }
             // Remove splash screen when the main app is ready
+            debugPrint('🎬 [main.dart] Removing splash screen...');
             FlutterNativeSplash.remove();
+            debugPrint(
+                '🎬 [main.dart] Splash removed, returning FlipperApp...');
             return const FlipperApp();
           } else {
             // While initializing, show the loading screen.
@@ -135,6 +253,7 @@ class FlipperApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('🎬 [FlipperApp] Building FlipperApp widget tree...');
     return ProviderScope(
       observers: [StateObserver()],
       child: OverlaySupport.global(

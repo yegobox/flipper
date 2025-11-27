@@ -146,14 +146,35 @@ class Repository extends OfflineFirstWithSupabaseRepository {
 
   static bool get isReady => _singleton != null && !_isDisposed;
 
-  static Future<void> waitUntilReady() async {
+  static Future<void> waitUntilReady(
+      {Duration timeout = const Duration(seconds: 15)}) async {
     if (isReady) {
       if (!_readyCompleter.isCompleted) {
         _readyCompleter.complete();
       }
       return;
     }
-    await _readyCompleter.future;
+
+    _logger.info(
+        'Waiting for Repository to be ready (timeout: ${timeout.inSeconds}s)...');
+
+    try {
+      await _readyCompleter.future.timeout(
+        timeout,
+        onTimeout: () {
+          _logger.warning(
+              'Repository.waitUntilReady() timed out after ${timeout.inSeconds}s');
+          throw TimeoutException(
+            'Repository initialization timed out',
+            timeout,
+          );
+        },
+      );
+      _logger.info('Repository is ready');
+    } catch (e) {
+      _logger.severe('Error waiting for Repository: $e');
+      rethrow;
+    }
   }
 
   static void _markReady() {
@@ -290,19 +311,25 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     );
 
     // Configure the main database after initialization (non-web only)
-    if (configureDatabase && !kIsWeb && !DatabasePath.isTestEnvironment()) {
-      try {
+    // Use try-finally to ensure _markReady() is always called
+    try {
+      if (configureDatabase && !kIsWeb && !DatabasePath.isTestEnvironment()) {
+        _logger.info('Configuring database settings...');
         // Configure the database with WAL mode and other settings
         // Note: PRAGMA commands work even if the database file doesn't exist yet
         await _singleton!._databaseManager.configureDatabaseSettings(
             dbPath, PlatformHelpers.getDatabaseFactory());
-      } catch (e) {
-        _logger.warning('Error during database configuration: $e');
-        // Continue without database configuration as it's not critical
+        _logger.info('Database configuration completed successfully');
       }
+    } catch (e) {
+      _logger.warning('Error during database configuration: $e');
+      // Continue without database configuration as it's not critical
+    } finally {
+      // CRITICAL: Always mark ready, even if configuration fails
+      _logger.info('Marking Repository as ready...');
+      _markReady();
+      _logger.info('Repository marked as ready');
     }
-
-    _markReady();
   }
 
   /// Atomically ensure directory exists

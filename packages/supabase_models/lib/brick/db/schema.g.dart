@@ -1,26 +1,30 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20251122051839.migration.dart';
 part '20251107092253.migration.dart';
 part '20251030100041.migration.dart';
 part '20251005152725.migration.dart';
+part '20251124173305.migration.dart';
+part '20251123182610.migration.dart';
 part '20251107092908.migration.dart';
+part '20251122051839.migration.dart';
 part '20251108140031.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20251122051839(),
   const Migration20251107092253(),
   const Migration20251030100041(),
   const Migration20251005152725(),
+  const Migration20251124173305(),
+  const Migration20251123182610(),
   const Migration20251107092908(),
+  const Migration20251122051839(),
   const Migration20251108140031(),
 };
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
-  20251108140031,
+  20251124173305,
   generatorVersion: 1,
   tables: <SchemaTable>{
     SchemaTable(
@@ -803,6 +807,39 @@ final schema = Schema(
       },
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['id'], unique: true),
+      },
+    ),
+    SchemaTable(
+      'TransactionDelegation',
+      columns: <SchemaColumn>{
+        SchemaColumn(
+          '_brick_id',
+          Column.integer,
+          autoincrement: true,
+          nullable: false,
+          isPrimaryKey: true,
+        ),
+        SchemaColumn('id', Column.varchar, unique: true),
+        SchemaColumn('transaction_id', Column.varchar),
+        SchemaColumn('branch_id', Column.integer),
+        SchemaColumn('status', Column.varchar),
+        SchemaColumn('receipt_type', Column.varchar),
+        SchemaColumn('payment_type', Column.varchar),
+        SchemaColumn('sub_total', Column.Double),
+        SchemaColumn('customer_name', Column.varchar),
+        SchemaColumn('customer_tin', Column.varchar),
+        SchemaColumn('customer_bhf_id', Column.varchar),
+        SchemaColumn('is_auto_print', Column.boolean),
+        SchemaColumn('delegated_from_device', Column.varchar),
+        SchemaColumn('delegated_at', Column.datetime),
+        SchemaColumn('updated_at', Column.datetime),
+        SchemaColumn('selected_delegation_device_id', Column.varchar),
+      },
+      indices: <SchemaIndex>{
+        SchemaIndex(columns: ['id'], unique: true),
+        SchemaIndex(columns: ['transaction_id'], unique: false),
+        SchemaIndex(columns: ['branch_id'], unique: false),
+        SchemaIndex(columns: ['status'], unique: false),
       },
     ),
     SchemaTable(

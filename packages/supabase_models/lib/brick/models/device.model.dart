@@ -1,11 +1,22 @@
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
+import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:brick_supabase/brick_supabase.dart';
 import 'package:uuid/uuid.dart';
+import 'package:brick_ditto_generators/ditto_sync_adapter.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:flutter/foundation.dart' hide Category;
+import 'package:supabase_models/sync/ditto_sync_adapter.dart';
+import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
+import 'package:supabase_models/sync/ditto_sync_generated.dart';
+import 'package:supabase_models/brick/repository.dart';
+
+part 'device.model.ditto_sync_adapter.g.dart';
 
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'devices'),
 )
+@DittoAdapter('devices', syncDirection: SyncDirection.bidirectional)
 class Device extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
   @Sqlite(index: true, unique: true)
@@ -37,4 +48,22 @@ class Device extends OfflineFirstWithSupabaseModel {
     this.defaultApp,
     this.deletedAt,
   }) : id = id ?? const Uuid().v4();
+
+  factory Device.fromJson(Map<String, dynamic> json) {
+    return Device(
+      id: json['id'] as String?,
+      linkingCode: json['linkingCode'] as String?,
+      deviceName: json['deviceName'] as String?,
+      deviceVersion: json['deviceVersion'] as String?,
+      pubNubPublished: json['pubNubPublished'] as bool?,
+      phone: json['phone'] as String?,
+      branchId: json['branchId'] as int?,
+      businessId: json['businessId'] as int?,
+      userId: json['userId'] as int?,
+      defaultApp: json['defaultApp'] as String?,
+      deletedAt: json['deletedAt'] != null
+          ? DateTime.tryParse(json['deletedAt'].toString())
+          : null,
+    );
+  }
 }

@@ -1,3 +1,4 @@
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/sms/sms_notification_service.dart';
 import 'package:flutter/material.dart';
@@ -18,7 +19,7 @@ mixin StockRequestApprovalLogic {
       _showLoadingDialog(context);
 
       final List<TransactionItem> items =
-          await ProxyService.strategy.transactionItems(
+          await ProxyService.getStrategy(Strategy.capella).transactionItems(
         requestId: request.id,
       );
 
@@ -59,7 +60,7 @@ mixin StockRequestApprovalLogic {
       }
 
       final List<TransactionItem> approvedItems =
-          await ProxyService.strategy.transactionItems(
+          await ProxyService.getStrategy(Strategy.capella).transactionItems(
         requestId: request.id,
       );
 
@@ -139,7 +140,7 @@ mixin StockRequestApprovalLogic {
 
       // Check if all items are now approved
       final List<TransactionItem> allItems =
-          await ProxyService.strategy.transactionItems(
+          await ProxyService.getStrategy(Strategy.capella).transactionItems(
         requestId: request.id,
       );
 

@@ -36,7 +36,8 @@ import 'package:uuid/uuid.dart';
 /// Fetches transaction items for the given transaction ID
 Future<List<TransactionItem>> _getTransactionItems(
     {required ITransaction transaction}) async {
-  final items = await ProxyService.strategy.transactionItems(
+  final items =
+      await ProxyService.getStrategy(Strategy.capella).transactionItems(
     branchId: (await ProxyService.strategy.activeBranch()).id,
     transactionId: transaction.id,
     doneWithTransaction: false,
@@ -80,7 +81,8 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     try {
       String deliveryNote = deliveryNoteCotroller.text;
 
-      final items = await ProxyService.strategy.transactionItems(
+      final items =
+          await ProxyService.getStrategy(Strategy.capella).transactionItems(
         branchId: (await ProxyService.strategy.activeBranch()).id,
         transactionId: transaction.id,
         doneWithTransaction: false,
@@ -139,7 +141,8 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
   Future<void> applyDiscount(ITransaction transaction) async {
     // get items on cart
-    final items = await ProxyService.strategy.transactionItems(
+    final items =
+        await ProxyService.getStrategy(Strategy.capella).transactionItems(
       branchId: (await ProxyService.strategy.activeBranch()).id,
       transactionId: transaction.id,
       doneWithTransaction: false,
@@ -309,6 +312,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           paymentMethods: paymentMethods,
           discount: discount,
           paymentType: paymentType,
+
           completeTransaction: () async {
             // Show success confirmation before completing
             await markTransactionAsCompleted(
@@ -619,8 +623,9 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         talker.warning("Widget disposed, cannot complete transaction");
         return false;
       }
-
-      if (customer != null) {
+  
+      if (transaction.customerTin != null &&
+          transaction.customerTin!.isNotEmpty) {
         // Show dialog and capture whether the dialog completed successfully
         final bool? dialogResult =
             await additionalInformationIsRequiredToCompleteTransaction(
@@ -737,7 +742,8 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     required Function onComplete,
     required BuildContext context,
   }) async {
-    if (transaction.customerId != null) {
+    if (transaction.customerTin != null &&
+        transaction.customerTin!.isNotEmpty) {
       final result = await showDialog<bool>(
         context: context,
         barrierDismissible: false,

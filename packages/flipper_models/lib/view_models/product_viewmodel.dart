@@ -1,6 +1,7 @@
 library flipper_models;
 
 import 'dart:developer';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/ebm_helper.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -448,7 +449,7 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
         await ProxyService.keypad.getPendingTransaction(branchId: branchId);
 
     if (transaction != null) {
-      List<TransactionItem> transactionItems = await ProxyService.strategy
+      List<TransactionItem> transactionItems = await ProxyService.getStrategy(Strategy.capella)
           .transactionItems(
               transactionId: transaction.id,
               branchId: (await ProxyService.strategy.activeBranch()).id);

@@ -41,13 +41,23 @@ describe('FlipperApp Authentication', () => {
       <span id="business-name"></span>
     `;
 
-    // Mock Office.onReady
-    global.Office.onReady = jest.fn((callback) => {
-      callback({ host: global.Office.HostType.Excel });
-    });
+    type OfficeReadyCallback = Parameters<typeof Office.onReady>[0];
+    const officeReadyInfo = {
+      host: Office.HostType.Excel,
+      platform: 'PC'
+    };
 
-    // Mock Excel.run
-    global.Excel.run = jest.fn(async (callback) => {
+    const mockOnReady: typeof Office.onReady = ((callback?: OfficeReadyCallback) => {
+      if (callback) {
+        callback(officeReadyInfo as any);
+        return;
+      }
+      return Promise.resolve(officeReadyInfo as any);
+    }) as typeof Office.onReady;
+
+    (global.Office as typeof Office).onReady = jest.fn(mockOnReady) as unknown as typeof Office.onReady;
+
+    const mockExcelRun = (async <T>(batch: (context: Excel.RequestContext) => Promise<T>): Promise<T> => {
       const context = {
         workbook: {
           getSelectedRange: jest.fn().mockReturnValue({
@@ -94,9 +104,12 @@ describe('FlipperApp Authentication', () => {
           }
         },
         sync: jest.fn().mockResolvedValue(undefined)
-      };
-      await callback(context);
-    });
+      } as unknown as Excel.RequestContext;
+
+      return batch(context);
+    }) as unknown as typeof Excel.run;
+
+    (global.Excel as typeof Excel).run = jest.fn(mockExcelRun) as unknown as typeof Excel.run;
   });
 
   afterEach(() => {

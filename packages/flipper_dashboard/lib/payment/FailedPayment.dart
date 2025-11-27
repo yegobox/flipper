@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flipper_dashboard/utils/snack_bar_utils.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -158,7 +159,12 @@ class _FailedPaymentState extends State<FailedPayment>
                 _waitingForPaymentCompletion = false;
               });
             }
-            _showSuccessAndNavigate();
+            showCustomSnackBarUtil(
+              context,
+              'Payment Successful',
+              backgroundColor: Colors.green,
+              showCloseButton: true,
+            );
           }
         }
       });
@@ -173,55 +179,15 @@ class _FailedPaymentState extends State<FailedPayment>
       // Defer SnackBar to ensure context is valid
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          _showErrorSnackBar(_errorMessage!);
+          showCustomSnackBarUtil(
+            context,
+            'Payment Failed try again',
+            backgroundColor: Colors.red,
+            showCloseButton: true,
+          );
         }
       });
     }
-  }
-
-  // Enhanced success feedback
-  void _showSuccessAndNavigate() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.check_circle, color: Colors.white),
-            const SizedBox(width: 8),
-            const Text('Payment successful! 🎉'),
-          ],
-        ),
-        backgroundColor: Colors.green,
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
-
-    Future.delayed(const Duration(seconds: 1), () {
-      if (_mounted) {
-        locator<RouterService>().navigateTo(FlipperAppRoute());
-      }
-    });
-  }
-
-  // Enhanced error feedback
-  void _showErrorSnackBar(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Row(
-          children: [
-            const Icon(Icons.error_outline, color: Colors.white),
-            const SizedBox(width: 8),
-            Expanded(child: Text(message)),
-          ],
-        ),
-        backgroundColor: const Color(0xFFE53E3E),
-        behavior: SnackBarBehavior.floating,
-        action: SnackBarAction(
-          label: 'Dismiss',
-          textColor: Colors.white,
-          onPressed: () {},
-        ),
-      ),
-    );
   }
 
   @override
@@ -627,8 +593,12 @@ class _FailedPaymentState extends State<FailedPayment>
                                   _errorMessage =
                                       'Payment timeout. Please try again.';
                                 });
-                                _showErrorSnackBar(
-                                    'Payment timed out. Please try again.');
+                                showCustomSnackBarUtil(
+                                  context,
+                                  'Payment timeout. Please try again.',
+                                  backgroundColor: Colors.red,
+                                  showCloseButton: true,
+                                );
                               }
                             });
                           }
@@ -645,7 +615,12 @@ class _FailedPaymentState extends State<FailedPayment>
                             _shakeController.reset();
                           });
 
-                          _showErrorSnackBar('Payment failed: ${e.toString()}');
+                          showCustomSnackBarUtil(
+                            context,
+                            'Payment failed try again',
+                            backgroundColor: Colors.red,
+                            showCloseButton: true,
+                          );
                         } finally {
                           if (_mounted && !_waitingForPaymentCompletion) {
                             setState(() {

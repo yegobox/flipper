@@ -18,6 +18,13 @@ class SessionManager {
 
   Future<void> _refreshAuthStatus() async {
     try {
+      // Check if Amplify is configured before trying to use it
+      if (!amplify.Amplify.isConfigured) {
+        talker.warning('Amplify is not configured yet, skipping auth check');
+        _isAuthenticated = false;
+        return;
+      }
+
       final result = await amplify.Amplify.Auth.fetchAuthSession();
       _isAuthenticated = result.isSignedIn;
       _lastAuthCheck = DateTime.now();
@@ -29,6 +36,13 @@ class SessionManager {
 
   Future<void> signIn(String identifier) async {
     try {
+      // Check if Amplify is configured before trying to use it
+      if (!amplify.Amplify.isConfigured) {
+        talker.warning('Amplify is not configured yet, cannot sign in');
+        _isAuthenticated = false;
+        return;
+      }
+
       if (_isAuthenticated) {
         talker.warning('User is already signed in.');
         return;

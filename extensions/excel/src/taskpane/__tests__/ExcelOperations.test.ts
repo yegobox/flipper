@@ -69,8 +69,8 @@ describe('Excel Operations', () => {
         expect(range.values).toEqual(testValues);
         
         // Modify values
-        range.values = range.values.map(row => 
-          row.map(cell => typeof cell === 'string' ? cell.trim() : cell)
+        range.values = range.values.map((row: (string | number)[]) => 
+          row.map((cell: string | number) => typeof cell === 'string' ? cell.trim() : cell)
         );
         
         await context.sync();
@@ -222,8 +222,8 @@ describe('Excel Operations', () => {
         const range = context.workbook.getSelectedRange();
         
         // Trim spaces
-        range.values = range.values.map(row => 
-          row.map(cell => typeof cell === 'string' ? cell.trim() : cell)
+        range.values = range.values.map((row: (string | number)[]) => 
+          row.map((cell: string | number) => typeof cell === 'string' ? cell.trim() : cell)
         );
         
         await context.sync();

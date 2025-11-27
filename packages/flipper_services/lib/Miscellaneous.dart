@@ -10,6 +10,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:supabase_models/supabase_models.dart';
 import 'package:flipper_web/services/ditto_service.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 
 // Define the interface
 abstract class CoreMiscellaneousInterface {
@@ -17,6 +18,7 @@ abstract class CoreMiscellaneousInterface {
   Future<Directory> getSupportDir();
   Future<bool> logOut();
   bool isTestEnvironment();
+  Future<String> getDeviceVersion();
 }
 
 // Implement the interface in a mixin
@@ -62,6 +64,40 @@ mixin CoreMiscellaneous implements CoreMiscellaneousInterface {
     return const bool.fromEnvironment('FLUTTER_TEST_ENV') == true;
   }
 
+  @override
+  Future<String> getDeviceVersion() async {
+    return await getDeviceVersionStatic();
+  }
+
+  static Future<String> getDeviceVersionStatic() async {
+    final deviceInfo = DeviceInfoPlugin();
+    String version = Platform.version;
+    try {
+      if (Platform.isAndroid) {
+        final androidInfo = await deviceInfo.androidInfo;
+        version = androidInfo.version.release;
+      } else if (Platform.isIOS) {
+        final iosInfo = await deviceInfo.iosInfo;
+        version = iosInfo.systemVersion;
+      } else if (Platform.isMacOS) {
+        final macOsInfo = await deviceInfo.macOsInfo;
+        version =
+            '${macOsInfo.majorVersion}.${macOsInfo.minorVersion}.${macOsInfo.patchVersion}';
+      } else if (Platform.isWindows) {
+        final windowsInfo = await deviceInfo.windowsInfo;
+        version =
+            '${windowsInfo.majorVersion}.${windowsInfo.minorVersion}.${windowsInfo.buildNumber}';
+      } else if (Platform.isLinux) {
+        final linuxInfo = await deviceInfo.linuxInfo;
+        version = linuxInfo.versionId ?? Platform.version;
+      }
+    } catch (e) {
+      // talker is not available here easily as it's a mixin, using print or log
+      log('Error getting device info: $e');
+    }
+    return version;
+  }
+
   // Non-static logout method
   static Future<bool> logoutStatic() async {
     return await _performLogout();
@@ -88,7 +124,7 @@ mixin CoreMiscellaneous implements CoreMiscellaneousInterface {
           'uid': isTestEnvironment == true
               ? ""
               : (await FirebaseAuth.instance.currentUser?.getIdToken()) ?? "",
-          'deviceVersion': Platform.operatingSystemVersion,
+          'deviceVersion': await getDeviceVersionStatic(),
           'linkingCode': randomNumber().toString()
         });
 

@@ -284,8 +284,161 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     List<String>? receiptNumber,
     String? customerId,
   }) async {
-    throw UnimplementedError(
-        'transactions needs to be implemented for Capella');
+    if (!forceRealData) {
+      return DummyTransactionGenerator.generateDummyTransactions(
+        count: 100,
+        branchId: branchId ?? 1,
+        status: status,
+        transactionType: transactionType,
+      );
+    }
+
+    try {
+      final ditto = dittoService.dittoInstance;
+      if (ditto == null) {
+        talker.error('Ditto not initialized');
+        return [];
+      }
+
+      // Build SQL WHERE clause conditions
+      final List<String> whereClauses = [];
+      final Map<String, dynamic> arguments = {};
+
+      // ID filter (highest priority)
+      if (id != null) {
+        whereClauses.add('_id = :id');
+        arguments['id'] = id;
+      } else {
+        // Status filter - conditional based on includePending
+        if (includePending) {
+          whereClauses.add('(status = :status OR status = :pendingStatus)');
+          arguments['status'] = status ?? COMPLETE;
+          arguments['pendingStatus'] = PENDING;
+        } else {
+          whereClauses.add('status = :status');
+          arguments['status'] = status ?? COMPLETE;
+        }
+
+        // SubTotal filter
+        if (!includeZeroSubTotal) {
+          whereClauses.add('subTotal > 0');
+        }
+
+        // Original transaction check
+        if (!skipOriginalTransactionCheck) {
+          whereClauses.add('isOriginalTransaction = :isOriginal');
+          arguments['isOriginal'] = true;
+        }
+
+        // Branch ID filter
+        if (branchId != null) {
+          whereClauses.add('branchId = :branchId');
+          arguments['branchId'] = branchId;
+        }
+
+        // Cash out / expense filter
+        if (isCashOut || isExpense) {
+          whereClauses.add('isExpense = :isExpense');
+          arguments['isExpense'] = true;
+        }
+
+        // Transaction type filter
+        if (transactionType != null) {
+          whereClauses.add('transactionType = :transactionType');
+          arguments['transactionType'] = transactionType;
+        }
+
+        // Filter type handling
+        if (filterType != null) {
+          whereClauses.add('type = :filterType');
+          arguments['filterType'] = filterType.name;
+        }
+
+        // Customer ID filter
+        if (customerId != null) {
+          whereClauses.add('customerId = :customerId');
+          arguments['customerId'] = customerId;
+        }
+
+        // Receipt number filter - check both invoiceNumber OR receiptNumber
+        if (receiptNumber != null && receiptNumber.isNotEmpty) {
+          final receiptPlaceholders = receiptNumber
+              .asMap()
+              .entries
+              .map((e) => ':receipt${e.key}')
+              .join(', ');
+          final invoicePlaceholders = receiptNumber
+              .asMap()
+              .entries
+              .map((e) => ':invoice${e.key}')
+              .join(', ');
+
+          // Match either invoiceNumber OR receiptNumber
+          whereClauses.add(
+              '(invoiceNumber IN ($invoicePlaceholders) OR receiptNumber IN ($receiptPlaceholders))');
+
+          // Bind values for both placeholders
+          for (var i = 0; i < receiptNumber.length; i++) {
+            arguments['receipt$i'] = receiptNumber[i];
+            arguments['invoice$i'] = receiptNumber[i];
+          }
+        }
+
+        // Date filtering
+        if (startDate != null && endDate != null) {
+          final localStartDate =
+              DateTime(startDate.year, startDate.month, startDate.day);
+          final localEndDate = DateTime(
+              endDate.year, endDate.month, endDate.day, 23, 59, 59, 999);
+          whereClauses
+              .add('lastTouched >= :startDate AND lastTouched <= :endDate');
+          arguments['startDate'] = localStartDate.toIso8601String();
+          arguments['endDate'] = localEndDate.toIso8601String();
+        } else if (startDate != null) {
+          final localStartDate =
+              DateTime(startDate.year, startDate.month, startDate.day);
+          whereClauses.add('lastTouched >= :startDate');
+          arguments['startDate'] = localStartDate.toIso8601String();
+        } else if (endDate != null) {
+          final localEndDate = DateTime(
+              endDate.year, endDate.month, endDate.day, 23, 59, 59, 999);
+          whereClauses.add('lastTouched <= :endDate');
+          arguments['endDate'] = localEndDate.toIso8601String();
+        }
+      }
+
+      final whereClause = whereClauses.join(' AND ');
+      final query =
+          'SELECT * FROM transactions WHERE $whereClause ORDER BY lastTouched DESC';
+
+      talker.info('Capella Ditto Query (transactions): $query');
+      talker.info('Capella Ditto Arguments: $arguments');
+
+      // Execute the query
+      final queryResult = await ditto.store.execute(
+        query,
+        arguments: arguments,
+      );
+
+      // Convert results to ITransaction list
+      final transactions = <ITransaction>[];
+      for (final item in queryResult.items) {
+        try {
+          final transactionData = Map<String, dynamic>.from(item.value);
+          final transaction = _convertFromDittoDocument(transactionData);
+          transactions.add(transaction);
+        } catch (e) {
+          talker.error('Error converting transaction: $e');
+        }
+      }
+
+      talker.info(
+          'Capella transactions() returned: ${transactions.length} records');
+      return transactions;
+    } catch (e, stackTrace) {
+      talker.error('Error in transactions(): $e', stackTrace);
+      return [];
+    }
   }
 
   @override
@@ -436,6 +589,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     bool isUnclassfied = false,
     bool? isTrainingMode,
     String? transactionId,
+    String? customerPhone,
   }) {
     throw UnimplementedError(
         'updateTransaction needs to be implemented for Capella');

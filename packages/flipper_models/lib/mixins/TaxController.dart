@@ -1,28 +1,23 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:math' as math;
 
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as brick;
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_models/mixins/transaction_delegation_mixin.dart';
 import 'package:uuid/uuid.dart';
 import 'package:receipt/print.dart';
 
-class TaxController<OBJ> with TransactionDelegationMixin {
+class TaxController<OBJ> {
   TaxController({this.object});
 
   OBJ? object;
-
-  /// Implement the createTaxController method required by the mixin
-  @override
-  dynamic createTaxController(ITransaction transaction) {
-    return TaxController<ITransaction>(object: transaction);
-  }
 
   Future<({RwApiResponse response, Uint8List? bytes})> handleReceipt(
       {bool skiGenerateRRAReceiptSignature = false,
@@ -30,9 +25,43 @@ class TaxController<OBJ> with TransactionDelegationMixin {
       required FilterType filterType}) async {
     if (object is ITransaction) {
       ITransaction transaction = object as ITransaction;
+      Customer? customer;
+      try {
+        customer =
+            await ProxyService.strategy.customerById(transaction.customerId!);
+        talker.info('Resolved customer from id: ${customer?.id}');
+      } catch (e) {
+        talker.warning(
+            'Failed to resolve customer for id ${transaction.customerId}: $e');
+      }
+      // Resolve phone number with normalization and null safety
+      String? rawPhone = transaction.customerPhone ??
+          ProxyService.box.currentSaleCustomerPhoneNumber();
+      String? custMblNo;
+      if (rawPhone != null) {
+        // Remove non-digit characters and trim whitespace
+        custMblNo = rawPhone.trim().replaceAll(RegExp(r'\D'), '');
+      } else {
+        custMblNo = null;
+      }
+
+      // Resolve customer name with fallback and whitespace guard
+      var name = transaction.customerName ??
+          ProxyService.box.customerName() ??
+          customer?.custNm ??
+          '';
+      name = name.trim();
+      if (name.isEmpty) {
+        name = 'Walk-in Customer';
+      }
+      String customerName = name;
+
       if (filterType == FilterType.CR) {
         try {
           return await printReceipt(
+            custMblNo: custMblNo,
+            customerName: customerName,
+            customer: customer,
             receiptType: TransactionReceptType.CR,
             transaction: transaction,
             originalInvoiceNumber: transaction.invoiceNumber,
@@ -47,6 +76,9 @@ class TaxController<OBJ> with TransactionDelegationMixin {
       } else if (filterType == FilterType.NS) {
         try {
           return await printReceipt(
+            custMblNo: custMblNo,
+            customerName: customerName,
+            customer: customer,
             receiptType: TransactionReceptType.NS,
             transaction: transaction,
             salesSttsCd: SalesSttsCd.approved,
@@ -60,6 +92,9 @@ class TaxController<OBJ> with TransactionDelegationMixin {
       } else if (filterType == FilterType.NR) {
         try {
           return await printReceipt(
+            custMblNo: custMblNo,
+            customerName: customerName,
+            customer: customer,
             purchaseCode: purchaseCode,
             receiptType: TransactionReceptType.NR,
             sarTyCd: StockInOutType.returnIn,
@@ -74,6 +109,9 @@ class TaxController<OBJ> with TransactionDelegationMixin {
       } else if (filterType == FilterType.TS) {
         try {
           return await printReceipt(
+            custMblNo: custMblNo,
+            customerName: customerName,
+            customer: customer,
             purchaseCode: purchaseCode,
             receiptType: TransactionReceptType.TS,
             transaction: transaction,
@@ -87,6 +125,9 @@ class TaxController<OBJ> with TransactionDelegationMixin {
       } else if (filterType == FilterType.PS) {
         try {
           return await printReceipt(
+            custMblNo: custMblNo,
+            customerName: customerName,
+            customer: customer,
             purchaseCode: purchaseCode,
             receiptType: TransactionReceptType.PS,
             transaction: transaction,
@@ -100,6 +141,9 @@ class TaxController<OBJ> with TransactionDelegationMixin {
       } else if (filterType == FilterType.TR) {
         try {
           return await printReceipt(
+            custMblNo: custMblNo,
+            customerName: customerName,
+            customer: customer,
             purchaseCode: purchaseCode,
             originalInvoiceNumber: transaction.invoiceNumber,
             receiptType: TransactionReceptType.TR,
@@ -114,6 +158,9 @@ class TaxController<OBJ> with TransactionDelegationMixin {
       } else if (filterType == FilterType.CS) {
         try {
           return await printReceipt(
+            custMblNo: custMblNo,
+            customerName: customerName,
+            customer: customer,
             purchaseCode: purchaseCode,
             receiptType: TransactionReceptType.CS,
             salesSttsCd: SalesSttsCd.approved,
@@ -154,6 +201,11 @@ class TaxController<OBJ> with TransactionDelegationMixin {
     return (tax * percentage) / (100 + percentage);
   }
 
+  /// Check if the current device is mobile
+  bool get isMobileDevice {
+    return Platform.isAndroid || Platform.isIOS;
+  }
+
   /**
    * Prints a receipt for the given transaction.
    * 
@@ -174,12 +226,16 @@ class TaxController<OBJ> with TransactionDelegationMixin {
     int? originalInvoiceNumber,
     String? sarTyCd,
     List<TransactionItem>? items,
+    String? custMblNo,
+    required String customerName,
+    Customer? customer,
   }) async {
     // Use provided items or fetch transaction items
     List<TransactionItem> transactionItems = items ?? [];
     if (transactionItems.isEmpty) {
       try {
-        transactionItems = await ProxyService.strategy.transactionItems(
+        transactionItems =
+            await ProxyService.getStrategy(Strategy.capella).transactionItems(
           transactionId: transaction.id,
           branchId: (await ProxyService.strategy.activeBranch()).id,
         );
@@ -191,13 +247,23 @@ class TaxController<OBJ> with TransactionDelegationMixin {
 
     // Try normal processing first
     try {
+      // touch the transaction unawaited
+      transaction.lastPaymentDate = DateTime.now();
+      transaction.createdAt = DateTime.now();
+      transaction.updatedAt = DateTime.now();
+      unawaited(repository.upsert(transaction));
       // Normal processing (desktop or mobile)
       RwApiResponse responses;
       Uint8List? bytes;
       if (!skiGenerateRRAReceiptSignature) {
+        final enableTransactionDelegation = ProxyService.box.readBool(
+          key: 'enableTransactionDelegation',
+        );
         try {
-          if (await isDelegationEnabled() && isMobileDevice) {
-           return await _handleDelegationFallback(
+          if (enableTransactionDelegation != null &&
+              enableTransactionDelegation &&
+              isMobileDevice) {
+            return await _handleDelegationFallback(
               transaction: transaction,
               receiptType: receiptType,
               purchaseCode: purchaseCode,
@@ -209,6 +275,9 @@ class TaxController<OBJ> with TransactionDelegationMixin {
             );
           }
           responses = await generateRRAReceiptSignature(
+            custMblNo: custMblNo,
+            customerName: customerName,
+            customer: customer,
             transaction: transaction,
             receiptType: receiptType,
             salesSttsCd: salesSttsCd,
@@ -385,6 +454,9 @@ class TaxController<OBJ> with TransactionDelegationMixin {
     required String salesSttsCd,
     int? originalInvoiceNumber,
     String? sarTyCd,
+    String? custMblNo,
+    required String customerName,
+    Customer? customer,
   }) async {
     try {
       int branchId = ProxyService.box.getBranchId()!;
@@ -415,6 +487,9 @@ class TaxController<OBJ> with TransactionDelegationMixin {
 
       RwApiResponse receiptSignature =
           await ProxyService.tax.generateReceiptSignature(
+        custMblNo: custMblNo,
+        customerName: customerName,
+        customer: customer,
         transaction: transaction,
         receiptType: receiptType,
         salesSttsCd: salesSttsCd,
@@ -492,7 +567,7 @@ class TaxController<OBJ> with TransactionDelegationMixin {
               .addTransaction(transaction: newTransaction);
           //query item and re-assign
           final List<TransactionItem> items =
-              await ProxyService.strategy.transactionItems(
+              await ProxyService.getStrategy(Strategy.capella).transactionItems(
             branchId: (await ProxyService.strategy.activeBranch()).id,
             transactionId: transaction.id,
           );
@@ -620,19 +695,34 @@ class TaxController<OBJ> with TransactionDelegationMixin {
     required List<TransactionItem> transactionItems,
     required bool skiGenerateRRAReceiptSignature,
   }) async {
+    final enableTransactionDelegation = ProxyService.box.readBool(
+      key: 'enableTransactionDelegation',
+    );
     if (isMobileDevice &&
-        await isDelegationEnabled() &&
+        enableTransactionDelegation != null &&
+        enableTransactionDelegation &&
         !skiGenerateRRAReceiptSignature) {
       try {
-        // Delegate to desktop for processing
-        await delegateTransactionToDesktop(
-          transaction: transaction,
+        await ProxyService.getStrategy(Strategy.capella).createDelegation(
+          transactionId: transaction.id,
+          branchId: transaction.branchId!,
+          selectedDelegationDeviceId:
+              ProxyService.box.selectedDelegationDeviceId(),
           receiptType: receiptType,
-          purchaseCode: purchaseCode,
-          salesSttsCd: salesSttsCd,
-          originalInvoiceNumber: originalInvoiceNumber,
-          sarTyCd: sarTyCd,
-          items: transactionItems,
+          customerName: transaction.customerName,
+          customerTin: transaction.customerTin,
+          customerBhfId: transaction.customerBhfId,
+          isAutoPrint: ProxyService.box.isAutoPrintEnabled(),
+          subTotal: transaction.subTotal,
+          paymentType: transaction.paymentType,
+          additionalData: {
+            'salesSttsCd': salesSttsCd,
+            'purchaseCode': purchaseCode,
+            'originalInvoiceNumber': originalInvoiceNumber,
+            'sarTyCd': sarTyCd,
+            'businessId': ProxyService.box.getBusinessId(),
+            'items': transactionItems.map((item) => item.id).toList(),
+          },
         );
 
         /// return dummy data

@@ -18,6 +18,7 @@ import 'package:flipper_models/sync/mixins/business_mixin.dart';
 import 'package:flipper_models/sync/mixins/category_mixin.dart';
 import 'package:flipper_models/sync/mixins/counter_mixin.dart';
 import 'package:flipper_models/sync/mixins/customer_mixin.dart';
+import 'package:flipper_models/sync/mixins/delegation_mixin.dart';
 import 'package:flipper_models/sync/mixins/delete_mixin.dart';
 import 'package:flipper_models/sync/mixins/ebm_mixin.dart';
 import 'package:flipper_models/sync/mixins/log_mixin.dart';
@@ -89,7 +90,8 @@ class CoreSync extends AiStrategyImpl
         ShiftMixin,
         StockMixin,
         CategoryMixin,
-        CounterMixin
+        CounterMixin,
+        DelegationMixin
     implements DatabaseSyncInterface {
   final String apihub = AppSecrets.apihubProd;
 
@@ -178,7 +180,6 @@ class CoreSync extends AiStrategyImpl
           await repository.upsert<IUnit>(unit);
         }
       }
-
       return 200;
     } catch (e) {
       rethrow;
@@ -194,18 +195,14 @@ class CoreSync extends AiStrategyImpl
 
   @override
   Future<void> assignCustomerToTransaction(
-      {required Customer customer, String? transactionId}) async {
+      {required Customer customer, required ITransaction transaction}) async {
     try {
-      final transaction = (await transactions(id: transactionId!)).firstOrNull;
-      if (transaction != null) {
-        transaction.customerId = customer.id;
-        transaction.customerName = customer.custNm;
-        transaction.customerTin = customer.custTin;
-        transaction.customerPhone = customer.telNo;
-        repository.upsert<ITransaction>(transaction);
-      } else {
-        throw Exception('Try to add item to a transaction.');
-      }
+      transaction.customerId = customer.id;
+      transaction.customerName = customer.custNm;
+      transaction.customerTin = customer.custTin;
+      transaction.customerPhone = customer.telNo;
+      transaction.currentSaleCustomerPhoneNumber = customer.telNo;
+      repository.upsert<ITransaction>(transaction);
     } catch (e) {
       print('Failed to assign customer to transaction: $e');
       rethrow;
@@ -1306,7 +1303,10 @@ class CoreSync extends AiStrategyImpl
         policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
       );
 
-      return planWithAddons.expand((plan) => plan.addons).toList();
+      return planWithAddons
+          .expand((plan) => plan.addons ?? [])
+          .cast<models.PlanAddon>()
+          .toList();
     } catch (e) {
       talker.error('Failed to fetch existing addons: $e');
       rethrow;
@@ -2063,6 +2063,22 @@ class CoreSync extends AiStrategyImpl
       }
 
       if (data is Device) {
+        final existingDevice = await repository.get<Device>(
+            query: brick.Query(
+                where: [brick.Where('userId').isExactly(data.userId)]));
+        if (existingDevice.isNotEmpty) {
+          final device = existingDevice.first;
+          device.linkingCode = data.linkingCode;
+          device.deviceName = data.deviceName;
+          device.deviceVersion = data.deviceVersion;
+          device.pubNubPublished = data.pubNubPublished;
+          device.phone = data.phone;
+          device.branchId = data.branchId;
+          device.businessId = data.businessId;
+          device.defaultApp = data.defaultApp;
+          await repository.upsert<Device>(device);
+          return device as T;
+        }
         await repository.upsert<Device>(data);
         return data as T;
       }

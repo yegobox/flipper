@@ -30,7 +30,7 @@ class SharedPreferenceStorage implements LocalStorage {
   static const Set<String> _allowedKeys = {
     // System keys
     '_preferencesVersion',
-
+    'enableTransactionDelegation',
     'branchId',
     'pmtTyCd',
     'businessId',
@@ -107,7 +107,7 @@ class SharedPreferenceStorage implements LocalStorage {
     'lastZReportDate',
     'receiptLogoBase64',
     'freshSignup',
-    'enableTransactionDelegation',
+    'selectedDelegationDeviceId',
     'enableAutoAddSearch',
     // Add new preference keys above this line
   };
@@ -863,5 +863,10 @@ class SharedPreferenceStorage implements LocalStorage {
   @override
   String? lastZReportDate() {
     return _cache['lastZReportDate'] as String?;
+  }
+
+  @override
+  String? selectedDelegationDeviceId() {
+    return _cache['selectedDelegationDeviceId'] as String?;
   }
 }

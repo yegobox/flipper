@@ -18,7 +18,7 @@ dependencies:
   riverpod: ^2.4.5
 
   # Ditto for offline sync
-  ditto_live: ^4.13.0
+  ditto_live: ^4.13.1
 
   # Flipper web for Ditto service
   flipper_web: any
@@ -38,7 +38,7 @@ dependency_overrides:
     path: ../../packages/flipper_models
   http: ^1.2.2
   archive: ^3.6.1
-  sqlite3: ^3.0.1
+  sqlite3: ^3.1.0
   jni: ^0.14.2
 
 dev_dependencies:

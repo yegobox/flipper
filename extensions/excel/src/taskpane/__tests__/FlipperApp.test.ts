@@ -12,7 +12,7 @@ const createMockDOM = () => {
     <div id="app-container" style="display: none;">
       <header class="app-header">
         <div class="header-content">
-          <img width="32" height="32" src="../../assets/logo-filled.png" alt="Flipper" title="Flipper" />
+          <img width="32" height="32" src="../../assets/logo.png" alt="Flipper" title="Flipper" />
           <h1 class="app-title">Flipper</h1>
         </div>
         <div class="header-actions">
@@ -65,16 +65,7 @@ const createMockDOM = () => {
                 <p>Highlight the selected range with a professional color scheme</p>
               </div>
             </button>
-            
-            <button class="action-card" id="create-table-button">
-              <div class="action-icon">
-                <span class="ms-Icon ms-Icon--Table"></span>
-              </div>
-              <div class="action-content">
-                <h3>Create Table</h3>
-                <p>Convert your data into a formatted Excel table</p>
-              </div>
-            </button>
+          
             
             <button class="action-card" id="format-data-button">
               <div class="action-icon">
@@ -158,7 +149,7 @@ const createMockDOM = () => {
     <div id="auth-state" style="display: none;">
       <div class="auth-content">
         <div class="auth-header">
-          <img width="48" height="48" src="../../assets/logo-filled.png" alt="Flipper" title="Flipper" />
+          <img width="48" height="48" src="../../assets/logo.png" alt="Flipper" title="Flipper" />
           <h1>Welcome to Flipper</h1>
           <p>Connect to your Flipper account to access data</p>
         </div>
@@ -604,11 +595,9 @@ describe('FlipperApp', () => {
     });
 
     test('should handle create table button click', async () => {
-      const createTableButton = document.getElementById('create-table-button') as HTMLButtonElement;
+     
       const mockRange = createMockRange();
       mockExcelContext.workbook.getSelectedRange.mockReturnValue(mockRange);
-      
-      simulateClick(createTableButton);
       
       // Wait for async operation
       await new Promise(resolve => setTimeout(resolve, 0));

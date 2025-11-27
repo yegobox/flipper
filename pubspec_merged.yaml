@@ -143,7 +143,6 @@ dependencies:
   # in all packages or use flipper_ui package
   flipper_dashboard: any
   stacked_services: ^1.6.0
-  url_strategy: ^0.2.0
   logger: ^2.5.0
   flipper_actionable: 0.0.1
   responsive_builder: ^0.7.0

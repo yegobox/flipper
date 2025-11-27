@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_services/realtime_delegation_service.dart';
 import 'dart:io';
 
 /// Widget to manage transaction delegation settings
@@ -46,16 +45,6 @@ class _TransactionDelegationSettingsState
         key: 'enableTransactionDelegation',
         value: value,
       );
-
-      // Start/stop monitoring service on desktop
-      if (_isDesktopPlatform()) {
-        final service = RealtimeDelegationService();
-        if (value) {
-          await service.initialize();
-        } else {
-          await service.dispose();
-        }
-      }
 
       setState(() {
         _isEnabled = value;
@@ -159,7 +148,6 @@ class _TransactionDelegationSettingsState
             _buildInfoSection(context),
             if (_isDesktopPlatform() && _isEnabled) ...[
               const SizedBox(height: 16),
-              _buildDesktopMonitoringStatus(context),
             ],
           ],
         ),
@@ -242,59 +230,6 @@ class _TransactionDelegationSettingsState
           fontSize: 13,
           color: Colors.blue[800],
         ),
-      ),
-    );
-  }
-
-  Widget _buildDesktopMonitoringStatus(BuildContext context) {
-    final service = RealtimeDelegationService();
-    final isMonitoring = service.isMonitoring;
-
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: isMonitoring ? Colors.green[50] : Colors.orange[50],
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: isMonitoring ? Colors.green[200]! : Colors.orange[200]!,
-        ),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            isMonitoring ? Icons.check_circle : Icons.warning,
-            color: isMonitoring ? Colors.green[700] : Colors.orange[700],
-            size: 20,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              isMonitoring
-                  ? 'Desktop monitoring is active'
-                  : 'Desktop monitoring is inactive',
-              style: TextStyle(
-                fontWeight: FontWeight.w500,
-                color: isMonitoring ? Colors.green[900] : Colors.orange[900],
-              ),
-            ),
-          ),
-          if (isMonitoring)
-            TextButton.icon(
-              onPressed: () async {
-                // Real-time monitoring doesn't need manual checks
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Real-time monitoring is active'),
-                      duration: Duration(seconds: 2),
-                    ),
-                  );
-                }
-              },
-              icon: const Icon(Icons.refresh, size: 16),
-              label: const Text('Status'),
-            ),
-        ],
       ),
     );
   }

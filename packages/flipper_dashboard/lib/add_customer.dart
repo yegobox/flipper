@@ -83,9 +83,7 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
         return Scaffold(
           appBar: AppBar(
             title: Text(
-              widget.customer == null
-                  ? 'Add New Customer'
-                  : 'Update Customer',
+              widget.customer == null ? 'Add New Customer' : 'Update Customer',
               style: theme.textTheme.titleLarge
                   ?.copyWith(fontWeight: FontWeight.bold),
             ),
@@ -232,18 +230,18 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
                             // TIN Field
                             BoxInputField(
                               controller: _tinNumberController,
-                              placeholder: 'TIN Number (Required)',
+                              placeholder: 'TIN Number (Optional)',
                               leading: const Icon(Icons.numbers_outlined),
                               // keyboardType: TextInputType.number,
                               validatorFunc: (value) {
-                                if (value == null || value.trim().isEmpty) {
-                                  return 'TIN is required';
-                                }
-                                if (!isNumeric(value)) {
-                                  return 'TIN should be a number';
-                                }
-                                if (value.length != 9) {
-                                  return 'TIN must be 9 digits';
+                                // TIN is now optional, only validate if provided
+                                if (value != null && value.trim().isNotEmpty) {
+                                  if (!isNumeric(value)) {
+                                    return 'TIN should be a number';
+                                  }
+                                  if (value.length != 9) {
+                                    return 'TIN must be 9 digits';
+                                  }
                                 }
                                 return null;
                               },

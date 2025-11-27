@@ -52,7 +52,10 @@ abstract class OfflineFirstWithSupabaseRepository<
   /// Tracks the realtime stream controllers
   @protected
   @visibleForTesting
-  final Map<Type, Map<PostgresChangeEvent, Map<Query, StreamController<List<TRepositoryModel>>>>>
+  final Map<
+          Type,
+          Map<PostgresChangeEvent,
+              Map<Query, StreamController<List<TRepositoryModel>>>>>
       supabaseRealtimeSubscriptions = {};
 
   /// Ensures the [remoteProvider] is a [SupabaseProvider].
@@ -81,12 +84,14 @@ abstract class OfflineFirstWithSupabaseRepository<
     try {
       return await super.delete<TModel>(instance, policy: policy, query: query);
     } on PostgrestException catch (e) {
-      logger.warning('#delete supabase failure: $e');
+      final modelName = TModel.toString();
+      logger.warning('#delete supabase failure for model $modelName: $e');
       if (policy == OfflineFirstDeletePolicy.requireRemote) {
         throw OfflineFirstException(e);
       }
     } on AuthRetryableFetchException catch (e) {
-      logger.warning('#delete supabase failure: $e');
+      final modelName = TModel.toString();
+      logger.warning('#delete supabase failure for model $modelName: $e');
       if (policy == OfflineFirstDeletePolicy.requireRemote) {
         throw OfflineFirstException(e);
       }
@@ -97,7 +102,8 @@ abstract class OfflineFirstWithSupabaseRepository<
 
   @override
   Future<List<TModel>> get<TModel extends TRepositoryModel>({
-    OfflineFirstGetPolicy policy = OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+    OfflineFirstGetPolicy policy =
+        OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
     Query? query,
     bool seedOnly = false,
   }) async {
@@ -108,12 +114,18 @@ abstract class OfflineFirstWithSupabaseRepository<
         seedOnly: seedOnly,
       );
     } on PostgrestException catch (e) {
-      logger.warning('#get supabase failure: $e');
+      final modelName = TModel.toString();
+      final queryInfo = query != null ? ' with query: $query' : '';
+      logger
+          .warning('#get supabase failure for model $modelName$queryInfo: $e');
       if (policy == OfflineFirstGetPolicy.awaitRemote) {
         throw OfflineFirstException(e);
       }
     } on AuthRetryableFetchException catch (e) {
-      logger.warning('#get supabase failure: $e');
+      final modelName = TModel.toString();
+      final queryInfo = query != null ? ' with query: $query' : '';
+      logger
+          .warning('#get supabase failure for model $modelName$queryInfo: $e');
       if (policy == OfflineFirstGetPolicy.awaitRemote) {
         throw OfflineFirstException(e);
       }
@@ -129,11 +141,20 @@ abstract class OfflineFirstWithSupabaseRepository<
     Query? query,
   }) async {
     try {
-      return await super.hydrate<TModel>(deserializeSqlite: deserializeSqlite, query: query);
+      return await super
+          .hydrate<TModel>(deserializeSqlite: deserializeSqlite, query: query);
     } on PostgrestException catch (e) {
-      logger.warning('#hydrate supabase failure: $e');
+      final modelName = TModel.toString();
+      final queryInfo = query != null ? ' with query: $query' : '';
+      logger.warning(
+        '#hydrate supabase failure for model $modelName$queryInfo: $e',
+      );
     } on AuthRetryableFetchException catch (e) {
-      logger.warning('#hydrate supabase failure: $e');
+      final modelName = TModel.toString();
+      final queryInfo = query != null ? ' with query: $query' : '';
+      logger.warning(
+        '#hydrate supabase failure for model $modelName$queryInfo: $e',
+      );
     }
 
     return <TModel>[];
@@ -156,13 +177,15 @@ abstract class OfflineFirstWithSupabaseRepository<
   }
 
   @override
-  Future<void> notifySubscriptionsWithLocalData<TModel extends TRepositoryModel>({
+  Future<void>
+      notifySubscriptionsWithLocalData<TModel extends TRepositoryModel>({
     bool notifyWhenEmpty = true,
     Map<Query?, StreamController<List<TRepositoryModel>>>? subscriptionsByQuery,
   }) async {
     final supabaseControllers = supabaseRealtimeSubscriptions[TModel]
         ?.values
-        .fold(<Query, StreamController<List<TRepositoryModel>>>{}, (acc, eventMap) {
+        .fold(<Query, StreamController<List<TRepositoryModel>>>{},
+            (acc, eventMap) {
       acc.addEntries(eventMap.entries);
       return acc;
     });
@@ -186,12 +209,14 @@ abstract class OfflineFirstWithSupabaseRepository<
     Map<String, dynamic> payload, {
     required Map<String, RuntimeSupabaseColumnDefinition> supabaseDefinitions,
   }) {
-    final columnsToFields = supabaseDefinitions.entries.fold(<String, String>{}, (acc, entry) {
+    final columnsToFields =
+        supabaseDefinitions.entries.fold(<String, String>{}, (acc, entry) {
       acc[entry.value.columnName] = entry.key;
       return acc;
     });
 
-    final fieldsWithValues = payload.entries.fold(<String, dynamic>{}, (acc, entry) {
+    final fieldsWithValues =
+        payload.entries.fold(<String, dynamic>{}, (acc, entry) {
       if (columnsToFields[entry.key] != null) {
         acc[columnsToFields[entry.key]!] = entry.value;
       }
@@ -199,7 +224,9 @@ abstract class OfflineFirstWithSupabaseRepository<
     });
 
     return Query(
-      where: fieldsWithValues.entries.map((entry) => Where.exact(entry.key, entry.value)).toList(),
+      where: fieldsWithValues.entries
+          .map((entry) => Where.exact(entry.key, entry.value))
+          .toList(),
       limit: 1,
     );
   }
@@ -271,14 +298,24 @@ abstract class OfflineFirstWithSupabaseRepository<
           //
           // It's handled just in case this behavior changes.
           case PostgresChangeEvent.all:
-            final localResults = await sqliteProvider.get<TModel>(repository: this);
-            final remoteResults =
-                await get<TModel>(query: query, policy: OfflineFirstGetPolicy.awaitRemote);
-            final toDelete = localResults.where((r) => !remoteResults.contains(r));
+            final localResults =
+                await sqliteProvider.get<TModel>(repository: this);
+            final remoteResults = await get<TModel>(
+              query: query,
+              policy: OfflineFirstGetPolicy.awaitRemote,
+            );
+            final toDelete =
+                localResults.where((r) => !remoteResults.contains(r));
 
             for (final deletableModel in toDelete) {
-              await sqliteProvider.delete<TModel>(deletableModel, repository: this);
-              memoryCacheProvider.delete<TModel>(deletableModel, repository: this);
+              await sqliteProvider.delete<TModel>(
+                deletableModel,
+                repository: this,
+              );
+              memoryCacheProvider.delete<TModel>(
+                deletableModel,
+                repository: this,
+              );
             }
 
           case PostgresChangeEvent.delete:
@@ -296,15 +333,21 @@ abstract class OfflineFirstWithSupabaseRepository<
             );
             if (results.isEmpty) return;
 
-            await sqliteProvider.delete<TModel>(results.first, repository: this);
+            await sqliteProvider.delete<TModel>(
+              results.first,
+              repository: this,
+            );
             memoryCacheProvider.delete<TModel>(results.first, repository: this);
 
           case PostgresChangeEvent.insert || PostgresChangeEvent.update:
             // The supabase payload is not configurable and will not supply associations.
             // For models that have associations, an additional network call must be
             // made to retrieve all scoped data.
-            final modelHasAssociations = adapter.fieldsToSupabaseColumns.entries
-                .any((entry) => entry.value.association && !entry.value.associationIsNullable);
+            final modelHasAssociations =
+                adapter.fieldsToSupabaseColumns.entries.any(
+              (entry) =>
+                  entry.value.association && !entry.value.associationIsNullable,
+            );
 
             if (modelHasAssociations) {
               await get<TModel>(
@@ -322,7 +365,10 @@ abstract class OfflineFirstWithSupabaseRepository<
               repository: this,
             );
 
-            await sqliteProvider.upsert<TModel>(instance as TModel, repository: this);
+            await sqliteProvider.upsert<TModel>(
+              instance as TModel,
+              repository: this,
+            );
             memoryCacheProvider.upsert<TModel>(instance, repository: this);
         }
 
@@ -333,10 +379,12 @@ abstract class OfflineFirstWithSupabaseRepository<
     final controller = StreamController<List<TModel>>(
       onCancel: () async {
         await channel.unsubscribe();
-        await supabaseRealtimeSubscriptions[TModel]?[eventType]?[query]?.close();
+        await supabaseRealtimeSubscriptions[TModel]?[eventType]?[query]
+            ?.close();
         supabaseRealtimeSubscriptions[TModel]?[eventType]?.remove(query);
 
-        if (supabaseRealtimeSubscriptions[TModel]?[eventType]?.isEmpty ?? false) {
+        if (supabaseRealtimeSubscriptions[TModel]?[eventType]?.isEmpty ??
+            false) {
           supabaseRealtimeSubscriptions[TModel]?.remove(eventType);
         }
 
@@ -367,12 +415,14 @@ abstract class OfflineFirstWithSupabaseRepository<
     try {
       return await super.upsert<TModel>(instance, policy: policy, query: query);
     } on PostgrestException catch (e) {
-      logger.warning('#upsert supabase failure: $e');
+      final modelName = TModel.toString();
+      logger.warning('#upsert supabase failure for model $modelName: $e');
       if (policy == OfflineFirstUpsertPolicy.requireRemote) {
         throw OfflineFirstException(e);
       }
     } on AuthRetryableFetchException catch (e) {
-      logger.warning('#upsert supabase failure: $e');
+      final modelName = TModel.toString();
+      logger.warning('#upsert supabase failure for model $modelName: $e');
       if (policy == OfflineFirstUpsertPolicy.requireRemote) {
         throw OfflineFirstException(e);
       }
@@ -434,4 +484,3 @@ abstract class OfflineFirstWithSupabaseRepository<
     return (client, RestOfflineRequestQueue(client: client));
   }
 }
-

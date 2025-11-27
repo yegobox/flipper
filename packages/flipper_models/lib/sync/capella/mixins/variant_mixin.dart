@@ -100,6 +100,9 @@ mixin CapellaVariantMixin implements VariantInterface {
 
       talker.info('Executing Ditto query: $query with args: $arguments');
 
+      // Subscribe to ensure we have the latest data from Ditto mesh
+      await ditto.sync.registerSubscription(query, arguments: arguments);
+
       // Execute paged query
       final result = await ditto.store.execute(query, arguments: arguments);
       final items = result.items;
@@ -216,6 +219,12 @@ mixin CapellaVariantMixin implements VariantInterface {
 
       query += ' LIMIT 1';
 
+      // Subscribe to ensure we have the latest data
+      await dittoService.dittoInstance!.sync.registerSubscription(
+        query,
+        arguments: arguments,
+      );
+
       final result = await dittoService.dittoInstance!.store.execute(
         query,
         arguments: arguments,
@@ -313,6 +322,9 @@ mixin CapellaVariantMixin implements VariantInterface {
 
       String query = 'SELECT * FROM variants WHERE stockId = :stockId';
       final arguments = <String, dynamic>{'stockId': stockId};
+
+      // Subscribe to ensure we have the latest data
+      await ditto.sync.registerSubscription(query, arguments: arguments);
 
       final result = await ditto.store.execute(query, arguments: arguments);
       var items = result.items;

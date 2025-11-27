@@ -10,6 +10,6 @@ class Profit extends _$Profit {
     final analytics =
         await ref.watch(fetchStockPerformanceProvider(branchId).future);
     return analytics.fold<double>(
-        0, (sum, analytic) => sum + (analytic.profit));
+        0, (sum, analytic) => sum + (analytic.profit!));
   }
 }

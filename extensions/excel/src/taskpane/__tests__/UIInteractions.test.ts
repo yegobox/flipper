@@ -11,7 +11,7 @@ describe('UI Interactions', () => {
       <div id="app-container" style="display: none;">
         <header class="app-header">
           <div class="header-content">
-            <img width="32" height="32" src="../../assets/logo-filled.png" alt="Flipper" title="Flipper" />
+            <img width="32" height="32" src="../../assets/logo.png" alt="Flipper" title="Flipper" />
             <h1 class="app-title">Flipper</h1>
           </div>
           <div class="header-actions">
@@ -37,16 +37,7 @@ describe('UI Interactions', () => {
                   <p>Highlight the selected range with a professional color scheme</p>
                 </div>
               </button>
-              
-              <button class="action-card" id="create-table-button">
-                <div class="action-icon">
-                  <span class="ms-Icon ms-Icon--Table"></span>
-                </div>
-                <div class="action-content">
-                  <h3>Create Table</h3>
-                  <p>Convert your data into a formatted Excel table</p>
-                </div>
-              </button>
+            
               
               <button class="action-card" id="format-data-button">
                 <div class="action-icon">
@@ -153,15 +144,7 @@ describe('UI Interactions', () => {
       expect(clickSpy).toHaveBeenCalled();
     });
 
-    test('should handle create table button click', () => {
-      const createTableButton = document.getElementById('create-table-button') as HTMLButtonElement;
-      const clickSpy = jest.fn();
-      
-      createTableButton.addEventListener('click', clickSpy);
-      simulateClick(createTableButton);
-      
-      expect(clickSpy).toHaveBeenCalled();
-    });
+
 
     test('should handle format data button click', () => {
       const formatDataButton = document.getElementById('format-data-button') as HTMLButtonElement;
@@ -309,11 +292,8 @@ describe('UI Interactions', () => {
   describe('CSS Classes and Styling', () => {
     test('should have correct CSS classes on action cards', () => {
       const highlightButton = document.getElementById('highlight-button');
-      const createTableButton = document.getElementById('create-table-button');
       
       expect(highlightButton).toHaveClass('action-card', 'primary');
-      expect(createTableButton).toHaveClass('action-card');
-      expect(createTableButton).not.toHaveClass('primary');
     });
 
     test('should have correct CSS classes on buttons', () => {
@@ -363,10 +343,8 @@ describe('UI Interactions', () => {
 
     test('should have proper button text content', () => {
       const highlightButton = document.getElementById('highlight-button');
-      const createTableButton = document.getElementById('create-table-button');
       
       expect(highlightButton).toHaveTextContent('Highlight Selection');
-      expect(createTableButton).toHaveTextContent('Create Table');
     });
   });
 

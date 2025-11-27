@@ -561,6 +561,9 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     required String salesSttsCd,
     int? originalInvoiceNumber,
     String? sarTyCd,
+    String? custMblNo,
+    required String customerName,
+    Customer? customer,
   }) async {
     final repository = Repository();
     // Get business details
@@ -569,9 +572,10 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
 
     Ebm? ebm = await ProxyService.strategy
         .ebm(branchId: ProxyService.box.getBranchId()!);
-    List<TransactionItem> items = await ProxyService.strategy.transactionItems(
-        transactionId: transaction.id,
-        branchId: (await ProxyService.strategy.activeBranch()).id);
+    List<TransactionItem> items =
+        await ProxyService.getStrategy(Strategy.capella).transactionItems(
+            transactionId: transaction.id,
+            branchId: (await ProxyService.strategy.activeBranch()).id);
 
     // Get the current date and time in the required format yyyyMMddHHmmss
     String date = timeToUser
@@ -629,6 +633,9 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     // Build request data
     Map<String, dynamic> requestData = await buildRequestData(
         business: business,
+        custMblNo: custMblNo,
+        customerName: customerName,
+        customer: customer,
         highestInvcNo: highestInvcNo,
         ebm: ebm,
         bhFId: bhfId,
@@ -1026,6 +1033,8 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     required String bhFId,
     required String salesSttsCd,
     int? originalInvoiceNumber,
+    String? custMblNo,
+    required String customerName,
   }) async {
     odm.Configurations? taxConfigTaxB =
         await ProxyService.strategy.getByTaxType(taxtype: "B");
@@ -1057,22 +1066,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     final pmtTyCd = ProxyService.box.pmtTyCd();
     // Resolve customer object if transaction has a customerId but no
     // customer object was provided by the caller.
-    Customer? resolvedCustomer = customer;
-    if (transaction.customerId != null && resolvedCustomer == null) {
-      try {
-        resolvedCustomer =
-            await ProxyService.strategy.customerById(transaction.customerId!);
-        talker.info('Resolved customer from id: ${resolvedCustomer?.id}');
-      } catch (e) {
-        talker.warning(
-            'Failed to resolve customer for id ${transaction.customerId}: $e');
-      }
-    }
 
-    final customerName = ProxyService.box.customerName() ??
-        transaction.customerName ??
-        resolvedCustomer?.custNm ??
-        "N/A";
     // Use the highest available invoice number across branch counters for the
     // top-level `invcNo` (covers all receipt types like NS, TS, etc.). We
     // intentionally fetch local counters (fetchRemote: false) to avoid blocking
@@ -1135,18 +1129,6 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       // Always use the customer name from ProxyService.box.customerName()
       // This ensures consistency with what's entered in QuickSellingView
       "custNm": customerName,
-
-      // Log customer name source for debugging
-      ...(() {
-        // final customerName = ProxyService.box.customerName();
-        if (resolvedCustomer?.custNm != null) {
-          talker.info(
-              'Using selected customer name: ${resolvedCustomer!.custNm}');
-        } else {
-          talker.warning('No customer name available, using N/A');
-        }
-        return <String, dynamic>{};
-      }()),
       "remark": "",
       "prchrAcptcYn": "Y",
       "receipt": {
@@ -1156,9 +1138,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         "adrs": business?.adrs ?? "",
         "topMsg": topMessage,
         "btmMsg": "THANK YOU COME BACK AGAIN",
-        "custMblNo": resolvedCustomer == null
-            ? "0" + ProxyService.box.currentSaleCustomerPhoneNumber()!
-            : resolvedCustomer.telNo,
+        "custMblNo": custMblNo,
       },
       "itemList": itemsList,
     };
@@ -1181,7 +1161,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     }
     if (transaction.customerId != null) {
       json = addFieldIfCondition(
-          customer: resolvedCustomer,
+          customer: customer,
           json: json,
           transaction: transaction,
           purchaseCode: purchaseCode ?? ProxyService.box.purchaseCode());
@@ -1201,10 +1181,12 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       required ITransaction transaction,
       Customer? customer,
       String? purchaseCode}) {
-    if (transaction.customerId != null && purchaseCode != null) {
-      json[custTinKey] = transaction.customerTin ??
-          customer?.custTin ??
-          ProxyService.box.customerTin();
+    if (transaction.customerId != null &&
+        purchaseCode != null &&
+        transaction.customerTin != null &&
+        transaction.customerTin!.isNotEmpty) {
+      json[custTinKey] = transaction.customerTin;
+      ProxyService.box.customerTin();
       json[custNmKey] = transaction.customerName ??
           customer?.custNm ??
           ProxyService.box.customerName() ??

@@ -1,15 +1,18 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math' as math;
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_services/drive_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 // import 'package:flipper_models/services/sqlite_service.dart';
 
 /// A service class that manages scheduled tasks and periodic operations for the Flipper app.
@@ -25,6 +28,9 @@ class CronService {
 
   /// List to keep track of active timers for proper cleanup
   final List<Timer> _activeTimers = [];
+
+  /// Stream subscription for delegation monitoring (desktop only)
+  StreamSubscription<List<TransactionDelegation>>? _delegationsSubscription;
 
   /// Constants for timer durations
   // static const int _counterSyncMinutes = 40;
@@ -61,8 +67,169 @@ class CronService {
     }
   }
 
+  bool get isMobileDevice {
+    return Platform.isAndroid || Platform.isIOS;
+  }
+
   /// Initializes data by hydrating from remote if queue is empty
   Future<void> _initializeData() async {
+    // Listen for delegated transactions from mobile devices
+    /// the script should run on desktop apps only
+    if (!isMobileDevice) {
+      // Get branchId and validate it's not null
+      final branchId = ProxyService.box.getBranchId();
+      if (branchId == null) {
+        talker.warning(
+            'Skipping delegation monitoring: Branch ID is null. Will retry when branch is set.');
+      } else {
+        try {
+          // Get devices for this branch
+          final devices = await ProxyService.getStrategy(Strategy.capella)
+              .getDevicesByBranch(branchId: branchId);
+
+          // Check if devices list is not empty
+          if (devices.isEmpty) {
+            talker.warning(
+                'Skipping delegation monitoring: No devices found for branch $branchId');
+          } else {
+            final deviceId = devices.first.id;
+            talker.info(
+                'Setting up delegation monitoring for device $deviceId on branch $branchId');
+
+            // Cancel any existing subscription to avoid duplicates
+            await _delegationsSubscription?.cancel();
+
+            // Create and store the stream subscription
+            _delegationsSubscription =
+                ProxyService.getStrategy(Strategy.capella)
+                    .delegationsStream(
+                        branchId: branchId,
+                        status: 'delegated',
+                        onDeviceId: deviceId)
+                    .listen((delegations) async {
+              /// show notification of received delegation
+              if (delegations.isNotEmpty && delegations.length > 0) {
+                ProxyService.notification.sendLocalNotification(
+                  body: 'Received ${delegations.length} delegations',
+                );
+              }
+              for (TransactionDelegation delegation in delegations) {
+                try {
+                  talker.info(
+                      "📱 Delegation received: ${delegation.transactionId} from ${delegation.delegatedFromDevice}");
+
+                  // Fetch the transaction
+                  final transactions =
+                      await ProxyService.getStrategy(Strategy.capella)
+                          .transactions(id: delegation.transactionId);
+                  final transaction =
+                      transactions.isNotEmpty ? transactions.first : null;
+
+                  if (transaction == null) {
+                    talker.error(
+                        "Transaction not found for delegation: ${delegation.transactionId}");
+                    continue;
+                  }
+
+                  // Extract parameters from additionalData
+                  final additionalData = delegation.additionalData ?? {};
+                  final salesSttsCd =
+                      additionalData['salesSttsCd'] as String? ?? '02';
+                  final purchaseCode =
+                      additionalData['purchaseCode'] as String?;
+                  List<Counter> _counters =
+                      await ProxyService.getStrategy(Strategy.capella)
+                          .getCounters(branchId: branchId, fetchRemote: false);
+                  final int highestInvcNo = _counters.fold<int>(
+                      0, (prev, c) => math.max(prev, c.invcNo ?? 0));
+
+                  final sarTyCd = additionalData['sarTyCd'] as String?;
+
+                  // Create TaxController instance
+                  final taxController =
+                      TaxController<ITransaction>(object: transaction);
+
+                  talker.info(
+                      "🖨️  Processing receipt for delegation: ${delegation.receiptType}");
+
+                  // update the transaction with new originalInvoiceNumber
+                  transaction.invoiceNumber = highestInvcNo;
+                  await repository.upsert<ITransaction>(transaction);
+
+                  Customer? customer;
+                  try {
+                    customer = await ProxyService.strategy
+                        .customerById(transaction.customerId!);
+                    talker.info('Resolved customer from id: ${customer?.id}');
+                  } catch (e) {
+                    talker.warning(
+                        'Failed to resolve customer for id ${transaction.customerId}: $e');
+                  }
+                  String custMblNo = transaction.customerPhone!;
+                  String customerName = transaction.customerName!;
+                  // Call printReceipt with delegation parameters
+                  final result = await taxController.printReceipt(
+                    custMblNo: custMblNo,
+                    customerName: customerName,
+                    customer: customer,
+                    receiptType: delegation.receiptType,
+                    transaction: transaction,
+                    salesSttsCd: salesSttsCd,
+                    purchaseCode: purchaseCode,
+                    originalInvoiceNumber: highestInvcNo,
+                    sarTyCd: sarTyCd,
+                    skiGenerateRRAReceiptSignature: false,
+                  );
+
+                  if (result.response.resultCd == "000") {
+                    talker.info(
+                        "✅ Receipt printed successfully for delegation: ${delegation.transactionId}");
+
+                    // Update delegation status to completed
+                    final updatedDelegation = delegation.copyWith(
+                      status: 'completed',
+                      updatedAt: DateTime.now().toUtc(),
+                    );
+                    await repository
+                        .upsert<TransactionDelegation>(updatedDelegation);
+                  } else {
+                    talker.error(
+                        "❌ Receipt printing failed: ${result.response.resultMsg}");
+
+                    // Update delegation status to failed
+                    final updatedDelegation = delegation.copyWith(
+                      status: 'failed',
+                      updatedAt: DateTime.now().toUtc(),
+                    );
+                    await repository
+                        .upsert<TransactionDelegation>(updatedDelegation);
+                  }
+                } catch (e, stackTrace) {
+                  talker.error(
+                      "❌ Error processing delegation ${delegation.transactionId}: $e",
+                      stackTrace);
+
+                  // Update delegation status to failed
+                  try {
+                    final updatedDelegation = delegation.copyWith(
+                      status: 'failed',
+                      updatedAt: DateTime.now().toUtc(),
+                    );
+                    await repository
+                        .upsert<TransactionDelegation>(updatedDelegation);
+                  } catch (updateError) {
+                    talker.error(
+                        "Failed to update delegation status: $updateError");
+                  }
+                }
+              }
+            });
+          }
+        } catch (e, stackTrace) {
+          talker.error('Failed to setup delegation monitoring: $e', stackTrace);
+        }
+      }
+    }
     // get counters touch them
 
     try {
@@ -424,12 +591,18 @@ class CronService {
     }
   }
 
-  /// Disposes all active timers
+  /// Disposes all active timers and stream subscriptions
   void dispose() {
+    // Cancel all timers
     for (final timer in _activeTimers) {
       timer.cancel();
     }
     _activeTimers.clear();
+
+    // Cancel delegation stream subscription
+    _delegationsSubscription?.cancel();
+    _delegationsSubscription = null;
+
     talker.info("CronService disposed");
   }
 
@@ -456,6 +629,6 @@ class CronService {
   }
 
   /// Platform detection helpers
-  bool get isMacOs => Platform.isMacOS;
-  bool get isIos => Platform.isIOS;
+  bool get isMacOs => defaultTargetPlatform == TargetPlatform.macOS;
+  bool get isIos => defaultTargetPlatform == TargetPlatform.iOS;
 }

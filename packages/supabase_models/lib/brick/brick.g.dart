@@ -78,6 +78,7 @@ import '../brick/models/country.model.dart';
 import '../brick/models/BranchPaymentIntegration.model.dart';
 import '../brick/models/transactionItem.model.dart';
 import '../brick/models/permission.model.dart';
+import '../brick/models/transaction_delegation.model.dart';
 import '../brick/models/credit.model.dart';
 import '../brick/models/variant.model.dart';
 import '../brick/models/purchase.model.dart';
@@ -136,6 +137,7 @@ part 'adapters/country_adapter.g.dart';
 part 'adapters/branch_payment_integration_adapter.g.dart';
 part 'adapters/transaction_item_adapter.g.dart';
 part 'adapters/l_permission_adapter.g.dart';
+part 'adapters/transaction_delegation_adapter.g.dart';
 part 'adapters/credit_adapter.g.dart';
 part 'adapters/variant_adapter.g.dart';
 part 'adapters/purchase_adapter.g.dart';
@@ -196,6 +198,7 @@ final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
   BranchPaymentIntegration: BranchPaymentIntegrationAdapter(),
   TransactionItem: TransactionItemAdapter(),
   LPermission: LPermissionAdapter(),
+  TransactionDelegation: TransactionDelegationAdapter(),
   Credit: CreditAdapter(),
   Variant: VariantAdapter(),
   Purchase: PurchaseAdapter(),
@@ -258,6 +261,7 @@ final Map<Type, SqliteAdapter<SqliteModel>> sqliteMappings = {
   BranchPaymentIntegration: BranchPaymentIntegrationAdapter(),
   TransactionItem: TransactionItemAdapter(),
   LPermission: LPermissionAdapter(),
+  TransactionDelegation: TransactionDelegationAdapter(),
   Credit: CreditAdapter(),
   Variant: VariantAdapter(),
   Purchase: PurchaseAdapter(),

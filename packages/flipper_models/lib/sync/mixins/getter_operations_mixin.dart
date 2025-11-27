@@ -261,13 +261,28 @@ mixin GetterOperationsMixin implements GetterOperationsInterface {
   }) async {
     try {
       final query = Query(where: [Where('businessId').isExactly(businessId)]);
+
+      // Use awaitRemote when explicitly requesting online data to ensure
+      // remote fetch happens even if local data exists (important for new devices)
+      final policy = (fetchOnline == true)
+          ? OfflineFirstGetPolicy.awaitRemote
+          : OfflineFirstGetPolicy.awaitRemoteWhenNoneExist;
+
+      talker.info(
+          'getPaymentPlan: businessId=$businessId, fetchOnline=$fetchOnline, policy=$policy');
+
       final result = await repository.get<Plan>(
         query: query,
-        policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+        policy: policy,
       );
-      return result.firstOrNull;
+
+      final plan = result.firstOrNull;
+      talker.info(
+          'getPaymentPlan: found plan=${plan != null}, planId=${plan?.id}');
+
+      return plan;
     } catch (e) {
-      talker.error(e);
+      talker.error('getPaymentPlan error: $e');
       rethrow;
     }
   }
