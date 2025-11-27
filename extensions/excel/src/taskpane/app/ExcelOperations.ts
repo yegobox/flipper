@@ -109,9 +109,8 @@ export class ExcelOperations {
                 switch (validationType) {
                     case 'email':
                         range.dataValidation.rule = {
-                            list: {
-                                inCellDropDown: true,
-                                source: 'email@example.com'
+                            custom: {
+                                formula: '=AND(ISNUMBER(FIND("@",INDIRECT("RC",FALSE))),LEN(INDIRECT("RC",FALSE))-LEN(SUBSTITUTE(INDIRECT("RC",FALSE),"@",""))=1,FIND(".",INDIRECT("RC",FALSE))>FIND("@",INDIRECT("RC",FALSE))+1,LEN(LEFT(INDIRECT("RC",FALSE),FIND("@",INDIRECT("RC",FALSE))-1))>0,LEN(MID(INDIRECT("RC",FALSE),FIND("@",INDIRECT("RC",FALSE))+1,LEN(INDIRECT("RC",FALSE))))>2)'
                             }
                         };
                         break;
