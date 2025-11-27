@@ -276,8 +276,12 @@ export class SalesReportManager {
                 const usedRange = sheet.getUsedRange();
                 usedRange.load('address');
                 workbook.context.sync().then(() => {
-                    if (usedRange.address) {
-                        usedRange.clear();
+                    const excelRange = usedRange as unknown as Excel.Range;
+                    if (excelRange && excelRange.address) {
+                        const clearFn = (excelRange as unknown as { clear?: () => void }).clear;
+                        if (typeof clearFn === 'function') {
+                            clearFn.call(excelRange);
+                        }
                     }
                 });
             } catch (clearError) {

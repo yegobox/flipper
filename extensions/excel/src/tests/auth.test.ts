@@ -44,7 +44,7 @@ describe('FlipperApp Authentication', () => {
     type OfficeReadyCallback = Parameters<typeof Office.onReady>[0];
     const officeReadyInfo = {
       host: Office.HostType.Excel,
-      platform: Office.PlatformType.PC
+      platform: 'PC'
     };
 
     const mockOnReady: typeof Office.onReady = ((callback?: OfficeReadyCallback) => {

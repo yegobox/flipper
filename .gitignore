@@ -19,7 +19,7 @@ review-my-changes.sh
 *.ipr
 *.iws
 .idea/
-
+ditto
 *.db/
 
 # The .vscode folder contains launch configuration and tasks you configure in
