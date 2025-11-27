@@ -1,5 +1,6 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { UiManager } from './UiManager';
+import {  ENV } from '../env';
 import { FlipperUser } from './types';
 
 interface AuthManagerDeps {
@@ -127,7 +128,6 @@ export class AuthManager {
     }
 
     private async authenticateUser(phoneNumber: string): Promise<void> {
-        console.log('Authenticating user with phone:', phoneNumber);
 
         let formattedPhone = phoneNumber;
         if (!phoneNumber.startsWith('+') && !phoneNumber.includes('@')) {
@@ -138,7 +138,7 @@ export class AuthManager {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                Authorization: 'Basic ' + btoa('admin:admin')
+                'Authorization': ENV.BASIC_AUTH
             },
             body: JSON.stringify({ phoneNumber: formattedPhone })
         });
@@ -181,7 +181,7 @@ export class AuthManager {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                Authorization: 'Basic ' + btoa('admin:admin')
+                'Authorization': ENV.BASIC_AUTH
             },
             body: JSON.stringify({ pin, otp })
         });
@@ -202,7 +202,7 @@ export class AuthManager {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                Authorization: 'Basic ' + btoa('admin:admin')
+                'Authorization': ENV.BASIC_AUTH
             }
         });
 
