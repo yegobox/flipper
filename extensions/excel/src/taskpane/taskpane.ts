@@ -793,6 +793,20 @@ class FlipperApp {
         if (loadingState) loadingState.style.display = 'none';
     }
 
+    private updateStatusBar(message: string, isLoading: boolean = false): void {
+        const statusText = document.getElementById('status-text');
+        const statusSpinner = document.getElementById('status-spinner');
+        
+        if (statusText) {
+            statusText.textContent = message;
+        }
+        
+        if (statusSpinner) {
+            statusSpinner.style.display = isLoading ? 'inline-block' : 'none';
+        }
+    }
+
+
     private showAppContainer(): void {
         const appContainer = document.getElementById('app-container');
         const authState = document.getElementById('auth-state');
@@ -947,6 +961,8 @@ class FlipperApp {
                 return;
             }
 
+            // Update status bar to show we're fetching data
+            this.updateStatusBar('Fetching sales data...', true);
             if (isManual) this.showNotification('Fetching sales data...', 'warning');
 
             let transactions: any[] = [];
@@ -1032,9 +1048,6 @@ class FlipperApp {
 
                     await context.sync();
 
-                    if (activeSheet.name === 'sales' || activeSheet.name === 'items') {
-                        this.showLoadingState();
-                    }
                     console.log('Current worksheets:', worksheets.items.map(ws => ws.name));
 
                     // Step 2: Create or get the sales sheet
@@ -1074,6 +1087,9 @@ class FlipperApp {
 
                     await context.sync();
                     console.log('Sales sheet ready');
+
+                    // Update status bar
+                    this.updateStatusBar('Writing sales data to Excel...', true);
 
                     // Step 3: Write headers
                     console.log('Writing headers...');
@@ -1220,6 +1236,15 @@ class FlipperApp {
 
                     console.log('Sales report generation completed successfully');
                     this.addRecentAction('Sales Report', `Generated sales report with ${transactions.length} transactions and ${allItems.length} items`);
+                    
+                    // Update status bar to show completion
+                    this.updateStatusBar('Sales report complete', false);
+                    
+                    // Reset status bar after 3 seconds
+                    setTimeout(() => {
+                        this.updateStatusBar('Connected to Excel', false);
+                    }, 3000);
+                    
                     if (isManual) this.showNotification(`Sales report generated successfully! Created ${transactions.length} transaction records and ${allItems.length} items in separate sheets.`, 'success');
 
                 } catch (excelError) {
@@ -1238,9 +1263,10 @@ class FlipperApp {
                 errorMessage += 'Please check the console for more details.';
             }
 
+            // Update status bar to show error
+            this.updateStatusBar('Error generating report', false);
+            
             if (isManual) this.showNotification(errorMessage, 'error');
-        } finally {
-            this.hideLoadingState();
         }
     }
 
