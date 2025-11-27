@@ -12,7 +12,7 @@ const createMockDOM = () => {
     <div id="app-container" style="display: none;">
       <header class="app-header">
         <div class="header-content">
-          <img width="32" height="32" src="../../assets/logo-filled.png" alt="Flipper" title="Flipper" />
+          <img width="32" height="32" src="../../assets/logo.png" alt="Flipper" title="Flipper" />
           <h1 class="app-title">Flipper</h1>
         </div>
         <div class="header-actions">
@@ -158,7 +158,7 @@ const createMockDOM = () => {
     <div id="auth-state" style="display: none;">
       <div class="auth-content">
         <div class="auth-header">
-          <img width="48" height="48" src="../../assets/logo-filled.png" alt="Flipper" title="Flipper" />
+          <img width="48" height="48" src="../../assets/logo.png" alt="Flipper" title="Flipper" />
           <h1>Welcome to Flipper</h1>
           <p>Connect to your Flipper account to access data</p>
         </div>

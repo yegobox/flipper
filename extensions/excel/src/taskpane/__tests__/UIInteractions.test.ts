@@ -11,7 +11,7 @@ describe('UI Interactions', () => {
       <div id="app-container" style="display: none;">
         <header class="app-header">
           <div class="header-content">
-            <img width="32" height="32" src="../../assets/logo-filled.png" alt="Flipper" title="Flipper" />
+            <img width="32" height="32" src="../../assets/logo.png" alt="Flipper" title="Flipper" />
             <h1 class="app-title">Flipper</h1>
           </div>
           <div class="header-actions">
