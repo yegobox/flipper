@@ -31,7 +31,9 @@
   },
   "dependencies": {
     "@dittolive/ditto": "^4.13.0",
+    "@supabase/supabase-js": "^2.86.0",
     "core-js": "^3.36.0",
+    "otpauth": "^9.4.1",
     "regenerator-runtime": "^0.14.1"
   },
   "devDependencies": {

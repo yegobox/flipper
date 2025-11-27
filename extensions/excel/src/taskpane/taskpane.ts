@@ -7,6 +7,7 @@
 
 import { DittoService, DittoConfig, Transaction } from './DittoService';
 import { ENV } from './env';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 
 interface RecentAction {
     id: string;
@@ -129,8 +130,11 @@ class FlipperApp {
     private dittoConfig: DittoConfig | null = null;
     private salesReportInterval: number | null = null;
     private isPolling = false;
+    private supabase: SupabaseClient;
 
     constructor() {
+        const env = ENV as any;
+        this.supabase = createClient(env.SUPABASE_URL, env.SUPABASE_ANON_KEY);
         this.initializeApp();
     }
 
@@ -269,7 +273,16 @@ class FlipperApp {
                     return;
                 }
 
-                await this.verifyOtpAndLogin(pin, otpCode);
+                const authMethod = this.getSelectedAuthMethod();
+                
+                if (authMethod === 'authenticator') {
+                    // TOTP verification - different endpoint
+                    await this.verifyTotpAndLogin(pin, otpCode);
+                } else {
+                    // SMS OTP verification
+                    await this.verifySmsOtpAndLogin(pin, otpCode);
+                }
+                
                 this.hideLoadingState();
                 this.showAppContainer();
                 this.updateUserInterface();
@@ -291,7 +304,7 @@ class FlipperApp {
                         this.showError('OTP is required for login');
                     }
                 } else {
-                    // Authenticator method - just show OTP field
+                    // Authenticator method - just show OTP field (no SMS request needed)
                     this.showOtpField();
                     this.updateLoginButtonText('Verify & Sign In');
                 }
@@ -306,16 +319,27 @@ class FlipperApp {
     }
 
     private async authenticateUser(phoneNumber: string): Promise<void> {
+        console.log('Authenticating user with phone:', phoneNumber);
+        
+        // Ensure phone number has + prefix if it's not an email
+        let formattedPhone = phoneNumber;
+        if (!phoneNumber.startsWith('+') && !phoneNumber.includes('@')) {
+            formattedPhone = '+' + phoneNumber;
+        }
+        console.log('Formatted phone for API:', formattedPhone);
+
         const response = await fetch(`${this.API_BASE_URL}/v2/api/user`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': 'Basic ' + btoa('admin:admin')
             },
-            body: JSON.stringify({ phoneNumber })
+            body: JSON.stringify({ phoneNumber: formattedPhone })
         });
 
         if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Authentication failed response:', errorText);
             throw new Error(`Authentication failed: ${response.status} ${response.statusText}`);
         }
 
@@ -346,11 +370,12 @@ class FlipperApp {
         return await response.json();
     }
 
-    private async verifyOtpAndLogin(pin: string, otp: string): Promise<void> {
+    private async verifySmsOtpAndLogin(pin: string, otp: string): Promise<void> {
         const response = await fetch(`${this.API_BASE_URL}/v2/api/login/verify-otp`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'Authorization': 'Basic ' + btoa('admin:admin')
             },
             body: JSON.stringify({ pin, otp })
         });
@@ -365,6 +390,110 @@ class FlipperApp {
 
         // Fetch user data using the phone number from the response
         await this.authenticateUser(phoneNumber);
+    }
+
+    private async verifyTotpAndLogin(pin: string, totpCode: string): Promise<void> {
+        this.showNotification(`Verifying TOTP code...${pin}`);
+        // Step 1: Get the PIN object to retrieve userId
+        const pinResponse = await fetch(`${this.API_BASE_URL}/v2/api/pin/${pin}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': 'Basic ' + btoa('admin:admin')
+            }
+        });
+
+        if (!pinResponse.ok) {
+            throw new Error('Invalid PIN. Please re-enter and try again.');
+        }
+
+        const pinData = await pinResponse.json();
+        console.log('PIN API Response:', pinData);
+        
+        // As per instruction, the PIN is the same as the numeric user_id
+        const numericUserId = parseInt(pin, 10);
+        console.log('Using PIN as numericUserId:', numericUserId);
+
+        // IPin uses snake_case for JSON serialization
+        const phoneNumber = pinData.phoneNumber || pinData.phone_number;
+        console.log('Extracted phoneNumber:', phoneNumber);
+
+        if (!phoneNumber) {
+            throw new Error('Could not retrieve Phone Number from PIN.');
+        }
+
+        // Step 2: Get the user's TOTP secret from Supabase
+        const { data, error } = await this.supabase
+            .from('user_mfa_secrets')
+            .select('secret')
+            .eq('user_id', numericUserId)
+            .limit(1)
+            .single();
+
+        if (error || !data) {
+            this.showNotification('Error fetching TOTP secret: ' + error?.message);
+            console.error('Error fetching TOTP secret:', error);
+            throw new Error('TOTP not configured for this account.');
+        }
+
+        const secret = data.secret;
+
+        // Step 3: Verify the TOTP code client-side
+        const isValid = this.verifyTotpCode(secret, totpCode);
+
+        if (!isValid) {
+            throw new Error('Invalid authenticator code. Please try again.');
+        }
+
+        // Step 4: If valid, authenticate the user
+        await this.authenticateUser(phoneNumber);
+    }
+
+    private verifyTotpCode(secret: string, code: string): boolean {
+        try {
+            // Clean the secret and code
+            const cleanSecret = secret.replace(/[^A-Z2-7]/g, '');
+            const cleanCode = code.replace(/[^0-9]/g, '');
+
+            // Import TOTP from otpauth library
+            const { TOTP } = require('otpauth');
+
+            // Create TOTP instance
+            const totp = new TOTP({
+                issuer: 'Flipper',
+                label: 'User',
+                algorithm: 'SHA1',
+                digits: 6,
+                period: 30,
+                secret: cleanSecret
+            });
+
+            // Get current time in seconds
+            const currentTime = Math.floor(Date.now() / 1000);
+
+            // Check current time window
+            const currentToken = totp.generate({ timestamp: currentTime * 1000 });
+            if (currentToken === cleanCode) {
+                return true;
+            }
+
+            // Check previous time window (30 seconds ago)
+            const previousToken = totp.generate({ timestamp: (currentTime - 30) * 1000 });
+            if (previousToken === cleanCode) {
+                return true;
+            }
+
+            // Check next time window (30 seconds ahead)
+            const nextToken = totp.generate({ timestamp: (currentTime + 30) * 1000 });
+            if (nextToken === cleanCode) {
+                return true;
+            }
+
+            return false;
+        } catch (e) {
+            console.error('TOTP verification error:', e);
+            return false;
+        }
     }
 
     private getSelectedAuthMethod(): 'authenticator' | 'sms' {
