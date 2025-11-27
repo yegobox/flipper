@@ -72,11 +72,11 @@ export class ExcelOperations {
         try {
             await Excel.run(async (context) => {
                 const range = context.workbook.getSelectedRange();
-                range.load('address, rowCount');
+                range.load('address, rowCount, rowIndex');
                 await context.sync();
 
                 const worksheet = context.workbook.worksheets.getActiveWorksheet();
-                const analysisRange = worksheet.getRange(`A${range.rowCount + 2}`);
+                const analysisRange = worksheet.getRange(`A${range.rowIndex + range.rowCount + 2}`);
 
                 analysisRange.values = [['Data Analysis Summary']];
                 analysisRange.format.font.bold = true;
@@ -118,7 +118,7 @@ export class ExcelOperations {
                     case 'phone':
                         range.dataValidation.rule = {
                             custom: {
-                                formula: '=AND(LEN(A1)=10,ISNUMBER(A1))'
+                                formula: '=AND(LEN(INDIRECT("RC",FALSE))=10,ISNUMBER(INDIRECT("RC",FALSE)))'
                             }
                         };
                         break;
@@ -166,27 +166,39 @@ export class ExcelOperations {
 
             await Excel.run(async (context) => {
                 const range = context.workbook.getSelectedRange();
-                range.load('address, values');
+                range.load('address, values, columnCount, rowCount');
 
                 await context.sync();
 
+                let changesMade = false;
+
                 switch (cleanupType) {
                     case 'duplicates':
-                        console.log('Duplicate removal logic');
+                        const columns = Array.from({ length: range.columnCount }, (_, i) => i);
+                        // Assume header if more than 1 row, otherwise treat single row as data
+                        range.removeDuplicates(columns, range.rowCount > 1);
+                        changesMade = true;
                         break;
                     case 'spaces':
-                        console.log('Space trimming logic');
+                        range.values = range.values.map(row => 
+                            row.map(cell => typeof cell === 'string' ? cell.trim() : cell)
+                        );
+                        changesMade = true;
                         break;
                     case 'format':
-                        console.log('Format standardization logic');
+                        range.numberFormat = Array.from({ length: range.rowCount }, () => Array(range.columnCount).fill('General'));
+                        changesMade = true;
                         break;
                     default:
                         break;
                 }
 
-                this.recentActions.add('Apply Cleanup', `Applied ${cleanupType} cleanup to range ${range.address}`);
-                console.log(`Applied ${cleanupType} cleanup to range: ${range.address}`);
-                this.uiManager.showNotification(`Applied ${cleanupType} cleanup successfully`, 'success');
+                if (changesMade) {
+                    await context.sync();
+                    this.recentActions.add('Apply Cleanup', `Applied ${cleanupType} cleanup to range ${range.address}`);
+                    console.log(`Applied ${cleanupType} cleanup to range: ${range.address}`);
+                    this.uiManager.showNotification(`Applied ${cleanupType} cleanup successfully`, 'success');
+                }
             });
         } catch (error) {
             console.error('Error applying data cleanup:', error);
