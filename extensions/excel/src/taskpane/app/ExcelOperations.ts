@@ -72,10 +72,11 @@ export class ExcelOperations {
         try {
             await Excel.run(async (context) => {
                 const range = context.workbook.getSelectedRange();
-                range.load('address');
+                range.load('address, rowCount');
+                await context.sync();
 
                 const worksheet = context.workbook.worksheets.getActiveWorksheet();
-                const analysisRange = worksheet.getRange(`A${range.getRowCount() + 2}`);
+                const analysisRange = worksheet.getRange(`A${range.rowCount + 2}`);
 
                 analysisRange.values = [['Data Analysis Summary']];
                 analysisRange.format.font.bold = true;

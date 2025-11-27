@@ -11,6 +11,13 @@ export interface DittoConfig {
     customAuthURL?: string;
     websocketURL: string;
 }
+export interface IdentityConfig {
+  type: 'onlinePlayground';
+  appID: string;
+  token: string;
+  customAuthURL?: string;
+  enableDittoCloudSync?: boolean;
+}
 
 export interface Transaction {
     id: string;
@@ -56,7 +63,7 @@ export class DittoService {
             await init();
 
             // Create Ditto instance
-            const identity: any = {
+            const identity: IdentityConfig = {
                 type: 'onlinePlayground',
                 appID: config.appID,
                 token: config.token,
@@ -118,22 +125,23 @@ export class DittoService {
             // We use a large limit or no limit for subscription to ensure we get the data
             this.ditto!.sync.registerSubscription(`
                 SELECT * FROM transactions 
-                WHERE branchId = ${branchId} 
+                WHERE branchId = :branchId 
                 AND status != 'pending'
-                AND lastTouched >= '${startIso}'
-                AND lastTouched <= '${endIso}'
-            `);
+                AND lastTouched >= :startIso
+                AND lastTouched <= :endIso
+            `, { branchId, startIso, endIso });
 
             this.ditto!.sync.registerSubscription(`
                 SELECT * FROM transaction_items 
-                WHERE branchId = ${branchId} 
-                AND lastTouched >= '${startIso}'
-                AND lastTouched <= '${endIso}'
-            `);
+                WHERE branchId = :branchId 
+                AND lastTouched >= :startIso
+                AND lastTouched <= :endIso
+            `, { branchId, startIso, endIso });
 
             console.log('Subscription registered successfully');
         } catch (error) {
             console.error('Failed to register subscription:', error);
+            throw error;
         }
     }
 

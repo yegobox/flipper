@@ -2,7 +2,7 @@ import { SupabaseClient } from '@supabase/supabase-js';
 import { UiManager } from './UiManager';
 import {  ENV } from '../env';
 import { FlipperUser } from './types';
-
+import { TOTP } from 'otpauth';
 interface AuthManagerDeps {
     apiBaseUrl: string;
     supabase: SupabaseClient;
@@ -242,7 +242,7 @@ export class AuthManager {
         try {
             const cleanSecret = secret.replace(/[^A-Z2-7]/g, '');
             const cleanCode = code.replace(/[^0-9]/g, '');
-            const { TOTP } = require('otpauth');
+            
 
             const totp = new TOTP({
                 issuer: 'Flipper',
