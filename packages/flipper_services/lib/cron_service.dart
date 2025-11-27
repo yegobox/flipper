@@ -108,9 +108,11 @@ class CronService {
                         onDeviceId: deviceId)
                     .listen((delegations) async {
               /// show notification of received delegation
-              ProxyService.notification.sendLocalNotification(
-                body: 'Received ${delegations.length} delegations',
-              );
+              if (delegations.isNotEmpty && delegations.length > 0) {
+                ProxyService.notification.sendLocalNotification(
+                  body: 'Received ${delegations.length} delegations',
+                );
+              }
               for (TransactionDelegation delegation in delegations) {
                 try {
                   talker.info(
