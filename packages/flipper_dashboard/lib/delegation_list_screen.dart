@@ -424,7 +424,7 @@ class _DelegationCard extends StatelessWidget {
                           Expanded(
                             child: Text(
                               delegation.customerName ??
-                                  'Transaction ${delegation.transactionId.substring(0, 8)}',
+                                  'Transaction ${delegation.transactionId.length > 8 ? delegation.transactionId.substring(0, 8) : delegation.transactionId}',
                               style: const TextStyle(
                                   fontWeight: FontWeight.w600,
                                   fontSize: 16,
