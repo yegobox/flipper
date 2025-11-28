@@ -27,10 +27,10 @@ PODS:
     - FlutterMacOS
   - device_info_plus (0.0.1):
     - FlutterMacOS
-  - ditto_live (4.13.0):
-    - DittoFlutter (= 4.13.0)
+  - ditto_live (4.13.1):
+    - DittoFlutter (= 4.13.1)
     - FlutterMacOS
-  - DittoFlutter (4.13.0)
+  - DittoFlutter (4.13.1)
   - file_picker (0.0.1):
     - FlutterMacOS
   - file_selector_macos (0.0.1):
@@ -485,8 +485,8 @@ SPEC CHECKSUMS:
   desktop_drop: 69eeff437544aa619c8db7f4481b3a65f7696898
   desktop_webview_auth: 9bba53a29c9bc6a4ff621fd0ebfbb18856c4dada
   device_info_plus: 1b14eed9bf95428983aed283a8d51cce3d8c4215
-  ditto_live: faa8d7d681f217a7343b9e0e43fffb4fcf511089
-  DittoFlutter: f47bc0793e57e7118f12044331c2f2409ba1cf75
+  ditto_live: a46b3eba63227c95adffe6094d3153a74c060d0c
+  DittoFlutter: 26e21d5665e9bcc11660c4eceb1ec66b8ba64667
   file_picker: e716a70a9fe5fd9e09ebc922d7541464289443af
   file_selector_macos: 3e56eaea051180007b900eacb006686fd54da150
   Firebase: f07b15ae5a6ec0f93713e30b923d9970d144af3e
@@ -550,6 +550,6 @@ SPEC CHECKSUMS:
   url_launcher_macos: 175a54c831f4375a6cf895875f716ee5af3888ce
   window_manager: 3a1844359a6295ab1e47659b1a777e36773cd6e8
 
-PODFILE CHECKSUM: 9fd61e0e8cf942073261013b9a6080e12b396968
+PODFILE CHECKSUM: 4e80d100a5cc776c5236d5c7ba0b2a8ca32d9310
 
 COCOAPODS: 1.16.2

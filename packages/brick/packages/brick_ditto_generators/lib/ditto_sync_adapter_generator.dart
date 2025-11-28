@@ -157,6 +157,11 @@ class DittoSyncAdapterGenerator extends GeneratorForAnnotation<DittoAdapter> {
       ..writeln('')
       ..writeln('  @override')
       ..writeln(
+        '  SyncDirection get syncDirection => SyncDirection.$syncDirection;',
+      )
+      ..writeln('')
+      ..writeln('  @override')
+      ..writeln(
         '  bool get shouldHydrateOnStartup => $hydrateOnStartupLiteral;',
       )
       ..writeln('')

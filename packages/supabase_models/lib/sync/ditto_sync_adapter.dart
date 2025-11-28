@@ -1,6 +1,7 @@
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:supabase_models/brick/repository.dart';
+import 'package:brick_ditto_generators/ditto_sync_adapter.dart';
 
 /// Represents a Ditto query definition (SQL + optional arguments).
 class DittoSyncQuery {
@@ -37,6 +38,9 @@ class DittoBackupLinkConfig {
 abstract class DittoSyncAdapter<T extends OfflineFirstWithSupabaseModel> {
   /// Logical Ditto collection backing this model (e.g. `counters`).
   String get collectionName;
+
+  /// The sync direction for this adapter.
+  SyncDirection get syncDirection => SyncDirection.bidirectional;
 
   /// Whether the coordinator should perform an initial remote hydration for
   /// this adapter when observers are started while skipping the default Ditto
@@ -98,10 +102,14 @@ abstract class DittoSyncAdapter<T extends OfflineFirstWithSupabaseModel> {
   /// Upserts a model to the repository with the correct generic type.
   /// This method ensures that the SQLite provider can find the correct adapter
   /// by preserving the concrete type T rather than using the base type.
+  /// Upserts a model to the repository with the correct generic type.
+  /// This method ensures that the SQLite provider can find the correct adapter
+  /// by preserving the concrete type T rather than using the base type.
   Future<T> upsertToRepository(T model) async {
-    return Repository().upsert<T>(
+    return Repository().upsertFromDitto<T>(
       model,
       policy: OfflineFirstUpsertPolicy.optimisticLocal,
     );
   }
 }
+

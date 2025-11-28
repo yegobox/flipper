@@ -103,9 +103,38 @@ mixin CapellaVariantMixin implements VariantInterface {
       // Subscribe to ensure we have the latest data from Ditto mesh
       await ditto.sync.registerSubscription(query, arguments: arguments);
 
-      // Execute paged query
-      final result = await ditto.store.execute(query, arguments: arguments);
-      final items = result.items;
+      // Use registerObserver to wait for data
+      final completer = Completer<List<dynamic>>();
+      final observer = ditto.store.registerObserver(
+        query,
+        arguments: arguments,
+        onChange: (result) {
+          if (!completer.isCompleted) {
+            if (result.items.isNotEmpty) {
+              completer.complete(result.items.toList());
+            } else {
+              completer.complete([]);
+            }
+          }
+        },
+      );
+
+      List<dynamic> items = [];
+      try {
+        // Wait for data or timeout
+        items = await completer.future.timeout(
+          const Duration(seconds: 10),
+          onTimeout: () {
+            if (!completer.isCompleted) {
+              talker.warning('Timeout waiting for variants list');
+              completer.complete([]);
+            }
+            return [];
+          },
+        );
+      } finally {
+        observer.cancel();
+      }
 
       // Prepare count query if pagination enabled
       int? totalCount;
@@ -225,15 +254,40 @@ mixin CapellaVariantMixin implements VariantInterface {
         arguments: arguments,
       );
 
-      final result = await dittoService.dittoInstance!.store.execute(
+      final completer = Completer<Variant?>();
+      final observer = dittoService.dittoInstance!.store.registerObserver(
         query,
         arguments: arguments,
+        onChange: (result) {
+          if (!completer.isCompleted) {
+            if (result.items.isNotEmpty) {
+              completer.complete(Variant.fromJson(
+                  Map<String, dynamic>.from(result.items.first.value)));
+            } else {
+              completer.complete(null);
+            }
+          }
+        },
       );
 
-      return result.items.isNotEmpty
-          ? Variant.fromJson(
-              Map<String, dynamic>.from(result.items.first.value))
-          : null;
+      try {
+        // Wait for data or timeout
+        // If data is already there, onChange is called immediately
+        // If not, we wait up to 10 seconds for sync
+        final variant = await completer.future.timeout(
+          const Duration(seconds: 10),
+          onTimeout: () {
+            if (!completer.isCompleted) {
+              talker.warning('Timeout waiting for variant: $id / $bcd / $name');
+              completer.complete(null);
+            }
+            return null;
+          },
+        );
+        return variant;
+      } finally {
+        observer.cancel();
+      }
     } catch (e) {
       talker.error('Error getting variant from Ditto: $e');
       return null;

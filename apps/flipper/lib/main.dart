@@ -58,7 +58,6 @@ bool skipDependencyInitialization = false;
 //1.1.14
 Future<void> main() async {
   // Initialize GlobalErrorHandler first to capture early errors
-  GlobalErrorHandler.initialize();
 
   // FIXED: Initialize WidgetsBinding BEFORE Sentry
   WidgetsFlutterBinding.ensureInitialized();
@@ -71,7 +70,13 @@ Future<void> main() async {
       debugPrint('🚀 Starting app initialization...');
 
       debugPrint('📱 Initializing Firebase...');
+      debugPrint('🚀 Starting app initialization...');
+
+      debugPrint('📱 Initializing Firebase...');
       await _initializeFirebase();
+      debugPrint('✅ Firebase initialized');
+
+      debugPrint('🔧 Initializing dependencies...');
       debugPrint('✅ Firebase initialized');
 
       debugPrint('🔧 Initializing dependencies...');
@@ -79,11 +84,15 @@ Future<void> main() async {
       debugPrint('✅ Dependencies initialized');
 
       debugPrint('🗄️  Initializing Supabase...');
-      await _initializeSupabase();
-      debugPrint('✅ Supabase initialized');
+      debugPrint('✅ Dependencies initialized');
 
-      debugPrint('🔌 Setting up locator...');
+      debugPrint('🗄️  Initializing Supabase...');
+      await _initializeSupabase();
+      GlobalErrorHandler.initialize();
       loc.setupLocator(stackedRouter: stackedRouter);
+      debugPrint('✅ Locator setup complete');
+
+      debugPrint('💬 Setting up dialogs...');
       debugPrint('✅ Locator setup complete');
 
       debugPrint('💬 Setting up dialogs...');
@@ -91,7 +100,13 @@ Future<void> main() async {
       debugPrint('✅ Dialogs setup complete');
 
       debugPrint('📋 Setting up bottom sheets...');
+      debugPrint('✅ Dialogs setup complete');
+
+      debugPrint('📋 Setting up bottom sheets...');
       setupBottomSheetUi();
+      debugPrint('✅ Bottom sheets setup complete');
+
+      debugPrint('⚙️  Initializing additional dependencies...');
       debugPrint('✅ Bottom sheets setup complete');
 
       debugPrint('⚙️  Initializing additional dependencies...');
@@ -99,9 +114,14 @@ Future<void> main() async {
       debugPrint('✅ Additional dependencies initialized');
 
       debugPrint('🔄 Registering Ditto sync defaults...');
+      debugPrint('✅ Additional dependencies initialized');
+
+      debugPrint('🔄 Registering Ditto sync defaults...');
       await DittoSyncRegistry.registerDefaults();
       debugPrint('✅ Ditto sync defaults registered');
+      debugPrint('✅ Ditto sync defaults registered');
 
+      debugPrint('🎉 App initialization completed successfully!');
       debugPrint('🎉 App initialization completed successfully!');
     }
   }
@@ -135,12 +155,6 @@ Future<void> main() async {
                   'context': 'App initialization timeout',
                   'timeout_duration': '30 seconds',
                 }),
-              );
-              GlobalErrorHandler.logError(
-                exception,
-                stackTrace: StackTrace.current,
-                type: 'timeout',
-                context: {'timeout_duration': '30 seconds'},
               );
             } catch (e) {
               debugPrint('Failed to report timeout to telemetry: $e');
@@ -224,9 +238,85 @@ Future<void> main() async {
                 ),
               );
             }
+            if (snapshot.hasError) {
+              // Remove splash screen before showing error
+              FlutterNativeSplash.remove();
+
+              // Log full error to Sentry/monitoring
+              debugPrint('❌ App initialization error: ${snapshot.error}');
+              if (snapshot.stackTrace != null) {
+                debugPrint('Stack trace: ${snapshot.stackTrace}');
+              }
+
+              // Report to telemetry systems
+              try {
+                final stackTrace = snapshot.stackTrace ?? StackTrace.current;
+
+                // Send to Sentry
+                Sentry.captureException(
+                  snapshot.error,
+                  stackTrace: stackTrace,
+                  hint: Hint.withMap({
+                    'context': 'App initialization failed',
+                    'error_type': snapshot.error.runtimeType.toString(),
+                  }),
+                );
+
+                // Send to GlobalErrorHandler
+                GlobalErrorHandler.logError(
+                  snapshot.error!,
+                  stackTrace: stackTrace,
+                  type: 'initialization_error',
+                  context: {
+                    'error_type': snapshot.error.runtimeType.toString()
+                  },
+                );
+              } catch (e) {
+                debugPrint('Failed to report error to telemetry: $e');
+              }
+
+              // Show user-friendly error screen
+              return const MaterialApp(
+                home: Scaffold(
+                  backgroundColor: Colors.white,
+                  body: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          color: Colors.red,
+                          size: 64,
+                        ),
+                        SizedBox(height: 16),
+                        Text(
+                          'Initialization Failed',
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 32),
+                          child: Text(
+                            'Something went wrong while starting the app. Please try again.',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(fontSize: 14),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            }
             // Remove splash screen when the main app is ready
             debugPrint('🎬 [main.dart] Removing splash screen...');
+            debugPrint('🎬 [main.dart] Removing splash screen...');
             FlutterNativeSplash.remove();
+            debugPrint(
+                '🎬 [main.dart] Splash removed, returning FlipperApp...');
             debugPrint(
                 '🎬 [main.dart] Splash removed, returning FlipperApp...');
             return const FlipperApp();
@@ -253,6 +343,7 @@ class FlipperApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('🎬 [FlipperApp] Building FlipperApp widget tree...');
     debugPrint('🎬 [FlipperApp] Building FlipperApp widget tree...');
     return ProviderScope(
       observers: [StateObserver()],
