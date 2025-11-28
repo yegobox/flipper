@@ -193,7 +193,7 @@ mixin CapellaDelegationMixin implements DelegationInterface {
         query,
         arguments: arguments,
         onChange: (result) {
-          if (result.items.isNotEmpty && !completer.isCompleted) {
+          if (!completer.isCompleted) {
             completer.complete(result.items.toList());
           }
         },
