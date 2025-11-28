@@ -109,8 +109,12 @@ mixin CapellaVariantMixin implements VariantInterface {
         query,
         arguments: arguments,
         onChange: (result) {
-          if (result.items.isNotEmpty && !completer.isCompleted) {
-            completer.complete(result.items.toList());
+          if (!completer.isCompleted) {
+            if (result.items.isNotEmpty) {
+              completer.complete(result.items.toList());
+            } else {
+              completer.complete([]);
+            }
           }
         },
       );
@@ -255,9 +259,13 @@ mixin CapellaVariantMixin implements VariantInterface {
         query,
         arguments: arguments,
         onChange: (result) {
-          if (result.items.isNotEmpty && !completer.isCompleted) {
-            completer.complete(Variant.fromJson(
-                Map<String, dynamic>.from(result.items.first.value)));
+          if (!completer.isCompleted) {
+            if (result.items.isNotEmpty) {
+              completer.complete(Variant.fromJson(
+                  Map<String, dynamic>.from(result.items.first.value)));
+            } else {
+              completer.complete(null);
+            }
           }
         },
       );
@@ -368,9 +376,6 @@ mixin CapellaVariantMixin implements VariantInterface {
 
       String query = 'SELECT * FROM variants WHERE stockId = :stockId';
       final arguments = <String, dynamic>{'stockId': stockId};
-
-      // Subscribe to ensure we have the latest data
-      await ditto.sync.registerSubscription(query, arguments: arguments);
 
       // Subscribe to ensure we have the latest data
       await ditto.sync.registerSubscription(query, arguments: arguments);
