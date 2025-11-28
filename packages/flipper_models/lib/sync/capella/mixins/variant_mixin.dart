@@ -372,6 +372,9 @@ mixin CapellaVariantMixin implements VariantInterface {
       // Subscribe to ensure we have the latest data
       await ditto.sync.registerSubscription(query, arguments: arguments);
 
+      // Subscribe to ensure we have the latest data
+      await ditto.sync.registerSubscription(query, arguments: arguments);
+
       final result = await ditto.store.execute(query, arguments: arguments);
       var items = result.items;
       return items

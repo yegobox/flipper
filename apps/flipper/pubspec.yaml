@@ -4,6 +4,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # 1.170.4252223234854+1755779343
 # 1.180.4252223234901+1756527939
 
+version: 1.180.4252223234901+1756528468
 version: 1.180.4252223234901+1756528470
 
 
@@ -134,6 +135,7 @@ dependencies:
   flipper_login: any
   supabase_models: any
   sqlite3: ^3.1.0
+  sqlite3: ^3.1.0
   amplify_core: ^2.7.0
   amplify_api: ^2.7.0
   amplify_flutter: ^2.7.0
@@ -153,8 +155,10 @@ dependency_overrides:
   meta: ^1.16.0
   web: ^1.1.0
   sqlite3: ^3.1.0
+  sqlite3: ^3.1.0
   stacked_services: ^1.6.0
   stacked: ^3.5.0
+  device_info_plus: ^12.2.0
   device_info_plus: ^12.2.0
   firebase_ui_auth: ^3.0.0
   archive: ^3.6.1
@@ -196,6 +200,7 @@ msix_config:
   identity_name: yegobox.yegoboxflipper
 
 
+  msix_version: 1.170.5051.529
   msix_version: 1.170.5051.531
 
 
