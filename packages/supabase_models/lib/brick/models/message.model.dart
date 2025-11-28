@@ -6,6 +6,10 @@ import 'package:uuid/uuid.dart';
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'messages'),
 )
+// @DittoAdapter(
+//   'messages',
+//   syncDirection: SyncDirection.bidirectional,
+// )
 class Message extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
   @Sqlite(index: true, unique: true)

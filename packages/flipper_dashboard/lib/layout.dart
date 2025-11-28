@@ -6,6 +6,7 @@ import 'package:flipper_dashboard/kitchen_display.dart';
 import 'package:flipper_dashboard/orders_app.dart';
 import 'package:flipper_dashboard/mobile_view.dart';
 import 'package:flipper_dashboard/stock_recount_list_screen.dart';
+import 'package:flipper_dashboard/delegation_list_screen.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -21,6 +22,7 @@ enum DashboardPage {
   kitchen,
   orders,
   stockRecount,
+  delegations,
 }
 
 final selectedPageProvider =
@@ -110,6 +112,8 @@ class DashboardLayout extends HookConsumerWidget {
         return const OrdersApp();
       case DashboardPage.stockRecount:
         return const StockRecountListScreen();
+      case DashboardPage.delegations:
+        return const DelegationListScreen();
     }
   }
 }
