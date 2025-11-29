@@ -34,15 +34,16 @@ import 'package:uuid/uuid.dart';
 // Stock validation functions have been moved to utils/stock_validator.dart
 
 /// Fetches transaction items for the given transaction ID
-Future<List<TransactionItem>> _getTransactionItems(
-    {required ITransaction transaction}) async {
-  final items =
-      await ProxyService.getStrategy(Strategy.capella).transactionItems(
-    branchId: (await ProxyService.strategy.activeBranch()).id,
-    transactionId: transaction.id,
-    doneWithTransaction: false,
-    active: true,
-  );
+Future<List<TransactionItem>> _getTransactionItems({
+  required ITransaction transaction,
+}) async {
+  final items = await ProxyService.getStrategy(Strategy.capella)
+      .transactionItems(
+        branchId: (await ProxyService.strategy.activeBranch()).id,
+        transactionId: transaction.id,
+        doneWithTransaction: false,
+        active: true,
+      );
   return items;
 }
 
@@ -63,12 +64,11 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
   }
 
   /// this method will either preview or completeOrder
-  Future<void> placeFinalOrder(
-      {bool isShoppingFromWareHouse = true,
-      required ITransaction transaction,
-      required FinanceProvider financeOption}) async {
-    ref.read(previewingCart.notifier).state = !ref.read(previewingCart);
-
+  Future<void> placeFinalOrder({
+    bool isShoppingFromWareHouse = true,
+    required ITransaction transaction,
+    required FinanceProvider financeOption,
+  }) async {
     if (!isShoppingFromWareHouse) {
       /// here we just navigate to Quick setting to preview what's on cart
       /// just return as nothing to be done.
@@ -81,16 +81,16 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     try {
       String deliveryNote = deliveryNoteCotroller.text;
 
-      final items =
-          await ProxyService.getStrategy(Strategy.capella).transactionItems(
-        branchId: (await ProxyService.strategy.activeBranch()).id,
-        transactionId: transaction.id,
-        doneWithTransaction: false,
-        active: true,
-      );
+      final items = await ProxyService.getStrategy(Strategy.capella)
+          .transactionItems(
+            branchId: (await ProxyService.strategy.activeBranch()).id,
+            transactionId: transaction.id,
+            doneWithTransaction: false,
+            active: true,
+          );
 
       /// previewingCart start with state false then if is true then we are previewing stop completing the order
-      if (items.isEmpty || ref.read(previewingCart)) {
+      if (items.isEmpty) {
         // ref.read(toggleProvider.notifier).state = false;
         return;
       }
@@ -101,12 +101,14 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       }
 
       // ignore: unused_local_variable
-      String orderId = await ProxyService.strategy.createStockRequest(items,
-          mainBranchId: supplier.serverId!,
-          subBranchId: ProxyService.box.getBranchId()!,
-          deliveryNote: deliveryNote,
-          orderNote: null,
-          financingId: financeOption.id);
+      String orderId = await ProxyService.strategy.createStockRequest(
+        items,
+        mainBranchId: supplier.serverId!,
+        subBranchId: ProxyService.box.getBranchId()!,
+        deliveryNote: deliveryNote,
+        orderNote: null,
+        financingId: financeOption.id,
+      );
       await _markItemsAsDone(items, transaction);
       _changeTransactionStatus(transaction: transaction);
       await _refreshTransactionItems(transactionId: transaction.id);
@@ -117,14 +119,19 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     }
   }
 
-  FutureOr<void> _changeTransactionStatus(
-      {required ITransaction transaction}) async {
-    await ProxyService.strategy
-        .updateTransaction(transaction: transaction, status: ORDERING);
+  FutureOr<void> _changeTransactionStatus({
+    required ITransaction transaction,
+  }) async {
+    await ProxyService.strategy.updateTransaction(
+      transaction: transaction,
+      status: ORDERING,
+    );
   }
 
   Future<void> _markItemsAsDone(
-      List<TransactionItem> items, dynamic pendingTransaction) async {
+    List<TransactionItem> items,
+    dynamic pendingTransaction,
+  ) async {
     ProxyService.strategy.markItemAsDoneWithTransaction(
       isDoneWithTransaction: true,
       inactiveItems: items,
@@ -146,13 +153,13 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
   Future<void> applyDiscount(ITransaction transaction) async {
     // get items on cart
-    final items =
-        await ProxyService.getStrategy(Strategy.capella).transactionItems(
-      branchId: (await ProxyService.strategy.activeBranch()).id,
-      transactionId: transaction.id,
-      doneWithTransaction: false,
-      active: true,
-    );
+    final items = await ProxyService.getStrategy(Strategy.capella)
+        .transactionItems(
+          branchId: (await ProxyService.strategy.activeBranch()).id,
+          transactionId: transaction.id,
+          doneWithTransaction: false,
+          active: true,
+        );
 
     double discountRate = double.tryParse(discountController.text) ?? 0;
     if (discountRate <= 0) return;
@@ -215,8 +222,10 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     try {
       // Fetch the latest transaction from the database to ensure subTotal is up-to-date
       int branchIdInt = ProxyService.box.getBranchId()!;
-      final transaction = await ProxyService.strategy
-          .getTransaction(id: transactionId, branchId: branchIdInt);
+      final transaction = await ProxyService.strategy.getTransaction(
+        id: transactionId,
+        branchId: branchIdInt,
+      );
 
       if (transaction == null) {
         throw Exception("Transaction not found for completion.");
@@ -225,11 +234,13 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       if (!isValid) return false;
 
       // Validate stock levels before proceeding
-      final transactionItems =
-          await _getTransactionItems(transaction: transaction);
+      final transactionItems = await _getTransactionItems(
+        transaction: transaction,
+      );
       // Filter out services (itemTyCd == "3") from stock validation
-      final itemsToValidate =
-          transactionItems.where((item) => item.itemTyCd != "3").toList();
+      final itemsToValidate = transactionItems
+          .where((item) => item.itemTyCd != "3")
+          .toList();
       final outOfStockItems = await validateStockQuantity(itemsToValidate);
       if (outOfStockItems.isNotEmpty) {
         if (mounted) {
@@ -249,28 +260,35 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         if (item.itemTyCd == "3") {
           continue;
         }
-        final variant = await ProxyService.getStrategy(Strategy.capella)
-            .getVariant(id: item.variantId!);
+        final variant = await ProxyService.getStrategy(
+          Strategy.capella,
+        ).getVariant(id: item.variantId!);
 
         // Only deduct stock when we have a variant and we're NOT in proforma/training mode
         if (variant != null && !isProformaOrTraining) {
-          final stock = await ProxyService.getStrategy(Strategy.capella)
-              .getStockById(id: variant.stockId!);
+          final stock = await ProxyService.getStrategy(
+            Strategy.capella,
+          ).getStockById(id: variant.stockId!);
 
           originalStockQuantities[stock.id] =
               stock.currentStock!; // Store original
-          final newStock =
-              (stock.currentStock! - item.qty).roundToTwoDecimalPlaces();
+          final newStock = (stock.currentStock! - item.qty)
+              .roundToTwoDecimalPlaces();
           // save new transaction item with remaining stock
           await ProxyService.strategy.updateStock(
-              stockId: stock.id, currentStock: newStock, rsdQty: newStock);
+            stockId: stock.id,
+            currentStock: newStock,
+            rsdQty: newStock,
+          );
         }
       }
 
       // update this transaction as completed
 
       final double finalSubTotal = transactionItems.fold(
-          0, (sum, item) => sum + (item.price * item.qty));
+        0,
+        (sum, item) => sum + (item.price * item.qty),
+      );
 
       final amount = double.tryParse(receivedAmountController.text) ?? 0;
       final discount = double.tryParse(discountController.text) ?? 0;
@@ -287,9 +305,10 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           // since we need to have updated EBM settings and we rely on internet for that for the bellow platfrom
           // we haven't encountered with hydrating issue excluding windows.
           .isBranchEnableForPayment(
-              currentBranchId: branchId,
-              fetchRemote:
-                  (Platform.isAndroid || Platform.isIOS || Platform.isMacOS));
+            currentBranchId: branchId,
+            fetchRemote:
+                (Platform.isAndroid || Platform.isIOS || Platform.isMacOS),
+          );
 
       if (isDigitalPaymentEnabled && !immediateCompletion) {
         // Process digital payment only if immediateCompletion is false
@@ -321,7 +340,10 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           completeTransaction: () async {
             // Show success confirmation before completing
             await markTransactionAsCompleted(
-                transaction, finalSubTotal, paymentMethods);
+              transaction,
+              finalSubTotal,
+              paymentMethods,
+            );
             if (mounted && context.mounted) {
               showCustomSnackBarUtil(
                 context,
@@ -348,9 +370,10 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         final stockId = entry.key;
         final originalStock = entry.value;
         await ProxyService.strategy.updateStock(
-            stockId: stockId,
-            currentStock: originalStock,
-            rsdQty: originalStock);
+          stockId: stockId,
+          currentStock: originalStock,
+          rsdQty: originalStock,
+        );
       }
       await ProxyService.strategy.updateTransaction(
         transactionId: transactionId,
@@ -371,8 +394,11 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     }
   }
 
-  Future<void> markTransactionAsCompleted(ITransaction transaction,
-      double finalSubTotal, List<Payment> paymentMethods) async {
+  Future<void> markTransactionAsCompleted(
+    ITransaction transaction,
+    double finalSubTotal,
+    List<Payment> paymentMethods,
+  ) async {
     await ProxyService.strategy.updateTransaction(
       transaction: transaction,
       status: COMPLETE,
@@ -444,8 +470,9 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       } else {
         // Get country code dynamically from business country
         final branch = await ProxyService.strategy.activeBranch();
-        final business = await ProxyService.strategy
-            .getBusiness(businessId: branch.businessId!);
+        final business = await ProxyService.strategy.getBusiness(
+          businessId: branch.businessId!,
+        );
         final countryCode = _getCountryCallingCode(business?.country);
 
         String localPhone =
@@ -484,19 +511,23 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       });
 
       talker.info(
-          "⏳ Payment status set to PENDING - Waiting for user confirmation...");
+        "⏳ Payment status set to PENDING - Waiting for user confirmation...",
+      );
       talker.info(
-          "🔍 Setting up realtime listener for transaction: ${transaction.id}");
+        "🔍 Setting up realtime listener for transaction: ${transaction.id}",
+      );
 
       talker.info(
-          "👂 Realtime listener active - Will trigger when payment status = 'completed'");
+        "👂 Realtime listener active - Will trigger when payment status = 'completed'",
+      );
 
       // Add timeout for payment confirmation (60 seconds)
       Timer? paymentTimeout = Timer(Duration(seconds: 60), () {
         if (!_isProcessingPayment) {
           talker.warning("⏰ Payment confirmation timeout after 60 seconds");
-          onPaymentFailed
-              ?.call('Payment confirmation timeout. Please try again.');
+          onPaymentFailed?.call(
+            'Payment confirmation timeout. Please try again.',
+          );
           _paymentStatusChannel?.unsubscribe();
         }
       });
@@ -506,8 +537,10 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
       // Create channel with callback
       final channel = Supabase.instance.client
-          .channel('schema-db-changes',
-              opts: const RealtimeChannelConfig(ack: true))
+          .channel(
+            'schema-db-changes',
+            opts: const RealtimeChannelConfig(ack: true),
+          )
           .onPostgresChanges(
             event: PostgresChangeEvent.update,
             schema: 'public',
@@ -526,7 +559,8 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
               // Prevent double-processing
               if (_isProcessingPayment) {
                 talker.warning(
-                    "⚠️ Already processing payment, skipping duplicate event");
+                  "⚠️ Already processing payment, skipping duplicate event",
+                );
                 return;
               }
 
@@ -534,9 +568,11 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
               _isProcessingPayment = true;
 
               talker.info(
-                  "✅ Payment CONFIRMED by user - Status: ${newRecord['paymentStatus']}");
+                "✅ Payment CONFIRMED by user - Status: ${newRecord['paymentStatus']}",
+              );
               talker.info(
-                  "📱 Phone: ${newRecord['phoneNumber']}, Amount: ${newRecord['amountPayable']}");
+                "📱 Phone: ${newRecord['phoneNumber']}, Amount: ${newRecord['amountPayable']}",
+              );
 
               // Check if widget is still mounted before proceeding
               if (!mounted) {
@@ -550,9 +586,10 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                 onPaymentConfirmed?.call();
 
                 talker.info(
-                    "🧾 Starting receipt generation after payment confirmation...");
-                final bool didComplete =
-                    await _finalStepInCompletingTransaction(
+                  "🧾 Starting receipt generation after payment confirmation...",
+                );
+                final bool
+                didComplete = await _finalStepInCompletingTransaction(
                   customer: customer,
                   transaction: transaction,
                   amount: amount,
@@ -563,18 +600,21 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                     // For digital payments, don't call completeTransaction yet
                     // We'll call it after this succeeds
                     talker.info(
-                        "✅ Receipt generation completed for digital payment");
+                      "✅ Receipt generation completed for digital payment",
+                    );
                     talker.info("📄 Receipt successfully saved and synced");
                   },
                 );
                 // Execution reaches here AFTER _finalStepInCompletingTransaction completes
                 talker.info(
-                    "🏁 _finalStepInCompletingTransaction returned successfully");
+                  "🏁 _finalStepInCompletingTransaction returned successfully",
+                );
 
                 if (!didComplete) {
                   // User cancelled or receipt generation did not complete.
                   talker.info(
-                      "ℹ️ Receipt generation did not complete; not closing bottom sheet");
+                    "ℹ️ Receipt generation did not complete; not closing bottom sheet",
+                  );
                   _isProcessingPayment = false;
                   paymentTimeout.cancel();
                   return;
@@ -583,23 +623,29 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                 // Digital payment confirmed and receipt generated successfully
                 // NOW we can call the actual completeTransaction callback
                 talker.info(
-                    "✅ Digital payment completed successfully - Closing bottom sheet");
+                  "✅ Digital payment completed successfully - Closing bottom sheet",
+                );
                 talker.info(
-                    "⏰ Receipt generation took: ${DateTime.now().toIso8601String()}");
+                  "⏰ Receipt generation took: ${DateTime.now().toIso8601String()}",
+                );
                 talker.info(
-                    "🔄 Calling completeTransaction callback to close bottom sheet...");
+                  "🔄 Calling completeTransaction callback to close bottom sheet...",
+                );
                 _isProcessingPayment = false;
                 paymentTimeout.cancel(); // Cancel timeout on success
                 completeTransaction();
                 talker.info(
-                    "✅ completeTransaction callback executed - Bottom sheet should now close");
+                  "✅ completeTransaction callback executed - Bottom sheet should now close",
+                );
               } catch (e) {
-                talker
-                    .error("❌ Error completing transaction after payment: $e");
+                talker.error(
+                  "❌ Error completing transaction after payment: $e",
+                );
                 _isProcessingPayment = false; // Reset flag on error
                 paymentTimeout.cancel(); // Cancel timeout on error
-                onPaymentFailed
-                    ?.call(e.toString().replaceAll('Exception: ', ''));
+                onPaymentFailed?.call(
+                  e.toString().replaceAll('Exception: ', ''),
+                );
                 rethrow;
               }
             },
@@ -628,19 +674,19 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         talker.warning("Widget disposed, cannot complete transaction");
         return false;
       }
-  
+
       if (transaction.customerTin != null &&
           transaction.customerTin!.isNotEmpty) {
         // Show dialog and capture whether the dialog completed successfully
         final bool? dialogResult =
             await additionalInformationIsRequiredToCompleteTransaction(
-          amount: amount,
-          onComplete: completeTransaction,
-          discount: discount,
-          paymentType: paymentTypeController.text,
-          transaction: transaction,
-          context: context,
-        );
+              amount: amount,
+              onComplete: completeTransaction,
+              discount: discount,
+              paymentType: paymentTypeController.text,
+              transaction: transaction,
+              context: context,
+            );
 
         // If user cancelled or dialog didn't complete, propagate false
         if (dialogResult != true) {
@@ -655,9 +701,11 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
         if (mounted) {
           ref.read(payButtonStateProvider.notifier).stopLoading();
-          ref.refresh(pendingTransactionStreamProvider(
-            isExpense: ProxyService.box.isOrdering() ?? false,
-          ));
+          ref.refresh(
+            pendingTransactionStreamProvider(
+              isExpense: ProxyService.box.isOrdering() ?? false,
+            ),
+          );
         }
       } else {
         // Get the controller value before async operations
@@ -680,8 +728,11 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
         if (mounted) {
           ref.read(payButtonStateProvider.notifier).stopLoading();
-          ref.refresh(pendingTransactionStreamProvider(
-              isExpense: ProxyService.box.isOrdering() ?? false));
+          ref.refresh(
+            pendingTransactionStreamProvider(
+              isExpense: ProxyService.box.isOrdering() ?? false,
+            ),
+          );
         }
       }
 
@@ -714,9 +765,12 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     }
   }
 
-// Helper method to handle payment errors
+  // Helper method to handle payment errors
   void _handlePaymentError(
-      dynamic error, StackTrace stackTrace, BuildContext context) {
+    dynamic error,
+    StackTrace stackTrace,
+    BuildContext context,
+  ) {
     String errorMessage;
 
     if ((ProxyService.box.enableDebug() ?? false)) {
@@ -790,8 +844,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                       constraints: BoxConstraints(maxHeight: adjustedHeight),
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
-                        child: FormBlocListener<PurchaseCodeFormBloc, String,
-                            String>(
+                        child: FormBlocListener<PurchaseCodeFormBloc, String, String>(
                           onSubmitting: (context, state) {
                             ref
                                 .read(isProcessingProvider.notifier)
@@ -919,8 +972,9 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
   }
 
   double getSumOfItems({String? transactionId}) {
-    final transactionItems =
-        ref.watch(transactionItemsProvider(transactionId: transactionId));
+    final transactionItems = ref.watch(
+      transactionItemsProvider(transactionId: transactionId),
+    );
 
     // Check if the AsyncValue is in a data state (has data)
     if (transactionItems.hasValue) {

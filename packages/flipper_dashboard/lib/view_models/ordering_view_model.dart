@@ -145,29 +145,15 @@ class OrderingViewModel extends ProductViewModel
       // Refresh the transaction state
       // ignore:
       ref.refresh(pendingTransactionStreamProvider(isExpense: isOrdering));
-      ref.read(previewingCart.notifier).state = false;
-
-      // Create new transaction
-      ITransaction? newTransaction = await ProxyService.strategy
-          .manageTransaction(
-            transactionType: TransactionType.purchase,
-            isExpense: isOrdering,
-            branchId: ProxyService.box.getBranchId()!,
-          );
-
-      await refreshTransactionItems(
-        ref: ref,
-        transactionId: newTransaction!.id,
-      );
-
-      setLoading(false);
-
-      _dialogService.showCustomDialog(
+      await _dialogService.showCustomDialog(
         variant: DialogType.info,
         title: 'Order Placed Successfully',
         description: 'Your order has been processed and confirmed.',
         data: {'status': InfoDialogStatus.success},
       );
+
+      // Switch back to product list AFTER success modal is closed
+      ref.read(previewingCart.notifier).state = false;
 
       showCustomSnackBar(context, 'Order Placed successfully');
     } catch (e) {
@@ -189,8 +175,6 @@ class OrderingViewModel extends ProductViewModel
     required ITransaction transaction,
     required FinanceProvider financeOption,
   }) async {
-    ref.read(previewingCart.notifier).state = !ref.read(previewingCart);
-
     if (!isShoppingFromWareHouse) {
       return;
     }
@@ -206,7 +190,7 @@ class OrderingViewModel extends ProductViewModel
             active: true,
           );
 
-      if (items.isEmpty || ref.read(previewingCart)) {
+      if (items.isEmpty) {
         return;
       }
 
