@@ -68,6 +68,9 @@ class TransactionDelegationDittoAdapter
   String get collectionName => "transaction_delegations";
 
   @override
+  SyncDirection get syncDirection => SyncDirection.bidirectional;
+
+  @override
   bool get shouldHydrateOnStartup => false;
 
   @override

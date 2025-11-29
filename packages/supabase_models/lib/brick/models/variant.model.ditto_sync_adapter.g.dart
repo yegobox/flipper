@@ -66,6 +66,9 @@ class VariantDittoAdapter extends DittoSyncAdapter<Variant> {
   String get collectionName => "variants";
 
   @override
+  SyncDirection get syncDirection => SyncDirection.bidirectional;
+
+  @override
   bool get shouldHydrateOnStartup => false;
 
   @override

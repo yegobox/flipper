@@ -145,6 +145,27 @@ class EnhancedSideMenu extends ConsumerWidget {
                     DashboardPage.stockRecount;
               },
             ),
+            SideMenuItemDataTile(
+              hasSelectedLine: true,
+              highlightSelectedColor: Colors.blue.withValues(alpha: 0.1),
+              selectedTitleStyle: const TextStyle(
+                color: Colors.blue,
+                fontWeight: FontWeight.w600,
+              ),
+              borderRadius: BorderRadius.circular(8),
+              title: 'Delegations',
+              isSelected: selectedItem == 7,
+              icon: Icon(
+                Icons.print_outlined,
+                color: selectedItem == 7 ? Colors.blue : Colors.grey.shade600,
+                size: 20,
+              ),
+              onTap: () {
+                ref.read(selectedMenuItemProvider.notifier).state = 7;
+                ref.read(selectedPageProvider.notifier).state =
+                    DashboardPage.delegations;
+              },
+            ),
             if (isAdminAsyncValue.value ==
                 true) // Conditionally add Shift History
               SideMenuItemDataTile(

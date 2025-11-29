@@ -66,6 +66,9 @@ class DeviceDittoAdapter extends DittoSyncAdapter<Device> {
   String get collectionName => "devices";
 
   @override
+  SyncDirection get syncDirection => SyncDirection.bidirectional;
+
+  @override
   bool get shouldHydrateOnStartup => false;
 
   @override
