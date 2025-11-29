@@ -3359,7 +3359,7 @@ class CoreSync extends AiStrategyImpl
   @override
   Future<List<models.FinanceProvider>> financeProviders() async {
     return await repository.get<FinanceProvider>(
-      policy: OfflineFirstGetPolicy.alwaysHydrate,
+      policy: OfflineFirstGetPolicy.awaitRemote,
     );
   }
 
