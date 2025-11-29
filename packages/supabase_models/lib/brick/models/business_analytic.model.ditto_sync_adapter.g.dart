@@ -67,6 +67,9 @@ class BusinessAnalyticDittoAdapter extends DittoSyncAdapter<BusinessAnalytic> {
   String get collectionName => "business_analytics";
 
   @override
+  SyncDirection get syncDirection => SyncDirection.bidirectional;
+
+  @override
   bool get shouldHydrateOnStartup => false;
 
   @override

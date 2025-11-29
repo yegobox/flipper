@@ -6,9 +6,22 @@ import 'package:supabase_models/brick/models/branch.model.dart';
 import 'package:supabase_models/brick/models/financing.model.dart';
 import 'package:supabase_models/brick/models/transactionItem.model.dart';
 import 'package:uuid/uuid.dart';
+import 'package:brick_ditto_generators/ditto_sync_adapter.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:flutter/foundation.dart';
+import 'package:supabase_models/sync/ditto_sync_adapter.dart';
+import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
+import 'package:supabase_models/sync/ditto_sync_generated.dart';
+import 'package:supabase_models/brick/repository.dart';
+
+part 'inventory_request.model.ditto_sync_adapter.g.dart';
 
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'stock_requests'),
+)
+@DittoAdapter(
+  'stock_requests',
+  syncDirection: SyncDirection.bidirectional,
 )
 class InventoryRequest extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)

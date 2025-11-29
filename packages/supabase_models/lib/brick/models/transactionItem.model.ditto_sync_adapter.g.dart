@@ -67,6 +67,9 @@ class TransactionItemDittoAdapter extends DittoSyncAdapter<TransactionItem> {
   String get collectionName => "transaction_items";
 
   @override
+  SyncDirection get syncDirection => SyncDirection.bidirectional;
+
+  @override
   bool get shouldHydrateOnStartup => false;
 
   @override

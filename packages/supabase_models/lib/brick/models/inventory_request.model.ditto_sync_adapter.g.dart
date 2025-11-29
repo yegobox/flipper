@@ -1,7 +1,7 @@
 // dart format width=80
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'plans.model.dart';
+part of 'inventory_request.model.dart';
 
 // **************************************************************************
 // DittoSyncAdapterGenerator
@@ -11,7 +11,7 @@ part of 'plans.model.dart';
 // DittoSyncAdapterGenerator
 // **************************************************************************
 //
-// REQUIRED IMPORTS in parent file (plan.model.dart):
+// REQUIRED IMPORTS in parent file (inventoryrequest.model.dart):
 // - import 'package:brick_core/query.dart';
 // - import 'package:brick_offline_first/brick_offline_first.dart';
 // - import 'package:flipper_services/proxy.dart';
@@ -26,10 +26,11 @@ part of 'plans.model.dart';
 // This adapter supports full bidirectional sync (send and receive).
 // **************************************************************************
 
-class PlanDittoAdapter extends DittoSyncAdapter<Plan> {
-  PlanDittoAdapter._internal();
+class InventoryRequestDittoAdapter extends DittoSyncAdapter<InventoryRequest> {
+  InventoryRequestDittoAdapter._internal();
 
-  static final PlanDittoAdapter instance = PlanDittoAdapter._internal();
+  static final InventoryRequestDittoAdapter instance =
+      InventoryRequestDittoAdapter._internal();
 
   // Observer management to prevent live query buildup
   dynamic _activeObserver;
@@ -63,7 +64,7 @@ class PlanDittoAdapter extends DittoSyncAdapter<Plan> {
   }
 
   @override
-  String get collectionName => "plans";
+  String get collectionName => "stock_requests";
 
   @override
   SyncDirection get syncDirection => SyncDirection.bidirectional;
@@ -88,7 +89,8 @@ class PlanDittoAdapter extends DittoSyncAdapter<Plan> {
           _branchIdProviderOverride?.call() ?? ProxyService.box.getBranchId();
     }
     if (branchId == null && kDebugMode) {
-      debugPrint("Ditto hydration for Plan timed out waiting for branchId");
+      debugPrint(
+          "Ditto hydration for InventoryRequest timed out waiting for branchId");
     }
     return branchId;
   }
@@ -139,22 +141,22 @@ class PlanDittoAdapter extends DittoSyncAdapter<Plan> {
       if (waitForBranchId) {
         if (kDebugMode) {
           debugPrint(
-              "Ditto hydration for Plan skipped because branch context is unavailable");
+              "Ditto hydration for InventoryRequest skipped because branch context is unavailable");
         }
         return null;
       }
       if (kDebugMode) {
         debugPrint(
-            "Ditto observation for Plan deferred until branch context is available");
+            "Ditto observation for InventoryRequest deferred until branch context is available");
       }
       return const DittoSyncQuery(
-        query: "SELECT * FROM plans WHERE 1 = 0",
+        query: "SELECT * FROM stock_requests WHERE 1 = 0",
       );
     }
 
     final whereClause = whereParts.join(" OR ");
     return DittoSyncQuery(
-      query: "SELECT * FROM plans WHERE $whereClause",
+      query: "SELECT * FROM stock_requests WHERE $whereClause",
       arguments: arguments,
     );
   }
@@ -165,38 +167,36 @@ class PlanDittoAdapter extends DittoSyncAdapter<Plan> {
   }
 
   @override
-  Future<String?> documentIdForModel(Plan model) async => model.id;
+  Future<String?> documentIdForModel(InventoryRequest model) async => model.id;
 
   @override
-  Future<Map<String, dynamic>> toDittoDocument(Plan model) async {
+  Future<Map<String, dynamic>> toDittoDocument(InventoryRequest model) async {
     return {
       "_id": model.id,
       "id": model.id,
-      "businessId": model.businessId,
-      "branchId": model.branchId,
-      "selectedPlan": model.selectedPlan,
-      "additionalDevices": model.additionalDevices,
-      "isYearlyPlan": model.isYearlyPlan,
-      "totalPrice": model.totalPrice,
+      "mainBranchId": model.mainBranchId,
+      "subBranchId": model.subBranchId,
       "createdAt": model.createdAt?.toIso8601String(),
-      "paymentCompletedByUser": model.paymentCompletedByUser,
-      "rule": model.rule,
-      "paymentMethod": model.paymentMethod,
-      "nextBillingDate": model.nextBillingDate?.toIso8601String(),
-      "numberOfPayments": model.numberOfPayments,
-      "phoneNumber": model.phoneNumber,
-      "externalId": model.externalId,
-      "paymentStatus": model.paymentStatus,
-      "lastProcessedAt": model.lastProcessedAt?.toIso8601String(),
-      "lastError": model.lastError,
+      "status": model.status,
+      "deliveryDate": model.deliveryDate?.toIso8601String(),
+      "deliveryNote": model.deliveryNote,
+      "orderNote": model.orderNote,
+      "customerReceivedOrder": model.customerReceivedOrder,
+      "driverRequestDeliveryConfirmation":
+          model.driverRequestDeliveryConfirmation,
+      "driverId": model.driverId,
       "updatedAt": model.updatedAt?.toIso8601String(),
-      "lastUpdated": model.lastUpdated?.toIso8601String(),
-      "processingStatus": model.processingStatus,
+      "itemCounts": model.itemCounts,
+      "bhfId": model.bhfId,
+      "tinNumber": model.tinNumber,
+      "financingId": model.financingId,
+      "branchId": model.branchId,
     };
   }
 
   @override
-  Future<Plan?> fromDittoDocument(Map<String, dynamic> document) async {
+  Future<InventoryRequest?> fromDittoDocument(
+      Map<String, dynamic> document) async {
     final id = document["_id"] ?? document["id"];
     if (id == null) return null;
 
@@ -223,31 +223,30 @@ class PlanDittoAdapter extends DittoSyncAdapter<Plan> {
       }
     }
 
-    return Plan(
+    return InventoryRequest(
       id: id,
-      businessId: document["businessId"],
-      branchId: document["branchId"],
-      selectedPlan: document["selectedPlan"],
-      additionalDevices: document["additionalDevices"],
-      isYearlyPlan: document["isYearlyPlan"],
-      totalPrice: document["totalPrice"],
+      mainBranchId: document["mainBranchId"],
+      subBranchId: document["subBranchId"],
       createdAt: DateTime.tryParse(document["createdAt"]?.toString() ?? ""),
-      paymentCompletedByUser: document["paymentCompletedByUser"],
-      rule: document["rule"],
-      paymentMethod: document["paymentMethod"],
-      addons: null, // Excluded from Ditto sync
-      nextBillingDate:
-          DateTime.tryParse(document["nextBillingDate"]?.toString() ?? ""),
-      numberOfPayments: document["numberOfPayments"],
-      phoneNumber: document["phoneNumber"],
-      externalId: document["externalId"],
-      paymentStatus: document["paymentStatus"],
-      lastProcessedAt:
-          DateTime.tryParse(document["lastProcessedAt"]?.toString() ?? ""),
-      lastError: document["lastError"],
+      status: document["status"],
+      deliveryDate:
+          DateTime.tryParse(document["deliveryDate"]?.toString() ?? ""),
+      deliveryNote: document["deliveryNote"],
+      orderNote: document["orderNote"],
+      customerReceivedOrder: document["customerReceivedOrder"],
+      driverRequestDeliveryConfirmation:
+          document["driverRequestDeliveryConfirmation"],
+      driverId: document["driverId"],
       updatedAt: DateTime.tryParse(document["updatedAt"]?.toString() ?? ""),
-      lastUpdated: DateTime.tryParse(document["lastUpdated"]?.toString() ?? ""),
-      processingStatus: document["processingStatus"],
+      itemCounts: document["itemCounts"],
+      bhfId: document["bhfId"],
+      tinNumber: document["tinNumber"],
+      financing: null, // Excluded from Ditto sync
+      financingId: document["financingId"],
+      transactionItems: null, // Excluded from Ditto sync
+      branch: await fetchRelationship<Branch>(
+          document["branchId"]), // Fetched from repository
+      branchId: document["branchId"],
     );
   }
 
@@ -269,7 +268,8 @@ class PlanDittoAdapter extends DittoSyncAdapter<Plan> {
   static Future<void> _seed(DittoSyncCoordinator coordinator) async {
     if (_seeded) {
       if (kDebugMode) {
-        debugPrint('Ditto seeding skipped for Plan (already seeded)');
+        debugPrint(
+            'Ditto seeding skipped for InventoryRequest (already seeded)');
       }
       return;
     }
@@ -282,41 +282,42 @@ class PlanDittoAdapter extends DittoSyncAdapter<Plan> {
         query = Query(where: [Where('branchId').isExactly(branchId)]);
       }
 
-      final models = await Repository().get<Plan>(
+      final models = await Repository().get<InventoryRequest>(
         query: query,
         policy: OfflineFirstGetPolicy.alwaysHydrate,
       );
       var seededCount = 0;
       for (final model in models) {
-        await coordinator.notifyLocalUpsert<Plan>(model);
+        await coordinator.notifyLocalUpsert<InventoryRequest>(model);
         seededCount++;
       }
       if (kDebugMode) {
         debugPrint('Ditto seeded ' +
             seededCount.toString() +
-            ' Plan record' +
+            ' InventoryRequest record' +
             (seededCount == 1 ? '' : 's'));
       }
     } catch (error, stack) {
       if (kDebugMode) {
-        debugPrint('Ditto seeding failed for Plan: $error\n$stack');
+        debugPrint('Ditto seeding failed for InventoryRequest: $error\n$stack');
       }
     }
 
     _seeded = true;
   }
 
-  static final int _$PlanDittoAdapterRegistryToken =
+  static final int _$InventoryRequestDittoAdapterRegistryToken =
       DittoSyncGeneratedRegistry.register(
           (coordinator) async {
-            await coordinator.registerAdapter<Plan>(PlanDittoAdapter.instance);
+            await coordinator.registerAdapter<InventoryRequest>(
+                InventoryRequestDittoAdapter.instance);
           },
-          modelType: Plan,
+          modelType: InventoryRequest,
           seed: (coordinator) async {
             await _seed(coordinator);
           },
           reset: _resetSeedFlag);
 
   /// Public accessor to ensure static initializer runs
-  static int get registryToken => _$PlanDittoAdapterRegistryToken;
+  static int get registryToken => _$InventoryRequestDittoAdapterRegistryToken;
 }

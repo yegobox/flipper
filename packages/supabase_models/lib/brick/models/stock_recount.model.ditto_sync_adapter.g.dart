@@ -67,6 +67,9 @@ class StockRecountDittoAdapter extends DittoSyncAdapter<StockRecount> {
   String get collectionName => "stock_recounts";
 
   @override
+  SyncDirection get syncDirection => SyncDirection.bidirectional;
+
+  @override
   bool get shouldHydrateOnStartup => false;
 
   @override

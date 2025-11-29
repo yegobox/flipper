@@ -9,10 +9,12 @@ import 'package:supabase_models/brick/models/counter.model.dart' as counter_mode
 import 'package:supabase_models/brick/models/stock_recount.model.dart' as stock_recount_model;
 import 'package:supabase_models/brick/models/business_analytic.model.dart' as business_analytic_model;
 import 'package:supabase_models/brick/models/transaction.model.dart' as transaction_model;
+import 'package:supabase_models/brick/models/message.model.dart' as message_model;
 import 'package:supabase_models/brick/models/transactionItem.model.dart' as transactionItem_model;
 import 'package:supabase_models/brick/models/transaction_delegation.model.dart' as transaction_delegation_model;
 import 'package:supabase_models/brick/models/variant.model.dart' as variant_model;
 import 'package:supabase_models/brick/models/device.model.dart' as device_model;
+import 'package:supabase_models/brick/models/inventory_request.model.dart' as inventory_request_model;
 import 'package:supabase_models/brick/models/stock_recount_item.model.dart' as stock_recount_item_model;
 import 'package:supabase_models/brick/models/plans.model.dart' as plans_model;
 
@@ -26,10 +28,12 @@ void ensureDittoAdaptersLoaded() {
   stock_recount_model.StockRecountDittoAdapter.registryToken; // ignore: unnecessary_statements
   business_analytic_model.BusinessAnalyticDittoAdapter.registryToken; // ignore: unnecessary_statements
   transaction_model.ITransactionDittoAdapter.registryToken; // ignore: unnecessary_statements
+  message_model.MessageDittoAdapter.registryToken; // ignore: unnecessary_statements
   transactionItem_model.TransactionItemDittoAdapter.registryToken; // ignore: unnecessary_statements
   transaction_delegation_model.TransactionDelegationDittoAdapter.registryToken; // ignore: unnecessary_statements
   variant_model.VariantDittoAdapter.registryToken; // ignore: unnecessary_statements
   device_model.DeviceDittoAdapter.registryToken; // ignore: unnecessary_statements
+  inventory_request_model.InventoryRequestDittoAdapter.registryToken; // ignore: unnecessary_statements
   stock_recount_item_model.StockRecountItemDittoAdapter.registryToken; // ignore: unnecessary_statements
   plans_model.PlanDittoAdapter.registryToken; // ignore: unnecessary_statements
 }

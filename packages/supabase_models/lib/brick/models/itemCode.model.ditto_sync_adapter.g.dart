@@ -66,6 +66,9 @@ class ItemCodeDittoAdapter extends DittoSyncAdapter<ItemCode> {
   String get collectionName => "codes";
 
   @override
+  SyncDirection get syncDirection => SyncDirection.sendOnly;
+
+  @override
   bool get shouldHydrateOnStartup => false;
 
   @override

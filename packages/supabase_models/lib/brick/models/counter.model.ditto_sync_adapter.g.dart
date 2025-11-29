@@ -66,6 +66,9 @@ class CounterDittoAdapter extends DittoSyncAdapter<Counter> {
   String get collectionName => "counters";
 
   @override
+  SyncDirection get syncDirection => SyncDirection.bidirectional;
+
+  @override
   bool get shouldHydrateOnStartup => false;
 
   @override
