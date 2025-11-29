@@ -51,25 +51,29 @@ class CartListNotifier extends StateNotifier<List<Variant>> {
   }
 }
 
-final productFromSupplier =
-    FutureProvider.autoDispose<List<Variant>>((ref) async {
-  final supplier = ref.watch(selectedSupplierProvider);
+final searchStringProvider = StateProvider<String>((ref) => '');
+
+// Create a family provider to cache results by supplier and search parameters
+final productFromSupplier = FutureProvider.autoDispose
+    .family<List<Variant>, ({int? supplierId, String searchString})>(
+        (ref, params) async {
+  if (params.supplierId == null) throw Exception("Select a supplier");
+
+  talker.warning("Supplier Id: ${params.supplierId}");
 
   // Get the Supabase URL and headers
-  // String idToken = await ProxyService.strategy.getFirebaseToken();
   var headers = {
-    // 'Authorization': 'Bearer $idToken',
     'Content-Type': 'application/json',
     'apikey': AppSecrets.supabaseAnonKey,
   };
-  if (supplier == null || supplier.serverId == null)
-    throw Exception("Select a supplier");
-
-  talker.warning("Supplier Id: ${supplier.serverId}");
 
   // Construct the Supabase URL with query parameters
-  final supabaseUrl =
-      '${AppSecrets.newApiEndPoints}${supplier.serverId}&limit=100&or=(pchs_stts_cd.is.null,pchs_stts_cd.neq.01,pchs_stts_cd.neq.04)&or=(impt_item_stts_cd.is.null,impt_item_stts_cd.neq.2,impt_item_stts_cd.neq.4)';
+  String supabaseUrl =
+      '${AppSecrets.newApiEndPoints}${params.supplierId}&limit=100&or=(pchs_stts_cd.is.null,pchs_stts_cd.neq.01,pchs_stts_cd.neq.04)&or=(impt_item_stts_cd.is.null,impt_item_stts_cd.neq.2,impt_item_stts_cd.neq.4)';
+
+  if (params.searchString.isNotEmpty) {
+    supabaseUrl += '&name=ilike.*${params.searchString}*';
+  }
 
   var dio = Dio();
   try {
@@ -100,12 +104,25 @@ final productFromSupplier =
     }).toList();
 
     return variants;
-  } on DioException {
-    //Talker().error('DioException in productFromSupplier: ${e.message}');
+  } on DioException catch (e) {
+    Talker().error('DioException in productFromSupplier: ${e.message}');
     return []; // Return an empty list on error
   } catch (e, s) {
     Talker().error('Error in productFromSupplier: $e');
     Talker().error('Stack trace: $s');
     return []; // Return an empty list for any other errors
   }
+});
+
+// Create a wrapper provider that gets supplier and search string and calls the family provider
+final productFromSupplierWrapper =
+    FutureProvider.autoDispose<List<Variant>>((ref) async {
+  final supplier = ref.watch(selectedSupplierProvider);
+  final searchString = ref.watch(searchStringProvider);
+
+  return await ref.watch(
+    productFromSupplier(
+      (supplierId: supplier?.serverId, searchString: searchString),
+    ).future,
+  );
 });

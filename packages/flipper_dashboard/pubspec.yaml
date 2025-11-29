@@ -3,10 +3,8 @@ description: flipper models scaffold.
 version: 0.0.1-dev.7
 publish_to: "none"
 repository: https://github.com/yegobox
-
 environment:
-  sdk: ">=3.27.0"
-
+  sdk: '^3.10.0'
 dependencies:
   get: ^4.6.1
   flipper_models: any

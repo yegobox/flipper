@@ -12,8 +12,9 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:flipper_dashboard/widgets/variant_shimmer_placeholder.dart';
 
+// Create cached providers to reduce network requests
 final productProvider =
-    FutureProvider.family<Product?, String>((ref, productId) async {
+    FutureProvider.family.autoDispose<Product?, String>((ref, productId) async {
   if (productId.isEmpty) return null;
   return await ProxyService.strategy.getProduct(
       businessId: ProxyService.box.getBusinessId()!,
@@ -22,7 +23,7 @@ final productProvider =
 });
 
 final assetProvider =
-    FutureProvider.family<Assets?, String>((ref, productId) async {
+    FutureProvider.family.autoDispose<Assets?, String>((ref, productId) async {
   if (productId.isEmpty) return null;
   return await ProxyService.strategy.getAsset(productId: productId);
 });
@@ -126,7 +127,11 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     bool forceListView = false, // Add parameter with default value
   }) {
     final productAsync = ref.watch(productProvider(variant.productId ?? ""));
-    final assetAsync = ref.watch(assetProvider(variant.productId ?? ""));
+
+    // Only fetch asset if product exists and has a product ID
+    final assetAsync = variant.productId != null && variant.productId!.isNotEmpty
+        ? ref.watch(assetProvider(variant.productId ?? ""))
+        : null;
 
     return productAsync.when(
       loading: () => const VariantShimmerPlaceholder(),
@@ -167,8 +172,70 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         );
       },
       data: (product) {
+        // If no asset provider was needed, directly return the RowItem
+        if (assetAsync == null) {
+          return RowItem(
+            forceRemoteUrl: forceRemoteUrl,
+            forceListView: forceListView, // Pass the parameter
+            isOrdering: isOrdering,
+            color: variant.color ?? "#673AB7",
+            stock: stock,
+            model: model,
+            variant: variant,
+            productName: variant.productName ?? "Unknown Product",
+            variantName: variant.name,
+            imageUrl: null, // No image available in error case
+            isComposite: !isOrdering ? (product?.isComposite ?? false) : false,
+            edit: (productId, type) {
+              talker.info("navigating to Edit!");
+              showDialog(
+                barrierDismissible: false,
+                context: context,
+                builder: (context) => OptionModal(
+                  child: ProductEntryScreen(productId: productId),
+                ),
+              );
+            },
+            delete: (productId, type) async {
+              await deleteFunc(productId, model);
+            },
+            enableNfc: (product) {
+              // Handle NFC functionality
+            },
+          );
+        }
+
+        // Otherwise, wait for asset data
         return assetAsync.when(
-          loading: () => const SizedBox.shrink(),
+          loading: () => RowItem(
+            forceRemoteUrl: forceRemoteUrl,
+            forceListView: forceListView, // Pass the parameter
+            isOrdering: isOrdering,
+            color: variant.color ?? "#673AB7",
+            stock: stock,
+            model: model,
+            variant: variant,
+            productName: variant.productName ?? "Unknown Product",
+            variantName: variant.name,
+            imageUrl: null, // No image available while loading asset
+            isComposite: !isOrdering ? (product?.isComposite ?? false) : false,
+            edit: (productId, type) {
+              talker.info("navigating to Edit!");
+              showDialog(
+                barrierDismissible: false,
+                context: context,
+                builder: (context) => OptionModal(
+                  child: ProductEntryScreen(productId: productId),
+                ),
+              );
+            },
+            delete: (productId, type) async {
+              await deleteFunc(productId, model);
+            },
+            enableNfc: (product) {
+              // Handle NFC functionality
+            },
+          ),
           error: (err, stack) {
             // Log the error but don't show it to the user
             talker.error("Error fetching asset data: $err");
