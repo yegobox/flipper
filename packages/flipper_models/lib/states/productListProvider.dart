@@ -17,17 +17,55 @@ class ProductColorsNotifier extends StateNotifier<List<Color>> {
   ProductColorsNotifier() : super([]);
 
   Future<void> fetchColors(List<Variant> variants) async {
-    final colors =
-        variants.map((variant) => hexToColor(variant.color!)).toList();
+    // Filter variants to only include those with valid color strings
+    final colors = variants
+        .where((v) => v.color != null && v.color!.isNotEmpty)
+        .map((variant) => hexToColor(variant.color))
+        .toList();
     state = colors;
   }
 
-  Color hexToColor(String code) {
-    if (code.isNotEmpty) {
-      return Color(int.parse(code.substring(1, 7), radix: 16) + 0xFF000000);
-    } else {
-      return Color(
-          int.parse("#FF0000".substring(1, 7), radix: 16) + 0xFF000000);
+  /// Safely converts a hex color string to a Color object.
+  /// Returns a default grey color if the input is invalid.
+  ///
+  /// Valid format: "#RRGGBB" where RR, GG, BB are hex digits (0-9, A-F)
+  Color hexToColor(String? code) {
+    // Default fallback color (grey)
+    const defaultColor = Color(0xFF9E9E9E);
+
+    // Null or empty check
+    if (code == null || code.isEmpty) {
+      return defaultColor;
+    }
+
+    // Remove any whitespace
+    final trimmedCode = code.trim();
+
+    // Check if it starts with '#'
+    if (!trimmedCode.startsWith('#')) {
+      return defaultColor;
+    }
+
+    // Check minimum length (#RRGGBB = 7 characters)
+    if (trimmedCode.length < 7) {
+      return defaultColor;
+    }
+
+    // Extract hex string (skip the '#')
+    final hexString = trimmedCode.substring(1, 7);
+
+    // Validate that all characters are valid hex digits
+    final hexPattern = RegExp(r'^[0-9A-Fa-f]{6}$');
+    if (!hexPattern.hasMatch(hexString)) {
+      return defaultColor;
+    }
+
+    // Parse and return the color
+    try {
+      return Color(int.parse(hexString, radix: 16) + 0xFF000000);
+    } catch (e) {
+      // If parsing fails for any reason, return default
+      return defaultColor;
     }
   }
 }

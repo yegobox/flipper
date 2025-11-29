@@ -147,7 +147,9 @@ class Orders extends HookConsumerWidget {
           if (currentBranchId != null && supplier.id == currentBranchId) {
             return false;
           }
-          return supplier.name!.toLowerCase().contains(search.toLowerCase());
+          // Safely handle null names - return false if name is null
+          return supplier.name?.toLowerCase().contains(search.toLowerCase()) ??
+              false;
         }).toList();
       },
       builder: (context, controller, focusNode) {
@@ -226,7 +228,7 @@ class Orders extends HookConsumerWidget {
               vertical: 8.0,
             ),
             title: Text(
-              supplier.name!,
+              supplier.name ?? 'Unknown Supplier',
               style: theme.textTheme.bodyLarge?.copyWith(
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                 color: isSelected ? colorScheme.primary : colorScheme.onSurface,

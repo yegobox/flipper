@@ -1,14 +1,49 @@
 import 'dart:developer';
 
 import 'package:flipper_services/proxy.dart';
+// ignore: depend_on_referenced_packages
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 // import 'proxy.dart';
 
-Color hexToColor(String hexString) {
-  final hexCode = hexString.replaceAll('#', '');
-  return Color(int.parse('FF$hexCode', radix: 16));
+/// Safely converts a hex color string to a Color object.
+/// Returns a default grey color if the input is invalid.
+///
+/// Valid format: \"#RRGGBB\" or \"RRGGBB\" where RR, GG, BB are hex digits (0-9, A-F)
+Color hexToColor(String? hexString) {
+  // Default fallback color (grey)
+  const defaultColor = Color(0xFF9E9E9E);
+
+  // Null or empty check
+  if (hexString == null || hexString.isEmpty) {
+    return defaultColor;
+  }
+
+  // Remove any whitespace and '#' prefix
+  final cleanHex = hexString.trim().replaceAll('#', '');
+
+  // Check minimum length (RRGGBB = 6 characters)
+  if (cleanHex.length < 6) {
+    return defaultColor;
+  }
+
+  // Take first 6 characters
+  final hexCode = cleanHex.substring(0, 6);
+
+  // Validate that all characters are valid hex digits
+  final hexPattern = RegExp(r'^[0-9A-Fa-f]{6}$');
+  if (!hexPattern.hasMatch(hexCode)) {
+    return defaultColor;
+  }
+
+  // Parse and return the color
+  try {
+    return Color(int.parse('FF$hexCode', radix: 16));
+  } catch (e) {
+    // If parsing fails for any reason, return default
+    return defaultColor;
+  }
 }
 
 class Actionable extends StatelessWidget {

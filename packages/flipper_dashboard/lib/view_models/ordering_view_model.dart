@@ -49,6 +49,18 @@ class OrderingViewModel extends ProductViewModel
       return;
     }
 
+    // Check if serverId is null or invalid before comparing
+    if (supplier.serverId == null) {
+      _dialogService.showCustomDialog(
+        variant: DialogType.info,
+        title: 'Error',
+        description:
+            'Selected supplier has invalid ID. Please select a different supplier.',
+        data: {'status': InfoDialogStatus.error},
+      );
+      return;
+    }
+
     if (supplier.serverId == ProxyService.box.getBranchId()) {
       _dialogService.showCustomDialog(
         variant: DialogType.info,
