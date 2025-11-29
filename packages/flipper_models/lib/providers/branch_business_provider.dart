@@ -10,6 +10,7 @@ Future<List<Branch>> branches(
   Ref ref, {
   int? businessId,
 }) async {
-  final branches = await ProxyService.strategy.branches(businessId: businessId);
+  final branches = await ProxyService.strategy.branches(
+      businessId: businessId, excludeId: ProxyService.box.getBranchId());
   return branches;
 }

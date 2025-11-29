@@ -19,11 +19,13 @@ class Orders extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final suppliers = ref
-        .watch(branchesProvider(businessId: ProxyService.box.getBusinessId()));
+    final suppliers = ref.watch(
+      branchesProvider(businessId: ProxyService.box.getBusinessId()),
+    );
     final theme = Theme.of(context);
-    final pendingTransaction =
-        ref.watch(pendingTransactionStreamProvider(isExpense: true));
+    final pendingTransaction = ref.watch(
+      pendingTransactionStreamProvider(isExpense: true),
+    );
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (bool didPop, dynamic other) {
@@ -53,11 +55,19 @@ class Orders extends HookConsumerWidget {
         body: LayoutBuilder(
           builder: (context, constraints) {
             if (constraints.maxWidth > 600) {
-              return _buildDesktopLayout(context, ref, suppliers.value ?? [],
-                  transaction: pendingTransaction.value);
+              return _buildDesktopLayout(
+                context,
+                ref,
+                suppliers.value ?? [],
+                transaction: pendingTransaction.value,
+              );
             } else {
-              return _buildMobileLayout(context, ref, suppliers.value ?? [],
-                  transaction: pendingTransaction.value);
+              return _buildMobileLayout(
+                context,
+                ref,
+                suppliers.value ?? [],
+                transaction: pendingTransaction.value,
+              );
             }
           },
         ),
@@ -66,8 +76,11 @@ class Orders extends HookConsumerWidget {
   }
 
   Widget _buildDesktopLayout(
-      BuildContext context, WidgetRef ref, List<Branch> suppliers,
-      {ITransaction? transaction}) {
+    BuildContext context,
+    WidgetRef ref,
+    List<Branch> suppliers, {
+    ITransaction? transaction,
+  }) {
     if (transaction == null) return SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.all(24.0),
@@ -75,17 +88,18 @@ class Orders extends HookConsumerWidget {
         children: [
           _buildSearchableSupplierField(suppliers, ref, context),
           const SizedBox(height: 24),
-          Expanded(
-            child: OrderingView(transaction),
-          ),
+          Expanded(child: OrderingView(transaction)),
         ],
       ),
     );
   }
 
   Widget _buildMobileLayout(
-      BuildContext context, WidgetRef ref, List<Branch> suppliers,
-      {ITransaction? transaction}) {
+    BuildContext context,
+    WidgetRef ref,
+    List<Branch> suppliers, {
+    ITransaction? transaction,
+  }) {
     return Padding(
       padding: const EdgeInsets.all(24.0),
       child: Column(
@@ -93,19 +107,18 @@ class Orders extends HookConsumerWidget {
         children: [
           Text(
             'Choose Your Supplier',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w600,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 8),
           Text(
             'Select a supplier to view their available products',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onSurface
-                      .withValues(alpha: 0.6),
-                ),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.6),
+            ),
           ),
           const SizedBox(height: 24),
           _buildSearchableSupplierField(suppliers, ref, context),
@@ -117,16 +130,25 @@ class Orders extends HookConsumerWidget {
   }
 
   Widget _buildSearchableSupplierField(
-      List<Branch> suppliers, WidgetRef ref, BuildContext context) {
+    List<Branch> suppliers,
+    WidgetRef ref,
+    BuildContext context,
+  ) {
     // Get the currently selected supplier
     final selectedSupplier = ref.watch(selectedSupplierProvider);
 
+    // Get current branch ID to filter it out from suppliers
+    final currentBranchId = ProxyService.box.getBranchId();
+
     return TypeAheadField<Branch>(
       suggestionsCallback: (search) {
-        return suppliers
-            .where((supplier) =>
-                supplier.name!.toLowerCase().contains(search.toLowerCase()))
-            .toList();
+        return suppliers.where((supplier) {
+          // Filter out current branch
+          if (currentBranchId != null && supplier.id == currentBranchId) {
+            return false;
+          }
+          return supplier.name!.toLowerCase().contains(search.toLowerCase());
+        }).toList();
       },
       builder: (context, controller, focusNode) {
         // Initialize controller text with selected supplier if exists
@@ -134,58 +156,145 @@ class Orders extends HookConsumerWidget {
           controller.text = selectedSupplier.name ?? '';
         }
 
-        return StyledTextFormField.create(
-          focusNode: focusNode,
-          context: context,
-          labelText: 'Search suppliers...',
-          hintText: selectedSupplier == null
-              ? 'Search suppliers...'
-              : 'Selected: ${selectedSupplier.name}',
+        final theme = Theme.of(context);
+        final colorScheme = theme.colorScheme;
+
+        return TextField(
           controller: controller,
-          keyboardType: TextInputType.text,
-          maxLines: 1,
-          minLines: 1,
-          prefixIcon: Icons.search,
-          suffixIcon: selectedSupplier != null
-              ? Icon(Icons.check_circle,
-                  color: Theme.of(context).colorScheme.primary)
-              : null,
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return null;
-            }
-            return null;
-          },
+          focusNode: focusNode,
+          decoration: InputDecoration(
+            hintText: selectedSupplier == null
+                ? 'Search suppliers...'
+                : 'Selected: ${selectedSupplier.name}',
+            hintStyle: TextStyle(
+              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+            ),
+            prefixIcon: Icon(
+              Icons.search,
+              color: colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+              size: 20,
+            ),
+            suffixIcon: selectedSupplier != null
+                ? Icon(Icons.check_circle, color: colorScheme.primary, size: 20)
+                : null,
+            filled: true,
+            fillColor: colorScheme.surfaceContainerHighest.withValues(
+              alpha: 0.5,
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 14.0,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(
+                color: colorScheme.outline.withValues(alpha: 0.2),
+                width: 1,
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: colorScheme.primary, width: 2),
+            ),
+          ),
         );
       },
       itemBuilder: (context, supplier) {
         final isSelected = selectedSupplier?.id == supplier.id;
-        return ListTile(
-          title: Text(supplier.name!),
-          subtitle: Text('No address available'),
-          trailing: isSelected
-              ? Icon(Icons.check, color: Theme.of(context).colorScheme.primary)
-              : null,
-          tileColor: isSelected
-              ? Theme.of(context)
-                  .colorScheme
-                  .primaryContainer
-                  .withValues(alpha: 0.2)
-              : null,
+        final theme = Theme.of(context);
+        final colorScheme = theme.colorScheme;
+
+        return Container(
+          decoration: BoxDecoration(
+            color: isSelected
+                ? colorScheme.primaryContainer.withValues(alpha: 0.3)
+                : null,
+            border: Border(
+              bottom: BorderSide(
+                color: colorScheme.outlineVariant.withValues(alpha: 0.3),
+                width: 1,
+              ),
+            ),
+          ),
+          child: ListTile(
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 8.0,
+            ),
+            title: Text(
+              supplier.name!,
+              style: theme.textTheme.bodyLarge?.copyWith(
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                color: isSelected ? colorScheme.primary : colorScheme.onSurface,
+              ),
+            ),
+            subtitle:
+                supplier.description != null && supplier.description!.isNotEmpty
+                ? Text(
+                    supplier.description!,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                    ),
+                  )
+                : null,
+            trailing: isSelected
+                ? Icon(Icons.check_circle, color: colorScheme.primary, size: 20)
+                : Icon(
+                    Icons.chevron_right,
+                    color: colorScheme.onSurfaceVariant.withValues(alpha: 0.5),
+                    size: 20,
+                  ),
+          ),
         );
       },
       onSelected: (supplier) {
         ref.read(selectedSupplierProvider.notifier).setSupplier(supplier);
       },
-      emptyBuilder: (context) => Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Text('No suppliers found.'),
-      ),
+      emptyBuilder: (context) {
+        final theme = Theme.of(context);
+        final colorScheme = theme.colorScheme;
+
+        return Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                Icons.search_off,
+                size: 48,
+                color: colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                'No suppliers found',
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: colorScheme.onSurface,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Try a different search term',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 
-  Widget _buildViewProductsButton(BuildContext context, WidgetRef ref,
-      {ITransaction? transaction}) {
+  Widget _buildViewProductsButton(
+    BuildContext context,
+    WidgetRef ref, {
+    ITransaction? transaction,
+  }) {
     final selectedSupplier = ref.watch(selectedSupplierProvider);
     if (transaction == null) return SizedBox.shrink();
     return FlipperButton(
@@ -202,9 +311,7 @@ class Orders extends HookConsumerWidget {
         ProxyService.box.writeBool(key: 'isOrdering', value: true);
         Navigator.push(
           context,
-          MaterialPageRoute(
-            builder: (context) => OrderingView(transaction),
-          ),
+          MaterialPageRoute(builder: (context) => OrderingView(transaction)),
         );
       },
       text: selectedSupplier == null

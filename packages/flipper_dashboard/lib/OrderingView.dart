@@ -65,27 +65,79 @@ class OrderingView extends HookConsumerWidget {
       children: [
         if (!isPreviewing)
           Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Search products...',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: searchText.value.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          searchText.value = '';
-                          ref.read(searchStringProvider.notifier).state = '';
-                        },
-                      )
-                    : null,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-              ),
-              onChanged: (value) {
-                searchText.value = value;
-                ref.read(searchStringProvider.notifier).state = value;
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 12.0,
+            ),
+            child: Builder(
+              builder: (context) {
+                final theme = Theme.of(context);
+                final colorScheme = theme.colorScheme;
+
+                return TextField(
+                  decoration: InputDecoration(
+                    hintText: 'Search products...',
+                    hintStyle: TextStyle(
+                      color: colorScheme.onSurfaceVariant.withValues(
+                        alpha: 0.6,
+                      ),
+                    ),
+                    prefixIcon: Icon(
+                      Icons.search,
+                      color: colorScheme.onSurfaceVariant.withValues(
+                        alpha: 0.7,
+                      ),
+                      size: 20,
+                    ),
+                    suffixIcon: searchText.value.isNotEmpty
+                        ? IconButton(
+                            icon: Icon(
+                              Icons.clear,
+                              size: 20,
+                              color: colorScheme.onSurfaceVariant.withValues(
+                                alpha: 0.7,
+                              ),
+                            ),
+                            onPressed: () {
+                              searchText.value = '';
+                              ref.read(searchStringProvider.notifier).state =
+                                  '';
+                            },
+                            tooltip: 'Clear search',
+                          )
+                        : null,
+                    filled: true,
+                    fillColor: colorScheme.surfaceContainerHighest.withValues(
+                      alpha: 0.5,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                      vertical: 14.0,
+                    ),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: colorScheme.outline.withValues(alpha: 0.2),
+                        width: 1,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(
+                        color: colorScheme.primary,
+                        width: 2,
+                      ),
+                    ),
+                  ),
+                  onChanged: (value) {
+                    searchText.value = value;
+                    ref.read(searchStringProvider.notifier).state = value;
+                  },
+                );
               },
             ),
           ),
@@ -104,22 +156,56 @@ class OrderingView extends HookConsumerWidget {
                 ],
               ),
             ),
-            error: (error, stack) => Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.error_outline, size: 48, color: Colors.red),
-                  SizedBox(height: 8),
-                  Text('Error loading products'),
-                  SizedBox(height: 8),
-                  Text('$error', style: TextStyle(fontSize: 12)),
-                  ElevatedButton(
-                    onPressed: () => ref.refresh(productFromSupplierWrapper),
-                    child: const Text('Retry'),
+            error: (error, stack) {
+              // Check if the error is "Select a supplier"
+              final errorMessage = error.toString();
+              if (errorMessage.contains('Select a supplier')) {
+                return const EmptyProductView();
+              }
+
+              // Show actual error state with Builder to access context
+              return Builder(
+                builder: (context) => Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(32.0),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.error_outline,
+                          size: 64,
+                          color: Colors.red.withValues(alpha: 0.7),
+                        ),
+                        const SizedBox(height: 24),
+                        Text(
+                          'Error loading products',
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(fontWeight: FontWeight.w600),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          '$error',
+                          style: Theme.of(context).textTheme.bodyMedium
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 24),
+                        FilledButton.icon(
+                          onPressed: () =>
+                              ref.refresh(productFromSupplierWrapper),
+                          icon: const Icon(Icons.refresh),
+                          label: const Text('Retry'),
+                        ),
+                      ],
+                    ),
                   ),
-                ],
-              ),
-            ),
+                ),
+              );
+            },
           ),
         ),
       ],
