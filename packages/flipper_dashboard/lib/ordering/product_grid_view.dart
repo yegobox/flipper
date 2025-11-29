@@ -39,9 +39,6 @@ class _ProductGridViewState extends ConsumerState<ProductGridView>
           isOrdering: widget.isOrdering,
         );
       },
-      // Add cache extent to improve scrolling performance
-      cacheExtent: 1000.0,
-      // Add physics for better scrolling behavior
       physics: const BouncingScrollPhysics(),
       shrinkWrap: true,
     );

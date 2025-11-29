@@ -11,15 +11,27 @@ class VariantShimmerPlaceholder extends StatelessWidget {
       child: Shimmer.fromColors(
         baseColor: Colors.grey[300]!,
         highlightColor: Colors.grey[100]!,
-        // Reduce the duration to make shimmering less resource intensive
-        period: const Duration(milliseconds: 1500),
-        child: Container(
-          width: double.infinity,
-          height: 120.0, // Fixed height to prevent layout shifts
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8.0),
-          ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: double.infinity,
+              height: 16.0,
+              color: Colors.white,
+            ),
+            const SizedBox(height: 8.0),
+            Container(
+              width: double.infinity,
+              height: 12.0,
+              color: Colors.white,
+            ),
+            const SizedBox(height: 8.0),
+            Container(
+              width: 100.0,
+              height: 12.0,
+              color: Colors.white,
+            ),
+          ],
         ),
       ),
     );

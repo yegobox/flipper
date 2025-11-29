@@ -95,9 +95,14 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         return;
       }
 
+      final supplier = ref.read(selectedSupplierProvider);
+      if (supplier == null || supplier.serverId == null) {
+        throw Exception('Please select a supplier first.');
+      }
+
       // ignore: unused_local_variable
       String orderId = await ProxyService.strategy.createStockRequest(items,
-          mainBranchId: ref.read(selectedSupplierProvider)!.serverId!,
+          mainBranchId: supplier.serverId!,
           subBranchId: ProxyService.box.getBranchId()!,
           deliveryNote: deliveryNote,
           orderNote: null,

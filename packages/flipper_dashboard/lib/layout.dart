@@ -38,8 +38,8 @@ class DashboardLayout extends HookConsumerWidget {
     return ViewModelBuilder<CoreViewModel>.nonReactive(
       viewModelBuilder: () => CoreViewModel(),
       onViewModelReady: (model) {
-        ref.read(previewingCart.notifier).state = false;
         WidgetsBinding.instance.addPostFrameCallback((_) {
+          ref.read(previewingCart.notifier).state = false;
           final defaultApp = ProxyService.box.getDefaultApp();
           if (defaultApp != null) {
             DashboardPage page;
