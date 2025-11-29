@@ -6,8 +6,6 @@ import 'package:flipper_models/secrets.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-import 'package:talker_flutter/talker_flutter.dart';
-
 final productColorsProvider =
     StateNotifierProvider<ProductColorsNotifier, List<Color>>((ref) {
   return ProductColorsNotifier();
@@ -110,7 +108,8 @@ final productFromSupplier = FutureProvider.autoDispose
       '${AppSecrets.newApiEndPoints}${params.supplierId}&limit=100&or=(pchs_stts_cd.is.null,pchs_stts_cd.neq.01,pchs_stts_cd.neq.04)&or=(impt_item_stts_cd.is.null,impt_item_stts_cd.neq.2,impt_item_stts_cd.neq.4)';
 
   if (params.searchString.isNotEmpty) {
-    supabaseUrl += '&name=ilike.*${params.searchString}*';
+    supabaseUrl +=
+        '&name=ilike.*${Uri.encodeQueryComponent(params.searchString)}*';
   }
 
   var dio = Dio();
@@ -143,11 +142,11 @@ final productFromSupplier = FutureProvider.autoDispose
 
     return variants;
   } on DioException catch (e) {
-    Talker().error('DioException in productFromSupplier: ${e.message}');
+    talker.error('DioException in productFromSupplier: ${e.message}');
     return []; // Return an empty list on error
   } catch (e, s) {
-    Talker().error('Error in productFromSupplier: $e');
-    Talker().error('Stack trace: $s');
+    talker.error('Error in productFromSupplier: $e');
+    talker.error('Stack trace: $s');
     return []; // Return an empty list for any other errors
   }
 });

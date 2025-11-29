@@ -1,4 +1,5 @@
 // igimport 'package:flipper_models/providers/branch_business_provider.dart';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -10,7 +11,6 @@ import 'package:flipper_services/posthog_service.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'package:talker_flutter/talker_flutter.dart';
 import 'package:flipper_personal/flipper_personal.dart';
 // removed unused import
 import 'dart:async';
@@ -42,7 +42,6 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
   Timer? _navigationTimer;
 
   final _routerService = locator<RouterService>();
-  final talker = Talker();
 
   @override
   void dispose() {
@@ -57,15 +56,18 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
       builder: (context, viewModel, child) {
         final businesses = ref.watch(businessesProvider);
         final selectedBusinessId = ref.watch(selectedBusinessIdProvider);
-        final branches =
-            ref.watch(branchesProvider(businessId: selectedBusinessId));
+        final branches = ref.watch(
+          branchesProvider(businessId: selectedBusinessId),
+        );
 
         return Scaffold(
           backgroundColor: Colors.white,
           body: SafeArea(
             child: Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 24.0, vertical: 40.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 24.0,
+                vertical: 40.0,
+              ),
               child: !_isLoading
                   ? Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -98,10 +100,12 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
                                   branches: branches.value ?? [],
                                   loadingItemId: _loadingItemId,
                                   onBranchSelected: (branch, context) =>
-                                      _handleBranchSelection(branch, context))
+                                      _handleBranchSelection(branch, context),
+                                )
                               : _buildBusinessList(
                                   businesses: businesses.value,
-                                  selectedBusinessId: selectedBusinessId),
+                                  selectedBusinessId: selectedBusinessId,
+                                ),
                         ),
                       ],
                     )
@@ -110,8 +114,9 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
                         width: 20,
                         height: 20,
                         child: CircularProgressIndicator(
-                          valueColor:
-                              AlwaysStoppedAnimation<Color>(Colors.black),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Colors.black,
+                          ),
                           strokeWidth: 3,
                           backgroundColor: Colors.grey.shade300,
                         ),
@@ -124,8 +129,10 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     );
   }
 
-  Widget _buildBusinessList(
-      {List<Business>? businesses, int? selectedBusinessId}) {
+  Widget _buildBusinessList({
+    List<Business>? businesses,
+    int? selectedBusinessId,
+  }) {
     if (businesses == null) return const SizedBox();
     return ListView.separated(
       itemCount: businesses.length,
@@ -168,8 +175,9 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                        color: Colors.blue.withValues(alpha: 0.3),
-                        blurRadius: 8.0)
+                      color: Colors.blue.withValues(alpha: 0.3),
+                      blurRadius: 8.0,
+                    ),
                   ]
                 : null,
           ),
@@ -181,8 +189,10 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
                       height: 24,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : Icon(icon,
-                      color: isSelected ? Colors.blue : Colors.grey[600]),
+                  : Icon(
+                      icon,
+                      color: isSelected ? Colors.blue : Colors.grey[600],
+                    ),
               const SizedBox(width: 16.0),
               Expanded(
                 child: Text(
@@ -206,6 +216,8 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
   }
 
   Future<void> _handleBusinessSelection(Business business) async {
+    // remove any branchId selected before
+    ProxyService.box.remove(key: 'branchId');
     setState(() {
       _loadingItemId = business.serverId.toString();
     });
@@ -215,9 +227,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
       // Navigate to personal app screen
       if (mounted) {
         Navigator.of(context).push(
-          MaterialPageRoute(
-            builder: (context) => const PersonalHomeScreen(),
-          ),
+          MaterialPageRoute(builder: (context) => const PersonalHomeScreen()),
         );
       }
       setState(() {
@@ -229,8 +239,10 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     ref.read(selectedBusinessIdProvider.notifier).state = business.serverId;
     try {
       // Save business ID to local storage
-      await ProxyService.box
-          .writeInt(key: 'businessId', value: business.serverId);
+      await ProxyService.box.writeInt(
+        key: 'businessId',
+        value: business.serverId,
+      );
       await _setDefaultBusiness(business);
       // Get the latest payment plan online.
       await ProxyService.strategy.getPaymentPlan(
@@ -267,7 +279,9 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
   }
 
   Future<void> _handleBranchSelection(
-      Branch branch, BuildContext context) async {
+    Branch branch,
+    BuildContext context,
+  ) async {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     final platform = Theme.of(context).platform;
     final isMobile =
@@ -277,8 +291,10 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
       _isLoading = true;
     });
 
-    await ProxyService.box
-        .writeBool(key: 'branch_navigation_in_progress', value: true);
+    await ProxyService.box.writeBool(
+      key: 'branch_navigation_in_progress',
+      value: true,
+    );
 
     try {
       await _setDefaultBranch(branch);
@@ -316,8 +332,9 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
         if (defaultApp == 'POS') {
           final userId = ProxyService.box.getUserId();
           if (userId != null) {
-            final currentShift =
-                await ProxyService.strategy.getCurrentShift(userId: userId);
+            final currentShift = await ProxyService.strategy.getCurrentShift(
+              userId: userId,
+            );
             if (currentShift == null) {
               final dialogService = locator<DialogService>();
               final response = await dialogService.showCustomDialog(
@@ -339,7 +356,8 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
                 scaffoldMessenger.showSnackBar(
                   const SnackBar(
                     content: Text(
-                        'Shift not started. Please start a shift to proceed.'),
+                      'Shift not started. Please start a shift to proceed.',
+                    ),
                     backgroundColor: Colors.orange,
                   ),
                 );
@@ -408,15 +426,20 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
       await _updateBranchActive(branch);
       // Update branch ID in storage
       await ProxyService.box.writeInt(key: 'branchId', value: branch.serverId!);
-      await ProxyService.box
-          .writeString(key: 'branchIdString', value: branch.id);
+      await ProxyService.box.writeString(
+        key: 'branchIdString',
+        value: branch.id,
+      );
       // Set switched flag for other components to detect
       await ProxyService.box.writeBool(key: 'branch_switched', value: true);
       await ProxyService.box.writeInt(
-          key: 'last_branch_switch_timestamp',
-          value: DateTime.now().millisecondsSinceEpoch);
-      await ProxyService.box
-          .writeInt(key: 'active_branch_id', value: branch.serverId!);
+        key: 'last_branch_switch_timestamp',
+        value: DateTime.now().millisecondsSinceEpoch,
+      );
+      await ProxyService.box.writeInt(
+        key: 'active_branch_id',
+        value: branch.serverId!,
+      );
 
       // Refresh providers to reflect changes
       _refreshBusinessAndBranchProviders();
@@ -428,8 +451,9 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
   }
 
   Future<void> _updateAllBusinessesInactive() async {
-    final businesses = await ProxyService.strategy
-        .businesses(userId: ProxyService.box.getUserId()!);
+    final businesses = await ProxyService.strategy.businesses(
+      userId: ProxyService.box.getUserId()!,
+    );
     for (final business in businesses) {
       await ProxyService.strategy.updateBusiness(
         businessId: business.serverId,
@@ -454,45 +478,63 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     ProxyService.box
       ..writeInt(key: 'businessId', value: business.serverId)
       ..writeString(
-          key: 'bhfId', value: (await ProxyService.box.bhfId()) ?? "00");
+        key: 'bhfId',
+        value: (await ProxyService.box.bhfId()) ?? "00",
+      );
 
     // Resolve effective TIN (prefer Ebm for active branch) and update box if needed
     final resolvedTin = await effectiveTin(business: business);
     if (resolvedTin != null || existingTin == null) {
-      ProxyService.box
-          .writeInt(key: 'tin', value: resolvedTin ?? existingTin ?? 0);
+      ProxyService.box.writeInt(
+        key: 'tin',
+        value: resolvedTin ?? existingTin ?? 0,
+      );
       talker.debug(
-          'Setting tin to ${resolvedTin ?? existingTin ?? 0} (from ${resolvedTin != null ? 'ebm/business' : 'existing value'})');
+        'Setting tin to ${resolvedTin ?? existingTin ?? 0} (from ${resolvedTin != null ? 'ebm/business' : 'existing value'})',
+      );
     } else {
       talker.debug('Preserving existing tin value: $existingTin');
     }
 
-    ProxyService.box
-        .writeString(key: 'encryptionKey', value: business.encryptionKey ?? "");
+    ProxyService.box.writeString(
+      key: 'encryptionKey',
+      value: business.encryptionKey ?? "",
+    );
   }
 
   Future<void> _updateAllBranchesInactive() async {
     final businessId = ref.read(selectedBusinessIdProvider);
     if (businessId == null) return;
-    final branches = await ProxyService.strategy
-        .branches(businessId: businessId, active: true);
+    final branches = await ProxyService.strategy.branches(
+      businessId: businessId,
+      active: true,
+    );
     for (final branch in branches) {
       ProxyService.strategy.updateBranch(
-          branchId: branch.serverId!, active: false, isDefault: false);
+        branchId: branch.serverId!,
+        active: false,
+        isDefault: false,
+      );
     }
   }
 
   Future<void> _updateBranchActive(Branch branch) async {
     await ProxyService.strategy.updateBranch(
-        branchId: branch.serverId!, active: true, isDefault: true);
+      branchId: branch.serverId!,
+      active: true,
+      isDefault: true,
+    );
   }
 
   void _completeAuthenticationFlow() {
     final selectedBusinessId = ref.read(selectedBusinessIdProvider);
-    PosthogService.instance.capture('login_success', properties: {
-      'source': 'login_choices',
-      if (selectedBusinessId != null) 'business_id': selectedBusinessId,
-    });
+    PosthogService.instance.capture(
+      'login_success',
+      properties: {
+        'source': 'login_choices',
+        if (selectedBusinessId != null) 'business_id': selectedBusinessId,
+      },
+    );
 
     _routerService.navigateTo(FlipperAppRoute());
 
@@ -500,8 +542,10 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     _navigationTimer?.cancel();
     _navigationTimer = Timer(const Duration(seconds: 2), () {
       if (mounted) {
-        ProxyService.box
-            .writeBool(key: 'branch_navigation_in_progress', value: false);
+        ProxyService.box.writeBool(
+          key: 'branch_navigation_in_progress',
+          value: false,
+        );
       }
     });
   }
