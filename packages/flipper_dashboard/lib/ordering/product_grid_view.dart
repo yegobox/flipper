@@ -39,6 +39,7 @@ class _ProductGridViewState extends ConsumerState<ProductGridView>
           isOrdering: widget.isOrdering,
         );
       },
+      physics: const BouncingScrollPhysics(),
       shrinkWrap: true,
     );
   }

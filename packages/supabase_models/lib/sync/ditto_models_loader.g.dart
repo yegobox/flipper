@@ -33,7 +33,6 @@ void ensureDittoAdaptersLoaded() {
   transaction_delegation_model.TransactionDelegationDittoAdapter.registryToken; // ignore: unnecessary_statements
   variant_model.VariantDittoAdapter.registryToken; // ignore: unnecessary_statements
   device_model.DeviceDittoAdapter.registryToken; // ignore: unnecessary_statements
-  inventory_request_model.InventoryRequestDittoAdapter.registryToken; // ignore: unnecessary_statements
   stock_recount_item_model.StockRecountItemDittoAdapter.registryToken; // ignore: unnecessary_statements
   plans_model.PlanDittoAdapter.registryToken; // ignore: unnecessary_statements
 }

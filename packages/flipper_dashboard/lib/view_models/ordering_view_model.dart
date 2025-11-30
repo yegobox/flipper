@@ -31,10 +31,37 @@ class OrderingViewModel extends ProductViewModel
     notifyListeners();
   }
 
-  Future<void> handlePreviewCart(WidgetRef ref, int orderCount,
-      ITransaction transaction, bool isOrdering, BuildContext context) async {
-    if (ref.read(selectedSupplierProvider)!.serverId! ==
-        ProxyService.box.getBranchId()!) {
+  Future<void> handlePreviewCart(
+    WidgetRef ref,
+    int orderCount,
+    ITransaction transaction,
+    bool isOrdering,
+    BuildContext context,
+  ) async {
+    final supplier = ref.read(selectedSupplierProvider);
+    if (supplier == null) {
+      _dialogService.showCustomDialog(
+        variant: DialogType.info,
+        title: 'Error',
+        description: 'Please select a supplier first.',
+        data: {'status': InfoDialogStatus.error},
+      );
+      return;
+    }
+
+    // Check if serverId is null or invalid before comparing
+    if (supplier.serverId == null) {
+      _dialogService.showCustomDialog(
+        variant: DialogType.info,
+        title: 'Error',
+        description:
+            'Selected supplier has invalid ID. Please select a different supplier.',
+        data: {'status': InfoDialogStatus.error},
+      );
+      return;
+    }
+
+    if (supplier.serverId == ProxyService.box.getBranchId()) {
       _dialogService.showCustomDialog(
         variant: DialogType.info,
         title: 'Error',
@@ -54,69 +81,79 @@ class OrderingViewModel extends ProductViewModel
   }
 
   Future<void> handleOrderPlacement(
-      WidgetRef ref,
-      ITransaction transaction,
-      bool isOrdering,
-      FinanceProvider financeOption,
-      BuildContext context) async {
+    WidgetRef ref,
+    ITransaction transaction,
+    bool isOrdering,
+    FinanceProvider financeOption,
+    BuildContext context,
+  ) async {
     try {
       setLoading(true);
 
       // Place the order
       await placeFinalOrder(
-          ref: ref, transaction: transaction, financeOption: financeOption);
+        ref: ref,
+        transaction: transaction,
+        financeOption: financeOption,
+      );
 
       // Send SMS notification
-      final items = await ProxyService.strategy
-          .transactionItems(transactionId: transaction.id);
+      final items = await ProxyService.strategy.transactionItems(
+        transactionId: transaction.id,
+      );
       final itemCount = items.length;
-      final totalAmount =
-          items.fold(0.0, (sum, item) => sum + (item.qty * item.price));
+      final totalAmount = items.fold(
+        0.0,
+        (sum, item) => sum + (item.qty * item.price),
+      );
 
       final orderDetails =
           'New order with $itemCount items, total: \$${totalAmount.toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())}';
 
-      transaction.supplierId = ref.read(selectedSupplierProvider)!.serverId!;
+      final supplier = ref.read(selectedSupplierProvider);
+      if (supplier == null || supplier.serverId == null) {
+        setLoading(false);
+        _dialogService.showCustomDialog(
+          variant: DialogType.info,
+          title: 'Error',
+          description: 'Please select a supplier first.',
+          data: {'status': InfoDialogStatus.error},
+        );
+        return;
+      }
+
+      transaction.supplierId = supplier.serverId!;
       ProxyService.strategy.updateTransaction(
-          transaction: transaction,
-          supplierId: ref.read(selectedSupplierProvider)!.serverId!);
+        transaction: transaction,
+        supplierId: supplier.serverId!,
+      );
       final requesterBranchId = ProxyService.box.getBranchId()!;
 
       // Get requester's phone number from their branch config
-      final requesterConfig =
-          await SmsNotificationService.getBranchSmsConfig(requesterBranchId);
+      final requesterConfig = await SmsNotificationService.getBranchSmsConfig(
+        requesterBranchId,
+      );
       final requesterPhone = requesterConfig?.smsPhoneNumber ?? '';
 
       // Send SMS to both requester and receiver
       await SmsNotificationService.sendOrderRequestNotification(
-        receiverBranchId: ref.read(selectedSupplierProvider)!.serverId!,
+        receiverBranchId: supplier.serverId!,
         orderDetails: orderDetails,
         requesterPhone: requesterPhone,
       );
 
       // Refresh the transaction state
-      // ignore: 
+      // ignore:
       ref.refresh(pendingTransactionStreamProvider(isExpense: isOrdering));
-      ref.read(previewingCart.notifier).state = false;
-
-      // Create new transaction
-      ITransaction? newTransaction = await ProxyService.strategy
-          .manageTransaction(
-              transactionType: TransactionType.purchase,
-              isExpense: isOrdering,
-              branchId: ProxyService.box.getBranchId()!);
-
-      await refreshTransactionItems(
-          ref: ref, transactionId: newTransaction!.id);
-
-      setLoading(false);
-
-      _dialogService.showCustomDialog(
+      await _dialogService.showCustomDialog(
         variant: DialogType.info,
         title: 'Order Placed Successfully',
         description: 'Your order has been processed and confirmed.',
         data: {'status': InfoDialogStatus.success},
       );
+
+      // Switch back to product list AFTER success modal is closed
+      ref.read(previewingCart.notifier).state = false;
 
       showCustomSnackBar(context, 'Order Placed successfully');
     } catch (e) {
@@ -132,13 +169,12 @@ class OrderingViewModel extends ProductViewModel
   }
 
   /// Copied and adapted from PreviewCartMixin
-  Future<void> placeFinalOrder(
-      {required WidgetRef ref,
-      bool isShoppingFromWareHouse = true,
-      required ITransaction transaction,
-      required FinanceProvider financeOption}) async {
-    ref.read(previewingCart.notifier).state = !ref.read(previewingCart);
-
+  Future<void> placeFinalOrder({
+    required WidgetRef ref,
+    bool isShoppingFromWareHouse = true,
+    required ITransaction transaction,
+    required FinanceProvider financeOption,
+  }) async {
     if (!isShoppingFromWareHouse) {
       return;
     }
@@ -148,22 +184,30 @@ class OrderingViewModel extends ProductViewModel
 
       final items = await ProxyService.getStrategy(Strategy.capella)
           .transactionItems(
-              branchId: (await ProxyService.strategy.activeBranch()).id,
-              transactionId: transaction.id,
-              doneWithTransaction: false,
-              active: true);
+            branchId: (await ProxyService.strategy.activeBranch()).id,
+            transactionId: transaction.id,
+            doneWithTransaction: false,
+            active: true,
+          );
 
-      if (items.isEmpty || ref.read(previewingCart)) {
+      if (items.isEmpty) {
         return;
       }
 
+      final supplier = ref.read(selectedSupplierProvider);
+      if (supplier == null || supplier.serverId == null) {
+        throw Exception('Please select a supplier first.');
+      }
+
       // ignore: unused_local_variable
-      String orderId = await ProxyService.strategy.createStockRequest(items,
-          mainBranchId: ref.read(selectedSupplierProvider)!.serverId!,
-          subBranchId: ProxyService.box.getBranchId()!,
-          deliveryNote: deliveryNote,
-          orderNote: null,
-          financingId: financeOption.id);
+      String orderId = await ProxyService.strategy.createStockRequest(
+        items,
+        mainBranchId: supplier.serverId!,
+        subBranchId: ProxyService.box.getBranchId()!,
+        deliveryNote: deliveryNote,
+        orderNote: null,
+        financingId: financeOption.id,
+      );
       await _markItemsAsDone(items, transaction);
       _changeTransactionStatus(transaction: transaction);
       await _refreshTransactionItems(ref: ref, transactionId: transaction.id);
@@ -174,14 +218,19 @@ class OrderingViewModel extends ProductViewModel
     }
   }
 
-  FutureOr<void> _changeTransactionStatus(
-      {required ITransaction transaction}) async {
-    await ProxyService.strategy
-        .updateTransaction(transaction: transaction, status: ORDERING);
+  FutureOr<void> _changeTransactionStatus({
+    required ITransaction transaction,
+  }) async {
+    await ProxyService.strategy.updateTransaction(
+      transaction: transaction,
+      status: ORDERING,
+    );
   }
 
   Future<void> _markItemsAsDone(
-      List<TransactionItem> items, dynamic pendingTransaction) async {
+    List<TransactionItem> items,
+    dynamic pendingTransaction,
+  ) async {
     ProxyService.strategy.markItemAsDoneWithTransaction(
       isDoneWithTransaction: true,
       inactiveItems: items,
@@ -190,8 +239,10 @@ class OrderingViewModel extends ProductViewModel
     );
   }
 
-  Future<void> _refreshTransactionItems(
-      {required WidgetRef ref, required String transactionId}) async {
+  Future<void> _refreshTransactionItems({
+    required WidgetRef ref,
+    required String transactionId,
+  }) async {
     ref.refresh(transactionItemsProvider(transactionId: transactionId));
 
     ref.refresh(pendingTransactionStreamProvider(isExpense: false));
@@ -203,8 +254,10 @@ class OrderingViewModel extends ProductViewModel
   }
 
   /// Copied and adapted from Refresh mixin
-  Future<void> refreshTransactionItems(
-      {required WidgetRef ref, required String transactionId}) async {
+  Future<void> refreshTransactionItems({
+    required WidgetRef ref,
+    required String transactionId,
+  }) async {
     try {
       /// clear the current cart
       ref.refresh(transactionItemsProvider(transactionId: transactionId));

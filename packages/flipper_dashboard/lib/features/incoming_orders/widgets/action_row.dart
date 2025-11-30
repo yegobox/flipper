@@ -2,6 +2,7 @@
 
 import 'package:flipper_dashboard/SnackBarMixin.dart';
 import 'package:flipper_dashboard/stockApprovalMixin.dart';
+import 'package:flipper_dashboard/utils/snack_bar_utils.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/orders_provider.dart';
@@ -17,10 +18,7 @@ class ActionRow extends ConsumerWidget
     with StockRequestApprovalLogic, SnackBarMixin {
   final InventoryRequest request;
 
-  const ActionRow({
-    Key? key,
-    required this.request,
-  }) : super(key: key);
+  const ActionRow({Key? key, required this.request}) : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -49,8 +47,9 @@ class ActionRow extends ConsumerWidget
       ),
       error: (error, stack) => SizedBox(), // Hide buttons if there's an error
       data: (items) {
-        final bool hasApprovedItems =
-            items.any((item) => (item.quantityApproved ?? 0) > 0);
+        final bool hasApprovedItems = items.any(
+          (item) => (item.quantityApproved ?? 0) > 0,
+        );
         final bool isFullyApproved = request.status == RequestStatus.approved;
 
         return Row(
@@ -67,8 +66,9 @@ class ActionRow extends ConsumerWidget
             ),
             SizedBox(width: 12),
             _buildActionButton(
-              onPressed:
-                  hasApprovedItems ? null : () => _voidRequest(context, ref),
+              onPressed: hasApprovedItems
+                  ? null
+                  : () => _voidRequest(context, ref),
               icon: Icons.cancel_outlined,
               label: 'Void',
               color: Colors.red[600]!,
@@ -120,14 +120,20 @@ class ActionRow extends ConsumerWidget
   }
 
   Future<void> _handleApproveRequest(
-      BuildContext context, WidgetRef ref, InventoryRequest request) async {
+    BuildContext context,
+    WidgetRef ref,
+    InventoryRequest request,
+  ) async {
     final bool? confirmApprove = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         title: Row(
           children: [
-            Icon(Icons.check_circle_outline,
-                color: Colors.green[600], size: 24),
+            Icon(
+              Icons.check_circle_outline,
+              color: Colors.green[600],
+              size: 24,
+            ),
             SizedBox(width: 12),
             Text(
               'Approve Request',
@@ -145,10 +151,7 @@ class ActionRow extends ConsumerWidget
           children: [
             Text(
               'Are you sure you want to approve all items in this request?',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.grey[700],
-              ),
+              style: TextStyle(fontSize: 16, color: Colors.grey[700]),
             ),
           ],
         ),
@@ -187,9 +190,12 @@ class ActionRow extends ConsumerWidget
       try {
         await approveRequest(request: request, context: context);
         final stringValue = ref.watch(stringProvider);
-        ref.refresh(stockRequestsProvider(
+        ref.refresh(
+          stockRequestsProvider(
             status: RequestStatus.pending,
-            search: stringValue?.isNotEmpty == true ? stringValue : null));
+            search: stringValue?.isNotEmpty == true ? stringValue : null,
+          ),
+        );
       } catch (e) {
         // Error handling is already done in approveRequest
       }
@@ -206,8 +212,11 @@ class ActionRow extends ConsumerWidget
           ),
           title: Row(
             children: [
-              Icon(Icons.warning_amber_rounded,
-                  color: Colors.red[400], size: 24),
+              Icon(
+                Icons.warning_amber_rounded,
+                color: Colors.red[400],
+                size: 24,
+              ),
               SizedBox(width: 12),
               Text(
                 'Void Request',
@@ -225,10 +234,7 @@ class ActionRow extends ConsumerWidget
             children: [
               Text(
                 'Are you sure you want to void this request?',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey[700],
-                ),
+                style: TextStyle(fontSize: 16, color: Colors.grey[700]),
               ),
               SizedBox(height: 8),
               Text(
@@ -271,8 +277,8 @@ class ActionRow extends ConsumerWidget
                   try {
                     final requesterConfig =
                         await SmsNotificationService.getBranchSmsConfig(
-                      request.branch!.serverId!,
-                    );
+                          request.branch!.serverId!,
+                        );
                     if (requesterConfig?.smsPhoneNumber != null) {
                       await SmsNotificationService.sendOrderRequestNotification(
                         receiverBranchId: request.branch!.serverId!,
@@ -287,19 +293,26 @@ class ActionRow extends ConsumerWidget
                   }
 
                   final stringValue = ref.watch(stringProvider);
-                  ref.refresh(stockRequestsProvider(
+                  ref.refresh(
+                    stockRequestsProvider(
                       status: RequestStatus.voided,
                       search: stringValue?.isNotEmpty == true
                           ? stringValue
-                          : null));
+                          : null,
+                    ),
+                  );
                   Navigator.of(context).pop();
-                  showCustomSnackBar(context, 'Request voided successfully');
+                  showCustomSnackBar(
+                    context,
+                    'Request voided successfully',
+                    type: NotificationType.warning,
+                  );
                 } catch (e, s) {
                   talker.error(s);
                   showCustomSnackBar(
                     context,
                     'Failed to void request: ${e.toString()}',
-                    backgroundColor: Colors.red[600],
+                    type: NotificationType.error,
                   );
                 }
               },

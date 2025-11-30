@@ -43,25 +43,13 @@ import 'package:supabase_models/brick/models/financing.model.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:supabase_models/brick/models/composite.model.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
-import 'package:supabase_models/brick/models/plan_addon.model.dart'; // GENERATED CODE DO NOT EDIT
+import 'package:supabase_models/brick/models/plan_addon.model.dart';// GENERATED CODE DO NOT EDIT
 // ignore: unused_import
 import 'dart:convert';
-import 'package:brick_sqlite/brick_sqlite.dart'
-    show
-        SqliteModel,
-        SqliteAdapter,
-        SqliteModelDictionary,
-        RuntimeSqliteColumnDefinition,
-        SqliteProvider;
-import 'package:brick_supabase/brick_supabase.dart'
-    show
-        SupabaseProvider,
-        SupabaseModel,
-        SupabaseAdapter,
-        SupabaseModelDictionary;
+import 'package:brick_sqlite/brick_sqlite.dart' show SqliteModel, SqliteAdapter, SqliteModelDictionary, RuntimeSqliteColumnDefinition, SqliteProvider;
+import 'package:brick_supabase/brick_supabase.dart' show SupabaseProvider, SupabaseModel, SupabaseAdapter, SupabaseModelDictionary;
 // ignore: unused_import, unused_shown_name
-import 'package:brick_offline_first/brick_offline_first.dart'
-    show RuntimeOfflineFirstDefinition;
+import 'package:brick_offline_first/brick_offline_first.dart' show RuntimeOfflineFirstDefinition;
 // ignore: unused_import, unused_shown_name
 import 'package:sqflite_common/sqlite_api.dart' show DatabaseExecutor;
 
@@ -101,7 +89,6 @@ import '../brick/models/composite.model.dart';
 import '../brick/models/transaction_payment_record.model.dart';
 import '../brick/models/setting.model.dart';
 import '../brick/models/tenant.model.dart';
-import '../brick/models/inventory_request.model.dart';
 import '../brick/models/pin.model.dart';
 import '../brick/models/access.model.dart';
 import '../brick/models/customer.model.dart';
@@ -160,7 +147,6 @@ part 'adapters/composite_adapter.g.dart';
 part 'adapters/transaction_payment_record_adapter.g.dart';
 part 'adapters/setting_adapter.g.dart';
 part 'adapters/tenant_adapter.g.dart';
-part 'adapters/inventory_request_adapter.g.dart';
 part 'adapters/pin_adapter.g.dart';
 part 'adapters/access_adapter.g.dart';
 part 'adapters/customer_adapter.g.dart';
@@ -221,7 +207,6 @@ final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
   TransactionPaymentRecord: TransactionPaymentRecordAdapter(),
   Setting: SettingAdapter(),
   Tenant: TenantAdapter(),
-  InventoryRequest: InventoryRequestAdapter(),
   Pin: PinAdapter(),
   Access: AccessAdapter(),
   Customer: CustomerAdapter(),
@@ -284,7 +269,6 @@ final Map<Type, SqliteAdapter<SqliteModel>> sqliteMappings = {
   TransactionPaymentRecord: TransactionPaymentRecordAdapter(),
   Setting: SettingAdapter(),
   Tenant: TenantAdapter(),
-  InventoryRequest: InventoryRequestAdapter(),
   Pin: PinAdapter(),
   Access: AccessAdapter(),
   Customer: CustomerAdapter(),

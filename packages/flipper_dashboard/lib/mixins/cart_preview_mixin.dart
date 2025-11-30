@@ -40,8 +40,19 @@ mixin CartPreviewMixin<T extends ConsumerStatefulWidget>
     if (items.isEmpty || ref.read(previewingCart)) return;
 
     final deliveryNote = deliveryNoteCotroller.text;
-    if (ref.read(selectedSupplierProvider)!.serverId! ==
-        ProxyService.box.getBranchId()!) {
+    final supplier = ref.read(selectedSupplierProvider);
+    if (supplier == null || supplier.serverId == null) {
+      final dialogService = locator<DialogService>();
+      dialogService.showCustomDialog(
+        variant: DialogType.info,
+        title: 'Error',
+        description: 'Please select a supplier first.',
+        data: {'status': InfoDialogStatus.error},
+      );
+      return; // Return void to match the expected return type
+    }
+
+    if (supplier.serverId == ProxyService.box.getBranchId()) {
       final dialogService = locator<DialogService>();
       dialogService.showCustomDialog(
         variant: DialogType.info,
@@ -49,10 +60,11 @@ mixin CartPreviewMixin<T extends ConsumerStatefulWidget>
         description: 'You can not order from yourself.',
         data: {'status': InfoDialogStatus.error},
       );
+      return; // Return void to match the expected return type
     }
     await ProxyService.strategy.createStockRequest(
       items,
-      mainBranchId: ref.read(selectedSupplierProvider)!.serverId!,
+      mainBranchId: supplier.serverId!,
       subBranchId: ProxyService.box.getBranchId()!,
       deliveryNote: deliveryNote,
       financingId: financeOption.id,

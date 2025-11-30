@@ -62,6 +62,7 @@ import 'package:flipper_services/ai_strategy_impl.dart';
 //     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
 
 import 'package:uuid/uuid.dart';
+import 'package:flipper_web/services/ditto_service.dart';
 
 /// A cloud sync that uses different sync provider such as powersync+ superbase, firesore and can easy add
 /// anotherone to acheive sync for flipper app
@@ -98,6 +99,8 @@ class CoreSync extends AiStrategyImpl
   bool offlineLogin = false;
 
   Repository repository = Repository();
+
+  DittoService get dittoService => DittoService.instance;
 
   CoreSync();
   bool isInIsolate() {
@@ -1163,20 +1166,41 @@ class CoreSync extends AiStrategyImpl
   @override
   Future<List<models.InventoryRequest>> requests(
       {int? branchId, String? requestId}) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      throw Exception('Ditto not initialized');
+    }
+
     if (branchId != null) {
-      return await repository.get<InventoryRequest>(
-          query: brick.Query(where: [
-        brick.Where('mainBranchId').isExactly(branchId),
-        brick.Where('status').isExactly(RequestStatus.pending),
-        brick.Or('status').isExactly(RequestStatus.partiallyApproved)
-      ]));
+      final result = await ditto.store.execute(
+        'SELECT * FROM stock_requests WHERE mainBranchId = :branchId AND (status = :pending OR status = :partiallyApproved)',
+        arguments: {
+          'branchId': branchId,
+          'pending': RequestStatus.pending,
+          'partiallyApproved': RequestStatus.partiallyApproved,
+        },
+      );
+
+      final requests = result.items.map((item) {
+        final data = Map<String, dynamic>.from(item.value);
+        return _convertInventoryRequestFromDitto(data);
+      }).toList();
+      return await Future.wait(requests.map(_hydrateSingleRequest));
     }
+
     if (requestId != null) {
-      return await repository.get<InventoryRequest>(
-          query: brick.Query(where: [
-        brick.Where('id').isExactly(requestId),
-      ]));
+      final result = await ditto.store.execute(
+        'SELECT * FROM stock_requests WHERE _id = :requestId',
+        arguments: {'requestId': requestId},
+      );
+
+      final requests = result.items.map((item) {
+        final data = Map<String, dynamic>.from(item.value);
+        return _convertInventoryRequestFromDitto(data);
+      }).toList();
+      return await Future.wait(requests.map(_hydrateSingleRequest));
     }
+
     throw Exception("Invalid parameter");
   }
 
@@ -1186,21 +1210,114 @@ class CoreSync extends AiStrategyImpl
     String filter = RequestStatus.pending,
     String? search,
   }) {
-    final request = repository.subscribeToRealtime<InventoryRequest>(
-      policy: OfflineFirstGetPolicy.alwaysHydrate,
-      query: brick.Query(where: [
-        brick.Where('mainBranchId').isExactly(branchId),
-        brick.Where('status').isExactly(filter),
-      ]),
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      talker.warning(
+          'Ditto not initialized yet, returning empty stream for requests');
+      // Return empty stream instead of error - Ditto will initialize soon
+      return Stream.value([]);
+    }
+
+    final controller = StreamController<List<InventoryRequest>>.broadcast();
+    dynamic observer;
+
+    () async {
+      try {
+        final query =
+            'SELECT * FROM stock_requests WHERE mainBranchId = :branchId AND status = :status';
+        final arguments = {'branchId': branchId, 'status': filter};
+
+        // Subscribe to ensure we have the latest data
+        await ditto.sync.registerSubscription(query, arguments: arguments);
+
+        observer = ditto.store.registerObserver(
+          query,
+          arguments: arguments,
+          onChange: (queryResult) async {
+            if (controller.isClosed) return;
+
+            final requests = queryResult.items.map((item) {
+              final data = Map<String, dynamic>.from(item.value);
+              return _convertInventoryRequestFromDitto(data);
+            }).toList();
+
+            // Hydrate requests
+            final hydratedRequests =
+                await Future.wait(requests.map(_hydrateSingleRequest));
+
+            controller.add(hydratedRequests);
+          },
+        );
+      } catch (e) {
+        talker.error('Error setting up requests observer: $e');
+        controller.addError(e);
+      }
+    }();
+
+    controller.onCancel = () async {
+      await observer?.cancel();
+      await controller.close();
+    };
+
+    return controller.stream;
+  }
+
+  InventoryRequest _convertInventoryRequestFromDitto(
+      Map<String, dynamic> data) {
+    // Parse transactionItems from embedded data
+    List<TransactionItem>? items;
+    if (data['transactionItems'] != null && data['transactionItems'] is List) {
+      items = (data['transactionItems'] as List).map((itemData) {
+        final itemMap = Map<String, dynamic>.from(itemData);
+        return TransactionItem(
+          id: itemMap['id'],
+          name: itemMap['name'],
+          qty: itemMap['qty'] ?? 0,
+          price: itemMap['price'] ?? 0,
+          discount: itemMap['discount'] ?? 0,
+          prc: itemMap['prc'] ?? 0,
+          ttCatCd: itemMap['ttCatCd'],
+          quantityRequested:
+              (itemMap['quantityRequested'] as num?)?.toInt() ?? 0,
+          quantityApproved: (itemMap['quantityApproved'] as num?)?.toInt() ?? 0,
+          quantityShipped: (itemMap['quantityShipped'] as num?)?.toInt() ?? 0,
+          transactionId: itemMap['transactionId'],
+          variantId: itemMap['variantId'],
+          inventoryRequestId: itemMap['inventoryRequestId'],
+        );
+      }).toList();
+    }
+
+    return InventoryRequest(
+      id: data['_id'] ?? data['id'],
+      mainBranchId: data['mainBranchId'],
+      subBranchId: data['subBranchId'],
+      branchId: data['branchId'],
+      createdAt:
+          data['createdAt'] != null ? DateTime.tryParse(data['createdAt']) : null,
+      status: data['status'],
+      deliveryDate: data['deliveryDate'] != null
+          ? DateTime.tryParse(data['deliveryDate'])
+          : null,
+      deliveryNote: data['deliveryNote'],
+      orderNote: data['orderNote'],
+      customerReceivedOrder: data['customerReceivedOrder'],
+      driverRequestDeliveryConfirmation:
+          data['driverRequestDeliveryConfirmation'],
+      driverId: data['driverId'],
+      updatedAt:
+          data['updatedAt'] != null ? DateTime.tryParse(data['updatedAt']) : null,
+      itemCounts: data['itemCounts'],
+      bhfId: data['bhfId'],
+      tinNumber: data['tinNumber'],
+      financingId: data['financingId'],
+      transactionItems: items,
     );
-    return request.asyncMap((requests) async {
-      if (requests.isEmpty) return requests;
-      return Future.wait(requests.map(_hydrateSingleRequest));
-    }).asBroadcastStream();
   }
 
   Future<InventoryRequest> _hydrateSingleRequest(InventoryRequest req) async {
     Branch? hydratedBranch = req.branch;
+
     if (hydratedBranch == null && req.subBranchId != null) {
       final branches = await repository.get<Branch>(
         policy: OfflineFirstGetPolicy.alwaysHydrate,
@@ -1208,12 +1325,14 @@ class CoreSync extends AiStrategyImpl
           brick.Where('serverId').isExactly(req.subBranchId),
         ]),
       );
+
       if (branches.isNotEmpty) {
         hydratedBranch = branches.first;
       }
     }
 
     Financing? financingToUse = req.financing;
+
     if (financingToUse == null && req.financingId != null) {
       final financingList = await repository.get<Financing>(
         policy: OfflineFirstGetPolicy.alwaysHydrate,
@@ -1221,17 +1340,15 @@ class CoreSync extends AiStrategyImpl
           brick.Where('id').isExactly(req.financingId),
         ]),
       );
+
       if (financingList.isNotEmpty) {
         financingToUse = financingList.first;
       }
     }
-    List<TransactionItem> items =
-        await transactionItems(requestId: req.id, fetchRemote: true);
 
     return await req.copyWith(
       branch: hydratedBranch,
       financing: financingToUse,
-      transactionItems: items,
     );
   }
 
@@ -2505,16 +2622,80 @@ class CoreSync extends AiStrategyImpl
       {required String stockRequestId,
       DateTime? updatedAt,
       String? status}) async {
-    final stockRequest = (await repository.get<InventoryRequest>(
-      query: brick.Query(where: [
-        brick.Where('id').isExactly(stockRequestId),
-      ]),
-    ))
-        .firstOrNull;
-    if (stockRequest != null) {
-      stockRequest.updatedAt = updatedAt ?? stockRequest.updatedAt;
-      stockRequest.status = status ?? stockRequest.status;
-      repository.upsert<InventoryRequest>(stockRequest);
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      throw Exception('Ditto not initialized');
+    }
+
+    final updateData = <String, dynamic>{};
+    if (updatedAt != null) {
+      updateData['updatedAt'] = updatedAt.toIso8601String();
+    }
+    if (status != null) {
+      updateData['status'] = status;
+    }
+
+    if (updateData.isNotEmpty) {
+      await ditto.store.execute(
+        'UPDATE stock_requests SET ${updateData.keys.map((key) => '$key = :$key').join(', ')} WHERE _id = :stockRequestId',
+        arguments: {...updateData, 'stockRequestId': stockRequestId},
+      );
+    }
+  }
+
+  @override
+  Future<void> updateStockRequestItem({
+    required String requestId,
+    required String transactionItemId,
+    int? quantityApproved,
+    bool? ignoreForReport,
+  }) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      throw Exception('Ditto not initialized');
+    }
+
+    // Get the request
+    final result = await ditto.store.execute(
+      'SELECT * FROM stock_requests WHERE _id = :requestId LIMIT 1',
+      arguments: {'requestId': requestId},
+    );
+
+    if (result.items.isEmpty) {
+      talker.error('Stock request with ID $requestId not found');
+      throw Exception('Stock request with ID $requestId not found');
+    }
+
+    final requestData = Map<String, dynamic>.from(result.items.first.value);
+    final transactionItems = requestData['transactionItems'] as List?;
+
+    if (transactionItems != null) {
+      // Find and update the item
+      final itemIndex = transactionItems
+          .indexWhere((item) => item['id'] == transactionItemId);
+
+      if (itemIndex != -1) {
+        final item = Map<String, dynamic>.from(transactionItems[itemIndex]);
+
+        if (quantityApproved != null) {
+          item['quantityApproved'] =
+              (item['quantityApproved'] ?? 0) + quantityApproved;
+        }
+        if (ignoreForReport != null) {
+          item['ignoreForReport'] = ignoreForReport;
+        }
+
+        transactionItems[itemIndex] = item;
+
+        // Update the request with modified items
+        await ditto.store.execute(
+          'UPDATE stock_requests SET transactionItems = :items WHERE _id = :requestId',
+          arguments: {
+            'items': transactionItems,
+            'requestId': requestId,
+          },
+        );
+      }
     }
   }
 
@@ -2583,12 +2764,14 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Future<String> createStockRequest(List<models.TransactionItem> items,
-      {required int mainBranchId,
-      required int subBranchId,
-      String? deliveryNote,
-      String? orderNote,
-      String? financingId}) async {
+  Future<String> createStockRequest(
+    List<models.TransactionItem> items, {
+    required int mainBranchId,
+    required int subBranchId,
+    String? deliveryNote,
+    String? orderNote,
+    String? financingId,
+  }) async {
     try {
       final String requestId = const Uuid().v4();
       final String? bhfId = await ProxyService.box.bhfId();
@@ -2596,24 +2779,28 @@ class CoreSync extends AiStrategyImpl
 
       FinanceProvider? provider;
       if (financingId != null) {
-        // get financing
         provider = (await repository.get<FinanceProvider>(
-                policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
-                query: brick.Query(where: [
-                  brick.Where('id').isExactly(financingId),
-                ])))
+          policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+          query: brick.Query(where: [
+            brick.Where('id').isExactly(financingId),
+          ]),
+        ))
             .firstOrNull;
       }
+
       final financing = Financing(
         id: provider?.id,
         provider: provider,
         requested: true,
         amount: items.fold(
-            0, (previousValue, element) => previousValue! + element.price),
+          0,
+          (previousValue, element) => previousValue! + element.price,
+        ),
         status: 'pending',
         financeProviderId: provider?.id,
         approvalDate: DateTime.now().toUtc(),
       );
+
       await repository.upsert(financing);
 
       final InventoryRequest request = InventoryRequest(
@@ -2630,15 +2817,62 @@ class CoreSync extends AiStrategyImpl
         branchId: (await ProxyService.strategy.activeBranch()).id,
         financingId: financingId,
         itemCounts: items.length,
+        transactionItems: items
+            .map((item) => item.copyWith(inventoryRequestId: requestId))
+            .toList(),
       );
 
-      await repository.upsert(request);
-
-      // Associate transaction items with the stock request
-      for (final item in items) {
-        item.inventoryRequestId = requestId;
-        await repository.upsert(item);
+      final ditto = dittoService.dittoInstance;
+      if (ditto == null) {
+        throw Exception('Ditto not initialized');
       }
+
+      final requestDoc = {
+        '_id': request.id,
+        'mainBranchId': request.mainBranchId,
+        'subBranchId': request.subBranchId,
+        'branchId': request.branchId,
+        'createdAt': request.createdAt?.toIso8601String(),
+        'status': request.status,
+        'deliveryDate': request.deliveryDate?.toIso8601String(),
+        'deliveryNote': request.deliveryNote,
+        'orderNote': request.orderNote,
+        'customerReceivedOrder': request.customerReceivedOrder,
+        'driverRequestDeliveryConfirmation':
+            request.driverRequestDeliveryConfirmation,
+        'driverId': request.driverId,
+        'updatedAt': request.updatedAt?.toIso8601String(),
+        'itemCounts': request.itemCounts,
+        'bhfId': request.bhfId,
+        'tinNumber': request.tinNumber,
+        'financingId': request.financingId,
+        'transactionItems': request.transactionItems
+            ?.map((item) => {
+                  'id': item.id,
+                  'name': item.name,
+                  'qty': item.qty,
+                  'price': item.price,
+                  'discount': item.discount,
+                  'prc': item.prc,
+                  'ttCatCd': item.ttCatCd,
+                  'quantityRequested': item.qty,
+                  'quantityApproved': 0,
+                  'quantityShipped': 0,
+                  'transactionId': item.transactionId,
+                  'variantId': item.variantId,
+                  'inventoryRequestId': item.inventoryRequestId,
+                })
+            .toList(),
+      };
+
+      await ditto.store.execute('''
+  INSERT INTO stock_requests
+  DOCUMENTS (:request)
+  ON ID CONFLICT DO UPDATE
+  ''', arguments: {
+        'request': requestDoc,
+      });
+
       return requestId;
     } catch (e) {
       talker.error('Error in createStockRequest: $e');
@@ -3359,7 +3593,7 @@ class CoreSync extends AiStrategyImpl
   @override
   Future<List<models.FinanceProvider>> financeProviders() async {
     return await repository.get<FinanceProvider>(
-      policy: OfflineFirstGetPolicy.alwaysHydrate,
+      policy: OfflineFirstGetPolicy.awaitRemote,
     );
   }
 

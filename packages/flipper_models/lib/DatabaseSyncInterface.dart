@@ -569,4 +569,11 @@ abstract class DatabaseSyncInterface extends AiStrategy
 
   Future<BusinessInfo> initializeEbm(
       {required String tin, required String bhfId, required String dvcSrlNo});
+
+  Future<void> updateStockRequestItem({
+    required String requestId,
+    required String transactionItemId,
+    int? quantityApproved,
+    bool? ignoreForReport,
+  });
 }

@@ -18,10 +18,9 @@ mixin StockRequestApprovalLogic {
     try {
       _showLoadingDialog(context);
 
-      final List<TransactionItem> items =
-          await ProxyService.getStrategy(Strategy.capella).transactionItems(
-        requestId: request.id,
-      );
+      final List<TransactionItem> items = await ProxyService.getStrategy(
+        Strategy.capella,
+      ).transactionItems(requestId: request.id);
 
       if (items.isEmpty) {
         Navigator.of(context).pop();
@@ -30,11 +29,14 @@ mixin StockRequestApprovalLogic {
       }
 
       final itemApprovalResults = await Future.wait(
-        items.map((item) => _processItemApproval(
+        items.map(
+          (item) => _processItemApproval(
             item: item,
             request: request,
             subBranchId: request.subBranchId!,
-            sourceBranchId: request.branch!.id)),
+            sourceBranchId: request.branch!.id,
+          ),
+        ),
       );
 
       final List<TransactionItem> itemsNeedingApproval = [];
@@ -60,9 +62,9 @@ mixin StockRequestApprovalLogic {
       }
 
       final List<TransactionItem> approvedItems =
-          await ProxyService.getStrategy(Strategy.capella).transactionItems(
-        requestId: request.id,
-      );
+          await ProxyService.getStrategy(
+            Strategy.capella,
+          ).transactionItems(requestId: request.id);
 
       if (!_atLeastOneItemApproved(approvedItems)) {
         _showSnackBar(
@@ -112,8 +114,9 @@ mixin StockRequestApprovalLogic {
         return;
       }
 
-      final Variant? variant =
-          await ProxyService.strategy.getVariant(id: item.variantId!);
+      final Variant? variant = await ProxyService.strategy.getVariant(
+        id: item.variantId!,
+      );
       if (variant == null) {
         if (context.mounted) {
           Navigator.of(context).pop();
@@ -138,20 +141,23 @@ mixin StockRequestApprovalLogic {
         request: request,
       );
 
-      // Check if all items are now approved
-      final List<TransactionItem> allItems =
-          await ProxyService.getStrategy(Strategy.capella).transactionItems(
+      // Re-fetch the request to get updated embedded items
+      final updatedRequest = (await ProxyService.strategy.requests(
         requestId: request.id,
-      );
+      )).firstOrNull;
 
-      final bool isFullyApproved = allItems.every((item) =>
-          (item.quantityApproved ?? 0) >= (item.quantityRequested ?? 0));
+      if (updatedRequest != null && updatedRequest.transactionItems != null) {
+        final bool isFullyApproved = updatedRequest.transactionItems!.every(
+          (item) =>
+              (item.quantityApproved ?? 0) >= (item.quantityRequested ?? 0),
+        );
 
-      await _finalizeApproval(
-        request: request,
-        isFullyApproved: isFullyApproved,
-        context: context,
-      );
+        await _finalizeApproval(
+          request: updatedRequest,
+          isFullyApproved: isFullyApproved,
+          context: context,
+        );
+      }
 
       if (context.mounted) {
         Navigator.of(context).pop();
@@ -191,11 +197,12 @@ mixin StockRequestApprovalLogic {
         availableStock >= remainingQuantityToApprove;
   }
 
-  Future<bool> _processItemApproval(
-      {required TransactionItem item,
-      required int subBranchId,
-      required String sourceBranchId,
-      required InventoryRequest request}) async {
+  Future<bool> _processItemApproval({
+    required TransactionItem item,
+    required int subBranchId,
+    required String sourceBranchId,
+    required InventoryRequest request,
+  }) async {
     try {
       if (await _canApproveItem(item: item)) {
         await _approveItem(
@@ -220,8 +227,9 @@ mixin StockRequestApprovalLogic {
     required InventoryRequest request,
   }) async {
     try {
-      final Variant? variant =
-          await ProxyService.strategy.getVariant(id: item.variantId!);
+      final Variant? variant = await ProxyService.strategy.getVariant(
+        id: item.variantId!,
+      );
       if (variant == null) {
         throw Exception('Variant not found');
       }
@@ -323,7 +331,9 @@ mixin StockRequestApprovalLogic {
         // Don't show error to user as the main operation succeeded
       }
 
-      Navigator.of(context).pop(true); // Dismiss loading dialog
+      if (context.mounted) {
+        Navigator.of(context).pop(true); // Dismiss loading dialog
+      }
       _showSnackBar(
         message:
             'Request ${isFullyApproved ? 'approved' : 'partially approved'} successfully',
@@ -348,9 +358,7 @@ mixin StockRequestApprovalLogic {
       context: context,
       builder: (context) => Dialog(
         backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
         child: Container(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -455,7 +463,8 @@ mixin StockRequestApprovalLogic {
                       return Text('Error: ${snapshot.error}'); // Handle error
                     } else if (!snapshot.hasData || snapshot.data == null) {
                       return Text(
-                          'Variant not found'); // Handle variant not found
+                        'Variant not found',
+                      ); // Handle variant not found
                     } else {
                       final Variant variant = snapshot.data!;
                       return _buildItemCard(
@@ -503,10 +512,7 @@ mixin StockRequestApprovalLogic {
           children: [
             Text(
               item.name,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
             ),
             SizedBox(height: 12),
             _buildInfoRow(
@@ -583,10 +589,7 @@ mixin StockRequestApprovalLogic {
         color: color,
         borderRadius: BorderRadius.circular(12),
       ),
-      child: Text(
-        '$label: $value',
-        style: TextStyle(fontSize: 12),
-      ),
+      child: Text('$label: $value', style: TextStyle(fontSize: 12)),
     );
   }
 
@@ -617,9 +620,7 @@ mixin StockRequestApprovalLogic {
   }) async {
     try {
       if (!approvedQuantities.any((qty) => qty != null && qty > 0)) {
-        toast(
-          'Please approve at least one item',
-        );
+        toast('Please approve at least one item');
         return;
       }
 
@@ -629,8 +630,8 @@ mixin StockRequestApprovalLogic {
       for (int i = 0; i < items.length; i++) {
         if (approvedQuantities[i] != null) {
           final TransactionItem item = items[i];
-          final int approvedQuantity = approvedQuantities[
-              i]!; // Correctly use the approved quantity from the dialog
+          final int approvedQuantity =
+              approvedQuantities[i]!; // Correctly use the approved quantity from the dialog
 
           await _processPartialApprovalItem(
             item: item,
@@ -662,8 +663,9 @@ mixin StockRequestApprovalLogic {
     required InventoryRequest request,
   }) async {
     try {
-      final Variant? requestedVariant =
-          await ProxyService.strategy.getVariant(id: item.variantId!);
+      final Variant? requestedVariant = await ProxyService.strategy.getVariant(
+        id: item.variantId!,
+      );
 
       if (requestedVariant == null) {
         talker.error('Variant not found for ID: ${item.variantId!}');
@@ -685,8 +687,9 @@ mixin StockRequestApprovalLogic {
         isDeducting: true,
       );
 
-      // Finally update the transaction item
-      await ProxyService.strategy.updateTransactionItem(
+      // Finally update the embedded transaction item in the request
+      await ProxyService.strategy.updateStockRequestItem(
+        requestId: request.id,
         transactionItemId: item.id,
         ignoreForReport: false,
         quantityApproved: approvedQuantity,
@@ -709,16 +712,17 @@ mixin StockRequestApprovalLogic {
     await ProxyService.strategy.updateVariant(updatables: [variant]);
 
     // Check if this variant has already been ordered by this branch
-    VariantBranch? existingVariantBranch =
-        await ProxyService.strategy.variantBranch(
-      variantId: variant.id,
-      destinationBranchId: request.branch!.id,
-    );
+    VariantBranch? existingVariantBranch = await ProxyService.strategy
+        .variantBranch(
+          variantId: variant.id,
+          destinationBranchId: request.branch!.id,
+        );
 
     if (existingVariantBranch != null) {
       // Variant already exists for this branch, use the existing one
-      final existingVariant = await ProxyService.strategy
-          .getVariant(id: existingVariantBranch.newVariantId);
+      final existingVariant = await ProxyService.strategy.getVariant(
+        id: existingVariantBranch.newVariantId,
+      );
       if (existingVariant != null) {
         // Update the existing variant's stock if it exists
         if (existingVariant.stock != null) {
@@ -726,7 +730,8 @@ mixin StockRequestApprovalLogic {
             stockId: existingVariant.stock!.id,
             currentStock:
                 existingVariant.stock!.currentStock! + approvedQuantity,
-            value: (existingVariant.stock!.currentStock! + approvedQuantity) *
+            value:
+                (existingVariant.stock!.currentStock! + approvedQuantity) *
                 existingVariant.retailPrice!,
             rsdQty: existingVariant.stock!.currentStock! + approvedQuantity,
             lastTouched: DateTime.now().toUtc(),
@@ -741,8 +746,9 @@ mixin StockRequestApprovalLogic {
           );
           existingVariant.stock = stock;
           existingVariant.stockId = stock.id;
-          await ProxyService.strategy
-              .updateVariant(updatables: [existingVariant]);
+          await ProxyService.strategy.updateVariant(
+            updatables: [existingVariant],
+          );
         }
         return existingVariant;
       }
@@ -753,13 +759,15 @@ mixin StockRequestApprovalLogic {
     final String newModrId = const Uuid().v4().substring(0, 5);
 
     final newVariant = variant.copyWith(
-        id: newVariantId,
-        modrId: newModrId,
-        isShared: true,
-        branchId: request.subBranchId!);
+      id: newVariantId,
+      modrId: newModrId,
+      isShared: true,
+      branchId: request.subBranchId!,
+    );
 
-    final createdVariant =
-        await ProxyService.strategy.create<Variant>(data: newVariant);
+    final createdVariant = await ProxyService.strategy.create<Variant>(
+      data: newVariant,
+    );
     if (createdVariant == null) {
       throw Exception('Failed to create new variant');
     }
@@ -777,17 +785,19 @@ mixin StockRequestApprovalLogic {
     await ProxyService.strategy.updateVariant(updatables: [createdVariant]);
 
     // Create the variant branch mapping
-    Branch? sourceBranch =
-        await ProxyService.strategy.branch(serverId: request.mainBranchId!);
+    Branch? sourceBranch = await ProxyService.strategy.branch(
+      serverId: request.mainBranchId!,
+    );
     if (sourceBranch == null) {
       throw Exception('Source branch not found');
     }
 
     final variantBranch = VariantBranch(
-        variantId: variant.id,
-        newVariantId: newVariantId,
-        sourceBranchId: sourceBranch.id,
-        destinationBranchId: request.branch!.id);
+      variantId: variant.id,
+      newVariantId: newVariantId,
+      sourceBranchId: sourceBranch.id,
+      destinationBranchId: request.branch!.id,
+    );
 
     await ProxyService.strategy.create<VariantBranch>(data: variantBranch);
 
@@ -800,8 +810,9 @@ mixin StockRequestApprovalLogic {
     required bool isDeducting,
   }) async {
     try {
-      final Variant? variant =
-          await ProxyService.strategy.getVariant(id: variantId);
+      final Variant? variant = await ProxyService.strategy.getVariant(
+        id: variantId,
+      );
 
       if (variant?.stock == null) {
         talker.error('Stock not found for variant: $variantId');
@@ -843,9 +854,7 @@ mixin StockRequestApprovalLogic {
           content: Text(message),
           backgroundColor: isError ? Colors.red : Colors.green,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       );
     }

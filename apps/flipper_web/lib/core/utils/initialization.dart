@@ -31,44 +31,48 @@ Future<void> initializeSupabase() async {
 
 /// Initializes Ditto with proper configuration for the Flipper app
 Future<void> initializeDitto() async {
-  try {
-    final appID = kDebugMode ? AppSecrets.appIdDebug : AppSecrets.appId;
-    final token = kDebugMode
-        ? AppSecrets.appTokenDebug
-        : AppSecrets.appTokenProd;
+  debugPrint('🔵 initializeDitto() called');
 
-    // Use consistent directory to preserve data
-    final persistenceDir = kIsWeb ? "ditto_flipper_web" : "flipper_data_bridge";
+  final appID = kDebugMode ? AppSecrets.appIdDebug : AppSecrets.appId;
+  final token = kDebugMode ? AppSecrets.appTokenDebug : AppSecrets.appTokenProd;
 
-    // Use singleton to prevent multiple instances
-    final ditto = await DittoSingleton.instance.initialize(
-      appId: appID,
-      token: token,
-      persistenceDir: persistenceDir,
-    );
+  // Use consistent directory to preserve data
+  final persistenceDir = kIsWeb ? "ditto_flipper_web" : "flipper_data_bridge";
 
-    if (ditto != null) {
-      // Set device name
-      final platformTag = kIsWeb ? "Web" : "Mobile";
-      final deviceId = DateTime.now().millisecondsSinceEpoch % 10000;
-      ditto.deviceName = "Flipper_${platformTag}_$deviceId";
+  debugPrint('🔵 Calling DittoSingleton.instance.initialize...');
 
-      debugPrint('🚀 Ditto initialized successfully');
-      debugPrint('📱 Device name: ${ditto.deviceName}');
+  // Use singleton to prevent multiple instances
+  final ditto = await DittoSingleton.instance.initialize(
+    appId: appID,
+    token: token,
+    persistenceDir: persistenceDir,
+  );
 
-      // Store in service
-      DittoService.instance.setDitto(ditto);
-      debugPrint('✅ DittoService instance set and ready');
-    }
-  } catch (e) {
-    debugPrint('❌ Error initializing Ditto: $e');
+  debugPrint(
+    '🔵 DittoSingleton.initialize returned: ${ditto != null ? "non-null" : "NULL"}',
+  );
 
-    // If file lock error, wait and let singleton handle retry
-    if (e.toString().contains('File already locked')) {
-      debugPrint('🔄 File lock detected, waiting for cleanup...');
-      await Future.delayed(const Duration(seconds: 3));
-    }
-
-    debugPrint('🔧 App will continue without Ditto functionality');
+  if (ditto == null) {
+    debugPrint('❌ Ditto initialization returned null!');
+    throw Exception('Failed to initialize Sync DB - returned null instance');
   }
+
+  // Set device name
+  final platformTag = kIsWeb ? "Web" : "Mobile";
+  final deviceId = DateTime.now().millisecondsSinceEpoch % 10000;
+  ditto.deviceName = "Flipper_${platformTag}_$deviceId";
+
+  debugPrint('🚀 Sync DB initialized successfully');
+  debugPrint('📱 Device name: ${ditto.deviceName}');
+
+  // Store in service
+  debugPrint('🔵 Calling DittoService.instance.setDitto...');
+  DittoService.instance.setDitto(ditto);
+  debugPrint('✅ Sync DB instance set and ready');
+
+  // Verify it was set
+  final verifyDitto = DittoService.instance.dittoInstance;
+  debugPrint(
+    '🔍 Verification: DittoService.instance.dittoInstance is ${verifyDitto != null ? "non-null" : "NULL"}',
+  );
 }

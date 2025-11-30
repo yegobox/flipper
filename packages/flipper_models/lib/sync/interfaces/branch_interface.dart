@@ -6,7 +6,11 @@ import 'package:flipper_models/DatabaseSyncInterface.dart';
 abstract class BranchInterface {
   Future<bool> logOut();
   FutureOr<Branch?> branch({required int serverId});
-  Future<List<Branch>> branches({int? businessId, bool? active});
+  Future<List<Branch>> branches({
+    int? businessId,
+    bool? active,
+    int? excludeId,
+  });
   void clearData({required ClearData data, required int identifier});
   Future<List<Business>> businesses(
       {required int userId, required bool active});

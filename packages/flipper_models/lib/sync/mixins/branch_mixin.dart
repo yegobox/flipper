@@ -50,13 +50,15 @@ mixin BranchMixin implements BranchInterface {
   Future<List<Branch>> branches({
     int? businessId,
     bool? active = false,
+    int? excludeId,
   }) async {
-    return await _getBranches(businessId);
+    return await _getBranches(businessId, excludeId: excludeId);
   }
 
-  Future<List<Branch>> _getBranches(int? businessId) async {
+  Future<List<Branch>> _getBranches(int? businessId, {int? excludeId}) async {
     final filters = <Where>[
       if (businessId != null) Where('businessId').isExactly(businessId),
+      if (excludeId != null) Where('serverId').isNot(excludeId),
     ];
     var query = Query(where: filters);
 
@@ -66,35 +68,6 @@ mixin BranchMixin implements BranchInterface {
         policy: OfflineFirstGetPolicy.localOnly,
         query: query,
       );
-
-      // if (fetchOnline) {
-      //   try {
-      //     // Create a query to only fetch branches that aren't in our local cache
-      //     final localBranchIds = localBranches.map((b) => b.serverId).toSet();
-      //     for (var branchId in localBranchIds) {
-      //       query = Query(where: [
-      //         ...filters,
-      //         Where('serverId').isNot(branchId),
-      //       ]);
-      //       // Fetch only the missing branches
-      //       final onlineBranches = await repository
-      //           .get<Branch>(
-      //             policy: OfflineFirstGetPolicy.alwaysHydrate,
-      //             query: query,
-      //           )
-      //           .timeout(
-      //             const Duration(seconds: 3),
-      //             onTimeout: () =>
-      //                 throw TimeoutException('Remote fetch timed out'),
-      //           );
-      //       return [...localBranches, ...onlineBranches];
-      //     }
-      //   } on TimeoutException {
-      //     talker.warning(
-      //       'Branch remote fetch timed out after 3 seconds, falling back to local data',
-      //     );
-      //   }
-      // }
 
       return localBranches;
     } catch (e, s) {

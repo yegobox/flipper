@@ -6,6 +6,7 @@ import 'package:uuid/uuid.dart';
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'ebms'),
 )
+
 class Ebm extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
   @Sqlite(index: true, unique: true)

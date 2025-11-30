@@ -7,6 +7,7 @@ import 'package:flipper_dashboard/orders_app.dart';
 import 'package:flipper_dashboard/mobile_view.dart';
 import 'package:flipper_dashboard/stock_recount_list_screen.dart';
 import 'package:flipper_dashboard/delegation_list_screen.dart';
+import 'package:flipper_dashboard/features/incoming_orders/screens/incoming_orders_screen.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -23,10 +24,12 @@ enum DashboardPage {
   orders,
   stockRecount,
   delegations,
+  incomingOrders,
 }
 
-final selectedPageProvider =
-    StateProvider<DashboardPage>((ref) => DashboardPage.inventory);
+final selectedPageProvider = StateProvider<DashboardPage>(
+  (ref) => DashboardPage.inventory,
+);
 
 class DashboardLayout extends HookConsumerWidget {
   const DashboardLayout({Key? key}) : super(key: key);
@@ -38,8 +41,8 @@ class DashboardLayout extends HookConsumerWidget {
     return ViewModelBuilder<CoreViewModel>.nonReactive(
       viewModelBuilder: () => CoreViewModel(),
       onViewModelReady: (model) {
-        ref.read(previewingCart.notifier).state = false;
         WidgetsBinding.instance.addPostFrameCallback((_) {
+          ref.read(previewingCart.notifier).state = false;
           final defaultApp = ProxyService.box.getDefaultApp();
           if (defaultApp != null) {
             DashboardPage page;
@@ -97,7 +100,9 @@ class DashboardLayout extends HookConsumerWidget {
   }
 
   Widget _buildSelectedApp(
-      WidgetRef ref, TextEditingController searchController) {
+    WidgetRef ref,
+    TextEditingController searchController,
+  ) {
     final selectedPage = ref.watch(selectedPageProvider);
     switch (selectedPage) {
       case DashboardPage.inventory:
@@ -114,6 +119,8 @@ class DashboardLayout extends HookConsumerWidget {
         return const StockRecountListScreen();
       case DashboardPage.delegations:
         return const DelegationListScreen();
+      case DashboardPage.incomingOrders:
+        return const IncomingOrdersScreen();
     }
   }
 }

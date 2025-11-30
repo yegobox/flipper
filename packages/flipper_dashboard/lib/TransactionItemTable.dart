@@ -45,12 +45,16 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
 
     // Quantity Controller
     _quantityControllers.putIfAbsent(
-        id, () => TextEditingController(text: qty.toString()));
+      id,
+      () => TextEditingController(text: qty.toString()),
+    );
     _quantityFocusNodes.putIfAbsent(id, () => FocusNode());
 
     // Price Controller
     _priceControllers.putIfAbsent(
-        id, () => TextEditingController(text: price.toStringAsFixed(2)));
+      id,
+      () => TextEditingController(text: price.toStringAsFixed(2)),
+    );
     _priceFocusNodes.putIfAbsent(id, () => FocusNode());
 
     // Update controller text only if not focused to avoid input issues
@@ -72,8 +76,9 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
 
   void _removeUnusedControllers() {
     final ids = internalTransactionItems.map((e) => e.id).toSet();
-    final toRemove =
-        _quantityControllers.keys.where((id) => !ids.contains(id)).toList();
+    final toRemove = _quantityControllers.keys
+        .where((id) => !ids.contains(id))
+        .toList();
 
     for (final id in toRemove) {
       _quantityControllers[id]?.dispose();
@@ -125,22 +130,17 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
 
   // === MODERN CALCULATIONS WITH QUICKBOOKS PRECISION ===
   num get grandTotal {
-    num total = 0.0;
-    num compositeTotal = 0.0;
-    int compositeCount = 0;
+    num total = 0;
 
     for (final item in internalTransactionItems) {
-      if (item.compositePrice != 0) {
-        compositeTotal = item.compositePrice ?? 0.0;
-        compositeCount++;
-      } else {
-        total += item.price * item.qty;
-      }
+      final price = (item.compositePrice ?? 0) != 0
+          ? item.compositePrice!
+          : item.price;
+
+      total += price * item.qty;
     }
 
-    return compositeCount == internalTransactionItems.length
-        ? compositeTotal
-        : total + compositeTotal;
+    return total;
   }
 
   // === MICROSOFT FLUENT-INSPIRED UI ===
@@ -198,10 +198,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
           const SizedBox(height: 8),
           Text(
             'Add your first item to get started',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[500],
-            ),
+            style: TextStyle(fontSize: 14, color: Colors.grey[500]),
           ),
         ],
       ),
@@ -238,8 +235,8 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
         color: hasError
             ? Colors.red[50]
             : hasChanged
-                ? Colors.blue[50]
-                : Colors.transparent,
+            ? Colors.blue[50]
+            : Colors.transparent,
         border: isExpanded
             ? Border.all(color: const Color(0xFF0078D4), width: 2)
             : null,
@@ -257,7 +254,11 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   }
 
   Widget _buildItemHeader(
-      TransactionItem item, bool isOrdering, bool isSaving, bool hasError) {
+    TransactionItem item,
+    bool isOrdering,
+    bool isSaving,
+    bool hasError,
+  ) {
     return Row(
       children: [
         // Item info
@@ -282,10 +283,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
                     const SizedBox(width: 4),
                     Text(
                       _itemErrors[item.id] ?? '',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.red[600],
-                      ),
+                      style: TextStyle(fontSize: 12, color: Colors.red[600]),
                     ),
                   ],
                 ),
@@ -295,10 +293,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
         ),
 
         // Quick controls
-        Expanded(
-          flex: 2,
-          child: _buildQuickQuantityControls(item, isOrdering),
-        ),
+        Expanded(flex: 2, child: _buildQuickQuantityControls(item, isOrdering)),
 
         // Price display
         Expanded(
@@ -328,10 +323,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
 
         // Actions
         const SizedBox(width: 12),
-        Expanded(
-          flex: 1,
-          child: _buildItemActions(item, isOrdering, isSaving),
-        ),
+        Expanded(flex: 1, child: _buildItemActions(item, isOrdering, isSaving)),
       ],
     );
   }
@@ -359,7 +351,8 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
             ),
             child: Text(
               item.qty.toStringAsFixed(
-                  item.qty.truncateToDouble() == item.qty ? 0 : 2),
+                item.qty.truncateToDouble() == item.qty ? 0 : 2,
+              ),
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
@@ -407,17 +400,16 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
                 ]
               : null,
         ),
-        child: Icon(
-          icon,
-          color: Colors.white,
-          size: 20,
-        ),
+        child: Icon(icon, color: Colors.white, size: 20),
       ),
     );
   }
 
   Widget _buildItemActions(
-      TransactionItem item, bool isOrdering, bool isSaving) {
+    TransactionItem item,
+    bool isOrdering,
+    bool isSaving,
+  ) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -428,8 +420,9 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
                 ? null
                 : () {
                     setState(() {
-                      _expandedItemId =
-                          _expandedItemId == item.id ? null : item.id;
+                      _expandedItemId = _expandedItemId == item.id
+                          ? null
+                          : item.id;
                     });
                   },
             icon: Icon(
@@ -545,8 +538,10 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
         prefixIcon: Icon(Icons.shopping_cart_outlined, color: Colors.grey[600]),
         suffixText: 'qty',
         suffixStyle: TextStyle(color: Colors.grey[600]),
-        contentPadding:
-            const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          vertical: 16,
+          horizontal: 16,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(color: Colors.grey[300]!),
@@ -598,8 +593,10 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
           fontWeight: FontWeight.w600,
           color: Colors.grey[700],
         ),
-        contentPadding:
-            const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          vertical: 16,
+          horizontal: 16,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide(color: Colors.grey[300]!),
@@ -657,7 +654,8 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
           ),
           Text(
             grandTotal.toCurrencyFormatted(
-                symbol: ProxyService.box.defaultCurrency()),
+              symbol: ProxyService.box.defaultCurrency(),
+            ),
             style: const TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
@@ -682,8 +680,9 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
             const Text('Confirm Delete'),
           ],
         ),
-        content:
-            Text('Are you sure you want to remove "${_getItemName(item)}"?'),
+        content: Text(
+          'Are you sure you want to remove "${_getItemName(item)}"?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -715,12 +714,14 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     return formatNumber(price.toDouble());
   }
 
-  Future<void> _updateTransactionItemInDb(TransactionItem item,
-      {double? qty,
-      double? price,
-      bool isIncrement = false,
-      bool isOrdering = false}) async {
-    if (item.partOfComposite!) return;
+  Future<void> _updateTransactionItemInDb(
+    TransactionItem item, {
+    double? qty,
+    double? price,
+    bool isIncrement = false,
+    bool isOrdering = false,
+  }) async {
+    if (item.partOfComposite ?? false) return;
 
     setState(() {
       _isItemSaving[item.id] = true;
@@ -737,8 +738,9 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
         price: price,
         incrementQty: isIncrement,
         ignoreForReport: false,
-        quantityRequested:
-            isIncrement ? null : qty?.toInt(), // Only if setting exact quantity
+        quantityRequested: isIncrement
+            ? null
+            : qty?.toInt(), // Only if setting exact quantity
       );
       // After successful update, refresh the provider to update the UI
       _refreshTransactionItems(isOrdering, transactionId: item.transactionId!);
@@ -761,25 +763,30 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   }
 
   Future<void> _incrementQuantity(TransactionItem item, bool isOrdering) async {
-    if (item.partOfComposite!) return;
+    if (item.partOfComposite ?? false) return;
     // Update controller immediately for visual feedback
     // We don't need to read current quantity from controller here, as we are telling backend to increment
     // For visual feedback, you could temporarily update the controller here or just wait for refresh.
     // For accuracy, waiting for refresh is better. If we want immediate visual feedback *before* DB,
     // we would need to manually increment item.qty and then revert on error.
     // For now, let's keep it simple and just trigger the DB update.
-    await _updateTransactionItemInDb(item,
-        isIncrement: true, isOrdering: isOrdering);
+    await _updateTransactionItemInDb(
+      item,
+      isIncrement: true,
+      isOrdering: isOrdering,
+    );
   }
 
   Future<void> _decrementQuantity(TransactionItem item, bool isOrdering) async {
-    if (item.partOfComposite!) return;
+    if (item.partOfComposite ?? false) return;
     if (item.qty > 0) {
       // Ensure quantity doesn't go below 0
       // We can't use incrementQty: true for decrement.
       // So, for decrement, we must calculate the new quantity locally.
-      final currentQty = double.tryParse(
-              _quantityControllers[item.id]?.text ?? item.qty.toString()) ??
+      final currentQty =
+          double.tryParse(
+            _quantityControllers[item.id]?.text ?? item.qty.toString(),
+          ) ??
           item.qty;
       final newQty = currentQty - 1;
       // Update controller immediately for visual feedback
@@ -787,24 +794,32 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       setState(() {
         _hasItemChanged[item.id] = true;
       });
-      await _updateTransactionItemInDb(item,
-          qty: newQty.toDouble(),
-          price: item.price.toDouble(),
-          isOrdering: isOrdering);
+      await _updateTransactionItemInDb(
+        item,
+        qty: newQty.toDouble(),
+        price: item.price.toDouble(),
+        isOrdering: isOrdering,
+      );
     }
   }
 
   Future<void> _updateQuantityFromTextField(
-      TransactionItem item, String value, bool isOrdering) async {
-    if (item.partOfComposite!) return;
+    TransactionItem item,
+    String value,
+    bool isOrdering,
+  ) async {
+    if (item.partOfComposite ?? false) return;
 
     final trimmedValue = value.trim();
     final doubleValue = double.tryParse(trimmedValue);
 
     if (doubleValue != null && doubleValue >= 0) {
       // Pass only 'qty' to updateTransactionItemInDb
-      await _updateTransactionItemInDb(item,
-          qty: doubleValue, isOrdering: isOrdering);
+      await _updateTransactionItemInDb(
+        item,
+        qty: doubleValue,
+        isOrdering: isOrdering,
+      );
     } else {
       setState(() {
         _itemErrors[item.id] = 'Invalid quantity';
@@ -815,16 +830,22 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   }
 
   Future<void> _updatePriceFromTextField(
-      TransactionItem item, String value, bool isOrdering) async {
-    if (item.partOfComposite!) return;
+    TransactionItem item,
+    String value,
+    bool isOrdering,
+  ) async {
+    if (item.partOfComposite ?? false) return;
 
     final trimmedValue = value.trim();
     final doubleValue = double.tryParse(trimmedValue);
 
     if (doubleValue != null && doubleValue >= 0) {
       // Pass only 'price' to updateTransactionItemInDb
-      await _updateTransactionItemInDb(item,
-          price: doubleValue, isOrdering: isOrdering);
+      await _updateTransactionItemInDb(
+        item,
+        price: doubleValue,
+        isOrdering: isOrdering,
+      );
     } else {
       setState(() {
         _itemErrors[item.id] = 'Invalid price';
@@ -840,8 +861,10 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     });
     try {
       if (!(item.partOfComposite ?? false)) {
-        await ProxyService.strategy
-            .flipperDelete(id: item.id, endPoint: 'transactionItem');
+        await ProxyService.strategy.flipperDelete(
+          id: item.id,
+          endPoint: 'transactionItem',
+        );
       } else {
         final paged = await ProxyService.strategy.variants(
           taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D'],
@@ -851,15 +874,18 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
         Variant? variant = (List<Variant>.from(paged.variants)).firstOrNull;
 
         if (variant != null) {
-          final composites = await ProxyService.strategy
-              .composites(productId: variant.productId!);
+          final composites = await ProxyService.strategy.composites(
+            productId: variant.productId!,
+          );
 
           for (final composite in composites) {
             final deletableItem = await ProxyService.strategy
                 .getTransactionItem(variantId: composite.variantId!);
             if (deletableItem != null) {
               await ProxyService.strategy.flipperDelete(
-                  id: deletableItem.id, endPoint: 'transactionItem');
+                id: deletableItem.id,
+                endPoint: 'transactionItem',
+              );
             }
           }
         }
@@ -877,8 +903,10 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     }
   }
 
-  void _refreshTransactionItems(bool isOrdering,
-      {required String transactionId}) {
+  void _refreshTransactionItems(
+    bool isOrdering, {
+    required String transactionId,
+  }) {
     ref.refresh(transactionItemsProvider(transactionId: transactionId));
   }
 }

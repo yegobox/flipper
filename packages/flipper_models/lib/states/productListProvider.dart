@@ -6,8 +6,6 @@ import 'package:flipper_models/secrets.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-import 'package:talker_flutter/talker_flutter.dart';
-
 final productColorsProvider =
     StateNotifierProvider<ProductColorsNotifier, List<Color>>((ref) {
   return ProductColorsNotifier();
@@ -17,17 +15,55 @@ class ProductColorsNotifier extends StateNotifier<List<Color>> {
   ProductColorsNotifier() : super([]);
 
   Future<void> fetchColors(List<Variant> variants) async {
-    final colors =
-        variants.map((variant) => hexToColor(variant.color!)).toList();
+    // Filter variants to only include those with valid color strings
+    final colors = variants
+        .where((v) => v.color != null && v.color!.isNotEmpty)
+        .map((variant) => hexToColor(variant.color))
+        .toList();
     state = colors;
   }
 
-  Color hexToColor(String code) {
-    if (code.isNotEmpty) {
-      return Color(int.parse(code.substring(1, 7), radix: 16) + 0xFF000000);
-    } else {
-      return Color(
-          int.parse("#FF0000".substring(1, 7), radix: 16) + 0xFF000000);
+  /// Safely converts a hex color string to a Color object.
+  /// Returns a default grey color if the input is invalid.
+  ///
+  /// Valid format: "#RRGGBB" where RR, GG, BB are hex digits (0-9, A-F)
+  Color hexToColor(String? code) {
+    // Default fallback color (grey)
+    const defaultColor = Color(0xFF9E9E9E);
+
+    // Null or empty check
+    if (code == null || code.isEmpty) {
+      return defaultColor;
+    }
+
+    // Remove any whitespace
+    final trimmedCode = code.trim();
+
+    // Check if it starts with '#'
+    if (!trimmedCode.startsWith('#')) {
+      return defaultColor;
+    }
+
+    // Check minimum length (#RRGGBB = 7 characters)
+    if (trimmedCode.length < 7) {
+      return defaultColor;
+    }
+
+    // Extract hex string (skip the '#')
+    final hexString = trimmedCode.substring(1, 7);
+
+    // Validate that all characters are valid hex digits
+    final hexPattern = RegExp(r'^[0-9A-Fa-f]{6}$');
+    if (!hexPattern.hasMatch(hexString)) {
+      return defaultColor;
+    }
+
+    // Parse and return the color
+    try {
+      return Color(int.parse(hexString, radix: 16) + 0xFF000000);
+    } catch (e) {
+      // If parsing fails for any reason, return default
+      return defaultColor;
     }
   }
 }
@@ -39,37 +75,38 @@ class CartListNotifier extends StateNotifier<List<Variant>> {
   CartListNotifier() : super([]);
 
   void addToCart(Variant item) {
-    final currentList = state;
-    currentList.add(item);
-    state = [...currentList];
+    state = [...state, item];
   }
 
   void removeFromCart(Variant item) {
-    final currentList = state;
-    currentList.remove(item);
-    state = [...currentList];
+    state = state.where((element) => element != item).toList();
   }
 }
 
-final productFromSupplier =
-    FutureProvider.autoDispose<List<Variant>>((ref) async {
-  final supplier = ref.watch(selectedSupplierProvider);
+final searchStringProvider = StateProvider<String>((ref) => '');
+
+// Create a family provider to cache results by supplier and search parameters
+final productFromSupplier = FutureProvider.autoDispose
+    .family<List<Variant>, ({int? supplierId, String searchString})>(
+        (ref, params) async {
+  if (params.supplierId == null) throw Exception("Select a supplier");
+
+  talker.warning("Supplier Id: ${params.supplierId}");
 
   // Get the Supabase URL and headers
-  // String idToken = await ProxyService.strategy.getFirebaseToken();
   var headers = {
-    // 'Authorization': 'Bearer $idToken',
     'Content-Type': 'application/json',
     'apikey': AppSecrets.supabaseAnonKey,
   };
-  if (supplier == null || supplier.serverId == null)
-    throw Exception("Select a supplier");
-
-  talker.warning("Supplier Id: ${supplier.serverId}");
 
   // Construct the Supabase URL with query parameters
-  final supabaseUrl =
-      '${AppSecrets.newApiEndPoints}${supplier.serverId}&limit=100&or=(pchs_stts_cd.is.null,pchs_stts_cd.neq.01,pchs_stts_cd.neq.04)&or=(impt_item_stts_cd.is.null,impt_item_stts_cd.neq.2,impt_item_stts_cd.neq.4)';
+  String supabaseUrl =
+      '${AppSecrets.newApiEndPoints}${params.supplierId}&limit=100&or=(pchs_stts_cd.is.null,pchs_stts_cd.not.in.(01,04))&or=(impt_item_stts_cd.is.null,impt_item_stts_cd.not.in.(2,4))';
+
+  if (params.searchString.isNotEmpty) {
+    supabaseUrl +=
+        '&name=ilike.*${Uri.encodeQueryComponent(params.searchString)}*';
+  }
 
   var dio = Dio();
   try {
@@ -100,12 +137,25 @@ final productFromSupplier =
     }).toList();
 
     return variants;
-  } on DioException {
-    //Talker().error('DioException in productFromSupplier: ${e.message}');
+  } on DioException catch (e) {
+    talker.error('DioException in productFromSupplier: ${e.message}');
     return []; // Return an empty list on error
   } catch (e, s) {
-    Talker().error('Error in productFromSupplier: $e');
-    Talker().error('Stack trace: $s');
+    talker.error('Error in productFromSupplier: $e');
+    talker.error('Stack trace: $s');
     return []; // Return an empty list for any other errors
   }
+});
+
+// Create a wrapper provider that gets supplier and search string and calls the family provider
+final productFromSupplierWrapper =
+    FutureProvider.autoDispose<List<Variant>>((ref) async {
+  final supplier = ref.watch(selectedSupplierProvider);
+  final searchString = ref.watch(searchStringProvider);
+
+  return await ref.watch(
+    productFromSupplier(
+      (supplierId: supplier?.serverId, searchString: searchString),
+    ).future,
+  );
 });

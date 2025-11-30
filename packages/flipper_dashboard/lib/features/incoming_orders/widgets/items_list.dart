@@ -8,20 +8,16 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
-import '../providers/incoming_orders_provider.dart';
 
 class ItemsList extends ConsumerWidget
     with StockRequestApprovalLogic, SnackBarMixin {
   final InventoryRequest request;
 
-  const ItemsList({
-    Key? key,
-    required this.request,
-  }) : super(key: key);
+  const ItemsList({Key? key, required this.request}) : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final itemsAsync = ref.watch(transactionItemsProvider(request.id));
+    final items = request.transactionItems ?? [];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -35,29 +31,31 @@ class ItemsList extends ConsumerWidget
           ),
         ),
         SizedBox(height: 12),
-        itemsAsync.when(
-          loading: () => Padding(
-            padding: EdgeInsets.symmetric(vertical: 20),
-            child: Center(child: CircularProgressIndicator()),
-          ),
-          error: (error, stack) => Text('Error loading items: $error'),
-          data: (items) => Column(
-            children: _buildItemList(items, context, ref),
-          ),
-        ),
+        items.isEmpty
+            ? Padding(
+                padding: EdgeInsets.symmetric(vertical: 20),
+                child: Center(child: Text('No items in this request')),
+              )
+            : Column(children: _buildItemList(items, context, ref)),
       ],
     );
   }
 
   List<Widget> _buildItemList(
-      List<TransactionItem> items, BuildContext context, WidgetRef ref) {
+    List<TransactionItem> items,
+    BuildContext context,
+    WidgetRef ref,
+  ) {
     items.sort((a, b) => (a.name).compareTo(b.name));
 
     return items.map((item) => _buildItemCard(item, context, ref)).toList();
   }
 
   Widget _buildItemCard(
-      TransactionItem item, BuildContext context, WidgetRef ref) {
+    TransactionItem item,
+    BuildContext context,
+    WidgetRef ref,
+  ) {
     return Card(
       margin: EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(
@@ -74,20 +72,14 @@ class ItemsList extends ConsumerWidget
                 children: [
                   Text(
                     item.name,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                    ),
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
                   ),
                   SizedBox(height: 4),
                   Row(
                     children: [
                       Text(
                         'Approved: ',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                       ),
                       Text(
                         '${item.quantityApproved ?? 0}/${item.quantityRequested ?? 0}',
@@ -121,9 +113,7 @@ class ItemsList extends ConsumerWidget
                 onPressed: () => _handleSingleItemApproval(context, ref, item),
                 icon: Icon(Icons.check_circle_outline, size: 18),
                 label: Text('Approve'),
-                style: TextButton.styleFrom(
-                  foregroundColor: Colors.green[600],
-                ),
+                style: TextButton.styleFrom(foregroundColor: Colors.green[600]),
               ),
           ],
         ),
@@ -140,13 +130,19 @@ class ItemsList extends ConsumerWidget
   }
 
   void _handleSingleItemApproval(
-      BuildContext context, WidgetRef ref, TransactionItem item) {
+    BuildContext context,
+    WidgetRef ref,
+    TransactionItem item,
+  ) {
     try {
       approveSingleItem(request: request, item: item, context: context);
-      final stringValue = ref.watch(stringProvider);
-      ref.refresh(stockRequestsProvider(
+      final stringValue = ref.read(stringProvider);
+      ref.refresh(
+        stockRequestsProvider(
           status: RequestStatus.pending,
-          search: stringValue?.isNotEmpty == true ? stringValue : null));
+          search: stringValue?.isNotEmpty == true ? stringValue : null,
+        ),
+      );
     } catch (e) {
       showCustomSnackBar(
         context,

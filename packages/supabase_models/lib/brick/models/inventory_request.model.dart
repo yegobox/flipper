@@ -1,31 +1,9 @@
-import 'package:brick_offline_first/brick_offline_first.dart';
-import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
-import 'package:brick_sqlite/brick_sqlite.dart';
-import 'package:brick_supabase/brick_supabase.dart';
 import 'package:supabase_models/brick/models/branch.model.dart';
 import 'package:supabase_models/brick/models/financing.model.dart';
 import 'package:supabase_models/brick/models/transactionItem.model.dart';
 import 'package:uuid/uuid.dart';
-import 'package:brick_ditto_generators/ditto_sync_adapter.dart';
-import 'package:flipper_services/proxy.dart';
-import 'package:flutter/foundation.dart';
-import 'package:supabase_models/sync/ditto_sync_adapter.dart';
-import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
-import 'package:supabase_models/sync/ditto_sync_generated.dart';
-import 'package:supabase_models/brick/repository.dart';
 
-part 'inventory_request.model.ditto_sync_adapter.g.dart';
-
-@ConnectOfflineFirstWithSupabase(
-  supabaseConfig: SupabaseSerializable(tableName: 'stock_requests'),
-)
-@DittoAdapter(
-  'stock_requests',
-  syncDirection: SyncDirection.bidirectional,
-)
-class InventoryRequest extends OfflineFirstWithSupabaseModel {
-  @Supabase(unique: true)
-  @Sqlite(index: true, unique: true)
+class InventoryRequest {
   final String id;
   int? mainBranchId;
   int? subBranchId;
@@ -47,15 +25,11 @@ class InventoryRequest extends OfflineFirstWithSupabaseModel {
   String? tinNumber;
 
   // stock financing
-  @Supabase(foreignKey: 'financing_id')
   Financing? financing;
   String? financingId;
 
-  @Supabase(ignore: true)
-  @OfflineFirst(where: {'inventoryRequestId': 'id'})
   List<TransactionItem>? transactionItems;
 
-  @Supabase(foreignKey: 'branch_id')
   Branch? branch;
   // the requester same as subBranchId but this will use uuid representation of the subBranchId
   String? branchId;
