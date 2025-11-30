@@ -3,6 +3,7 @@ import 'dart:async' show FutureOr;
 import 'package:flipper_models/sync/interfaces/delete_interface.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_web/services/ditto_service.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
@@ -10,6 +11,7 @@ import 'package:flipper_models/helperModels/talker.dart';
 //
 mixin DeleteMixin implements DeleteInterface {
   Repository get repository;
+  DittoService get dittoService => DittoService.instance;
   Future<Product?> getProduct({
     String? id,
     String? barCode,
@@ -162,7 +164,15 @@ mixin DeleteMixin implements DeleteInterface {
             }
           }
 
-          await repository.delete<InventoryRequest>(request);
+          final ditto = dittoService.dittoInstance;
+          if (ditto == null) {
+            throw Exception('Ditto not initialized');
+          }
+
+          await ditto.store.execute(
+            'DELETE FROM stock_requests WHERE _id = :id',
+            arguments: {'id': request.id},
+          );
         }
       case 'tenant':
         final tenant = (await ProxyService.strategy.tenant(

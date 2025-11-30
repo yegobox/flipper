@@ -3,15 +3,11 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import '../providers/incoming_orders_provider.dart';
 
 class RequestHeader extends ConsumerWidget with SnackBarMixin {
   final InventoryRequest request;
 
-  const RequestHeader({
-    Key? key,
-    required this.request,
-  }) : super(key: key);
+  const RequestHeader({Key? key, required this.request}) : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -28,9 +24,12 @@ class RequestHeader extends ConsumerWidget with SnackBarMixin {
                   borderRadius: BorderRadius.circular(8),
                   onTap: () {
                     Clipboard.setData(
-                        ClipboardData(text: request.id.toString()));
+                      ClipboardData(text: request.id.toString()),
+                    );
                     showCustomSnackBar(
-                        context, 'Request ID copied to clipboard');
+                      context,
+                      'Request ID copied to clipboard',
+                    );
                   },
                   child: Padding(
                     padding: EdgeInsets.all(8),
@@ -41,7 +40,7 @@ class RequestHeader extends ConsumerWidget with SnackBarMixin {
               SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  'Request From ${request.branch?.name} (${request.transactionItems?.length} items)',
+                  'Request From ${request.branch?.name} (${request.itemCounts} items)',
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
@@ -53,30 +52,26 @@ class RequestHeader extends ConsumerWidget with SnackBarMixin {
             ],
           ),
         ),
-        _buildItemCount(ref),
+        _buildItemCount(ref, transactionItems: request.transactionItems ?? []),
       ],
     );
   }
 
-  Widget _buildItemCount(WidgetRef ref) {
-    return Consumer(
-      builder: (context, ref, child) {
-        final itemsAsync = ref.watch(transactionItemsProvider(request.id));
-        return itemsAsync.when(
-          loading: () => _buildItemCountContainer(
-              '0/${request.itemCounts}', request.itemCounts!.toInt()),
-          error: (error, stack) => _buildItemCountContainer(
-              '0/${request.itemCounts}', request.itemCounts!.toInt()),
-          data: (items) {
-            final totalApproved = items.fold<int>(
-                0, (sum, item) => sum + (item.quantityApproved ?? 0));
-            final totalRequested = items.fold<int>(
-                0, (sum, item) => sum + (item.quantityRequested ?? 0));
-            return _buildItemCountContainer(
-                '$totalApproved/$totalRequested', totalRequested);
-          },
-        );
-      },
+  Widget _buildItemCount(
+    WidgetRef ref, {
+    required List<TransactionItem> transactionItems,
+  }) {
+    final totalApproved = transactionItems.fold<int>(
+      0,
+      (sum, item) => sum + (item.quantityApproved ?? 0),
+    );
+    final totalRequested = transactionItems.fold<int>(
+      0,
+      (sum, item) => sum + (item.quantityRequested ?? 0),
+    );
+    return _buildItemCountContainer(
+      '$totalApproved/$totalRequested',
+      totalRequested,
     );
   }
 

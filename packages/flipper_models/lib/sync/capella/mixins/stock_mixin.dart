@@ -277,7 +277,72 @@ mixin CapellaStockMixin implements StockInterface {
 
   @override
   Future<List<InventoryRequest>> requests({required String requestId}) async {
-    throw UnimplementedError('requests needs to be implemented for Capella');
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      throw Exception('Ditto not initialized');
+    }
+
+    final result = await ditto.store.execute(
+      'SELECT * FROM stock_requests WHERE _id = :requestId',
+      arguments: {'requestId': requestId},
+    );
+
+    return result.items.map((item) {
+      final data = Map<String, dynamic>.from(item.value);
+      return _convertInventoryRequestFromDitto(data);
+    }).toList();
+  }
+
+  InventoryRequest _convertInventoryRequestFromDitto(
+      Map<String, dynamic> data) {
+    // Parse transactionItems from embedded data
+    List<TransactionItem>? items;
+    if (data['transactionItems'] != null && data['transactionItems'] is List) {
+      items = (data['transactionItems'] as List).map((itemData) {
+        final itemMap = Map<String, dynamic>.from(itemData);
+        return TransactionItem(
+          id: itemMap['id'],
+          name: itemMap['name'],
+          qty: itemMap['qty'] ?? 0,
+          price: itemMap['price'] ?? 0,
+          discount: itemMap['discount'] ?? 0,
+          prc: itemMap['prc'] ?? 0,
+          ttCatCd: itemMap['ttCatCd'],
+          quantityRequested: itemMap['quantityRequested'],
+          quantityApproved: itemMap['quantityApproved'],
+          quantityShipped: itemMap['quantityShipped'],
+          transactionId: itemMap['transactionId'],
+          variantId: itemMap['variantId'],
+          inventoryRequestId: itemMap['inventoryRequestId'],
+        );
+      }).toList();
+    }
+
+    return InventoryRequest(
+      id: data['_id'] ?? data['id'],
+      mainBranchId: data['mainBranchId'],
+      subBranchId: data['subBranchId'],
+      branchId: data['branchId'],
+      createdAt:
+          data['createdAt'] != null ? DateTime.parse(data['createdAt']) : null,
+      status: data['status'],
+      deliveryDate: data['deliveryDate'] != null
+          ? DateTime.parse(data['deliveryDate'])
+          : null,
+      deliveryNote: data['deliveryNote'],
+      orderNote: data['orderNote'],
+      customerReceivedOrder: data['customerReceivedOrder'],
+      driverRequestDeliveryConfirmation:
+          data['driverRequestDeliveryConfirmation'],
+      driverId: data['driverId'],
+      updatedAt:
+          data['updatedAt'] != null ? DateTime.parse(data['updatedAt']) : null,
+      itemCounts: data['itemCounts'],
+      bhfId: data['bhfId'],
+      tinNumber: data['tinNumber'],
+      financingId: data['financingId'],
+      transactionItems: items,
+    );
   }
 
   @override

@@ -21,10 +21,12 @@ class EnhancedSideMenu extends ConsumerWidget {
     final selectedItem = ref.watch(selectedMenuItemProvider);
     final _dialogService = locator<DialogService>();
     final _routerService = locator<RouterService>();
-    final isAdminAsyncValue = ref.watch(isAdminProvider(
-      ProxyService.box.getUserId() ?? 0,
-      featureName: AppFeature.ShiftHistory,
-    ));
+    final isAdminAsyncValue = ref.watch(
+      isAdminProvider(
+        ProxyService.box.getUserId() ?? 0,
+        featureName: AppFeature.ShiftHistory,
+      ),
+    );
 
     return SideMenu(
       mode: SideMenuMode.compact,
@@ -166,6 +168,27 @@ class EnhancedSideMenu extends ConsumerWidget {
                     DashboardPage.delegations;
               },
             ),
+            SideMenuItemDataTile(
+              hasSelectedLine: true,
+              highlightSelectedColor: Colors.blue.withValues(alpha: 0.1),
+              selectedTitleStyle: const TextStyle(
+                color: Colors.blue,
+                fontWeight: FontWeight.w600,
+              ),
+              borderRadius: BorderRadius.circular(8),
+              title: 'Incoming Orders',
+              isSelected: selectedItem == 8,
+              icon: Icon(
+                Icons.move_to_inbox,
+                color: selectedItem == 8 ? Colors.blue : Colors.grey.shade600,
+                size: 20,
+              ),
+              onTap: () {
+                ref.read(selectedMenuItemProvider.notifier).state = 8;
+                ref.read(selectedPageProvider.notifier).state =
+                    DashboardPage.incomingOrders;
+              },
+            ),
             if (isAdminAsyncValue.value ==
                 true) // Conditionally add Shift History
               SideMenuItemDataTile(
@@ -198,40 +221,40 @@ class EnhancedSideMenu extends ConsumerWidget {
               ),
               borderRadius: BorderRadius.circular(8),
               title: 'Log Out Shift',
-              icon: Icon(
-                Icons.logout,
-                color: Colors.grey.shade600,
-                size: 20,
-              ),
+              icon: Icon(Icons.logout, color: Colors.grey.shade600, size: 20),
               onTap: () async {
                 final userId = ProxyService.box.getUserId();
                 if (userId != null) {
                   final currentShift = await ProxyService.strategy
                       .getCurrentShift(userId: userId);
                   if (currentShift != null) {
-                    final dialogResponse =
-                        await _dialogService.showCustomDialog(
-                      variant: DialogType.closeShift,
-                      title: 'Close Shift',
-                      data: {
-                        'openingBalance': currentShift.openingBalance,
-                        'cashSales': currentShift.cashSales,
-                        'expectedCash': currentShift.expectedCash,
-                      },
-                    );
+                    final dialogResponse = await _dialogService
+                        .showCustomDialog(
+                          variant: DialogType.closeShift,
+                          title: 'Close Shift',
+                          data: {
+                            'openingBalance': currentShift.openingBalance,
+                            'cashSales': currentShift.cashSales,
+                            'expectedCash': currentShift.expectedCash,
+                          },
+                        );
 
                     if (dialogResponse?.confirmed == true &&
                         dialogResponse?.data != null) {
-                      final closingBalance = (dialogResponse?.data
+                      final closingBalance =
+                          (dialogResponse?.data
                                   as Map<dynamic, dynamic>)['closingBalance']
                               as double? ??
                           0.0;
-                      final notes = (dialogResponse?.data
-                          as Map<dynamic, dynamic>)['notes'] as String?;
+                      final notes =
+                          (dialogResponse?.data
+                                  as Map<dynamic, dynamic>)['notes']
+                              as String?;
                       await ProxyService.strategy.endShift(
-                          shiftId: currentShift.id,
-                          closingBalance: closingBalance,
-                          note: notes);
+                        shiftId: currentShift.id,
+                        closingBalance: closingBalance,
+                        note: notes,
+                      );
                       _routerService.replaceWith(const LoginRoute());
                     }
                   } else {
