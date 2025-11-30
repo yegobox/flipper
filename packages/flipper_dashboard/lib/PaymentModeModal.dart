@@ -7,7 +7,7 @@ import 'package:flipper_dashboard/utils/snack_bar_utils.dart';
 
 class PaymentModeModal extends StatefulWidget {
   final List<FinanceProvider> financeProviders;
-  final Function(String) onPaymentModeSelected;
+  final Future<void> Function(String) onPaymentModeSelected;
 
   const PaymentModeModal({
     required this.financeProviders,

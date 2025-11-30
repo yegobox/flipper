@@ -75,15 +75,11 @@ class CartListNotifier extends StateNotifier<List<Variant>> {
   CartListNotifier() : super([]);
 
   void addToCart(Variant item) {
-    final currentList = state;
-    currentList.add(item);
-    state = [...currentList];
+    state = [...state, item];
   }
 
   void removeFromCart(Variant item) {
-    final currentList = state;
-    currentList.remove(item);
-    state = [...currentList];
+    state = state.where((element) => element != item).toList();
   }
 }
 
