@@ -126,7 +126,7 @@ class _PaymentModeModalState extends State<PaymentModeModal> {
 
 Future<void> showPaymentModeModal(
   BuildContext context,
-  Function(FinanceProvider) onPaymentModeSelected,
+  Future<void> Function(FinanceProvider) onPaymentModeSelected,
 ) async {
   // Fetch finance providers using ProxyService.strategy
   final financeProviders = await ProxyService.strategy.financeProviders();
@@ -136,11 +136,11 @@ Future<void> showPaymentModeModal(
     builder: (context) {
       return PaymentModeModal(
         financeProviders: financeProviders,
-        onPaymentModeSelected: (selectedMode) {
+        onPaymentModeSelected: (selectedMode) async {
           final selectedProvider = financeProviders.firstWhere(
             (provider) => provider.id == selectedMode,
           );
-          onPaymentModeSelected(selectedProvider);
+          await onPaymentModeSelected(selectedProvider);
         },
       );
     },
