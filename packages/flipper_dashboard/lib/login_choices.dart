@@ -510,7 +510,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
       active: true,
     );
     for (final branch in branches) {
-      ProxyService.strategy.updateBranch(
+      await ProxyService.strategy.updateBranch(
         branchId: branch.serverId!,
         active: false,
         isDefault: false,

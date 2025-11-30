@@ -174,6 +174,7 @@ mixin DeleteMixin implements DeleteInterface {
             arguments: {'id': request.id},
           );
         }
+        break;
       case 'tenant':
         final tenant = (await ProxyService.strategy.tenant(
           fetchRemote: false,
@@ -182,6 +183,7 @@ mixin DeleteMixin implements DeleteInterface {
         if (tenant != null) {
           await repository.delete<Tenant>(tenant);
         }
+        break;
       case 'transaction':
         final transaction = (await ProxyService.strategy.getTransaction(
           id: id,

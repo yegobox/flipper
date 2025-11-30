@@ -3,6 +3,7 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
+import 'package:flipper_dashboard/utils/snack_bar_utils.dart';
 
 class PaymentModeModal extends StatefulWidget {
   final List<FinanceProvider> financeProviders;
@@ -93,22 +94,25 @@ class _PaymentModeModalState extends State<PaymentModeModal> {
                     });
                     try {
                       await widget.onPaymentModeSelected(_selectedPaymentMode!);
+                      if (mounted) {
+                        Navigator.of(context).pop();
+                      }
                     } catch (e) {
-                      // Handle error if needed, or let the callback handle it
+                      debugPrint('Payment processing error: $e');
+                      if (mounted) {
+                        showErrorNotification(context, 'Payment failed');
+                      }
                     } finally {
                       if (mounted) {
                         setState(() {
                           _isProcessing = false;
                         });
-                        // Close the dialog after successful processing
-                        Navigator.of(context).pop();
                       }
                     }
                   } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Please select a payment mode'),
-                      ),
+                    showWarningNotification(
+                      context,
+                      'Please select a payment mode',
                     );
                   }
                 },

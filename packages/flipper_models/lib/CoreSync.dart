@@ -1277,9 +1277,10 @@ class CoreSync extends AiStrategyImpl
           discount: itemMap['discount'] ?? 0,
           prc: itemMap['prc'] ?? 0,
           ttCatCd: itemMap['ttCatCd'],
-          quantityRequested: itemMap['quantityRequested'].toInt(),
-          quantityApproved: itemMap['quantityApproved'].toInt(),
-          quantityShipped: itemMap['quantityShipped'].toInt(),
+          quantityRequested:
+              (itemMap['quantityRequested'] as num?)?.toInt() ?? 0,
+          quantityApproved: (itemMap['quantityApproved'] as num?)?.toInt() ?? 0,
+          quantityShipped: (itemMap['quantityShipped'] as num?)?.toInt() ?? 0,
           transactionId: itemMap['transactionId'],
           variantId: itemMap['variantId'],
           inventoryRequestId: itemMap['inventoryRequestId'],
@@ -2662,7 +2663,7 @@ class CoreSync extends AiStrategyImpl
 
     if (result.items.isEmpty) {
       talker.error('Stock request with ID $requestId not found');
-      return;
+      throw Exception('Stock request with ID $requestId not found');
     }
 
     final requestData = Map<String, dynamic>.from(result.items.first.value);

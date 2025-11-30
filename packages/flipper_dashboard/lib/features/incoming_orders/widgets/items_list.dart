@@ -136,7 +136,7 @@ class ItemsList extends ConsumerWidget
   ) {
     try {
       approveSingleItem(request: request, item: item, context: context);
-      final stringValue = ref.watch(stringProvider);
+      final stringValue = ref.read(stringProvider);
       ref.refresh(
         stockRequestsProvider(
           status: RequestStatus.pending,

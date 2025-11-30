@@ -105,7 +105,7 @@ final productFromSupplier = FutureProvider.autoDispose
 
   // Construct the Supabase URL with query parameters
   String supabaseUrl =
-      '${AppSecrets.newApiEndPoints}${params.supplierId}&limit=100&or=(pchs_stts_cd.is.null,pchs_stts_cd.neq.01,pchs_stts_cd.neq.04)&or=(impt_item_stts_cd.is.null,impt_item_stts_cd.neq.2,impt_item_stts_cd.neq.4)';
+      '${AppSecrets.newApiEndPoints}${params.supplierId}&limit=100&or=(pchs_stts_cd.is.null,pchs_stts_cd.not.in.(01,04))&or=(impt_item_stts_cd.is.null,impt_item_stts_cd.not.in.(2,4))';
 
   if (params.searchString.isNotEmpty) {
     supabaseUrl +=
