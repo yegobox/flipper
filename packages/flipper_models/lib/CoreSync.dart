@@ -1294,10 +1294,10 @@ class CoreSync extends AiStrategyImpl
       subBranchId: data['subBranchId'],
       branchId: data['branchId'],
       createdAt:
-          data['createdAt'] != null ? DateTime.parse(data['createdAt']) : null,
+          data['createdAt'] != null ? DateTime.tryParse(data['createdAt']) : null,
       status: data['status'],
       deliveryDate: data['deliveryDate'] != null
-          ? DateTime.parse(data['deliveryDate'])
+          ? DateTime.tryParse(data['deliveryDate'])
           : null,
       deliveryNote: data['deliveryNote'],
       orderNote: data['orderNote'],
@@ -1306,7 +1306,7 @@ class CoreSync extends AiStrategyImpl
           data['driverRequestDeliveryConfirmation'],
       driverId: data['driverId'],
       updatedAt:
-          data['updatedAt'] != null ? DateTime.parse(data['updatedAt']) : null,
+          data['updatedAt'] != null ? DateTime.tryParse(data['updatedAt']) : null,
       itemCounts: data['itemCounts'],
       bhfId: data['bhfId'],
       tinNumber: data['tinNumber'],

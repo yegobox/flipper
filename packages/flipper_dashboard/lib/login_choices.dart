@@ -217,7 +217,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
 
   Future<void> _handleBusinessSelection(Business business) async {
     // remove any branchId selected before
-    ProxyService.box.remove(key: 'branchId');
+    await ProxyService.box.remove(key: 'branchId');
     setState(() {
       _loadingItemId = business.serverId.toString();
     });
@@ -475,20 +475,22 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     // Get existing tin value if available
     final existingTin = ProxyService.box.readInt(key: 'tin');
 
-    ProxyService.box
-      ..writeInt(key: 'businessId', value: business.serverId)
-      ..writeString(
-        key: 'bhfId',
-        value: (await ProxyService.box.bhfId()) ?? "00",
-      );
+    // Collect all storage write futures
+    final futures = <Future>[];
+
+    futures.add(ProxyService.box.writeInt(key: 'businessId', value: business.serverId));
+    futures.add(ProxyService.box.writeString(
+      key: 'bhfId',
+      value: (await ProxyService.box.bhfId()) ?? "00",
+    ));
 
     // Resolve effective TIN (prefer Ebm for active branch) and update box if needed
     final resolvedTin = await effectiveTin(business: business);
     if (resolvedTin != null || existingTin == null) {
-      ProxyService.box.writeInt(
+      futures.add(ProxyService.box.writeInt(
         key: 'tin',
         value: resolvedTin ?? existingTin ?? 0,
-      );
+      ));
       talker.debug(
         'Setting tin to ${resolvedTin ?? existingTin ?? 0} (from ${resolvedTin != null ? 'ebm/business' : 'existing value'})',
       );
@@ -496,10 +498,13 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
       talker.debug('Preserving existing tin value: $existingTin');
     }
 
-    ProxyService.box.writeString(
+    futures.add(ProxyService.box.writeString(
       key: 'encryptionKey',
       value: business.encryptionKey ?? "",
-    );
+    ));
+
+    // Wait for all storage operations to complete
+    await Future.wait(futures);
   }
 
   Future<void> _updateAllBranchesInactive() async {
