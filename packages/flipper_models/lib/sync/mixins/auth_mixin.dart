@@ -568,7 +568,6 @@ mixin AuthMixin implements AuthInterface {
           'userId': savedLocalPinForThis.userId,
           'pin': savedLocalPinForThis.userId,
           'type': tenants.type,
-          'default': tenants.isDefault,
           'businesses': _convertBusinesses(businesses)
               .map((e) => e.toJson())
               .toList(), // Convert IBusiness to map

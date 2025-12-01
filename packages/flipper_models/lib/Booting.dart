@@ -24,7 +24,6 @@ mixin Booting {
   Future<void> _addOrUpdateTenant(ITenant tenant, String userId,
       {required bool usenewVersion}) async {
     final Tenant iTenant = Tenant(
-      isDefault: false,
       name: tenant.name,
       businessId: tenant.businessId,
       nfcEnabled: tenant.nfcEnabled ?? false,

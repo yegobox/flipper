@@ -96,6 +96,7 @@ class TenantOperationsMixin {
         // Creating a new tenant
         newTenant = await ProxyService.strategy.addNewTenant(
           name: name,
+          // phone can also be email both use same as phone field
           phoneNumber: phone,
           branch: branch,
           business: business,
