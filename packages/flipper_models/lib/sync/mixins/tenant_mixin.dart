@@ -53,6 +53,7 @@ mixin TenantMixin implements TenantInterface {
       "phoneNumber": phoneNumber,
       "name": name,
       "businessId": business.serverId,
+      "type": userType.toLowerCase(),
       "permissions": [
         {"name": userType.toLowerCase()}
       ],
