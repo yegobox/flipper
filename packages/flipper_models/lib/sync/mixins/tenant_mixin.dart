@@ -53,6 +53,7 @@ mixin TenantMixin implements TenantInterface {
       "phoneNumber": phoneNumber,
       "name": name,
       "businessId": business.serverId,
+      "type": userType.toLowerCase(),
       "permissions": [
         {"name": userType.toLowerCase()}
       ],
@@ -92,7 +93,6 @@ mixin TenantMixin implements TenantInterface {
           nfcEnabled: false,
           businessId: business.serverId,
           userId: jTenant.userId,
-          isDefault: true,
           pin: jTenant.userId,
         );
       } catch (e) {
@@ -204,7 +204,6 @@ mixin TenantMixin implements TenantInterface {
       for (ITenant tenant in ITenant.fromJsonList(response.body)) {
         ITenant jTenant = tenant;
         Tenant iTenant = Tenant(
-            isDefault: false,
             name: jTenant.name,
             userId: jTenant.userId,
             businessId: jTenant.businessId,

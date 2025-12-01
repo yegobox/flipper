@@ -14,7 +14,6 @@ import 'package:supabase_models/brick/models/transactionItem.model.dart' as tran
 import 'package:supabase_models/brick/models/transaction_delegation.model.dart' as transaction_delegation_model;
 import 'package:supabase_models/brick/models/variant.model.dart' as variant_model;
 import 'package:supabase_models/brick/models/device.model.dart' as device_model;
-import 'package:supabase_models/brick/models/inventory_request.model.dart' as inventory_request_model;
 import 'package:supabase_models/brick/models/stock_recount_item.model.dart' as stock_recount_item_model;
 import 'package:supabase_models/brick/models/plans.model.dart' as plans_model;
 

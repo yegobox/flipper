@@ -28,12 +28,12 @@ class Tenant extends OfflineFirstWithSupabaseModel {
   /// tenant is currently have active session but the main session will be still active
   bool? sessionActive;
 
-  bool? isDefault;
+
 
   ///helper property, these are property that are not peristed
   ///but used in ui to achieve some functionality
 
-  bool isLongPressed = false;
+
   String? type;
   Tenant({
     String? id,
@@ -48,8 +48,6 @@ class Tenant extends OfflineFirstWithSupabaseModel {
     this.deletedAt,
     this.pin,
     this.sessionActive,
-    this.isDefault,
-    this.isLongPressed = false,
     this.type = "Agent",
   }) : id = id ?? const Uuid().v4();
 }

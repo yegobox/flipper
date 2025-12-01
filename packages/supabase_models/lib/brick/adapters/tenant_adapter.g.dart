@@ -33,8 +33,6 @@ Future<Tenant> _$TenantFromSupabase(
     sessionActive: data['session_active'] == null
         ? null
         : data['session_active'] as bool?,
-    isDefault: data['is_default'] == null ? null : data['is_default'] as bool?,
-    isLongPressed: data['is_long_pressed'] as bool,
     type: data['type'] == null ? null : data['type'] as String?,
   );
 }
@@ -57,8 +55,6 @@ Future<Map<String, dynamic>> _$TenantToSupabase(
     'deleted_at': instance.deletedAt?.toIso8601String(),
     'pin': instance.pin,
     'session_active': instance.sessionActive,
-    'is_default': instance.isDefault,
-    'is_long_pressed': instance.isLongPressed,
     'type': instance.type,
   };
 }
@@ -95,8 +91,6 @@ Future<Tenant> _$TenantFromSqlite(
     sessionActive: data['session_active'] == null
         ? null
         : data['session_active'] == 1,
-    isDefault: data['is_default'] == null ? null : data['is_default'] == 1,
-    isLongPressed: data['is_long_pressed'] == 1,
     type: data['type'] == null ? null : data['type'] as String?,
   )..primaryKey = data['_brick_id'] as int;
 }
@@ -121,10 +115,6 @@ Future<Map<String, dynamic>> _$TenantToSqlite(
     'session_active': instance.sessionActive == null
         ? null
         : (instance.sessionActive! ? 1 : 0),
-    'is_default': instance.isDefault == null
-        ? null
-        : (instance.isDefault! ? 1 : 0),
-    'is_long_pressed': instance.isLongPressed ? 1 : 0,
     'type': instance.type,
   };
 }
@@ -186,14 +176,6 @@ class TenantAdapter extends OfflineFirstWithSupabaseAdapter<Tenant> {
     'sessionActive': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'session_active',
-    ),
-    'isDefault': const RuntimeSupabaseColumnDefinition(
-      association: false,
-      columnName: 'is_default',
-    ),
-    'isLongPressed': const RuntimeSupabaseColumnDefinition(
-      association: false,
-      columnName: 'is_long_pressed',
     ),
     'type': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -281,18 +263,6 @@ class TenantAdapter extends OfflineFirstWithSupabaseAdapter<Tenant> {
     'sessionActive': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'session_active',
-      iterable: false,
-      type: bool,
-    ),
-    'isDefault': const RuntimeSqliteColumnDefinition(
-      association: false,
-      columnName: 'is_default',
-      iterable: false,
-      type: bool,
-    ),
-    'isLongPressed': const RuntimeSqliteColumnDefinition(
-      association: false,
-      columnName: 'is_long_pressed',
       iterable: false,
       type: bool,
     ),
