@@ -1,5 +1,6 @@
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/exceptions.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -26,9 +27,10 @@ class TenantOperationsMixin {
       final featureName = entry.key;
       final accessLevel = entry.value;
       List<Access> existingAccess = await ProxyService.strategy.access(
-          fetchRemote: false,
-          userId: newTenant?.userId ?? userId!,
-          featureName: featureName);
+        fetchRemote: false,
+        userId: newTenant?.userId ?? userId!,
+        featureName: featureName,
+      );
       talker.warning(featureName);
       if (existingAccess.isNotEmpty) {
         ProxyService.strategy.updateAccess(
@@ -40,24 +42,25 @@ class TenantOperationsMixin {
           accessLevel: accessLevel.toLowerCase(),
           status: activeFeatures[featureName] != null
               ? activeFeatures[featureName]!
-                  ? 'active'
-                  : 'inactive'
+                    ? 'active'
+                    : 'inactive'
               : 'inactive',
           userType: userType,
         );
       } else {
         await ProxyService.strategy.addAccess(
-            branchId: branch!.serverId!,
-            businessId: business!.serverId,
-            userId: newTenant?.userId ?? userId!,
-            featureName: featureName,
-            accessLevel: accessLevel.toLowerCase(),
-            status: activeFeatures[featureName] != null
-                ? activeFeatures[featureName]!
+          branchId: branch!.serverId!,
+          businessId: business!.serverId,
+          userId: newTenant?.userId ?? userId!,
+          featureName: featureName,
+          accessLevel: accessLevel.toLowerCase(),
+          status: activeFeatures[featureName] != null
+              ? activeFeatures[featureName]!
                     ? 'active'
                     : 'inactive'
-                : 'inactive',
-            userType: userType);
+              : 'inactive',
+          userType: userType,
+        );
       }
     }
     // save tenant
@@ -82,12 +85,16 @@ class TenantOperationsMixin {
   }) async {
     try {
       Business? business = await ProxyService.strategy.defaultBusiness();
-      Branch? branch = ref.read(selectedBranchProvider) ??
+      Branch? branch =
+          ref.read(selectedBranchProvider) ??
           await ProxyService.strategy.defaultBranch();
 
       if (business == null || branch == null) {
-        showCustomSnackBarUtil(context, 'Business or Branch not found',
-            backgroundColor: Colors.red[600]);
+        showCustomSnackBarUtil(
+          context,
+          'Business or Branch not found',
+          backgroundColor: Colors.red[600],
+        );
         return;
       }
 
@@ -141,17 +148,30 @@ class TenantOperationsMixin {
 
       // Refresh the tenant list
       await model.loadTenants();
+    } on DuplicateTenantException catch (e) {
+      // Handle duplicate tenant error with a user-friendly message
+      showCustomSnackBarUtil(
+        context,
+        e.message,
+        backgroundColor: Colors.orange[700],
+      );
+      rethrow; // Re-throw to allow the calling widget to handle the error as well
     } catch (e, s) {
       talker.error(s);
       showCustomSnackBarUtil(
-          context, "An unexpected error occurred: ${e.toString()}",
-          backgroundColor: Colors.red[600]);
+        context,
+        "An unexpected error occurred: ${e.toString()}",
+        backgroundColor: Colors.red[600],
+      );
       rethrow; // Re-throw to allow the calling widget to handle the error as well
     }
   }
 
   static Future<void> deleteTenantStatic(
-      Tenant tenant, FlipperBaseModel model, BuildContext context) async {
+    Tenant tenant,
+    FlipperBaseModel model,
+    BuildContext context,
+  ) async {
     try {
       // Delete the tenant
       await ProxyService.strategy.flipperDelete(
@@ -194,10 +214,11 @@ class TenantOperationsMixin {
   }
 
   static void showDeleteConfirmationStatic(
-      BuildContext context,
-      Tenant tenant,
-      FlipperBaseModel model,
-      Future<void> Function(Tenant, FlipperBaseModel, BuildContext) onDelete) {
+    BuildContext context,
+    Tenant tenant,
+    FlipperBaseModel model,
+    Future<void> Function(Tenant, FlipperBaseModel, BuildContext) onDelete,
+  ) {
     showDialog(
       context: context,
       builder: (BuildContext context) {

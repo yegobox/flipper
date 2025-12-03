@@ -130,3 +130,14 @@ class FlipperException implements Exception {
   @override
   String toString() => 'FlipperException: $message';
 }
+
+class DuplicateTenantException implements Exception {
+  final String message;
+
+  DuplicateTenantException(this.message);
+
+  String errMsg() => 'Duplicate Tenant: $message';
+
+  @override
+  String toString() => 'DuplicateTenantException: $message';
+}

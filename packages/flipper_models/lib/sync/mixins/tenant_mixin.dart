@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/exceptions.dart';
 import 'package:flipper_models/helperModels/branch.dart';
 import 'package:flipper_models/helperModels/business.dart';
 import 'package:flipper_models/helperModels/permission.dart';
@@ -98,6 +99,25 @@ mixin TenantMixin implements TenantInterface {
       } catch (e) {
         rethrow;
       }
+    } else if (response.statusCode == 422) {
+      // Handle duplicate tenant error
+      // Determine if the input is an email or phone number
+      final bool isEmail = phoneNumber?.contains('@') ?? false;
+      final String inputType = isEmail ? 'email' : 'phone number';
+      String errorMessage = 'A user with this $inputType already exists';
+
+      try {
+        final errorData = jsonDecode(response.body);
+        if (errorData is Map && errorData.containsKey('message')) {
+          errorMessage = errorData['message'];
+        } else if (errorData is Map && errorData.containsKey('error')) {
+          errorMessage = errorData['error'];
+        }
+      } catch (e) {
+        // If parsing fails, use the context-aware default message
+      }
+
+      throw DuplicateTenantException(errorMessage);
     } else {
       throw InternalServerError(term: "internal server error");
     }
