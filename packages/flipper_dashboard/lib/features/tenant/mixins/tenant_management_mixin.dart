@@ -57,9 +57,7 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
       decoration: InputDecoration(
         labelText: labelText,
         prefixIcon: Icon(icon),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         filled: true,
         fillColor: Colors.grey[200],
       ),
@@ -76,29 +74,28 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
       },
       items: <String>['Agent', 'Cashier', 'Admin', 'Driver']
           .map<DropdownMenuItem<String>>((String value) {
-        return DropdownMenuItem<String>(
-          value: value,
-          child: Text(value),
-        );
-      }).toList(),
+            return DropdownMenuItem<String>(value: value, child: Text(value));
+          })
+          .toList(),
       decoration: InputDecoration(
         labelText: "Select User Type",
         prefixIcon: Icon(Icons.person_outline),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
         filled: true,
         fillColor: Colors.grey[200],
       ),
     );
   }
 
-  Future<void> addUser(FlipperBaseModel model, BuildContext context,
-      {required bool editMode,
-      required String name,
-      required String phone,
-      required String userType,
-      required int? userId}) async {
+  Future<void> addUser(
+    FlipperBaseModel model,
+    BuildContext context, {
+    required bool editMode,
+    required String name,
+    required String phone,
+    required String userType,
+    required int? userId,
+  }) async {
     try {
       await TenantOperationsMixin.addUserStatic(
         model,
@@ -122,18 +119,31 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
   }
 
   Future<void> deleteTenant(
-      Tenant tenant, FlipperBaseModel model, BuildContext context) async {
+    Tenant tenant,
+    FlipperBaseModel model,
+    BuildContext context,
+  ) async {
     return TenantOperationsMixin.deleteTenantStatic(tenant, model, context);
   }
 
   void showDeleteConfirmation(
-      BuildContext context, Tenant tenant, FlipperBaseModel model) {
+    BuildContext context,
+    Tenant tenant,
+    FlipperBaseModel model,
+  ) {
     TenantOperationsMixin.showDeleteConfirmationStatic(
-        context, tenant, model, deleteTenant);
+      context,
+      tenant,
+      model,
+      deleteTenant,
+    );
   }
 
   Future<void> savePermissions(
-      Tenant? newTenant, Business? business, Branch? branch) async {
+    Tenant? newTenant,
+    Business? business,
+    Branch? branch,
+  ) async {
     return TenantOperationsMixin.savePermissionsStatic(
       newTenant,
       business,
@@ -212,15 +222,9 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          flex: 3,
-          child: buildAddTenantForm(model, context),
-        ),
+        Expanded(flex: 3, child: buildAddTenantForm(model, context)),
         SizedBox(width: 20),
-        Expanded(
-          flex: 2,
-          child: buildTenantsList(model),
-        ),
+        Expanded(flex: 2, child: buildTenantsList(model)),
       ],
     );
   }
@@ -287,6 +291,7 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
                     child: FlipperButton(
                       color: Colors.blue,
                       textColor: Colors.white,
+                      isLoading: isAddingUser,
                       onPressed: isAddingUser
                           ? null
                           : () async {
