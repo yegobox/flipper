@@ -28,6 +28,27 @@ mixin PurchaseMixin
   Talker get talker;
   String get apihub;
 
+  /// Retrieves the last request date for a given branch and request type
+  /// Returns null if no record exists
+  Future<String?> getLastRequestDate({
+    required int branchId,
+    required String requestType,
+  }) async {
+    final lastRequestRecords = await repository.get<ImportPurchaseDates>(
+      policy: brick.OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+      query: brick.Query(
+        limit: 1,
+        orderBy: [const OrderBy('lastRequestDate', ascending: false)],
+        where: [
+          brick.Where('branchId').isExactly(branchId),
+          brick.Where('requestType').isExactly(requestType),
+        ],
+      ),
+    );
+
+    return lastRequestRecords.firstOrNull?.lastRequestDate;
+  }
+
   @override
   Future<void> saveVariant(Variant item, Business business, int branchId,
       {required bool skipRRaCall}) async {
