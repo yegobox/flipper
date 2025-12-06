@@ -6,7 +6,32 @@ class WhatsAppService {
   static const String _baseUrl = 'https://graph.facebook.com/v24.0';
   final Dio _dio;
 
-  WhatsAppService({Dio? dio}) : _dio = dio ?? Dio();
+  WhatsAppService({Dio? dio})
+      : _dio = dio ?? Dio(BaseOptions(
+          connectTimeout: const Duration(seconds: 5),
+          receiveTimeout: const Duration(seconds: 30),
+          sendTimeout: const Duration(seconds: 3),
+        ));
+
+  /// Safely extracts error message from dynamic response data
+  /// Returns fallback message if structure is not a Map or missing 'error'/'message' keys
+  String _extractErrorMessage(dynamic response, {String fallback = 'Unknown error'}) {
+    if (response is! Map) {
+      return fallback;
+    }
+
+    final errorMap = response['error'];
+    if (errorMap is! Map) {
+      return fallback;
+    }
+
+    final message = errorMap['message'];
+    if (message is String) {
+      return message;
+    }
+
+    return fallback;
+  }
 
   /// Send a WhatsApp text message
   ///
@@ -65,10 +90,7 @@ class WhatsAppService {
       }
     } on DioException catch (e) {
       if (e.response != null) {
-        final errorData = e.response?.data;
-        final errorMessage = errorData is Map
-            ? (errorData['error'] as Map)['message'] ?? 'Unknown error'
-            : 'Unknown error';
+        final errorMessage = _extractErrorMessage(e.response?.data);
         throw Exception('WhatsApp API error: $errorMessage');
       }
       throw Exception('Network error: ${e.message}');
@@ -117,16 +139,16 @@ class WhatsAppService {
       return response.statusCode == 200;
     } on DioException catch (e) {
       if (e.response?.statusCode == 401) {
-        final errorData = e.response?.data;
-        final errorMessage = errorData is Map
-            ? (errorData['error'] as Map)['message'] ?? 'Invalid WhatsApp token'
-            : 'Invalid WhatsApp token';
+        final errorMessage = _extractErrorMessage(
+          e.response?.data,
+          fallback: 'Invalid WhatsApp token',
+        );
         throw Exception('Invalid WhatsApp token: $errorMessage');
       } else if (e.response?.statusCode == 404) {
-        final errorData = e.response?.data;
-        final errorMessage = errorData is Map
-            ? (errorData['error'] as Map)['message'] ?? 'Phone number ID not found'
-            : 'Phone number ID not found';
+        final errorMessage = _extractErrorMessage(
+          e.response?.data,
+          fallback: 'Phone number ID not found',
+        );
         throw Exception('Phone number ID not found: $errorMessage');
       }
       throw Exception('Validation error: ${e.message}');

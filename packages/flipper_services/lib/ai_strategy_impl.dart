@@ -1,4 +1,3 @@
-
 import 'package:supabase_models/brick/models/conversation.model.dart';
 import 'package:supabase_models/brick/models/message.model.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
@@ -145,6 +144,7 @@ class AiStrategyImpl implements AiStrategy {
     required String conversationId,
     String? aiResponse,
     String? aiContext,
+    required String messageSource,
   }) async {
     try {
       // First update the conversation's lastMessageAt
@@ -170,6 +170,7 @@ class AiStrategyImpl implements AiStrategy {
         conversationId: conversationId,
         aiResponse: aiResponse,
         aiContext: aiContext,
+        messageSource: messageSource,
         timestamp: DateTime.now().toUtc(),
       );
 

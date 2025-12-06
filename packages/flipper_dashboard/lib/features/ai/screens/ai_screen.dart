@@ -15,6 +15,7 @@ import '../widgets/conversation_list.dart';
 import '../theme/ai_theme.dart';
 import '../widgets/welcome_view.dart';
 import '../providers/whatsapp_message_provider.dart';
+import 'package:flipper_services/whatsapp_service.dart';
 
 /// Main screen for the AI feature with a modern, polished UI.
 class AiScreen extends ConsumerStatefulWidget {
@@ -178,13 +179,30 @@ class _AiScreenState extends ConsumerState<AiScreen> {
       final branchId = ProxyService.box.getBranchId();
       if (branchId == null) throw Exception('Branch ID is required');
 
-      // Save user message to local database
+      // Check context: Is this a reply to a WhatsApp message?
+      // We look at the last message in the conversation history (that isn't from the user)
+      final lastMessage = _messages.reversed.firstWhere(
+        (m) => m.role != 'user',
+        orElse: () => Message(
+          text: '',
+          phoneNumber: '',
+          delivered: false,
+          branchId: 0,
+          messageSource: 'ai',
+        ),
+      );
+
+      final isWhatsAppReply = lastMessage.messageSource == 'whatsapp';
+
+      // Save user message to local database immediately for UI responsiveness
+      // We'll update the message source if it's a WhatsApp reply
       await ProxyService.strategy.saveMessage(
         text: text,
         phoneNumber: ProxyService.box.getUserPhone() ?? '',
         branchId: branchId,
         role: 'user',
         conversationId: _currentConversationId,
+        messageSource: isWhatsAppReply ? 'whatsapp' : 'ai',
       );
 
       _controller.clear();
@@ -195,6 +213,15 @@ class _AiScreenState extends ConsumerState<AiScreen> {
         setState(() => _isLoading = false);
         return; // Do not hit AI provider yet
       }
+
+      if (isWhatsAppReply) {
+        // Handle WhatsApp Reply
+        await _handleWhatsAppReply(text, lastMessage, branchId);
+        // Do NOT proceed to AI logic
+        return;
+      }
+
+      // --- AI Logic (Only if NOT WhatsApp) ---
 
       // Prepare parts for the AI prompt
       String processedText = text;
@@ -250,6 +277,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
         conversationId: _currentConversationId,
         aiResponse: aiResponseText,
         aiContext: text,
+        messageSource: 'ai',
       );
 
       // Clean the response for conversation history to avoid confusing the AI.
@@ -287,6 +315,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
           branchId: branchId,
           role: 'assistant',
           conversationId: _currentConversationId,
+          messageSource: 'ai',
         );
 
         // Also add the summary to the conversation history for complete context.
@@ -298,6 +327,49 @@ class _AiScreenState extends ConsumerState<AiScreen> {
       _scrollToBottom();
     } catch (e) {
       _showError('Error: ${e.toString()}');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _handleWhatsAppReply(
+    String text,
+    Message lastMessage,
+    int branchId,
+  ) async {
+    try {
+      // 1. Get Business Configuration for WhatsApp
+      final businessId = ProxyService.box.getBusinessId();
+      if (businessId == null) throw Exception('Business ID not found');
+
+      final business = await ProxyService.strategy.getBusiness(
+        businessId: businessId,
+      );
+      if (business == null) throw Exception('Business not found');
+
+      final phoneNumberId = business.getWhatsAppPhoneNumberId();
+      if (phoneNumberId == null) {
+        throw Exception('WhatsApp not configured for this business');
+      }
+
+      // 2. Instantiate WhatsApp Service
+      final whatsAppService = WhatsAppService();
+
+      // 3. Send Message
+      await whatsAppService.sendWhatsAppMessage(
+        phoneNumberId: phoneNumberId,
+        recipientPhone:
+            lastMessage.phoneNumber, // The customer's phone from the message
+        messageBody: text,
+        replyToMessageId: lastMessage
+            .whatsappMessageId, // Context: replying to specific message
+      );
+
+      // Note: We've already saved the user's message to the DB in _sendMessage
+    } catch (e) {
+      // If sending fails, we might want to update the message status or show error
+      // For now, just show error toast
+      _showError('Failed to send WhatsApp message: ${e.toString()}');
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }

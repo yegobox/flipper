@@ -47,7 +47,7 @@ class RealDittoObserverRunner implements DittoObserverRunner {
     }
     return store.registerObserver(
       query,
-      arguments: arguments!,
+      arguments: arguments ?? {},
       onChange: (result) => onChange(result),
     );
   }

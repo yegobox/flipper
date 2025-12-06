@@ -45,50 +45,56 @@ void main() {
     mockRepository = MockRepository();
 
     // Register fallbacks for mocktail
-    registerFallbackValue(models.Message(
-      id: 'fallback_message',
-      text: 'fallback',
-      role: 'user',
-      conversationId: 'fallback_conversation',
-      branchId: 1,
-      phoneNumber: '123',
-      delivered: false,
-    ));
-    registerFallbackValue(models.BusinessAnalytic(
-      id: 'fallback_analytic',
-      branchId: 1,
-      date: DateTime.now(),
-      stockRemainedAtTheTimeOfSale: 0,
-      transactionId: 'fallback_transaction',
-      itemName: 'fallback',
-      price: 0.0,
-      profit: 0.0,
-      unitsSold: 0,
-      taxRate: 0.0,
-      trafficCount: 0,
-      value: 0.0,
-      supplyPrice: 0.0,
-      retailPrice: 0.0,
-      currentStock: 0.0,
-      stockValue: 0.0,
-      paymentMethod: 'cash',
-      customerType: 'walk-in',
-      discountAmount: 0.0,
-      taxAmount: 0.0,
-    ));
-    registerFallbackValue(Conversation(
-      id: 'fallback_conversation',
-      title: 'Fallback Conversation',
-      branchId: 1,
-      createdAt: DateTime.now(),
-    ));
+    registerFallbackValue(
+      models.Message(
+        id: 'fallback_message',
+        text: 'fallback',
+        role: 'user',
+        conversationId: 'fallback_conversation',
+        branchId: 1,
+        phoneNumber: '123',
+        delivered: false,
+      ),
+    );
+    registerFallbackValue(
+      models.BusinessAnalytic(
+        id: 'fallback_analytic',
+        branchId: 1,
+        date: DateTime.now(),
+        stockRemainedAtTheTimeOfSale: 0,
+        transactionId: 'fallback_transaction',
+        itemName: 'fallback',
+        price: 0.0,
+        profit: 0.0,
+        unitsSold: 0,
+        taxRate: 0.0,
+        trafficCount: 0,
+        value: 0.0,
+        supplyPrice: 0.0,
+        retailPrice: 0.0,
+        currentStock: 0.0,
+        stockValue: 0.0,
+        paymentMethod: 'cash',
+        customerType: 'walk-in',
+        discountAmount: 0.0,
+        taxAmount: 0.0,
+      ),
+    );
+    registerFallbackValue(
+      Conversation(
+        id: 'fallback_conversation',
+        title: 'Fallback Conversation',
+        branchId: 1,
+        createdAt: DateTime.now(),
+      ),
+    );
     registerFallbackValue(Uri());
     registerFallbackValue(MockBusiness());
     registerFallbackValue(FakeHttpClient());
     registerFallbackValue(MockPlan());
-    registerFallbackValue(PaymentVerificationResponse(
-      result: PaymentVerificationResult.active,
-    ));
+    registerFallbackValue(
+      PaymentVerificationResponse(result: PaymentVerificationResult.active),
+    );
     registerFallbackValue(const RecordConfig());
   });
 
@@ -113,53 +119,66 @@ void main() {
     // Default mocks for ProxyService
     when(() => mockBox.getBranchId()).thenReturn(1);
     when(() => mockBox.getUserPhone()).thenReturn('123456789');
-    when(() => mockDbSync.activeBusiness()).thenAnswer((_) async =>
-        models.Business(id: '1', name: 'Test Business', serverId: 1));
+    when(() => mockDbSync.activeBusiness()).thenAnswer(
+      (_) async => models.Business(id: '1', name: 'Test Business', serverId: 1),
+    );
 
     // Default mock for getConversations (empty list)
-    when(() => mockDbSync.getConversations(
-          branchId: any(named: 'branchId'),
-          limit: any(named: 'limit'),
-        )).thenAnswer((_) async => []);
+    when(
+      () => mockDbSync.getConversations(
+        branchId: any(named: 'branchId'),
+        limit: any(named: 'limit'),
+      ),
+    ).thenAnswer((_) async => []);
 
     // Default mock for createConversation
-    when(() => mockDbSync.createConversation(
-          title: any(named: 'title'),
-          branchId: any(named: 'branchId'),
-        )).thenAnswer((_) async => Conversation(
-          id: 'new_conversation_id',
-          title: 'New Conversation',
-          branchId: 1,
-          createdAt: DateTime.now(),
-        ));
+    when(
+      () => mockDbSync.createConversation(
+        title: any(named: 'title'),
+        branchId: any(named: 'branchId'),
+      ),
+    ).thenAnswer(
+      (_) async => Conversation(
+        id: 'new_conversation_id',
+        title: 'New Conversation',
+        branchId: 1,
+        createdAt: DateTime.now(),
+      ),
+    );
 
     // Default mock for subscribeToMessages (empty stream)
-    when(() => mockDbSync.subscribeToMessages(any()))
-        .thenAnswer((_) => Stream.fromIterable([[]]));
+    when(
+      () => mockDbSync.subscribeToMessages(any()),
+    ).thenAnswer((_) => Stream.fromIterable([[]]));
 
     // Default mock for saveMessage
-    when(() => mockDbSync.saveMessage(
-          text: any(named: 'text'),
-          phoneNumber: any(named: 'phoneNumber'),
-          branchId: any(named: 'branchId'),
-          role: any(named: 'role'),
-          conversationId: any(named: 'conversationId'),
-          aiResponse: any(named: 'aiResponse'),
-          aiContext: any(named: 'aiContext'),
-        )).thenAnswer((_) async => models.Message(
-          id: 'saved_message_id',
-          text: 'saved',
-          role: 'user',
-          conversationId: 'new_conversation_id',
-          branchId: 1,
-          phoneNumber: '123456789',
-          delivered: false,
-        ));
+    when(
+      () => mockDbSync.saveMessage(
+        messageSource: 'ai',
+        text: any(named: 'text'),
+        phoneNumber: any(named: 'phoneNumber'),
+        branchId: any(named: 'branchId'),
+        role: any(named: 'role'),
+        conversationId: any(named: 'conversationId'),
+        aiResponse: any(named: 'aiResponse'),
+        aiContext: any(named: 'aiContext'),
+      ),
+    ).thenAnswer(
+      (_) async => models.Message(
+        id: 'saved_message_id',
+        text: 'saved',
+        role: 'user',
+        conversationId: 'new_conversation_id',
+        branchId: 1,
+        phoneNumber: '123456789',
+        delivered: false,
+      ),
+    );
 
     // Default mock for streamRemoteAnalytics
-    when(() =>
-            mockDbSync.streamRemoteAnalytics(branchId: any(named: 'branchId')))
-        .thenAnswer((_) => Stream.fromIterable([[]]));
+    when(
+      () => mockDbSync.streamRemoteAnalytics(branchId: any(named: 'branchId')),
+    ).thenAnswer((_) => Stream.fromIterable([[]]));
   });
 
   tearDown(() async {
@@ -168,32 +187,36 @@ void main() {
     TestWidgetsFlutterBinding.instance.window.clearDevicePixelRatioTestValue();
   });
 
-  Widget _wrapWithMaterialApp(Widget widget,
-      {List<Override> overrides = const []}) {
+  Widget _wrapWithMaterialApp(
+    Widget widget, {
+    List<Override> overrides = const [],
+  }) {
     return ProviderScope(
       overrides: overrides,
-      child: MaterialApp(
-        home: ScaffoldMessenger(
-          child: widget,
-        ),
-      ),
+      child: MaterialApp(home: ScaffoldMessenger(child: widget)),
     );
   }
 
   group('AiScreen Widget Tests', () {
-    testWidgets('renders WelcomeView when no conversations exist',
-        (WidgetTester tester) async {
+    testWidgets('renders WelcomeView when no conversations exist', (
+      WidgetTester tester,
+    ) async {
       // Ensure no conversations are returned and a new conversation is created
-      when(() => mockDbSync.getConversations(
-            branchId: any(named: 'branchId'),
-            limit: any(named: 'limit'),
-          )).thenAnswer((_) async => []);
-      when(() => mockDbSync.getMessagesForConversation(
-            conversationId: any(named: 'conversationId'),
-            limit: any(named: 'limit'),
-          )).thenAnswer((_) async => []);
-      when(() => mockDbSync.subscribeToMessages('new_conversation_id'))
-          .thenAnswer((_) => Stream.fromIterable([[]]));
+      when(
+        () => mockDbSync.getConversations(
+          branchId: any(named: 'branchId'),
+          limit: any(named: 'limit'),
+        ),
+      ).thenAnswer((_) async => []);
+      when(
+        () => mockDbSync.getMessagesForConversation(
+          conversationId: any(named: 'conversationId'),
+          limit: any(named: 'limit'),
+        ),
+      ).thenAnswer((_) async => []);
+      when(
+        () => mockDbSync.subscribeToMessages('new_conversation_id'),
+      ).thenAnswer((_) => Stream.fromIterable([[]]));
 
       await tester.pumpWidget(_wrapWithMaterialApp(const AiScreen()));
       await tester.pumpAndSettle();
@@ -321,50 +344,65 @@ void main() {
     //   await messageStreamController.close();
     // });
 
-    testWidgets('displays error snackbar on message send failure',
-        (WidgetTester tester) async {
+    testWidgets('displays error snackbar on message send failure', (
+      WidgetTester tester,
+    ) async {
       // Mock a non-empty conversation list
-      when(() => mockDbSync.getConversations(
-            branchId: any(named: 'branchId'),
-            limit: any(named: 'limit'),
-          )).thenAnswer((_) async => [
-            Conversation(
-              id: 'existing_conversation',
-              title: 'Existing Conversation',
-              branchId: 1,
-              createdAt: DateTime.now(),
-            )
-          ]);
-      when(() => mockDbSync.getMessagesForConversation(
-            conversationId: 'existing_conversation',
-            limit: any(named: 'limit'),
-          )).thenAnswer((_) async => []);
-      when(() => mockDbSync.subscribeToMessages('existing_conversation'))
-          .thenAnswer((_) => Stream.fromIterable([[]]));
-      when(() => mockDbSync.saveMessage(
-            text: 'Test message',
-            phoneNumber: '123456789',
+      when(
+        () => mockDbSync.getConversations(
+          branchId: any(named: 'branchId'),
+          limit: any(named: 'limit'),
+        ),
+      ).thenAnswer(
+        (_) async => [
+          Conversation(
+            id: 'existing_conversation',
+            title: 'Existing Conversation',
             branchId: 1,
-            role: 'user',
-            conversationId: 'existing_conversation',
-            aiResponse: null,
-            aiContext: null,
-          )).thenAnswer((_) async => models.Message(
-            id: 'saved_message_id',
-            text: 'Test message',
-            role: 'user',
-            conversationId: 'existing_conversation',
-            branchId: 1,
-            phoneNumber: '123456789',
-            delivered: false,
-          ));
+            createdAt: DateTime.now(),
+          ),
+        ],
+      );
+      when(
+        () => mockDbSync.getMessagesForConversation(
+          conversationId: 'existing_conversation',
+          limit: any(named: 'limit'),
+        ),
+      ).thenAnswer((_) async => []);
+      when(
+        () => mockDbSync.subscribeToMessages('existing_conversation'),
+      ).thenAnswer((_) => Stream.fromIterable([[]]));
+      when(
+        () => mockDbSync.saveMessage(
+          messageSource: 'ai',
+          text: 'Test message',
+          phoneNumber: '123456789',
+          branchId: 1,
+          role: 'user',
+          conversationId: 'existing_conversation',
+          aiResponse: null,
+          aiContext: null,
+        ),
+      ).thenAnswer(
+        (_) async => models.Message(
+          id: 'saved_message_id',
+          text: 'Test message',
+          role: 'user',
+          conversationId: 'existing_conversation',
+          branchId: 1,
+          phoneNumber: '123456789',
+          delivered: false,
+        ),
+      );
 
       await tester.pumpWidget(
         _wrapWithMaterialApp(
           const AiScreen(),
           overrides: [
-            geminiBusinessAnalyticsProvider(1, 'Test message')
-                .overrideWith(() => throw Exception('AI service unavailable')),
+            geminiBusinessAnalyticsProvider(
+              1,
+              'Test message',
+            ).overrideWith(() => throw Exception('AI service unavailable')),
           ],
         ),
       );
@@ -479,75 +517,94 @@ void main() {
     //   expect(find.byType(Drawer), findsOneWidget);
     // });
 
-    testWidgets('deletes current conversation and starts new one if no others',
-        (WidgetTester tester) async {
-      // Mock a single conversation
-      when(() => mockDbSync.getConversations(
+    testWidgets(
+      'deletes current conversation and starts new one if no others',
+      (WidgetTester tester) async {
+        // Mock a single conversation
+        when(
+          () => mockDbSync.getConversations(
             branchId: any(named: 'branchId'),
             limit: any(named: 'limit'),
-          )).thenAnswer((_) async => [
+          ),
+        ).thenAnswer(
+          (_) async => [
             Conversation(
               id: 'single_conv',
               title: 'Single Conversation',
               branchId: 1,
               createdAt: DateTime.now(),
-            )
-          ]);
-      when(() => mockDbSync.getMessagesForConversation(
+            ),
+          ],
+        );
+        when(
+          () => mockDbSync.getMessagesForConversation(
             conversationId: 'single_conv',
             limit: any(named: 'limit'),
-          )).thenAnswer((_) async => []);
-      when(() => mockDbSync.subscribeToMessages('single_conv'))
-          .thenAnswer((_) => Stream.fromIterable([[]]));
+          ),
+        ).thenAnswer((_) async => []);
+        when(
+          () => mockDbSync.subscribeToMessages('single_conv'),
+        ).thenAnswer((_) => Stream.fromIterable([[]]));
 
-      // Mock deleteConversation
-      when(() => mockDbSync.deleteConversation('single_conv'))
-          .thenAnswer((_) async => Future.value());
+        // Mock deleteConversation
+        when(
+          () => mockDbSync.deleteConversation('single_conv'),
+        ).thenAnswer((_) async => Future.value());
 
-      // Mock createConversation for the new one
-      when(() => mockDbSync.createConversation(
+        // Mock createConversation for the new one
+        when(
+          () => mockDbSync.createConversation(
             title: any(named: 'title'),
             branchId: any(named: 'branchId'),
-          )).thenAnswer((_) async => Conversation(
+          ),
+        ).thenAnswer(
+          (_) async => Conversation(
             id: 'new_conv_after_delete',
             title: 'New Conversation',
             branchId: 1,
             createdAt: DateTime.now(),
-          ));
-      when(() => mockDbSync.subscribeToMessages('new_conv_after_delete'))
-          .thenAnswer((_) => Stream.fromIterable([[]]));
-      when(() => mockDbSync.getMessagesForConversation(
+          ),
+        );
+        when(
+          () => mockDbSync.subscribeToMessages('new_conv_after_delete'),
+        ).thenAnswer((_) => Stream.fromIterable([[]]));
+        when(
+          () => mockDbSync.getMessagesForConversation(
             conversationId: 'new_conv_after_delete',
             limit: any(named: 'limit'),
-          )).thenAnswer((_) async => []);
+          ),
+        ).thenAnswer((_) async => []);
 
-      await tester.pumpWidget(_wrapWithMaterialApp(const AiScreen()));
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(_wrapWithMaterialApp(const AiScreen()));
+        await tester.pumpAndSettle();
 
-      // Fix: Use correct icon for menu button
-      await tester.tap(find.byIcon(Icons.menu_rounded));
-      await tester.pumpAndSettle();
+        // Fix: Use correct icon for menu button
+        await tester.tap(find.byIcon(Icons.menu_rounded));
+        await tester.pumpAndSettle();
 
-      // Tap delete icon for the single conversation
-      await tester.tap(find.byIcon(Icons.delete_outline_rounded));
-      await tester.pumpAndSettle();
+        // Tap delete icon for the single conversation
+        await tester.tap(find.byIcon(Icons.delete_outline_rounded));
+        await tester.pumpAndSettle();
 
-      // Verify delete was called
-      verify(() => mockDbSync.deleteConversation('single_conv')).called(1);
+        // Verify delete was called
+        verify(() => mockDbSync.deleteConversation('single_conv')).called(1);
 
-      // Verify WelcomeView is shown for the new conversation
-      expect(find.byType(WelcomeView), findsOneWidget);
-      expect(find.text('Your Business AI Assistant'), findsOneWidget);
-    });
+        // Verify WelcomeView is shown for the new conversation
+        expect(find.byType(WelcomeView), findsOneWidget);
+        expect(find.text('Your Business AI Assistant'), findsOneWidget);
+      },
+    );
 
     // Try to test the actual gesture by simulating pointer events correctly
     testWidgets('recording via pointer events', (WidgetTester tester) async {
       final audioRecorder = MockAudioRecorder();
       when(() => audioRecorder.hasPermission()).thenAnswer((_) async => true);
-      when(() => audioRecorder.start(any(), path: any(named: 'path')))
-          .thenAnswer((_) async {});
-      when(() => audioRecorder.stop())
-          .thenAnswer((_) async => 'some/path/to/audio.m4a');
+      when(
+        () => audioRecorder.start(any(), path: any(named: 'path')),
+      ).thenAnswer((_) async {});
+      when(
+        () => audioRecorder.stop(),
+      ).thenAnswer((_) async => 'some/path/to/audio.m4a');
       when(() => audioRecorder.dispose()).thenAnswer((_) async {});
 
       final testController = TextEditingController();
@@ -562,9 +619,7 @@ void main() {
               enabled: true,
             ),
           ),
-          overrides: [
-            audioRecorderProvider.overrideWithValue(audioRecorder),
-          ],
+          overrides: [audioRecorderProvider.overrideWithValue(audioRecorder)],
         ),
       );
       await tester.pumpAndSettle();
@@ -585,8 +640,9 @@ void main() {
         print('✓ Method 1 (longPressAt) worked');
 
         await tester.pump(const Duration(milliseconds: 200));
-        verify(() => audioRecorder.start(any(), path: any(named: 'path')))
-            .called(1);
+        verify(
+          () => audioRecorder.start(any(), path: any(named: 'path')),
+        ).called(1);
 
         // Complete the test
         await tester.pump(const Duration(seconds: 1));
@@ -608,13 +664,15 @@ void main() {
           await tester.pump(const Duration(milliseconds: 500));
 
           // Check if this triggered recording
-          verify(() => audioRecorder.hasPermission())
-              .called(greaterThanOrEqualTo(1));
+          verify(
+            () => audioRecorder.hasPermission(),
+          ).called(greaterThanOrEqualTo(1));
           print('✓ Method 2 (TestGesture) worked');
 
           await tester.pump(const Duration(milliseconds: 200));
-          verify(() => audioRecorder.start(any(), path: any(named: 'path')))
-              .called(1);
+          verify(
+            () => audioRecorder.start(any(), path: any(named: 'path')),
+          ).called(1);
 
           // Release gesture to stop
           await gesture.up();
@@ -629,15 +687,18 @@ void main() {
       testController.dispose();
     });
 
-// Alternative: Test by triggering the callback directly if we can access it
-    testWidgets('recording via callback simulation',
-        (WidgetTester tester) async {
+    // Alternative: Test by triggering the callback directly if we can access it
+    testWidgets('recording via callback simulation', (
+      WidgetTester tester,
+    ) async {
       final audioRecorder = MockAudioRecorder();
       when(() => audioRecorder.hasPermission()).thenAnswer((_) async => true);
-      when(() => audioRecorder.start(any(), path: any(named: 'path')))
-          .thenAnswer((_) async {});
-      when(() => audioRecorder.stop())
-          .thenAnswer((_) async => 'some/path/to/audio.m4a');
+      when(
+        () => audioRecorder.start(any(), path: any(named: 'path')),
+      ).thenAnswer((_) async {});
+      when(
+        () => audioRecorder.stop(),
+      ).thenAnswer((_) async => 'some/path/to/audio.m4a');
       when(() => audioRecorder.dispose()).thenAnswer((_) async {});
 
       final testController = TextEditingController();
@@ -652,17 +713,16 @@ void main() {
               enabled: true,
             ),
           ),
-          overrides: [
-            audioRecorderProvider.overrideWithValue(audioRecorder),
-          ],
+          overrides: [audioRecorderProvider.overrideWithValue(audioRecorder)],
         ),
       );
       await tester.pumpAndSettle();
 
       // Find the gesture detector and try to call its callback directly
       final gestureDetectors = find.byType(GestureDetector);
-      final gestureDetectorWidgets =
-          tester.widgetList<GestureDetector>(gestureDetectors);
+      final gestureDetectorWidgets = tester.widgetList<GestureDetector>(
+        gestureDetectors,
+      );
 
       for (final gestureDetector in gestureDetectorWidgets) {
         if (gestureDetector.onLongPressStart != null) {
@@ -670,16 +730,18 @@ void main() {
 
           // Simulate the long press start callback
           final center = tester.getCenter(find.byWidget(gestureDetector));
-          gestureDetector
-              .onLongPressStart!(LongPressStartDetails(globalPosition: center));
+          gestureDetector.onLongPressStart!(
+            LongPressStartDetails(globalPosition: center),
+          );
 
           await tester.pump(const Duration(milliseconds: 100));
 
           // Check if recording started
           try {
             verify(() => audioRecorder.hasPermission()).called(1);
-            verify(() => audioRecorder.start(any(), path: any(named: 'path')))
-                .called(1);
+            verify(
+              () => audioRecorder.start(any(), path: any(named: 'path')),
+            ).called(1);
             // print('✓ Direct callback invocation worked');
 
             // Simulate long press up

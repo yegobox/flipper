@@ -33,6 +33,7 @@ mixin ConversationMixin implements ConversationInterface {
     required String role,
     required String conversationId,
     String? aiResponse,
+    required String messageSource,
     String? aiContext,
   }) async {
     final message = Message(

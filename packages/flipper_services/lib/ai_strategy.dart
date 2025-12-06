@@ -33,5 +33,6 @@ abstract class AiStrategy {
     required String conversationId,
     String? aiResponse,
     String? aiContext,
+    required String messageSource,
   });
 }
