@@ -16,6 +16,7 @@ import '../widgets/conversation_list.dart';
 import '../theme/ai_theme.dart';
 import '../widgets/welcome_view.dart';
 import '../providers/whatsapp_message_provider.dart';
+import '../providers/conversation_provider.dart';
 import 'package:flipper_services/whatsapp_service.dart';
 
 /// Main screen for the AI feature with a modern, polished UI.
@@ -28,7 +29,7 @@ class AiScreen extends ConsumerStatefulWidget {
 
 class _AiScreenState extends ConsumerState<AiScreen> {
   final TextEditingController _controller = TextEditingController();
-  List<Conversation> _conversations = [];
+  // List<Conversation> _conversations = []; // Removed
   String _currentConversationId = '';
   List<Message> _messages = [];
   bool _isLoading = false;
@@ -50,7 +51,6 @@ class _AiScreenState extends ConsumerState<AiScreen> {
   @override
   void initState() {
     super.initState();
-    _loadAllConversations();
     // Initialize WhatsApp message sync by reading the provider
     // The provider uses keepAlive to maintain lifecycle
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -66,38 +66,6 @@ class _AiScreenState extends ConsumerState<AiScreen> {
     super.dispose();
   }
 
-  Future<void> _loadAllConversations() async {
-    try {
-      final branchId = ProxyService.box.getBranchId();
-      if (branchId == null) throw Exception('Branch ID is required');
-
-      final conversations = await ProxyService.strategy.getConversations(
-        branchId: branchId,
-        limit: 100,
-      );
-
-      if (!mounted) return;
-
-      if (conversations.isEmpty) {
-        await _startNewConversation();
-        return;
-      }
-
-      if (mounted) {
-        setState(() {
-          _conversations = conversations;
-          _currentConversationId = conversations.first.id;
-          _messages = conversations.first.messages ?? [];
-          _conversationHistory = []; // Clear history on conversation load
-        });
-        _subscribeToCurrentConversation();
-        _scrollToBottom();
-      }
-    } catch (e) {
-      if (mounted) _showError('Error loading conversations: ${e.toString()}');
-    }
-  }
-
   Future<void> _startNewConversation() async {
     try {
       final branchId = ProxyService.box.getBranchId();
@@ -110,7 +78,6 @@ class _AiScreenState extends ConsumerState<AiScreen> {
 
       if (mounted) {
         setState(() {
-          _conversations.insert(0, conversation);
           _currentConversationId = conversation.id;
           _messages = [];
           _conversationHistory = []; // Clear history on new conversation
@@ -126,19 +93,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
   Future<void> _deleteCurrentConversation(String conversationId) async {
     try {
       await ProxyService.strategy.deleteConversation(conversationId);
-
-      if (mounted) {
-        setState(() {
-          _conversations.removeWhere((c) => c.id == conversationId);
-          if (_conversations.isNotEmpty) {
-            _currentConversationId = _conversations.first.id;
-            _messages = _conversations.first.messages ?? [];
-          } else {
-            _startNewConversation();
-          }
-        });
-        _scrollToBottom();
-      }
+      // State update handled by stream listener
     } catch (e) {
       if (mounted) _showError('Error deleting conversation: ${e.toString()}');
     }
@@ -153,12 +108,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
             if (mounted) {
               setState(() {
                 _messages = messages;
-                final index = _conversations.indexWhere(
-                  (c) => c.id == _currentConversationId,
-                );
-                if (index != -1) {
-                  _conversations[index].messages = messages;
-                }
+                // No need to update _conversations list as it's from provider now
               });
               _scrollToBottom();
             }
@@ -513,6 +463,36 @@ class _AiScreenState extends ConsumerState<AiScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final conversationsAsync = ref.watch(conversationProvider);
+
+    // Handle initial selection if needed
+    ref.listen(conversationProvider, (previous, next) {
+      next.whenData((conversations) {
+        if (conversations.isNotEmpty && _currentConversationId.isEmpty) {
+          setState(() {
+            _currentConversationId = conversations.first.id;
+            _messages = conversations.first.messages ?? [];
+          });
+          _subscribeToCurrentConversation();
+        } else if (conversations.isNotEmpty &&
+            !conversations.any((c) => c.id == _currentConversationId)) {
+          // If current selected is gone (deleted), select first
+          setState(() {
+            _currentConversationId = conversations.first.id;
+            _messages = conversations.first.messages ?? [];
+          });
+          _subscribeToCurrentConversation();
+        } else if (conversations.isEmpty && _currentConversationId.isNotEmpty) {
+          // If all deleted
+          setState(() {
+            _currentConversationId = '';
+            _messages = [];
+          });
+          _startNewConversation();
+        }
+      });
+    });
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final isMobile = constraints.maxWidth < 600;
@@ -520,8 +500,12 @@ class _AiScreenState extends ConsumerState<AiScreen> {
           key: _scaffoldKey,
           backgroundColor: AiTheme.backgroundColor,
           appBar: isMobile ? _buildMobileAppBar() : null,
-          drawer: isMobile ? _buildDrawer() : null,
-          body: isMobile ? _buildMobileLayout() : _buildDesktopLayout(),
+          drawer: isMobile
+              ? _buildDrawer(conversationsAsync.value ?? [])
+              : null,
+          body: isMobile
+              ? _buildMobileLayout()
+              : _buildDesktopLayout(conversationsAsync.value ?? []),
         );
       },
     );
@@ -543,16 +527,20 @@ class _AiScreenState extends ConsumerState<AiScreen> {
     );
   }
 
-  Widget _buildDrawer() {
+  Widget _buildDrawer(List<Conversation> conversations) {
     return Drawer(
       child: ConversationList(
-        conversations: _conversations,
+        conversations: conversations,
         currentConversationId: _currentConversationId,
         onConversationSelected: (id) {
           setState(() {
             _currentConversationId = id;
-            _messages =
-                _conversations.firstWhere((c) => c.id == id).messages ?? [];
+            try {
+              _messages =
+                  conversations.firstWhere((c) => c.id == id).messages ?? [];
+            } catch (e) {
+              _messages = [];
+            }
             // Clear history on conversation selection
             _conversationHistory = [];
           });
@@ -583,17 +571,21 @@ class _AiScreenState extends ConsumerState<AiScreen> {
     );
   }
 
-  Widget _buildDesktopLayout() {
+  Widget _buildDesktopLayout(List<Conversation> conversations) {
     return Row(
       children: [
         ConversationList(
-          conversations: _conversations,
+          conversations: conversations,
           currentConversationId: _currentConversationId,
           onConversationSelected: (id) {
             setState(() {
               _currentConversationId = id;
-              _messages =
-                  _conversations.firstWhere((c) => c.id == id).messages ?? [];
+              try {
+                _messages =
+                    conversations.firstWhere((c) => c.id == id).messages ?? [];
+              } catch (e) {
+                _messages = [];
+              }
             });
             _subscribeToCurrentConversation();
             _scrollToBottom();

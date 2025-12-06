@@ -162,7 +162,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
     int? offset,
   });
 
-
   Stream<List<Message>> conversationStream({required String conversationId});
 
   Future<Variant?> getCustomVariant({

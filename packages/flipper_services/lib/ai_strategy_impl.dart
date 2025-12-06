@@ -9,6 +9,26 @@ class AiStrategyImpl implements AiStrategy {
   final brick.Repository repository = brick.Repository();
 
   @override
+  Stream<List<Conversation>> conversationsStream({required int branchId}) {
+    try {
+      return repository
+          .subscribe<Conversation>(
+        query: brick.Query(
+          where: [brick.Where('branchId').isExactly(branchId)],
+        ),
+      )
+          .map((conversations) {
+        conversations
+            .sort((a, b) => b.lastMessageAt.compareTo(a.lastMessageAt));
+        return conversations;
+      });
+    } catch (e, s) {
+      talker.error('Error subscribing to conversations: $e\n$s');
+      rethrow;
+    }
+  }
+
+  @override
   Future<List<Conversation>> getConversations({
     required int branchId,
     int? limit,
