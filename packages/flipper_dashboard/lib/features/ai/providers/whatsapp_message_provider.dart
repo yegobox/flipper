@@ -10,6 +10,7 @@ final whatsappMessageSyncProvider =
       WhatsAppMessageSyncNotifier,
       AsyncValue<WhatsAppSyncState>
     >((ref) {
+      ref.keepAlive();
       return WhatsAppMessageSyncNotifier();
     });
 

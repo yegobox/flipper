@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/models/conversation.model.dart';
 import 'package:supabase_models/brick/models/message.model.dart';
+import 'package:supabase_models/brick/repository.dart';
 
 import '../widgets/message_bubble.dart';
 import '../widgets/ai_input_field.dart';
@@ -50,8 +51,8 @@ class _AiScreenState extends ConsumerState<AiScreen> {
   void initState() {
     super.initState();
     _loadAllConversations();
-    // Initialize WhatsApp message sync by watching the provider
-    // This follows separation of concerns - provider manages service lifecycle
+    // Initialize WhatsApp message sync by reading the provider
+    // The provider uses keepAlive to maintain lifecycle
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(whatsappMessageSyncProvider);
     });
@@ -352,23 +353,99 @@ class _AiScreenState extends ConsumerState<AiScreen> {
         throw Exception('WhatsApp not configured for this business');
       }
 
-      // 2. Instantiate WhatsApp Service
+      // 2. Validate and sanitize recipient phone number
+      String? recipientPhone = lastMessage.phoneNumber;
+
+      if (recipientPhone == null || recipientPhone.trim().isEmpty) {
+        _showError('Recipient phone number is missing');
+        return; // Exit early without calling the service
+      }
+
+      // Remove whitespace and non-digit characters
+      recipientPhone = recipientPhone.replaceAll(RegExp(r'[^\d+]'), '');
+
+      // Validate format (E.164 format: + followed by 7-14 digits, or just 7-14 digits)
+      if (!RegExp(r'^\+?[1-9]\d{7,14}$').hasMatch(recipientPhone)) {
+        _showError('Invalid phone number format. Please use E.164 format (e.g., +1234567890).');
+        return; // Exit early without calling the service
+      }
+
+      // Ensure the phone number is in E.164 format (with + prefix)
+      if (!recipientPhone.startsWith('+')) {
+        recipientPhone = '+$recipientPhone';
+      }
+
+      // 3. Instantiate WhatsApp Service
       final whatsAppService = WhatsAppService();
 
-      // 3. Send Message
+      // 4. Send Message
       await whatsAppService.sendWhatsAppMessage(
         phoneNumberId: phoneNumberId,
-        recipientPhone:
-            lastMessage.phoneNumber, // The customer's phone from the message
+        recipientPhone: recipientPhone, // The validated and sanitized phone number
         messageBody: text,
         replyToMessageId: lastMessage
             .whatsappMessageId, // Context: replying to specific message
       );
 
-      // Note: We've already saved the user's message to the DB in _sendMessage
+      // Update the message to mark it as delivered after successful WhatsApp send
+      try {
+        final repository = Repository();
+        final messages = await repository.get<Message>(
+          query: Query(
+            where: [
+              Where('conversationId').isExactly(_currentConversationId),
+              Where('role').isExactly('user'),
+              Where('text').isExactly(text), // Match the text that was sent
+            ],
+            orderBy: [OrderBy('timestamp', SortOrder.DESC)],
+            limit: 1,
+          ),
+        );
+
+        if (messages.isNotEmpty) {
+          final latestUserMessage = messages.first;
+          // Update the message to mark it as delivered
+          final updatedMessage = latestUserMessage.copyWith(
+            delivered: true, // Mark as delivered after successful WhatsApp send
+          );
+
+          await repository.upsert<Message>(updatedMessage);
+        }
+      } catch (updateError) {
+        // If update fails, just log the error and continue
+        print('Failed to update message status after successful WhatsApp send: $updateError');
+      }
     } catch (e) {
-      // If sending fails, we might want to update the message status or show error
-      // For now, just show error toast
+      // If sending fails, update the message status to reflect the failure
+      // Find the most recently saved user message in this conversation and mark it as not delivered
+      try {
+        final repository = Repository();
+        final messages = await repository.get<Message>(
+          query: Query(
+            where: [
+              Where('conversationId').isExactly(_currentConversationId),
+              Where('role').isExactly('user'),
+              Where('text').isExactly(text), // Match the text that was sent
+            ],
+            orderBy: [OrderBy('timestamp', SortOrder.DESC)],
+            limit: 1,
+          ),
+        );
+
+        if (messages.isNotEmpty) {
+          final latestUserMessage = messages.first;
+          // Update the message by creating a new one with same data but mark as not delivered
+          final updatedMessage = latestUserMessage.copyWith(
+            delivered: false, // Mark as not delivered due to WhatsApp API failure
+          );
+
+          await repository.upsert<Message>(updatedMessage);
+        }
+      } catch (updateError) {
+        // If update fails, just log the error and continue
+        print('Failed to update message status after WhatsApp send failure: $updateError');
+      }
+
       _showError('Failed to send WhatsApp message: ${e.toString()}');
     } finally {
       if (mounted) setState(() => _isLoading = false);
