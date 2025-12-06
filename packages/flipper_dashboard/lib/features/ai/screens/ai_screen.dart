@@ -356,7 +356,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
       // 2. Validate and sanitize recipient phone number
       String? recipientPhone = lastMessage.phoneNumber;
 
-      if (recipientPhone == null || recipientPhone.trim().isEmpty) {
+      if (recipientPhone.trim().isEmpty) {
         _showError('Recipient phone number is missing');
         return; // Exit early without calling the service
       }
@@ -366,7 +366,9 @@ class _AiScreenState extends ConsumerState<AiScreen> {
 
       // Validate format (E.164 format: + followed by 7-14 digits, or just 7-14 digits)
       if (!RegExp(r'^\+?[1-9]\d{7,14}$').hasMatch(recipientPhone)) {
-        _showError('Invalid phone number format. Please use E.164 format (e.g., +1234567890).');
+        _showError(
+          'Invalid phone number format. Please use E.164 format (e.g., +1234567890).',
+        );
         return; // Exit early without calling the service
       }
 
@@ -381,7 +383,8 @@ class _AiScreenState extends ConsumerState<AiScreen> {
       // 4. Send Message
       await whatsAppService.sendWhatsAppMessage(
         phoneNumberId: phoneNumberId,
-        recipientPhone: recipientPhone, // The validated and sanitized phone number
+        recipientPhone:
+            recipientPhone, // The validated and sanitized phone number
         messageBody: text,
         replyToMessageId: lastMessage
             .whatsappMessageId, // Context: replying to specific message
@@ -397,23 +400,41 @@ class _AiScreenState extends ConsumerState<AiScreen> {
               Where('role').isExactly('user'),
               Where('text').isExactly(text), // Match the text that was sent
             ],
-            orderBy: [OrderBy('timestamp', SortOrder.DESC)],
+            orderBy: [OrderBy('timestamp', ascending: false)],
             limit: 1,
           ),
         );
 
         if (messages.isNotEmpty) {
           final latestUserMessage = messages.first;
-          // Update the message to mark it as delivered
-          final updatedMessage = latestUserMessage.copyWith(
+          // Update the message to mark it as delivered by creating a new instance
+          final updatedMessage = Message(
+            id: latestUserMessage.id,
+            text: latestUserMessage.text,
+            phoneNumber: latestUserMessage.phoneNumber,
             delivered: true, // Mark as delivered after successful WhatsApp send
+            branchId: latestUserMessage.branchId,
+            role: latestUserMessage.role,
+            timestamp: latestUserMessage.timestamp,
+            conversationId: latestUserMessage.conversationId,
+            aiResponse: latestUserMessage.aiResponse,
+            aiContext: latestUserMessage.aiContext,
+            messageType: latestUserMessage.messageType,
+            messageSource: latestUserMessage.messageSource,
+            whatsappMessageId: latestUserMessage.whatsappMessageId,
+            whatsappPhoneNumberId: latestUserMessage.whatsappPhoneNumberId,
+            contactName: latestUserMessage.contactName,
+            waId: latestUserMessage.waId,
+            replyToMessageId: latestUserMessage.replyToMessageId,
           );
 
           await repository.upsert<Message>(updatedMessage);
         }
       } catch (updateError) {
         // If update fails, just log the error and continue
-        print('Failed to update message status after successful WhatsApp send: $updateError');
+        print(
+          'Failed to update message status after successful WhatsApp send: $updateError',
+        );
       }
     } catch (e) {
       // If sending fails, update the message status to reflect the failure
@@ -427,7 +448,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
               Where('role').isExactly('user'),
               Where('text').isExactly(text), // Match the text that was sent
             ],
-            orderBy: [OrderBy('timestamp', SortOrder.DESC)],
+            orderBy: [OrderBy('timestamp', ascending: false)],
             limit: 1,
           ),
         );
@@ -435,15 +456,34 @@ class _AiScreenState extends ConsumerState<AiScreen> {
         if (messages.isNotEmpty) {
           final latestUserMessage = messages.first;
           // Update the message by creating a new one with same data but mark as not delivered
-          final updatedMessage = latestUserMessage.copyWith(
-            delivered: false, // Mark as not delivered due to WhatsApp API failure
+          final updatedMessage = Message(
+            id: latestUserMessage.id,
+            text: latestUserMessage.text,
+            phoneNumber: latestUserMessage.phoneNumber,
+            delivered:
+                false, // Mark as not delivered due to WhatsApp API failure
+            branchId: latestUserMessage.branchId,
+            role: latestUserMessage.role,
+            timestamp: latestUserMessage.timestamp,
+            conversationId: latestUserMessage.conversationId,
+            aiResponse: latestUserMessage.aiResponse,
+            aiContext: latestUserMessage.aiContext,
+            messageType: latestUserMessage.messageType,
+            messageSource: latestUserMessage.messageSource,
+            whatsappMessageId: latestUserMessage.whatsappMessageId,
+            whatsappPhoneNumberId: latestUserMessage.whatsappPhoneNumberId,
+            contactName: latestUserMessage.contactName,
+            waId: latestUserMessage.waId,
+            replyToMessageId: latestUserMessage.replyToMessageId,
           );
 
           await repository.upsert<Message>(updatedMessage);
         }
       } catch (updateError) {
         // If update fails, just log the error and continue
-        print('Failed to update message status after WhatsApp send failure: $updateError');
+        print(
+          'Failed to update message status after WhatsApp send failure: $updateError',
+        );
       }
 
       _showError('Failed to send WhatsApp message: ${e.toString()}');
