@@ -99,8 +99,12 @@ class AiStrategyImpl implements AiStrategy {
         policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
       );
 
-      // Sort by timestamp ascending (oldest first)
-      messages.sort((a, b) => a.timestamp!.compareTo(b.timestamp!));
+      // Sort by timestamp ascending (oldest first) to show last message at the bottom
+      messages.sort((a, b) {
+        final timeA = a.timestamp ?? DateTime.fromMillisecondsSinceEpoch(0);
+        final timeB = b.timestamp ?? DateTime.fromMillisecondsSinceEpoch(0);
+        return timeA.compareTo(timeB);
+      });
       return messages;
     } catch (e, s) {
       talker.error('Error getting messages: $e\n$s');
@@ -118,8 +122,12 @@ class AiStrategyImpl implements AiStrategy {
         ),
       )
           .map((messages) {
-        // Sort by timestamp ascending (oldest first)
-        messages.sort((a, b) => a.timestamp!.compareTo(b.timestamp!));
+        // Sort by timestamp ascending (oldest first) to show last message at the bottom
+        messages.sort((a, b) {
+          final timeA = a.timestamp ?? DateTime.fromMillisecondsSinceEpoch(0);
+          final timeB = b.timestamp ?? DateTime.fromMillisecondsSinceEpoch(0);
+          return timeA.compareTo(timeB);
+        });
         return messages;
       });
     } catch (e, s) {

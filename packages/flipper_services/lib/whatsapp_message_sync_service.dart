@@ -131,7 +131,7 @@ class WhatsAppMessageSyncService {
       final contactName = doc['contactName']?.toString();
       final phoneNumberId = doc['phoneNumberId']?.toString() ?? '';
       final messageType = doc['messageType']?.toString() ?? 'text';
-      final timestampStr = doc['timestamp']?.toString() ?? '';
+      final timestampStr = doc['createdAt']?.toString() ?? '';
 
       // Only process text messages for now
       if (messageType != 'text' || messageBody.isEmpty) {
