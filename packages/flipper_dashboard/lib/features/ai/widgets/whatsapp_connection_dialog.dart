@@ -30,6 +30,31 @@ class _WhatsAppConnectionDialogState
 
   Future<void> _handleConnect() async {
     final phoneNumberId = _phoneNumberIdController.text.trim();
+
+    // Validate phone number ID is non-empty and matches expected format
+    if (phoneNumberId.isEmpty) {
+      if (mounted) {
+        showCustomSnackBarUtil(
+          context,
+          'Phone Number ID cannot be empty',
+          backgroundColor: Colors.red,
+        );
+      }
+      return;
+    }
+
+    // Check that phone number ID contains only digits and has expected length
+    if (!RegExp(r'^\d{5,15}$').hasMatch(phoneNumberId)) {
+      if (mounted) {
+        showCustomSnackBarUtil(
+          context,
+          'Phone Number ID must contain only digits and be 5-15 characters long',
+          backgroundColor: Colors.red,
+        );
+      }
+      return;
+    }
+
     final notifier = ref.read(whatsAppConnectionStateProvider.notifier);
 
     final success = await notifier.connect(phoneNumberId);
