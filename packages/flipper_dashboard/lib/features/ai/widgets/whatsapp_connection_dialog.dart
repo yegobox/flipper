@@ -94,6 +94,26 @@ class _WhatsAppConnectionDialogState
   Widget build(BuildContext context) {
     final connectionState = ref.watch(whatsAppConnectionStateProvider);
 
+    // Listen to provider changes to update controller text when needed
+    ref.listen<AsyncValue<WhatsAppConnectionState>>(
+      whatsAppConnectionStateProvider,
+      (previous, next) {
+        final previousData = previous?.asData?.value;
+        final nextData = next.asData?.value;
+
+        if (nextData != null &&
+            nextData.phoneNumberId != null &&
+            nextData.phoneNumberId != previousData?.phoneNumberId &&
+            _phoneNumberIdController.text != nextData.phoneNumberId) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              _phoneNumberIdController.text = nextData.phoneNumberId!;
+            }
+          });
+        }
+      },
+    );
+
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Container(
@@ -103,12 +123,6 @@ class _WhatsAppConnectionDialogState
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, _) => _buildErrorView(error.toString()),
           data: (state) {
-            // Update controller when state changes
-            if (state.phoneNumberId != null &&
-                _phoneNumberIdController.text != state.phoneNumberId) {
-              _phoneNumberIdController.text = state.phoneNumberId!;
-            }
-
             return Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
