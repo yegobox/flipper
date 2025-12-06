@@ -118,6 +118,12 @@ class WhatsAppConnectionService {
         phoneNumberId: phoneNumberId,
       );
     } catch (e) {
+      // Rollback the local storage write to maintain consistency on failure
+      await ProxyService.box.writeString(
+        key: 'whatsAppPhoneNumberId',
+        value: '',
+      );
+
       return WhatsAppConnectionState(
         isConnected: false,
         error: e.toString().replaceAll('Exception: ', ''),
@@ -128,26 +134,30 @@ class WhatsAppConnectionService {
   /// Disconnect WhatsApp account
   Future<WhatsAppConnectionState> disconnect() async {
     try {
+      // Clear from Business model first
+      await _updateBusinessMessagingChannels(null);
+
       // Clear from local storage
       await ProxyService.box.writeString(
         key: 'whatsAppPhoneNumberId',
         value: '',
       );
 
-      // Clear from Business model
-      await _updateBusinessMessagingChannels(null);
-
       return const WhatsAppConnectionState(isConnected: false);
     } catch (e) {
-      return WhatsAppConnectionState(isConnected: false, error: e.toString());
+      return WhatsAppConnectionState(
+        isConnected: false,
+        error: e.toString().replaceAll('Exception: ', ''),
+      );
     }
   }
 
   /// Update Business model with WhatsApp phone number ID
+  /// Throws exception on failure to allow caller to handle errors appropriately
   Future<void> _updateBusinessMessagingChannels(String? phoneNumberId) async {
     try {
       final businessId = ProxyService.box.getBusinessId();
-      if (businessId == null) return;
+      if (businessId == null) return; // Nothing to update if no business ID
 
       final query = Query(where: [Where('serverId').isExactly(businessId)]);
       final result = await _repository.get<Business>(
@@ -166,8 +176,9 @@ class WhatsAppConnectionService {
         );
       }
     } catch (e) {
-      // Log error but don't fail the connection
+      // Log error and rethrow to allow caller to handle errors appropriately
       print('Error updating business messaging channels: $e');
+      rethrow;
     }
   }
 }

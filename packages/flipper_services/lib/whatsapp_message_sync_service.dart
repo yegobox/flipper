@@ -75,6 +75,12 @@ class WhatsAppMessageSyncService {
   /// Initialize the sync service with the business's phoneNumberId
   Future<void> initialize(String phoneNumberId) async {
     try {
+      // Clean up any existing observer to prevent duplicate observers
+      if (_observer != null) {
+        await _observer.cancel();
+        _observer = null;
+      }
+
       // Ensure the state controller is initialized
       _stateController ??= StreamController<WhatsAppSyncState>.broadcast();
       _stateController?.add(WhatsAppSyncState.syncing());
@@ -94,7 +100,8 @@ class WhatsAppMessageSyncService {
         onChange: (queryResult) async {
           // Wait if there's a current processing in progress to prevent concurrent execution
           while (_isProcessing) {
-            await Future.delayed(const Duration(milliseconds: 50)); // Small delay to prevent tight loop
+            await Future.delayed(const Duration(
+                milliseconds: 50)); // Small delay to prevent tight loop
           }
 
           _isProcessing = true;
@@ -170,15 +177,25 @@ class WhatsAppMessageSyncService {
       );
 
       // Check if message already exists to avoid duplicates
+      // Only perform deduplication if messageId is available to avoid cross-branch conflicts'
       final repository = Repository();
-      final existingMessages = await repository.get<Message>(
-        query: Query(
-          where: [Where('whatsappMessageId').isExactly(messageId)],
-        ),
-      );
+      if (messageId.isNotEmpty) {
+        final existingMessages = await repository.get<Message>(
+          query: Query(
+            where: [
+              Where('whatsappMessageId').isExactly(messageId),
+              Where('branchId')
+                  .isExactly(branchId), // Scope deduplication per branch
+            ],
+          ),
+        );
 
-      if (existingMessages.isNotEmpty) {
-        return; // Skip duplicate
+        if (existingMessages.isNotEmpty) {
+          return; // Skip duplicate
+        }
+      } else {
+        // If messageId is missing, we skip the duplicate check to avoid dropping messages
+        // This prevents loss of messages that don't have a messageId
       }
 
       // Create and save Message with WhatsApp-specific fields
