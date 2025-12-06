@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'dart:convert';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/secrets.dart';
 
@@ -87,7 +88,11 @@ class WhatsAppService {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        return response.data as Map<String, dynamic>;
+        final data = response.data;
+        if (data is String) {
+          return jsonDecode(data) as Map<String, dynamic>;
+        }
+        return data as Map<String, dynamic>;
       } else {
         throw Exception('Failed to send message: ${response.statusMessage}');
       }
