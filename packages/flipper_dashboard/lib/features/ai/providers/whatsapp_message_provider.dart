@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_services/whatsapp_message_sync_service.dart';
 import 'package:flipper_services/proxy.dart';
@@ -15,6 +17,7 @@ final whatsappMessageSyncProvider =
 class WhatsAppMessageSyncNotifier
     extends StateNotifier<AsyncValue<WhatsAppSyncState>> {
   WhatsAppMessageSyncService? _service;
+  StreamSubscription<WhatsAppSyncState>? _stateSubscription;
 
   WhatsAppMessageSyncNotifier() : super(AsyncValue.loading()) {
     _initialize();
@@ -23,6 +26,10 @@ class WhatsAppMessageSyncNotifier
   /// Initialize the sync service with the business's WhatsApp phone number ID
   Future<void> _initialize() async {
     try {
+      // Clear any existing subscription to prevent leaks
+      await _stateSubscription?.cancel();
+      _stateSubscription = null;
+
       // Get the current business
       final businessId = ProxyService.box.getBusinessId();
       if (businessId == null) {
@@ -52,12 +59,11 @@ class WhatsAppMessageSyncNotifier
       _service = WhatsAppMessageSyncService();
       await _service!.initialize(phoneNumberId);
 
-      // Listen to service state changes
-      _service!.stateStream.listen((syncState) {
+      // Listen to service state changes - store the subscription
+      _stateSubscription = _service!.stateStream.listen((syncState) {
         state = AsyncValue.data(syncState);
       });
-
-      state = AsyncValue.data(WhatsAppSyncState.idle());
+      // Removed the immediate idle state assignment to allow stream to control initial state
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
     }
@@ -70,6 +76,8 @@ class WhatsAppMessageSyncNotifier
 
   @override
   void dispose() {
+    _stateSubscription?.cancel();
+    _stateSubscription = null;
     _service?.dispose();
     super.dispose();
   }

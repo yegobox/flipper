@@ -4,6 +4,8 @@ import 'package:supabase_models/brick/models/all_models.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 
+const Object _unset = Object();
+
 /// State representing WhatsApp connection status
 class WhatsAppConnectionState {
   final bool isConnected;
@@ -20,15 +22,15 @@ class WhatsAppConnectionState {
 
   WhatsAppConnectionState copyWith({
     bool? isConnected,
-    String? phoneNumberId,
+    Object? phoneNumberId = _unset,
     bool? isLoading,
-    String? error,
+    Object? error = _unset,
   }) {
     return WhatsAppConnectionState(
       isConnected: isConnected ?? this.isConnected,
-      phoneNumberId: phoneNumberId ?? this.phoneNumberId,
+      phoneNumberId: identical(phoneNumberId, _unset) ? this.phoneNumberId : phoneNumberId as String?,
       isLoading: isLoading ?? this.isLoading,
-      error: error ?? this.error,
+      error: identical(error, _unset) ? this.error : error as String?,
     );
   }
 }
