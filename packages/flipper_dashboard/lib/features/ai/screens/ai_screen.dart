@@ -8,12 +8,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/models/conversation.model.dart';
 import 'package:supabase_models/brick/models/message.model.dart';
+import 'package:supabase_models/brick/repository.dart';
 
 import '../widgets/message_bubble.dart';
 import '../widgets/ai_input_field.dart';
 import '../widgets/conversation_list.dart';
 import '../theme/ai_theme.dart';
 import '../widgets/welcome_view.dart';
+import '../providers/whatsapp_message_provider.dart';
+import '../providers/conversation_provider.dart';
+import 'package:flipper_services/whatsapp_service.dart';
 
 /// Main screen for the AI feature with a modern, polished UI.
 class AiScreen extends ConsumerStatefulWidget {
@@ -25,7 +29,7 @@ class AiScreen extends ConsumerStatefulWidget {
 
 class _AiScreenState extends ConsumerState<AiScreen> {
   final TextEditingController _controller = TextEditingController();
-  List<Conversation> _conversations = [];
+  // List<Conversation> _conversations = []; // Removed
   String _currentConversationId = '';
   List<Message> _messages = [];
   bool _isLoading = false;
@@ -47,7 +51,11 @@ class _AiScreenState extends ConsumerState<AiScreen> {
   @override
   void initState() {
     super.initState();
-    _loadAllConversations();
+    // Initialize WhatsApp message sync by reading the provider
+    // The provider uses keepAlive to maintain lifecycle
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(whatsappMessageSyncProvider);
+    });
   }
 
   @override
@@ -56,38 +64,6 @@ class _AiScreenState extends ConsumerState<AiScreen> {
     _subscription?.cancel();
     _scrollController.dispose();
     super.dispose();
-  }
-
-  Future<void> _loadAllConversations() async {
-    try {
-      final branchId = ProxyService.box.getBranchId();
-      if (branchId == null) throw Exception('Branch ID is required');
-
-      final conversations = await ProxyService.strategy.getConversations(
-        branchId: branchId,
-        limit: 100,
-      );
-
-      if (!mounted) return;
-
-      if (conversations.isEmpty) {
-        await _startNewConversation();
-        return;
-      }
-
-      if (mounted) {
-        setState(() {
-          _conversations = conversations;
-          _currentConversationId = conversations.first.id;
-          _messages = conversations.first.messages ?? [];
-          _conversationHistory = []; // Clear history on conversation load
-        });
-        _subscribeToCurrentConversation();
-        _scrollToBottom();
-      }
-    } catch (e) {
-      if (mounted) _showError('Error loading conversations: ${e.toString()}');
-    }
   }
 
   Future<void> _startNewConversation() async {
@@ -102,7 +78,6 @@ class _AiScreenState extends ConsumerState<AiScreen> {
 
       if (mounted) {
         setState(() {
-          _conversations.insert(0, conversation);
           _currentConversationId = conversation.id;
           _messages = [];
           _conversationHistory = []; // Clear history on new conversation
@@ -118,19 +93,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
   Future<void> _deleteCurrentConversation(String conversationId) async {
     try {
       await ProxyService.strategy.deleteConversation(conversationId);
-
-      if (mounted) {
-        setState(() {
-          _conversations.removeWhere((c) => c.id == conversationId);
-          if (_conversations.isNotEmpty) {
-            _currentConversationId = _conversations.first.id;
-            _messages = _conversations.first.messages ?? [];
-          } else {
-            _startNewConversation();
-          }
-        });
-        _scrollToBottom();
-      }
+      // State update handled by stream listener
     } catch (e) {
       if (mounted) _showError('Error deleting conversation: ${e.toString()}');
     }
@@ -140,26 +103,26 @@ class _AiScreenState extends ConsumerState<AiScreen> {
     _subscription?.cancel();
     _subscription = ProxyService.strategy
         .subscribeToMessages(_currentConversationId)
-        .listen((messages) {
-      if (mounted) {
-        setState(() {
-          _messages = messages;
-          final index =
-              _conversations.indexWhere((c) => c.id == _currentConversationId);
-          if (index != -1) {
-            _conversations[index].messages = messages;
-          }
-        });
-        _scrollToBottom();
-      }
-    }, onError: (e) {
-      if (mounted) {
-        _showError('Error subscribing to messages: ${e.toString()}');
-      }
-    });
+        .listen(
+          (messages) {
+            if (mounted) {
+              setState(() {
+                _messages = messages;
+                // No need to update _conversations list as it's from provider now
+              });
+              _scrollToBottom();
+            }
+          },
+          onError: (e) {
+            if (mounted) {
+              _showError('Error subscribing to messages: ${e.toString()}');
+            }
+          },
+        );
   }
 
-  Future<void> _sendMessage(String text) async {
+  Future<void> _sendMessage(String text, {String? conversationId}) async {
+    final targetConversationId = conversationId ?? _currentConversationId;
     if (text.isEmpty) return;
 
     setState(() => _isLoading = true);
@@ -168,13 +131,40 @@ class _AiScreenState extends ConsumerState<AiScreen> {
       final branchId = ProxyService.box.getBranchId();
       if (branchId == null) throw Exception('Branch ID is required');
 
-      // Save user message to local database
+      // Check context: Is this a reply to a WhatsApp message?
+      // We look at the last message in the conversation history (that isn't from the user)
+      final repository = Repository();
+      // Fetch specifically from DB to ensure accuracy
+      final lastMessages = await repository.get<Message>(
+        query: Query(
+          where: [Where('conversationId').isExactly(targetConversationId)],
+          orderBy: [OrderBy('timestamp', ascending: false)],
+          limit: 10,
+        ),
+      );
+
+      final lastMessage = lastMessages.firstWhere(
+        (m) => m.messageSource == 'whatsapp',
+        orElse: () => Message(
+          text: '',
+          phoneNumber: '',
+          delivered: false,
+          branchId: 0,
+          messageSource: 'ai',
+        ),
+      );
+
+      final isWhatsAppReply = lastMessage.messageSource == 'whatsapp';
+
+      // Save user message to local database immediately for UI responsiveness
+      // We'll update the message source if it's a WhatsApp reply
       await ProxyService.strategy.saveMessage(
         text: text,
         phoneNumber: ProxyService.box.getUserPhone() ?? '',
         branchId: branchId,
         role: 'user',
-        conversationId: _currentConversationId,
+        conversationId: targetConversationId,
+        messageSource: isWhatsAppReply ? 'whatsapp' : 'ai',
       );
 
       _controller.clear();
@@ -186,6 +176,20 @@ class _AiScreenState extends ConsumerState<AiScreen> {
         return; // Do not hit AI provider yet
       }
 
+      if (isWhatsAppReply) {
+        // Handle WhatsApp Reply
+        await _handleWhatsAppReply(
+          text,
+          lastMessage,
+          branchId,
+          targetConversationId,
+        );
+        // Do NOT proceed to AI logic
+        return;
+      }
+
+      // --- AI Logic (Only if NOT WhatsApp) ---
+
       // Prepare parts for the AI prompt
       String processedText = text;
       String? fileToAnalyzePath = _attachedFilePath;
@@ -195,16 +199,19 @@ class _AiScreenState extends ConsumerState<AiScreen> {
       if (fileToAnalyzePath != null) {
         try {
           final fileData = await fileToBase64(fileToAnalyzePath);
-          userPartsForHistory
-              .add(Part.inlineData(fileData['mime_type'], fileData['data']));
+          userPartsForHistory.add(
+            Part.inlineData(fileData['mime_type'], fileData['data']),
+          );
         } catch (e) {
           _showError("Error processing attached file: ${e.toString()}");
           setState(() => _isLoading = false);
           return;
         }
       }
-      final userContentForHistory =
-          Content(role: "user", parts: userPartsForHistory);
+      final userContentForHistory = Content(
+        role: "user",
+        parts: userPartsForHistory,
+      );
 
       // Clear attached file path after it's used for AI analysis for the current turn
       if (_attachedFilePath != null) {
@@ -212,19 +219,21 @@ class _AiScreenState extends ConsumerState<AiScreen> {
       }
 
       final aiResponseText = await ref
-          .refresh(geminiBusinessAnalyticsProvider(
-        branchId,
-        processedText,
-        filePath:
-            fileToAnalyzePath, // Provider still needs the path for the current call
-        history: _conversationHistory, // Pass conversation history
-      ).future)
+          .refresh(
+            geminiBusinessAnalyticsProvider(
+              branchId,
+              processedText,
+              filePath:
+                  fileToAnalyzePath, // Provider still needs the path for the current call
+              history: _conversationHistory, // Pass conversation history
+            ).future,
+          )
           .catchError((e) {
-        if (e.toString().contains('RESOURCE_EXHAUSTED')) {
-          return 'I\'m having trouble analyzing your data right now. Please try again in a moment.';
-        }
-        throw e;
-      });
+            if (e.toString().contains('RESOURCE_EXHAUSTED')) {
+              return 'I\'m having trouble analyzing your data right now. Please try again in a moment.';
+            }
+            throw e;
+          });
 
       // Always save the full, original AI response first.
       await ProxyService.strategy.saveMessage(
@@ -232,21 +241,26 @@ class _AiScreenState extends ConsumerState<AiScreen> {
         phoneNumber: ProxyService.box.getUserPhone() ?? '',
         branchId: branchId,
         role: 'assistant',
-        conversationId: _currentConversationId,
+        conversationId: targetConversationId,
         aiResponse: aiResponseText,
         aiContext: text,
+        messageSource: 'ai',
       );
 
       // Clean the response for conversation history to avoid confusing the AI.
       final cleanedForHistory = aiResponseText.replaceAll(
-          RegExp(r'\{\{VISUALIZATION_DATA\}\}.*?\{\{/VISUALIZATION_DATA\}\}',
-              dotAll: true),
-          '');
+        RegExp(
+          r'\{\{VISUALIZATION_DATA\}\}.*?\{\{/VISUALIZATION_DATA\}\}',
+          dotAll: true,
+        ),
+        '',
+      );
 
       // Update conversation history with the user's prompt and the cleaned AI response.
       _conversationHistory.add(userContentForHistory);
       _conversationHistory.add(
-          Content(role: "assistant", parts: [Part.text(cleanedForHistory)]));
+        Content(role: "assistant", parts: [Part.text(cleanedForHistory)]),
+      );
 
       // If the response contained visualization data, generate and save a separate summary message.
       if (aiResponseText.contains('{{VISUALIZATION_DATA}}')) {
@@ -258,21 +272,23 @@ class _AiScreenState extends ConsumerState<AiScreen> {
         final summaryText = await ref
             .refresh(geminiSummaryProvider(summaryPrompt).future)
             .onError((error, stackTrace) {
-          talker.error("Failed to generate summary: $error");
-          return "Error: Could not generate summary.";
-        });
+              talker.error("Failed to generate summary: $error");
+              return "Error: Could not generate summary.";
+            });
 
         await ProxyService.strategy.saveMessage(
           text: summaryText,
           phoneNumber: ProxyService.box.getUserPhone() ?? '',
           branchId: branchId,
           role: 'assistant',
-          conversationId: _currentConversationId,
+          conversationId: targetConversationId,
+          messageSource: 'ai',
         );
 
         // Also add the summary to the conversation history for complete context.
-        _conversationHistory
-            .add(Content(role: "assistant", parts: [Part.text(summaryText)]));
+        _conversationHistory.add(
+          Content(role: "assistant", parts: [Part.text(summaryText)]),
+        );
       }
 
       _scrollToBottom();
@@ -283,11 +299,171 @@ class _AiScreenState extends ConsumerState<AiScreen> {
     }
   }
 
+  Future<void> _handleWhatsAppReply(
+    String text,
+    Message lastMessage,
+    int branchId,
+    String conversationId,
+  ) async {
+    try {
+      // 1. Get Business Configuration for WhatsApp
+      final businessId = ProxyService.box.getBusinessId();
+      if (businessId == null) throw Exception('Business ID not found');
+
+      final business = await ProxyService.strategy.getBusiness(
+        businessId: businessId,
+      );
+      if (business == null) throw Exception('Business not found');
+
+      final phoneNumberId = business.getWhatsAppPhoneNumberId();
+      if (phoneNumberId == null) {
+        throw Exception('WhatsApp not configured for this business');
+      }
+
+      // 2. Validate and sanitize recipient phone number
+      String? recipientPhone = lastMessage.phoneNumber;
+
+      if (recipientPhone.trim().isEmpty) {
+        _showError('Recipient phone number is missing');
+        return; // Exit early without calling the service
+      }
+
+      // Remove whitespace and non-digit characters
+      recipientPhone = recipientPhone.replaceAll(RegExp(r'[^\d+]'), '');
+
+      // Validate format (E.164 format: + followed by 7-14 digits, or just 7-14 digits)
+      if (!RegExp(r'^\+?[1-9]\d{7,14}$').hasMatch(recipientPhone)) {
+        _showError(
+          'Invalid phone number format. Please use E.164 format (e.g., +1234567890).',
+        );
+        return; // Exit early without calling the service
+      }
+
+      // Ensure the phone number is in E.164 format (with + prefix)
+      if (!recipientPhone.startsWith('+')) {
+        recipientPhone = '+$recipientPhone';
+      }
+
+      // 3. Instantiate WhatsApp Service
+      final whatsAppService = WhatsAppService();
+
+      // 4. Send Message
+      await whatsAppService.sendWhatsAppMessage(
+        phoneNumberId: phoneNumberId,
+        recipientPhone:
+            recipientPhone, // The validated and sanitized phone number
+        messageBody: text,
+        replyToMessageId: lastMessage
+            .whatsappMessageId, // Context: replying to specific message
+      );
+
+      // Update the message to mark it as delivered after successful WhatsApp send
+      try {
+        final repository = Repository();
+        final messages = await repository.get<Message>(
+          query: Query(
+            where: [
+              Where('conversationId').isExactly(conversationId),
+              Where('role').isExactly('user'),
+              Where('text').isExactly(text), // Match the text that was sent
+            ],
+            orderBy: [OrderBy('timestamp', ascending: false)],
+            limit: 1,
+          ),
+        );
+
+        if (messages.isNotEmpty) {
+          final latestUserMessage = messages.first;
+          // Update the message to mark it as delivered by creating a new instance
+          final updatedMessage = Message(
+            id: latestUserMessage.id,
+            text: latestUserMessage.text,
+            phoneNumber: latestUserMessage.phoneNumber,
+            delivered: true, // Mark as delivered after successful WhatsApp send
+            branchId: latestUserMessage.branchId,
+            role: latestUserMessage.role,
+            timestamp: latestUserMessage.timestamp,
+            conversationId: latestUserMessage.conversationId,
+            aiResponse: latestUserMessage.aiResponse,
+            aiContext: latestUserMessage.aiContext,
+            messageType: latestUserMessage.messageType,
+            messageSource: latestUserMessage.messageSource,
+            whatsappMessageId: latestUserMessage.whatsappMessageId,
+            whatsappPhoneNumberId: latestUserMessage.whatsappPhoneNumberId,
+            contactName: latestUserMessage.contactName,
+            waId: latestUserMessage.waId,
+            replyToMessageId: latestUserMessage.replyToMessageId,
+          );
+
+          await repository.upsert<Message>(updatedMessage);
+        }
+      } catch (updateError) {
+        // If update fails, just log the error and continue
+        print(
+          'Failed to update message status after successful WhatsApp send: $updateError',
+        );
+      }
+    } catch (e) {
+      // If sending fails, update the message status to reflect the failure
+      // Find the most recently saved user message in this conversation and mark it as not delivered
+      try {
+        final repository = Repository();
+        final messages = await repository.get<Message>(
+          query: Query(
+            where: [
+              Where('conversationId').isExactly(conversationId),
+              Where('role').isExactly('user'),
+              Where('text').isExactly(text), // Match the text that was sent
+            ],
+            orderBy: [OrderBy('timestamp', ascending: false)],
+            limit: 1,
+          ),
+        );
+
+        if (messages.isNotEmpty) {
+          final latestUserMessage = messages.first;
+          // Update the message by creating a new one with same data but mark as not delivered
+          final updatedMessage = Message(
+            id: latestUserMessage.id,
+            text: latestUserMessage.text,
+            phoneNumber: latestUserMessage.phoneNumber,
+            delivered:
+                false, // Mark as not delivered due to WhatsApp API failure
+            branchId: latestUserMessage.branchId,
+            role: latestUserMessage.role,
+            timestamp: latestUserMessage.timestamp,
+            conversationId: latestUserMessage.conversationId,
+            aiResponse: latestUserMessage.aiResponse,
+            aiContext: latestUserMessage.aiContext,
+            messageType: latestUserMessage.messageType,
+            messageSource: latestUserMessage.messageSource,
+            whatsappMessageId: latestUserMessage.whatsappMessageId,
+            whatsappPhoneNumberId: latestUserMessage.whatsappPhoneNumberId,
+            contactName: latestUserMessage.contactName,
+            waId: latestUserMessage.waId,
+            replyToMessageId: latestUserMessage.replyToMessageId,
+          );
+
+          await repository.upsert<Message>(updatedMessage);
+        }
+      } catch (updateError) {
+        // If update fails, just log the error and continue
+        print(
+          'Failed to update message status after WhatsApp send failure: $updateError',
+        );
+      }
+
+      _showError('Failed to send WhatsApp message: ${e.toString()}');
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
   void _showError(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   void _scrollToBottom() {
@@ -304,16 +480,52 @@ class _AiScreenState extends ConsumerState<AiScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(builder: (context, constraints) {
-      final isMobile = constraints.maxWidth < 600;
-      return Scaffold(
-        key: _scaffoldKey,
-        backgroundColor: AiTheme.backgroundColor,
-        appBar: isMobile ? _buildMobileAppBar() : null,
-        drawer: isMobile ? _buildDrawer() : null,
-        body: isMobile ? _buildMobileLayout() : _buildDesktopLayout(),
-      );
+    final conversationsAsync = ref.watch(conversationProvider);
+
+    // Handle initial selection if needed
+    ref.listen(conversationProvider, (previous, next) {
+      next.whenData((conversations) {
+        if (conversations.isNotEmpty && _currentConversationId.isEmpty) {
+          setState(() {
+            _currentConversationId = conversations.first.id;
+            _messages = conversations.first.messages ?? [];
+          });
+          _subscribeToCurrentConversation();
+        } else if (conversations.isNotEmpty &&
+            !conversations.any((c) => c.id == _currentConversationId)) {
+          // If current selected is gone (deleted), select first
+          setState(() {
+            _currentConversationId = conversations.first.id;
+            _messages = conversations.first.messages ?? [];
+          });
+          _subscribeToCurrentConversation();
+        } else if (conversations.isEmpty && _currentConversationId.isNotEmpty) {
+          // If all deleted
+          setState(() {
+            _currentConversationId = '';
+            _messages = [];
+          });
+          _startNewConversation();
+        }
+      });
     });
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 600;
+        return Scaffold(
+          key: _scaffoldKey,
+          backgroundColor: AiTheme.backgroundColor,
+          appBar: isMobile ? _buildMobileAppBar() : null,
+          drawer: isMobile
+              ? _buildDrawer(conversationsAsync.value ?? [])
+              : null,
+          body: isMobile
+              ? _buildMobileLayout()
+              : _buildDesktopLayout(conversationsAsync.value ?? []),
+        );
+      },
+    );
   }
 
   AppBar _buildMobileAppBar() {
@@ -322,24 +534,30 @@ class _AiScreenState extends ConsumerState<AiScreen> {
         icon: const Icon(Icons.menu_rounded, color: AiTheme.secondaryColor),
         onPressed: () => _scaffoldKey.currentState?.openDrawer(),
       ),
-      title: const Text('AI Assistant',
-          style: TextStyle(color: AiTheme.textColor)),
+      title: const Text(
+        'AI Assistant',
+        style: TextStyle(color: AiTheme.textColor),
+      ),
       backgroundColor: AiTheme.surfaceColor,
       elevation: 1,
       shadowColor: Colors.black.withValues(alpha: 0.1),
     );
   }
 
-  Widget _buildDrawer() {
+  Widget _buildDrawer(List<Conversation> conversations) {
     return Drawer(
       child: ConversationList(
-        conversations: _conversations,
+        conversations: conversations,
         currentConversationId: _currentConversationId,
         onConversationSelected: (id) {
           setState(() {
             _currentConversationId = id;
-            _messages =
-                _conversations.firstWhere((c) => c.id == id).messages ?? [];
+            try {
+              _messages =
+                  conversations.firstWhere((c) => c.id == id).messages ?? [];
+            } catch (e) {
+              _messages = [];
+            }
             // Clear history on conversation selection
             _conversationHistory = [];
           });
@@ -362,7 +580,8 @@ class _AiScreenState extends ConsumerState<AiScreen> {
         Expanded(child: _buildMessageList()),
         AiInputField(
           controller: _controller,
-          onSend: _sendMessage,
+          onSend: (text) =>
+              _sendMessage(text, conversationId: _currentConversationId),
           isLoading: _isLoading,
           onAttachFile: _handleAttachedFile,
         ),
@@ -370,17 +589,21 @@ class _AiScreenState extends ConsumerState<AiScreen> {
     );
   }
 
-  Widget _buildDesktopLayout() {
+  Widget _buildDesktopLayout(List<Conversation> conversations) {
     return Row(
       children: [
         ConversationList(
-          conversations: _conversations,
+          conversations: conversations,
           currentConversationId: _currentConversationId,
           onConversationSelected: (id) {
             setState(() {
               _currentConversationId = id;
-              _messages =
-                  _conversations.firstWhere((c) => c.id == id).messages ?? [];
+              try {
+                _messages =
+                    conversations.firstWhere((c) => c.id == id).messages ?? [];
+              } catch (e) {
+                _messages = [];
+              }
             });
             _subscribeToCurrentConversation();
             _scrollToBottom();
@@ -395,7 +618,8 @@ class _AiScreenState extends ConsumerState<AiScreen> {
               Expanded(child: _buildMessageList()),
               AiInputField(
                 controller: _controller,
-                onSend: _sendMessage,
+                onSend: (text) =>
+                    _sendMessage(text, conversationId: _currentConversationId),
                 isLoading: _isLoading,
                 onAttachFile: _handleAttachedFile,
               ),
@@ -408,7 +632,10 @@ class _AiScreenState extends ConsumerState<AiScreen> {
 
   Widget _buildMessageList() {
     if (_messages.isEmpty) {
-      return WelcomeView(onSend: _sendMessage);
+      return WelcomeView(
+        onSend: (text) =>
+            _sendMessage(text, conversationId: _currentConversationId),
+      );
     }
     return ListView.builder(
       controller: _scrollController,
@@ -480,10 +707,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
           );
         }
 
-        return MessageBubble(
-          message: message,
-          isUser: isUser,
-        );
+        return MessageBubble(message: message, isUser: isUser);
       },
     );
   }

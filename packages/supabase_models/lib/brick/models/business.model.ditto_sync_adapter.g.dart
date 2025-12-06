@@ -1,7 +1,7 @@
 // dart format width=80
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'message.model.dart';
+part of 'business.model.dart';
 
 // **************************************************************************
 // DittoSyncAdapterGenerator
@@ -11,7 +11,7 @@ part of 'message.model.dart';
 // DittoSyncAdapterGenerator
 // **************************************************************************
 //
-// REQUIRED IMPORTS in parent file (message.model.dart):
+// REQUIRED IMPORTS in parent file (business.model.dart):
 // - import 'package:brick_core/query.dart';
 // - import 'package:brick_offline_first/brick_offline_first.dart';
 // - import 'package:flipper_services/proxy.dart';
@@ -26,10 +26,10 @@ part of 'message.model.dart';
 // This adapter supports full bidirectional sync (send and receive).
 // **************************************************************************
 
-class MessageDittoAdapter extends DittoSyncAdapter<Message> {
-  MessageDittoAdapter._internal();
+class BusinessDittoAdapter extends DittoSyncAdapter<Business> {
+  BusinessDittoAdapter._internal();
 
-  static final MessageDittoAdapter instance = MessageDittoAdapter._internal();
+  static final BusinessDittoAdapter instance = BusinessDittoAdapter._internal();
 
   // Observer management to prevent live query buildup
   dynamic _activeObserver;
@@ -63,7 +63,7 @@ class MessageDittoAdapter extends DittoSyncAdapter<Message> {
   }
 
   @override
-  String get collectionName => "messages";
+  String get collectionName => "businesses";
 
   @override
   SyncDirection get syncDirection => SyncDirection.bidirectional;
@@ -73,25 +73,6 @@ class MessageDittoAdapter extends DittoSyncAdapter<Message> {
 
   @override
   bool get supportsBackupPull => false;
-
-  Future<int?> _resolveBranchId({bool waitForValue = false}) async {
-    int? branchId =
-        _branchIdProviderOverride?.call() ?? ProxyService.box.getBranchId();
-    if (!waitForValue || branchId != null) {
-      return branchId;
-    }
-    final stopwatch = Stopwatch()..start();
-    const timeout = Duration(seconds: 30);
-    while (branchId == null && stopwatch.elapsed < timeout) {
-      await Future.delayed(const Duration(milliseconds: 200));
-      branchId =
-          _branchIdProviderOverride?.call() ?? ProxyService.box.getBranchId();
-    }
-    if (branchId == null && kDebugMode) {
-      debugPrint("Ditto hydration for Message timed out waiting for branchId");
-    }
-    return branchId;
-  }
 
   @override
   Future<DittoSyncQuery?> buildObserverQuery() async {
@@ -113,50 +94,7 @@ class MessageDittoAdapter extends DittoSyncAdapter<Message> {
   }
 
   Future<DittoSyncQuery?> _buildQuery({required bool waitForBranchId}) async {
-    final branchId = await _resolveBranchId(waitForValue: waitForBranchId);
-    final branchIdString = ProxyService.box.branchIdString();
-    final bhfId = await ProxyService.box.bhfId();
-    final arguments = <String, dynamic>{};
-    final whereParts = <String>[];
-
-    if (branchId != null) {
-      whereParts.add('branchId = :branchId');
-      arguments["branchId"] = branchId;
-    }
-
-    if (branchIdString != null && branchIdString.isNotEmpty) {
-      whereParts.add(
-          '(branchId = :branchIdString OR branchIdString = :branchIdString)');
-      arguments["branchIdString"] = branchIdString;
-    }
-
-    if (bhfId != null && bhfId.isNotEmpty) {
-      whereParts.add('bhfId = :bhfId');
-      arguments["bhfId"] = bhfId;
-    }
-
-    if (whereParts.isEmpty) {
-      if (waitForBranchId) {
-        if (kDebugMode) {
-          debugPrint(
-              "Ditto hydration for Message skipped because branch context is unavailable");
-        }
-        return null;
-      }
-      if (kDebugMode) {
-        debugPrint(
-            "Ditto observation for Message deferred until branch context is available");
-      }
-      return const DittoSyncQuery(
-        query: "SELECT * FROM messages WHERE 1 = 0",
-      );
-    }
-
-    final whereClause = whereParts.join(" OR ");
-    return DittoSyncQuery(
-      query: "SELECT * FROM messages WHERE $whereClause",
-      arguments: arguments,
-    );
+    return const DittoSyncQuery(query: "SELECT * FROM businesses");
   }
 
   @override
@@ -165,34 +103,63 @@ class MessageDittoAdapter extends DittoSyncAdapter<Message> {
   }
 
   @override
-  Future<String?> documentIdForModel(Message model) async => model.id;
+  Future<String?> documentIdForModel(Business model) async => model.id;
 
   @override
-  Future<Map<String, dynamic>> toDittoDocument(Message model) async {
+  Future<Map<String, dynamic>> toDittoDocument(Business model) async {
     return {
       "_id": model.id,
       "id": model.id,
-      "text": model.text,
-      "phoneNumber": model.phoneNumber,
-      "delivered": model.delivered,
-      "branchId": model.branchId,
+      "serverId": model.serverId,
+      "name": model.name,
+      "currency": model.currency,
+      "categoryId": model.categoryId,
+      "latitude": model.latitude,
+      "longitude": model.longitude,
+      "userId": model.userId,
+      "timeZone": model.timeZone,
+      "country": model.country,
+      "businessUrl": model.businessUrl,
+      "hexColor": model.hexColor,
+      "imageUrl": model.imageUrl,
+      "type": model.type,
+      "active": model.active,
+      "chatUid": model.chatUid,
+      "metadata": model.metadata,
       "role": model.role,
-      "timestamp": model.timestamp?.toIso8601String(),
-      "conversationId": model.conversationId,
-      "aiResponse": model.aiResponse,
-      "aiContext": model.aiContext,
-      "messageType": model.messageType,
-      "messageSource": model.messageSource,
-      "whatsappMessageId": model.whatsappMessageId,
-      "whatsappPhoneNumberId": model.whatsappPhoneNumberId,
-      "contactName": model.contactName,
-      "waId": model.waId,
-      "replyToMessageId": model.replyToMessageId,
+      "lastSeen": model.lastSeen,
+      "firstName": model.firstName,
+      "lastName": model.lastName,
+      "createdAt": model.createdAt?.toIso8601String(),
+      "deviceToken": model.deviceToken,
+      "backUpEnabled": model.backUpEnabled,
+      "subscriptionPlan": model.subscriptionPlan,
+      "nextBillingDate": model.nextBillingDate,
+      "previousBillingDate": model.previousBillingDate,
+      "isLastSubscriptionPaymentSucceeded":
+          model.isLastSubscriptionPaymentSucceeded,
+      "backupFileId": model.backupFileId,
+      "email": model.email,
+      "lastDbBackup": model.lastDbBackup,
+      "fullName": model.fullName,
+      "tinNumber": model.tinNumber,
+      "bhfId": model.bhfId,
+      "dvcSrlNo": model.dvcSrlNo,
+      "adrs": model.adrs,
+      "taxEnabled": model.taxEnabled,
+      "taxServerUrl": model.taxServerUrl,
+      "isDefault": model.isDefault,
+      "businessTypeId": model.businessTypeId,
+      "lastTouched": model.lastTouched?.toIso8601String(),
+      "deletedAt": model.deletedAt?.toIso8601String(),
+      "encryptionKey": model.encryptionKey,
+      "phoneNumber": model.phoneNumber,
+      "messagingChannels": model.messagingChannels,
     };
   }
 
   @override
-  Future<Message?> fromDittoDocument(Map<String, dynamic> document) async {
+  Future<Business?> fromDittoDocument(Map<String, dynamic> document) async {
     final id = document["_id"] ?? document["id"];
     if (id == null) return null;
 
@@ -219,24 +186,53 @@ class MessageDittoAdapter extends DittoSyncAdapter<Message> {
       }
     }
 
-    return Message(
+    return Business(
       id: id,
-      text: document["text"],
-      phoneNumber: document["phoneNumber"],
-      delivered: document["delivered"],
-      branchId: document["branchId"],
+      serverId: document["serverId"],
+      name: document["name"],
+      currency: document["currency"],
+      categoryId: document["categoryId"],
+      latitude: document["latitude"],
+      longitude: document["longitude"],
+      userId: document["userId"],
+      timeZone: document["timeZone"],
+      country: document["country"],
+      businessUrl: document["businessUrl"],
+      hexColor: document["hexColor"],
+      imageUrl: document["imageUrl"],
+      type: document["type"],
+      active: document["active"],
+      chatUid: document["chatUid"],
+      metadata: document["metadata"],
       role: document["role"],
-      timestamp: DateTime.tryParse(document["timestamp"]?.toString() ?? ""),
-      conversationId: document["conversationId"],
-      aiResponse: document["aiResponse"],
-      aiContext: document["aiContext"],
-      messageType: document["messageType"],
-      messageSource: document["messageSource"],
-      whatsappMessageId: document["whatsappMessageId"],
-      whatsappPhoneNumberId: document["whatsappPhoneNumberId"],
-      contactName: document["contactName"],
-      waId: document["waId"],
-      replyToMessageId: document["replyToMessageId"],
+      lastSeen: document["lastSeen"],
+      firstName: document["firstName"],
+      lastName: document["lastName"],
+      createdAt: DateTime.tryParse(document["createdAt"]?.toString() ?? ""),
+      deviceToken: document["deviceToken"],
+      backUpEnabled: document["backUpEnabled"],
+      subscriptionPlan: document["subscriptionPlan"],
+      nextBillingDate: document["nextBillingDate"],
+      previousBillingDate: document["previousBillingDate"],
+      isLastSubscriptionPaymentSucceeded:
+          document["isLastSubscriptionPaymentSucceeded"],
+      backupFileId: document["backupFileId"],
+      email: document["email"],
+      lastDbBackup: document["lastDbBackup"],
+      fullName: document["fullName"],
+      tinNumber: document["tinNumber"],
+      bhfId: document["bhfId"],
+      dvcSrlNo: document["dvcSrlNo"],
+      adrs: document["adrs"],
+      taxEnabled: document["taxEnabled"],
+      taxServerUrl: document["taxServerUrl"],
+      isDefault: document["isDefault"],
+      businessTypeId: document["businessTypeId"],
+      lastTouched: DateTime.tryParse(document["lastTouched"]?.toString() ?? ""),
+      deletedAt: DateTime.tryParse(document["deletedAt"]?.toString() ?? ""),
+      encryptionKey: document["encryptionKey"],
+      phoneNumber: document["phoneNumber"],
+      messagingChannels: document["messagingChannels"],
     );
   }
 
@@ -258,55 +254,50 @@ class MessageDittoAdapter extends DittoSyncAdapter<Message> {
   static Future<void> _seed(DittoSyncCoordinator coordinator) async {
     if (_seeded) {
       if (kDebugMode) {
-        debugPrint('Ditto seeding skipped for Message (already seeded)');
+        debugPrint('Ditto seeding skipped for Business (already seeded)');
       }
       return;
     }
 
     try {
       Query? query;
-      final branchId =
-          _branchIdProviderOverride?.call() ?? ProxyService.box.getBranchId();
-      if (branchId != null) {
-        query = Query(where: [Where('branchId').isExactly(branchId)]);
-      }
 
-      final models = await Repository().get<Message>(
+      final models = await Repository().get<Business>(
         query: query,
         policy: OfflineFirstGetPolicy.alwaysHydrate,
       );
       var seededCount = 0;
       for (final model in models) {
-        await coordinator.notifyLocalUpsert<Message>(model);
+        await coordinator.notifyLocalUpsert<Business>(model);
         seededCount++;
       }
       if (kDebugMode) {
         debugPrint('Ditto seeded ' +
             seededCount.toString() +
-            ' Message record' +
+            ' Business record' +
             (seededCount == 1 ? '' : 's'));
       }
     } catch (error, stack) {
       if (kDebugMode) {
-        debugPrint('Ditto seeding failed for Message: $error\n$stack');
+        debugPrint('Ditto seeding failed for Business: $error\n$stack');
       }
     }
 
     _seeded = true;
   }
 
-  static final int _$MessageDittoAdapterRegistryToken =
+  static final int _$BusinessDittoAdapterRegistryToken =
       DittoSyncGeneratedRegistry.register(
           (coordinator) async {
             await coordinator
-                .registerAdapter<Message>(MessageDittoAdapter.instance);
+                .registerAdapter<Business>(BusinessDittoAdapter.instance);
           },
-          modelType: Message,
+          modelType: Business,
           seed: (coordinator) async {
             await _seed(coordinator);
           },
           reset: _resetSeedFlag);
 
   /// Public accessor to ensure static initializer runs
-  static int get registryToken => _$MessageDittoAdapterRegistryToken;
+  static int get registryToken => _$BusinessDittoAdapterRegistryToken;
 }

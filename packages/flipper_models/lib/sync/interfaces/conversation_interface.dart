@@ -17,6 +17,7 @@ abstract class ConversationInterface {
     required String conversationId,
     String? aiResponse,
     String? aiContext,
+    required String messageSource,
   });
 
   Stream<List<Message>> conversationStream({required String conversationId});

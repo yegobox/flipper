@@ -1,4 +1,3 @@
-
 import 'package:supabase_models/brick/models/conversation.model.dart';
 import 'package:supabase_models/brick/models/message.model.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
@@ -8,6 +7,26 @@ import 'ai_strategy.dart';
 
 class AiStrategyImpl implements AiStrategy {
   final brick.Repository repository = brick.Repository();
+
+  @override
+  Stream<List<Conversation>> conversationsStream({required int branchId}) {
+    try {
+      return repository
+          .subscribe<Conversation>(
+        query: brick.Query(
+          where: [brick.Where('branchId').isExactly(branchId)],
+        ),
+      )
+          .map((conversations) {
+        conversations
+            .sort((a, b) => b.lastMessageAt.compareTo(a.lastMessageAt));
+        return conversations;
+      });
+    } catch (e, s) {
+      talker.error('Error subscribing to conversations: $e\n$s');
+      rethrow;
+    }
+  }
 
   @override
   Future<List<Conversation>> getConversations({
@@ -99,8 +118,12 @@ class AiStrategyImpl implements AiStrategy {
         policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
       );
 
-      // Sort by timestamp ascending (oldest first)
-      messages.sort((a, b) => a.timestamp!.compareTo(b.timestamp!));
+      // Sort by timestamp ascending (oldest first) to show last message at the bottom
+      messages.sort((a, b) {
+        final timeA = a.timestamp ?? DateTime.fromMillisecondsSinceEpoch(0);
+        final timeB = b.timestamp ?? DateTime.fromMillisecondsSinceEpoch(0);
+        return timeA.compareTo(timeB);
+      });
       return messages;
     } catch (e, s) {
       talker.error('Error getting messages: $e\n$s');
@@ -118,8 +141,12 @@ class AiStrategyImpl implements AiStrategy {
         ),
       )
           .map((messages) {
-        // Sort by timestamp ascending (oldest first)
-        messages.sort((a, b) => a.timestamp!.compareTo(b.timestamp!));
+        // Sort by timestamp ascending (oldest first) to show last message at the bottom
+        messages.sort((a, b) {
+          final timeA = a.timestamp ?? DateTime.fromMillisecondsSinceEpoch(0);
+          final timeB = b.timestamp ?? DateTime.fromMillisecondsSinceEpoch(0);
+          return timeA.compareTo(timeB);
+        });
         return messages;
       });
     } catch (e, s) {
@@ -137,6 +164,7 @@ class AiStrategyImpl implements AiStrategy {
     required String conversationId,
     String? aiResponse,
     String? aiContext,
+    required String messageSource,
   }) async {
     try {
       // First update the conversation's lastMessageAt
@@ -162,6 +190,7 @@ class AiStrategyImpl implements AiStrategy {
         conversationId: conversationId,
         aiResponse: aiResponse,
         aiContext: aiContext,
+        messageSource: messageSource,
         timestamp: DateTime.now().toUtc(),
       );
 

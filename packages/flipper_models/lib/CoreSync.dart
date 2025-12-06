@@ -1293,8 +1293,9 @@ class CoreSync extends AiStrategyImpl
       mainBranchId: data['mainBranchId'],
       subBranchId: data['subBranchId'],
       branchId: data['branchId'],
-      createdAt:
-          data['createdAt'] != null ? DateTime.tryParse(data['createdAt']) : null,
+      createdAt: data['createdAt'] != null
+          ? DateTime.tryParse(data['createdAt'])
+          : null,
       status: data['status'],
       deliveryDate: data['deliveryDate'] != null
           ? DateTime.tryParse(data['deliveryDate'])
@@ -1305,8 +1306,9 @@ class CoreSync extends AiStrategyImpl
       driverRequestDeliveryConfirmation:
           data['driverRequestDeliveryConfirmation'],
       driverId: data['driverId'],
-      updatedAt:
-          data['updatedAt'] != null ? DateTime.tryParse(data['updatedAt']) : null,
+      updatedAt: data['updatedAt'] != null
+          ? DateTime.tryParse(data['updatedAt'])
+          : null,
       itemCounts: data['itemCounts'],
       bhfId: data['bhfId'],
       tinNumber: data['tinNumber'],
@@ -3667,6 +3669,7 @@ class CoreSync extends AiStrategyImpl
     required String role,
     required String conversationId,
     String? aiResponse,
+    required String messageSource,
     String? aiContext,
   }) async {
     final message = Message(
@@ -3675,6 +3678,7 @@ class CoreSync extends AiStrategyImpl
       branchId: branchId,
       delivered: true,
       role: role,
+      messageSource: messageSource,
       conversationId: conversationId,
       timestamp: DateTime.now().toUtc(),
       aiResponse: aiResponse,

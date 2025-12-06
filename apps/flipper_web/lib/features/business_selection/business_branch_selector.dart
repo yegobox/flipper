@@ -1,5 +1,4 @@
 import 'package:flipper_web/models/user_profile.dart';
-import 'package:flipper_web/repositories/user_repository.dart';
 import 'package:flipper_web/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

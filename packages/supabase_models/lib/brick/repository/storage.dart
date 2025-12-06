@@ -119,4 +119,6 @@ abstract class LocalStorage {
   String? lastZReportDate();
 
   String? selectedDelegationDeviceId();
+
+  String? whatsAppPhoneNumberId();
 }

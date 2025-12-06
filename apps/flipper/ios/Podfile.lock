@@ -25,10 +25,10 @@ PODS:
     - Flutter
   - device_info_plus (0.0.1):
     - Flutter
-  - ditto_live (4.13.0):
-    - DittoFlutter (= 4.13.0)
+  - ditto_live (4.13.1):
+    - DittoFlutter (= 4.13.1)
     - Flutter
-  - DittoFlutter (4.13.0)
+  - DittoFlutter (4.13.1)
   - DKImagePickerController/Core (4.3.9):
     - DKImagePickerController/ImageDataManager
     - DKImagePickerController/Resource
@@ -538,8 +538,8 @@ SPEC CHECKSUMS:
   connectivity_plus: 2a701ffec2c0ae28a48cf7540e279787e77c447d
   desktop_webview_auth: d645139460ef203d50bd0cdb33356785dd939cce
   device_info_plus: bf2e3232933866d73fe290f2942f2156cdd10342
-  ditto_live: b3b4280495966b55dcf7df66109b284465726071
-  DittoFlutter: f47bc0793e57e7118f12044331c2f2409ba1cf75
+  ditto_live: 93459c7d7c067ba16d4104925ea80c54dd13bf67
+  DittoFlutter: 26e21d5665e9bcc11660c4eceb1ec66b8ba64667
   DKImagePickerController: 946cec48c7873164274ecc4624d19e3da4c1ef3c
   DKPhotoGallery: b3834fecb755ee09a593d7c9e389d8b5d6deed60
   file_picker: b159e0c068aef54932bb15dc9fd1571818edaf49

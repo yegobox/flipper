@@ -9,7 +9,7 @@ part of 'schema.g.dart';
 
 // The migration version must **always** mirror the file name
 
-const List<MigrationCommand> _migration_20251129181136_up = [
+const List<MigrationCommand> _migration_20251206093643_up = [
   InsertTable('ItemCode'),
   InsertTable('ImportPurchaseDates'),
   InsertTable('Stock'),
@@ -170,6 +170,7 @@ const List<MigrationCommand> _migration_20251129181136_up = [
   InsertColumn('branch_id', Column.integer, onTable: 'Conversation'),
   InsertColumn('created_at', Column.datetime, onTable: 'Conversation'),
   InsertColumn('last_message_at', Column.datetime, onTable: 'Conversation'),
+  InsertColumn('whatsapp_wa_id', Column.varchar, onTable: 'Conversation'),
   InsertColumn('id', Column.varchar, onTable: 'CustomerPayments', unique: true),
   InsertColumn('customer_id', Column.varchar, onTable: 'CustomerPayments'),
   InsertColumn('phone_number', Column.varchar, onTable: 'CustomerPayments'),
@@ -254,6 +255,13 @@ const List<MigrationCommand> _migration_20251129181136_up = [
   InsertColumn('conversation_id', Column.varchar, onTable: 'Message'),
   InsertColumn('ai_response', Column.varchar, onTable: 'Message'),
   InsertColumn('ai_context', Column.varchar, onTable: 'Message'),
+  InsertColumn('message_type', Column.varchar, onTable: 'Message'),
+  InsertColumn('message_source', Column.varchar, onTable: 'Message'),
+  InsertColumn('whatsapp_message_id', Column.varchar, onTable: 'Message'),
+  InsertColumn('whatsapp_phone_number_id', Column.varchar, onTable: 'Message'),
+  InsertColumn('contact_name', Column.varchar, onTable: 'Message'),
+  InsertColumn('wa_id', Column.varchar, onTable: 'Message'),
+  InsertColumn('reply_to_message_id', Column.varchar, onTable: 'Message'),
   InsertColumn('id', Column.varchar, onTable: 'Financing', unique: true),
   InsertColumn('requested', Column.boolean, onTable: 'Financing'),
   InsertColumn('status', Column.varchar, onTable: 'Financing'),
@@ -590,8 +598,6 @@ const List<MigrationCommand> _migration_20251129181136_up = [
   InsertColumn('deleted_at', Column.datetime, onTable: 'Tenant'),
   InsertColumn('pin', Column.integer, onTable: 'Tenant'),
   InsertColumn('session_active', Column.boolean, onTable: 'Tenant'),
-  InsertColumn('is_default', Column.boolean, onTable: 'Tenant'),
-  InsertColumn('is_long_pressed', Column.boolean, onTable: 'Tenant'),
   InsertColumn('type', Column.varchar, onTable: 'Tenant'),
   InsertColumn('id', Column.varchar, onTable: 'Pin', unique: true),
   InsertColumn('user_id', Column.integer, onTable: 'Pin'),
@@ -703,6 +709,7 @@ const List<MigrationCommand> _migration_20251129181136_up = [
   InsertColumn('deleted_at', Column.datetime, onTable: 'Business'),
   InsertColumn('encryption_key', Column.varchar, onTable: 'Business'),
   InsertColumn('phone_number', Column.varchar, onTable: 'Business'),
+  InsertColumn('messaging_channels', Column.varchar, onTable: 'Business'),
   InsertColumn('id', Column.varchar, onTable: 'User', unique: true),
   InsertColumn('name', Column.varchar, onTable: 'User'),
   InsertColumn('key', Column.varchar, onTable: 'User'),
@@ -923,7 +930,7 @@ const List<MigrationCommand> _migration_20251129181136_up = [
   CreateIndex(columns: ['id'], onTable: 'Plan', unique: true)
 ];
 
-const List<MigrationCommand> _migration_20251129181136_down = [
+const List<MigrationCommand> _migration_20251206093643_down = [
   DropTable('ItemCode'),
   DropTable('ImportPurchaseDates'),
   DropTable('Stock'),
@@ -1084,6 +1091,7 @@ const List<MigrationCommand> _migration_20251129181136_down = [
   DropColumn('branch_id', onTable: 'Conversation'),
   DropColumn('created_at', onTable: 'Conversation'),
   DropColumn('last_message_at', onTable: 'Conversation'),
+  DropColumn('whatsapp_wa_id', onTable: 'Conversation'),
   DropColumn('id', onTable: 'CustomerPayments'),
   DropColumn('customer_id', onTable: 'CustomerPayments'),
   DropColumn('phone_number', onTable: 'CustomerPayments'),
@@ -1168,6 +1176,13 @@ const List<MigrationCommand> _migration_20251129181136_down = [
   DropColumn('conversation_id', onTable: 'Message'),
   DropColumn('ai_response', onTable: 'Message'),
   DropColumn('ai_context', onTable: 'Message'),
+  DropColumn('message_type', onTable: 'Message'),
+  DropColumn('message_source', onTable: 'Message'),
+  DropColumn('whatsapp_message_id', onTable: 'Message'),
+  DropColumn('whatsapp_phone_number_id', onTable: 'Message'),
+  DropColumn('contact_name', onTable: 'Message'),
+  DropColumn('wa_id', onTable: 'Message'),
+  DropColumn('reply_to_message_id', onTable: 'Message'),
   DropColumn('id', onTable: 'Financing'),
   DropColumn('requested', onTable: 'Financing'),
   DropColumn('status', onTable: 'Financing'),
@@ -1504,8 +1519,6 @@ const List<MigrationCommand> _migration_20251129181136_down = [
   DropColumn('deleted_at', onTable: 'Tenant'),
   DropColumn('pin', onTable: 'Tenant'),
   DropColumn('session_active', onTable: 'Tenant'),
-  DropColumn('is_default', onTable: 'Tenant'),
-  DropColumn('is_long_pressed', onTable: 'Tenant'),
   DropColumn('type', onTable: 'Tenant'),
   DropColumn('id', onTable: 'Pin'),
   DropColumn('user_id', onTable: 'Pin'),
@@ -1617,6 +1630,7 @@ const List<MigrationCommand> _migration_20251129181136_down = [
   DropColumn('deleted_at', onTable: 'Business'),
   DropColumn('encryption_key', onTable: 'Business'),
   DropColumn('phone_number', onTable: 'Business'),
+  DropColumn('messaging_channels', onTable: 'Business'),
   DropColumn('id', onTable: 'User'),
   DropColumn('name', onTable: 'User'),
   DropColumn('key', onTable: 'User'),
@@ -1842,15 +1856,15 @@ const List<MigrationCommand> _migration_20251129181136_down = [
 //
 
 @Migratable(
-  version: '20251129181136',
-  up: _migration_20251129181136_up,
-  down: _migration_20251129181136_down,
+  version: '20251206093643',
+  up: _migration_20251206093643_up,
+  down: _migration_20251206093643_down,
 )
-class Migration20251129181136 extends Migration {
-  const Migration20251129181136()
+class Migration20251206093643 extends Migration {
+  const Migration20251206093643()
     : super(
-        version: 20251129181136,
-        up: _migration_20251129181136_up,
-        down: _migration_20251129181136_down,
+        version: 20251206093643,
+        up: _migration_20251206093643_up,
+        down: _migration_20251206093643_down,
       );
 }

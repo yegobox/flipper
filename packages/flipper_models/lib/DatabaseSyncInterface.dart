@@ -13,6 +13,7 @@ import 'package:flipper_models/sync/interfaces/auth_interface.dart';
 import 'package:flipper_models/sync/interfaces/branch_interface.dart';
 import 'package:flipper_models/sync/interfaces/business_interface.dart';
 import 'package:flipper_models/sync/interfaces/category_interface.dart';
+import 'package:flipper_models/sync/interfaces/conversation_interface.dart';
 import 'package:flipper_models/sync/interfaces/counter_interface.dart';
 import 'package:flipper_models/sync/interfaces/customer_interface.dart';
 import 'package:flipper_models/sync/interfaces/delete_interface.dart';
@@ -78,6 +79,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
         StockInterface,
         CounterInterface,
         DelegationInterface,
+        ConversationInterface,
         ReceiptInterface,
         LogInterface {
   // Repository get repository;
@@ -158,16 +160,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
     DateTime? endDate,
     int? limit,
     int? offset,
-  });
-
-  Future<Message> saveMessage({
-    required String text,
-    required String phoneNumber,
-    required int branchId,
-    required String role,
-    required String conversationId,
-    String? aiResponse,
-    String? aiContext,
   });
 
   Stream<List<Message>> conversationStream({required String conversationId});

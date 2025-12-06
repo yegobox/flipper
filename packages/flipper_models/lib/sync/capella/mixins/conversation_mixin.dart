@@ -28,6 +28,7 @@ mixin CapellaConversationMixin implements ConversationInterface {
     required String conversationId,
     String? aiResponse,
     String? aiContext,
+    required String messageSource,
   }) async {
     throw UnimplementedError('saveMessage needs to be implemented for Capella');
   }

@@ -45,6 +45,27 @@ class Message extends OfflineFirstWithSupabaseModel {
   @Sqlite(nullable: true)
   final String? aiContext;
 
+  @Sqlite(nullable: true)
+  final String? messageType; // Type of message (text, image, audio, etc.)
+
+  @Sqlite(nullable: true)
+  final String? messageSource; // Source of message ('ai', 'whatsapp')
+
+  @Sqlite(nullable: true)
+  final String? whatsappMessageId; // WhatsApp message ID
+
+  @Sqlite(nullable: true)
+  final String? whatsappPhoneNumberId; // WhatsApp phone number ID
+
+  @Sqlite(nullable: true)
+  final String? contactName; // Contact name for WhatsApp messages
+
+  @Sqlite(nullable: true)
+  final String? waId; // WhatsApp ID of the sender
+
+  @Sqlite(nullable: true)
+  final String? replyToMessageId; // ID of message being replied to
+
   Message({
     String? id,
     required this.text,
@@ -56,6 +77,13 @@ class Message extends OfflineFirstWithSupabaseModel {
     this.conversationId,
     this.aiResponse,
     this.aiContext,
+    this.messageType,
+    this.messageSource = 'ai',
+    this.whatsappMessageId,
+    this.whatsappPhoneNumberId,
+    this.contactName,
+    this.waId,
+    this.replyToMessageId,
   }) : id = id ?? const Uuid().v4();
 
   // Helper method to get the first line or truncated text for conversation title

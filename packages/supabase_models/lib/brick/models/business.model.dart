@@ -1,10 +1,26 @@
+import 'dart:convert';
+
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
 import 'package:uuid/uuid.dart';
+import 'package:brick_ditto_generators/ditto_sync_adapter.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:flutter/foundation.dart' hide Category;
+import 'package:supabase_models/sync/ditto_sync_adapter.dart';
+import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
+import 'package:supabase_models/sync/ditto_sync_generated.dart';
+import 'package:supabase_models/brick/repository.dart';
+import 'package:brick_offline_first/brick_offline_first.dart';
+
+part 'business.model.ditto_sync_adapter.g.dart';
 
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'businesses'),
+)
+@DittoAdapter(
+  'businesses',
+  syncDirection: SyncDirection.bidirectional,
 )
 class Business extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
@@ -60,6 +76,18 @@ class Business extends OfflineFirstWithSupabaseModel {
   String? encryptionKey;
   String? phoneNumber;
 
+  /// Stores messaging channel configurations (WhatsApp, Telegram, etc.) as JSON string
+  @Supabase(
+    fromGenerator: '''
+      data['messaging_channels'] == null
+        ? null
+        : data['messaging_channels'] is String
+            ? data['messaging_channels'] as String
+            : jsonEncode(data['messaging_channels'])
+    ''',
+  )
+  String? messagingChannels;
+
   Business({
     String? id,
     this.name,
@@ -105,6 +133,7 @@ class Business extends OfflineFirstWithSupabaseModel {
     this.deletedAt,
     this.encryptionKey,
     this.phoneNumber,
+    this.messagingChannels,
   })  : id = id ?? const Uuid().v4(),
         createdAt = createdAt ?? DateTime.now();
 
@@ -153,6 +182,7 @@ class Business extends OfflineFirstWithSupabaseModel {
     DateTime? deletedAt,
     String? encryptionKey,
     String? phoneNumber,
+    String? messagingChannels,
   }) {
     return Business(
       id: id ?? this.id,
@@ -186,6 +216,7 @@ class Business extends OfflineFirstWithSupabaseModel {
           this.isLastSubscriptionPaymentSucceeded,
       backupFileId: backupFileId ?? this.backupFileId,
       phoneNumber: phoneNumber ?? this.phoneNumber,
+      messagingChannels: messagingChannels ?? this.messagingChannels,
     );
   }
 
@@ -242,6 +273,7 @@ class Business extends OfflineFirstWithSupabaseModel {
           : DateTime.tryParse(map['deleted_at'].toString()),
       encryptionKey: map['encryption_key'] as String?,
       phoneNumber: map['phone_number'] as String?,
+      messagingChannels: map['messaging_channels'] as String?,
     );
   }
   // to json
@@ -290,6 +322,55 @@ class Business extends OfflineFirstWithSupabaseModel {
       'deletedAt': deletedAt,
       'encryptionKey': encryptionKey,
       'phoneNumber': phoneNumber,
+      'messaging_channels': messagingChannels,
     };
+  }
+
+  /// Get WhatsApp phone number ID from messaging channels
+  String? getWhatsAppPhoneNumberId() {
+    if (messagingChannels == null || messagingChannels!.isEmpty) {
+      return null;
+    }
+
+    try {
+      final Map<String, dynamic> channels =
+          Map<String, dynamic>.from(jsonDecode(messagingChannels!) as Map);
+      final whatsappConfig = channels['whatsapp'] as Map<String, dynamic>?;
+      return whatsappConfig?['phoneNumberId'] as String?;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /// Set WhatsApp phone number ID in messaging channels
+  Business setWhatsAppPhoneNumberId(String? phoneNumberId) {
+    Map<String, dynamic> channels = {};
+
+    // Parse existing channels if any
+    if (messagingChannels != null && messagingChannels!.isNotEmpty) {
+      try {
+        channels =
+            Map<String, dynamic>.from(jsonDecode(messagingChannels!) as Map);
+      } catch (e) {
+        // If parsing fails, start with empty map
+        channels = {};
+      }
+    }
+
+    // Update or remove WhatsApp config
+    if (phoneNumberId == null || phoneNumberId.isEmpty) {
+      channels.remove('whatsapp');
+    } else {
+      channels['whatsapp'] = {
+        'phoneNumberId': phoneNumberId,
+        'connectedAt': DateTime.now().toIso8601String(),
+        'status': 'active',
+      };
+    }
+
+    // Return updated business
+    return copyWith(
+      messagingChannels: channels.isEmpty ? '{}' : jsonEncode(channels),
+    );
   }
 }
