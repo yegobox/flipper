@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -16,11 +17,8 @@ class MessageBubble extends StatefulWidget {
   final Message message;
   final bool isUser;
 
-  const MessageBubble({
-    Key? key,
-    required this.message,
-    required this.isUser,
-  }) : super(key: key);
+  const MessageBubble({Key? key, required this.message, required this.isUser})
+    : super(key: key);
 
   @override
   State<MessageBubble> createState() => _MessageBubbleState();
@@ -30,22 +28,25 @@ class _MessageBubbleState extends State<MessageBubble> {
   bool _isHovering = false;
   bool _showCopied = false;
   final GlobalKey _visualizationKey = GlobalKey();
+  Timer? _copiedTimer;
 
   Future<void> _copyToClipboard() async {
     if (_shouldShowDataVisualization(widget.message.text)) {
       // If it's a visualization, capture and copy the image
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         try {
-          RenderRepaintBoundary? boundary = _visualizationKey.currentContext
-              ?.findRenderObject() as RenderRepaintBoundary?;
+          RenderRepaintBoundary? boundary =
+              _visualizationKey.currentContext?.findRenderObject()
+                  as RenderRepaintBoundary?;
           if (boundary == null) {
             _showSnackBar('Error: Could not find render object.');
             return;
           }
 
           ui.Image image = await boundary.toImage(pixelRatio: 3.0);
-          ByteData? byteData =
-              await image.toByteData(format: ui.ImageByteFormat.png);
+          ByteData? byteData = await image.toByteData(
+            format: ui.ImageByteFormat.png,
+          );
           if (byteData == null) {
             return;
           }
@@ -64,7 +65,10 @@ class _MessageBubbleState extends State<MessageBubble> {
     setState(() {
       _showCopied = true;
     });
-    Future.delayed(const Duration(seconds: 2), () {
+
+    // Cancel any existing timer before creating a new one
+    _copiedTimer?.cancel();
+    _copiedTimer = Timer(const Duration(seconds: 2), () {
       if (mounted) {
         setState(() {
           _showCopied = false;
@@ -75,9 +79,15 @@ class _MessageBubbleState extends State<MessageBubble> {
 
   void _showSnackBar(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  @override
+  void dispose() {
+    _copiedTimer?.cancel();
+    super.dispose();
   }
 
   @override
@@ -87,8 +97,9 @@ class _MessageBubbleState extends State<MessageBubble> {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
-        mainAxisAlignment:
-            widget.isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: widget.isUser
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           if (!widget.isUser) _buildAvatar(Icons.smart_toy_rounded),
@@ -159,6 +170,31 @@ class _MessageBubbleState extends State<MessageBubble> {
                       ],
                     ),
                   ),
+                  // WhatsApp indicator and contact name
+                  if (widget.message.messageSource == 'whatsapp')
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4, left: 4, right: 4),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.chat_bubble_outline,
+                            size: 14,
+                            color: Color(0xFF25D366), // WhatsApp green
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            widget.message.contactName ??
+                                widget.message.phoneNumber,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              color: AiTheme.hintColor,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   Padding(
                     padding: const EdgeInsets.only(top: 6, left: 4, right: 4),
                     child: Text(
@@ -191,7 +227,7 @@ class _MessageBubbleState extends State<MessageBubble> {
             BoxShadow(
               color: Colors.black.withValues(alpha: 0.1),
               blurRadius: 5,
-            )
+            ),
           ],
         ),
         child: Material(
@@ -214,10 +250,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                       padding: EdgeInsets.only(left: 4.0),
                       child: Text(
                         'Copied',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.green,
-                        ),
+                        style: TextStyle(fontSize: 12, color: Colors.green),
                       ),
                     ),
                 ],

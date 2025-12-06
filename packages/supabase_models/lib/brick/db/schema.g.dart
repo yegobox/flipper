@@ -1,16 +1,20 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20251201045353.migration.dart';
 part '20251129181136.migration.dart';
+part '20251201045353.migration.dart';
+part '20251206040313.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20251201045353(),const Migration20251129181136()};
+  const Migration20251129181136(),
+  const Migration20251201045353(),
+  const Migration20251206040313(),
+};
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
-  20251129181136,
+  20251206040313,
   generatorVersion: 1,
   tables: <SchemaTable>{
     SchemaTable(
@@ -484,6 +488,13 @@ final schema = Schema(
         SchemaColumn('conversation_id', Column.varchar),
         SchemaColumn('ai_response', Column.varchar),
         SchemaColumn('ai_context', Column.varchar),
+        SchemaColumn('message_type', Column.varchar),
+        SchemaColumn('message_source', Column.varchar),
+        SchemaColumn('whatsapp_message_id', Column.varchar),
+        SchemaColumn('whatsapp_phone_number_id', Column.varchar),
+        SchemaColumn('contact_name', Column.varchar),
+        SchemaColumn('wa_id', Column.varchar),
+        SchemaColumn('reply_to_message_id', Column.varchar),
       },
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['id'], unique: true),
@@ -1445,6 +1456,7 @@ final schema = Schema(
         SchemaColumn('deleted_at', Column.datetime),
         SchemaColumn('encryption_key', Column.varchar),
         SchemaColumn('phone_number', Column.varchar),
+        SchemaColumn('messaging_channels', Column.varchar),
       },
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['id'], unique: true),

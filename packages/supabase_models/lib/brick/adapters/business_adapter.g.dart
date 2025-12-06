@@ -96,6 +96,13 @@ Future<Business> _$BusinessFromSupabase(
     phoneNumber: data['phone_number'] == null
         ? null
         : data['phone_number'] as String?,
+    messagingChannels: data['messaging_channels'] == null
+        ? null
+        : data['messaging_channels'] == null
+        ? null
+        : data['messaging_channels'] is String
+        ? data['messaging_channels'] as String
+        : jsonEncode(data['messaging_channels']),
   );
 }
 
@@ -150,6 +157,7 @@ Future<Map<String, dynamic>> _$BusinessToSupabase(
     'deleted_at': instance.deletedAt?.toIso8601String(),
     'encryption_key': instance.encryptionKey,
     'phone_number': instance.phoneNumber,
+    'messaging_channels': instance.messagingChannels,
   };
 }
 
@@ -246,6 +254,9 @@ Future<Business> _$BusinessFromSqlite(
     phoneNumber: data['phone_number'] == null
         ? null
         : data['phone_number'] as String?,
+    messagingChannels: data['messaging_channels'] == null
+        ? null
+        : data['messaging_channels'] as String?,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -308,6 +319,7 @@ Future<Map<String, dynamic>> _$BusinessToSqlite(
     'deleted_at': instance.deletedAt?.toIso8601String(),
     'encryption_key': instance.encryptionKey,
     'phone_number': instance.phoneNumber,
+    'messaging_channels': instance.messagingChannels,
   };
 }
 
@@ -496,6 +508,10 @@ class BusinessAdapter extends OfflineFirstWithSupabaseAdapter<Business> {
     'phoneNumber': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'phone_number',
+    ),
+    'messagingChannels': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'messaging_channels',
     ),
   };
   @override
@@ -771,6 +787,12 @@ class BusinessAdapter extends OfflineFirstWithSupabaseAdapter<Business> {
     'phoneNumber': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'phone_number',
+      iterable: false,
+      type: String,
+    ),
+    'messagingChannels': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'messaging_channels',
       iterable: false,
       type: String,
     ),

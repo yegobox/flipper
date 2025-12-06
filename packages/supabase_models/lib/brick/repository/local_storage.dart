@@ -109,6 +109,7 @@ class SharedPreferenceStorage implements LocalStorage {
     'freshSignup',
     'selectedDelegationDeviceId',
     'enableAutoAddSearch',
+    'whatsAppPhoneNumberId',
     // Add new preference keys above this line
   };
 
@@ -868,5 +869,10 @@ class SharedPreferenceStorage implements LocalStorage {
   @override
   String? selectedDelegationDeviceId() {
     return _cache['selectedDelegationDeviceId'] as String?;
+  }
+
+  @override
+  String? whatsAppPhoneNumberId() {
+    return _cache['whatsAppPhoneNumberId'] as String?;
   }
 }

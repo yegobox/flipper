@@ -181,6 +181,13 @@ class MessageDittoAdapter extends DittoSyncAdapter<Message> {
       "conversationId": model.conversationId,
       "aiResponse": model.aiResponse,
       "aiContext": model.aiContext,
+      "messageType": model.messageType,
+      "messageSource": model.messageSource,
+      "whatsappMessageId": model.whatsappMessageId,
+      "whatsappPhoneNumberId": model.whatsappPhoneNumberId,
+      "contactName": model.contactName,
+      "waId": model.waId,
+      "replyToMessageId": model.replyToMessageId,
     };
   }
 
@@ -223,6 +230,13 @@ class MessageDittoAdapter extends DittoSyncAdapter<Message> {
       conversationId: document["conversationId"],
       aiResponse: document["aiResponse"],
       aiContext: document["aiContext"],
+      messageType: document["messageType"],
+      messageSource: document["messageSource"],
+      whatsappMessageId: document["whatsappMessageId"],
+      whatsappPhoneNumberId: document["whatsappPhoneNumberId"],
+      contactName: document["contactName"],
+      waId: document["waId"],
+      replyToMessageId: document["replyToMessageId"],
     );
   }
 

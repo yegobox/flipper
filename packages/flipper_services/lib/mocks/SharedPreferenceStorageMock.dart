@@ -457,10 +457,15 @@ class SharedPreferenceStorageMock implements LocalStorage {
     // TODO: implement setReceiptLogoBase64
     throw UnimplementedError();
   }
-  
+
   @override
   String? selectedDelegationDeviceId() {
     // TODO: implement selectedDelegationDeviceId
     throw UnimplementedError();
+  }
+
+  @override
+  String? whatsAppPhoneNumberId() {
+    return null; // Mock: no WhatsApp phone number ID by default
   }
 }

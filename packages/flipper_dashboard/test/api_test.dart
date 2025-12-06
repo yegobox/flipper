@@ -10,7 +10,7 @@
 // import 'test_helpers/setup.dart';
 // // import 'test_helpers/turbo_tax_test_environment.dart';
 
-// // flutter test test/api_test.dart  --no-test-assets --dart-define=FLUTTER_TEST_ENV=true
+// flutter test test/api_test.dart  --no-test-assets --dart-define=FLUTTER_TEST_ENV=true
 // void main() {
 //   late TestEnvironment env;
 

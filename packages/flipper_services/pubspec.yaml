@@ -79,6 +79,7 @@ dev_dependencies:
   injectable_generator: ^2.6.0
   build_runner: ^2.4.15
   test:
+  mocktail: ^1.0.4
 flutter:
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

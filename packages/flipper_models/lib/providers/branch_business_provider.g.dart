@@ -6,7 +6,7 @@ part of 'branch_business_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$branchesHash() => r'f999c376c1b643455a5b70a11a804571cb2882b9';
+String _$branchesHash() => r'2bd73883d70da52709ec3d54946e89664fd7aafe';
 
 /// Copied from Dart SDK
 class _SystemHash {

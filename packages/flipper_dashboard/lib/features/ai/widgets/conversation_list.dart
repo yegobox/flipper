@@ -3,6 +3,7 @@ import 'package:supabase_models/brick/models/conversation.model.dart';
 import 'package:supabase_models/brick/models/message.model.dart';
 import '../theme/ai_theme.dart';
 import 'package:intl/intl.dart';
+import 'whatsapp_connection_dialog.dart';
 
 /// Widget that displays a list of AI conversations with a modern, clean design.
 class ConversationList extends StatelessWidget {
@@ -55,8 +56,9 @@ class ConversationList extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.fromLTRB(12, 12, 8, 12), // Reduced padding
       decoration: const BoxDecoration(
-        border:
-            Border(bottom: BorderSide(color: AiTheme.borderColor, width: 1)),
+        border: Border(
+          bottom: BorderSide(color: AiTheme.borderColor, width: 1),
+        ),
       ),
       child: Row(
         children: [
@@ -69,16 +71,64 @@ class ConversationList extends StatelessWidget {
             ),
           ),
           const Spacer(),
-          IconButton(
+          // Single add button with dropdown menu
+          PopupMenuButton<String>(
             icon: const Icon(Icons.add_rounded, color: AiTheme.primaryColor),
-            onPressed: onNewConversation,
-            tooltip: 'New Conversation',
-            splashRadius: 16, // Smaller splash radius
-            padding: EdgeInsets.zero, // Minimize padding
-            constraints: const BoxConstraints(), // Remove default constraints
+            tooltip: 'Add',
+            splashRadius: 16,
+            padding: EdgeInsets.zero,
+            offset: const Offset(0, 40),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'new_conversation',
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.chat_bubble_outline_rounded,
+                      color: AiTheme.primaryColor,
+                      size: 20,
+                    ),
+                    SizedBox(width: 12),
+                    Text('New Conversation'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'connect_whatsapp',
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.chat_rounded,
+                      color: Color(0xFF25D366),
+                      size: 20,
+                    ),
+                    SizedBox(width: 12),
+                    Text('Connect WhatsApp'),
+                  ],
+                ),
+              ),
+            ],
+            onSelected: (value) {
+              if (value == 'new_conversation') {
+                onNewConversation();
+              } else if (value == 'connect_whatsapp') {
+                _showWhatsAppConnectionDialog(context);
+              }
+            },
           ),
         ],
       ),
+    );
+  }
+
+  void _showWhatsAppConnectionDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) =>
+          const WhatsAppConnectionDialog(onConnectionChanged: null),
     );
   }
 
@@ -99,7 +149,9 @@ class ConversationList extends StatelessWidget {
         child: Container(
           margin: const EdgeInsets.symmetric(vertical: 2), // Reduced margin
           padding: const EdgeInsets.symmetric(
-              horizontal: 8, vertical: 8), // Reduced padding
+            horizontal: 8,
+            vertical: 8,
+          ), // Reduced padding
           decoration: BoxDecoration(
             color: isSelected
                 ? AiTheme.primaryColor.withValues(alpha: 0.1)
@@ -110,8 +162,9 @@ class ConversationList extends StatelessWidget {
             children: [
               Icon(
                 Icons.chat_bubble_outline_rounded,
-                color:
-                    isSelected ? AiTheme.primaryColor : AiTheme.secondaryColor,
+                color: isSelected
+                    ? AiTheme.primaryColor
+                    : AiTheme.secondaryColor,
                 size: 18, // Slightly smaller icon
               ),
               const SizedBox(width: 8), // Reduced spacing
@@ -125,8 +178,9 @@ class ConversationList extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 13, // Slightly smaller font
-                        fontWeight:
-                            isSelected ? FontWeight.w600 : FontWeight.w500,
+                        fontWeight: isSelected
+                            ? FontWeight.w600
+                            : FontWeight.w500,
                         color: AiTheme.textColor,
                       ),
                     ),
@@ -142,8 +196,10 @@ class ConversationList extends StatelessWidget {
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.delete_outline_rounded,
-                    size: 18), // Smaller icon
+                icon: const Icon(
+                  Icons.delete_outline_rounded,
+                  size: 18,
+                ), // Smaller icon
                 color: AiTheme.secondaryColor,
                 onPressed: () => onDeleteConversation(conversationId),
                 tooltip: 'Delete Conversation',

@@ -14,6 +14,7 @@ import '../widgets/ai_input_field.dart';
 import '../widgets/conversation_list.dart';
 import '../theme/ai_theme.dart';
 import '../widgets/welcome_view.dart';
+import '../providers/whatsapp_message_provider.dart';
 
 /// Main screen for the AI feature with a modern, polished UI.
 class AiScreen extends ConsumerStatefulWidget {
@@ -48,6 +49,11 @@ class _AiScreenState extends ConsumerState<AiScreen> {
   void initState() {
     super.initState();
     _loadAllConversations();
+    // Initialize WhatsApp message sync by watching the provider
+    // This follows separation of concerns - provider manages service lifecycle
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(whatsappMessageSyncProvider);
+    });
   }
 
   @override
@@ -140,23 +146,27 @@ class _AiScreenState extends ConsumerState<AiScreen> {
     _subscription?.cancel();
     _subscription = ProxyService.strategy
         .subscribeToMessages(_currentConversationId)
-        .listen((messages) {
-      if (mounted) {
-        setState(() {
-          _messages = messages;
-          final index =
-              _conversations.indexWhere((c) => c.id == _currentConversationId);
-          if (index != -1) {
-            _conversations[index].messages = messages;
-          }
-        });
-        _scrollToBottom();
-      }
-    }, onError: (e) {
-      if (mounted) {
-        _showError('Error subscribing to messages: ${e.toString()}');
-      }
-    });
+        .listen(
+          (messages) {
+            if (mounted) {
+              setState(() {
+                _messages = messages;
+                final index = _conversations.indexWhere(
+                  (c) => c.id == _currentConversationId,
+                );
+                if (index != -1) {
+                  _conversations[index].messages = messages;
+                }
+              });
+              _scrollToBottom();
+            }
+          },
+          onError: (e) {
+            if (mounted) {
+              _showError('Error subscribing to messages: ${e.toString()}');
+            }
+          },
+        );
   }
 
   Future<void> _sendMessage(String text) async {
@@ -195,16 +205,19 @@ class _AiScreenState extends ConsumerState<AiScreen> {
       if (fileToAnalyzePath != null) {
         try {
           final fileData = await fileToBase64(fileToAnalyzePath);
-          userPartsForHistory
-              .add(Part.inlineData(fileData['mime_type'], fileData['data']));
+          userPartsForHistory.add(
+            Part.inlineData(fileData['mime_type'], fileData['data']),
+          );
         } catch (e) {
           _showError("Error processing attached file: ${e.toString()}");
           setState(() => _isLoading = false);
           return;
         }
       }
-      final userContentForHistory =
-          Content(role: "user", parts: userPartsForHistory);
+      final userContentForHistory = Content(
+        role: "user",
+        parts: userPartsForHistory,
+      );
 
       // Clear attached file path after it's used for AI analysis for the current turn
       if (_attachedFilePath != null) {
@@ -212,19 +225,21 @@ class _AiScreenState extends ConsumerState<AiScreen> {
       }
 
       final aiResponseText = await ref
-          .refresh(geminiBusinessAnalyticsProvider(
-        branchId,
-        processedText,
-        filePath:
-            fileToAnalyzePath, // Provider still needs the path for the current call
-        history: _conversationHistory, // Pass conversation history
-      ).future)
+          .refresh(
+            geminiBusinessAnalyticsProvider(
+              branchId,
+              processedText,
+              filePath:
+                  fileToAnalyzePath, // Provider still needs the path for the current call
+              history: _conversationHistory, // Pass conversation history
+            ).future,
+          )
           .catchError((e) {
-        if (e.toString().contains('RESOURCE_EXHAUSTED')) {
-          return 'I\'m having trouble analyzing your data right now. Please try again in a moment.';
-        }
-        throw e;
-      });
+            if (e.toString().contains('RESOURCE_EXHAUSTED')) {
+              return 'I\'m having trouble analyzing your data right now. Please try again in a moment.';
+            }
+            throw e;
+          });
 
       // Always save the full, original AI response first.
       await ProxyService.strategy.saveMessage(
@@ -239,14 +254,18 @@ class _AiScreenState extends ConsumerState<AiScreen> {
 
       // Clean the response for conversation history to avoid confusing the AI.
       final cleanedForHistory = aiResponseText.replaceAll(
-          RegExp(r'\{\{VISUALIZATION_DATA\}\}.*?\{\{/VISUALIZATION_DATA\}\}',
-              dotAll: true),
-          '');
+        RegExp(
+          r'\{\{VISUALIZATION_DATA\}\}.*?\{\{/VISUALIZATION_DATA\}\}',
+          dotAll: true,
+        ),
+        '',
+      );
 
       // Update conversation history with the user's prompt and the cleaned AI response.
       _conversationHistory.add(userContentForHistory);
       _conversationHistory.add(
-          Content(role: "assistant", parts: [Part.text(cleanedForHistory)]));
+        Content(role: "assistant", parts: [Part.text(cleanedForHistory)]),
+      );
 
       // If the response contained visualization data, generate and save a separate summary message.
       if (aiResponseText.contains('{{VISUALIZATION_DATA}}')) {
@@ -258,9 +277,9 @@ class _AiScreenState extends ConsumerState<AiScreen> {
         final summaryText = await ref
             .refresh(geminiSummaryProvider(summaryPrompt).future)
             .onError((error, stackTrace) {
-          talker.error("Failed to generate summary: $error");
-          return "Error: Could not generate summary.";
-        });
+              talker.error("Failed to generate summary: $error");
+              return "Error: Could not generate summary.";
+            });
 
         await ProxyService.strategy.saveMessage(
           text: summaryText,
@@ -271,8 +290,9 @@ class _AiScreenState extends ConsumerState<AiScreen> {
         );
 
         // Also add the summary to the conversation history for complete context.
-        _conversationHistory
-            .add(Content(role: "assistant", parts: [Part.text(summaryText)]));
+        _conversationHistory.add(
+          Content(role: "assistant", parts: [Part.text(summaryText)]),
+        );
       }
 
       _scrollToBottom();
@@ -285,9 +305,9 @@ class _AiScreenState extends ConsumerState<AiScreen> {
 
   void _showError(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   void _scrollToBottom() {
@@ -304,16 +324,18 @@ class _AiScreenState extends ConsumerState<AiScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(builder: (context, constraints) {
-      final isMobile = constraints.maxWidth < 600;
-      return Scaffold(
-        key: _scaffoldKey,
-        backgroundColor: AiTheme.backgroundColor,
-        appBar: isMobile ? _buildMobileAppBar() : null,
-        drawer: isMobile ? _buildDrawer() : null,
-        body: isMobile ? _buildMobileLayout() : _buildDesktopLayout(),
-      );
-    });
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isMobile = constraints.maxWidth < 600;
+        return Scaffold(
+          key: _scaffoldKey,
+          backgroundColor: AiTheme.backgroundColor,
+          appBar: isMobile ? _buildMobileAppBar() : null,
+          drawer: isMobile ? _buildDrawer() : null,
+          body: isMobile ? _buildMobileLayout() : _buildDesktopLayout(),
+        );
+      },
+    );
   }
 
   AppBar _buildMobileAppBar() {
@@ -322,8 +344,10 @@ class _AiScreenState extends ConsumerState<AiScreen> {
         icon: const Icon(Icons.menu_rounded, color: AiTheme.secondaryColor),
         onPressed: () => _scaffoldKey.currentState?.openDrawer(),
       ),
-      title: const Text('AI Assistant',
-          style: TextStyle(color: AiTheme.textColor)),
+      title: const Text(
+        'AI Assistant',
+        style: TextStyle(color: AiTheme.textColor),
+      ),
       backgroundColor: AiTheme.surfaceColor,
       elevation: 1,
       shadowColor: Colors.black.withValues(alpha: 0.1),
@@ -480,10 +504,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
           );
         }
 
-        return MessageBubble(
-          message: message,
-          isUser: isUser,
-        );
+        return MessageBubble(message: message, isUser: isUser);
       },
     );
   }
