@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flipper_services/whatsapp_message_sync_service.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/models/message.model.dart';
 import 'package:supabase_models/brick/models/conversation.model.dart';
 import 'package:supabase_models/brick/repository.dart';
@@ -35,8 +34,6 @@ class MockQueryResult {
 void main() {
   late WhatsAppMessageSyncService syncService;
   late MockDittoObserverRunner mockRunner;
-  late MockRepository mockRepository;
-  late MockProxyBox mockProxyBox;
 
   setUpAll(() {
     // Register fallback values for mocktail
@@ -245,22 +242,23 @@ void main() {
               arguments: any(named: 'arguments'),
               onChange: any(named: 'onChange'),
             )).thenAnswer((invocation) {
-              final onChangeCallback = invocation.namedArguments[#onChange] as Function;
-              // Return a non-text message (e.g., image, video, etc.)
-              onChangeCallback(MockQueryResult([
-                MockQueryResultItem({
-                  'messageId': 'msg_123',
-                  'messageBody': 'Sample image caption',
-                  'from': '+1234567890',
-                  'waId': '+1234567890',
-                  'contactName': 'John Doe',
-                  'phoneNumberId': 'phone_123',
-                  'messageType': 'image', // Non-text type
-                  'createdAt': '2023-01-01T12:00:00Z',
-                })
-              ]));
-              return MockObserver();
-            });
+          final onChangeCallback =
+              invocation.namedArguments[#onChange] as Function;
+          // Return a non-text message (e.g., image, video, etc.)
+          onChangeCallback(MockQueryResult([
+            MockQueryResultItem({
+              'messageId': 'msg_123',
+              'messageBody': 'Sample image caption',
+              'from': '+1234567890',
+              'waId': '+1234567890',
+              'contactName': 'John Doe',
+              'phoneNumberId': 'phone_123',
+              'messageType': 'image', // Non-text type
+              'createdAt': '2023-01-01T12:00:00Z',
+            })
+          ]));
+          return MockObserver();
+        });
 
         // Capture state changes to verify behavior
         final states = <WhatsAppSyncState>[];
@@ -283,22 +281,23 @@ void main() {
               arguments: any(named: 'arguments'),
               onChange: any(named: 'onChange'),
             )).thenAnswer((invocation) {
-              final onChangeCallback = invocation.namedArguments[#onChange] as Function;
-              // Return a message with empty body
-              onChangeCallback(MockQueryResult([
-                MockQueryResultItem({
-                  'messageId': 'msg_124',
-                  'messageBody': '', // Empty body
-                  'from': '+1234567890',
-                  'waId': '+1234567890',
-                  'contactName': 'John Doe',
-                  'phoneNumberId': 'phone_124',
-                  'messageType': 'text',
-                  'createdAt': '2023-01-01T12:00:00Z',
-                })
-              ]));
-              return MockObserver();
-            });
+          final onChangeCallback =
+              invocation.namedArguments[#onChange] as Function;
+          // Return a message with empty body
+          onChangeCallback(MockQueryResult([
+            MockQueryResultItem({
+              'messageId': 'msg_124',
+              'messageBody': '', // Empty body
+              'from': '+1234567890',
+              'waId': '+1234567890',
+              'contactName': 'John Doe',
+              'phoneNumberId': 'phone_124',
+              'messageType': 'text',
+              'createdAt': '2023-01-01T12:00:00Z',
+            })
+          ]));
+          return MockObserver();
+        });
 
         // Capture state changes to verify behavior
         final states = <WhatsAppSyncState>[];
@@ -321,22 +320,23 @@ void main() {
               arguments: any(named: 'arguments'),
               onChange: any(named: 'onChange'),
             )).thenAnswer((invocation) {
-              final onChangeCallback = invocation.namedArguments[#onChange] as Function;
-              // Return a message with valid timestamp
-              onChangeCallback(MockQueryResult([
-                MockQueryResultItem({
-                  'messageId': 'msg_125',
-                  'messageBody': 'Test message with timestamp',
-                  'from': '+1234567890',
-                  'waId': '+1234567890',
-                  'contactName': 'John Doe',
-                  'phoneNumberId': 'phone_125',
-                  'messageType': 'text',
-                  'createdAt': '2023-01-01T12:30:45.000Z', // Valid ISO 8601 format
-                })
-              ]));
-              return MockObserver();
-            });
+          final onChangeCallback =
+              invocation.namedArguments[#onChange] as Function;
+          // Return a message with valid timestamp
+          onChangeCallback(MockQueryResult([
+            MockQueryResultItem({
+              'messageId': 'msg_125',
+              'messageBody': 'Test message with timestamp',
+              'from': '+1234567890',
+              'waId': '+1234567890',
+              'contactName': 'John Doe',
+              'phoneNumberId': 'phone_125',
+              'messageType': 'text',
+              'createdAt': '2023-01-01T12:30:45.000Z', // Valid ISO 8601 format
+            })
+          ]));
+          return MockObserver();
+        });
 
         // Capture state changes to verify behavior
         final states = <WhatsAppSyncState>[];
@@ -361,22 +361,23 @@ void main() {
               arguments: any(named: 'arguments'),
               onChange: any(named: 'onChange'),
             )).thenAnswer((invocation) {
-              final onChangeCallback = invocation.namedArguments[#onChange] as Function;
-              // Return a message from a new contact
-              onChangeCallback(MockQueryResult([
-                MockQueryResultItem({
-                  'messageId': 'msg_126',
-                  'messageBody': 'Hello from new contact',
-                  'from': '+1234567890',
-                  'waId': '+1234567890',
-                  'contactName': 'John Doe',
-                  'phoneNumberId': 'phone_126',
-                  'messageType': 'text',
-                  'createdAt': '2023-01-01T12:00:00Z',
-                })
-              ]));
-              return MockObserver();
-            });
+          final onChangeCallback =
+              invocation.namedArguments[#onChange] as Function;
+          // Return a message from a new contact
+          onChangeCallback(MockQueryResult([
+            MockQueryResultItem({
+              'messageId': 'msg_126',
+              'messageBody': 'Hello from new contact',
+              'from': '+1234567890',
+              'waId': '+1234567890',
+              'contactName': 'John Doe',
+              'phoneNumberId': 'phone_126',
+              'messageType': 'text',
+              'createdAt': '2023-01-01T12:00:00Z',
+            })
+          ]));
+          return MockObserver();
+        });
 
         // Capture state changes to verify behavior
         final states = <WhatsAppSyncState>[];
@@ -399,22 +400,23 @@ void main() {
               arguments: any(named: 'arguments'),
               onChange: any(named: 'onChange'),
             )).thenAnswer((invocation) {
-              final onChangeCallback = invocation.namedArguments[#onChange] as Function;
-              // Return a message from an existing contact
-              onChangeCallback(MockQueryResult([
-                MockQueryResultItem({
-                  'messageId': 'msg_127',
-                  'messageBody': 'Hello from existing contact',
-                  'from': '+987654321',
-                  'waId': '+987654321',
-                  'contactName': 'Jane Smith',
-                  'phoneNumberId': 'phone_127',
-                  'messageType': 'text',
-                  'createdAt': '2023-01-01T13:00:00Z',
-                })
-              ]));
-              return MockObserver();
-            });
+          final onChangeCallback =
+              invocation.namedArguments[#onChange] as Function;
+          // Return a message from an existing contact
+          onChangeCallback(MockQueryResult([
+            MockQueryResultItem({
+              'messageId': 'msg_127',
+              'messageBody': 'Hello from existing contact',
+              'from': '+987654321',
+              'waId': '+987654321',
+              'contactName': 'Jane Smith',
+              'phoneNumberId': 'phone_127',
+              'messageType': 'text',
+              'createdAt': '2023-01-01T13:00:00Z',
+            })
+          ]));
+          return MockObserver();
+        });
 
         // Capture state changes to verify behavior
         final states = <WhatsAppSyncState>[];
@@ -439,22 +441,23 @@ void main() {
               arguments: any(named: 'arguments'),
               onChange: any(named: 'onChange'),
             )).thenAnswer((invocation) {
-              final onChangeCallback = invocation.namedArguments[#onChange] as Function;
-              // Return a message that might be a duplicate
-              onChangeCallback(MockQueryResult([
-                MockQueryResultItem({
-                  'messageId': 'duplicate_msg_128',
-                  'messageBody': 'Potential duplicate message text',
-                  'from': '+1234567890',
-                  'waId': '+1234567890',
-                  'contactName': 'John Doe',
-                  'phoneNumberId': 'phone_128',
-                  'messageType': 'text',
-                  'createdAt': '2023-01-01T14:00:00Z',
-                })
-              ]));
-              return MockObserver();
-            });
+          final onChangeCallback =
+              invocation.namedArguments[#onChange] as Function;
+          // Return a message that might be a duplicate
+          onChangeCallback(MockQueryResult([
+            MockQueryResultItem({
+              'messageId': 'duplicate_msg_128',
+              'messageBody': 'Potential duplicate message text',
+              'from': '+1234567890',
+              'waId': '+1234567890',
+              'contactName': 'John Doe',
+              'phoneNumberId': 'phone_128',
+              'messageType': 'text',
+              'createdAt': '2023-01-01T14:00:00Z',
+            })
+          ]));
+          return MockObserver();
+        });
 
         // Capture state changes to verify behavior
         final states = <WhatsAppSyncState>[];
@@ -477,22 +480,23 @@ void main() {
               arguments: any(named: 'arguments'),
               onChange: any(named: 'onChange'),
             )).thenAnswer((invocation) {
-              final onChangeCallback = invocation.namedArguments[#onChange] as Function;
-              // Return a new unique message
-              onChangeCallback(MockQueryResult([
-                MockQueryResultItem({
-                  'messageId': 'new_msg_129', // New unique ID
-                  'messageBody': 'New unique message text',
-                  'from': '+1234567890',
-                  'waId': '+1234567890',
-                  'contactName': 'John Doe',
-                  'phoneNumberId': 'phone_129',
-                  'messageType': 'text',
-                  'createdAt': '2023-01-01T15:00:00Z',
-                })
-              ]));
-              return MockObserver();
-            });
+          final onChangeCallback =
+              invocation.namedArguments[#onChange] as Function;
+          // Return a new unique message
+          onChangeCallback(MockQueryResult([
+            MockQueryResultItem({
+              'messageId': 'new_msg_129', // New unique ID
+              'messageBody': 'New unique message text',
+              'from': '+1234567890',
+              'waId': '+1234567890',
+              'contactName': 'John Doe',
+              'phoneNumberId': 'phone_129',
+              'messageType': 'text',
+              'createdAt': '2023-01-01T15:00:00Z',
+            })
+          ]));
+          return MockObserver();
+        });
 
         // Capture state changes to verify behavior
         final states = <WhatsAppSyncState>[];
