@@ -65,6 +65,8 @@ class WhatsAppMessageSyncService {
   }) : _runner = runner ??
             RealDittoObserverRunner(dittoService ?? DittoService.instance);
 
+  bool _isProcessing = false; // Flag to prevent concurrent processing
+
   Stream<WhatsAppSyncState> get stateStream {
     _stateController ??= StreamController<WhatsAppSyncState>.broadcast();
     return _stateController!.stream;
@@ -89,8 +91,22 @@ class WhatsAppMessageSyncService {
       _observer = _runner.registerObserver(
         query,
         arguments: arguments,
-        onChange: (queryResult) {
-          _handleWhatsAppMessages(queryResult.items.toList());
+        onChange: (queryResult) async {
+          // Wait if there's a current processing in progress to prevent concurrent execution
+          while (_isProcessing) {
+            await Future.delayed(const Duration(milliseconds: 50)); // Small delay to prevent tight loop
+          }
+
+          _isProcessing = true;
+          try {
+            await _handleWhatsAppMessages(queryResult.items.toList());
+          } catch (e) {
+            // Log error and surface it via the state stream
+            print('Error processing WhatsApp messages: $e');
+            _stateController?.add(WhatsAppSyncState.error(e.toString()));
+          } finally {
+            _isProcessing = false;
+          }
         },
       );
 
@@ -197,13 +213,12 @@ class WhatsAppMessageSyncService {
   }) async {
     final repository = Repository();
 
-    // Try to find existing conversation for this WhatsApp contact
-    // We'll use the conversation title to identify WhatsApp conversations
+    // Try to find existing conversation for this WhatsApp contact using the dedicated whatsappWaId field
     final conversations = await repository.get<Conversation>(
       query: Query(
         where: [
           Where('branchId').isExactly(branchId),
-          Where('title').contains('WhatsApp: $contactName'),
+          Where('whatsappWaId').isExactly(waId),
         ],
       ),
     );
@@ -212,10 +227,11 @@ class WhatsAppMessageSyncService {
       return conversations.first.id;
     }
 
-    // Create new conversation for this contact
+    // Create new conversation for this contact with the whatsappWaId field set
     final conversation = Conversation(
       title: 'WhatsApp: $contactName',
       branchId: branchId,
+      whatsappWaId: waId,
     );
 
     await repository.upsert<Conversation>(conversation);

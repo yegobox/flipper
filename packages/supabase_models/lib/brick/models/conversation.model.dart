@@ -25,6 +25,9 @@ class Conversation extends OfflineFirstWithSupabaseModel {
 
   DateTime lastMessageAt;
 
+  @Sqlite(nullable: true)
+  final String? whatsappWaId; // WhatsApp ID associated with this conversation
+
   Conversation({
     String? id,
     required this.title,
@@ -32,6 +35,7 @@ class Conversation extends OfflineFirstWithSupabaseModel {
     DateTime? createdAt,
     DateTime? lastMessageAt,
     this.messages,
+    this.whatsappWaId,
   })  : id = id ?? const Uuid().v4(),
         createdAt = createdAt ?? DateTime.now().toUtc(),
         lastMessageAt = lastMessageAt ?? DateTime.now();

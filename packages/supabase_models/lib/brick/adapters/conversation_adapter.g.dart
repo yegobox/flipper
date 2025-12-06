@@ -18,6 +18,9 @@ Future<Conversation> _$ConversationFromSupabase(
     lastMessageAt: data['last_message_at'] == null
         ? null
         : DateTime.tryParse(data['last_message_at'] as String),
+    whatsappWaId: data['whatsapp_wa_id'] == null
+        ? null
+        : data['whatsapp_wa_id'] as String?,
   );
 }
 
@@ -32,6 +35,7 @@ Future<Map<String, dynamic>> _$ConversationToSupabase(
     'branch_id': instance.branchId,
     'created_at': instance.createdAt?.toIso8601String(),
     'last_message_at': instance.lastMessageAt.toIso8601String(),
+    'whatsapp_wa_id': instance.whatsappWaId,
   };
 }
 
@@ -70,6 +74,9 @@ Future<Conversation> _$ConversationFromSqlite(
             .toList()
             .cast<Message>(),
     lastMessageAt: DateTime.parse(data['last_message_at'] as String),
+    whatsappWaId: data['whatsapp_wa_id'] == null
+        ? null
+        : data['whatsapp_wa_id'] as String?,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -84,6 +91,7 @@ Future<Map<String, dynamic>> _$ConversationToSqlite(
     'branch_id': instance.branchId,
     'created_at': instance.createdAt?.toIso8601String(),
     'last_message_at': instance.lastMessageAt.toIso8601String(),
+    'whatsapp_wa_id': instance.whatsappWaId,
   };
 }
 
@@ -117,6 +125,10 @@ class ConversationAdapter
     'lastMessageAt': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'last_message_at',
+    ),
+    'whatsappWaId': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'whatsapp_wa_id',
     ),
   };
   @override
@@ -166,6 +178,12 @@ class ConversationAdapter
       columnName: 'last_message_at',
       iterable: false,
       type: DateTime,
+    ),
+    'whatsappWaId': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'whatsapp_wa_id',
+      iterable: false,
+      type: String,
     ),
   };
   @override
