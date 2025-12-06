@@ -121,7 +121,8 @@ class _AiScreenState extends ConsumerState<AiScreen> {
         );
   }
 
-  Future<void> _sendMessage(String text) async {
+  Future<void> _sendMessage(String text, {String? conversationId}) async {
+    final targetConversationId = conversationId ?? _currentConversationId;
     if (text.isEmpty) return;
 
     setState(() => _isLoading = true);
@@ -132,8 +133,18 @@ class _AiScreenState extends ConsumerState<AiScreen> {
 
       // Check context: Is this a reply to a WhatsApp message?
       // We look at the last message in the conversation history (that isn't from the user)
-      final lastMessage = _messages.reversed.firstWhere(
-        (m) => m.role != 'user',
+      final repository = Repository();
+      // Fetch specifically from DB to ensure accuracy
+      final lastMessages = await repository.get<Message>(
+        query: Query(
+          where: [Where('conversationId').isExactly(targetConversationId)],
+          orderBy: [OrderBy('timestamp', ascending: false)],
+          limit: 10,
+        ),
+      );
+
+      final lastMessage = lastMessages.firstWhere(
+        (m) => m.messageSource == 'whatsapp',
         orElse: () => Message(
           text: '',
           phoneNumber: '',
@@ -152,7 +163,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
         phoneNumber: ProxyService.box.getUserPhone() ?? '',
         branchId: branchId,
         role: 'user',
-        conversationId: _currentConversationId,
+        conversationId: targetConversationId,
         messageSource: isWhatsAppReply ? 'whatsapp' : 'ai',
       );
 
@@ -167,7 +178,12 @@ class _AiScreenState extends ConsumerState<AiScreen> {
 
       if (isWhatsAppReply) {
         // Handle WhatsApp Reply
-        await _handleWhatsAppReply(text, lastMessage, branchId);
+        await _handleWhatsAppReply(
+          text,
+          lastMessage,
+          branchId,
+          targetConversationId,
+        );
         // Do NOT proceed to AI logic
         return;
       }
@@ -225,7 +241,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
         phoneNumber: ProxyService.box.getUserPhone() ?? '',
         branchId: branchId,
         role: 'assistant',
-        conversationId: _currentConversationId,
+        conversationId: targetConversationId,
         aiResponse: aiResponseText,
         aiContext: text,
         messageSource: 'ai',
@@ -265,7 +281,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
           phoneNumber: ProxyService.box.getUserPhone() ?? '',
           branchId: branchId,
           role: 'assistant',
-          conversationId: _currentConversationId,
+          conversationId: targetConversationId,
           messageSource: 'ai',
         );
 
@@ -287,6 +303,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
     String text,
     Message lastMessage,
     int branchId,
+    String conversationId,
   ) async {
     try {
       // 1. Get Business Configuration for WhatsApp
@@ -346,7 +363,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
         final messages = await repository.get<Message>(
           query: Query(
             where: [
-              Where('conversationId').isExactly(_currentConversationId),
+              Where('conversationId').isExactly(conversationId),
               Where('role').isExactly('user'),
               Where('text').isExactly(text), // Match the text that was sent
             ],
@@ -394,7 +411,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
         final messages = await repository.get<Message>(
           query: Query(
             where: [
-              Where('conversationId').isExactly(_currentConversationId),
+              Where('conversationId').isExactly(conversationId),
               Where('role').isExactly('user'),
               Where('text').isExactly(text), // Match the text that was sent
             ],
@@ -563,7 +580,8 @@ class _AiScreenState extends ConsumerState<AiScreen> {
         Expanded(child: _buildMessageList()),
         AiInputField(
           controller: _controller,
-          onSend: _sendMessage,
+          onSend: (text) =>
+              _sendMessage(text, conversationId: _currentConversationId),
           isLoading: _isLoading,
           onAttachFile: _handleAttachedFile,
         ),
@@ -600,7 +618,8 @@ class _AiScreenState extends ConsumerState<AiScreen> {
               Expanded(child: _buildMessageList()),
               AiInputField(
                 controller: _controller,
-                onSend: _sendMessage,
+                onSend: (text) =>
+                    _sendMessage(text, conversationId: _currentConversationId),
                 isLoading: _isLoading,
                 onAttachFile: _handleAttachedFile,
               ),
@@ -613,7 +632,10 @@ class _AiScreenState extends ConsumerState<AiScreen> {
 
   Widget _buildMessageList() {
     if (_messages.isEmpty) {
-      return WelcomeView(onSend: _sendMessage);
+      return WelcomeView(
+        onSend: (text) =>
+            _sendMessage(text, conversationId: _currentConversationId),
+      );
     }
     return ListView.builder(
       controller: _scrollController,

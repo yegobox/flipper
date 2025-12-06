@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/secrets.dart';
 
 /// Service for interacting with WhatsApp Business API via Facebook Graph API
@@ -72,7 +73,7 @@ class WhatsAppService {
           'message_id': replyToMessageId,
         };
       }
-
+      talker.debug('Sending WhatsApp message: $requestBody');
       final response = await _dio.post(
         url,
         data: requestBody,
