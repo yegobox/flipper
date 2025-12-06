@@ -3,19 +3,21 @@ import 'package:flipper_models/secrets.dart';
 
 /// Service for interacting with WhatsApp Business API via Facebook Graph API
 class WhatsAppService {
-  static const String _baseUrl = 'https://graph.facebook.com/v24.0';
+  static const String _baseUrl = AppSecrets.socialIntegrationUrl;
   final Dio _dio;
 
   WhatsAppService({Dio? dio})
-      : _dio = dio ?? Dio(BaseOptions(
-          connectTimeout: const Duration(seconds: 5),
-          receiveTimeout: const Duration(seconds: 30),
-          sendTimeout: const Duration(seconds: 3),
-        ));
+      : _dio = dio ??
+            Dio(BaseOptions(
+              connectTimeout: const Duration(seconds: 5),
+              receiveTimeout: const Duration(seconds: 30),
+              sendTimeout: const Duration(seconds: 3),
+            ));
 
   /// Safely extracts error message from dynamic response data
   /// Returns fallback message if structure is not a Map or missing 'error'/'message' keys
-  String _extractErrorMessage(dynamic response, {String fallback = 'Unknown error'}) {
+  String _extractErrorMessage(dynamic response,
+      {String fallback = 'Unknown error'}) {
     if (response is! Map) {
       return fallback;
     }
