@@ -11,7 +11,7 @@ import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
 import 'package:supabase_models/sync/ditto_sync_generated.dart';
 import 'package:uuid/uuid.dart';
 
-part 'stock.model.ditto_sync_adapter.g.dart';
+part 'stock.model.ditto_sync_adapter.g.dart'; 
 
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'stocks'),
