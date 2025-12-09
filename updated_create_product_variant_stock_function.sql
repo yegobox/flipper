@@ -14,6 +14,86 @@ CREATE TABLE IF NOT EXISTS codes (
 CREATE INDEX IF NOT EXISTS idx_codes_branch_id ON codes(branch_id);
 CREATE INDEX IF NOT EXISTS idx_codes_code ON codes(code);
 
+-- Migration to add tt_cat_cd to variants table if it does not exist
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+        AND table_name = 'variants'
+        AND column_name = 'tt_cat_cd'
+    ) THEN
+        ALTER TABLE public.variants
+        ADD COLUMN tt_cat_cd TEXT;
+    END IF;
+END;
+$$;
+
+-- Migration to add property_ty_cd to variants table if it does not exist
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+        AND table_name = 'variants'
+        AND column_name = 'property_ty_cd'
+    ) THEN
+        ALTER TABLE public.variants
+        ADD COLUMN property_ty_cd TEXT;
+    END IF;
+END;
+$$;
+
+-- Migration to add room_type_cd to variants table if it does not exist
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+        AND table_name = 'variants'
+        AND column_name = 'room_type_cd'
+    ) THEN
+        ALTER TABLE public.variants
+        ADD COLUMN room_type_cd TEXT;
+    END IF;
+END;
+$$;
+
+-- Migration to add variant_id to stocks table if it does not exist
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+        AND table_name = 'stocks'
+        AND column_name = 'variant_id'
+    ) THEN
+        ALTER TABLE public.stocks
+        ADD COLUMN variant_id UUID;
+    END IF;
+END;
+$$;
+
+-- Migration to add current_stock to stocks table if it does not exist
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+        AND table_name = 'stocks'
+        AND column_name = 'current_stock'
+    ) THEN
+        ALTER TABLE public.stocks
+        ADD COLUMN current_stock NUMERIC;
+    END IF;
+END;
+$$;
+
 -- Helper function to generate item codes following the same format as the Dart implementation
 CREATE OR REPLACE FUNCTION generate_item_code(
     p_country_code TEXT,
@@ -122,18 +202,16 @@ BEGIN
     END IF;
 
     -- Create the product
-    INSERT INTO products (
+    INSERT INTO public.products (
         name,
         category_id,
         business_id,
-        branch_id,
-        created_at
+        branch_id
     ) VALUES (
         p_product_name,
         p_category_id,
         p_business_id,
-        p_branch_id,
-        NOW()
+        p_branch_id
     )
     RETURNING id INTO v_product_id;
 
@@ -319,14 +397,14 @@ BEGIN
                 p_product_type => COALESCE(var_record.item_ty_cd, '2'),
                 p_packaging_unit => COALESCE(var_record.pkg_unit_cd, 'CT'),
                 p_quantity_unit => COALESCE(var_record.qty_unit_cd, 'U'),
-                p_branch_id => p_branch_id
+                p_branch_id => p_branch_id::integer
             );
         ELSE
             generated_item_cd := var_record.item_cd;
         END IF;
 
         -- Create variant associated with product with all EBM fields
-        INSERT INTO variants (
+        INSERT INTO public.variants (
             name,
             sku,
             product_id,
@@ -335,7 +413,6 @@ BEGIN
             branch_id,
             color,
             pkg_unit_cd,
-            created_at,
             -- EBM fields
             item_cd,
             isrc_aplcb_yn,
@@ -410,7 +487,6 @@ BEGIN
             p_branch_id,
             var_record.color,
             var_record.packaging_unit,
-            NOW(),
             -- EBM field values
             generated_item_cd,
             var_record.isrc_aplcb_yn,
@@ -443,7 +519,7 @@ BEGIN
             var_record.item_nm,
             var_record.regr_nm,
             var_record.sply_amt,
-            var_record.tin,
+            NULLIF(var_record.tin, '')::bigint,
             var_record.dc_rt,
             var_record.regr_id,
             var_record.spplr_nm,
@@ -484,16 +560,14 @@ BEGIN
 
         -- Create initial stock record for the variant
         IF var_record.variant_quantity > 0 THEN
-            INSERT INTO stocks (
+            INSERT INTO public.stocks (
                 variant_id,
-                quantity,
-                branch_id,
-                created_at
+                current_stock,
+                branch_id
             ) VALUES (
                 v_variant_id,
                 var_record.variant_quantity,
-                p_branch_id,
-                NOW()
+                p_branch_id
             )
             RETURNING id INTO v_stock_id;
 

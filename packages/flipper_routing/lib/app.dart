@@ -861,6 +861,8 @@ class App {}
 // │  3. Update CONSTITUTION.md with your project's non-negotiable principles
 // supabase migration up --include-all  (push local migration to supabase)
 // supabase db push --include-all  (push remote migrations to supabase)
+
+// supabase migration down 
 // https://services.google.com/fb/forms/reservationsappointmentsonlinebooking-interestform/
 // https://developers.google.com/maps-booking
 // https://github.com/features/copilot/plans
