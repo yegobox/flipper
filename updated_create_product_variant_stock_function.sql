@@ -94,6 +94,38 @@ BEGIN
 END;
 $$;
 
+-- Migration to add tin to stocks table if it does not exist
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+        AND table_name = 'stocks'
+        AND column_name = 'tin'
+    ) THEN
+        ALTER TABLE public.stocks
+        ADD COLUMN tin BIGINT;
+    END IF;
+END;
+$$;
+
+-- Migration to add bhf_id to stocks table if it does not exist
+DO $$
+BEGIN
+    IF NOT EXISTS (
+        SELECT 1
+        FROM information_schema.columns
+        WHERE table_schema = 'public'
+        AND table_name = 'stocks'
+        AND column_name = 'bhf_id'
+    ) THEN
+        ALTER TABLE public.stocks
+        ADD COLUMN bhf_id TEXT;
+    END IF;
+END;
+$$;
+
 -- Helper function to generate item codes following the same format as the Dart implementation
 CREATE OR REPLACE FUNCTION generate_item_code(
     p_country_code TEXT,
@@ -563,11 +595,15 @@ BEGIN
             INSERT INTO public.stocks (
                 variant_id,
                 current_stock,
-                branch_id
+                branch_id,
+                tin,
+                bhf_id
             ) VALUES (
                 v_variant_id,
                 var_record.variant_quantity,
-                p_branch_id
+                p_branch_id,
+                NULLIF(var_record.tin, '')::bigint,
+                var_record.bhf_id
             )
             RETURNING id INTO v_stock_id;
 
