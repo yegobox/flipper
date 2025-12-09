@@ -141,10 +141,9 @@ BEGIN
     FOR var_record IN SELECT
         COALESCE(x.name, '') AS name,
         COALESCE(x.sku, '') AS sku,
-        COALESCE(x.barcode, '') AS bar_code,
         COALESCE(x.retail_price, 0) AS retail_price,
         COALESCE(x.supply_price, 0) AS supply_price,
-        COALESCE(x.quantity, 0) AS quantity,
+        COALESCE(x.quantity, 0) AS variant_quantity,
         x.color,
         COALESCE(x.packaging_unit, 'NT') AS packaging_unit,
         -- Add all EBM fields that can be passed in
@@ -201,7 +200,6 @@ BEGIN
         COALESCE(x.assigned, FALSE) AS assigned,
         COALESCE(x.stock_synchronized, TRUE) AS stock_synchronized,
         COALESCE(x.is_shared, FALSE) AS is_shared,
-        COALESCE(x.rsd_qty, 0) AS rsd_qty,
         COALESCE(x.tot_wt, 0) AS tot_wt,
         COALESCE(x.net_wt, 0) AS net_wt,
         x.isrcc_cd,
@@ -214,13 +212,10 @@ BEGIN
         x.unit,
         x.product_name,
         x.category_id,
-        x.category_name,
-        x.bcd_u,
-        x.category
+        x.category_name
     FROM jsonb_to_recordset(p_variants) AS x(
         name TEXT,
         sku TEXT,
-        barcode TEXT,
         retail_price DECIMAL,
         supply_price DECIMAL,
         quantity DECIMAL,
@@ -280,7 +275,6 @@ BEGIN
         assigned BOOLEAN,
         stock_synchronized BOOLEAN,
         is_shared BOOLEAN,
-        rsd_qty DECIMAL,
         tot_wt INTEGER,
         net_wt INTEGER,
         isrcc_cd TEXT,
@@ -295,7 +289,6 @@ BEGIN
         category_id TEXT,
         category_name TEXT,
         bcd_u TEXT,
-        quantity DECIMAL,
         category TEXT
     )
     LOOP
@@ -336,7 +329,6 @@ BEGIN
         INSERT INTO variants (
             name,
             sku,
-            bar_code,
             product_id,
             retail_price,
             supply_price,
@@ -398,12 +390,10 @@ BEGIN
             assigned,
             stock_synchronized,
             is_shared,
-            rsd_qty,
             tot_wt,
             net_wt,
             isrcc_cd,
             isrc_amt,
-            dc_amt,
             taxbl_amt,
             tax_amt,
             tot_amt,
@@ -411,14 +401,10 @@ BEGIN
             unit,
             product_name,
             category_id,
-            category_name,
-            bcd_u,
-            quantity,
-            category
+            category_name
         ) VALUES (
             var_record.name,
             var_record.sku,
-            var_record.bar_code,
             v_product_id,
             var_record.retail_price,
             var_record.supply_price,
@@ -480,12 +466,10 @@ BEGIN
             var_record.assigned,
             var_record.stock_synchronized,
             var_record.is_shared,
-            var_record.rsd_qty,
             var_record.tot_wt,
             var_record.net_wt,
             var_record.isrcc_cd,
             var_record.isrc_amt,
-            var_record.dc_amt,
             var_record.taxbl_amt,
             var_record.tax_amt,
             var_record.tot_amt,
@@ -493,10 +477,7 @@ BEGIN
             var_record.unit,
             var_record.product_name,
             var_record.category_id,
-            var_record.category_name,
-            var_record.bcd_u,
-            var_record.quantity,
-            var_record.category
+            var_record.category_name
         )
         RETURNING id INTO v_variant_id;
 
@@ -504,7 +485,7 @@ BEGIN
         variant_ids_arr := array_append(variant_ids_arr, v_variant_id);
 
         -- Create initial stock record for the variant
-        IF var_record.quantity > 0 THEN
+        IF var_record.variant_quantity > 0 THEN
             INSERT INTO stocks (
                 variant_id,
                 quantity,
@@ -513,7 +494,7 @@ BEGIN
                 created_at
             ) VALUES (
                 v_variant_id,
-                var_record.quantity,
+                var_record.variant_quantity,
                 p_business_id,
                 p_branch_id,
                 NOW()
