@@ -518,7 +518,7 @@ BEGIN
             var_record.supply_price,
             p_branch_id,
             var_record.color,
-            var_record.packaging_unit,
+            var_record.pkg_unit_cd,
             -- EBM field values
             generated_item_cd,
             var_record.isrc_aplcb_yn,
