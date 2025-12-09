@@ -332,7 +332,6 @@ BEGIN
             product_id,
             retail_price,
             supply_price,
-            business_id,
             branch_id,
             color,
             pkg_unit_cd,
@@ -408,7 +407,6 @@ BEGIN
             v_product_id,
             var_record.retail_price,
             var_record.supply_price,
-            p_business_id,
             p_branch_id,
             var_record.color,
             var_record.packaging_unit,
@@ -489,13 +487,11 @@ BEGIN
             INSERT INTO stocks (
                 variant_id,
                 quantity,
-                business_id,
                 branch_id,
                 created_at
             ) VALUES (
                 v_variant_id,
                 var_record.variant_quantity,
-                p_business_id,
                 p_branch_id,
                 NOW()
             )
