@@ -36,18 +36,21 @@ mixin TransactionMixinOld {
       required TextEditingController countryCodeController,
       required double discount}) async {
     try {
-      final taxExanbled = await ProxyService.strategy.isTaxEnabled(
-          businessId: ProxyService.box.getBusinessId()!,
-          branchId: ProxyService.box.getBranchId()!);
+      final businessId = ProxyService.box.getBusinessId();
+      final branchId = ProxyService.box.getBranchId();
+      if (businessId == null || branchId == null) {
+        throw Exception('Business ID or Branch ID not found');
+      }
+      final taxEnabled = await ProxyService.strategy
+          .isTaxEnabled(businessId: businessId, branchId: branchId);
       RwApiResponse? response;
       final ebm = await ProxyService.strategy
           .ebm(branchId: ProxyService.box.getBranchId()!);
       final hasUser = (await ProxyService.box.bhfId()) != null;
       final isTaxServiceStoped = ProxyService.box.stopTaxService() ?? false;
 
-      /// update transaction type
-
-      if (taxExanbled &&
+      // update transaction type
+      if (taxEnabled &&
           ebm?.taxServerUrl != null &&
           hasUser &&
           !isTaxServiceStoped) {
