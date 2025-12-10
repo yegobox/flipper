@@ -45,7 +45,7 @@ mixin TransactionMixinOld {
           .isTaxEnabled(businessId: businessId, branchId: branchId);
       RwApiResponse? response;
       final ebm = await ProxyService.strategy
-          .ebm(branchId: ProxyService.box.getBranchId()!);
+          .ebm(branchId: branchId);
       final hasUser = (await ProxyService.box.bhfId()) != null;
       final isTaxServiceStoped = ProxyService.box.stopTaxService() ?? false;
 
@@ -181,12 +181,18 @@ mixin TransactionMixinOld {
     required ITransaction pendingTransaction,
     String? sarTyCd,
   }) async {
+    final businessId = ProxyService.box.getBusinessId();
+    final branchId = ProxyService.box.getBranchId();
+    if (businessId == null || branchId == null) {
+      throw Exception('Business ID or Branch ID not found');
+    }
+
     Business? business = await ProxyService.strategy
-        .getBusiness(businessId: ProxyService.box.getBusinessId()!);
+        .getBusiness(businessId: businessId);
 
     final bool isEbmEnabled = await ProxyService.strategy.isTaxEnabled(
         businessId: business!.serverId,
-        branchId: ProxyService.box.getBranchId()!);
+        branchId: branchId);
     if (isEbmEnabled) {
       try {
         ProxyService.strategy.updateTransaction(
@@ -210,6 +216,11 @@ mixin TransactionMixinOld {
   Future<void> _completeTransactionAfterTaxValidation(ITransaction transaction,
       {required String customerName, required String countryCode}) async {
     try {
+      final branchId = ProxyService.box.getBranchId();
+      if (branchId == null) {
+        throw Exception('Branch ID not found');
+      }
+
       final bhfId = (await ProxyService.box.bhfId()) ?? "00";
       final amount = double.tryParse(
               ProxyService.box.readString(key: 'receivedAmount') ?? "0") ??
@@ -246,7 +257,7 @@ mixin TransactionMixinOld {
       transaction.taxAmount = totalTax;
       // First collect the payment
       ProxyService.strategy.collectPayment(
-        branchId: ProxyService.box.getBranchId()!,
+        branchId: branchId,
         isProformaMode: ProxyService.box.isProformaMode(),
         isTrainingMode: ProxyService.box.isTrainingMode(),
         countryCode: countryCode,
