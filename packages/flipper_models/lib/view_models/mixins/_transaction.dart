@@ -36,8 +36,9 @@ mixin TransactionMixinOld {
       required TextEditingController countryCodeController,
       required double discount}) async {
     try {
-      final taxExanbled = await ProxyService.strategy
-          .isTaxEnabled(businessId: ProxyService.box.getBusinessId()!);
+      final taxExanbled = await ProxyService.strategy.isTaxEnabled(
+          businessId: ProxyService.box.getBusinessId()!,
+          branchId: ProxyService.box.getBranchId()!);
       RwApiResponse? response;
       final ebm = await ProxyService.strategy
           .ebm(branchId: ProxyService.box.getBranchId()!);
@@ -180,8 +181,9 @@ mixin TransactionMixinOld {
     Business? business = await ProxyService.strategy
         .getBusiness(businessId: ProxyService.box.getBusinessId()!);
 
-    final bool isEbmEnabled = await ProxyService.strategy
-        .isTaxEnabled(businessId: business!.serverId);
+    final bool isEbmEnabled = await ProxyService.strategy.isTaxEnabled(
+        businessId: business!.serverId,
+        branchId: ProxyService.box.getBranchId()!);
     if (isEbmEnabled) {
       try {
         ProxyService.strategy.updateTransaction(

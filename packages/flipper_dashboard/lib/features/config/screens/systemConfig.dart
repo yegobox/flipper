@@ -33,15 +33,20 @@ class _SystemConfigState extends ConsumerState<SystemConfig> {
       onViewModelReady: (model) async {
         try {
           final isTaxEnabledForBusiness = await ProxyService.strategy
-              .isTaxEnabled(businessId: ProxyService.box.getBusinessId()!);
+              .isTaxEnabled(
+                businessId: ProxyService.box.getBusinessId()!,
+                branchId: ProxyService.box.getBranchId()!,
+              );
           if (isTaxEnabledForBusiness) {
             setState(() {
               isTaxEnabled = true;
             });
           }
-          Business? business = await ProxyService.strategy
-              .getBusiness(businessId: ProxyService.box.getBusinessId()!);
-          model.isEbmActive = business!.tinNumber != null &&
+          Business? business = await ProxyService.strategy.getBusiness(
+            businessId: ProxyService.box.getBusinessId()!,
+          );
+          model.isEbmActive =
+              business!.tinNumber != null &&
               (await ProxyService.box.bhfId()) != null &&
               business.dvcSrlNo != null &&
               business.taxEnabled == true;
@@ -73,11 +78,11 @@ class _SystemConfigState extends ConsumerState<SystemConfig> {
                     padding: const EdgeInsets.only(left: 16.0),
                     child: Text(
                       'System Configuration',
-                      style:
-                          Theme.of(context).textTheme.headlineMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.blueAccent,
-                              ),
+                      style: Theme.of(context).textTheme.headlineMedium
+                          ?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blueAccent,
+                          ),
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -132,8 +137,9 @@ class _SystemConfigState extends ConsumerState<SystemConfig> {
                           ),
                           const Spacer(),
                           Container(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 12.0),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12.0,
+                            ),
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(8.0),
                               border: Border.all(color: Colors.grey.shade300),

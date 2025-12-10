@@ -1785,8 +1785,9 @@ class CoreSync extends AiStrategyImpl
   @override
   Future<void> spawnIsolate(isolateHandler) async {
     try {
-      final isTaxEnabledFor =
-          await isTaxEnabled(businessId: ProxyService.box.getBusinessId()!);
+      final isTaxEnabledFor = await isTaxEnabled(
+          businessId: ProxyService.box.getBusinessId()!,
+          branchId: ProxyService.box.getBranchId()!);
       if (isTaxEnabledFor) {
         // 1. Create the ReceivePort to receive messages from the isolate
         receivePort = ReceivePort();
@@ -2316,9 +2317,69 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Future<bool> isTaxEnabled({required int businessId}) async {
-    final business = (await getBusiness(businessId: businessId));
-    return business?.tinNumber != null;
+  Future<bool> isTaxEnabled(
+      {required int businessId, required int branchId}) async {
+    try {
+      final ditto = dittoService.dittoInstance;
+      if (ditto == null) {
+        talker.error('Ditto not initialized');
+        return false;
+      }
+
+      // Query the ebms table using Ditto
+      String query =
+          'SELECT * FROM ebms WHERE businessId = :businessId AND branchId = :branchId';
+      final arguments = <String, dynamic>{
+        'businessId': businessId,
+        'branchId': branchId,
+      };
+
+      // Subscribe to ensure we have the latest data from Ditto mesh
+      await ditto.sync.registerSubscription(query, arguments: arguments);
+
+      // Use registerObserver to wait for data
+      final completer = Completer<List<dynamic>>();
+      final observer = ditto.store.registerObserver(
+        query,
+        arguments: arguments,
+        onChange: (result) {
+          if (!completer.isCompleted) {
+            completer.complete(result.items.toList());
+          }
+        },
+      );
+
+      List<dynamic> items = [];
+      try {
+        // Wait for data or timeout
+        items = await completer.future.timeout(
+          const Duration(seconds: 10),
+          onTimeout: () {
+            if (!completer.isCompleted) {
+              talker.warning('Timeout waiting for ebms data');
+              completer.complete([]);
+            }
+            return [];
+          },
+        );
+      } finally {
+        observer.cancel();
+      }
+
+      // Check if any EBM configuration exists and if VAT is enabled
+      if (items.isNotEmpty) {
+        final ebmData = items.first.value as Map<String, dynamic>;
+        final vatEnabled = ebmData['vatEnabled'] as bool?;
+        return vatEnabled ==
+            true; // Return true if vatEnabled is true, false otherwise
+      }
+
+      // If no EBM configuration found, tax is not enabled
+      return false;
+    } catch (e, st) {
+      talker.error('Error checking if tax is enabled from Ditto: $e\n$st');
+      return false;
+    }
   }
 
   @override
