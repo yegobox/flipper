@@ -672,7 +672,7 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  Future<bool> isTaxEnabled({required int businessId}) {
+  Future<bool> isTaxEnabled({required int businessId, required int branchId}) {
     // TODO: implement isTaxEnabled
     throw UnimplementedError();
   }
