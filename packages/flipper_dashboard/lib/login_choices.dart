@@ -44,6 +44,29 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
   final _routerService = locator<RouterService>();
 
   @override
+  void initState() {
+    super.initState();
+    // Validate that userId is set before allowing access to this page
+    _validateUserId();
+  }
+
+  /// Validates that userId is set in ProxyService.box before proceeding
+  void _validateUserId() {
+    final userId = ProxyService.box.getUserId();
+    if (userId == null) {
+      talker.error(
+        'Accessing LoginChoices without userId set. Redirecting to login.',
+      );
+      // Navigate back to login screen if userId is not set
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _routerService.clearStackAndShow(LoginRoute());
+        }
+      });
+    }
+  }
+
+  @override
   void dispose() {
     _navigationTimer?.cancel();
     super.dispose();
@@ -51,6 +74,34 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
 
   @override
   Widget build(BuildContext context) {
+    // Re-validate userId exists during build to prevent errors if it gets cleared
+    final userId = ProxyService.box.getUserId();
+    if (userId == null || userId <= 0) {
+      talker.error(
+        'UserId is not set or invalid in LoginChoices build. Redirecting to login.',
+      );
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _routerService.clearStackAndShow(LoginRoute());
+      });
+      // Show a loading indicator while redirecting
+      return Scaffold(
+        backgroundColor: Colors.white,
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const CircularProgressIndicator(),
+              const SizedBox(height: 16),
+              Text(
+                'Validating session...',
+                style: TextStyle(color: Colors.grey[600]),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return ViewModelBuilder.nonReactive(
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, viewModel, child) {
@@ -478,19 +529,25 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     // Collect all storage write futures
     final futures = <Future>[];
 
-    futures.add(ProxyService.box.writeInt(key: 'businessId', value: business.serverId));
-    futures.add(ProxyService.box.writeString(
-      key: 'bhfId',
-      value: (await ProxyService.box.bhfId()) ?? "00",
-    ));
+    futures.add(
+      ProxyService.box.writeInt(key: 'businessId', value: business.serverId),
+    );
+    futures.add(
+      ProxyService.box.writeString(
+        key: 'bhfId',
+        value: (await ProxyService.box.bhfId()) ?? "00",
+      ),
+    );
 
     // Resolve effective TIN (prefer Ebm for active branch) and update box if needed
     final resolvedTin = await effectiveTin(business: business);
     if (resolvedTin != null || existingTin == null) {
-      futures.add(ProxyService.box.writeInt(
-        key: 'tin',
-        value: resolvedTin ?? existingTin ?? 0,
-      ));
+      futures.add(
+        ProxyService.box.writeInt(
+          key: 'tin',
+          value: resolvedTin ?? existingTin ?? 0,
+        ),
+      );
       talker.debug(
         'Setting tin to ${resolvedTin ?? existingTin ?? 0} (from ${resolvedTin != null ? 'ebm/business' : 'existing value'})',
       );
@@ -498,10 +555,12 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
       talker.debug('Preserving existing tin value: $existingTin');
     }
 
-    futures.add(ProxyService.box.writeString(
-      key: 'encryptionKey',
-      value: business.encryptionKey ?? "",
-    ));
+    futures.add(
+      ProxyService.box.writeString(
+        key: 'encryptionKey',
+        value: business.encryptionKey ?? "",
+      ),
+    );
 
     // Wait for all storage operations to complete
     await Future.wait(futures);

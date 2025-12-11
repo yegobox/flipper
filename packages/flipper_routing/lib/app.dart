@@ -860,6 +860,7 @@ class App {}
 // │     - See GEMINI.md for all available commands                                                                                                                                                                                                             │
 // │  3. Update CONSTITUTION.md with your project's non-negotiable principles
 // supabase migration up --include-all  (push local migration to supabase)
+// supabase migration down
 // supabase db push --include-all  (push remote migrations to supabase)
 
 // supabase migration down 
