@@ -78,11 +78,10 @@ mixin EbmMixin implements EbmInterface {
       final arguments = {'branchId': branchId};
 
       // If fetchRemote is true, ensure sync subscription is active
-      if (fetchRemote) {
-        await ditto.sync.registerSubscription(query, arguments: arguments);
-        // Give it a moment to sync
-        await Future.delayed(const Duration(milliseconds: 500));
-      }
+
+      await ditto.sync.registerSubscription(query, arguments: arguments);
+      // Give it a moment to sync
+      await Future.delayed(const Duration(milliseconds: 500));
 
       // Execute query directly
       final result = await ditto.store.execute(query, arguments: arguments);
@@ -93,16 +92,16 @@ mixin EbmMixin implements EbmInterface {
       // Parse first result
       final ebmData = items.first.value;
       final ebm = Ebm(
-        id: ebmData['id'] as String,
-        mrc: ebmData['mrc'] as String,
-        bhfId: ebmData['bhfId'] as String,
-        tinNumber: ebmData['tinNumber'] as int,
-        dvcSrlNo: ebmData['dvcSrlNo'] as String,
-        userId: ebmData['userId'] as int,
-        taxServerUrl: ebmData['taxServerUrl'] as String,
-        businessId: ebmData['businessId'] as int,
-        branchId: ebmData['branchId'] as int,
-        vatEnabled: ebmData['vatEnabled'] as bool?,
+        id: ebmData['id'] as String? ?? ebmData['_id'] as String?,
+        mrc: ebmData['mrc'] as String? ?? '',
+        bhfId: ebmData['bhfId'] as String? ?? ebmData['bhf_id'] as String? ?? '',
+        tinNumber: ebmData['tinNumber'] as int? ?? ebmData['tin_number'] as int? ?? 0,
+        dvcSrlNo: ebmData['dvcSrlNo'] as String? ?? ebmData['dvc_srl_no'] as String? ?? "",
+        userId: ebmData['userId'] as int? ?? ebmData['user_id'] as int? ?? ProxyService.box.getUserId() ?? 0,
+        taxServerUrl: ebmData['taxServerUrl'] as String? ?? ebmData['tax_server_url'] as String? ?? '',
+        businessId: ebmData['businessId'] as int? ?? ebmData['business_id'] as int? ?? ProxyService.box.getBusinessId() ?? 0,
+        branchId: ebmData['branchId'] as int? ?? ebmData['branch_id'] as int? ?? branchId,
+        vatEnabled: ebmData['vatEnabled'] as bool? ?? ebmData['vat_enabled'] as bool?,
       );
 
       // Save to local storage if fetched from remote
@@ -120,8 +119,8 @@ mixin EbmMixin implements EbmInterface {
   Future<void> _saveEbmToLocalStorage(Ebm ebm) async {
     try {
       await ProxyService.box
-          .writeString(key: "getServerUrl", value: ebm.taxServerUrl);
-      await ProxyService.box.writeString(key: "bhfId", value: ebm.bhfId);
+          .writeString(key: "getServerUrl", value: ebm.taxServerUrl ?? "");
+      await ProxyService.box.writeString(key: "bhfId", value: ebm.bhfId ?? "");
     } catch (e) {
       talker.warning('Failed to save EBM to local storage: $e');
     }
