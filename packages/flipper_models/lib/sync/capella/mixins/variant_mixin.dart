@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/sync/interfaces/variant_interface.dart';
 import 'package:flipper_models/sync/models/paged_variants.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flipper_web/services/ditto_service.dart';
+import 'package:flipper_services/log_service.dart';
 import 'package:talker/talker.dart';
 
 mixin CapellaVariantMixin implements VariantInterface {
@@ -29,12 +31,53 @@ mixin CapellaVariantMixin implements VariantInterface {
     bool fetchRemote = false,
     List<String>? taxTyCds,
   }) async {
+    final logService = LogService();
     try {
+      // Log initial parameters for debugging
+      await logService.logException(
+        'Starting variants fetch',
+        type: 'business_fetch',
+        tags: {
+          'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+          'method': 'variants',
+          'branchId': branchId.toString(),
+          'productId': productId?.toString() ?? 'null',
+          'forImportScreen': forImportScreen.toString(),
+          'forPurchaseScreen': forPurchaseScreen.toString(),
+          'page': page?.toString() ?? 'null',
+          'itemsPerPage': itemsPerPage?.toString() ?? 'null',
+          'name': name ?? 'null',
+          'bcd': bcd ?? 'null',
+          'purchaseId': purchaseId ?? 'null',
+          'imptItemSttsCd': imptItemSttsCd ?? 'null',
+          'taxTyCds': taxTyCds?.join(',') ?? 'null',
+        },
+      );
+
       final ditto = dittoService.dittoInstance;
       if (ditto == null) {
         talker.error('Ditto not initialized');
+        await logService.logException(
+          'Ditto service not initialized',
+          type: 'business_fetch',
+          tags: {
+            'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+            'method': 'variants',
+            'branchId': branchId.toString(),
+          },
+        );
         return PagedVariants(variants: [], totalCount: 0);
       }
+
+      await logService.logException(
+        'Ditto instance available',
+        type: 'business_fetch',
+        tags: {
+          'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+          'method': 'variants',
+          'branchId': branchId.toString(),
+        },
+      );
 
       // Base query
       String query = 'SELECT * FROM variants WHERE branchId = :branchId';
@@ -98,28 +141,79 @@ mixin CapellaVariantMixin implements VariantInterface {
         arguments['offset'] = offset;
       }
 
+      await logService.logException(
+        'Prepared Ditto query',
+        type: 'business_fetch',
+        tags: {
+          'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+          'method': 'variants',
+          'branchId': branchId.toString(),
+          'query': query,
+          'arguments': arguments.toString(),
+        },
+      );
+
       talker.info('Executing Ditto query: $query with args: $arguments');
 
       // Subscribe to ensure we have the latest data from Ditto mesh
+      await logService.logException(
+        'Registering Ditto subscription',
+        type: 'business_fetch',
+        tags: {
+          'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+          'method': 'variants',
+          'branchId': branchId.toString(),
+        },
+      );
       await ditto.sync.registerSubscription(query, arguments: arguments);
 
       // Use registerObserver to wait for data
       final completer = Completer<List<dynamic>>();
+      await logService.logException(
+        'Registering Ditto observer',
+        type: 'business_fetch',
+        tags: {
+          'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+          'method': 'variants',
+          'branchId': branchId.toString(),
+        },
+      );
       final observer = ditto.store.registerObserver(
         query,
         arguments: arguments,
         onChange: (result) {
           if (!completer.isCompleted) {
-            if (result.items.isNotEmpty) {
-              completer.complete(result.items.toList());
-            } else {
-              completer.complete([]);
-            }
+            final itemCount = result.items.length;
+            logService.logException(
+              'Observer onChange triggered with $itemCount items',
+              type: 'business_fetch',
+              tags: {
+                'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+                'method': 'variants',
+                'branchId': branchId.toString(),
+                'itemCount': itemCount.toString(),
+              },
+            ).then((_) {
+              if (result.items.isNotEmpty) {
+                completer.complete(result.items.toList());
+              } else {
+                completer.complete([]);
+              }
+            });
           }
         },
       );
 
       List<dynamic> items = [];
+      await logService.logException(
+        'Waiting for observer data',
+        type: 'business_fetch',
+        tags: {
+          'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+          'method': 'variants',
+          'branchId': branchId.toString(),
+        },
+      );
       try {
         // Wait for data or timeout
         items = await completer.future.timeout(
@@ -127,6 +221,16 @@ mixin CapellaVariantMixin implements VariantInterface {
           onTimeout: () {
             if (!completer.isCompleted) {
               talker.warning('Timeout waiting for variants list');
+              logService.logException(
+                'Observer timeout waiting for variants',
+                type: 'business_fetch',
+                tags: {
+                  'userId':
+                      ProxyService.box.getUserId()?.toString() ?? 'unknown',
+                  'method': 'variants',
+                  'branchId': branchId.toString(),
+                },
+              );
               completer.complete([]);
             }
             return [];
@@ -135,6 +239,17 @@ mixin CapellaVariantMixin implements VariantInterface {
       } finally {
         observer.cancel();
       }
+
+      await logService.logException(
+        'Received ${items.length} items from observer',
+        type: 'business_fetch',
+        tags: {
+          'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+          'method': 'variants',
+          'branchId': branchId.toString(),
+          'itemsCount': items.length.toString(),
+        },
+      );
 
       // Prepare count query if pagination enabled
       int? totalCount;
@@ -199,11 +314,33 @@ mixin CapellaVariantMixin implements VariantInterface {
           .map((doc) => Variant.fromJson(Map<String, dynamic>.from(doc.value)))
           .toList();
 
+      await logService.logException(
+        'Successfully parsed ${variants.length} variants (totalCount: $totalCount)',
+        type: 'business_fetch',
+        tags: {
+          'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+          'method': 'variants',
+          'branchId': branchId.toString(),
+          'parsedVariantsCount': variants.length.toString(),
+          'totalCount': totalCount?.toString() ?? 'null',
+        },
+      );
+
       talker.info(
           'Returning ${variants.length} variants (totalCount: $totalCount)');
       return PagedVariants(variants: variants, totalCount: totalCount);
     } catch (e, st) {
       talker.error('Error fetching variants from Ditto: $e\n$st');
+      await logService.logException(
+        'Failed to fetch variants from Ditto',
+        stackTrace: st,
+        type: 'business_fetch',
+        tags: {
+          'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+          'method': 'variants',
+          'error': e.toString(),
+        },
+      );
       return PagedVariants(variants: [], totalCount: 0);
     }
   }
@@ -221,9 +358,41 @@ mixin CapellaVariantMixin implements VariantInterface {
     String? itemCd,
     String? productId,
   }) async {
+    final logService = LogService();
     try {
+      // Log initial parameters for debugging
+      await logService.logException(
+        'Starting getVariant fetch',
+        type: 'business_fetch',
+        tags: {
+          'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+          'method': 'getVariant',
+          'id': id?.toString() ?? 'null',
+          'modrId': modrId?.toString() ?? 'null',
+          'name': name?.toString() ?? 'null',
+          'bcd': bcd?.toString() ?? 'null',
+          'stockId': stockId?.toString() ?? 'null',
+          'taskCd': taskCd?.toString() ?? 'null',
+          'itemClsCd': itemClsCd?.toString() ?? 'null',
+          'itemNm': itemNm?.toString() ?? 'null',
+          'itemCd': itemCd?.toString() ?? 'null',
+          'productId': productId?.toString() ?? 'null',
+        },
+      );
+
       if (dittoService.dittoInstance == null) {
         talker.error('Ditto not initialized');
+        await logService.logException(
+          'Ditto service not initialized in getVariant',
+          type: 'business_fetch',
+          tags: {
+            'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+            'method': 'getVariant',
+            'id': id?.toString() ?? 'null',
+            'bcd': bcd?.toString() ?? 'null',
+            'name': name?.toString() ?? 'null',
+          },
+        );
         return null;
       }
 
@@ -233,20 +402,80 @@ mixin CapellaVariantMixin implements VariantInterface {
       if (id != null) {
         query += '_id = :id';
         arguments['id'] = id;
+        await logService.logException(
+          'Using ID filter for getVariant',
+          type: 'business_fetch',
+          tags: {
+            'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+            'method': 'getVariant',
+            'filter': 'id',
+            'value': id,
+          },
+        );
       } else if (bcd != null) {
         query += 'bcd = :bcd';
         arguments['bcd'] = bcd;
+        await logService.logException(
+          'Using BCD filter for getVariant',
+          type: 'business_fetch',
+          tags: {
+            'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+            'method': 'getVariant',
+            'filter': 'bcd',
+            'value': bcd,
+          },
+        );
       } else if (name != null) {
         query += 'name = :name';
         arguments['name'] = name;
+        await logService.logException(
+          'Using name filter for getVariant',
+          type: 'business_fetch',
+          tags: {
+            'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+            'method': 'getVariant',
+            'filter': 'name',
+            'value': name,
+          },
+        );
       } else if (productId != null) {
         query += 'productId = :productId';
         arguments['productId'] = productId;
+        await logService.logException(
+          'Using productId filter for getVariant',
+          type: 'business_fetch',
+          tags: {
+            'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+            'method': 'getVariant',
+            'filter': 'productId',
+            'value': productId,
+          },
+        );
       } else {
+        await logService.logException(
+          'No valid filter provided for getVariant',
+          type: 'business_fetch',
+          tags: {
+            'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+            'method': 'getVariant',
+            'filtersProvided': 'none',
+          },
+        );
         return null;
       }
 
       query += ' LIMIT 1';
+
+      await logService.logException(
+        'Prepared getVariant query',
+        type: 'business_fetch',
+        tags: {
+          'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+          'method': 'getVariant',
+          'query': query,
+          'arguments': arguments.toString(),
+        },
+      );
 
       // Subscribe to ensure we have the latest data
       await dittoService.dittoInstance!.sync.registerSubscription(
@@ -254,19 +483,40 @@ mixin CapellaVariantMixin implements VariantInterface {
         arguments: arguments,
       );
 
+      await logService.logException(
+        'Registered subscription for getVariant',
+        type: 'business_fetch',
+        tags: {
+          'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+          'method': 'getVariant',
+          'query': query,
+        },
+      );
+
       final completer = Completer<Variant?>();
       final observer = dittoService.dittoInstance!.store.registerObserver(
         query,
         arguments: arguments,
         onChange: (result) {
-          if (!completer.isCompleted) {
-            if (result.items.isNotEmpty) {
-              completer.complete(Variant.fromJson(
-                  Map<String, dynamic>.from(result.items.first.value)));
-            } else {
-              completer.complete(null);
+          final itemCount = result.items.length;
+          logService.logException(
+            'GetVariant observer onChange triggered with $itemCount items',
+            type: 'business_fetch',
+            tags: {
+              'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+              'method': 'getVariant',
+              'itemCount': itemCount.toString(),
+            },
+          ).then((_) {
+            if (!completer.isCompleted) {
+              if (result.items.isNotEmpty) {
+                completer.complete(Variant.fromJson(
+                    Map<String, dynamic>.from(result.items.first.value)));
+              } else {
+                completer.complete(null);
+              }
             }
-          }
+          });
         },
       );
 
@@ -279,17 +529,50 @@ mixin CapellaVariantMixin implements VariantInterface {
           onTimeout: () {
             if (!completer.isCompleted) {
               talker.warning('Timeout waiting for variant: $id / $bcd / $name');
+              logService.logException(
+                'GetVariant observer timeout',
+                type: 'business_fetch',
+                tags: {
+                  'userId':
+                      ProxyService.box.getUserId()?.toString() ?? 'unknown',
+                  'method': 'getVariant',
+                  'id': id?.toString() ?? 'null',
+                  'bcd': bcd?.toString() ?? 'null',
+                  'name': name?.toString() ?? 'null',
+                },
+              );
               completer.complete(null);
             }
             return null;
           },
         );
+
+        await logService.logException(
+          'GetVariant completed with ${variant != null ? 'success' : 'null'} result',
+          type: 'business_fetch',
+          tags: {
+            'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+            'method': 'getVariant',
+            'hasResult': (variant != null).toString(),
+          },
+        );
+
         return variant;
       } finally {
         observer.cancel();
       }
-    } catch (e) {
-      talker.error('Error getting variant from Ditto: $e');
+    } catch (e, st) {
+      talker.error('Error getting variant from Ditto: $e\n$st');
+      await logService.logException(
+        'Failed to get variant from Ditto',
+        stackTrace: st,
+        type: 'business_fetch',
+        tags: {
+          'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+          'method': 'getVariant',
+          'error': e.toString(),
+        },
+      );
       return null;
     }
   }
@@ -366,28 +649,105 @@ mixin CapellaVariantMixin implements VariantInterface {
   Future<List<Variant>> variantsByStockId({
     required String stockId,
   }) async {
+    final logService = LogService();
     // Implement fetching variants by stockId using Ditto
     try {
+      await logService.logException(
+        'Starting variantsByStockId fetch',
+        type: 'business_fetch',
+        tags: {
+          'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+          'method': 'variantsByStockId',
+          'stockId': stockId,
+        },
+      );
+
       final ditto = dittoService.dittoInstance;
       if (ditto == null) {
         talker.error('Ditto not initialized');
+        await logService.logException(
+          'Ditto service not initialized in variantsByStockId',
+          type: 'business_fetch',
+          tags: {
+            'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+            'method': 'variantsByStockId',
+            'stockId': stockId,
+          },
+        );
         return [];
       }
 
       String query = 'SELECT * FROM variants WHERE stockId = :stockId';
       final arguments = <String, dynamic>{'stockId': stockId};
 
+      await logService.logException(
+        'Prepared variantsByStockId query',
+        type: 'business_fetch',
+        tags: {
+          'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+          'method': 'variantsByStockId',
+          'query': query,
+          'arguments': arguments.toString(),
+        },
+      );
+
       // Subscribe to ensure we have the latest data
       await ditto.sync.registerSubscription(query, arguments: arguments);
 
+      await logService.logException(
+        'Registered subscription for variantsByStockId',
+        type: 'business_fetch',
+        tags: {
+          'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+          'method': 'variantsByStockId',
+          'query': query,
+        },
+      );
+
       final result = await ditto.store.execute(query, arguments: arguments);
       var items = result.items;
-      return items
+
+      await logService.logException(
+        'Fetched ${items.length} items from variantsByStockId query',
+        type: 'business_fetch',
+        tags: {
+          'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+          'method': 'variantsByStockId',
+          'itemsCount': items.length.toString(),
+          'stockId': stockId,
+        },
+      );
+
+      final variants = items
           .map(
               (item) => Variant.fromJson(Map<String, dynamic>.from(item.value)))
           .toList();
-    } catch (e) {
-      talker.error('Error fetching variants by stockId: $e');
+
+      await logService.logException(
+        'Successfully parsed ${variants.length} variants by stockId',
+        type: 'business_fetch',
+        tags: {
+          'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+          'method': 'variantsByStockId',
+          'parsedVarsCount': variants.length.toString(),
+          'stockId': stockId,
+        },
+      );
+
+      return variants;
+    } catch (e, st) {
+      talker.error('Error fetching variants by stockId: $e\n$st');
+      await logService.logException(
+        'Failed to fetch variants by stockId',
+        stackTrace: st,
+        type: 'business_fetch',
+        tags: {
+          'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+          'method': 'variantsByStockId',
+          'error': e.toString(),
+          'stockId': stockId,
+        },
+      );
       return [];
     }
   }
