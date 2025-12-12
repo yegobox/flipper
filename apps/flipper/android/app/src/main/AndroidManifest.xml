@@ -27,10 +27,6 @@
 <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE" />
 <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
 <uses-permission android:name="android.permission.NEARBY_WIFI_DEVICES" android:usesPermissionFlags="neverForLocation" tools:targetApi="tiramisu" />
-<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
-<uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" tools:targetApi="upside_down_cake" />
-<uses-permission android:name="android.permission.POST_NOTIFICATIONS" tools:targetApi="tiramisu" />
-
 <!-- end ditto -->
     
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
@@ -52,7 +48,7 @@
             <action android:name="com.htc.intent.action.QUICKBOOT_POWERON"/>
             </intent-filter>
         </receiver>
-        <service
+         <service
             android:name="live.ditto.transports.foregroundservice.DefaultDittoForegroundService"
             android:exported="false"
             android:foregroundServiceType="connectedDevice"
@@ -64,18 +60,6 @@
             <meta-data android:name="notificationText" android:value="Syncing data across connected devices" />
             <meta-data android:name="notificationId" android:value="1001" />
         </service>
-        <!-- <service
-            android:name="live.ditto.transports.foregroundservice.DefaultDittoForegroundService"
-            android:exported="false"
-            android:foregroundServiceType="connectedDevice"
-            android:stopWithTask="true">
-            <meta-data android:name="notificationChannelName" android:value="Background Data Sync" />
-            <meta-data android:name="notificationChannelId" android:value="BackgroundDataSyncId" />
-            <meta-data android:name="smallIcon" android:resource="@drawable/app_icon" />
-            <meta-data android:name="notificationTitle" android:value="Syncing Data" />
-            <meta-data android:name="notificationText" android:value="Syncing data across connected devices" />
-            <meta-data android:name="notificationId" android:value="1001" />
-        </service> -->
 
          <property
             android:name="android.app.property.16KB_PAGE_SIZE"
