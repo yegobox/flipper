@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/models/log.model.dart';
@@ -44,8 +45,8 @@ $formattedStack
         message: message,
         type: type ?? 'exception',
         businessId: logBusinessId,
-        // tags: tags,
-        // extra: null,
+        tags: tags != null ? jsonEncode(tags) : null,
+        extra: extra != null ? jsonEncode(extra) : null,
       );
 
       // Save to database
@@ -80,8 +81,8 @@ $formattedStack
         message: message,
         type: type ?? 'message',
         businessId: logBusinessId,
-        // tags: tags,
-        // extra: null,
+        tags: tags != null ? jsonEncode(tags) : null,
+        extra: extra != null ? jsonEncode(extra) : null,
       );
 
       // Save to database
@@ -97,10 +98,23 @@ $formattedStack
     try {
       // Use the strategy to save the log
       log.createdAt = DateTime.now();
-      // log.tags = {
-      //   'type': log.type ?? 'unknown',
-      //   'businessId': log.businessId?.toString() ?? 'unknown',
-      // };
+
+      // Add default tags if not already present
+      final Map<String, String> defaultTags = {
+        'type': log.type ?? 'unknown',
+        'businessId': log.businessId?.toString() ?? 'unknown',
+        'timestamp': log.createdAt?.millisecondsSinceEpoch.toString() ??
+            DateTime.now().millisecondsSinceEpoch.toString(),
+      };
+
+      // Merge provided tags with default tags (provided tags take precedence)
+      if (log.parsedTags != null) {
+        final combinedTags = {...defaultTags, ...log.parsedTags!};
+        log.setTags(combinedTags);
+      } else {
+        log.setTags(defaultTags);
+      }
+
       await ProxyService.strategy.saveLog(log);
     } catch (e, st) {
       talker.error('LogService failed to save log: $e', st);

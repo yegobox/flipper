@@ -1,3 +1,4 @@
+import 'package:flipper_services/log_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -25,6 +26,16 @@ Future<bool> getVatEnabledFromEbm() async {
     if (branchId == null) return false;
 
     final ebm = await ProxyService.strategy.ebm(branchId: branchId);
+    final logService = LogService();
+    await logService.logException(
+      "Logger ${ebm?.vatEnabled}",
+      // stackTrace: "Logger",
+      type: 'business_fetch',
+      tags: {
+        'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+        'method': 'businessesProvider',
+      },
+    );
     return ebm?.vatEnabled ?? false;
   } catch (e) {
     return false;
