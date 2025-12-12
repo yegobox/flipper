@@ -55,7 +55,7 @@ mixin CapellaVariantMixin implements VariantInterface {
       );
 
       final ditto = dittoService.dittoInstance;
-      dittoService.startSync();
+      dittoService.dittoInstance?.startSync();
       if (ditto == null) {
         talker.error('Ditto not initialized');
         await logService.logException(
@@ -165,6 +165,7 @@ mixin CapellaVariantMixin implements VariantInterface {
           'method': 'variants',
           'branchId': branchId.toString(),
         },
+        extra: {'query': query, 'arguments': arguments.toString()},
       );
       await ditto.sync.registerSubscription(query, arguments: arguments);
 
@@ -178,6 +179,7 @@ mixin CapellaVariantMixin implements VariantInterface {
           'method': 'variants',
           'branchId': branchId.toString(),
         },
+        extra: {'query': query, 'arguments': arguments.toString()},
       );
       final observer = ditto.store.registerObserver(
         query,

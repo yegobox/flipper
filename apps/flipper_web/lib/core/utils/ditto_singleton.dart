@@ -63,14 +63,14 @@ class DittoSingleton {
 
       // Configure transport
       _ditto!.updateTransportConfig((config) {
-        config.connect.webSocketUrls.clear();
-        
+        // config.connect.webSocketUrls.clear();
+
         if (kIsWeb) {
           config.setAllPeerToPeerEnabled(false);
         } else {
           config.setAllPeerToPeerEnabled(true);
         }
-        
+
         config.connect.webSocketUrls.add("wss://$appId.cloud.ditto.live");
       });
 
