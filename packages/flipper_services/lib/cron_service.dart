@@ -87,44 +87,58 @@ class CronService {
         Permission.bluetoothAdvertise,
         Permission.nearbyWifiDevices,
         Permission.bluetoothScan,
-        Permission.location, // Required for Ditto on Android
-      ].request().then((statuses) {
+      ].request().then((statuses) async {
         // Check if location permission was granted (especially important for Android)
         if (platform == SupportedPlatform.android) {
-          Permission.location.status.then((locationStatus) async {
-            if (locationStatus != PermissionStatus.granted) {
-              debugPrint(
-                  '⚠️ Location permission not granted. Ditto sync may not work properly on Android.');
-              debugPrint(
-                  'Please ensure location permission is granted for proper sync functionality.');
+          // Check all requested permissions
+          final allPermissions = [
+            Permission.bluetoothConnect,
+            Permission.bluetoothAdvertise,
+            Permission.nearbyWifiDevices,
+            Permission.bluetoothScan,
+          ];
 
-              await logService.logException(
-                'Location permission not granted',
-                type: 'business_fetch',
-                tags: {
-                  'userId':
-                      ProxyService.box.getUserId()?.toString() ?? 'unknown',
-                  'method': 'variants',
-                  'platform': platform.toString(),
-                  'locationStatus': locationStatus.toString(),
-                },
-              );
-            } else {
-              debugPrint(
-                  '✅ Location permission granted for Ditto sync on Android.');
-              await logService.logException(
-                'Location permission granted',
-                type: 'business_fetch',
-                tags: {
-                  'userId':
-                      ProxyService.box.getUserId()?.toString() ?? 'unknown',
-                  'method': 'variants',
-                  'platform': platform.toString(),
-                  'locationStatus': locationStatus.toString(),
-                },
-              );
+          bool allPermissionsGranted = true;
+          List<String> deniedPermissions = [];
+
+          for (var permission in allPermissions) {
+            final status = await permission.status;
+            if (status != PermissionStatus.granted) {
+              allPermissionsGranted = false;
+              deniedPermissions.add(permission.toString());
             }
-          });
+          }
+
+          if (!allPermissionsGranted) {
+            debugPrint(
+                '⚠️ Some permissions not granted. Ditto sync may not work properly on Android. Denied: ${deniedPermissions.join(", ")}');
+            debugPrint(
+                'Please ensure all requested permissions are granted for proper sync functionality.');
+
+            await logService.logException(
+              'Some permissions not granted: ${deniedPermissions.join(", ")}',
+              type: 'cron_service',
+              tags: {
+                'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+                'method': 'cron_service',
+                'platform': platform.toString(),
+                'denied_permissions': deniedPermissions.join(", "),
+              },
+            );
+          } else {
+            debugPrint(
+                '✅ All required permissions granted for Ditto sync on Android.');
+            await logService.logException(
+              'All permissions granted',
+              type: 'cron_service',
+              tags: {
+                'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+                'method': 'cron_service',
+                'platform': platform.toString(),
+                'all_permissions_granted': 'true',
+              },
+            );
+          }
         }
       });
     }
