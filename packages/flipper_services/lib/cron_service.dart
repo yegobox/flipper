@@ -9,6 +9,7 @@ import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_services/drive_service.dart';
+import 'package:flipper_services/log_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -79,13 +80,53 @@ class CronService {
   Future<void> _initializeData() async {
     final platform = Ditto.currentPlatform;
     if (platform case SupportedPlatform.android || SupportedPlatform.ios) {
+      final logService = LogService();
+      // Request all necessary permissions
       [
         Permission.bluetoothConnect,
         Permission.bluetoothAdvertise,
         Permission.nearbyWifiDevices,
         Permission.bluetoothScan,
         Permission.location, // Required for Ditto on Android
-      ].request();
+      ].request().then((statuses) {
+        // Check if location permission was granted (especially important for Android)
+        if (platform == SupportedPlatform.android) {
+          Permission.location.status.then((locationStatus) async {
+            if (locationStatus != PermissionStatus.granted) {
+              debugPrint(
+                  '⚠️ Location permission not granted. Ditto sync may not work properly on Android.');
+              debugPrint(
+                  'Please ensure location permission is granted for proper sync functionality.');
+
+              await logService.logException(
+                'Location permission not granted',
+                type: 'business_fetch',
+                tags: {
+                  'userId':
+                      ProxyService.box.getUserId()?.toString() ?? 'unknown',
+                  'method': 'variants',
+                  'platform': platform.toString(),
+                  'locationStatus': locationStatus.toString(),
+                },
+              );
+            } else {
+              debugPrint(
+                  '✅ Location permission granted for Ditto sync on Android.');
+              await logService.logException(
+                'Location permission granted',
+                type: 'business_fetch',
+                tags: {
+                  'userId':
+                      ProxyService.box.getUserId()?.toString() ?? 'unknown',
+                  'method': 'variants',
+                  'platform': platform.toString(),
+                  'locationStatus': locationStatus.toString(),
+                },
+              );
+            }
+          });
+        }
+      });
     }
 
     // Listen for delegated transactions from mobile devices
