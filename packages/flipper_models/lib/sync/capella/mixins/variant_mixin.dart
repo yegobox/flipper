@@ -55,6 +55,7 @@ mixin CapellaVariantMixin implements VariantInterface {
       );
 
       final ditto = dittoService.dittoInstance;
+      dittoService.startSync();
       if (ditto == null) {
         talker.error('Ditto not initialized');
         await logService.logException(
@@ -196,8 +197,6 @@ mixin CapellaVariantMixin implements VariantInterface {
             ).then((_) {
               if (result.items.isNotEmpty) {
                 completer.complete(result.items.toList());
-              } else {
-                completer.complete([]);
               }
             });
           }
@@ -512,8 +511,6 @@ mixin CapellaVariantMixin implements VariantInterface {
               if (result.items.isNotEmpty) {
                 completer.complete(Variant.fromJson(
                     Map<String, dynamic>.from(result.items.first.value)));
-              } else {
-                completer.complete(null);
               }
             }
           });
