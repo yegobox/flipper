@@ -83,15 +83,6 @@ class DittoService {
 
   /// Sets the Ditto instance (called from main.dart after initialization)
   void setDitto(Ditto ditto) {
-    // Only set if we don't already have the same instance
-    if (_ditto == ditto) {
-      debugPrint('Same Ditto instance already set, skipping');
-      return;
-    }
-
-    _ditto = ditto;
-    _notifyDittoListeners();
-
     // Request necessary permissions for Ditto
     final platform = Ditto.currentPlatform;
     if (platform case SupportedPlatform.android || SupportedPlatform.ios) {
@@ -103,6 +94,15 @@ class DittoService {
         Permission.location, // Required for Ditto on Android
       ].request();
     }
+
+    // Only set if we don't already have the same instance
+    if (_ditto == ditto) {
+      debugPrint('Same Ditto instance already set, skipping');
+      return;
+    }
+
+    _ditto = ditto;
+    _notifyDittoListeners();
 
     // Log Ditto device info for debugging
     debugPrint('📱 Ditto device initialized: ${ditto.deviceName}');
@@ -604,7 +604,7 @@ class DittoService {
   }
 
   /// Save an event to the events collection
-  Future<void>  saveEvent(Map<String, dynamic> eventData, String eventId) async {
+  Future<void> saveEvent(Map<String, dynamic> eventData, String eventId) async {
     try {
       if (_ditto == null) {
         debugPrint('Ditto not initialized, cannot save event');

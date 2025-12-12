@@ -55,7 +55,7 @@ mixin CapellaVariantMixin implements VariantInterface {
       );
 
       final ditto = dittoService.dittoInstance;
-      dittoService.dittoInstance?.startSync();
+      // dittoService.dittoInstance?.startSync();
       if (ditto == null) {
         talker.error('Ditto not initialized');
         await logService.logException(
