@@ -10,6 +10,16 @@ final ebmVatEnabledProvider = FutureProvider<bool>((ref) async {
 
     final ebm = await ProxyService.strategy.ebm(branchId: branchId);
     // Return the VAT enabled status, default to false if ebm is null
+    final logService = LogService();
+    await logService.logException(
+      "Logger ${ebm?.vatEnabled}",
+      // stackTrace: "Logger",
+      type: 'business_fetch',
+      tags: {
+        'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+        'method': 'businessesProvider',
+      },
+    );
     return ebm?.vatEnabled ?? false;
   } catch (e) {
     // If there's an error, default to false

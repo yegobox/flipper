@@ -1,4 +1,5 @@
 import 'package:flipper_models/providers/branch_business_provider.dart';
+import 'package:flipper_models/providers/ebm_provider.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -33,7 +34,8 @@ class _MyDrawerState extends ConsumerState<MyDrawer> {
           Expanded(
             child: SingleChildScrollView(
               padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).padding.bottom +
+                bottom:
+                    MediaQuery.of(context).padding.bottom +
                     80, // Account for bottom section
               ),
               child: Column(
@@ -158,8 +160,9 @@ class _MyDrawerState extends ConsumerState<MyDrawer> {
                   color: const Color(0xFF0078D4),
                   onTap: () {
                     Navigator.pop(context);
-                    locator<RouterService>()
-                        .navigateTo(ScannViewRoute(intent: 'login'));
+                    locator<RouterService>().navigateTo(
+                      ScannViewRoute(intent: 'login'),
+                    );
                   },
                 ),
               ),
@@ -235,13 +238,15 @@ class _MyDrawerState extends ConsumerState<MyDrawer> {
             ),
           ),
           const SizedBox(height: 12),
-          ...businesses.map((business) => _ModernBusinessCard(
-                business: business,
-                switchingBranchId: _switchingBranchId,
-                onBranchSelected: (branch) {
-                  _handleBranchSelection(context, business, branch);
-                },
-              )),
+          ...businesses.map(
+            (business) => _ModernBusinessCard(
+              business: business,
+              switchingBranchId: _switchingBranchId,
+              onBranchSelected: (branch) {
+                _handleBranchSelection(context, business, branch);
+              },
+            ),
+          ),
         ],
       ),
     );
@@ -266,7 +271,7 @@ class _MyDrawerState extends ConsumerState<MyDrawer> {
           const SizedBox(height: 12), // Add some spacing
           _ModernMenuItem(
             icon: Icons.security_rounded,
-            title: 'Authenticator Setup',
+            title: 'Auth',
             color: const Color(0xFF0078D4), // Use a suitable color
             onTap: () {
               Navigator.pop(context); // Close the drawer
@@ -279,7 +284,7 @@ class _MyDrawerState extends ConsumerState<MyDrawer> {
           const SizedBox(height: 12),
           _ModernMenuItem(
             icon: Icons.sync_rounded,
-            title: 'Transaction Delegation',
+            title: 'Online Print',
             color: const Color(0xFF0078D4),
             onTap: () {
               Navigator.pop(context); // Close the drawer
@@ -319,8 +324,9 @@ class _MyDrawerState extends ConsumerState<MyDrawer> {
                               Container(
                                 padding: const EdgeInsets.all(8),
                                 decoration: BoxDecoration(
-                                  color:
-                                      const Color(0xFF0078D4).withOpacity(0.1),
+                                  color: const Color(
+                                    0xFF0078D4,
+                                  ).withOpacity(0.1),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: const Icon(
@@ -362,6 +368,107 @@ class _MyDrawerState extends ConsumerState<MyDrawer> {
               );
             },
           ),
+          const SizedBox(height: 12),
+          // EBM Status Indicator
+          Consumer(
+            builder: (context, ref, child) {
+              final ebmStatus = ref.watch(ebmVatEnabledProvider);
+              return ebmStatus.when(
+                data: (isVatEnabled) {
+                  return Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: isVatEnabled
+                          ? Colors.green.shade50
+                          : Colors.red.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: isVatEnabled
+                            ? Colors.green.shade300
+                            : Colors.red.shade300,
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          isVatEnabled ? Icons.check_circle : Icons.cancel,
+                          color: isVatEnabled ? Colors.green : Colors.red,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          isVatEnabled ? 'EBM On' : 'EBM Off',
+                          style: TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                            color: isVatEnabled
+                                ? Colors.green.shade700
+                                : Colors.red.shade700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+                loading: () => Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey.shade300, width: 1),
+                  ),
+                  child: Row(
+                    children: [
+                      const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Checking EBM status...',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                error: (error, stack) => Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.red.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.red.shade300, width: 1),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.error, color: Colors.red, size: 20),
+                      const SizedBox(width: 8),
+                      Text(
+                        'EBM Status Error',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.red.shade700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
         ],
       ),
     );
@@ -377,9 +484,7 @@ class _MyDrawerState extends ConsumerState<MyDrawer> {
       ),
       decoration: BoxDecoration(
         color: const Color(0xFFF8F9FA),
-        border: Border(
-          top: BorderSide(color: Colors.grey.shade200),
-        ),
+        border: Border(top: BorderSide(color: Colors.grey.shade200)),
       ),
       child: SafeArea(
         top: false,
@@ -409,10 +514,7 @@ class _MyDrawerState extends ConsumerState<MyDrawer> {
             child: CircularProgressIndicator(strokeWidth: 2),
           ),
           const SizedBox(width: 12),
-          Text(
-            message,
-            style: TextStyle(color: Colors.grey[600]),
-          ),
+          Text(message, style: TextStyle(color: Colors.grey[600])),
         ],
       ),
     );
@@ -427,11 +529,7 @@ class _MyDrawerState extends ConsumerState<MyDrawer> {
       padding: const EdgeInsets.all(20),
       child: Column(
         children: [
-          Icon(
-            icon,
-            size: 48,
-            color: Colors.grey[400],
-          ),
+          Icon(icon, size: 48, color: Colors.grey[400]),
           const SizedBox(height: 12),
           Text(
             title,
@@ -444,10 +542,7 @@ class _MyDrawerState extends ConsumerState<MyDrawer> {
           const SizedBox(height: 4),
           Text(
             subtitle,
-            style: TextStyle(
-              fontSize: 13,
-              color: Colors.grey[500],
-            ),
+            style: TextStyle(fontSize: 13, color: Colors.grey[500]),
             textAlign: TextAlign.center,
           ),
         ],
@@ -460,11 +555,7 @@ class _MyDrawerState extends ConsumerState<MyDrawer> {
       padding: const EdgeInsets.all(20),
       child: Column(
         children: [
-          Icon(
-            Icons.error_outline_rounded,
-            size: 48,
-            color: Colors.red[400],
-          ),
+          Icon(Icons.error_outline_rounded, size: 48, color: Colors.red[400]),
           const SizedBox(height: 12),
           Text(
             title,
@@ -477,17 +568,11 @@ class _MyDrawerState extends ConsumerState<MyDrawer> {
           const SizedBox(height: 4),
           Text(
             error,
-            style: TextStyle(
-              fontSize: 13,
-              color: Colors.grey[500],
-            ),
+            style: TextStyle(fontSize: 13, color: Colors.grey[500]),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 12),
-          TextButton(
-            onPressed: onRetry,
-            child: const Text('Retry'),
-          ),
+          TextButton(onPressed: onRetry, child: const Text('Retry')),
         ],
       ),
     );
@@ -500,7 +585,10 @@ class _MyDrawerState extends ConsumerState<MyDrawer> {
   }
 
   Future<void> _handleBranchSelection(
-      BuildContext context, Business business, Branch branch) async {
+    BuildContext context,
+    Business business,
+    Branch branch,
+  ) async {
     if (ProxyService.box.readBool(key: 'branch_switching') ?? false) {
       return;
     }
@@ -517,14 +605,22 @@ class _MyDrawerState extends ConsumerState<MyDrawer> {
       final currentBranchId = ProxyService.box.readInt(key: 'branchId');
 
       if (currentBranchId != branch.serverId) {
-        await ProxyService.box
-            .writeInt(key: 'branchId', value: branch.serverId!);
-        await ProxyService.box
-            .writeString(key: 'branchIdString', value: branch.id);
-        await ProxyService.box
-            .writeInt(key: 'currentBusinessId', value: business.serverId);
-        await ProxyService.box
-            .writeInt(key: 'currentBranchId', value: branch.serverId!);
+        await ProxyService.box.writeInt(
+          key: 'branchId',
+          value: branch.serverId!,
+        );
+        await ProxyService.box.writeString(
+          key: 'branchIdString',
+          value: branch.id,
+        );
+        await ProxyService.box.writeInt(
+          key: 'currentBusinessId',
+          value: business.serverId,
+        );
+        await ProxyService.box.writeInt(
+          key: 'currentBranchId',
+          value: branch.serverId!,
+        );
 
         await appService.updateAllBranchesInactive();
         await ProxyService.strategy.updateBranch(
@@ -717,13 +813,17 @@ class _ModernShiftTileState extends State<ModernShiftTile> {
       );
 
       if (dialogResponse?.confirmed == true && dialogResponse?.data != null) {
-        final closingBalance = (dialogResponse?.data
-                as Map<dynamic, dynamic>)['closingBalance'] as double? ??
+        final closingBalance =
+            (dialogResponse?.data as Map<dynamic, dynamic>)['closingBalance']
+                as double? ??
             0.0;
         final notes =
             (dialogResponse?.data as Map<dynamic, dynamic>)['notes'] as String?;
         await ProxyService.strategy.endShift(
-            shiftId: shift.id, closingBalance: closingBalance, note: notes);
+          shiftId: shift.id,
+          closingBalance: closingBalance,
+          note: notes,
+        );
         locator<RouterService>().replaceWith(const LoginRoute());
       }
     } else {
@@ -870,10 +970,7 @@ class _ModernBusinessCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   'Loading branches...',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.grey[600],
-                  ),
+                  style: TextStyle(fontSize: 13, color: Colors.grey[600]),
                 ),
               ],
             ),
@@ -921,10 +1018,7 @@ class _ModernBusinessCard extends StatelessWidget {
                 const SizedBox(height: 4),
                 Text(
                   'Failed to load branches',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.red[600],
-                  ),
+                  style: TextStyle(fontSize: 13, color: Colors.red[600]),
                 ),
               ],
             ),
@@ -965,17 +1059,11 @@ class _ModernBusinessCard extends StatelessWidget {
         ),
         title: Text(
           business.name ?? 'Unnamed Business',
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
         ),
         subtitle: Text(
           '${branches.length} ${branches.length == 1 ? 'branch' : 'branches'}',
-          style: TextStyle(
-            fontSize: 13,
-            color: Colors.grey[600],
-          ),
+          style: TextStyle(fontSize: 13, color: Colors.grey[600]),
         ),
         children: branches.isEmpty
             ? [
@@ -986,20 +1074,24 @@ class _ModernBusinessCard extends StatelessWidget {
                     businessId: business.serverId,
                   ),
                   switchingBranchId: switchingBranchId,
-                  onTap: () => onBranchSelected(Branch(
-                    id: 'main',
-                    name: 'Main Branch',
-                    businessId: business.serverId,
-                  )),
+                  onTap: () => onBranchSelected(
+                    Branch(
+                      id: 'main',
+                      name: 'Main Branch',
+                      businessId: business.serverId,
+                    ),
+                  ),
                 ),
               ]
             : branches
-                .map((branch) => _BranchItem(
+                  .map(
+                    (branch) => _BranchItem(
                       branch: branch,
                       switchingBranchId: switchingBranchId,
                       onTap: () => onBranchSelected(branch),
-                    ))
-                .toList(),
+                    ),
+                  )
+                  .toList(),
       ),
     );
   }
@@ -1233,8 +1325,9 @@ class _MobileTransactionDelegationSettingsState
       return const SizedBox.shrink();
     }
 
-    final devicesAsync =
-        ref.watch(devicesForBranchProvider(branchId: branchId));
+    final devicesAsync = ref.watch(
+      devicesForBranchProvider(branchId: branchId),
+    );
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -1263,10 +1356,7 @@ class _MobileTransactionDelegationSettingsState
               const SizedBox(width: 12),
               const Text(
                 'Select Device',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
               ),
             ],
           ),
@@ -1381,10 +1471,7 @@ class _MobileTransactionDelegationSettingsState
                     ),
                     Text(
                       'receipt printing to desktop when EBM server is unavailable',
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.grey[600],
-                      ),
+                      style: TextStyle(fontSize: 13, color: Colors.grey[600]),
                     ),
                   ],
                 ),
@@ -1412,10 +1499,7 @@ class _MobileTransactionDelegationSettingsState
           decoration: BoxDecoration(
             color: const Color(0xFFE3F2FD),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: const Color(0xFF90CAF9),
-              width: 1,
-            ),
+            border: Border.all(color: const Color(0xFF90CAF9), width: 1),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -1480,10 +1564,7 @@ class _MobileTransactionDelegationSettingsState
             decoration: BoxDecoration(
               color: const Color(0xFFFFF3E0),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: const Color(0xFFFFB74D),
-                width: 1,
-              ),
+              border: Border.all(color: const Color(0xFFFFB74D), width: 1),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -1529,11 +1610,7 @@ class _MobileTransactionDelegationSettingsState
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(
-          icon,
-          size: 18,
-          color: const Color(0xFF0078D4),
-        ),
+        Icon(icon, size: 18, color: const Color(0xFF0078D4)),
         const SizedBox(width: 10),
         Expanded(
           child: Text(
@@ -1552,11 +1629,7 @@ class _MobileTransactionDelegationSettingsState
   Widget _buildRequirement(String text) {
     return Text(
       text,
-      style: TextStyle(
-        fontSize: 13,
-        color: Colors.orange[900],
-        height: 1.4,
-      ),
+      style: TextStyle(fontSize: 13, color: Colors.orange[900], height: 1.4),
     );
   }
 }

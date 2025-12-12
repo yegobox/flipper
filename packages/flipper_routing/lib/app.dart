@@ -874,3 +874,4 @@ class App {}
 // git diff --no-prefix --unified=0 path/to/file | grep -E "^\+|^\-"
 
 // flutter build apk --release
+// Run `gem update --system 4.0.1` to update your installation.
