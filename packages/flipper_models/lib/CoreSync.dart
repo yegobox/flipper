@@ -2575,7 +2575,7 @@ class CoreSync extends AiStrategyImpl
     final access = await repository.get<Access>(
       policy: fetchRemote
           ? OfflineFirstGetPolicy.awaitRemoteWhenNoneExist
-          : OfflineFirstGetPolicy.localOnly,
+          : OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
       query: brick.Query(
         limit: 20,
         where: [
