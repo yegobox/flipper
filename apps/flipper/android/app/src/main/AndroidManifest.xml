@@ -64,7 +64,7 @@
             <meta-data android:name="notificationText" android:value="Syncing data across connected devices" />
             <meta-data android:name="notificationId" android:value="1001" />
         </service>
-        <service
+        <!-- <service
             android:name="live.ditto.transports.foregroundservice.DefaultDittoForegroundService"
             android:exported="false"
             android:foregroundServiceType="connectedDevice"
@@ -75,7 +75,7 @@
             <meta-data android:name="notificationTitle" android:value="Syncing Data" />
             <meta-data android:name="notificationText" android:value="Syncing data across connected devices" />
             <meta-data android:name="notificationId" android:value="1001" />
-        </service>
+        </service> -->
 
          <property
             android:name="android.app.property.16KB_PAGE_SIZE"
