@@ -66,63 +66,80 @@ mixin EbmMixin implements EbmInterface {
   }
 
   @override
-  Future<Ebm?> ebm({required int branchId, bool fetchRemote = false}) async {
+  Future<Ebm?> ebm({required int branchId, bool fetchRemote = true}) async {
     try {
-      final ditto = dittoService.dittoInstance;
-      if (ditto == null) {
-        talker.error('Ditto not initialized');
-        return null;
-      }
-
-      const query = 'SELECT * FROM ebms WHERE branchId = :branchId';
-      final arguments = {'branchId': branchId};
-
-      // If fetchRemote is true, ensure sync subscription is active
-
-      await ditto.sync.registerSubscription(query, arguments: arguments);
-      // Give it a moment to sync
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      // Execute query directly
-      final result = await ditto.store.execute(query, arguments: arguments);
-      final items = result.items.toList();
-
-      if (items.isEmpty) return null;
-
-      // Parse first result
-      final ebmData = items.first.value;
-      final ebm = Ebm(
-        id: ebmData['id'] as String? ?? ebmData['_id'] as String?,
-        mrc: ebmData['mrc'] as String? ?? '',
-        bhfId: ebmData['bhfId'] as String? ?? ebmData['bhf_id'] as String? ?? '',
-        tinNumber: ebmData['tinNumber'] as int? ?? ebmData['tin_number'] as int? ?? 0,
-        dvcSrlNo: ebmData['dvcSrlNo'] as String? ?? ebmData['dvc_srl_no'] as String? ?? "",
-        userId: ebmData['userId'] as int? ?? ebmData['user_id'] as int? ?? ProxyService.box.getUserId() ?? 0,
-        taxServerUrl: ebmData['taxServerUrl'] as String? ?? ebmData['tax_server_url'] as String? ?? '',
-        businessId: ebmData['businessId'] as int? ?? ebmData['business_id'] as int? ?? ProxyService.box.getBusinessId() ?? 0,
-        branchId: ebmData['branchId'] as int? ?? ebmData['branch_id'] as int? ?? branchId,
-        vatEnabled: ebmData['vatEnabled'] as bool? ?? ebmData['vat_enabled'] as bool?,
+      // First try to get from local repository with offline-first approach
+      final query = Query(
+        where: [Where('branchId').isExactly(branchId)],
       );
 
-      // Save to local storage if fetched from remote
-      if (fetchRemote) {
-        await _saveEbmToLocalStorage(ebm);
+      List<Ebm> fetchedEbms = await repository.get<Ebm>(
+        query: query,
+        policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+      );
+
+      // If no data found locally and fetchRemote is true, try Ditto direct query
+      if (fetchedEbms.isEmpty && fetchRemote) {
+        final ditto = dittoService.dittoInstance;
+        if (ditto != null) {
+          const dittoQuery = 'SELECT * FROM ebms WHERE branchId = :branchId';
+          final arguments = {'branchId': branchId};
+
+          await ditto.sync
+              .registerSubscription(dittoQuery, arguments: arguments);
+          // Give it a moment to sync
+          await Future.delayed(const Duration(milliseconds: 500));
+
+          // Execute query directly
+          final result =
+              await ditto.store.execute(dittoQuery, arguments: arguments);
+          final items = result.items.toList();
+
+          if (items.isNotEmpty) {
+            // Parse first result and save to local repository for future offline access
+            final ebmData = items.first.value;
+            final ebm = Ebm(
+              id: ebmData['id'] as String? ?? ebmData['_id'] as String?,
+              mrc: ebmData['mrc'] as String? ?? '',
+              bhfId: ebmData['bhfId'] as String? ??
+                  ebmData['bhf_id'] as String? ??
+                  '',
+              tinNumber: ebmData['tinNumber'] as int? ??
+                  ebmData['tin_number'] as int? ??
+                  0,
+              dvcSrlNo: ebmData['dvcSrlNo'] as String? ??
+                  ebmData['dvc_srl_no'] as String? ??
+                  "",
+              userId: ebmData['userId'] as int? ??
+                  ebmData['user_id'] as int? ??
+                  ProxyService.box.getUserId() ??
+                  0,
+              taxServerUrl: ebmData['taxServerUrl'] as String? ??
+                  ebmData['tax_server_url'] as String? ??
+                  '',
+              businessId: ebmData['businessId'] as int? ??
+                  ebmData['business_id'] as int? ??
+                  ProxyService.box.getBusinessId() ??
+                  0,
+              branchId: ebmData['branchId'] as int? ??
+                  ebmData['branch_id'] as int? ??
+                  branchId,
+              vatEnabled: ebmData['vatEnabled'] as bool? ??
+                  ebmData['vat_enabled'] as bool?,
+            );
+
+            // Save to local repository to ensure offline availability
+            await repository.upsert<Ebm>(ebm);
+            return ebm;
+          }
+        }
       }
 
-      return ebm;
+      // Return the first EBM from local repository if found
+      return fetchedEbms.isNotEmpty ? fetchedEbms[0] : null;
     } catch (e, st) {
-      talker.error('Error fetching EBM from Ditto: $e\n$st');
+      talker.error('Error fetching EBM: $e\n$st');
       return null;
-    }
-  }
-
-  Future<void> _saveEbmToLocalStorage(Ebm ebm) async {
-    try {
-      await ProxyService.box
-          .writeString(key: "getServerUrl", value: ebm.taxServerUrl ?? "");
-      await ProxyService.box.writeString(key: "bhfId", value: ebm.bhfId ?? "");
-    } catch (e) {
-      talker.warning('Failed to save EBM to local storage: $e');
     }
   }
 
