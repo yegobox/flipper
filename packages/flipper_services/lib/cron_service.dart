@@ -13,6 +13,10 @@ import 'package:flipper_services/proxy.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+// ignore_for_file: invalid_use_of_visible_for_testing_member
+
+import 'package:ditto_live/ditto_live.dart';
+import 'package:permission_handler/permission_handler.dart';
 // import 'package:flipper_models/services/sqlite_service.dart';
 
 /// A service class that manages scheduled tasks and periodic operations for the Flipper app.
@@ -73,6 +77,17 @@ class CronService {
 
   /// Initializes data by hydrating from remote if queue is empty
   Future<void> _initializeData() async {
+    final platform = Ditto.currentPlatform;
+    if (platform case SupportedPlatform.android || SupportedPlatform.ios) {
+      [
+        Permission.bluetoothConnect,
+        Permission.bluetoothAdvertise,
+        Permission.nearbyWifiDevices,
+        Permission.bluetoothScan,
+        Permission.location, // Required for Ditto on Android
+      ].request();
+    }
+
     // Listen for delegated transactions from mobile devices
     /// the script should run on desktop apps only
     if (!isMobileDevice) {
