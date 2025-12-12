@@ -48,8 +48,6 @@ Future<Map<String, dynamic>> _$LogToSupabase(
     'created_at': instance.createdAt?.toIso8601String(),
     'tags': instance.tags,
     'extra': instance.extra,
-    'parsed_tags': instance.parsedTags,
-    'parsed_extra': instance.parsedExtra,
   };
 }
 
@@ -88,12 +86,6 @@ Future<Map<String, dynamic>> _$LogToSqlite(
     'created_at': instance.createdAt?.toIso8601String(),
     'tags': instance.tags,
     'extra': instance.extra,
-    'parsed_tags': instance.parsedTags != null
-        ? jsonEncode(instance.parsedTags)
-        : null,
-    'parsed_extra': instance.parsedExtra != null
-        ? jsonEncode(instance.parsedExtra)
-        : null,
   };
 }
 
@@ -134,14 +126,6 @@ class LogAdapter extends OfflineFirstWithSupabaseAdapter<Log> {
     'extra': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'extra',
-    ),
-    'parsedTags': const RuntimeSupabaseColumnDefinition(
-      association: false,
-      columnName: 'parsed_tags',
-    ),
-    'parsedExtra': const RuntimeSupabaseColumnDefinition(
-      association: false,
-      columnName: 'parsed_extra',
     ),
   };
   @override
@@ -197,18 +181,6 @@ class LogAdapter extends OfflineFirstWithSupabaseAdapter<Log> {
       columnName: 'extra',
       iterable: false,
       type: String,
-    ),
-    'parsedTags': const RuntimeSqliteColumnDefinition(
-      association: false,
-      columnName: 'parsed_tags',
-      iterable: false,
-      type: Map,
-    ),
-    'parsedExtra': const RuntimeSqliteColumnDefinition(
-      association: false,
-      columnName: 'parsed_extra',
-      iterable: false,
-      type: Map,
     ),
   };
   @override

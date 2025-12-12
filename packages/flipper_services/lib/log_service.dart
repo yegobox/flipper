@@ -97,23 +97,8 @@ $formattedStack
   Future<void> _saveLog(Log log) async {
     try {
       // Use the strategy to save the log
-      log.createdAt = DateTime.now();
-
-      // Add default tags if not already present
-      final Map<String, String> defaultTags = {
-        'type': log.type ?? 'unknown',
-        'businessId': log.businessId?.toString() ?? 'unknown',
-        'timestamp': log.createdAt?.millisecondsSinceEpoch.toString() ??
-            DateTime.now().millisecondsSinceEpoch.toString(),
-      };
 
       // Merge provided tags with default tags (provided tags take precedence)
-      if (log.parsedTags != null) {
-        final combinedTags = {...defaultTags, ...log.parsedTags!};
-        log.setTags(combinedTags);
-      } else {
-        log.setTags(defaultTags);
-      }
 
       await ProxyService.strategy.saveLog(log);
     } catch (e, st) {
