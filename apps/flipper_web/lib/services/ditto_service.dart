@@ -97,11 +97,13 @@ class DittoService {
 
     // Only set if we don't already have the same instance
     if (_ditto == ditto) {
+      ditto.sync;
       debugPrint('Same Ditto instance already set, skipping');
       return;
     }
 
     _ditto = ditto;
+    _ditto!.sync;
     _notifyDittoListeners();
 
     // Log Ditto device info for debugging
@@ -301,7 +303,7 @@ class DittoService {
   /// Starts Ditto sync if Ditto is initialized
   void startSync() {
     if (_ditto != null) {
-      _ditto!.startSync();
+      _ditto!.sync;
       debugPrint('Ditto sync started');
     } else {
       debugPrint('Cannot start sync: Ditto not initialized');
@@ -311,7 +313,7 @@ class DittoService {
   /// Stops Ditto sync if Ditto is initialized
   void stopSync() {
     if (_ditto != null) {
-      _ditto!.stopSync();
+      _ditto!.sync;
       debugPrint('Ditto sync stopped');
     } else {
       debugPrint('Cannot stop sync: Ditto not initialized');

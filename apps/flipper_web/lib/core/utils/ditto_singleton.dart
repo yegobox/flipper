@@ -75,7 +75,8 @@ class DittoSingleton {
       });
 
       await _ditto!.store.execute("ALTER SYSTEM SET DQL_STRICT_MODE = false");
-      _ditto!.startSync();
+
+      _ditto!.sync;
 
       debugPrint('✅ Ditto singleton initialized successfully');
       return _ditto;
