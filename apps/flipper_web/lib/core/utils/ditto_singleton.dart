@@ -30,7 +30,7 @@ class DittoSingleton {
   }) async {
     // Prevent multiple simultaneous initializations
     if (_isInitializing) {
-      debugPrint('⏳ Ditto initialization already in progress, waiting...');
+      print('⏳ Ditto initialization already in progress, waiting...');
       while (_isInitializing) {
         await Future.delayed(const Duration(milliseconds: 100));
       }
@@ -39,7 +39,7 @@ class DittoSingleton {
 
     // Return existing instance if available
     if (_ditto != null) {
-      debugPrint('✅ Using existing Ditto instance');
+      print('✅ Using existing Ditto instance');
       return _ditto;
     }
 
@@ -54,7 +54,7 @@ class DittoSingleton {
         enableDittoCloudSync: enableCloudSync,
       );
 
-      debugPrint('📁 Using Ditto directory: $persistenceDir');
+      print('📁 Using Ditto directory: $persistenceDir');
 
       _ditto = await Ditto.open(
         identity: identity,
@@ -63,24 +63,31 @@ class DittoSingleton {
 
       // Configure transport
       _ditto!.updateTransportConfig((config) {
+        // Enable cloud sync by setting the proper WebSocket URL
         config.connect.webSocketUrls.clear();
-        
+        config.connect.webSocketUrls.add("wss://$appId.cloud.ditto.live");
+
         if (kIsWeb) {
+          // On web, only use cloud sync
           config.setAllPeerToPeerEnabled(false);
         } else {
+          // On mobile/desktop, enable both cloud sync and peer-to-peer
           config.setAllPeerToPeerEnabled(true);
         }
-        
-        config.connect.webSocketUrls.add("wss://$appId.cloud.ditto.live");
       });
 
       await _ditto!.store.execute("ALTER SYSTEM SET DQL_STRICT_MODE = false");
+
+      // Start sync to connect to Ditto cloud
       _ditto!.startSync();
 
-      debugPrint('✅ Ditto singleton initialized successfully');
+      print("is sync active: ${_ditto!.isSyncActive}");
+      print("auth status: ${_ditto!.auth.status}");
+
+      print('✅ Ditto singleton initialized successfully');
       return _ditto;
     } catch (e) {
-      debugPrint('❌ Ditto singleton initialization failed: $e');
+      print('❌ Ditto singleton initialization failed: $e');
       _ditto = null;
       rethrow;
     } finally {
@@ -92,13 +99,13 @@ class DittoSingleton {
   Future<void> dispose() async {
     if (_ditto != null) {
       try {
-        debugPrint('🛑 Stopping Ditto singleton...');
+        print('🛑 Stopping Ditto sync and disposing singleton...');
         _ditto!.stopSync();
-        await Future.delayed(const Duration(milliseconds: 1000));
+        await Future.delayed(const Duration(milliseconds: 500));
         _ditto = null;
-        debugPrint('✅ Ditto singleton disposed');
+        print('✅ Ditto singleton disposed');
       } catch (e) {
-        debugPrint('❌ Error disposing Ditto singleton: $e');
+        print('❌ Error disposing Ditto singleton: $e');
         _ditto = null;
       }
     }

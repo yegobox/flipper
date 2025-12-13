@@ -37,8 +37,8 @@ class _ReInitializeEbmDialogState extends State<ReInitializeEbmDialog> {
       final ebm = await ProxyService.strategy.ebm(branchId: branchId);
       if (ebm != null) {
         _tinController.text = ebm.tinNumber.toString();
-        _bhfIdController.text = ebm.bhfId;
-        _dvcSrlNoController.text = ebm.dvcSrlNo;
+        _bhfIdController.text = ebm.bhfId!;
+        _dvcSrlNoController.text = ebm.dvcSrlNo!;
       }
     } catch (e) {
       // Silently handle errors - it's okay if we can't pre-fill the form
@@ -57,9 +57,7 @@ class _ReInitializeEbmDialogState extends State<ReInitializeEbmDialog> {
     final theme = Theme.of(context);
 
     return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       elevation: 0,
       backgroundColor: Colors.transparent,
       child: Container(
@@ -148,9 +146,7 @@ class _ReInitializeEbmDialogState extends State<ReInitializeEbmDialog> {
                           Expanded(
                             child: Text(
                               _errorMessage!,
-                              style: TextStyle(
-                                color: theme.colorScheme.error,
-                              ),
+                              style: TextStyle(color: theme.colorScheme.error),
                             ),
                           ),
                         ],
@@ -175,8 +171,9 @@ class _ReInitializeEbmDialogState extends State<ReInitializeEbmDialog> {
                         child: Text(
                           'Cancel',
                           style: TextStyle(
-                            color: theme.colorScheme.onSurface
-                                .withValues(alpha: 0.7),
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.7,
+                            ),
                           ),
                         ),
                       ),
@@ -229,9 +226,7 @@ class _ReInitializeEbmDialogState extends State<ReInitializeEbmDialog> {
       decoration: InputDecoration(
         labelText: labelText,
         prefixIcon: Icon(prefixIcon),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
         filled: true,
         fillColor: Colors.grey.shade50,
         contentPadding: const EdgeInsets.symmetric(
@@ -294,9 +289,7 @@ class _ReInitializeEbmDialogState extends State<ReInitializeEbmDialog> {
     final theme = Theme.of(context);
 
     return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       elevation: 0,
       backgroundColor: Colors.transparent,
       child: Container(
@@ -318,8 +311,9 @@ class _ReInitializeEbmDialogState extends State<ReInitializeEbmDialog> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color:
-                    theme.colorScheme.primaryContainer.withValues(alpha: 0.3),
+                color: theme.colorScheme.primaryContainer.withValues(
+                  alpha: 0.3,
+                ),
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -413,8 +407,9 @@ class _ReInitializeEbmDialogState extends State<ReInitializeEbmDialog> {
               Text(
                 label,
                 style: theme.textTheme.bodySmall?.copyWith(
-                  color:
-                      theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                  color: theme.colorScheme.onSurfaceVariant.withValues(
+                    alpha: 0.7,
+                  ),
                 ),
               ),
               const SizedBox(height: 4),

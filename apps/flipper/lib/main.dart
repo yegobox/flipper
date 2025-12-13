@@ -27,9 +27,22 @@ import 'package:flipper_services/GlobalLogError.dart';
 import 'package:flipper_web/core/utils/initialization.dart';
 import 'package:supabase_models/sync/ditto_sync_registry.dart';
 
+import 'package:ditto_live/ditto_live.dart';
+import 'package:permission_handler/permission_handler.dart';
+
 // Function to initialize Firebase
 Future<void> _initializeFirebase() async {
   try {
+    final platform = Ditto.currentPlatform;
+
+    if (platform case SupportedPlatform.android || SupportedPlatform.ios) {
+      await [
+        Permission.bluetoothConnect,
+        Permission.bluetoothAdvertise,
+        Permission.nearbyWifiDevices,
+        Permission.bluetoothScan
+      ].request();
+    }
     // Don't use microtask for Firebase as critical services depend on it
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,

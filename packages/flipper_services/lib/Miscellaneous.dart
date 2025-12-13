@@ -38,6 +38,25 @@ mixin CoreMiscellaneous implements CoreMiscellaneousInterface {
     }
   }
 
+  /// Validates if userId is set in ProxyService.box
+  /// Returns true if userId exists and is valid, false otherwise
+  bool isUserIdSet() {
+    final userId = ProxyService.box.getUserId();
+    return userId != null && userId > 0;
+  }
+
+  /// Checks if userId is valid and calls the onInvalid callback if not
+  /// Returns true if userId is valid, false if it's invalid and callback was executed
+  bool validateUserId({Function? onInvalid}) {
+    if (!isUserIdSet()) {
+      if (onInvalid != null) {
+        onInvalid();
+      }
+      return false;
+    }
+    return true;
+  }
+
   @override
   Future<Directory> getSupportDir() async {
     Directory appSupportDir;

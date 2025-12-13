@@ -9,6 +9,7 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/rraConstants.dart';
 import 'package:flipper_routing/all_routes.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/log_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
@@ -544,8 +545,25 @@ final tenantProvider = FutureProvider<Tenant?>((ref) async {
 // Provider to get the list of user accesses
 
 final businessesProvider = FutureProvider<List<Business>>((ref) async {
-  return await ProxyService.strategy
-      .businesses(userId: ProxyService.box.getUserId()!);
+  try {
+    return await ProxyService.strategy
+        .businesses(userId: ProxyService.box.getUserId()!);
+  } catch (e, stack) {
+    // Log the error to our error service
+    final logService = LogService();
+    await logService.logException(
+      e,
+      stackTrace: stack,
+      type: 'business_fetch',
+      tags: {
+        'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+        'method': 'businessesProvider',
+      },
+    );
+
+    // Re-throw the exception so the UI can handle it appropriately
+    rethrow;
+  }
 });
 
 // Define a provider for the selected branch

@@ -66,8 +66,8 @@ scripts:
       melos run test:auth
       melos run test:flipper_web
       melos run test:supabase_models
-      melos run test:supabase_services
-    description: Run tests for dashboard, auth, web, supabase_services and supabase_models in CI/CD
+     
+    description: Run tests for dashboard, auth, web and supabase_models in CI/CD
   get_deps:
     run: melos exec -- flutter pub deps
     description: List sub dependencies

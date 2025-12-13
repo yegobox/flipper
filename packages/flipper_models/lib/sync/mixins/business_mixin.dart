@@ -33,7 +33,7 @@ mixin BusinessMixin implements BusinessInterface {
     return await repository.get<Business>(
         policy: fetchOnline
             ? OfflineFirstGetPolicy.alwaysHydrate
-            : OfflineFirstGetPolicy.localOnly,
+            : OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
         query: Query(where: [
           if (userId != null) Where('userId').isExactly(userId),
           if (active) Where('active').isExactly(active)
