@@ -63,20 +63,23 @@ class DittoSingleton {
 
       // Configure transport
       _ditto!.updateTransportConfig((config) {
-        // config.connect.webSocketUrls.clear();
+        // Enable cloud sync by setting the proper WebSocket URL
+        config.connect.webSocketUrls.clear();
+        config.connect.webSocketUrls.add("wss://$appId.cloud.ditto.live");
 
         if (kIsWeb) {
+          // On web, only use cloud sync
           config.setAllPeerToPeerEnabled(false);
         } else {
+          // On mobile/desktop, enable both cloud sync and peer-to-peer
           config.setAllPeerToPeerEnabled(true);
         }
-
-        config.connect.webSocketUrls.add("wss://$appId.cloud.ditto.live");
       });
 
       await _ditto!.store.execute("ALTER SYSTEM SET DQL_STRICT_MODE = false");
 
-      _ditto!.sync;
+      // Start sync to connect to Ditto cloud
+      _ditto!.startSync();
 
       debugPrint('✅ Ditto singleton initialized successfully');
       return _ditto;
@@ -93,9 +96,9 @@ class DittoSingleton {
   Future<void> dispose() async {
     if (_ditto != null) {
       try {
-        debugPrint('🛑 Stopping Ditto singleton...');
+        debugPrint('🛑 Stopping Ditto sync and disposing singleton...');
         _ditto!.stopSync();
-        await Future.delayed(const Duration(milliseconds: 1000));
+        await Future.delayed(const Duration(milliseconds: 500));
         _ditto = null;
         debugPrint('✅ Ditto singleton disposed');
       } catch (e) {
