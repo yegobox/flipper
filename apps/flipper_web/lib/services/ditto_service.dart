@@ -93,17 +93,38 @@ class DittoService {
         Permission.nearbyWifiDevices,
         Permission.bluetoothScan,
         Permission.location, // Required for Ditto on Android
-      ].request().then((statuses) {
+      ].request().then((statuses) async {
         // Check if location permission was granted (especially important for Android)
         if (platform == SupportedPlatform.android) {
-          Permission.location.status.then((locationStatus) {
-            if (locationStatus != PermissionStatus.granted) {
-              debugPrint('⚠️ Location permission not granted. Ditto sync may not work properly on Android.');
-              debugPrint('Please ensure location permission is granted for proper sync functionality.');
-            } else {
-              debugPrint('✅ Location permission granted for Ditto sync on Android.');
+          // Check all requested permissions
+          final allPermissions = [
+            Permission.bluetoothConnect,
+            Permission.bluetoothAdvertise,
+            Permission.nearbyWifiDevices,
+            Permission.bluetoothScan,
+            Permission.location,
+          ];
+
+          bool allPermissionsGranted = true;
+          List<String> deniedPermissions = [];
+
+          for (var permission in allPermissions) {
+            final status = await permission.status;
+            if (status != PermissionStatus.granted) {
+              allPermissionsGranted = false;
+              deniedPermissions.add(permission.toString());
             }
-          });
+          }
+
+          if (!allPermissionsGranted) {
+            debugPrint(
+                '⚠️ Some permissions not granted. Ditto sync may not work properly on Android. Denied: ${deniedPermissions.join(", ")}');
+            debugPrint(
+                'Please ensure all requested permissions are granted for proper sync functionality.');
+          } else {
+            debugPrint(
+                '✅ All required permissions granted for Ditto sync on Android.');
+          }
         }
       });
     }
@@ -322,13 +343,35 @@ class DittoService {
       // Check platform-specific requirements before starting sync
       final platform = Ditto.currentPlatform;
       if (platform == SupportedPlatform.android) {
-        // On Android, verify location permission is granted
-        Permission.location.status.then((status) {
-          if (status != PermissionStatus.granted) {
-            debugPrint('⚠️ Android: Location permission not granted. Ditto sync may not work properly.');
-            debugPrint('Please ensure location permission is granted for proper sync functionality.');
+        // On Android, verify all required permissions are granted
+        // Check all requested permissions
+        final allPermissions = [
+          Permission.bluetoothConnect,
+          Permission.bluetoothAdvertise,
+          Permission.nearbyWifiDevices,
+          Permission.bluetoothScan,
+          Permission.location,
+        ];
+
+        // Check each permission status
+        Future.wait(allPermissions.map((permission) => permission.status))
+            .then((statuses) {
+          bool allPermissionsGranted = statuses.every((status) => status == PermissionStatus.granted);
+
+          if (!allPermissionsGranted) {
+            // Find which permissions were denied
+            List<String> deniedPermissions = [];
+            for (int i = 0; i < allPermissions.length; i++) {
+              if (statuses[i] != PermissionStatus.granted) {
+                deniedPermissions.add(allPermissions[i].toString());
+              }
+            }
+
+            debugPrint(
+                '⚠️ Android: Not all required permissions granted. Ditto sync may not work properly. Denied: ${deniedPermissions.join(", ")}');
+            debugPrint('Please ensure all requested permissions are granted for proper sync functionality.');
           } else {
-            debugPrint('✅ Android: Location permission confirmed, starting sync...');
+            debugPrint('✅ Android: All required permissions granted, starting sync...');
             try {
               _ditto!.startSync();
               debugPrint('Ditto sync started');
@@ -337,7 +380,7 @@ class DittoService {
             }
           }
         }).catchError((error) {
-          debugPrint('Error checking location permission: $error');
+          debugPrint('Error checking permissions: $error');
           try {
             // Try to start sync anyway
             _ditto!.startSync();
