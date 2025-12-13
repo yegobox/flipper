@@ -81,6 +81,9 @@ class DittoSingleton {
       // Start sync to connect to Ditto cloud
       _ditto!.startSync();
 
+      print("is sync active: ${_ditto!.isSyncActive}");
+      print("auth status: ${_ditto!.auth.status}");
+
       print('✅ Ditto singleton initialized successfully');
       return _ditto;
     } catch (e) {
