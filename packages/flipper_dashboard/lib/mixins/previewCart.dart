@@ -53,11 +53,16 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
   StreamSubscription? _paymentStatusSubscription;
   RealtimeChannel? _paymentStatusChannel;
 
+  // Store timer reference for proper cleanup
+  Timer? _paymentTimeout;
+
   // Track if we're already processing a payment to prevent double-processing
   bool _isProcessingPayment = false;
 
   @override
   void dispose() {
+    // Cancel timer to prevent it from running after widget disposal
+    _paymentTimeout?.cancel();
     _paymentStatusSubscription?.cancel();
     _paymentStatusChannel?.unsubscribe();
     super.dispose();
@@ -522,7 +527,8 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       );
 
       // Add timeout for payment confirmation (60 seconds)
-      Timer? paymentTimeout = Timer(Duration(seconds: 60), () {
+      // Store timer reference for cleanup in dispose()
+      _paymentTimeout = Timer(Duration(seconds: 60), () {
         if (!_isProcessingPayment) {
           talker.warning("⏰ Payment confirmation timeout after 60 seconds");
           onPaymentFailed?.call(
@@ -616,7 +622,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                     "ℹ️ Receipt generation did not complete; not closing bottom sheet",
                   );
                   _isProcessingPayment = false;
-                  paymentTimeout.cancel();
+                  _paymentTimeout?.cancel();
                   return;
                 }
 
@@ -632,7 +638,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                   "🔄 Calling completeTransaction callback to close bottom sheet...",
                 );
                 _isProcessingPayment = false;
-                paymentTimeout.cancel(); // Cancel timeout on success
+                _paymentTimeout?.cancel(); // Cancel timeout on success
                 completeTransaction();
                 talker.info(
                   "✅ completeTransaction callback executed - Bottom sheet should now close",
@@ -642,7 +648,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                   "❌ Error completing transaction after payment: $e",
                 );
                 _isProcessingPayment = false; // Reset flag on error
-                paymentTimeout.cancel(); // Cancel timeout on error
+                _paymentTimeout?.cancel(); // Cancel timeout on error
                 onPaymentFailed?.call(
                   e.toString().replaceAll('Exception: ', ''),
                 );

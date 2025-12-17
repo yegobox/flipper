@@ -8,6 +8,7 @@ import 'package:flipper_dashboard/ordering/preview_sale_button_wrapper.dart';
 import 'package:flipper_dashboard/ordering/product_grid_view.dart';
 import 'package:flipper_dashboard/view_models/ordering_view_model.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/providers/selected_provider.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/states/productListProvider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -146,16 +147,25 @@ class OrderingView extends HookConsumerWidget {
             data: (variants) => variants.isEmpty
                 ? const EmptyProductView()
                 : _buildProductView(variants, isPreviewing, model: model),
-            loading: () => const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(),
-                  SizedBox(height: 16),
-                  Text('Loading products...'),
-                ],
-              ),
-            ),
+            loading: () {
+              // Check if supplier is selected - only show loading if supplier exists
+              final selectedSupplier = ref.watch(selectedSupplierProvider);
+              if (selectedSupplier == null) {
+                // No supplier selected, show empty view instead of loading
+                return const EmptyProductView();
+              }
+              // Supplier is selected, show loading indicator
+              return const Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(height: 16),
+                    Text('Loading products...'),
+                  ],
+                ),
+              );
+            },
             error: (error, stack) {
               // Check if the error is "Select a supplier"
               final errorMessage = error.toString();
