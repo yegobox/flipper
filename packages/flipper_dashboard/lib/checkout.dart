@@ -295,7 +295,7 @@ class CheckOutState extends ConsumerState<CheckOut>
       error: (_, __) => 0,
     );
 
-    return count > 0 ? 'Preview Cart!! ($count)' : 'Preview Cart';
+    return count > 0 ? 'Preview Cart ($count)' : 'Preview Cart';
   }
 
   Future<bool> _handleCompleteTransaction(

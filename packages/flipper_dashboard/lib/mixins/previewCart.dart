@@ -352,7 +352,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
             if (mounted && context.mounted) {
               showCustomSnackBarUtil(
                 context,
-                'Payment Successful Amount: ${transaction.subTotal!.toCurrencyFormatted()} ',
+                "Payment Successful — Amount: ${transaction.subTotal!.toCurrencyFormatted()}",
                 backgroundColor: Colors.green,
                 showCloseButton: true,
               );

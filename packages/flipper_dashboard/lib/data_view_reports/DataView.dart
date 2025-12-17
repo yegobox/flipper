@@ -215,13 +215,58 @@ class DataViewState extends ConsumerState<DataView>
         child: StockRecount(
           itemName: data.productName,
           stockId: data.id,
-          onRecount: (value) {
+          onRecount: (value) async {
             final parsedValue = double.tryParse(value);
             if (parsedValue != null && parsedValue != 0) {
-              ProxyService.strategy.updateStock(
-                stockId: data.id,
-                qty: parsedValue,
-              );
+              try {
+                // Await the updateStock call to catch any errors
+                await ProxyService.strategy.updateStock(
+                  stockId: data.id,
+                  qty: parsedValue,
+                );
+
+                // Log success for diagnostics
+                talker.info(
+                  'Stock updated successfully: stockId=${data.id}, qty=$parsedValue',
+                );
+
+                // Show success feedback to user
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Stock count updated successfully for ${data.productName}',
+                      ),
+                      backgroundColor: Colors.green,
+                      duration: const Duration(seconds: 3),
+                    ),
+                  );
+                }
+              } catch (e, s) {
+                // Log error for diagnostics
+                talker.error(
+                  'Failed to update stock: stockId=${data.id}, qty=$parsedValue, error=$e',
+                );
+                talker.error(s);
+
+                // Show error feedback to user
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Failed to update stock count: ${e.toString()}',
+                      ),
+                      backgroundColor: Colors.red,
+                      duration: const Duration(seconds: 5),
+                      action: SnackBarAction(
+                        label: 'Dismiss',
+                        textColor: Colors.white,
+                        onPressed: () {},
+                      ),
+                    ),
+                  );
+                }
+              }
             }
           },
         ),
