@@ -1,7 +1,6 @@
 import 'package:flipper_dashboard/CreditIcon.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'dart:math' as math;
 
 void main() {
   runApp(
@@ -71,15 +70,13 @@ class _CreditHomePageState extends State<CreditHomePage>
       ),
     );
 
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0.0, 0.2),
-      end: Offset.zero,
-    ).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
-      ),
-    );
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0.0, 0.2), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _animationController,
+            curve: const Interval(0.0, 0.6, curve: Curves.easeOut),
+          ),
+        );
 
     _animationController.forward();
   }
@@ -106,9 +103,7 @@ class _CreditHomePageState extends State<CreditHomePage>
         elevation: 0,
         title: Text(
           'Credit Hub',
-          style: textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+          style: textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
         ),
         actions: [
           Consumer<CreditData>(
@@ -177,14 +172,16 @@ class _CreditHomePageState extends State<CreditHomePage>
                             decoration: InputDecoration(
                               labelText: 'Enter amount',
                               labelStyle: TextStyle(
-                                color: colorScheme.onSurface
-                                    .withValues(alpha: 0.6),
+                                color: colorScheme.onSurface.withValues(
+                                  alpha: 0.6,
+                                ),
                               ),
                               enabledBorder: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(12),
                                 borderSide: BorderSide(
-                                  color: colorScheme.outline
-                                      .withValues(alpha: 0.3),
+                                  color: colorScheme.outline.withValues(
+                                    alpha: 0.3,
+                                  ),
                                 ),
                               ),
                               focusedBorder: OutlineInputBorder(
@@ -206,12 +203,14 @@ class _CreditHomePageState extends State<CreditHomePage>
                             height: 50,
                             child: ElevatedButton(
                               onPressed: () {
-                                final amount =
-                                    int.tryParse(_buyCreditController.text);
+                                final amount = int.tryParse(
+                                  _buyCreditController.text,
+                                );
                                 if (amount != null && amount > 0) {
-                                  Provider.of<CreditData>(context,
-                                          listen: false)
-                                      .buyCredits(amount);
+                                  Provider.of<CreditData>(
+                                    context,
+                                    listen: false,
+                                  ).buyCredits(amount);
                                   _buyCreditController.clear();
 
                                   // Show success message
@@ -243,8 +242,10 @@ class _CreditHomePageState extends State<CreditHomePage>
                     const SizedBox(height: 30),
                     QuickAmountsSelector(
                       onAmountSelected: (amount) {
-                        Provider.of<CreditData>(context, listen: false)
-                            .buyCredits(amount);
+                        Provider.of<CreditData>(
+                          context,
+                          listen: false,
+                        ).buyCredits(amount);
                         _showSuccessSnackBar(context, amount);
                       },
                     ),
@@ -289,10 +290,14 @@ class _CreditHomePageState extends State<CreditHomePage>
                                 onPressed: creditData.availableCredits >= 10
                                     ? () {
                                         creditData.useCredits(10);
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          _buildSnackBar('Used 10 credits',
-                                              Icons.check_circle, Colors.blue),
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          _buildSnackBar(
+                                            'Used 10 credits',
+                                            Icons.check_circle,
+                                            Colors.blue,
+                                          ),
                                         );
                                       }
                                     : null,
@@ -302,10 +307,14 @@ class _CreditHomePageState extends State<CreditHomePage>
                                 onPressed: creditData.availableCredits >= 50
                                     ? () {
                                         creditData.useCredits(50);
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          _buildSnackBar('Used 50 credits',
-                                              Icons.check_circle, Colors.blue),
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          _buildSnackBar(
+                                            'Used 50 credits',
+                                            Icons.check_circle,
+                                            Colors.blue,
+                                          ),
                                         );
                                       }
                                     : null,
@@ -315,10 +324,14 @@ class _CreditHomePageState extends State<CreditHomePage>
                                 onPressed: creditData.availableCredits >= 100
                                     ? () {
                                         creditData.useCredits(100);
-                                        ScaffoldMessenger.of(context)
-                                            .showSnackBar(
-                                          _buildSnackBar('Used 100 credits',
-                                              Icons.check_circle, Colors.blue),
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          _buildSnackBar(
+                                            'Used 100 credits',
+                                            Icons.check_circle,
+                                            Colors.blue,
+                                          ),
                                         );
                                       }
                                     : null,
@@ -351,9 +364,7 @@ class _CreditHomePageState extends State<CreditHomePage>
       ),
       backgroundColor: color,
       behavior: SnackBarBehavior.floating,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       margin: const EdgeInsets.all(12),
       duration: const Duration(seconds: 2),
     );
@@ -361,15 +372,21 @@ class _CreditHomePageState extends State<CreditHomePage>
 
   void _showSuccessSnackBar(BuildContext context, int amount) {
     ScaffoldMessenger.of(context).showSnackBar(
-      _buildSnackBar('$amount credits added successfully', Icons.check_circle,
-          Colors.green.shade600),
+      _buildSnackBar(
+        '$amount credits added successfully',
+        Icons.check_circle,
+        Colors.green.shade600,
+      ),
     );
   }
 
   void _showErrorSnackBar(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
-      _buildSnackBar('Please enter a valid amount', Icons.error_outline,
-          Colors.red.shade600),
+      _buildSnackBar(
+        'Please enter a valid amount',
+        Icons.error_outline,
+        Colors.red.shade600,
+      ),
     );
   }
 }
@@ -476,8 +493,8 @@ class CreditDisplay extends StatelessWidget {
                 credits / maxCredits > 0.5
                     ? Colors.greenAccent
                     : credits / maxCredits > 0.2
-                        ? Colors.amberAccent
-                        : Colors.redAccent,
+                    ? Colors.amberAccent
+                    : Colors.redAccent,
               ),
               minHeight: 8,
             ),
@@ -499,10 +516,8 @@ class CreditDisplay extends StatelessWidget {
 class QuickAmountsSelector extends StatelessWidget {
   final Function(int) onAmountSelected;
 
-  const QuickAmountsSelector({
-    Key? key,
-    required this.onAmountSelected,
-  }) : super(key: key);
+  const QuickAmountsSelector({Key? key, required this.onAmountSelected})
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -514,9 +529,9 @@ class QuickAmountsSelector extends StatelessWidget {
       children: [
         Text(
           'Quick Add',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: 16),
         Row(
