@@ -19,6 +19,12 @@ AMPLIFY_TEAM_PROVIDER_PATH="$BASE_PATH/apps/flipper/amplify/team-provider-info.j
 GOOGLE_SERVICES_PLIST_PATH="$BASE_PATH/apps/flipper/ios/GoogleService-Info.plist"
 
 # Extract Firebase values
+
+if [[ -n "$GOOGLE_SERVICE_INFO_PLIST_CONTENT" ]]; then
+  echo "$GOOGLE_SERVICE_INFO_PLIST_CONTENT" > "$GOOGLE_SERVICES_PLIST_PATH"
+  echo "✅ Wrote keys to $GOOGLE_SERVICES_PLIST_PATH"
+fi
+
 GOOGLE_APP_ID=$(plutil -extract GOOGLE_APP_ID raw -o - "$GOOGLE_SERVICES_PLIST_PATH" 2>/dev/null || true)
 FIREBASE_PROJECT_ID=$(plutil -extract PROJECT_ID raw -o - "$GOOGLE_SERVICES_PLIST_PATH" 2>/dev/null || true)
 GCM_SENDER_ID=$(plutil -extract GCM_SENDER_ID raw -o - "$GOOGLE_SERVICES_PLIST_PATH" 2>/dev/null || true)
