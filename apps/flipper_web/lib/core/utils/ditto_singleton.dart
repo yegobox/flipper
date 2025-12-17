@@ -51,7 +51,8 @@ class DittoSingleton {
       final identity = OnlinePlaygroundIdentity(
         appID: appId,
         token: token,
-        enableDittoCloudSync: enableCloudSync,
+        customAuthUrl: "https://$appId.cloud.ditto.live",
+        enableDittoCloudSync: false,
       );
 
       print('📁 Using Ditto directory: $persistenceDir');
