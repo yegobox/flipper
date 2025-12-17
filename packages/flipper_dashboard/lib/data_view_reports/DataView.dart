@@ -129,6 +129,13 @@ class DataViewState extends ConsumerState<DataView>
     );
   }
 
+  @override
+  void dispose() {
+    // Clean up resources to prevent memory leaks
+    _dataGridSource.dispose();
+    super.dispose();
+  }
+
   bool _shouldUpdateDataSource(DataView oldWidget) {
     final bool changed =
         widget.transactionItems != oldWidget.transactionItems ||
@@ -654,7 +661,8 @@ class DataViewState extends ConsumerState<DataView>
   }
 
   Future<void> _fetchExportAccurateTotal() async {
-    setState(() {});
+    if (!mounted) return;
+
     try {
       final transactions = await ProxyService.strategy.transactions(
         startDate: widget.startDate,
@@ -663,13 +671,15 @@ class DataViewState extends ConsumerState<DataView>
         skipOriginalTransactionCheck: false,
         branchId: ProxyService.box.getBranchId(),
       );
+
+      if (!mounted) return;
+
       transactions.fold<double>(
         0,
         (sum, transaction) => sum + (transaction.subTotal ?? 0),
       );
-      setState(() {});
     } catch (e) {
-      setState(() {});
+      if (!mounted) return;
       talker.error('Failed to fetch export-accurate total: $e');
     }
   }
@@ -866,7 +876,7 @@ class DataViewState extends ConsumerState<DataView>
           final Map<String, dynamic> rowData = {};
 
           // Map all the columns explicitly based on the actual TransactionItem properties
-          rowData['ItemCode'] = item.id;
+          rowData['ItemCode'] = item.itemCd;
           rowData['Name'] = item.name;
           rowData['Barcode'] = item.bcd ?? '';
           rowData['Price'] = item.price;
@@ -889,8 +899,10 @@ class DataViewState extends ConsumerState<DataView>
 
           // Ensure zero values are properly formatted (avoid 'RF-' display in Excel)
           rowData['TaxPayable'] = item.taxAmt ?? 0.0;
-          rowData['GrossProfit'] =
-              (item.price * item.qty) - (item.supplyPriceAtSale ?? 0.0);
+          // Calculate net profit per item: TotalSales - (SupplyPrice * Qty)
+          rowData['NetProfit'] =
+              (item.price * item.qty) -
+              ((item.supplyPriceAtSale ?? 0.0) * item.qty);
 
           preparedData.add(rowData);
         }
