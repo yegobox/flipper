@@ -50,13 +50,35 @@ class UserProfileController extends _$UserProfileController {
 // Generated provider: userProfileControllerProvider
 
 /// Example widget that demonstrates how to use the UserProfileController
-class UserProfilePage extends ConsumerWidget {
+class UserProfilePage extends ConsumerStatefulWidget {
   final Session session;
 
   const UserProfilePage({super.key, required this.session});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<UserProfilePage> createState() => _UserProfilePageState();
+}
+
+class _UserProfilePageState extends ConsumerState<UserProfilePage> {
+  @override
+  void initState() {
+    super.initState();
+
+    // Fetch user profile once when the widget is initialized
+    // Guard against fetching if already in progress or data exists
+    final userProfileState = ref.read(userProfileControllerProvider);
+    if (userProfileState.isLoading ||
+        (userProfileState.hasValue && userProfileState.value != null)) {
+      // Skip fetch if already loading or has valid data
+    } else {
+      ref
+          .read(userProfileControllerProvider.notifier)
+          .fetchUserProfile(widget.session);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     // Listen to the user profile state
     final userProfileState = ref.watch(userProfileControllerProvider);
 
@@ -77,25 +99,6 @@ class UserProfilePage extends ConsumerWidget {
       // Only fetch if not already loaded? Original fetched every build? No, logic was simple.
       // I'll keep it as is but be aware.
     }
-
-    // To avoid "setState during build", valid pattern is:
-    // WidgetsBinding.instance.addPostFrameCallback((_) { ... });
-    // But since I can't import scheduler easily without Flutter dependencies (which I have), I'll use Future.microtask if needed.
-    // Actually, I will NOT change the logic significantly to avoid regression outside migration scope.
-    // But I will suppress the call if data is present? No, original didn't check.
-    // I'll leave the call as ref.read(...).fetch...
-
-    // Warning: Riverpod 2/3 recommends side effects in events or init.
-    // I'll leave it but maybe comment.
-
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref
-          .read(userProfileControllerProvider.notifier)
-          .fetchUserProfile(session);
-    });
-
-    // Wait, adding PostFrameCallback every build is also bad (accumulates).
-    // Converting to StatefulWidget is safer.
 
     return Scaffold(
       appBar: AppBar(title: const Text('User Profile')),

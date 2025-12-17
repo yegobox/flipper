@@ -17,7 +17,16 @@ write_to_file() {
 echo "🚀 Starting ci_post_clone.sh for flipper ---"
 
 # Adjust the base path to the correct root folder
-BASE_PATH="$(cd "$(dirname "$SRCROOT")/../../../../" && pwd)"
+if [[ -n "$CI_WORKSPACE" ]]; then
+  BASE_PATH="$CI_WORKSPACE"
+  echo "Using CI_WORKSPACE as BASE_PATH: $BASE_PATH"
+else
+  # Fallback for local testing or non-Xcode Cloud envs
+  # SCRIPT_DIR is apps/flipper/ios/ci_scripts
+  SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+  BASE_PATH="$(cd "$SCRIPT_DIR/../../../.." && pwd)"
+  echo "Using relative BASE_PATH: $BASE_PATH"
+fi
 echo "BASE_PATH is: $BASE_PATH"
 
 # Define file paths
@@ -35,6 +44,15 @@ GOOGLE_SERVICES_PLIST_PATH="$BASE_PATH/apps/flipper/ios/GoogleService-Info.plist
 
 if [[ -n "$GOOGLE_SERVICE_INFO_PLIST_CONTENT" ]]; then
   write_to_file "$GOOGLE_SERVICE_INFO_PLIST_CONTENT" "$GOOGLE_SERVICES_PLIST_PATH"
+fi
+
+echo "Checking for GoogleService-Info.plist at $GOOGLE_SERVICES_PLIST_PATH"
+if [[ -f "$GOOGLE_SERVICES_PLIST_PATH" ]]; then
+    echo "✅ File exists."
+else
+    echo "❌ File does NOT exist."
+    echo "Listing ios directory content:"
+    ls -l "$BASE_PATH/apps/flipper/ios/" || echo "Failed to list directory."
 fi
 
 GOOGLE_APP_ID=$(plutil -extract GOOGLE_APP_ID raw -o - "$GOOGLE_SERVICES_PLIST_PATH" 2>/dev/null || true)
