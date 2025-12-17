@@ -202,6 +202,11 @@ mixin CapellaVariantMixin implements VariantInterface {
         onChange: (result) {
           if (!completer.isCompleted) {
             final itemCount = result.items.length;
+            // Complete the completer immediately to avoid hanging
+            if (result.items.isNotEmpty) {
+              completer.complete(result.items.toList());
+            }
+            // Log asynchronously without waiting for completion
             logService.logException(
               'Observer onChange triggered with $itemCount items',
               type: 'business_fetch',
@@ -216,11 +221,7 @@ mixin CapellaVariantMixin implements VariantInterface {
                 'branchId': branchId.toString(),
                 'itemCount': itemCount.toString(),
               },
-            ).then((_) {
-              if (result.items.isNotEmpty) {
-                completer.complete(result.items.toList());
-              }
-            });
+            );
           }
         },
       );
@@ -568,6 +569,14 @@ mixin CapellaVariantMixin implements VariantInterface {
         arguments: arguments,
         onChange: (result) {
           final itemCount = result.items.length;
+          // Complete the completer immediately to avoid hanging
+          if (!completer.isCompleted) {
+            if (result.items.isNotEmpty) {
+              completer.complete(Variant.fromJson(
+                  Map<String, dynamic>.from(result.items.first.value)));
+            }
+          }
+          // Log asynchronously without waiting for completion
           logService.logException(
             'GetVariant observer onChange triggered with $itemCount items',
             type: 'business_fetch',
@@ -581,14 +590,7 @@ mixin CapellaVariantMixin implements VariantInterface {
               'method': 'getVariant',
               'itemCount': itemCount.toString(),
             },
-          ).then((_) {
-            if (!completer.isCompleted) {
-              if (result.items.isNotEmpty) {
-                completer.complete(Variant.fromJson(
-                    Map<String, dynamic>.from(result.items.first.value)));
-              }
-            }
-          });
+          );
         },
       );
 

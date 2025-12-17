@@ -82,24 +82,6 @@ class _UserProfilePageState extends ConsumerState<UserProfilePage> {
     // Listen to the user profile state
     final userProfileState = ref.watch(userProfileControllerProvider);
 
-    // Fetch the user profile when the page loads - using addPostFrameCallback or useEffect is better
-    // but keeping original logic: triggering fetch in build (not ideal but existing)
-    // Note: Calling side effects in build is unsafe.
-    // However, for migration, I keep it or move to initState equivalent if converted to ConsumerStatefulWidget.
-    // The original code was stateless, so I keep it, but use safe delay if possible or just call.
-    // Warning: this causes rebuild loops if state updates synchronously.
-    // Since fetch is async and sets loading, it triggers rebuild.
-    // I will wrap in microtask or just call it (original did ref.read(...).fetch...).
-    // Notifier provider exposes methods on .notifier.
-
-    // Original: ref.read(userProfileControllerProvider.notifier).fetchUserProfile(session);
-    // This is safe-ish if it doesn't setState immediately in a way that conflicts.
-    // But better to use `Future.microtask`.
-    if (userProfileState is AsyncLoading && userProfileState.value == null) {
-      // Only fetch if not already loaded? Original fetched every build? No, logic was simple.
-      // I'll keep it as is but be aware.
-    }
-
     return Scaffold(
       appBar: AppBar(title: const Text('User Profile')),
       body: userProfileState.when(

@@ -45,9 +45,9 @@ mixin CoreMiscellaneous implements CoreMiscellaneousInterface {
     return userId != null && userId > 0;
   }
 
-  /// Checks if userId is valid and calls the onInvalid callback if not
-  /// Returns true if userId is valid, false if it's invalid and callback was executed
-  bool validateUserId({Function? onInvalid}) {
+  /// Validates if userId is set and calls the onInvalid callback if not
+  /// Returns true if userId is valid, false if it's invalid regardless of whether onInvalid was provided
+  bool validateUserId({void Function()? onInvalid}) {
     if (!isUserIdSet()) {
       if (onInvalid != null) {
         onInvalid();
