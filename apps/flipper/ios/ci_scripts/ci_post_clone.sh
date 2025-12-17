@@ -1,6 +1,15 @@
 #!/bin/bash
 set -e
 
+# Helper for debug logging
+log_step() {
+  echo ""
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo "🔵 STEP: $1"
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo ""
+}
+
 # Helper to write files from env vars
 write_to_file() {
   local content="$1"
@@ -16,6 +25,8 @@ write_to_file() {
 
 echo "🚀 Starting ci_post_clone.sh for flipper ---"
 
+log_step "Determining Base Path"
+
 # Adjust the base path to the correct root folder
 if [[ -n "$CI_WORKSPACE" ]]; then
   BASE_PATH="$CI_WORKSPACE"
@@ -29,6 +40,14 @@ else
 fi
 echo "BASE_PATH is: $BASE_PATH"
 
+# Verify base path exists
+if [[ ! -d "$BASE_PATH" ]]; then
+  echo "❌ ERROR: BASE_PATH does not exist: $BASE_PATH"
+  exit 1
+fi
+
+log_step "Setting Up File Paths"
+
 # Define file paths
 INDEX_PATH="$BASE_PATH/apps/flipper/ios/ci_scripts/web/index.html"
 CONFIGDART_PATH="$BASE_PATH/packages/flipper_login/lib/config.dart"
@@ -40,10 +59,14 @@ AMPLIFY_CONFIG_PATH="$BASE_PATH/apps/flipper/lib/amplifyconfiguration.dart"
 AMPLIFY_TEAM_PROVIDER_PATH="$BASE_PATH/apps/flipper/amplify/team-provider-info.json"
 GOOGLE_SERVICES_PLIST_PATH="$BASE_PATH/apps/flipper/ios/GoogleService-Info.plist"
 
+log_step "Processing Firebase Configuration"
+
 # Extract Firebase values
 
 if [[ -n "$GOOGLE_SERVICE_INFO_PLIST_CONTENT" ]]; then
   write_to_file "$GOOGLE_SERVICE_INFO_PLIST_CONTENT" "$GOOGLE_SERVICES_PLIST_PATH"
+else
+  echo "⚠️ WARNING: GOOGLE_SERVICE_INFO_PLIST_CONTENT environment variable is not set"
 fi
 
 echo "Checking for GoogleService-Info.plist at $GOOGLE_SERVICES_PLIST_PATH"
@@ -53,14 +76,23 @@ else
     echo "❌ File does NOT exist."
     echo "Listing ios directory content:"
     ls -l "$BASE_PATH/apps/flipper/ios/" || echo "Failed to list directory."
+    echo "❌ ERROR: GoogleService-Info.plist is required but not found."
+    echo "Please ensure GOOGLE_SERVICE_INFO_PLIST_CONTENT environment variable is set in Xcode Cloud."
+    exit 1
 fi
 
 GOOGLE_APP_ID=$(plutil -extract GOOGLE_APP_ID raw -o - "$GOOGLE_SERVICES_PLIST_PATH" 2>/dev/null || true)
 FIREBASE_PROJECT_ID=$(plutil -extract PROJECT_ID raw -o - "$GOOGLE_SERVICES_PLIST_PATH" 2>/dev/null || true)
 GCM_SENDER_ID=$(plutil -extract GCM_SENDER_ID raw -o - "$GOOGLE_SERVICES_PLIST_PATH" 2>/dev/null || true)
 
+echo "Extracted Firebase values:"
+echo "  GOOGLE_APP_ID: ${GOOGLE_APP_ID:-[MISSING]}"
+echo "  FIREBASE_PROJECT_ID: ${FIREBASE_PROJECT_ID:-[MISSING]}"
+echo "  GCM_SENDER_ID: ${GCM_SENDER_ID:-[MISSING]}"
+
 if [[ -z "$GOOGLE_APP_ID" || -z "$FIREBASE_PROJECT_ID" || -z "$GCM_SENDER_ID" ]]; then
   echo "❌ ERROR: Missing Firebase configuration values."
+  echo "Please verify GoogleService-Info.plist contains all required fields."
   exit 1
 fi
 
@@ -76,6 +108,7 @@ cat > "$BASE_PATH/apps/flipper/ios/firebase_app_id_file.json" <<EOF
 EOF
 echo "✅ firebase_app_id_file.json generated at $BASE_PATH/apps/flipper/ios/firebase_app_id_file.json."
 
+log_step "Writing Environment Configuration Files"
 
 # Write files from environment variables
 write_to_file "$INDEX" "$INDEX_PATH"
@@ -87,8 +120,12 @@ write_to_file "$FIREBASE2" "$FIREBASE2_PATH"
 write_to_file "$AMPLIFY_CONFIG" "$AMPLIFY_CONFIG_PATH"
 write_to_file "$AMPLIFY_TEAM_PROVIDER" "$AMPLIFY_TEAM_PROVIDER_PATH"
 
+log_step "Configuring Git Settings"
+
 # Prevent Git from changing line endings
 git config --global core.autocrlf false
+
+log_step "Installing Flutter"
 
 # Install Flutter if missing
 FLUTTER_DIR="$HOME/flutter"
@@ -96,9 +133,24 @@ if ! command -v flutter &> /dev/null; then
   echo "📦 Installing Flutter..."
   git clone --depth 1 --branch "stable" https://github.com/flutter/flutter.git "$FLUTTER_DIR"
   export PATH="$FLUTTER_DIR/bin:$PATH"
-  flutter precache
+  # Only precache iOS artifacts to avoid downloading Android build tools
+  flutter precache --ios
+  echo "✅ Flutter installed successfully"
+else
+  echo "✅ Flutter already installed"
 fi
 export PATH="$FLUTTER_DIR/bin:$PATH"
+
+# Verify Flutter is available
+if ! command -v flutter &> /dev/null; then
+  echo "❌ ERROR: Flutter command not found after installation"
+  exit 1
+fi
+
+echo "Flutter version:"
+flutter --version
+
+log_step "Installing Melos"
 
 # Install Melos
 export PATH="$HOME/.pub-cache/bin:$PATH"
@@ -107,76 +159,132 @@ dart pub global activate melos 6.3.2
 # Cleanup temp file at exit
 trap 'rm -f "$BASE_PATH/apps/flipper/ios/firebase_app_id_file.json"' EXIT
 
+log_step "Running Network Diagnostics"
+
 # Network diagnostics
 ping -c 2 pub.dev || true
 nslookup pub.dev || true
 
+log_step "Running Melos Bootstrap"
+
 # Melos bootstrap with retries
 for i in {1..3}; do
   melos bootstrap && break
-  echo "Retrying melos bootstrap ($i/3)..."
+  echo "⚠️ Retrying melos bootstrap ($i/3)..."
   sleep 5
   if [[ $i -eq 3 ]]; then
-    echo "❌ Melos bootstrap failed."
+    echo "❌ Melos bootstrap failed after 3 attempts."
     exit 1
   fi
 done
+echo "✅ Melos bootstrap completed successfully"
 
-
+log_step "Setting Up CocoaPods Environment"
 
 # CocoaPods setup
-cd "$BASE_PATH/apps/flipper/ios"
-echo "📂 In $(pwd)"
+IOS_DIR="$BASE_PATH/apps/flipper/ios"
+if [[ ! -d "$IOS_DIR" ]]; then
+  echo "❌ ERROR: iOS directory does not exist: $IOS_DIR"
+  exit 1
+fi
+
+cd "$IOS_DIR"
+echo "📂 Working directory: $(pwd)"
+
+log_step "Generating Flutter Configuration Files"
 
 # Ensure Flutter configuration files are generated before pod install
-echo "🔧 Generating Flutter configuration files..."
-cd "$BASE_PATH/apps/flipper"
+echo "🔧 Running flutter pub get to generate Flutter configuration..."
+FLUTTER_APP_DIR="$BASE_PATH/apps/flipper"
+if [[ ! -d "$FLUTTER_APP_DIR" ]]; then
+  echo "❌ ERROR: Flutter app directory does not exist: $FLUTTER_APP_DIR"
+  exit 1
+fi
+
+cd "$FLUTTER_APP_DIR"
 flutter pub get
 echo "✅ Flutter pub get completed"
 
-# Return to iOS directory for CocoaPods
-cd "$BASE_PATH/apps/flipper/ios"
-
-
-# Install CocoaPods conditionally
-if [[ -n "$INSTALL_COCOAPODS" ]] && ! command -v pod &> /dev/null; then
-  echo "📦 Installing CocoaPods..."
-  HOMEBREW_NO_AUTO_UPDATE=1 brew install cocoapods
+# Verify Generated.xcconfig was created
+GENERATED_XCCONFIG="$IOS_DIR/Flutter/Generated.xcconfig"
+if [[ -f "$GENERATED_XCCONFIG" ]]; then
+  echo "✅ Generated.xcconfig exists at $GENERATED_XCCONFIG"
 else
-  echo "ℹ️ Skipping CocoaPods installation (already present or INSTALL_COCOAPODS not set)."
+  echo "⚠️ WARNING: Generated.xcconfig not found at $GENERATED_XCCONFIG"
 fi
+
+# Return to iOS directory for CocoaPods
+cd "$IOS_DIR"
+echo "📂 Back in iOS directory: $(pwd)"
+
+log_step "Installing CocoaPods"
+
+# Install CocoaPods if not present (removed env var requirement for better reliability)
+if ! command -v pod &> /dev/null; then
+  echo "📦 CocoaPods not found. Installing via Homebrew..."
+  HOMEBREW_NO_AUTO_UPDATE=1 brew install cocoapods
+  echo "✅ CocoaPods installed successfully"
+else
+  echo "✅ CocoaPods already installed"
+fi
+
+# Verify pod command is available
+if ! command -v pod &> /dev/null; then
+  echo "❌ ERROR: pod command not found after installation"
+  exit 1
+fi
+
+echo "CocoaPods version:"
+pod --version
+
+log_step "Updating CocoaPods Repository (Optional)"
 
 # Conditionally update pod repo
 if [[ -n "$POD_REPO_UPDATE" ]]; then
   echo "🔄 Updating pod repo..."
-  pod repo update || echo "⚠️ Skipped pod repo update."
+  pod repo update || echo "⚠️ Pod repo update failed, continuing anyway."
 else
   echo "ℹ️ Skipping pod repo update (POD_REPO_UPDATE not set)."
 fi
 
+log_step "Running CocoaPods Install"
+
 # Targeted pod update for sqlite3
-pod update sqlite3 || echo "⚠️ sqlite3 update failed, will retry later."
+echo "🔄 Attempting targeted update for sqlite3..."
+pod update sqlite3 || echo "⚠️ sqlite3 update failed, will retry during pod install."
 
 run_pod_install() {
   pod install || return 1
 }
 
+echo "🔧 Running pod install..."
 if ! run_pod_install; then
   echo "⚠️ pod install failed. Trying targeted updates..."
   pod update sqlite3 GoogleSignIn || true
   if ! run_pod_install; then
     echo "🔄 Running full pod update (last resort, lockfile preserved if present)..."
-    pod update || exit 1
+    pod update || {
+      echo "❌ ERROR: pod install and pod update both failed"
+      exit 1
+    }
   fi
 fi
+echo "✅ CocoaPods setup completed successfully"
 
-
+log_step "Preparing iOS Release Configuration"
 
 # -------------------------
 # Prepare iOS Release Config
 # -------------------------
-echo "⚙️ Preparing Flutter iOS release configuration..."
-cd "$BASE_PATH/apps/flipper"
+echo "⚙️ Building iOS configuration..."
+cd "$FLUTTER_APP_DIR"
 flutter build ios --config-only --release
+echo "✅ iOS release configuration prepared"
 
-echo "✅ Post-clone setup completed successfully."
+log_step "Build Script Completed Successfully"
+
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "✅ Post-clone setup completed successfully!"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
