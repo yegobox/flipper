@@ -4,26 +4,27 @@ import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_models/view_models/purchase_report_item.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as model;
 import 'package:supabase_models/brick/models/variant.model.dart';
 
-final importPurchaseViewModelProvider = StateNotifierProvider.autoDispose<
-    ImportPurchaseViewModel, AsyncValue<ImportPurchaseState>>(
-  (ref) => ImportPurchaseViewModel(),
-);
+final importPurchaseViewModelProvider =
+    StateNotifierProvider.autoDispose<
+      ImportPurchaseViewModel,
+      AsyncValue<ImportPurchaseState>
+    >((ref) => ImportPurchaseViewModel());
 
 class ImportPurchaseViewModel
     extends StateNotifier<AsyncValue<ImportPurchaseState>> {
   ImportPurchaseViewModel()
-      : super(AsyncValue.data(ImportPurchaseState(
-          selectedDate: DateTime.now(),
-          isImport: true,
-        )));
+    : super(
+        AsyncValue.data(
+          ImportPurchaseState(selectedDate: DateTime.now(), isImport: true),
+        ),
+      );
 
   void toggleImportPurchase(bool isImport) {
-    state = AsyncValue.data(
-      state.value!.copyWith(isImport: isImport),
-    );
+    state = AsyncValue.data(state.value!.copyWith(isImport: isImport));
   }
 
   Future<void> exportImport() async {
@@ -45,8 +46,8 @@ class ImportPurchaseViewModel
   Future<void> exportPurchase() async {
     state = AsyncValue.data(state.value!.copyWith(isExporting: true));
     try {
-      List<PurchaseReportItem> purchases =
-          await ProxyService.strategy.allPurchasesToDate();
+      List<PurchaseReportItem> purchases = await ProxyService.strategy
+          .allPurchasesToDate();
       if (purchases.isNotEmpty) {
         await ExportPurchase().export(purchases);
       } else {

@@ -32,11 +32,11 @@ dependencies:
   qr_flutter: ^4.1.0
   flipper_ui: ^1.0.3
   flipper_socials: 1.0.0+1
-  flutter_riverpod: ^2.4.5
-  riverpod_annotation: ^2.3.0
+  flutter_riverpod: ^3.0.3
+  riverpod_annotation: ^3.0.3
   flutter_hooks:
-  riverpod: ^2.0.0
-  hooks_riverpod: ^2.0.0
+  riverpod: ^3.0.3
+  hooks_riverpod: ^3.0.3
   loading_animation_widget: ^1.2.0+4
   sentry: ^9.6.0
   sentry_flutter: ^9.8.0
@@ -51,7 +51,7 @@ dependency_overrides:
   meta: ^1.11.0
   web: ^1.0.0
   json_annotation: ^4.9.0
-  sqlite3: ^3.1.0
+  sqlite3: ^3.1.1
   device_info_plus: ^12.2.0
   archive: ^3.6.1
   excel: ^4.0.6

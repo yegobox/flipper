@@ -11,7 +11,7 @@ dependencies:
   intl: ^0.20.2
   injectable: ^2.5.0
   get_it: ^8.0.3
-  stacked: ^3.4.3
+  stacked: ^3.5.0
   flipper_services: any
   meta: ^1.16.0
 dependency_overrides:
@@ -19,7 +19,7 @@ dependency_overrides:
   meta: ^1.16.0
   web: ^1.0.0
   json_annotation: ^4.9.0
-  sqlite3: ^3.1.0
+  sqlite3: ^3.1.1
   device_info_plus: ^12.2.0
   archive: ^3.6.1
   excel: ^4.0.6

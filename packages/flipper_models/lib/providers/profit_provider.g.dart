@@ -6,168 +6,91 @@ part of 'profit_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$profitHash() => r'ba20502703e92bbcef30fae4c19cbb67a8493847';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// Copied from Dart SDK
-class _SystemHash {
-  _SystemHash._();
-
-  static int combine(int hash, int value) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + value);
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
-    return hash ^ (hash >> 6);
-  }
-
-  static int finish(int hash) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
-    // ignore: parameter_assignments
-    hash = hash ^ (hash >> 11);
-    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
-  }
-}
-
-abstract class _$Profit extends BuildlessAutoDisposeAsyncNotifier<double> {
-  late final int branchId;
-
-  FutureOr<double> build(
-    int branchId,
-  );
-}
-
-/// See also [Profit].
 @ProviderFor(Profit)
-const profitProvider = ProfitFamily();
+const profitProvider = ProfitFamily._();
 
-/// See also [Profit].
-class ProfitFamily extends Family<AsyncValue<double>> {
-  /// See also [Profit].
-  const ProfitFamily();
-
-  /// See also [Profit].
-  ProfitProvider call(
-    int branchId,
-  ) {
-    return ProfitProvider(
-      branchId,
-    );
-  }
-
-  @override
-  ProfitProvider getProviderOverride(
-    covariant ProfitProvider provider,
-  ) {
-    return call(
-      provider.branchId,
-    );
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'profitProvider';
-}
-
-/// See also [Profit].
-class ProfitProvider
-    extends AutoDisposeAsyncNotifierProviderImpl<Profit, double> {
-  /// See also [Profit].
-  ProfitProvider(
-    int branchId,
-  ) : this._internal(
-          () => Profit()..branchId = branchId,
-          from: profitProvider,
+final class ProfitProvider extends $AsyncNotifierProvider<Profit, double> {
+  const ProfitProvider._(
+      {required ProfitFamily super.from, required int super.argument})
+      : super(
+          retry: null,
           name: r'profitProvider',
-          debugGetCreateSourceHash:
-              const bool.fromEnvironment('dart.vm.product')
-                  ? null
-                  : _$profitHash,
-          dependencies: ProfitFamily._dependencies,
-          allTransitiveDependencies: ProfitFamily._allTransitiveDependencies,
-          branchId: branchId,
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
         );
 
-  ProfitProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.branchId,
-  }) : super.internal();
-
-  final int branchId;
+  @override
+  String debugGetCreateSourceHash() => _$profitHash();
 
   @override
-  FutureOr<double> runNotifierBuild(
-    covariant Profit notifier,
-  ) {
-    return notifier.build(
-      branchId,
-    );
+  String toString() {
+    return r'profitProvider'
+        ''
+        '($argument)';
   }
 
+  @$internal
   @override
-  Override overrideWith(Profit Function() create) {
-    return ProviderOverride(
-      origin: this,
-      override: ProfitProvider._internal(
-        () => create()..branchId = branchId,
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        branchId: branchId,
-      ),
-    );
-  }
-
-  @override
-  AutoDisposeAsyncNotifierProviderElement<Profit, double> createElement() {
-    return _ProfitProviderElement(this);
-  }
+  Profit create() => Profit();
 
   @override
   bool operator ==(Object other) {
-    return other is ProfitProvider && other.branchId == branchId;
+    return other is ProfitProvider && other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, branchId.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin ProfitRef on AutoDisposeAsyncNotifierProviderRef<double> {
-  /// The parameter `branchId` of this provider.
-  int get branchId;
-}
+String _$profitHash() => r'ba20502703e92bbcef30fae4c19cbb67a8493847';
 
-class _ProfitProviderElement
-    extends AutoDisposeAsyncNotifierProviderElement<Profit, double>
-    with ProfitRef {
-  _ProfitProviderElement(super.provider);
+final class ProfitFamily extends $Family
+    with
+        $ClassFamilyOverride<Profit, AsyncValue<double>, double,
+            FutureOr<double>, int> {
+  const ProfitFamily._()
+      : super(
+          retry: null,
+          name: r'profitProvider',
+          dependencies: null,
+          $allTransitiveDependencies: null,
+          isAutoDispose: true,
+        );
+
+  ProfitProvider call(
+    int branchId,
+  ) =>
+      ProfitProvider._(argument: branchId, from: this);
 
   @override
-  int get branchId => (origin as ProfitProvider).branchId;
+  String toString() => r'profitProvider';
 }
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+
+abstract class _$Profit extends $AsyncNotifier<double> {
+  late final _$args = ref.$arg as int;
+  int get branchId => _$args;
+
+  FutureOr<double> build(
+    int branchId,
+  );
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build(
+      _$args,
+    );
+    final ref = this.ref as $Ref<AsyncValue<double>, double>;
+    final element = ref.element as $ClassProviderElement<
+        AnyNotifier<AsyncValue<double>, double>,
+        AsyncValue<double>,
+        Object?,
+        Object?>;
+    element.handleValue(ref, created);
+  }
+}

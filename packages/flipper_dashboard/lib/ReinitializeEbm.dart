@@ -37,8 +37,8 @@ class _ReInitializeEbmDialogState extends State<ReInitializeEbmDialog> {
       final ebm = await ProxyService.strategy.ebm(branchId: branchId);
       if (ebm != null) {
         _tinController.text = ebm.tinNumber.toString();
-        _bhfIdController.text = ebm.bhfId!;
-        _dvcSrlNoController.text = ebm.dvcSrlNo!;
+        _bhfIdController.text = ebm.bhfId;
+        _dvcSrlNoController.text = ebm.dvcSrlNo;
       }
     } catch (e) {
       // Silently handle errors - it's okay if we can't pre-fill the form

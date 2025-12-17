@@ -3,31 +3,27 @@ import 'package:flipper_personal/src/services/ditto_service.dart';
 import 'package:flipper_models/models/challenge_code.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'dart:convert';
 
-final locationServiceProvider = Provider<LocationService>((ref) {
+part 'providers.g.dart';
+
+@riverpod
+LocationService locationService(Ref ref) {
   return LocationService();
-});
+}
 
-final challengeServiceProvider = Provider<DittoService>((ref) {
+// Note: naming conflict with `challengeService` in `providers/providers.dart` if imported together.
+// But this is in `lib/src/providers.dart`.
+@riverpod
+DittoService challengeService(Ref ref) {
   return DittoService();
-});
+}
 
-final challengeClaimProvider =
-    StateNotifierProvider<ChallengeClaimNotifier, AsyncValue<bool>>((ref) {
-      return ChallengeClaimNotifier();
-    });
-
-final challengeFinderProvider =
-    StateNotifierProvider<
-      ChallengeFinderNotifier,
-      AsyncValue<List<ChallengeCode>>
-    >((ref) {
-      return ChallengeFinderNotifier(ref);
-    });
-
-class ChallengeClaimNotifier extends StateNotifier<AsyncValue<bool>> {
-  ChallengeClaimNotifier() : super(const AsyncValue.data(false));
+@riverpod
+class ChallengeClaim extends _$ChallengeClaim {
+  @override
+  AsyncValue<bool> build() => const AsyncValue.data(false);
 
   Future<void> claimChallenge(String userId, String challengeId) async {
     state = const AsyncValue.loading();
@@ -41,11 +37,12 @@ class ChallengeClaimNotifier extends StateNotifier<AsyncValue<bool>> {
   }
 }
 
-class ChallengeFinderNotifier
-    extends StateNotifier<AsyncValue<List<ChallengeCode>>> {
-  final Ref ref;
+@riverpod
+class ChallengeFinder extends _$ChallengeFinder {
+  // Ref is available via `ref` property in Notifier
 
-  ChallengeFinderNotifier(this.ref) : super(const AsyncValue.data([]));
+  @override
+  AsyncValue<List<ChallengeCode>> build() => const AsyncValue.data([]);
 
   Future<void> findNearbyChallenges() async {
     state = const AsyncValue.loading();
@@ -111,3 +108,11 @@ class ChallengeFinderNotifier
     state = const AsyncValue.data([]);
   }
 }
+
+// Aliases for compatibility
+typedef ChallengeClaimNotifier = ChallengeClaim;
+typedef ChallengeFinderNotifier = ChallengeFinder;
+
+// challengeServiceProvider is generated.
+// challengeClaimProvider is generated.
+// challengeFinderProvider is generated.

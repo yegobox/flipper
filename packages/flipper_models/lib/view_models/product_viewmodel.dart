@@ -13,7 +13,7 @@ import 'package:flipper_services/locator.dart' as loc;
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/product_service.dart';
 import 'package:flipper_routing/app.locator.dart';
-import 'package:flutter_riverpod/src/consumer.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_services/constants.dart';
@@ -449,8 +449,8 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
         await ProxyService.keypad.getPendingTransaction(branchId: branchId);
 
     if (transaction != null) {
-      List<TransactionItem> transactionItems = await ProxyService.getStrategy(Strategy.capella)
-          .transactionItems(
+      List<TransactionItem> transactionItems =
+          await ProxyService.getStrategy(Strategy.capella).transactionItems(
               transactionId: transaction.id,
               branchId: (await ProxyService.strategy.activeBranch()).id);
 

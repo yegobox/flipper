@@ -1,40 +1,38 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class StateObserver extends ProviderObserver {
+final class StateObserver extends ProviderObserver {
   @override
   void didAddProvider(
-    ProviderBase<Object?> provider,
+    ProviderObserverContext context,
     Object? value,
-    ProviderContainer container,
   ) {
-    // print('Provider $provider was initialized with $value');
-  }
-
-  @override
-  void didDisposeProvider(
-    ProviderBase<Object?> provider,
-    ProviderContainer container,
-  ) {
-    // print('Provider $provider was disposed');
+    // debugPrint('Provider ${context.provider} initialized with $value');
   }
 
   @override
   void didUpdateProvider(
-    ProviderBase<Object?> provider,
+    ProviderObserverContext context,
     Object? previousValue,
     Object? newValue,
-    ProviderContainer container,
   ) {
-    // print('Provider $provider updated from $previousValue to $newValue');
+    // debugPrint(
+    //   'Provider ${context.provider} updated from $previousValue to $newValue',
+    // );
   }
 
   @override
-  void providerDidFail(
-    ProviderBase<Object?> provider,
+  void didDisposeProvider(
+    ProviderObserverContext context,
+  ) {
+    // debugPrint('Provider ${context.provider} disposed');
+  }
+
+  @override
+  void didFailProvider(
+    ProviderObserverContext context,
     Object error,
     StackTrace stackTrace,
-    ProviderContainer container,
   ) {
-    // print('Provider $provider threw $error at $stackTrace');
+    // debugPrint('Provider ${context.provider} failed with $error');
   }
 }

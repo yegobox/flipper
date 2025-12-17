@@ -1,8 +1,9 @@
-// lib/features/auth/providers/auth_notifier.dart
 import 'package:flipper_auth/core/services/auth_service.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flipper_auth/core/providers.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+part 'auth_notifier.g.dart';
 
 // Auth State
 class AuthState extends Equatable {
@@ -39,10 +40,14 @@ class AuthState extends Equatable {
 }
 
 // Auth Notifier
-class AuthNotifier extends StateNotifier<AuthState> {
-  final AuthService _authService;
+@riverpod
+class AuthNotifier extends _$AuthNotifier {
+  @override
+  AuthState build() {
+    return const AuthState();
+  }
 
-  AuthNotifier(this._authService) : super(const AuthState());
+  AuthService get _authService => ref.read(authServiceProvider);
 
   Future<void> signIn({
     required String email,
@@ -97,8 +102,4 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 }
 
-final authNotifierProvider =
-    StateNotifierProvider<AuthNotifier, AuthState>((ref) {
-  final authService = ref.watch(authServiceProvider);
-  return AuthNotifier(authService);
-});
+final authNotifierProvider = authProvider;

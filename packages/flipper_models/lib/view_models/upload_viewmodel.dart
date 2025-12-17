@@ -80,8 +80,9 @@ class UploadViewModel extends ProductViewModel {
         onProgress: (progress) {
           talker.warning('Fraction completed: ${progress.fractionCompleted}');
           if (ref != null) {
-            ref!.read(uploadProgressProvider.notifier).state =
-                progress.fractionCompleted;
+            ref!.read(uploadProgressProvider.notifier).setProgress(
+                  progress.fractionCompleted,
+                );
           }
         },
       ).result;

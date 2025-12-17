@@ -22,6 +22,7 @@ class TaxController<OBJ> {
   Future<({RwApiResponse response, Uint8List? bytes})> handleReceipt(
       {bool skiGenerateRRAReceiptSignature = false,
       String? purchaseCode,
+      void Function()? onSuccess,
       required FilterType filterType}) async {
     if (object is ITransaction) {
       ITransaction transaction = object as ITransaction;
@@ -69,6 +70,7 @@ class TaxController<OBJ> {
             purchaseCode: purchaseCode,
             // sarTyCd: StockInOutType.stockMovementIn,
             skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
+            onSuccess: onSuccess,
           );
         } catch (e) {
           rethrow;
@@ -85,6 +87,7 @@ class TaxController<OBJ> {
             sarTyCd: StockInOutType.sale,
             purchaseCode: purchaseCode,
             skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
+            onSuccess: onSuccess,
           );
         } catch (e) {
           rethrow;
@@ -102,6 +105,7 @@ class TaxController<OBJ> {
             originalInvoiceNumber: transaction.invoiceNumber,
             salesSttsCd: SalesSttsCd.refunded,
             skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
+            onSuccess: onSuccess,
           );
         } catch (e) {
           rethrow;
@@ -118,6 +122,7 @@ class TaxController<OBJ> {
             salesSttsCd: SalesSttsCd.approved,
             sarTyCd: StockInOutType.sale,
             skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
+            onSuccess: onSuccess,
           );
         } catch (e) {
           rethrow;
@@ -134,6 +139,7 @@ class TaxController<OBJ> {
             sarTyCd: StockInOutType.sale,
             salesSttsCd: SalesSttsCd.approved,
             skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
+            onSuccess: onSuccess,
           );
         } catch (e) {
           rethrow;
@@ -151,6 +157,7 @@ class TaxController<OBJ> {
             salesSttsCd: SalesSttsCd.refunded,
             sarTyCd: StockInOutType.returnIn,
             skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
+            onSuccess: onSuccess,
           );
         } catch (e) {
           rethrow;
@@ -167,6 +174,7 @@ class TaxController<OBJ> {
             transaction: transaction,
             originalInvoiceNumber: transaction.invoiceNumber,
             skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
+            onSuccess: onSuccess,
           );
         } catch (e) {
           rethrow;
@@ -229,6 +237,7 @@ class TaxController<OBJ> {
     String? custMblNo,
     required String customerName,
     Customer? customer,
+    void Function()? onSuccess,
   }) async {
     // Use provided items or fetch transaction items
     List<TransactionItem> transactionItems = items ?? [];
@@ -272,6 +281,7 @@ class TaxController<OBJ> {
               sarTyCd: sarTyCd,
               transactionItems: transactionItems,
               skiGenerateRRAReceiptSignature: skiGenerateRRAReceiptSignature,
+              onSuccess: onSuccess,
             );
           }
           responses = await generateRRAReceiptSignature(
@@ -416,6 +426,7 @@ class TaxController<OBJ> {
                   : ProxyService.box.customerName()!,
               printCallback: (Uint8List data) {
                 bytes = data;
+                onSuccess?.call();
               },
             );
 
@@ -694,6 +705,7 @@ class TaxController<OBJ> {
     String? sarTyCd,
     required List<TransactionItem> transactionItems,
     required bool skiGenerateRRAReceiptSignature,
+    void Function()? onSuccess,
   }) async {
     final enableTransactionDelegation = ProxyService.box.readBool(
       key: 'enableTransactionDelegation',
@@ -727,6 +739,7 @@ class TaxController<OBJ> {
 
         /// return dummy data
         Uint8List? bytes;
+        onSuccess?.call();
         return (
           response: RwApiResponse(resultCd: "000", resultMsg: "Delegated"),
           bytes: bytes

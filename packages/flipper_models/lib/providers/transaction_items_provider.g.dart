@@ -6,242 +6,226 @@ part of 'transaction_items_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$transactionItemsHash() => r'b7bbec484cfaba8e042dc874cbb43b17d12be689';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// Copied from Dart SDK
-class _SystemHash {
-  _SystemHash._();
+@ProviderFor(transactionItems)
+const transactionItemsProvider = TransactionItemsFamily._();
 
-  static int combine(int hash, int value) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + value);
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
-    return hash ^ (hash >> 6);
+final class TransactionItemsProvider extends $FunctionalProvider<
+        AsyncValue<List<TransactionItem>>,
+        List<TransactionItem>,
+        FutureOr<List<TransactionItem>>>
+    with
+        $FutureModifier<List<TransactionItem>>,
+        $FutureProvider<List<TransactionItem>> {
+  const TransactionItemsProvider._(
+      {required TransactionItemsFamily super.from,
+      required ({
+        String? transactionId,
+        String? requestId,
+        int? branchId,
+        bool fetchRemote,
+        bool doneWithTransaction,
+      })
+          super.argument})
+      : super(
+          retry: null,
+          name: r'transactionItemsProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$transactionItemsHash();
+
+  @override
+  String toString() {
+    return r'transactionItemsProvider'
+        ''
+        '$argument';
   }
 
-  static int finish(int hash) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
-    // ignore: parameter_assignments
-    hash = hash ^ (hash >> 11);
-    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
+  @$internal
+  @override
+  $FutureProviderElement<List<TransactionItem>> $createElement(
+          $ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<TransactionItem>> create(Ref ref) {
+    final argument = this.argument as ({
+      String? transactionId,
+      String? requestId,
+      int? branchId,
+      bool fetchRemote,
+      bool doneWithTransaction,
+    });
+    return transactionItems(
+      ref,
+      transactionId: argument.transactionId,
+      requestId: argument.requestId,
+      branchId: argument.branchId,
+      fetchRemote: argument.fetchRemote,
+      doneWithTransaction: argument.doneWithTransaction,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is TransactionItemsProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
   }
 }
 
-/// See also [transactionItems].
-@ProviderFor(transactionItems)
-const transactionItemsProvider = TransactionItemsFamily();
+String _$transactionItemsHash() => r'b7bbec484cfaba8e042dc874cbb43b17d12be689';
 
-/// See also [transactionItems].
-class TransactionItemsFamily extends Family<AsyncValue<List<TransactionItem>>> {
-  /// See also [transactionItems].
-  const TransactionItemsFamily();
+final class TransactionItemsFamily extends $Family
+    with
+        $FunctionalFamilyOverride<
+            FutureOr<List<TransactionItem>>,
+            ({
+              String? transactionId,
+              String? requestId,
+              int? branchId,
+              bool fetchRemote,
+              bool doneWithTransaction,
+            })> {
+  const TransactionItemsFamily._()
+      : super(
+          retry: null,
+          name: r'transactionItemsProvider',
+          dependencies: null,
+          $allTransitiveDependencies: null,
+          isAutoDispose: true,
+        );
 
-  /// See also [transactionItems].
   TransactionItemsProvider call({
     String? transactionId,
     String? requestId,
     int? branchId,
     bool fetchRemote = false,
     bool doneWithTransaction = false,
-  }) {
-    return TransactionItemsProvider(
-      transactionId: transactionId,
-      requestId: requestId,
-      branchId: branchId,
-      fetchRemote: fetchRemote,
-      doneWithTransaction: doneWithTransaction,
-    );
-  }
-
-  @override
-  TransactionItemsProvider getProviderOverride(
-    covariant TransactionItemsProvider provider,
-  ) {
-    return call(
-      transactionId: provider.transactionId,
-      requestId: provider.requestId,
-      branchId: provider.branchId,
-      fetchRemote: provider.fetchRemote,
-      doneWithTransaction: provider.doneWithTransaction,
-    );
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'transactionItemsProvider';
-}
-
-/// See also [transactionItems].
-class TransactionItemsProvider
-    extends AutoDisposeFutureProvider<List<TransactionItem>> {
-  /// See also [transactionItems].
-  TransactionItemsProvider({
-    String? transactionId,
-    String? requestId,
-    int? branchId,
-    bool fetchRemote = false,
-    bool doneWithTransaction = false,
-  }) : this._internal(
-          (ref) => transactionItems(
-            ref as TransactionItemsRef,
-            transactionId: transactionId,
-            requestId: requestId,
-            branchId: branchId,
-            fetchRemote: fetchRemote,
-            doneWithTransaction: doneWithTransaction,
-          ),
-          from: transactionItemsProvider,
-          name: r'transactionItemsProvider',
-          debugGetCreateSourceHash:
-              const bool.fromEnvironment('dart.vm.product')
-                  ? null
-                  : _$transactionItemsHash,
-          dependencies: TransactionItemsFamily._dependencies,
-          allTransitiveDependencies:
-              TransactionItemsFamily._allTransitiveDependencies,
-          transactionId: transactionId,
-          requestId: requestId,
-          branchId: branchId,
-          fetchRemote: fetchRemote,
-          doneWithTransaction: doneWithTransaction,
-        );
-
-  TransactionItemsProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.transactionId,
-    required this.requestId,
-    required this.branchId,
-    required this.fetchRemote,
-    required this.doneWithTransaction,
-  }) : super.internal();
-
-  final String? transactionId;
-  final String? requestId;
-  final int? branchId;
-  final bool fetchRemote;
-  final bool doneWithTransaction;
-
-  @override
-  Override overrideWith(
-    FutureOr<List<TransactionItem>> Function(TransactionItemsRef provider)
-        create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: TransactionItemsProvider._internal(
-        (ref) => create(ref as TransactionItemsRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
+  }) =>
+      TransactionItemsProvider._(argument: (
         transactionId: transactionId,
         requestId: requestId,
         branchId: branchId,
         fetchRemote: fetchRemote,
         doneWithTransaction: doneWithTransaction,
-      ),
+      ), from: this);
+
+  @override
+  String toString() => r'transactionItemsProvider';
+}
+
+@ProviderFor(transactionItemsStream)
+const transactionItemsStreamProvider = TransactionItemsStreamFamily._();
+
+final class TransactionItemsStreamProvider extends $FunctionalProvider<
+        AsyncValue<List<TransactionItem>>,
+        List<TransactionItem>,
+        Stream<List<TransactionItem>>>
+    with
+        $FutureModifier<List<TransactionItem>>,
+        $StreamProvider<List<TransactionItem>> {
+  const TransactionItemsStreamProvider._(
+      {required TransactionItemsStreamFamily super.from,
+      required ({
+        String? transactionId,
+        String? branchId,
+        String? requestId,
+        bool fetchRemote,
+        bool doneWithTransaction,
+        bool forceRealData,
+      })
+          super.argument})
+      : super(
+          retry: null,
+          name: r'transactionItemsStreamProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$transactionItemsStreamHash();
+
+  @override
+  String toString() {
+    return r'transactionItemsStreamProvider'
+        ''
+        '$argument';
+  }
+
+  @$internal
+  @override
+  $StreamProviderElement<List<TransactionItem>> $createElement(
+          $ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
+
+  @override
+  Stream<List<TransactionItem>> create(Ref ref) {
+    final argument = this.argument as ({
+      String? transactionId,
+      String? branchId,
+      String? requestId,
+      bool fetchRemote,
+      bool doneWithTransaction,
+      bool forceRealData,
+    });
+    return transactionItemsStream(
+      ref,
+      transactionId: argument.transactionId,
+      branchId: argument.branchId,
+      requestId: argument.requestId,
+      fetchRemote: argument.fetchRemote,
+      doneWithTransaction: argument.doneWithTransaction,
+      forceRealData: argument.forceRealData,
     );
   }
 
   @override
-  AutoDisposeFutureProviderElement<List<TransactionItem>> createElement() {
-    return _TransactionItemsProviderElement(this);
-  }
-
-  @override
   bool operator ==(Object other) {
-    return other is TransactionItemsProvider &&
-        other.transactionId == transactionId &&
-        other.requestId == requestId &&
-        other.branchId == branchId &&
-        other.fetchRemote == fetchRemote &&
-        other.doneWithTransaction == doneWithTransaction;
+    return other is TransactionItemsStreamProvider &&
+        other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, transactionId.hashCode);
-    hash = _SystemHash.combine(hash, requestId.hashCode);
-    hash = _SystemHash.combine(hash, branchId.hashCode);
-    hash = _SystemHash.combine(hash, fetchRemote.hashCode);
-    hash = _SystemHash.combine(hash, doneWithTransaction.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
-}
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin TransactionItemsRef
-    on AutoDisposeFutureProviderRef<List<TransactionItem>> {
-  /// The parameter `transactionId` of this provider.
-  String? get transactionId;
-
-  /// The parameter `requestId` of this provider.
-  String? get requestId;
-
-  /// The parameter `branchId` of this provider.
-  int? get branchId;
-
-  /// The parameter `fetchRemote` of this provider.
-  bool get fetchRemote;
-
-  /// The parameter `doneWithTransaction` of this provider.
-  bool get doneWithTransaction;
-}
-
-class _TransactionItemsProviderElement
-    extends AutoDisposeFutureProviderElement<List<TransactionItem>>
-    with TransactionItemsRef {
-  _TransactionItemsProviderElement(super.provider);
-
-  @override
-  String? get transactionId =>
-      (origin as TransactionItemsProvider).transactionId;
-  @override
-  String? get requestId => (origin as TransactionItemsProvider).requestId;
-  @override
-  int? get branchId => (origin as TransactionItemsProvider).branchId;
-  @override
-  bool get fetchRemote => (origin as TransactionItemsProvider).fetchRemote;
-  @override
-  bool get doneWithTransaction =>
-      (origin as TransactionItemsProvider).doneWithTransaction;
 }
 
 String _$transactionItemsStreamHash() =>
     r'9a317f53bb4bec2f945091d0e7cec79af1f85907';
 
-/// See also [transactionItemsStream].
-@ProviderFor(transactionItemsStream)
-const transactionItemsStreamProvider = TransactionItemsStreamFamily();
+final class TransactionItemsStreamFamily extends $Family
+    with
+        $FunctionalFamilyOverride<
+            Stream<List<TransactionItem>>,
+            ({
+              String? transactionId,
+              String? branchId,
+              String? requestId,
+              bool fetchRemote,
+              bool doneWithTransaction,
+              bool forceRealData,
+            })> {
+  const TransactionItemsStreamFamily._()
+      : super(
+          retry: null,
+          name: r'transactionItemsStreamProvider',
+          dependencies: null,
+          $allTransitiveDependencies: null,
+          isAutoDispose: true,
+        );
 
-/// See also [transactionItemsStream].
-class TransactionItemsStreamFamily
-    extends Family<AsyncValue<List<TransactionItem>>> {
-  /// See also [transactionItemsStream].
-  const TransactionItemsStreamFamily();
-
-  /// See also [transactionItemsStream].
   TransactionItemsStreamProvider call({
     String? transactionId,
     String? branchId,
@@ -249,204 +233,16 @@ class TransactionItemsStreamFamily
     bool fetchRemote = false,
     bool doneWithTransaction = false,
     bool forceRealData = true,
-  }) {
-    return TransactionItemsStreamProvider(
-      transactionId: transactionId,
-      branchId: branchId,
-      requestId: requestId,
-      fetchRemote: fetchRemote,
-      doneWithTransaction: doneWithTransaction,
-      forceRealData: forceRealData,
-    );
-  }
-
-  @override
-  TransactionItemsStreamProvider getProviderOverride(
-    covariant TransactionItemsStreamProvider provider,
-  ) {
-    return call(
-      transactionId: provider.transactionId,
-      branchId: provider.branchId,
-      requestId: provider.requestId,
-      fetchRemote: provider.fetchRemote,
-      doneWithTransaction: provider.doneWithTransaction,
-      forceRealData: provider.forceRealData,
-    );
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'transactionItemsStreamProvider';
-}
-
-/// See also [transactionItemsStream].
-class TransactionItemsStreamProvider
-    extends AutoDisposeStreamProvider<List<TransactionItem>> {
-  /// See also [transactionItemsStream].
-  TransactionItemsStreamProvider({
-    String? transactionId,
-    String? branchId,
-    String? requestId,
-    bool fetchRemote = false,
-    bool doneWithTransaction = false,
-    bool forceRealData = true,
-  }) : this._internal(
-          (ref) => transactionItemsStream(
-            ref as TransactionItemsStreamRef,
-            transactionId: transactionId,
-            branchId: branchId,
-            requestId: requestId,
-            fetchRemote: fetchRemote,
-            doneWithTransaction: doneWithTransaction,
-            forceRealData: forceRealData,
-          ),
-          from: transactionItemsStreamProvider,
-          name: r'transactionItemsStreamProvider',
-          debugGetCreateSourceHash:
-              const bool.fromEnvironment('dart.vm.product')
-                  ? null
-                  : _$transactionItemsStreamHash,
-          dependencies: TransactionItemsStreamFamily._dependencies,
-          allTransitiveDependencies:
-              TransactionItemsStreamFamily._allTransitiveDependencies,
-          transactionId: transactionId,
-          branchId: branchId,
-          requestId: requestId,
-          fetchRemote: fetchRemote,
-          doneWithTransaction: doneWithTransaction,
-          forceRealData: forceRealData,
-        );
-
-  TransactionItemsStreamProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.transactionId,
-    required this.branchId,
-    required this.requestId,
-    required this.fetchRemote,
-    required this.doneWithTransaction,
-    required this.forceRealData,
-  }) : super.internal();
-
-  final String? transactionId;
-  final String? branchId;
-  final String? requestId;
-  final bool fetchRemote;
-  final bool doneWithTransaction;
-  final bool forceRealData;
-
-  @override
-  Override overrideWith(
-    Stream<List<TransactionItem>> Function(TransactionItemsStreamRef provider)
-        create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: TransactionItemsStreamProvider._internal(
-        (ref) => create(ref as TransactionItemsStreamRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
+  }) =>
+      TransactionItemsStreamProvider._(argument: (
         transactionId: transactionId,
         branchId: branchId,
         requestId: requestId,
         fetchRemote: fetchRemote,
         doneWithTransaction: doneWithTransaction,
         forceRealData: forceRealData,
-      ),
-    );
-  }
+      ), from: this);
 
   @override
-  AutoDisposeStreamProviderElement<List<TransactionItem>> createElement() {
-    return _TransactionItemsStreamProviderElement(this);
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return other is TransactionItemsStreamProvider &&
-        other.transactionId == transactionId &&
-        other.branchId == branchId &&
-        other.requestId == requestId &&
-        other.fetchRemote == fetchRemote &&
-        other.doneWithTransaction == doneWithTransaction &&
-        other.forceRealData == forceRealData;
-  }
-
-  @override
-  int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, transactionId.hashCode);
-    hash = _SystemHash.combine(hash, branchId.hashCode);
-    hash = _SystemHash.combine(hash, requestId.hashCode);
-    hash = _SystemHash.combine(hash, fetchRemote.hashCode);
-    hash = _SystemHash.combine(hash, doneWithTransaction.hashCode);
-    hash = _SystemHash.combine(hash, forceRealData.hashCode);
-
-    return _SystemHash.finish(hash);
-  }
+  String toString() => r'transactionItemsStreamProvider';
 }
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin TransactionItemsStreamRef
-    on AutoDisposeStreamProviderRef<List<TransactionItem>> {
-  /// The parameter `transactionId` of this provider.
-  String? get transactionId;
-
-  /// The parameter `branchId` of this provider.
-  String? get branchId;
-
-  /// The parameter `requestId` of this provider.
-  String? get requestId;
-
-  /// The parameter `fetchRemote` of this provider.
-  bool get fetchRemote;
-
-  /// The parameter `doneWithTransaction` of this provider.
-  bool get doneWithTransaction;
-
-  /// The parameter `forceRealData` of this provider.
-  bool get forceRealData;
-}
-
-class _TransactionItemsStreamProviderElement
-    extends AutoDisposeStreamProviderElement<List<TransactionItem>>
-    with TransactionItemsStreamRef {
-  _TransactionItemsStreamProviderElement(super.provider);
-
-  @override
-  String? get transactionId =>
-      (origin as TransactionItemsStreamProvider).transactionId;
-  @override
-  String? get branchId => (origin as TransactionItemsStreamProvider).branchId;
-  @override
-  String? get requestId => (origin as TransactionItemsStreamProvider).requestId;
-  @override
-  bool get fetchRemote =>
-      (origin as TransactionItemsStreamProvider).fetchRemote;
-  @override
-  bool get doneWithTransaction =>
-      (origin as TransactionItemsStreamProvider).doneWithTransaction;
-  @override
-  bool get forceRealData =>
-      (origin as TransactionItemsStreamProvider).forceRealData;
-}
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

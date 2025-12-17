@@ -12,14 +12,16 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/log_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart';
+import 'package:riverpod/riverpod.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/legacy.dart'
+    show ChangeNotifierProvider, StateProvider;
 import 'package:http/http.dart' as http;
 
 final coreViewModelProvider = ChangeNotifierProvider((ref) => CoreViewModel());
 final unsavedProductProvider =
-    StateNotifierProvider<ProductNotifier, Product?>((ref) {
-  return ProductNotifier();
-});
+    NotifierProvider<ProductNotifier, Product?>(ProductNotifier.new);
 
 final connectivityStreamProvider = StreamProvider<bool>((ref) {
   return Stream.periodic(const Duration(seconds: 5)).asyncMap((_) async {
@@ -51,8 +53,9 @@ final customerProvider = FutureProvider.autoDispose
       .firstOrNull;
 });
 
-class ProductNotifier extends StateNotifier<Product?> {
-  ProductNotifier() : super(null);
+class ProductNotifier extends Notifier<Product?> {
+  @override
+  Product? build() => null;
 
   void emitProduct({required Product value}) {
     state = value;
@@ -60,13 +63,12 @@ class ProductNotifier extends StateNotifier<Product?> {
 }
 
 final customerSearchStringProvider =
-    StateNotifierProvider.autoDispose<CustomerSearchStringNotifier, String>(
-        (ref) {
-  return CustomerSearchStringNotifier();
-});
+    NotifierProvider<CustomerSearchStringNotifier, String>(
+        CustomerSearchStringNotifier.new);
 
-class CustomerSearchStringNotifier extends StateNotifier<String> {
-  CustomerSearchStringNotifier() : super("");
+class CustomerSearchStringNotifier extends Notifier<String> {
+  @override
+  String build() => "";
 
   void emitString({required String value}) {
     state = value;
@@ -82,14 +84,11 @@ enum SellingMode {
 
 // Change the argument type to SellingMode
 final sellingModeProvider =
-    StateNotifierProvider.autoDispose<SellingModeNotifier, SellingMode>((ref) {
-  return SellingModeNotifier();
-});
+    NotifierProvider<SellingModeNotifier, SellingMode>(SellingModeNotifier.new);
 
-class SellingModeNotifier extends StateNotifier<SellingMode> {
-  // Declare an optional named parameter with a default value
-  SellingModeNotifier({SellingMode mode = SellingMode.forSelling})
-      : super(mode);
+class SellingModeNotifier extends Notifier<SellingMode> {
+  @override
+  SellingMode build() => SellingMode.forSelling;
 
   SellingMode setSellingMode(SellingMode mode) {
     state = mode;
@@ -102,30 +101,37 @@ final initialStockProvider =
   return ProxyService.strategy.totalSales(branchId: branchId);
 });
 
-final paginatedVariantsProvider = StateNotifierProvider.family<
+final paginatedVariantsProvider = NotifierProvider.family<
     PaginatedVariantsNotifier,
     AsyncValue<List<Variant>>,
-    String>((ref, productId) {
-  return PaginatedVariantsNotifier(productId);
-});
+    String>(PaginatedVariantsNotifier.new);
 
-class PaginatedVariantsNotifier
-    extends StateNotifier<AsyncValue<List<Variant>>> {
+class PaginatedVariantsNotifier extends Notifier<AsyncValue<List<Variant>>> {
   final String productId;
+  PaginatedVariantsNotifier(this.productId);
   int _page = 1;
   static const int _pageSize = 4;
   bool _hasMore = true;
   List<Variant> _allVariants = [];
 
-  PaginatedVariantsNotifier(this.productId)
-      : super(const AsyncValue.loading()) {
-    loadMore();
+  @override
+  AsyncValue<List<Variant>> build() {
+    futureLoad(productId);
+    return const AsyncValue.loading();
+  }
+
+  Future<void> futureLoad(String productId) async {
+    await loadMore();
   }
 
   Future<void> loadMore() async {
     if (!_hasMore) return;
 
-    state = const AsyncValue.loading();
+    if (state.value == null) {
+      // ensure we show loading if not already (though build returned loading)
+      state = const AsyncValue.loading();
+    }
+
     try {
       if (_allVariants.isEmpty) {
         _allVariants = await fetchVariants(productId);
@@ -140,6 +146,10 @@ class PaginatedVariantsNotifier
 
       if (newVariants.isEmpty) {
         _hasMore = false;
+        // Should we set data if it was loading?
+        if (state.isLoading) {
+          state = const AsyncValue.data([]);
+        }
       } else {
         _page++;
         final currentList = state.value ?? [];
@@ -180,8 +190,9 @@ final matchedProductProvider = Provider.autoDispose<Product?>((ref) {
   );
 });
 
-class ScanningModeNotifier extends StateNotifier<bool> {
-  ScanningModeNotifier() : super(false);
+class ScanningModeNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
 
   void toggleScanningMode() {
     state = !state;
@@ -191,12 +202,12 @@ class ScanningModeNotifier extends StateNotifier<bool> {
 
 // ordering
 final receivingOrdersModeProvider =
-    StateNotifierProvider<ReceiveOrderModeNotifier, bool>((ref) {
-  return ReceiveOrderModeNotifier();
-});
+    NotifierProvider<ReceiveOrderModeNotifier, bool>(
+        ReceiveOrderModeNotifier.new);
 
-class ReceiveOrderModeNotifier extends StateNotifier<bool> {
-  ReceiveOrderModeNotifier() : super(false);
+class ReceiveOrderModeNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
 
   void toggleReceiveOrder() {
     state = !state;
@@ -204,20 +215,24 @@ class ReceiveOrderModeNotifier extends StateNotifier<bool> {
 }
 // end ordering
 
-final customersProvider = StateNotifierProvider.autoDispose<CustomersNotifier,
-    AsyncValue<List<Customer>>>((ref) {
-  int branchId = ProxyService.box.getBranchId() ?? 0;
-  final customersNotifier = CustomersNotifier(branchId);
-  final searchString = ref.watch(searchStringProvider);
-  customersNotifier.loadCustomers(searchString: searchString);
+final customersProvider =
+    NotifierProvider<CustomersNotifier, AsyncValue<List<Customer>>>(
+        CustomersNotifier.new);
 
-  return customersNotifier;
-});
+class CustomersNotifier extends Notifier<AsyncValue<List<Customer>>> {
+  late int branchId;
 
-class CustomersNotifier extends StateNotifier<AsyncValue<List<Customer>>> {
-  final int branchId;
-
-  CustomersNotifier(this.branchId) : super(AsyncLoading());
+  @override
+  AsyncValue<List<Customer>> build() {
+    branchId = ProxyService.box.getBranchId() ?? 0;
+    final searchString = ref.watch(searchStringProvider);
+    // We should not await here for build method synchronous return,
+    // but we can start async load.
+    // However, if we want to reflect the search string change,
+    // we should validly load.
+    loadCustomers(searchString: searchString);
+    return const AsyncValue.loading();
+  }
 
   Future<void> loadCustomers({required String searchString}) async {
     try {
@@ -304,12 +319,11 @@ final unitsProvider =
 
 // create riverpod to track the index of button clicked
 final buttonIndexProvider =
-    StateNotifierProvider.autoDispose<ButtonIndexNotifier, int>((ref) {
-  return ButtonIndexNotifier();
-});
+    NotifierProvider<ButtonIndexNotifier, int>(ButtonIndexNotifier.new);
 
-class ButtonIndexNotifier extends StateNotifier<int> {
-  ButtonIndexNotifier() : super(0);
+class ButtonIndexNotifier extends Notifier<int> {
+  @override
+  int build() => 0;
 
   void setIndex(int index) {
     state = index;
@@ -373,12 +387,12 @@ final skuProvider =
       .sku(branchId: branchId, businessId: ProxyService.box.getBusinessId()!);
 });
 
-final keypadProvider = StateNotifierProvider<KeypadNotifier, String>((ref) {
-  return KeypadNotifier();
-});
+final keypadProvider =
+    NotifierProvider<KeypadNotifier, String>(KeypadNotifier.new);
 
-class KeypadNotifier extends StateNotifier<String> {
-  KeypadNotifier() : super("0.00");
+class KeypadNotifier extends Notifier<String> {
+  @override
+  String build() => "0.00";
 
   void addKey(String key) {
     if (key == 'C') {
@@ -432,13 +446,12 @@ class LoadingState {
 // final isLoadingProvider = StateProvider<bool>((ref) => false);
 // Define the provider
 final loadingProvider =
-    StateNotifierProvider<LoadingNotifier, LoadingState>((ref) {
-  return LoadingNotifier();
-});
+    NotifierProvider<LoadingNotifier, LoadingState>(LoadingNotifier.new);
 
 // Create a notifier to handle loading state changes
-class LoadingNotifier extends StateNotifier<LoadingState> {
-  LoadingNotifier() : super(const LoadingState());
+class LoadingNotifier extends Notifier<LoadingState> {
+  @override
+  LoadingState build() => const LoadingState();
 
   void startLoading() {
     state = state.copyWith(isLoading: true, error: null);
@@ -497,25 +510,25 @@ final reportsProvider =
 // TODO: hardcoding 2000 items is not ideal, I need to find permanent solution.
 final rowsPerPageProvider = StateProvider<int>((ref) => 20);
 
-class PluReportToggleNotifier extends StateNotifier<bool> {
-  PluReportToggleNotifier() : super(false); // Default to ZReport
+final toggleBooleanValueProvider =
+    NotifierProvider<PluReportToggleNotifier, bool>(
+        PluReportToggleNotifier.new);
+
+class PluReportToggleNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
 
   void toggleReport() {
     state = !state;
   }
 }
 
-final toggleBooleanValueProvider =
-    StateNotifierProvider<PluReportToggleNotifier, bool>((ref) {
-  return PluReportToggleNotifier();
-});
+final isProcessingProvider =
+    NotifierProvider<IsProcessingNotifier, bool>(IsProcessingNotifier.new);
 
-final isProcessingProvider = StateNotifierProvider<IsProcessingNotifier, bool>(
-  (ref) => IsProcessingNotifier(),
-);
-
-class IsProcessingNotifier extends StateNotifier<bool> {
-  IsProcessingNotifier() : super(false);
+class IsProcessingNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
 
   void startProcessing() {
     state = true;
@@ -567,7 +580,8 @@ final businessesProvider = FutureProvider<List<Business>>((ref) async {
 });
 
 // Define a provider for the selected branch
-final selectedBranchProvider = AutoDisposeStateProvider<Branch?>((ref) => null);
+final selectedBranchProvider =
+    StateProvider.autoDispose<Branch?>((ref) => null);
 // Provider to check if a user has access to a specific feature
 /// A provider that determines if a user has access to a specific feature based on their permissions.
 /// This provider implements a hierarchical access control system where certain elevated permissions
@@ -593,8 +607,13 @@ class BusinessSelectionState {
   }
 }
 
-class BusinessSelectionNotifier extends StateNotifier<BusinessSelectionState> {
-  BusinessSelectionNotifier() : super(BusinessSelectionState(isLoading: false));
+final businessSelectionProvider =
+    NotifierProvider<BusinessSelectionNotifier, BusinessSelectionState>(
+        BusinessSelectionNotifier.new);
+
+class BusinessSelectionNotifier extends Notifier<BusinessSelectionState> {
+  @override
+  BusinessSelectionState build() => BusinessSelectionState(isLoading: false);
 
   void setLoading(bool loading) {
     state = state.copyWith(isLoading: loading);
@@ -604,11 +623,6 @@ class BusinessSelectionNotifier extends StateNotifier<BusinessSelectionState> {
     state = state.copyWith(selectedBusiness: business);
   }
 }
-
-final businessSelectionProvider =
-    StateNotifierProvider<BusinessSelectionNotifier, BusinessSelectionState>(
-  (ref) => BusinessSelectionNotifier(),
-);
 
 class BranchSelectionState {
   final bool isLoading;
@@ -642,8 +656,13 @@ final statusColorProvider = StreamProvider<Color?>((ref) {
   }).distinct();
 });
 
-class BranchSelectionNotifier extends StateNotifier<BranchSelectionState> {
-  BranchSelectionNotifier() : super(BranchSelectionState(isLoading: false));
+final branchSelectionProvider =
+    NotifierProvider<BranchSelectionNotifier, BranchSelectionState>(
+        BranchSelectionNotifier.new);
+
+class BranchSelectionNotifier extends Notifier<BranchSelectionState> {
+  @override
+  BranchSelectionState build() => BranchSelectionState(isLoading: false);
 
   void setLoading(bool loading) {
     state = state.copyWith(isLoading: loading);
@@ -653,11 +672,6 @@ class BranchSelectionNotifier extends StateNotifier<BranchSelectionState> {
     state = state.copyWith(selectedBranch: branch);
   }
 }
-
-final branchSelectionProvider =
-    StateNotifierProvider<BranchSelectionNotifier, BranchSelectionState>(
-  (ref) => BranchSelectionNotifier(),
-);
 
 final variantsProvider = FutureProvider.autoDispose
     .family<List<Variant>, ({int branchId})>((ref, params) async {
@@ -684,12 +698,17 @@ class Payment {
         id = id ?? UniqueKey().toString();
 }
 
-class PaymentMethodsNotifier extends StateNotifier<List<Payment>> {
-  PaymentMethodsNotifier([List<Payment>? initialPayments])
-      : super(initialPayments ??
-            [
-              Payment(amount: 0.0, method: 'CASH'),
-            ]);
+final paymentMethodsProvider =
+    NotifierProvider<PaymentMethodsNotifier, List<Payment>>(
+        PaymentMethodsNotifier.new);
+
+class PaymentMethodsNotifier extends Notifier<List<Payment>> {
+  final List<Payment>? initialPayments;
+  PaymentMethodsNotifier([this.initialPayments]);
+
+  @override
+  List<Payment> build() =>
+      initialPayments ?? [Payment(amount: 0.0, method: 'CASH')];
 
   // Method to add a payment method
   void addPaymentMethod(Payment method) {
@@ -733,20 +752,19 @@ class PaymentMethodsNotifier extends StateNotifier<List<Payment>> {
   }
 }
 
-final paymentMethodsProvider =
-    StateNotifierProvider<PaymentMethodsNotifier, List<Payment>>(
-  (ref) => PaymentMethodsNotifier(), // No need to pass initial list here
-);
+class StringState extends Notifier<String?> {
+  StringState(this.initialValue);
+  final String? initialValue;
 
-class StringState extends StateNotifier<String?> {
-  StringState(String? initialValue) : super(initialValue);
+  @override
+  String? build() => initialValue;
 
   void updateString(String newString) {
     state = newString;
   }
 }
 
-final stringProvider = StateNotifierProvider<StringState, String?>((ref) {
+final stringProvider = NotifierProvider<StringState, String?>(() {
   return StringState(null);
 });
 
@@ -755,7 +773,7 @@ final orderStatusProvider =
 final requestStatusProvider =
     StateProvider<String>((ref) => RequestStatus.pending);
 
-final showProductsList = AutoDisposeStateProvider<bool>((ref) => true);
+final showProductsList = StateProvider.autoDispose<bool>((ref) => true);
 
 // Stock stream provider for live stock updates
 final stockByVariantProvider =

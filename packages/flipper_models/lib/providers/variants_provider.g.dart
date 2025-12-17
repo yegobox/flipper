@@ -6,480 +6,276 @@ part of 'variants_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$variantHash() => r'a17d4daf12dfead182571ec7beb47c39c53bf2e8';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// Copied from Dart SDK
-class _SystemHash {
-  _SystemHash._();
+@ProviderFor(variant)
+const variantProvider = VariantFamily._();
 
-  static int combine(int hash, int value) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + value);
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
-    return hash ^ (hash >> 6);
+final class VariantProvider extends $FunctionalProvider<
+        AsyncValue<List<Variant>>, List<Variant>, FutureOr<List<Variant>>>
+    with $FutureModifier<List<Variant>>, $FutureProvider<List<Variant>> {
+  const VariantProvider._(
+      {required VariantFamily super.from,
+      required ({
+        int branchId,
+        String? key,
+        bool forImportScreen,
+        bool forPurchaseScreen,
+      })
+          super.argument})
+      : super(
+          retry: null,
+          name: r'variantProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$variantHash();
+
+  @override
+  String toString() {
+    return r'variantProvider'
+        ''
+        '$argument';
   }
 
-  static int finish(int hash) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
-    // ignore: parameter_assignments
-    hash = hash ^ (hash >> 11);
-    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
+  @$internal
+  @override
+  $FutureProviderElement<List<Variant>> $createElement(
+          $ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<Variant>> create(Ref ref) {
+    final argument = this.argument as ({
+      int branchId,
+      String? key,
+      bool forImportScreen,
+      bool forPurchaseScreen,
+    });
+    return variant(
+      ref,
+      branchId: argument.branchId,
+      key: argument.key,
+      forImportScreen: argument.forImportScreen,
+      forPurchaseScreen: argument.forPurchaseScreen,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is VariantProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
   }
 }
 
-/// See also [variant].
-@ProviderFor(variant)
-const variantProvider = VariantFamily();
+String _$variantHash() => r'a17d4daf12dfead182571ec7beb47c39c53bf2e8';
 
-/// See also [variant].
-class VariantFamily extends Family<AsyncValue<List<Variant>>> {
-  /// See also [variant].
-  const VariantFamily();
+final class VariantFamily extends $Family
+    with
+        $FunctionalFamilyOverride<
+            FutureOr<List<Variant>>,
+            ({
+              int branchId,
+              String? key,
+              bool forImportScreen,
+              bool forPurchaseScreen,
+            })> {
+  const VariantFamily._()
+      : super(
+          retry: null,
+          name: r'variantProvider',
+          dependencies: null,
+          $allTransitiveDependencies: null,
+          isAutoDispose: true,
+        );
 
-  /// See also [variant].
   VariantProvider call({
     required int branchId,
     String? key,
     bool forImportScreen = false,
     bool forPurchaseScreen = false,
-  }) {
-    return VariantProvider(
-      branchId: branchId,
-      key: key,
-      forImportScreen: forImportScreen,
-      forPurchaseScreen: forPurchaseScreen,
-    );
-  }
-
-  @override
-  VariantProvider getProviderOverride(
-    covariant VariantProvider provider,
-  ) {
-    return call(
-      branchId: provider.branchId,
-      key: provider.key,
-      forImportScreen: provider.forImportScreen,
-      forPurchaseScreen: provider.forPurchaseScreen,
-    );
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'variantProvider';
-}
-
-/// See also [variant].
-class VariantProvider extends AutoDisposeFutureProvider<List<Variant>> {
-  /// See also [variant].
-  VariantProvider({
-    required int branchId,
-    String? key,
-    bool forImportScreen = false,
-    bool forPurchaseScreen = false,
-  }) : this._internal(
-          (ref) => variant(
-            ref as VariantRef,
-            branchId: branchId,
-            key: key,
-            forImportScreen: forImportScreen,
-            forPurchaseScreen: forPurchaseScreen,
-          ),
-          from: variantProvider,
-          name: r'variantProvider',
-          debugGetCreateSourceHash:
-              const bool.fromEnvironment('dart.vm.product')
-                  ? null
-                  : _$variantHash,
-          dependencies: VariantFamily._dependencies,
-          allTransitiveDependencies: VariantFamily._allTransitiveDependencies,
-          branchId: branchId,
-          key: key,
-          forImportScreen: forImportScreen,
-          forPurchaseScreen: forPurchaseScreen,
-        );
-
-  VariantProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.branchId,
-    required this.key,
-    required this.forImportScreen,
-    required this.forPurchaseScreen,
-  }) : super.internal();
-
-  final int branchId;
-  final String? key;
-  final bool forImportScreen;
-  final bool forPurchaseScreen;
-
-  @override
-  Override overrideWith(
-    FutureOr<List<Variant>> Function(VariantRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: VariantProvider._internal(
-        (ref) => create(ref as VariantRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
+  }) =>
+      VariantProvider._(argument: (
         branchId: branchId,
         key: key,
         forImportScreen: forImportScreen,
         forPurchaseScreen: forPurchaseScreen,
-      ),
+      ), from: this);
+
+  @override
+  String toString() => r'variantProvider';
+}
+
+@ProviderFor(purchaseVariant)
+const purchaseVariantProvider = PurchaseVariantFamily._();
+
+final class PurchaseVariantProvider extends $FunctionalProvider<
+        AsyncValue<List<Variant>>, List<Variant>, FutureOr<List<Variant>>>
+    with $FutureModifier<List<Variant>>, $FutureProvider<List<Variant>> {
+  const PurchaseVariantProvider._(
+      {required PurchaseVariantFamily super.from,
+      required ({
+        int branchId,
+        String? purchaseId,
+      })
+          super.argument})
+      : super(
+          retry: null,
+          name: r'purchaseVariantProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$purchaseVariantHash();
+
+  @override
+  String toString() {
+    return r'purchaseVariantProvider'
+        ''
+        '$argument';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<List<Variant>> $createElement(
+          $ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<Variant>> create(Ref ref) {
+    final argument = this.argument as ({
+      int branchId,
+      String? purchaseId,
+    });
+    return purchaseVariant(
+      ref,
+      branchId: argument.branchId,
+      purchaseId: argument.purchaseId,
     );
   }
 
   @override
-  AutoDisposeFutureProviderElement<List<Variant>> createElement() {
-    return _VariantProviderElement(this);
-  }
-
-  @override
   bool operator ==(Object other) {
-    return other is VariantProvider &&
-        other.branchId == branchId &&
-        other.key == key &&
-        other.forImportScreen == forImportScreen &&
-        other.forPurchaseScreen == forPurchaseScreen;
+    return other is PurchaseVariantProvider && other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, branchId.hashCode);
-    hash = _SystemHash.combine(hash, key.hashCode);
-    hash = _SystemHash.combine(hash, forImportScreen.hashCode);
-    hash = _SystemHash.combine(hash, forPurchaseScreen.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
-}
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin VariantRef on AutoDisposeFutureProviderRef<List<Variant>> {
-  /// The parameter `branchId` of this provider.
-  int get branchId;
-
-  /// The parameter `key` of this provider.
-  String? get key;
-
-  /// The parameter `forImportScreen` of this provider.
-  bool get forImportScreen;
-
-  /// The parameter `forPurchaseScreen` of this provider.
-  bool get forPurchaseScreen;
-}
-
-class _VariantProviderElement
-    extends AutoDisposeFutureProviderElement<List<Variant>> with VariantRef {
-  _VariantProviderElement(super.provider);
-
-  @override
-  int get branchId => (origin as VariantProvider).branchId;
-  @override
-  String? get key => (origin as VariantProvider).key;
-  @override
-  bool get forImportScreen => (origin as VariantProvider).forImportScreen;
-  @override
-  bool get forPurchaseScreen => (origin as VariantProvider).forPurchaseScreen;
 }
 
 String _$purchaseVariantHash() => r'661e989996a1d7f320e5c09b8b37610691e224c4';
 
-/// See also [purchaseVariant].
-@ProviderFor(purchaseVariant)
-const purchaseVariantProvider = PurchaseVariantFamily();
+final class PurchaseVariantFamily extends $Family
+    with
+        $FunctionalFamilyOverride<
+            FutureOr<List<Variant>>,
+            ({
+              int branchId,
+              String? purchaseId,
+            })> {
+  const PurchaseVariantFamily._()
+      : super(
+          retry: null,
+          name: r'purchaseVariantProvider',
+          dependencies: null,
+          $allTransitiveDependencies: null,
+          isAutoDispose: true,
+        );
 
-/// See also [purchaseVariant].
-class PurchaseVariantFamily extends Family<AsyncValue<List<Variant>>> {
-  /// See also [purchaseVariant].
-  const PurchaseVariantFamily();
-
-  /// See also [purchaseVariant].
   PurchaseVariantProvider call({
     required int branchId,
     String? purchaseId,
-  }) {
-    return PurchaseVariantProvider(
-      branchId: branchId,
-      purchaseId: purchaseId,
-    );
-  }
-
-  @override
-  PurchaseVariantProvider getProviderOverride(
-    covariant PurchaseVariantProvider provider,
-  ) {
-    return call(
-      branchId: provider.branchId,
-      purchaseId: provider.purchaseId,
-    );
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'purchaseVariantProvider';
-}
-
-/// See also [purchaseVariant].
-class PurchaseVariantProvider extends AutoDisposeFutureProvider<List<Variant>> {
-  /// See also [purchaseVariant].
-  PurchaseVariantProvider({
-    required int branchId,
-    String? purchaseId,
-  }) : this._internal(
-          (ref) => purchaseVariant(
-            ref as PurchaseVariantRef,
-            branchId: branchId,
-            purchaseId: purchaseId,
-          ),
-          from: purchaseVariantProvider,
-          name: r'purchaseVariantProvider',
-          debugGetCreateSourceHash:
-              const bool.fromEnvironment('dart.vm.product')
-                  ? null
-                  : _$purchaseVariantHash,
-          dependencies: PurchaseVariantFamily._dependencies,
-          allTransitiveDependencies:
-              PurchaseVariantFamily._allTransitiveDependencies,
-          branchId: branchId,
-          purchaseId: purchaseId,
-        );
-
-  PurchaseVariantProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.branchId,
-    required this.purchaseId,
-  }) : super.internal();
-
-  final int branchId;
-  final String? purchaseId;
-
-  @override
-  Override overrideWith(
-    FutureOr<List<Variant>> Function(PurchaseVariantRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: PurchaseVariantProvider._internal(
-        (ref) => create(ref as PurchaseVariantRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
+  }) =>
+      PurchaseVariantProvider._(argument: (
         branchId: branchId,
         purchaseId: purchaseId,
-      ),
-    );
-  }
+      ), from: this);
 
   @override
-  AutoDisposeFutureProviderElement<List<Variant>> createElement() {
-    return _PurchaseVariantProviderElement(this);
+  String toString() => r'purchaseVariantProvider';
+}
+
+@ProviderFor(stockById)
+const stockByIdProvider = StockByIdFamily._();
+
+final class StockByIdProvider
+    extends $FunctionalProvider<AsyncValue<Stock?>, Stock?, FutureOr<Stock?>>
+    with $FutureModifier<Stock?>, $FutureProvider<Stock?> {
+  const StockByIdProvider._(
+      {required StockByIdFamily super.from, required String super.argument})
+      : super(
+          retry: null,
+          name: r'stockByIdProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$stockByIdHash();
+
+  @override
+  String toString() {
+    return r'stockByIdProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $FutureProviderElement<Stock?> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<Stock?> create(Ref ref) {
+    final argument = this.argument as String;
+    return stockById(
+      ref,
+      stockId: argument,
+    );
   }
 
   @override
   bool operator ==(Object other) {
-    return other is PurchaseVariantProvider &&
-        other.branchId == branchId &&
-        other.purchaseId == purchaseId;
+    return other is StockByIdProvider && other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, branchId.hashCode);
-    hash = _SystemHash.combine(hash, purchaseId.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
-}
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin PurchaseVariantRef on AutoDisposeFutureProviderRef<List<Variant>> {
-  /// The parameter `branchId` of this provider.
-  int get branchId;
-
-  /// The parameter `purchaseId` of this provider.
-  String? get purchaseId;
-}
-
-class _PurchaseVariantProviderElement
-    extends AutoDisposeFutureProviderElement<List<Variant>>
-    with PurchaseVariantRef {
-  _PurchaseVariantProviderElement(super.provider);
-
-  @override
-  int get branchId => (origin as PurchaseVariantProvider).branchId;
-  @override
-  String? get purchaseId => (origin as PurchaseVariantProvider).purchaseId;
 }
 
 String _$stockByIdHash() => r'0656c9babb20066f9f25c8b657359d6112ff8428';
 
-/// See also [stockById].
-@ProviderFor(stockById)
-const stockByIdProvider = StockByIdFamily();
-
-/// See also [stockById].
-class StockByIdFamily extends Family<AsyncValue<Stock?>> {
-  /// See also [stockById].
-  const StockByIdFamily();
-
-  /// See also [stockById].
-  StockByIdProvider call({
-    required String stockId,
-  }) {
-    return StockByIdProvider(
-      stockId: stockId,
-    );
-  }
-
-  @override
-  StockByIdProvider getProviderOverride(
-    covariant StockByIdProvider provider,
-  ) {
-    return call(
-      stockId: provider.stockId,
-    );
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'stockByIdProvider';
-}
-
-/// See also [stockById].
-class StockByIdProvider extends AutoDisposeFutureProvider<Stock?> {
-  /// See also [stockById].
-  StockByIdProvider({
-    required String stockId,
-  }) : this._internal(
-          (ref) => stockById(
-            ref as StockByIdRef,
-            stockId: stockId,
-          ),
-          from: stockByIdProvider,
+final class StockByIdFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<Stock?>, String> {
+  const StockByIdFamily._()
+      : super(
+          retry: null,
           name: r'stockByIdProvider',
-          debugGetCreateSourceHash:
-              const bool.fromEnvironment('dart.vm.product')
-                  ? null
-                  : _$stockByIdHash,
-          dependencies: StockByIdFamily._dependencies,
-          allTransitiveDependencies: StockByIdFamily._allTransitiveDependencies,
-          stockId: stockId,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+          isAutoDispose: true,
         );
 
-  StockByIdProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.stockId,
-  }) : super.internal();
-
-  final String stockId;
+  StockByIdProvider call({
+    required String stockId,
+  }) =>
+      StockByIdProvider._(argument: stockId, from: this);
 
   @override
-  Override overrideWith(
-    FutureOr<Stock?> Function(StockByIdRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: StockByIdProvider._internal(
-        (ref) => create(ref as StockByIdRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        stockId: stockId,
-      ),
-    );
-  }
-
-  @override
-  AutoDisposeFutureProviderElement<Stock?> createElement() {
-    return _StockByIdProviderElement(this);
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return other is StockByIdProvider && other.stockId == stockId;
-  }
-
-  @override
-  int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, stockId.hashCode);
-
-    return _SystemHash.finish(hash);
-  }
+  String toString() => r'stockByIdProvider';
 }
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin StockByIdRef on AutoDisposeFutureProviderRef<Stock?> {
-  /// The parameter `stockId` of this provider.
-  String get stockId;
-}
-
-class _StockByIdProviderElement extends AutoDisposeFutureProviderElement<Stock?>
-    with StockByIdRef {
-  _StockByIdProviderElement(super.provider);
-
-  @override
-  String get stockId => (origin as StockByIdProvider).stockId;
-}
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

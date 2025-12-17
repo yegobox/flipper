@@ -348,7 +348,7 @@ class ChallengeFinderWidgetState extends ConsumerState<ChallengeFinderWidget> {
       next.whenOrNull(
         data: (challenges) {
           if (challenges.isNotEmpty &&
-              (previous?.valueOrNull?.isEmpty ?? true)) {
+              (previous?.asData?.value.isEmpty ?? true)) {
             // Only show dialog if we have challenges and didn't have them before
             HapticFeedback.heavyImpact();
             _showEnhancedChallengeDialog(challenges);

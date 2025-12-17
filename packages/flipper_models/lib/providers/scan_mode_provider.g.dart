@@ -6,35 +6,98 @@ part of 'scan_mode_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
+
+@ProviderFor(ScanningMode)
+const scanningModeProvider = ScanningModeProvider._();
+
+final class ScanningModeProvider extends $NotifierProvider<ScanningMode, bool> {
+  const ScanningModeProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'scanningModeProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$scanningModeHash();
+
+  @$internal
+  @override
+  ScanningMode create() => ScanningMode();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(bool value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<bool>(value),
+    );
+  }
+}
+
 String _$scanningModeHash() => r'c6815c0e13e83778bea13d2068f4fa0d9111913c';
 
-/// See also [ScanningMode].
-@ProviderFor(ScanningMode)
-final scanningModeProvider =
-    AutoDisposeNotifierProvider<ScanningMode, bool>.internal(
-  ScanningMode.new,
-  name: r'scanningModeProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$scanningModeHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+abstract class _$ScanningMode extends $Notifier<bool> {
+  bool build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build();
+    final ref = this.ref as $Ref<bool, bool>;
+    final element = ref.element as $ClassProviderElement<
+        AnyNotifier<bool, bool>, bool, Object?, Object?>;
+    element.handleValue(ref, created);
+  }
+}
 
-typedef _$ScanningMode = AutoDisposeNotifier<bool>;
+@ProviderFor(SearchString)
+const searchStringProvider = SearchStringProvider._();
+
+final class SearchStringProvider
+    extends $NotifierProvider<SearchString, String> {
+  const SearchStringProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'searchStringProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$searchStringHash();
+
+  @$internal
+  @override
+  SearchString create() => SearchString();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(String value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<String>(value),
+    );
+  }
+}
+
 String _$searchStringHash() => r'23a12d0f8dcea3722ba0895fadeec888580de0df';
 
-/// See also [SearchString].
-@ProviderFor(SearchString)
-final searchStringProvider =
-    AutoDisposeNotifierProvider<SearchString, String>.internal(
-  SearchString.new,
-  name: r'searchStringProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$searchStringHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-typedef _$SearchString = AutoDisposeNotifier<String>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+abstract class _$SearchString extends $Notifier<String> {
+  String build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build();
+    final ref = this.ref as $Ref<String, String>;
+    final element = ref.element as $ClassProviderElement<
+        AnyNotifier<String, String>, String, Object?, Object?>;
+    element.handleValue(ref, created);
+  }
+}

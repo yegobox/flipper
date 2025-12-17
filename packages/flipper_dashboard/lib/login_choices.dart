@@ -8,6 +8,7 @@ import 'package:flipper_routing/app.router.dart';
 // Import for payment plan route is already available from app.router.dart
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/posthog_service.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';

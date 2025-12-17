@@ -1,7 +1,11 @@
 import 'package:flipper_services/proxy.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-final shiftDataProvider = FutureProvider.autoDispose<ShiftData>((ref) async {
+part 'shift_data_provider.g.dart';
+
+@riverpod
+Future<ShiftData> shiftData(Ref ref) async {
   final userId = ProxyService.box.getUserId();
   if (userId == null) {
     return ShiftData(openingBalance: 0.0, cashSales: 0.0, expectedCash: 0.0);
@@ -15,7 +19,7 @@ final shiftDataProvider = FutureProvider.autoDispose<ShiftData>((ref) async {
     cashSales: currentShift?.cashSales?.toDouble() ?? 0.0,
     expectedCash: currentShift?.expectedCash?.toDouble() ?? 0.0,
   );
-});
+}
 
 class ShiftData {
   final num openingBalance;

@@ -86,15 +86,12 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          Text(
-            'Invoice No: ',
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
+          Text('Invoice No: ', style: Theme.of(context).textTheme.bodyMedium),
           Text(
             '${highestInvoiceNumber}',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
           ),
         ],
       ),
@@ -217,15 +214,18 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     final endTime = DateTime.now().toUtc();
     final duration = endTime.difference(startTime).inSeconds;
 
-    PosthogService.instance.capture('quick_sell_completed', properties: {
-      'transaction_id': transaction.id,
-      'branch_id': transaction.branchId!,
-      'business_id': ProxyService.box.getBusinessId()!,
-      'created_at': startTime.toIso8601String(),
-      'completed_at': endTime.toIso8601String(),
-      'duration_seconds': duration,
-      'source': 'quick_selling_view',
-    });
+    PosthogService.instance.capture(
+      'quick_sell_completed',
+      properties: {
+        'transaction_id': transaction.id,
+        'branch_id': transaction.branchId!,
+        'business_id': ProxyService.box.getBusinessId()!,
+        'created_at': startTime.toIso8601String(),
+        'completed_at': endTime.toIso8601String(),
+        'duration_seconds': duration,
+        'source': 'quick_selling_view',
+      },
+    );
 
     ProxyService.box.writeBool(key: 'transactionInProgress', value: false);
     ProxyService.box.writeBool(key: 'transactionCompleting', value: false);
@@ -234,19 +234,19 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       return;
     }
 
-    ref.read(payButtonStateProvider.notifier).stopLoading();
-
     // Clear stale cart items for the completed transaction.
-    ref.refresh(
-      transactionItemsStreamProvider(transactionId: transaction.id),
-    );
+    ref.refresh(transactionItemsStreamProvider(transactionId: transaction.id));
 
     await newTransaction(
-        typeOfThisTransactionIsExpense: ProxyService.box.isOrdering() ?? false);
+      typeOfThisTransactionIsExpense: ProxyService.box.isOrdering() ?? false,
+    );
 
     // Refresh the pending transaction provider to pick up the new transaction
-    ref.refresh(pendingTransactionStreamProvider(
-        isExpense: ProxyService.box.isOrdering() ?? false));
+    ref.refresh(
+      pendingTransactionStreamProvider(
+        isExpense: ProxyService.box.isOrdering() ?? false,
+      ),
+    );
 
     if (ref.read(previewingCart)) {
       ref.read(previewingCart.notifier).state = false;
@@ -274,8 +274,11 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       });
     }
 
-    final transactionAsyncValue = ref.watch(pendingTransactionStreamProvider(
-        isExpense: ProxyService.box.isOrdering() ?? false));
+    final transactionAsyncValue = ref.watch(
+      pendingTransactionStreamProvider(
+        isExpense: ProxyService.box.isOrdering() ?? false,
+      ),
+    );
 
     // Handle transaction async value error state early
     if (transactionAsyncValue.hasError) {
@@ -291,15 +294,14 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           }
         });
 
-        return Scaffold(
-          body: Center(
-            child: CircularProgressIndicator(),
-          ),
-        );
+        return Scaffold(body: Center(child: CircularProgressIndicator()));
       }
 
-      talker.error('Error loading pending transaction',
-          transactionAsyncValue.error, transactionAsyncValue.stackTrace);
+      talker.error(
+        'Error loading pending transaction',
+        transactionAsyncValue.error,
+        transactionAsyncValue.stackTrace,
+      );
 
       return Scaffold(
         body: Center(
@@ -329,61 +331,72 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     }
 
     return ViewModelBuilder.reactive(
-        viewModelBuilder: () => CoreViewModel(),
-        builder: (context, model, child) {
-          try {
-            if (transactionAsyncValue.hasValue &&
-                transactionAsyncValue.value != null &&
-                transactionAsyncValue.value!.id.isNotEmpty) {
-              final transactionId = transactionAsyncValue.value!.id;
-              final transactionItemsAsync = ref.watch(
-                  transactionItemsStreamProvider(transactionId: transactionId));
-
-              // Properly handle AsyncValue states instead of accessing .value directly
-              internalTransactionItems = transactionItemsAsync.when(
-                data: (items) => items,
-                loading: () => [],
-                error: (err, stack) {
-                  talker.error('Error loading transaction items', err, stack);
-                  return [];
-                },
-              );
-            } else {
-              internalTransactionItems = [];
-            }
-            return context.isSmallDevice
-                ? _buildSmallDeviceScaffold(
-                    isOrdering, transactionAsyncValue, model)
-                : _buildSharedView(
-                    transactionAsyncValue, context.isSmallDevice, isOrdering);
-          } catch (e, stackTrace) {
-            talker.error('Error in QuickSellingView builder', e, stackTrace);
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.error_outline, size: 48, color: Colors.red),
-                  SizedBox(height: 16),
-                  Text('Error loading transaction view'),
-                  SizedBox(height: 8),
-                  Text(e.toString(), style: TextStyle(fontSize: 12)),
-                  SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () {
-                      // Force refresh
-                      ref.invalidate(pendingTransactionStreamProvider);
-                    },
-                    child: Text('Retry'),
-                  ),
-                ],
-              ),
+      viewModelBuilder: () => CoreViewModel(),
+      builder: (context, model, child) {
+        try {
+          if (transactionAsyncValue.hasValue &&
+              transactionAsyncValue.value != null &&
+              transactionAsyncValue.value!.id.isNotEmpty) {
+            final transactionId = transactionAsyncValue.value!.id;
+            final transactionItemsAsync = ref.watch(
+              transactionItemsStreamProvider(transactionId: transactionId),
             );
+
+            // Properly handle AsyncValue states instead of accessing .value directly
+            internalTransactionItems = transactionItemsAsync.when(
+              data: (items) => items,
+              loading: () => [],
+              error: (err, stack) {
+                talker.error('Error loading transaction items', err, stack);
+                return [];
+              },
+            );
+          } else {
+            internalTransactionItems = [];
           }
-        });
+          return context.isSmallDevice
+              ? _buildSmallDeviceScaffold(
+                  isOrdering,
+                  transactionAsyncValue,
+                  model,
+                )
+              : _buildSharedView(
+                  transactionAsyncValue,
+                  context.isSmallDevice,
+                  isOrdering,
+                );
+        } catch (e, stackTrace) {
+          talker.error('Error in QuickSellingView builder', e, stackTrace);
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.error_outline, size: 48, color: Colors.red),
+                SizedBox(height: 16),
+                Text('Error loading transaction view'),
+                SizedBox(height: 8),
+                Text(e.toString(), style: TextStyle(fontSize: 12)),
+                SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () {
+                    // Force refresh
+                    ref.invalidate(pendingTransactionStreamProvider);
+                  },
+                  child: Text('Retry'),
+                ),
+              ],
+            ),
+          );
+        }
+      },
+    );
   }
 
-  Widget _buildSmallDeviceScaffold(bool isOrdering,
-      AsyncValue<ITransaction> transactionAsyncValue, CoreViewModel model) {
+  Widget _buildSmallDeviceScaffold(
+    bool isOrdering,
+    AsyncValue<ITransaction> transactionAsyncValue,
+    CoreViewModel model,
+  ) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       body: _buildScrollableContent(isOrdering, transactionAsyncValue, model),
@@ -391,8 +404,11 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     );
   }
 
-  Widget _buildScrollableContent(bool isOrdering,
-      AsyncValue<ITransaction> transactionAsyncValue, CoreViewModel model) {
+  Widget _buildScrollableContent(
+    bool isOrdering,
+    AsyncValue<ITransaction> transactionAsyncValue,
+    CoreViewModel model,
+  ) {
     return CustomScrollView(
       slivers: [
         // Transaction Summary Header
@@ -400,14 +416,15 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           child: _buildTransactionSummaryCard(transactionAsyncValue),
         ),
 
-        SliverToBoxAdapter(
-          child: _buildInvoiceNumber(),
-        ),
+        SliverToBoxAdapter(child: _buildInvoiceNumber()),
 
         // Items Section
         SliverToBoxAdapter(
-          child: _buildSectionHeader('Items', Icons.shopping_basket_outlined,
-              key: Key('items-section')),
+          child: _buildSectionHeader(
+            'Items',
+            Icons.shopping_basket_outlined,
+            key: Key('items-section'),
+          ),
         ),
 
         _buildItemsList(transactionAsyncValue),
@@ -425,24 +442,23 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         // Delivery Section for Orders
         if (isOrdering) ...[
           SliverToBoxAdapter(
-            child:
-                _buildSectionHeader('Delivery', Icons.local_shipping_outlined),
+            child: _buildSectionHeader(
+              'Delivery',
+              Icons.local_shipping_outlined,
+            ),
           ),
-          SliverToBoxAdapter(
-            child: _buildDeliverySection(),
-          ),
+          SliverToBoxAdapter(child: _buildDeliverySection()),
         ],
 
         // Bottom spacing
-        SliverToBoxAdapter(
-          child: SizedBox(height: 100),
-        ),
+        SliverToBoxAdapter(child: SizedBox(height: 100)),
       ],
     );
   }
 
   Widget _buildTransactionSummaryCard(
-      AsyncValue<ITransaction> transactionAsyncValue) {
+    AsyncValue<ITransaction> transactionAsyncValue,
+  ) {
     return Semantics(
       label: 'Transaction summary',
       hint: 'Shows the total amount and transaction ID for the current sale',
@@ -464,17 +480,19 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                 Text(
                   'Total Amount',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onPrimaryContainer,
-                      ),
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  ),
                 ),
                 Text(
-                  getSumOfItems(transactionId: transactionAsyncValue.value?.id)
-                      .toCurrencyFormatted(
-                          symbol: ProxyService.box.defaultCurrency()),
+                  getSumOfItems(
+                    transactionId: transactionAsyncValue.value?.id,
+                  ).toCurrencyFormatted(
+                    symbol: ProxyService.box.defaultCurrency(),
+                  ),
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: Theme.of(context).colorScheme.onPrimaryContainer,
-                      ),
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                  ),
                 ),
               ],
             ),
@@ -485,21 +503,19 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                 Text(
                   'Transaction ID',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onPrimaryContainer
-                            .withValues(alpha: 0.7),
-                      ),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onPrimaryContainer.withValues(alpha: 0.7),
+                  ),
                 ),
                 Text(
                   '#${transactionAsyncValue.value?.id.substring(0, 8) ?? "--------"}',
                   style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        fontFamily: 'monospace',
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onPrimaryContainer
-                            .withValues(alpha: 0.7),
-                      ),
+                    fontFamily: 'monospace',
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onPrimaryContainer.withValues(alpha: 0.7),
+                  ),
                 ),
               ],
             ),
@@ -526,9 +542,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
             title,
             key: Key('${title.toLowerCase()}-section-text'), // Add key to text
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
+              fontWeight: FontWeight.w600,
+              color: Theme.of(context).colorScheme.primary,
+            ),
           ),
         ],
       ),
@@ -536,8 +552,11 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   }
 
   Widget _buildItemsList(AsyncValue<ITransaction> transactionAsyncValue) {
-    final transactionItemsAsync = ref.watch(transactionItemsStreamProvider(
-        transactionId: transactionAsyncValue.value?.id ?? ""));
+    final transactionItemsAsync = ref.watch(
+      transactionItemsStreamProvider(
+        transactionId: transactionAsyncValue.value?.id ?? "",
+      ),
+    );
     return transactionItemsAsync.when(
       data: (items) {
         if (items.isEmpty) {
@@ -570,7 +589,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   }
 
   Widget _buildModernItemCard(
-      TransactionItem item, AsyncValue<ITransaction> transactionAsyncValue) {
+    TransactionItem item,
+    AsyncValue<ITransaction> transactionAsyncValue,
+  ) {
     return Semantics(
       label: 'Item: ${item.name}',
       hint:
@@ -604,8 +625,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                     child: Text(
                       item.name,
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w500,
-                          ),
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ),
                   IconButton(
@@ -614,10 +635,12 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                     onPressed: () =>
                         _showDeleteConfirmation(item, transactionAsyncValue),
                     style: IconButton.styleFrom(
-                      backgroundColor:
-                          Theme.of(context).colorScheme.errorContainer,
-                      foregroundColor:
-                          Theme.of(context).colorScheme.onErrorContainer,
+                      backgroundColor: Theme.of(
+                        context,
+                      ).colorScheme.errorContainer,
+                      foregroundColor: Theme.of(
+                        context,
+                      ).colorScheme.onErrorContainer,
                       minimumSize: Size(32, 32),
                     ),
                     tooltip: 'Remove item',
@@ -637,22 +660,21 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                       children: [
                         Text(
                           'Unit Price',
-                          style:
-                              Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    color: Theme.of(context)
-                                        .textTheme
-                                        .bodySmall
-                                        ?.color
-                                        ?.withValues(alpha: 0.7),
-                                  ),
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.color
+                                    ?.withValues(alpha: 0.7),
+                              ),
                         ),
                         Text(
                           item.price.toCurrencyFormatted(
-                              symbol: ProxyService.box.defaultCurrency()),
-                          style:
-                              Theme.of(context).textTheme.bodyLarge?.copyWith(
-                                    fontWeight: FontWeight.w500,
-                                  ),
+                            symbol: ProxyService.box.defaultCurrency(),
+                          ),
+                          style: Theme.of(context).textTheme.bodyLarge
+                              ?.copyWith(fontWeight: FontWeight.w500),
                         ),
                       ],
                     ),
@@ -661,8 +683,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                   // Quantity controls
                   Container(
                     decoration: BoxDecoration(
-                      color:
-                          Theme.of(context).colorScheme.surfaceContainerHighest,
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Row(
@@ -672,8 +695,11 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                           key: Key('quantity-remove-${item.id}'),
                           icon: Icon(Icons.remove, size: 16),
                           onPressed: item.qty > 1
-                              ? () => _updateQuantity(item,
-                                  (item.qty - 1).toInt(), transactionAsyncValue)
+                              ? () => _updateQuantity(
+                                  item,
+                                  (item.qty - 1).toInt(),
+                                  transactionAsyncValue,
+                                )
                               : null,
                           tooltip: 'Decrease quantity by 1',
                           style: IconButton.styleFrom(
@@ -684,20 +710,19 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                           padding: EdgeInsets.symmetric(horizontal: 12),
                           child: Text(
                             '${item.qty}',
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleMedium
-                                ?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                ),
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(fontWeight: FontWeight.w600),
                           ),
                         ),
                         IconButton(
                           key: Key('quantity-add-${item.id}'),
                           icon: Icon(Icons.add, size: 16),
                           onPressed: () {
-                            _updateQuantity(item, (item.qty + 1).toInt(),
-                                transactionAsyncValue);
+                            _updateQuantity(
+                              item,
+                              (item.qty + 1).toInt(),
+                              transactionAsyncValue,
+                            );
                           },
                           tooltip: 'Increase quantity by 1',
                           style: IconButton.styleFrom(
@@ -717,10 +742,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                 width: double.infinity,
                 padding: EdgeInsets.symmetric(vertical: 8, horizontal: 12),
                 decoration: BoxDecoration(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .primaryContainer
-                      .withValues(alpha: 0.5),
+                  color: Theme.of(
+                    context,
+                  ).colorScheme.primaryContainer.withValues(alpha: 0.5),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -732,11 +756,12 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                     ),
                     Text(
                       (item.price * item.qty).toCurrencyFormatted(
-                          symbol: ProxyService.box.defaultCurrency()),
+                        symbol: ProxyService.box.defaultCurrency(),
+                      ),
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
+                        fontWeight: FontWeight.w600,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
                     ),
                   ],
                 ),
@@ -771,9 +796,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               Spacer(),
-              Flexible(
-                child: datePicker(),
-              ),
+              Flexible(child: datePicker()),
             ],
           ),
           SizedBox(height: 16),
@@ -797,28 +820,23 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       ),
       child: Column(
         children: [
-          Icon(
-            icon,
-            size: 48,
-            color: Theme.of(context).colorScheme.outline,
-          ),
+          Icon(icon, size: 48, color: Theme.of(context).colorScheme.outline),
           SizedBox(height: 16),
           Text(
             title,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.outline,
-                ),
+              color: Theme.of(context).colorScheme.outline,
+            ),
           ),
           SizedBox(height: 8),
           Text(
             subtitle,
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .outline
-                      .withValues(alpha: 0.7),
-                ),
+              color: Theme.of(
+                context,
+              ).colorScheme.outline.withValues(alpha: 0.7),
+            ),
           ),
         ],
       ),
@@ -843,19 +861,18 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           Text(
             title,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onErrorContainer,
-                ),
+              color: Theme.of(context).colorScheme.onErrorContainer,
+            ),
           ),
           if (error.isNotEmpty) ...[
             SizedBox(height: 4),
             Text(
               error,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .onErrorContainer
-                        .withValues(alpha: 0.8),
-                  ),
+                color: Theme.of(
+                  context,
+                ).colorScheme.onErrorContainer.withValues(alpha: 0.8),
+              ),
             ),
           ],
         ],
@@ -864,7 +881,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   }
 
   Widget _buildBottomActionBar(
-      AsyncValue<ITransaction> transactionAsyncValue, CoreViewModel model) {
+    AsyncValue<ITransaction> transactionAsyncValue,
+    CoreViewModel model,
+  ) {
     if (ProxyService.box.isOrdering() ?? false) return SizedBox.shrink();
 
     return Builder(
@@ -873,8 +892,11 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         return branchAsync.when(
           data: (branch) {
             return FutureBuilder<bool>(
-              future: ProxyService.strategy.isBranchEnableForPayment(
-                  currentBranchId: branch.id) as Future<bool>,
+              future:
+                  ProxyService.strategy.isBranchEnableForPayment(
+                        currentBranchId: branch.id,
+                      )
+                      as Future<bool>,
               builder: (context, snapshot) {
                 final digitalPaymentEnabled = snapshot.data ?? false;
                 return Container(
@@ -900,35 +922,44 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                           wording:
                               "Complete Sale • ${getSumOfItems(transactionId: transactionAsyncValue.value?.id).toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())}",
                           mode: SellingMode.forSelling,
-                          completeTransaction: (immediateCompleteTransaction,
-                              [onPaymentConfirmed, onPaymentFailed]) async {
-                            talker.warning("We are about to complete a sale");
-                            return transactionAsyncValue.when(
-                              data: (ITransaction transaction) async {
-                                await startCompleteTransactionFlow(
-                                  immediateCompletion:
-                                      immediateCompleteTransaction,
-                                  completeTransaction: () async {
-                                    await _onQuickSellComplete(transaction);
-                                  },
-                                  transactionId: transaction.id,
-                                  paymentMethods:
-                                      ref.watch(paymentMethodsProvider),
-                                  onPaymentConfirmed: onPaymentConfirmed,
-                                  onPaymentFailed: onPaymentFailed,
+                          completeTransaction:
+                              (
+                                immediateCompleteTransaction, [
+                                onPaymentConfirmed,
+                                onPaymentFailed,
+                              ]) async {
+                                talker.warning(
+                                  "We are about to complete a sale",
                                 );
-                                ref.read(previewingCart.notifier).state = false;
-                                return true;
+                                return transactionAsyncValue.when(
+                                  data: (ITransaction transaction) async {
+                                    await startCompleteTransactionFlow(
+                                      immediateCompletion:
+                                          immediateCompleteTransaction,
+                                      completeTransaction: () async {
+                                        await _onQuickSellComplete(transaction);
+                                      },
+                                      transactionId: transaction.id,
+                                      paymentMethods: ref.watch(
+                                        paymentMethodsProvider,
+                                      ),
+                                      onPaymentConfirmed: onPaymentConfirmed,
+                                      onPaymentFailed: onPaymentFailed,
+                                    );
+                                    ref.read(previewingCart.notifier).state =
+                                        false;
+                                    return true;
+                                  },
+                                  loading: () async => false,
+                                  error: (error, stack) async => false,
+                                );
                               },
-                              loading: () async => false,
-                              error: (error, stack) async => false,
-                            );
-                          },
                           model: model,
                           ticketHandler: () {
                             talker.warning("We are about to complete a ticket");
-                            transactionAsyncValue
-                                .whenData((ITransaction transaction) {
+                            transactionAsyncValue.whenData((
+                              ITransaction transaction,
+                            ) {
                               handleTicketNavigation(transaction);
                             });
                             ref.read(toggleProvider.notifier).state = false;
@@ -956,13 +987,16 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   }
 
   void _showDeleteConfirmation(
-      TransactionItem item, AsyncValue<ITransaction> transactionAsyncValue) {
+    TransactionItem item,
+    AsyncValue<ITransaction> transactionAsyncValue,
+  ) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: Text('Remove Item'),
         content: Text(
-            'Are you sure you want to remove "${item.name}" from this transaction?'),
+          'Are you sure you want to remove "${item.name}" from this transaction?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -989,8 +1023,11 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     );
   }
 
-  void _updateQuantity(TransactionItem item, int newQty,
-      AsyncValue<ITransaction> transactionAsyncValue) async {
+  void _updateQuantity(
+    TransactionItem item,
+    int newQty,
+    AsyncValue<ITransaction> transactionAsyncValue,
+  ) async {
     await ProxyService.strategy.updateTransactionItem(
       transactionItemId: item.id.toString(),
       ignoreForReport: false,
@@ -1003,48 +1040,51 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     );
   }
 
-  Widget _buildSharedView(AsyncValue<ITransaction> transactionAsyncValue,
-      bool isSmallDevice, bool isOrdering) {
+  Widget _buildSharedView(
+    AsyncValue<ITransaction> transactionAsyncValue,
+    bool isSmallDevice,
+    bool isOrdering,
+  ) {
     return SingleChildScrollView(
-        child: Padding(
-      padding: const EdgeInsets.all(2.0),
-      child: Column(
-        children: [
-          _buildInvoiceNumber(),
-          SizedBox(height: 20),
-          Semantics(
-            label: 'Transaction items list',
-            hint:
-                'List of items in the current transaction with quantities and prices',
-            child: buildTransactionItemsTable(isOrdering),
-          ),
-          SizedBox(height: 20),
-          if (!isOrdering)
-            _buildForm(isOrdering,
-                transactionId: transactionAsyncValue.value?.id ?? ""),
-          SizedBox(height: 20),
-          if (isOrdering) ...[
-            Container(
-              margin:
-                  const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-              padding: const EdgeInsets.all(6.0),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      Text("Delivery Date"),
-                      datePicker(),
-                    ],
-                  ),
-                  _deliveryNote()
-                ],
-              ),
+      child: Padding(
+        padding: const EdgeInsets.all(2.0),
+        child: Column(
+          children: [
+            _buildInvoiceNumber(),
+            SizedBox(height: 20),
+            Semantics(
+              label: 'Transaction items list',
+              hint:
+                  'List of items in the current transaction with quantities and prices',
+              child: buildTransactionItemsTable(isOrdering),
             ),
+            SizedBox(height: 20),
+            if (!isOrdering)
+              _buildForm(
+                isOrdering,
+                transactionId: transactionAsyncValue.value?.id ?? "",
+              ),
+            SizedBox(height: 20),
+            if (isOrdering) ...[
+              Container(
+                margin: const EdgeInsets.symmetric(
+                  horizontal: 12.0,
+                  vertical: 8.0,
+                ),
+                padding: const EdgeInsets.all(6.0),
+                child: Column(
+                  children: [
+                    Row(children: [Text("Delivery Date"), datePicker()]),
+                    _deliveryNote(),
+                  ],
+                ),
+              ),
+            ],
+            _buildFooter(transactionAsyncValue),
           ],
-          _buildFooter(transactionAsyncValue),
-        ],
+        ),
       ),
-    ));
+    );
   }
 
   Widget _buildForm(bool isOrdering, {required String transactionId}) {
@@ -1058,8 +1098,10 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
               event.logicalKey == LogicalKeyboardKey.enter) {
             // Trigger complete sale action
             final transactionAsyncValue = ref.watch(
-                pendingTransactionStreamProvider(
-                    isExpense: ProxyService.box.isOrdering() ?? false));
+              pendingTransactionStreamProvider(
+                isExpense: ProxyService.box.isOrdering() ?? false,
+              ),
+            );
             transactionAsyncValue.whenData((ITransaction transaction) {
               startCompleteTransactionFlow(
                 immediateCompletion: false,
@@ -1107,8 +1149,11 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                 children: [
                   const SizedBox(height: 6.0),
                   Expanded(
-                      child: SizedBox(
-                          width: 850, child: _buildCustomerPhoneField())),
+                    child: SizedBox(
+                      width: 850,
+                      child: _buildCustomerPhoneField(),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -1120,7 +1165,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     );
   }
 
-// Payment row with country code, phone field, and payment method
+  // Payment row with country code, phone field, and payment method
   Widget _buildPaymentRow(bool isOrdering, String transactionId) {
     return Row(
       children: [
@@ -1173,8 +1218,10 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       decoration: InputDecoration(
         labelText: 'Discount',
         labelStyle: const TextStyle(color: Colors.black),
-        suffixIcon: Icon(FluentIcons.shopping_bag_percent_24_regular,
-            color: Colors.blue),
+        suffixIcon: Icon(
+          FluentIcons.shopping_bag_percent_24_regular,
+          color: Colors.blue,
+        ),
         border: OutlineInputBorder(),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8.0),
@@ -1214,8 +1261,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       if (widget.receivedAmountController.text.isEmpty ||
           widget.receivedAmountController.text ==
               _lastAutoSetAmount.toString()) {
-        widget.receivedAmountController.text =
-            totalAfterDiscountAndShipping.toString();
+        widget.receivedAmountController.text = totalAfterDiscountAndShipping
+            .toString();
         _lastAutoSetAmount = totalAfterDiscountAndShipping;
       }
     });
@@ -1224,59 +1271,64 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       label: 'Received amount in ${ProxyService.box.defaultCurrency()}',
       hint: 'Enter the amount received from the customer',
       child: StyledTextFormField.create(
-          context: context,
-          labelText: null,
-          hintText: 'Received Amount',
-          controller: widget.receivedAmountController,
-          focusNode: _receivedAmountFocusNode,
-          keyboardType: TextInputType.number,
-          maxLines: 1,
-          minLines: 1,
-          key: const Key('received-amount-field'), // Add this line
-          suffixIcon: Text(ProxyService.box.defaultCurrency(),
-              style: const TextStyle(color: Colors.blue)),
-          onChanged: (value) => setState(() {
-                final receivedAmount = double.tryParse(value);
-                ProxyService.box.writeDouble(
-                    key: 'getCashReceived', value: receivedAmount ?? 0.0);
+        context: context,
+        labelText: null,
+        hintText: 'Received Amount',
+        controller: widget.receivedAmountController,
+        focusNode: _receivedAmountFocusNode,
+        keyboardType: TextInputType.number,
+        maxLines: 1,
+        minLines: 1,
+        key: const Key('received-amount-field'), // Add this line
+        suffixIcon: Text(
+          ProxyService.box.defaultCurrency(),
+          style: const TextStyle(color: Colors.blue),
+        ),
+        onChanged: (value) => setState(() {
+          final receivedAmount = double.tryParse(value);
+          ProxyService.box.writeDouble(
+            key: 'getCashReceived',
+            value: receivedAmount ?? 0.0,
+          );
 
-                if (receivedAmount != null) {
-                  final payments = ref.read(paymentMethodsProvider);
-                  if (payments.isNotEmpty) {
-                    // Update the first payment method using the notifier
-                    ref
-                        .read(paymentMethodsProvider.notifier)
-                        .updatePaymentMethod(
-                          0,
-                          Payment(
-                            amount: receivedAmount,
-                            method: payments[0].method,
-                            id: payments[0].id,
-                            controller: payments[0].controller,
-                          ),
-                          transactionId: transactionId,
-                        );
-                    // Also update the controller text
-                    payments[0].controller.text = receivedAmount.toString();
-                  }
-                } // Update payment amounts after received amount changes
-              }),
-          validator: (String? value) {
-            if (value == null || value.isEmpty) {
-              ref.read(payButtonStateProvider.notifier).stopLoading();
-              return 'Please enter received amount';
+          if (receivedAmount != null) {
+            final payments = ref.read(paymentMethodsProvider);
+            if (payments.isNotEmpty) {
+              // Update the first payment method using the notifier
+              ref
+                  .read(paymentMethodsProvider.notifier)
+                  .updatePaymentMethod(
+                    0,
+                    Payment(
+                      amount: receivedAmount,
+                      method: payments[0].method,
+                      id: payments[0].id,
+                      controller: payments[0].controller,
+                    ),
+                    transactionId: transactionId,
+                  );
+              // Also update the controller text
+              payments[0].controller.text = receivedAmount.toString();
             }
-            final number = double.tryParse(value);
-            if (number == null) {
-              ref.read(payButtonStateProvider.notifier).stopLoading();
-              return 'Please enter a valid number';
-            }
-            if (number < totalAfterDiscountAndShipping) {
-              ref.read(payButtonStateProvider.notifier).stopLoading();
-              return 'You are receiving less than the total due';
-            }
-            return null;
-          }),
+          } // Update payment amounts after received amount changes
+        }),
+        validator: (String? value) {
+          if (value == null || value.isEmpty) {
+            ref.read(payButtonStateProvider.notifier).stopLoading();
+            return 'Please enter received amount';
+          }
+          final number = double.tryParse(value);
+          if (number == null) {
+            ref.read(payButtonStateProvider.notifier).stopLoading();
+            return 'Please enter a valid number';
+          }
+          if (number < totalAfterDiscountAndShipping) {
+            ref.read(payButtonStateProvider.notifier).stopLoading();
+            return 'You are receiving less than the total due';
+          }
+          return null;
+        },
+      ),
     );
   }
 
@@ -1313,18 +1365,26 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           // new transaction by only updating when there is an existing pending
           // transaction instance available from the provider.
           try {
-            final transactionAsync = ref.read(pendingTransactionStreamProvider(
-                isExpense: ProxyService.box.isOrdering() ?? false));
+            final transactionAsync = ref.read(
+              pendingTransactionStreamProvider(
+                isExpense: ProxyService.box.isOrdering() ?? false,
+              ),
+            );
             final transaction = transactionAsync.asData?.value;
             if (transaction != null && transaction.id.isNotEmpty) {
-              unawaited(ProxyService.strategy.updateTransaction(
-                transaction: transaction,
-                customerName: value,
-              ));
+              unawaited(
+                ProxyService.strategy.updateTransaction(
+                  transaction: transaction,
+                  customerName: value,
+                ),
+              );
             }
           } catch (e, s) {
             talker.error(
-                'Failed to update transaction with customer name', e, s);
+              'Failed to update transaction with customer name',
+              e,
+              s,
+            );
           }
         },
       ),
@@ -1385,8 +1445,10 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                 keyboardType: TextInputType.number,
                 maxLines: 1,
                 minLines: 1,
-                suffixIcon:
-                    Icon(FluentIcons.call_20_regular, color: Colors.blue),
+                suffixIcon: Icon(
+                  FluentIcons.call_20_regular,
+                  color: Colors.blue,
+                ),
                 onChanged: (value) async {
                   // Store the customer phone number
                   ProxyService.box.writeString(
@@ -1402,21 +1464,26 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                   // transaction instance available from the provider.
                   try {
                     final transactionAsync = ref.read(
-                        pendingTransactionStreamProvider(
-                            isExpense: ProxyService.box.isOrdering() ?? false));
+                      pendingTransactionStreamProvider(
+                        isExpense: ProxyService.box.isOrdering() ?? false,
+                      ),
+                    );
                     final transaction = transactionAsync.asData?.value;
                     if (transaction != null && transaction.id.isNotEmpty) {
-                      unawaited(ProxyService.strategy.updateTransaction(
-                        transaction: transaction,
-                        customerPhone:
-                            widget.countryCodeController.text + value,
-                      ));
+                      unawaited(
+                        ProxyService.strategy.updateTransaction(
+                          transaction: transaction,
+                          customerPhone:
+                              widget.countryCodeController.text + value,
+                        ),
+                      );
                     }
                   } catch (e, s) {
                     talker.error(
-                        'Failed to update transaction with customer phone',
-                        e,
-                        s);
+                      'Failed to update transaction with customer phone',
+                      e,
+                      s,
+                    );
                   }
                 },
                 validator: (String? value) {
@@ -1448,8 +1515,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
   Widget _buildFooter(AsyncValue<ITransaction> transactionAsyncValue) {
     final transaction = transactionAsyncValue.asData?.value;
-    final displayId =
-        (transaction != null) ? transaction.id.toString() : 'Invalid';
+    final displayId = (transaction != null)
+        ? transaction.id.toString()
+        : 'Invalid';
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
@@ -1475,19 +1543,19 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         children: [
           // Total Amount Section
           Container(
-            padding:
-                const EdgeInsets.symmetric(vertical: 12.0, horizontal: 16.0),
+            padding: const EdgeInsets.symmetric(
+              vertical: 12.0,
+              horizontal: 16.0,
+            ),
             decoration: BoxDecoration(
-              color: Theme.of(context)
-                  .colorScheme
-                  .primaryContainer
-                  .withValues(alpha: 0.1),
+              color: Theme.of(
+                context,
+              ).colorScheme.primaryContainer.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8.0),
               border: Border.all(
-                color: Theme.of(context)
-                    .colorScheme
-                    .primary
-                    .withValues(alpha: 0.2),
+                color: Theme.of(
+                  context,
+                ).colorScheme.primary.withValues(alpha: 0.2),
                 width: 1.0,
               ),
             ),
@@ -1497,22 +1565,21 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                 Text(
                   'Amount to Change',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onSurface
-                            .withValues(alpha: 0.8),
-                        fontWeight: FontWeight.w500,
-                      ),
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.onSurface.withValues(alpha: 0.8),
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
                 Text(
                   _amountToChange().toCurrencyFormatted(
                     symbol: ProxyService.box.defaultCurrency(),
                   ),
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: Theme.of(context).colorScheme.primary,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: -0.5,
-                      ),
+                    color: Theme.of(context).colorScheme.primary,
+                    fontWeight: FontWeight.w700,
+                    letterSpacing: -0.5,
+                  ),
                 ),
               ],
             ),
@@ -1522,13 +1589,14 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
           // Transaction ID Section
           Container(
-            padding:
-                const EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
+            padding: const EdgeInsets.symmetric(
+              vertical: 8.0,
+              horizontal: 12.0,
+            ),
             decoration: BoxDecoration(
-              color: Theme.of(context)
-                  .colorScheme
-                  .surfaceContainerHighest
-                  .withValues(alpha: 0.3),
+              color: Theme.of(
+                context,
+              ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(8.0),
             ),
             child: Row(
@@ -1542,19 +1610,19 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                 Text(
                   'Transaction ID',
                   style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        fontWeight: FontWeight.w500,
-                      ),
+                    color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w500,
+                  ),
                 ),
                 const SizedBox(width: 12.0),
                 Expanded(
                   child: Text(
                     displayId,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontFamily: 'monospace',
-                          color: Theme.of(context).colorScheme.onSurface,
-                          fontWeight: FontWeight.w600,
-                        ),
+                      fontFamily: 'monospace',
+                      color: Theme.of(context).colorScheme.onSurface,
+                      fontWeight: FontWeight.w600,
+                    ),
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
@@ -1579,10 +1647,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(6.0),
                         border: Border.all(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .outline
-                              .withValues(alpha: 0.3),
+                          color: Theme.of(
+                            context,
+                          ).colorScheme.outline.withValues(alpha: 0.3),
                           width: 1.0,
                         ),
                       ),
@@ -1599,12 +1666,11 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                             const SizedBox(width: 4.0),
                             Text(
                               'Copy',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .labelSmall
+                              style: Theme.of(context).textTheme.labelSmall
                                   ?.copyWith(
-                                    color:
-                                        Theme.of(context).colorScheme.primary,
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.primary,
                                     fontWeight: FontWeight.w600,
                                   ),
                             ),

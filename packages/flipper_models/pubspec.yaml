@@ -31,11 +31,11 @@ dependencies:
   path_provider: ^2.1.5
   http: ^1.2.2
   html_unescape: ^2.0.0
-  flutter_riverpod: ^2.6.1
-  riverpod_annotation: ^2.6.1
-  flutter_hooks: ^0.18.0
-  riverpod: ^2.0.0
-  hooks_riverpod: ^2.0.0
+  flutter_riverpod: ^3.0.3
+  riverpod_annotation: ^3.0.3
+  flutter_hooks: ^0.21.0
+  riverpod: ^3.0.3
+  hooks_riverpod: ^3.0.3
   freezed_annotation: any
   isolated_worker: ^0.1.1
   dart_mappable: ^4.2.1
@@ -56,7 +56,7 @@ dependencies:
   mime: ^2.0.0
   firebase_core: ^4.2.1
   # sqlite3_flutter_libs: ^0.5.40
-  sqlite3: ^3.1.0
+  sqlite3: ^3.1.1
   permission_handler: ^12.0.1
   json_annotation: ^4.9.0
   supabase_flutter: ^2.10.0
@@ -79,7 +79,7 @@ dependency_overrides:
   jni: ^0.14.2
   web: ^1.0.0
   json_annotation: ^4.9.0
-  sqlite3: ^3.1.0
+  sqlite3: ^3.1.1
   stacked_services: ^1.6.0
   device_info_plus: ^12.2.0
   archive: ^3.6.1
@@ -94,8 +94,8 @@ dev_dependencies:
   json_serializable: ^6.9.4
   # cloud_firestore_odm_generator: ^1.0.0-dev.89
   mocktail: ^1.0.4
-  riverpod_generator: ^2.6.5
-  riverpod_lint: ^2.6.3
+  riverpod_generator: ^3.0.0  # Updated to support riverpod_annotation ^3.0.3
+  riverpod_lint: ^3.0.3  # Updated to be compatible with riverpod ^3.0.3
   test: ^1.26.2
   # cloud_firestore_odm_generator: ^1.0.0-dev.88
 flutter:

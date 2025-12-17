@@ -6,155 +6,78 @@ part of 'credit_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$creditStreamHash() => r'a63e851949fa9f076502f8937d417405ecd32e2b';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// Copied from Dart SDK
-class _SystemHash {
-  _SystemHash._();
-
-  static int combine(int hash, int value) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + value);
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
-    return hash ^ (hash >> 6);
-  }
-
-  static int finish(int hash) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
-    // ignore: parameter_assignments
-    hash = hash ^ (hash >> 11);
-    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
-  }
-}
-
-/// See also [creditStream].
 @ProviderFor(creditStream)
-const creditStreamProvider = CreditStreamFamily();
+const creditStreamProvider = CreditStreamFamily._();
 
-/// See also [creditStream].
-class CreditStreamFamily extends Family<AsyncValue<Credit?>> {
-  /// See also [creditStream].
-  const CreditStreamFamily();
-
-  /// See also [creditStream].
-  CreditStreamProvider call(
-    int branchId,
-  ) {
-    return CreditStreamProvider(
-      branchId,
-    );
-  }
-
-  @override
-  CreditStreamProvider getProviderOverride(
-    covariant CreditStreamProvider provider,
-  ) {
-    return call(
-      provider.branchId,
-    );
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'creditStreamProvider';
-}
-
-/// See also [creditStream].
-class CreditStreamProvider extends AutoDisposeStreamProvider<Credit?> {
-  /// See also [creditStream].
-  CreditStreamProvider(
-    int branchId,
-  ) : this._internal(
-          (ref) => creditStream(
-            ref as CreditStreamRef,
-            branchId,
-          ),
-          from: creditStreamProvider,
+final class CreditStreamProvider
+    extends $FunctionalProvider<AsyncValue<Credit?>, Credit?, Stream<Credit?>>
+    with $FutureModifier<Credit?>, $StreamProvider<Credit?> {
+  const CreditStreamProvider._(
+      {required CreditStreamFamily super.from, required int super.argument})
+      : super(
+          retry: null,
           name: r'creditStreamProvider',
-          debugGetCreateSourceHash:
-              const bool.fromEnvironment('dart.vm.product')
-                  ? null
-                  : _$creditStreamHash,
-          dependencies: CreditStreamFamily._dependencies,
-          allTransitiveDependencies:
-              CreditStreamFamily._allTransitiveDependencies,
-          branchId: branchId,
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
         );
 
-  CreditStreamProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.branchId,
-  }) : super.internal();
-
-  final int branchId;
+  @override
+  String debugGetCreateSourceHash() => _$creditStreamHash();
 
   @override
-  Override overrideWith(
-    Stream<Credit?> Function(CreditStreamRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: CreditStreamProvider._internal(
-        (ref) => create(ref as CreditStreamRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        branchId: branchId,
-      ),
-    );
+  String toString() {
+    return r'creditStreamProvider'
+        ''
+        '($argument)';
   }
 
+  @$internal
   @override
-  AutoDisposeStreamProviderElement<Credit?> createElement() {
-    return _CreditStreamProviderElement(this);
+  $StreamProviderElement<Credit?> $createElement($ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
+
+  @override
+  Stream<Credit?> create(Ref ref) {
+    final argument = this.argument as int;
+    return creditStream(
+      ref,
+      argument,
+    );
   }
 
   @override
   bool operator ==(Object other) {
-    return other is CreditStreamProvider && other.branchId == branchId;
+    return other is CreditStreamProvider && other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, branchId.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin CreditStreamRef on AutoDisposeStreamProviderRef<Credit?> {
-  /// The parameter `branchId` of this provider.
-  int get branchId;
-}
+String _$creditStreamHash() => r'a63e851949fa9f076502f8937d417405ecd32e2b';
 
-class _CreditStreamProviderElement
-    extends AutoDisposeStreamProviderElement<Credit?> with CreditStreamRef {
-  _CreditStreamProviderElement(super.provider);
+final class CreditStreamFamily extends $Family
+    with $FunctionalFamilyOverride<Stream<Credit?>, int> {
+  const CreditStreamFamily._()
+      : super(
+          retry: null,
+          name: r'creditStreamProvider',
+          dependencies: null,
+          $allTransitiveDependencies: null,
+          isAutoDispose: true,
+        );
+
+  CreditStreamProvider call(
+    int branchId,
+  ) =>
+      CreditStreamProvider._(argument: branchId, from: this);
 
   @override
-  int get branchId => (origin as CreditStreamProvider).branchId;
+  String toString() => r'creditStreamProvider';
 }
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

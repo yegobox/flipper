@@ -6,316 +6,179 @@ part of 'outer_variant_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$outerVariantsHash() => r'eb215931c88c330061e3777c04cf858338f452aa';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// Copied from Dart SDK
-class _SystemHash {
-  _SystemHash._();
+@ProviderFor(OuterVariants)
+const outerVariantsProvider = OuterVariantsFamily._();
 
-  static int combine(int hash, int value) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + value);
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
-    return hash ^ (hash >> 6);
+final class OuterVariantsProvider
+    extends $AsyncNotifierProvider<OuterVariants, List<Variant>> {
+  const OuterVariantsProvider._(
+      {required OuterVariantsFamily super.from, required int super.argument})
+      : super(
+          retry: null,
+          name: r'outerVariantsProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$outerVariantsHash();
+
+  @override
+  String toString() {
+    return r'outerVariantsProvider'
+        ''
+        '($argument)';
   }
 
-  static int finish(int hash) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
-    // ignore: parameter_assignments
-    hash = hash ^ (hash >> 11);
-    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
+  @$internal
+  @override
+  OuterVariants create() => OuterVariants();
+
+  @override
+  bool operator ==(Object other) {
+    return other is OuterVariantsProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
   }
 }
 
-abstract class _$OuterVariants
-    extends BuildlessAutoDisposeAsyncNotifier<List<Variant>> {
-  late final int branchId;
+String _$outerVariantsHash() => r'eb215931c88c330061e3777c04cf858338f452aa';
+
+final class OuterVariantsFamily extends $Family
+    with
+        $ClassFamilyOverride<OuterVariants, AsyncValue<List<Variant>>,
+            List<Variant>, FutureOr<List<Variant>>, int> {
+  const OuterVariantsFamily._()
+      : super(
+          retry: null,
+          name: r'outerVariantsProvider',
+          dependencies: null,
+          $allTransitiveDependencies: null,
+          isAutoDispose: true,
+        );
+
+  OuterVariantsProvider call(
+    int branchId,
+  ) =>
+      OuterVariantsProvider._(argument: branchId, from: this);
+
+  @override
+  String toString() => r'outerVariantsProvider';
+}
+
+abstract class _$OuterVariants extends $AsyncNotifier<List<Variant>> {
+  late final _$args = ref.$arg as int;
+  int get branchId => _$args;
 
   FutureOr<List<Variant>> build(
     int branchId,
   );
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build(
+      _$args,
+    );
+    final ref = this.ref as $Ref<AsyncValue<List<Variant>>, List<Variant>>;
+    final element = ref.element as $ClassProviderElement<
+        AnyNotifier<AsyncValue<List<Variant>>, List<Variant>>,
+        AsyncValue<List<Variant>>,
+        Object?,
+        Object?>;
+    element.handleValue(ref, created);
+  }
 }
 
-/// See also [OuterVariants].
-@ProviderFor(OuterVariants)
-const outerVariantsProvider = OuterVariantsFamily();
+@ProviderFor(Products)
+const productsProvider = ProductsFamily._();
 
-/// See also [OuterVariants].
-class OuterVariantsFamily extends Family<AsyncValue<List<Variant>>> {
-  /// See also [OuterVariants].
-  const OuterVariantsFamily();
-
-  /// See also [OuterVariants].
-  OuterVariantsProvider call(
-    int branchId,
-  ) {
-    return OuterVariantsProvider(
-      branchId,
-    );
-  }
-
-  @override
-  OuterVariantsProvider getProviderOverride(
-    covariant OuterVariantsProvider provider,
-  ) {
-    return call(
-      provider.branchId,
-    );
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'outerVariantsProvider';
-}
-
-/// See also [OuterVariants].
-class OuterVariantsProvider
-    extends AutoDisposeAsyncNotifierProviderImpl<OuterVariants, List<Variant>> {
-  /// See also [OuterVariants].
-  OuterVariantsProvider(
-    int branchId,
-  ) : this._internal(
-          () => OuterVariants()..branchId = branchId,
-          from: outerVariantsProvider,
-          name: r'outerVariantsProvider',
-          debugGetCreateSourceHash:
-              const bool.fromEnvironment('dart.vm.product')
-                  ? null
-                  : _$outerVariantsHash,
-          dependencies: OuterVariantsFamily._dependencies,
-          allTransitiveDependencies:
-              OuterVariantsFamily._allTransitiveDependencies,
-          branchId: branchId,
+final class ProductsProvider
+    extends $AsyncNotifierProvider<Products, List<Product>> {
+  const ProductsProvider._(
+      {required ProductsFamily super.from, required int super.argument})
+      : super(
+          retry: null,
+          name: r'productsProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
         );
 
-  OuterVariantsProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.branchId,
-  }) : super.internal();
-
-  final int branchId;
+  @override
+  String debugGetCreateSourceHash() => _$productsHash();
 
   @override
-  FutureOr<List<Variant>> runNotifierBuild(
-    covariant OuterVariants notifier,
-  ) {
-    return notifier.build(
-      branchId,
-    );
+  String toString() {
+    return r'productsProvider'
+        ''
+        '($argument)';
   }
 
+  @$internal
   @override
-  Override overrideWith(OuterVariants Function() create) {
-    return ProviderOverride(
-      origin: this,
-      override: OuterVariantsProvider._internal(
-        () => create()..branchId = branchId,
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        branchId: branchId,
-      ),
-    );
-  }
-
-  @override
-  AutoDisposeAsyncNotifierProviderElement<OuterVariants, List<Variant>>
-      createElement() {
-    return _OuterVariantsProviderElement(this);
-  }
+  Products create() => Products();
 
   @override
   bool operator ==(Object other) {
-    return other is OuterVariantsProvider && other.branchId == branchId;
+    return other is ProductsProvider && other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, branchId.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
-}
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin OuterVariantsRef on AutoDisposeAsyncNotifierProviderRef<List<Variant>> {
-  /// The parameter `branchId` of this provider.
-  int get branchId;
-}
-
-class _OuterVariantsProviderElement
-    extends AutoDisposeAsyncNotifierProviderElement<OuterVariants,
-        List<Variant>> with OuterVariantsRef {
-  _OuterVariantsProviderElement(super.provider);
-
-  @override
-  int get branchId => (origin as OuterVariantsProvider).branchId;
 }
 
 String _$productsHash() => r'48b3f55713014a116dfd34ad2342668f17108211';
 
-abstract class _$Products
-    extends BuildlessAutoDisposeAsyncNotifier<List<Product>> {
-  late final int branchId;
+final class ProductsFamily extends $Family
+    with
+        $ClassFamilyOverride<Products, AsyncValue<List<Product>>, List<Product>,
+            FutureOr<List<Product>>, int> {
+  const ProductsFamily._()
+      : super(
+          retry: null,
+          name: r'productsProvider',
+          dependencies: null,
+          $allTransitiveDependencies: null,
+          isAutoDispose: true,
+        );
+
+  ProductsProvider call(
+    int branchId,
+  ) =>
+      ProductsProvider._(argument: branchId, from: this);
+
+  @override
+  String toString() => r'productsProvider';
+}
+
+abstract class _$Products extends $AsyncNotifier<List<Product>> {
+  late final _$args = ref.$arg as int;
+  int get branchId => _$args;
 
   FutureOr<List<Product>> build(
     int branchId,
   );
-}
-
-/// See also [Products].
-@ProviderFor(Products)
-const productsProvider = ProductsFamily();
-
-/// See also [Products].
-class ProductsFamily extends Family<AsyncValue<List<Product>>> {
-  /// See also [Products].
-  const ProductsFamily();
-
-  /// See also [Products].
-  ProductsProvider call(
-    int branchId,
-  ) {
-    return ProductsProvider(
-      branchId,
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build(
+      _$args,
     );
-  }
-
-  @override
-  ProductsProvider getProviderOverride(
-    covariant ProductsProvider provider,
-  ) {
-    return call(
-      provider.branchId,
-    );
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'productsProvider';
-}
-
-/// See also [Products].
-class ProductsProvider
-    extends AutoDisposeAsyncNotifierProviderImpl<Products, List<Product>> {
-  /// See also [Products].
-  ProductsProvider(
-    int branchId,
-  ) : this._internal(
-          () => Products()..branchId = branchId,
-          from: productsProvider,
-          name: r'productsProvider',
-          debugGetCreateSourceHash:
-              const bool.fromEnvironment('dart.vm.product')
-                  ? null
-                  : _$productsHash,
-          dependencies: ProductsFamily._dependencies,
-          allTransitiveDependencies: ProductsFamily._allTransitiveDependencies,
-          branchId: branchId,
-        );
-
-  ProductsProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.branchId,
-  }) : super.internal();
-
-  final int branchId;
-
-  @override
-  FutureOr<List<Product>> runNotifierBuild(
-    covariant Products notifier,
-  ) {
-    return notifier.build(
-      branchId,
-    );
-  }
-
-  @override
-  Override overrideWith(Products Function() create) {
-    return ProviderOverride(
-      origin: this,
-      override: ProductsProvider._internal(
-        () => create()..branchId = branchId,
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        branchId: branchId,
-      ),
-    );
-  }
-
-  @override
-  AutoDisposeAsyncNotifierProviderElement<Products, List<Product>>
-      createElement() {
-    return _ProductsProviderElement(this);
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return other is ProductsProvider && other.branchId == branchId;
-  }
-
-  @override
-  int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, branchId.hashCode);
-
-    return _SystemHash.finish(hash);
+    final ref = this.ref as $Ref<AsyncValue<List<Product>>, List<Product>>;
+    final element = ref.element as $ClassProviderElement<
+        AnyNotifier<AsyncValue<List<Product>>, List<Product>>,
+        AsyncValue<List<Product>>,
+        Object?,
+        Object?>;
+    element.handleValue(ref, created);
   }
 }
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin ProductsRef on AutoDisposeAsyncNotifierProviderRef<List<Product>> {
-  /// The parameter `branchId` of this provider.
-  int get branchId;
-}
-
-class _ProductsProviderElement
-    extends AutoDisposeAsyncNotifierProviderElement<Products, List<Product>>
-    with ProductsRef {
-  _ProductsProviderElement(super.provider);
-
-  @override
-  int get branchId => (origin as ProductsProvider).branchId;
-}
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

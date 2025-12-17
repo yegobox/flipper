@@ -5,6 +5,7 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:riverpod/riverpod.dart';
 import 'package:flipper_models/providers/business_analytic_provider.dart';
 import 'package:flipper_models/providers/metric_provider.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -27,7 +28,8 @@ class ReportsDashboard extends HookConsumerWidget {
     );
     final stockValue = analytics.when<AsyncValue<double>>(
       data: (data) => AsyncValue.data(
-          data.fold<double>(0, (sum, a) => sum + a.stockValue!)),
+        data.fold<double>(0, (sum, a) => sum + a.stockValue!),
+      ),
       loading: () => const AsyncValue.loading(),
       error: (e, s) => AsyncValue.error(e, s),
     );
@@ -61,11 +63,23 @@ class ReportsDashboard extends HookConsumerWidget {
           ],
         ),
         body: _buildContent(
-            context, ref, totalSales, stockValue, profitVsCost, analytics),
+          context,
+          ref,
+          totalSales,
+          stockValue,
+          profitVsCost,
+          analytics,
+        ),
       );
     }
     return _buildContent(
-        context, ref, totalSales, stockValue, profitVsCost, analytics);
+      context,
+      ref,
+      totalSales,
+      stockValue,
+      profitVsCost,
+      analytics,
+    );
   }
 
   void _refreshData(WidgetRef ref) {
@@ -123,7 +137,7 @@ class ReportsDashboard extends HookConsumerWidget {
           child: _buildMetricCard(
             title: 'Stock Value',
             value:
-                stockValue.valueOrNull?.toCurrencyFormatted() ?? 'Loading...',
+                stockValue.asData?.value.toCurrencyFormatted() ?? 'Loading...',
             icon: Icons.inventory_2_rounded,
             color: const Color(0xFF0078D4),
             isLoading: stockValue.isLoading,
@@ -134,7 +148,7 @@ class ReportsDashboard extends HookConsumerWidget {
           child: _buildMetricCard(
             title: 'Total Sales',
             value:
-                totalSales.valueOrNull?.toCurrencyFormatted() ?? 'Loading...',
+                totalSales.asData?.value.toCurrencyFormatted() ?? 'Loading...',
             icon: Icons.trending_up_rounded,
             color: const Color(0xFF10B981),
             isLoading: totalSales.isLoading,
@@ -145,7 +159,8 @@ class ReportsDashboard extends HookConsumerWidget {
           child: _buildMetricCard(
             title: 'Profit',
             value:
-                profitVsCost.valueOrNull?.toCurrencyFormatted() ?? 'Loading...',
+                profitVsCost.asData?.value.toCurrencyFormatted() ??
+                'Loading...',
             icon: Icons.account_balance_wallet_rounded,
             color: const Color(0xFF8B5CF6),
             isLoading: profitVsCost.isLoading,
@@ -212,10 +227,7 @@ class ReportsDashboard extends HookConsumerWidget {
                       const SizedBox(width: 8),
                       Text(
                         'Loading...',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[500],
-                        ),
+                        style: TextStyle(fontSize: 14, color: Colors.grey[500]),
                       ),
                     ],
                   ),
@@ -234,7 +246,8 @@ class ReportsDashboard extends HookConsumerWidget {
   }
 
   Widget _buildStockPerformanceChart(
-      AsyncValue<List<BusinessAnalytic>> stockPerformance) {
+    AsyncValue<List<BusinessAnalytic>> stockPerformance,
+  ) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -305,7 +318,9 @@ class ReportsDashboard extends HookConsumerWidget {
               }
               final spots = analytics.asMap().entries.map((entry) {
                 return FlSpot(
-                    entry.key.toDouble(), entry.value.value!.toDouble());
+                  entry.key.toDouble(),
+                  entry.value.value!.toDouble(),
+                );
               }).toList();
               return SizedBox(
                 height: 200,

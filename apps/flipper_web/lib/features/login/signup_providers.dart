@@ -2,32 +2,15 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import '../../models/business_type.dart';
 import '../../repositories/signup_repository.dart';
 import '../../core/secrets.dart';
 
-// A simple provider to store signup form state
-final signupFormProvider =
-    StateNotifierProvider<SignupFormNotifier, SignupFormState>((ref) {
-      final signupRepository = ref.watch(signupRepositoryProvider);
-      return SignupFormNotifier(signupRepository);
-    });
+part 'signup_providers.g.dart';
 
-// Business types list provider
-final businessTypesProvider = Provider<List<BusinessType>>((ref) {
-  return [
-    BusinessType(id: '1', typeName: 'Flipper Retailer'),
-    BusinessType(id: '2', typeName: 'Individual'),
-    BusinessType(id: '3', typeName: 'Enterprise'),
-  ];
-});
-
-// Available countries provider
-final countriesProvider = Provider<List<String>>((ref) {
-  return ['Rwanda', 'Kenya', 'Uganda', 'Tanzania', 'Burundi'];
-});
-
+// Helper class to store signup form state
 class SignupFormState {
   final String username;
   final String fullName;
@@ -98,10 +81,30 @@ class SignupFormState {
   }
 }
 
-class SignupFormNotifier extends StateNotifier<SignupFormState> {
-  final SignupRepository _signupRepository;
+// Business types list provider
+@riverpod
+List<BusinessType> businessTypes(Ref ref) {
+  return [
+    BusinessType(id: '1', typeName: 'Flipper Retailer'),
+    BusinessType(id: '2', typeName: 'Individual'),
+    BusinessType(id: '3', typeName: 'Enterprise'),
+  ];
+}
 
-  SignupFormNotifier(this._signupRepository) : super(SignupFormState());
+// Available countries provider
+@riverpod
+List<String> countries(Ref ref) {
+  return ['Rwanda', 'Kenya', 'Uganda', 'Tanzania', 'Burundi'];
+}
+
+@riverpod
+class SignupForm extends _$SignupForm {
+  SignupRepository get _signupRepository => ref.read(signupRepositoryProvider);
+
+  @override
+  SignupFormState build() {
+    return SignupFormState();
+  }
 
   // Add a debounce timer for username availability check
   DateTime? _lastUsernameChange;
@@ -365,3 +368,9 @@ class SignupFormNotifier extends StateNotifier<SignupFormState> {
     }
   }
 }
+
+// Typedefs for backward compatibility
+typedef SignupFormNotifier = SignupForm;
+
+// Generated providers are top-level accessible:
+// signupFormProvider, businessTypesProvider, countriesProvider

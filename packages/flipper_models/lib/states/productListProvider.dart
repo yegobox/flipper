@@ -4,6 +4,7 @@ import 'package:flipper_models/providers/selected_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 final productColorsProvider =

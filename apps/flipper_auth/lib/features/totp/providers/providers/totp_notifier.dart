@@ -2,8 +2,10 @@
 import 'package:flipper_auth/core/providers.dart';
 import 'package:flipper_auth/core/services/totp_service.dart';
 import 'package:flipper_auth/features/auth/repositories/account_repository.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:equatable/equatable.dart';
+
+part 'totp_notifier.g.dart';
 
 // TOTP State
 class TOTPState extends Equatable {
@@ -34,12 +36,16 @@ class TOTPState extends Equatable {
 }
 
 // TOTP Notifier
-class TOTPNotifier extends StateNotifier<TOTPState> {
-  final AccountRepository _accountRepository;
-  final TOTPService _totpService;
+@riverpod
+class TOTPNotifier extends _$TOTPNotifier {
+  AccountRepository get _accountRepository =>
+      ref.read(accountRepositoryProvider);
+  TOTPService get _totpService => ref.read(totpServiceProvider);
 
-  TOTPNotifier(this._accountRepository, this._totpService)
-      : super(const TOTPState());
+  @override
+  TOTPState build() {
+    return const TOTPState();
+  }
 
   Future<void> loadAccounts() async {
     state = state.copyWith(isLoading: true, error: null);
@@ -67,10 +73,7 @@ class TOTPNotifier extends StateNotifier<TOTPState> {
   }
 }
 
-// TOTP Notifier Provider
-final totpNotifierProvider =
-    StateNotifierProvider<TOTPNotifier, TOTPState>((ref) {
-  final accountRepository = ref.watch(accountRepositoryProvider);
-  final totpService = ref.watch(totpServiceProvider);
-  return TOTPNotifier(accountRepository, totpService);
-});
+// Compatibility alias
+// Note: verify generated name, likely totpProvider if 'Notifier' suffix is stripped.
+// If class matches TOTPNotifier -> totpProvider.
+final totpNotifierProvider = tOTPProvider;

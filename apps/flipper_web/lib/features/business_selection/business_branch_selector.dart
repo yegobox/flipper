@@ -3,6 +3,9 @@ import 'package:flipper_web/services/auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+part 'business_branch_selector.g.dart';
 
 // Temporary enum for routes until the actual app_router is integrated
 enum AppRoute { dashboard, login, businessSelection }
@@ -21,10 +24,27 @@ extension AppRouteExtension on AppRoute {
 }
 
 /// Provider for the selected business
-final selectedBusinessProvider = StateProvider<Business?>((ref) => null);
+@riverpod
+class SelectedBusiness extends _$SelectedBusiness {
+  @override
+  Business? build() => null;
+
+  void set(Business? business) => state = business;
+}
 
 /// Provider for the selected branch
-final selectedBranchProvider = StateProvider<Branch?>((ref) => null);
+@riverpod
+class SelectedBranch extends _$SelectedBranch {
+  @override
+  Branch? build() => null;
+
+  void set(Branch? branch) => state = branch;
+}
+
+// Generated providers:
+// selectedBusinessProvider
+// selectedBranchProvider
+// No need for manual aliases if names match.
 
 /// Enum to track the current selection step
 enum SelectionStep { business, branch }
@@ -248,7 +268,7 @@ class _BusinessBranchSelectorState
     });
 
     // Set the selected business in the provider
-    ref.read(selectedBusinessProvider.notifier).state = business;
+    ref.read(selectedBusinessProvider.notifier).set(business);
 
     try {
       // Load branches for the selected business from tenant data (already in memory)
@@ -290,7 +310,7 @@ class _BusinessBranchSelectorState
 
   void _handleBranchSelection(Branch branch) async {
     // Set the selected branch in the provider
-    ref.read(selectedBranchProvider.notifier).state = branch;
+    ref.read(selectedBranchProvider.notifier).set(branch);
 
     // Complete the flow and navigate to the dashboard
     _navigateToDashboard();

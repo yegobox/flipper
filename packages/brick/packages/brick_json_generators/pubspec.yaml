@@ -17,7 +17,7 @@ dependencies:
     path: ../brick_core
   build: ">=2.4.2 <2.5.0"
   dart_style: ">=3.0.0 <4.0.0"
-  source_gen: ">=1.5.0 <3.0.0"
+  source_gen: ^2.0.0
 
 dev_dependencies:
   brick_build_test:

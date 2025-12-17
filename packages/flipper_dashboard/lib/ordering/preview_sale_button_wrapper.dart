@@ -24,13 +24,13 @@ class PreviewSaleButtonWrapper extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final digitalPaymentEnabled =
-        ref.watch(isDigitalPaymentEnabledProvider).valueOrNull ?? false;
+        ref.watch(isDigitalPaymentEnabledProvider).asData?.value ?? false;
     final isPreviewing = ref.watch(previewingCart);
     final buttonText = isPreviewing
         ? "Place order"
         : orderCount > 0
-            ? "Preview Cart ($orderCount)"
-            : "Preview Cart";
+        ? "Preview Cart ($orderCount)"
+        : "Preview Cart";
 
     return Container(
       width: 350,
@@ -46,12 +46,22 @@ class PreviewSaleButtonWrapper extends ConsumerWidget {
             await showPaymentModeModal(context, (provider) async {
               // NOTE: Do NOT pop the payment mode modal here!
               await model.handleOrderPlacement(
-                  ref, transaction, isOrdering, provider, context);
+                ref,
+                transaction,
+                isOrdering,
+                provider,
+                context,
+              );
             });
           } else {
             // Otherwise handle preview logic (toggle preview or show error)
             await model.handlePreviewCart(
-                ref, orderCount, transaction, isOrdering, context);
+              ref,
+              orderCount,
+              transaction,
+              isOrdering,
+              context,
+            );
           }
         },
       ),

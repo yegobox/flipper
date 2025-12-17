@@ -347,7 +347,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
             if (mounted && context.mounted) {
               showCustomSnackBarUtil(
                 context,
-                'Payment Successful! Amount: ${transaction.subTotal!.toStringAsFixed(2)} RWF',
+                'Payment Successful Amount: ${transaction.subTotal!.toCurrencyFormatted()} ',
                 backgroundColor: Colors.green,
                 showCloseButton: true,
               );
@@ -724,6 +724,9 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           amount: amount,
           onComplete: completeTransaction,
           discount: discount,
+          onSuccess: () {
+            ref.read(payButtonStateProvider.notifier).stopLoading();
+          },
         );
 
         if (mounted) {

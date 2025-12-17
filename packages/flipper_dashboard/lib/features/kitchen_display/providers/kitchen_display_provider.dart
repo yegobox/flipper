@@ -1,7 +1,7 @@
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 enum OrderStatus { incoming, inProgress, waiting }
 
@@ -32,11 +32,11 @@ extension OrderStatusExtension on OrderStatus {
 class KitchenOrdersNotifier
     extends StateNotifier<Map<OrderStatus, List<ITransaction>>> {
   KitchenOrdersNotifier()
-      : super({
-          OrderStatus.incoming: [],
-          OrderStatus.inProgress: [],
-          OrderStatus.waiting: [],
-        });
+    : super({
+        OrderStatus.incoming: [],
+        OrderStatus.inProgress: [],
+        OrderStatus.waiting: [],
+      });
 
   void updateOrders(List<ITransaction> transactions) {
     // Create a new map with empty lists for each status
@@ -70,12 +70,16 @@ class KitchenOrdersNotifier
   }
 
   void moveOrder(
-      ITransaction order, OrderStatus fromStatus, OrderStatus toStatus) {
+    ITransaction order,
+    OrderStatus fromStatus,
+    OrderStatus toStatus,
+  ) {
     final updatedState = Map<OrderStatus, List<ITransaction>>.from(state);
 
     // Remove from source list
-    updatedState[fromStatus] =
-        updatedState[fromStatus]!.where((t) => t.id != order.id).toList();
+    updatedState[fromStatus] = updatedState[fromStatus]!
+        .where((t) => t.id != order.id)
+        .toList();
 
     // Update order status based on the target column
     final updatedOrder = order;
@@ -98,7 +102,10 @@ class KitchenOrdersNotifier
   }
 }
 
-final kitchenOrdersProvider = StateNotifierProvider<KitchenOrdersNotifier,
-    Map<OrderStatus, List<ITransaction>>>((ref) {
-  return KitchenOrdersNotifier();
-});
+final kitchenOrdersProvider =
+    StateNotifierProvider<
+      KitchenOrdersNotifier,
+      Map<OrderStatus, List<ITransaction>>
+    >((ref) {
+      return KitchenOrdersNotifier();
+    });

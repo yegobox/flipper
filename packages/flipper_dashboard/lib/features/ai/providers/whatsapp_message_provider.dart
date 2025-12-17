@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_services/whatsapp_message_sync_service.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 /// Provider for WhatsApp message sync service
 final whatsappMessageSyncProvider =

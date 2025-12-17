@@ -2,6 +2,7 @@ import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -19,10 +20,11 @@ class WillPopNotifier extends StateNotifier<bool> {
   }
 }
 
-onWillPop(
-    {required BuildContext context,
-    required String navigationPurpose,
-    required String message}) {
+onWillPop({
+  required BuildContext context,
+  required String navigationPurpose,
+  required String message,
+}) {
   showDialog(
     context: context,
     builder: (BuildContext context) {
@@ -89,16 +91,18 @@ onWillPop(
                   ),
                   onPressed: () {
                     if (navigationPurpose == NavigationPurpose.home) {
-                      ProxyService.box
-                          .writeBool(key: 'isOrdering', value: false);
+                      ProxyService.box.writeBool(
+                        key: 'isOrdering',
+                        value: false,
+                      );
                       locator<RouterService>().replaceWithFlipperApp();
                       return;
                     }
                     Navigator.pop(context);
                     Navigator.pop(context);
-                    ProviderScope.containerOf(context)
-                        .read(willPopProvider.notifier)
-                        .canGoBack(condition: true);
+                    ProviderScope.containerOf(
+                      context,
+                    ).read(willPopProvider.notifier).canGoBack(condition: true);
                   },
                 ),
               ),
