@@ -38,7 +38,9 @@ mixin CapellaVariantMixin implements VariantInterface {
         'Starting variants fetch',
         type: 'business_fetch',
         tags: {
-          'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+          'userId':
+              (ProxyService.box.getUserId()?.toString().hashCode.toString()) ??
+                  'unknown',
           'method': 'variants',
           'branchId': branchId.toString(),
           'productId': productId?.toString() ?? 'null',
@@ -46,11 +48,11 @@ mixin CapellaVariantMixin implements VariantInterface {
           'forPurchaseScreen': forPurchaseScreen.toString(),
           'page': page?.toString() ?? 'null',
           'itemsPerPage': itemsPerPage?.toString() ?? 'null',
-          'name': name ?? 'null',
-          'bcd': bcd ?? 'null',
-          'purchaseId': purchaseId ?? 'null',
+          'name': name != null ? '***' : 'null',
+          'bcd': bcd != null ? '***' : 'null',
+          'purchaseId': purchaseId != null ? '***' : 'null',
           'imptItemSttsCd': imptItemSttsCd ?? 'null',
-          'taxTyCds': taxTyCds?.join(',') ?? 'null',
+          'taxTyCds': taxTyCds != null ? 'masked_list' : 'null',
         },
       );
 
@@ -62,7 +64,12 @@ mixin CapellaVariantMixin implements VariantInterface {
           'Ditto service not initialized',
           type: 'business_fetch',
           tags: {
-            'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+            'userId': (ProxyService.box
+                    .getUserId()
+                    ?.toString()
+                    .hashCode
+                    .toString()) ??
+                'unknown',
             'method': 'variants',
             'branchId': branchId.toString(),
           },
@@ -74,7 +81,9 @@ mixin CapellaVariantMixin implements VariantInterface {
         'Ditto instance available',
         type: 'business_fetch',
         tags: {
-          'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+          'userId':
+              (ProxyService.box.getUserId()?.toString().hashCode.toString()) ??
+                  'unknown',
           'method': 'variants',
           'branchId': branchId.toString(),
         },
@@ -146,11 +155,13 @@ mixin CapellaVariantMixin implements VariantInterface {
         'Prepared Ditto query',
         type: 'business_fetch',
         tags: {
-          'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+          'userId':
+              (ProxyService.box.getUserId()?.toString().hashCode.toString()) ??
+                  'unknown',
           'method': 'variants',
           'branchId': branchId.toString(),
-          'query': query,
-          'arguments': arguments.toString(),
+          'query_length': query.length.toString(),
+          'arguments_keys': arguments.keys.join(','),
         },
       );
 
@@ -161,11 +172,13 @@ mixin CapellaVariantMixin implements VariantInterface {
         'Registering Ditto subscription',
         type: 'business_fetch',
         tags: {
-          'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+          'userId':
+              (ProxyService.box.getUserId()?.toString().hashCode.toString()) ??
+                  'unknown',
           'method': 'variants',
           'branchId': branchId.toString(),
         },
-        extra: {'query': query, 'arguments': arguments.toString()},
+        extra: {'query_metadata': 'redacted', 'args_count': arguments.length},
       );
       await ditto.sync.registerSubscription(query, arguments: arguments);
 
@@ -175,11 +188,13 @@ mixin CapellaVariantMixin implements VariantInterface {
         'Registering Ditto observer',
         type: 'business_fetch',
         tags: {
-          'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+          'userId':
+              (ProxyService.box.getUserId()?.toString().hashCode.toString()) ??
+                  'unknown',
           'method': 'variants',
           'branchId': branchId.toString(),
         },
-        extra: {'query': query, 'arguments': arguments.toString()},
+        extra: {'query_metadata': 'redacted', 'args_count': arguments.length},
       );
       final observer = ditto.store.registerObserver(
         query,
@@ -191,7 +206,12 @@ mixin CapellaVariantMixin implements VariantInterface {
               'Observer onChange triggered with $itemCount items',
               type: 'business_fetch',
               tags: {
-                'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+                'userId': (ProxyService.box
+                        .getUserId()
+                        ?.toString()
+                        .hashCode
+                        .toString()) ??
+                    'unknown',
                 'method': 'variants',
                 'branchId': branchId.toString(),
                 'itemCount': itemCount.toString(),
@@ -210,7 +230,9 @@ mixin CapellaVariantMixin implements VariantInterface {
         'Waiting for observer data',
         type: 'business_fetch',
         tags: {
-          'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+          'userId':
+              (ProxyService.box.getUserId()?.toString().hashCode.toString()) ??
+                  'unknown',
           'method': 'variants',
           'branchId': branchId.toString(),
         },
@@ -226,8 +248,12 @@ mixin CapellaVariantMixin implements VariantInterface {
                 'Observer timeout waiting for variants',
                 type: 'business_fetch',
                 tags: {
-                  'userId':
-                      ProxyService.box.getUserId()?.toString() ?? 'unknown',
+                  'userId': (ProxyService.box
+                          .getUserId()
+                          ?.toString()
+                          .hashCode
+                          .toString()) ??
+                      'unknown',
                   'method': 'variants',
                   'branchId': branchId.toString(),
                 },
@@ -245,7 +271,9 @@ mixin CapellaVariantMixin implements VariantInterface {
         'Received ${items.length} items from observer',
         type: 'business_fetch',
         tags: {
-          'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+          'userId':
+              (ProxyService.box.getUserId()?.toString().hashCode.toString()) ??
+                  'unknown',
           'method': 'variants',
           'branchId': branchId.toString(),
           'itemsCount': items.length.toString(),
@@ -319,7 +347,9 @@ mixin CapellaVariantMixin implements VariantInterface {
         'Successfully parsed ${variants.length} variants (totalCount: $totalCount)',
         type: 'business_fetch',
         tags: {
-          'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+          'userId':
+              (ProxyService.box.getUserId()?.toString().hashCode.toString()) ??
+                  'unknown',
           'method': 'variants',
           'branchId': branchId.toString(),
           'parsedVariantsCount': variants.length.toString(),
@@ -337,7 +367,9 @@ mixin CapellaVariantMixin implements VariantInterface {
         stackTrace: st,
         type: 'business_fetch',
         tags: {
-          'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+          'userId':
+              (ProxyService.box.getUserId()?.toString().hashCode.toString()) ??
+                  'unknown',
           'method': 'variants',
           'error': e.toString(),
         },
@@ -366,16 +398,18 @@ mixin CapellaVariantMixin implements VariantInterface {
         'Starting getVariant fetch',
         type: 'business_fetch',
         tags: {
-          'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+          'userId':
+              (ProxyService.box.getUserId()?.toString().hashCode.toString()) ??
+                  'unknown',
           'method': 'getVariant',
-          'id': id?.toString() ?? 'null',
-          'modrId': modrId?.toString() ?? 'null',
-          'name': name?.toString() ?? 'null',
-          'bcd': bcd?.toString() ?? 'null',
-          'stockId': stockId?.toString() ?? 'null',
+          'id': id != null ? '***' : 'null',
+          'modrId': modrId != null ? '***' : 'null',
+          'name': name != null ? '***' : 'null',
+          'bcd': bcd != null ? '***' : 'null',
+          'stockId': stockId != null ? '***' : 'null',
           'taskCd': taskCd?.toString() ?? 'null',
           'itemClsCd': itemClsCd?.toString() ?? 'null',
-          'itemNm': itemNm?.toString() ?? 'null',
+          'itemNm': itemNm != null ? '***' : 'null',
           'itemCd': itemCd?.toString() ?? 'null',
           'productId': productId?.toString() ?? 'null',
         },
@@ -387,11 +421,16 @@ mixin CapellaVariantMixin implements VariantInterface {
           'Ditto service not initialized in getVariant',
           type: 'business_fetch',
           tags: {
-            'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+            'userId': (ProxyService.box
+                    .getUserId()
+                    ?.toString()
+                    .hashCode
+                    .toString()) ??
+                'unknown',
             'method': 'getVariant',
-            'id': id?.toString() ?? 'null',
-            'bcd': bcd?.toString() ?? 'null',
-            'name': name?.toString() ?? 'null',
+            'id': id != null ? '***' : 'null',
+            'bcd': bcd != null ? '***' : 'null',
+            'name': name != null ? '***' : 'null',
           },
         );
         return null;
@@ -407,10 +446,15 @@ mixin CapellaVariantMixin implements VariantInterface {
           'Using ID filter for getVariant',
           type: 'business_fetch',
           tags: {
-            'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+            'userId': (ProxyService.box
+                    .getUserId()
+                    ?.toString()
+                    .hashCode
+                    .toString()) ??
+                'unknown',
             'method': 'getVariant',
             'filter': 'id',
-            'value': id,
+            'value': '***',
           },
         );
       } else if (bcd != null) {
@@ -420,10 +464,15 @@ mixin CapellaVariantMixin implements VariantInterface {
           'Using BCD filter for getVariant',
           type: 'business_fetch',
           tags: {
-            'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+            'userId': (ProxyService.box
+                    .getUserId()
+                    ?.toString()
+                    .hashCode
+                    .toString()) ??
+                'unknown',
             'method': 'getVariant',
             'filter': 'bcd',
-            'value': bcd,
+            'value': '***',
           },
         );
       } else if (name != null) {
@@ -433,10 +482,15 @@ mixin CapellaVariantMixin implements VariantInterface {
           'Using name filter for getVariant',
           type: 'business_fetch',
           tags: {
-            'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+            'userId': (ProxyService.box
+                    .getUserId()
+                    ?.toString()
+                    .hashCode
+                    .toString()) ??
+                'unknown',
             'method': 'getVariant',
             'filter': 'name',
-            'value': name,
+            'value': '***',
           },
         );
       } else if (productId != null) {
@@ -446,7 +500,12 @@ mixin CapellaVariantMixin implements VariantInterface {
           'Using productId filter for getVariant',
           type: 'business_fetch',
           tags: {
-            'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+            'userId': (ProxyService.box
+                    .getUserId()
+                    ?.toString()
+                    .hashCode
+                    .toString()) ??
+                'unknown',
             'method': 'getVariant',
             'filter': 'productId',
             'value': productId,
@@ -457,7 +516,12 @@ mixin CapellaVariantMixin implements VariantInterface {
           'No valid filter provided for getVariant',
           type: 'business_fetch',
           tags: {
-            'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+            'userId': (ProxyService.box
+                    .getUserId()
+                    ?.toString()
+                    .hashCode
+                    .toString()) ??
+                'unknown',
             'method': 'getVariant',
             'filtersProvided': 'none',
           },
@@ -471,10 +535,12 @@ mixin CapellaVariantMixin implements VariantInterface {
         'Prepared getVariant query',
         type: 'business_fetch',
         tags: {
-          'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+          'userId':
+              (ProxyService.box.getUserId()?.toString().hashCode.toString()) ??
+                  'unknown',
           'method': 'getVariant',
-          'query': query,
-          'arguments': arguments.toString(),
+          'query_metadata': 'redacted',
+          'arguments_keys': arguments.keys.join(','),
         },
       );
 
@@ -488,9 +554,11 @@ mixin CapellaVariantMixin implements VariantInterface {
         'Registered subscription for getVariant',
         type: 'business_fetch',
         tags: {
-          'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+          'userId':
+              (ProxyService.box.getUserId()?.toString().hashCode.toString()) ??
+                  'unknown',
           'method': 'getVariant',
-          'query': query,
+          'query_metadata': 'redacted',
         },
       );
 
@@ -504,7 +572,12 @@ mixin CapellaVariantMixin implements VariantInterface {
             'GetVariant observer onChange triggered with $itemCount items',
             type: 'business_fetch',
             tags: {
-              'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+              'userId': (ProxyService.box
+                      .getUserId()
+                      ?.toString()
+                      .hashCode
+                      .toString()) ??
+                  'unknown',
               'method': 'getVariant',
               'itemCount': itemCount.toString(),
             },
@@ -532,12 +605,16 @@ mixin CapellaVariantMixin implements VariantInterface {
                 'GetVariant observer timeout',
                 type: 'business_fetch',
                 tags: {
-                  'userId':
-                      ProxyService.box.getUserId()?.toString() ?? 'unknown',
+                  'userId': (ProxyService.box
+                          .getUserId()
+                          ?.toString()
+                          .hashCode
+                          .toString()) ??
+                      'unknown',
                   'method': 'getVariant',
-                  'id': id?.toString() ?? 'null',
-                  'bcd': bcd?.toString() ?? 'null',
-                  'name': name?.toString() ?? 'null',
+                  'id': id != null ? '***' : 'null',
+                  'bcd': bcd != null ? '***' : 'null',
+                  'name': name != null ? '***' : 'null',
                 },
               );
               completer.complete(null);
@@ -550,7 +627,12 @@ mixin CapellaVariantMixin implements VariantInterface {
           'GetVariant completed with ${variant != null ? 'success' : 'null'} result',
           type: 'business_fetch',
           tags: {
-            'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+            'userId': (ProxyService.box
+                    .getUserId()
+                    ?.toString()
+                    .hashCode
+                    .toString()) ??
+                'unknown',
             'method': 'getVariant',
             'hasResult': (variant != null).toString(),
           },
@@ -567,7 +649,9 @@ mixin CapellaVariantMixin implements VariantInterface {
         stackTrace: st,
         type: 'business_fetch',
         tags: {
-          'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+          'userId':
+              (ProxyService.box.getUserId()?.toString().hashCode.toString()) ??
+                  'unknown',
           'method': 'getVariant',
           'error': e.toString(),
         },
@@ -655,9 +739,11 @@ mixin CapellaVariantMixin implements VariantInterface {
         'Starting variantsByStockId fetch',
         type: 'business_fetch',
         tags: {
-          'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+          'userId':
+              (ProxyService.box.getUserId()?.toString().hashCode.toString()) ??
+                  'unknown',
           'method': 'variantsByStockId',
-          'stockId': stockId,
+          'stockId': '***',
         },
       );
 
@@ -668,9 +754,14 @@ mixin CapellaVariantMixin implements VariantInterface {
           'Ditto service not initialized in variantsByStockId',
           type: 'business_fetch',
           tags: {
-            'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+            'userId': (ProxyService.box
+                    .getUserId()
+                    ?.toString()
+                    .hashCode
+                    .toString()) ??
+                'unknown',
             'method': 'variantsByStockId',
-            'stockId': stockId,
+            'stockId': '***',
           },
         );
         return [];
@@ -683,10 +774,12 @@ mixin CapellaVariantMixin implements VariantInterface {
         'Prepared variantsByStockId query',
         type: 'business_fetch',
         tags: {
-          'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+          'userId':
+              (ProxyService.box.getUserId()?.toString().hashCode.toString()) ??
+                  'unknown',
           'method': 'variantsByStockId',
-          'query': query,
-          'arguments': arguments.toString(),
+          'query_metadata': 'redacted',
+          'arguments_keys': arguments.keys.join(','),
         },
       );
 
@@ -697,9 +790,11 @@ mixin CapellaVariantMixin implements VariantInterface {
         'Registered subscription for variantsByStockId',
         type: 'business_fetch',
         tags: {
-          'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+          'userId':
+              (ProxyService.box.getUserId()?.toString().hashCode.toString()) ??
+                  'unknown',
           'method': 'variantsByStockId',
-          'query': query,
+          'query_metadata': 'redacted',
         },
       );
 
@@ -710,10 +805,12 @@ mixin CapellaVariantMixin implements VariantInterface {
         'Fetched ${items.length} items from variantsByStockId query',
         type: 'business_fetch',
         tags: {
-          'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+          'userId':
+              (ProxyService.box.getUserId()?.toString().hashCode.toString()) ??
+                  'unknown',
           'method': 'variantsByStockId',
           'itemsCount': items.length.toString(),
-          'stockId': stockId,
+          'stockId': '***',
         },
       );
 
@@ -726,10 +823,12 @@ mixin CapellaVariantMixin implements VariantInterface {
         'Successfully parsed ${variants.length} variants by stockId',
         type: 'business_fetch',
         tags: {
-          'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+          'userId':
+              (ProxyService.box.getUserId()?.toString().hashCode.toString()) ??
+                  'unknown',
           'method': 'variantsByStockId',
           'parsedVarsCount': variants.length.toString(),
-          'stockId': stockId,
+          'stockId': '***',
         },
       );
 
@@ -741,10 +840,12 @@ mixin CapellaVariantMixin implements VariantInterface {
         stackTrace: st,
         type: 'business_fetch',
         tags: {
-          'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+          'userId':
+              (ProxyService.box.getUserId()?.toString().hashCode.toString()) ??
+                  'unknown',
           'method': 'variantsByStockId',
           'error': e.toString(),
-          'stockId': stockId,
+          'stockId': '***',
         },
       );
       return [];

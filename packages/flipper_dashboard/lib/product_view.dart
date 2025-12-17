@@ -71,9 +71,11 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
   }
 
   void _loadMoreVariants() {
-    ref.read(
-      outerVariantsProvider(ProxyService.box.getBranchId() ?? 0).notifier,
-    );
+    ref
+        .read(
+          outerVariantsProvider(ProxyService.box.getBranchId() ?? 0).notifier,
+        )
+        .loadMore();
   }
 
   @override
@@ -142,9 +144,11 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
   }
 
   void _loadInitialProducts() {
-    ref.read(
-      outerVariantsProvider(ProxyService.box.getBranchId() ?? 0).notifier,
-    );
+    ref
+        .read(
+          outerVariantsProvider(ProxyService.box.getBranchId() ?? 0).notifier,
+        )
+        .refresh();
   }
 
   void _goToPage(int page) async {

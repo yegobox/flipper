@@ -104,6 +104,22 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
     });
   }
 
+  List<Variant> _filterVariantsByStatus(
+    List<Variant> variants,
+    String? statusFilter,
+  ) {
+    if (statusFilter == null) return variants;
+
+    if (statusFilter == '02') {
+      // Handle both 'Approved' statuses
+      return variants
+          .where((v) => v.pchsSttsCd == '02' || v.pchsSttsCd == '03')
+          .toList();
+    }
+
+    return variants.where((v) => v.pchsSttsCd == statusFilter).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     final variantsAsync = ref.watch(
@@ -172,19 +188,12 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
             return false;
           }
           // Rule 2: If a specific status filter is active, purchase must have variants matching that status.
-          if (_selectedStatusFilter != null) {
-            if (_selectedStatusFilter == '02') {
-              // Handle both 'Approved' statuses
-              return purchase.variants!.any(
-                (v) => v.pchsSttsCd == '02' || v.pchsSttsCd == '03',
-              );
-            }
-            return purchase.variants!.any(
-              (v) => v.pchsSttsCd == _selectedStatusFilter,
-            );
-          }
           // Rule 3: If filter is "All" (null), and it passed Rule 1, show it.
-          return true;
+          final filtered = _filterVariantsByStatus(
+            purchase.variants!,
+            _selectedStatusFilter,
+          );
+          return filtered.isNotEmpty;
         }).toList();
 
         // Calculate pagination values
@@ -540,31 +549,11 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
 
                                       // Apply the selected status filter
                                       final List<Variant>
-                                      filteredPurchaseVariants;
-                                      if (_selectedStatusFilter == null) {
-                                        filteredPurchaseVariants =
-                                            purchaseVariants;
-                                      } else {
-                                        if (_selectedStatusFilter == '02') {
-                                          filteredPurchaseVariants =
-                                              purchaseVariants
-                                                  .where(
-                                                    (v) =>
-                                                        v.pchsSttsCd == '02' ||
-                                                        v.pchsSttsCd == '03',
-                                                  )
-                                                  .toList();
-                                        } else {
-                                          filteredPurchaseVariants =
-                                              purchaseVariants
-                                                  .where(
-                                                    (v) =>
-                                                        v.pchsSttsCd ==
-                                                        _selectedStatusFilter,
-                                                  )
-                                                  .toList();
-                                        }
-                                      }
+                                      filteredPurchaseVariants =
+                                          _filterVariantsByStatus(
+                                            purchaseVariants,
+                                            _selectedStatusFilter,
+                                          );
 
                                       if (filteredPurchaseVariants.isEmpty) {
                                         return Padding(

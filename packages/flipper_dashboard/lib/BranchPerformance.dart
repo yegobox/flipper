@@ -354,7 +354,7 @@ class ItemDetailCard extends StatelessWidget {
                     ),
                     SizedBox(height: 8),
                     Text(
-                      'Sold: ${variant.stock?.initialStock ?? 0 - (variant.stock?.currentStock ?? 0)}',
+                      'Sold: ${(variant.stock?.initialStock ?? 0) - (variant.stock?.currentStock ?? 0)}',
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                     Text(

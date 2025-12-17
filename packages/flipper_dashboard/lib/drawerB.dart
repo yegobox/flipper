@@ -326,7 +326,7 @@ class _MyDrawerState extends ConsumerState<MyDrawer> {
                                 decoration: BoxDecoration(
                                   color: const Color(
                                     0xFF0078D4,
-                                  ).withOpacity(0.1),
+                                  ).withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: const Icon(
@@ -813,10 +813,14 @@ class _ModernShiftTileState extends State<ModernShiftTile> {
       );
 
       if (dialogResponse?.confirmed == true && dialogResponse?.data != null) {
-        final closingBalance =
-            (dialogResponse?.data as Map<dynamic, dynamic>)['closingBalance']
-                as double? ??
-            0.0;
+        final dynamic rawBalance =
+            (dialogResponse?.data as Map<dynamic, dynamic>)['closingBalance'];
+        double closingBalance = 0.0;
+        if (rawBalance is num) {
+          closingBalance = rawBalance.toDouble();
+        } else if (rawBalance is String) {
+          closingBalance = double.tryParse(rawBalance) ?? 0.0;
+        }
         final notes =
             (dialogResponse?.data as Map<dynamic, dynamic>)['notes'] as String?;
         await ProxyService.strategy.endShift(
@@ -1480,7 +1484,7 @@ class _MobileTransactionDelegationSettingsState
               Switch(
                 value: _isEnabled,
                 onChanged: _toggleDelegation,
-                activeColor: const Color(0xFF0078D4),
+                activeThumbColor: const Color(0xFF0078D4),
               ),
             ],
           ),
