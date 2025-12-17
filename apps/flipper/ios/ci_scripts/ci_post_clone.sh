@@ -1,6 +1,19 @@
 #!/bin/bash
 set -e
 
+# Helper to write files from env vars
+write_to_file() {
+  local content="$1"
+  local file_path="$2"
+  if [[ -n "$content" ]]; then
+    mkdir -p "$(dirname "$file_path")"
+    echo "$content" > "$file_path"
+    echo "✅ Wrote to $file_path"
+  else
+    echo "⚠️ Skipped $file_path (empty content)"
+  fi
+}
+
 echo "🚀 Starting ci_post_clone.sh for flipper ---"
 
 # Adjust the base path to the correct root folder
@@ -10,7 +23,7 @@ echo "BASE_PATH is: $BASE_PATH"
 # Define file paths
 INDEX_PATH="$BASE_PATH/apps/flipper/ios/ci_scripts/web/index.html"
 CONFIGDART_PATH="$BASE_PATH/packages/flipper_login/lib/config.dart"
-SECRETS1_PATH="$BASE_PATH/apps/flipper/lib/secrets.dart" 
+SECRETS1_PATH="$BASE_PATH/apps/flipper/lib/secrets.dart"
 SECRETS2_PATH="$BASE_PATH/packages/flipper_models/lib/secrets.dart"
 FIREBASE1_PATH="$BASE_PATH/apps/flipper/lib/firebase_options.dart"
 FIREBASE2_PATH="$BASE_PATH/packages/flipper_models/lib/firebase_options.dart"
@@ -21,8 +34,7 @@ GOOGLE_SERVICES_PLIST_PATH="$BASE_PATH/apps/flipper/ios/GoogleService-Info.plist
 # Extract Firebase values
 
 if [[ -n "$GOOGLE_SERVICE_INFO_PLIST_CONTENT" ]]; then
-  echo "$GOOGLE_SERVICE_INFO_PLIST_CONTENT" > "$GOOGLE_SERVICES_PLIST_PATH"
-  echo "✅ Wrote keys to $GOOGLE_SERVICES_PLIST_PATH"
+  write_to_file "$GOOGLE_SERVICE_INFO_PLIST_CONTENT" "$GOOGLE_SERVICES_PLIST_PATH"
 fi
 
 GOOGLE_APP_ID=$(plutil -extract GOOGLE_APP_ID raw -o - "$GOOGLE_SERVICES_PLIST_PATH" 2>/dev/null || true)
@@ -46,18 +58,6 @@ cat > "$BASE_PATH/apps/flipper/ios/firebase_app_id_file.json" <<EOF
 EOF
 echo "✅ firebase_app_id_file.json generated at $BASE_PATH/apps/flipper/ios/firebase_app_id_file.json."
 
-# Helper to write files from env vars
-write_to_file() {
-  local content="$1"
-  local file_path="$2"
-  if [[ -n "$content" ]]; then
-    mkdir -p "$(dirname "$file_path")"
-    echo "$content" > "$file_path"
-    echo "✅ Wrote to $file_path"
-  else
-    echo "⚠️ Skipped $file_path (empty content)"
-  fi
-}
 
 # Write files from environment variables
 write_to_file "$INDEX" "$INDEX_PATH"

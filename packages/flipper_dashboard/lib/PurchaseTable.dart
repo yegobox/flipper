@@ -65,7 +65,7 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
   int _currentPage = 0;
   static const int _itemsPerPage = 10;
 
-  PurchaseDataSource? _dataSource;
+  // PurchaseDataSource? _dataSource; // REMOVED: using local variable in build
 
   @override
   void initState() {
@@ -74,7 +74,7 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
 
   @override
   void dispose() {
-    _dataSource?.dispose();
+    // _dataSource?.dispose(); // REMOVED
     super.dispose();
   }
 
@@ -91,17 +91,26 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
     final futures = newStockIds.map(
       (id) => ProxyService.getStrategy(Strategy.capella).getStockById(id: id),
     );
-    final stocks = await Future.wait(futures);
-    final newStockMap = Map<String, Stock>.fromEntries(
-      newStockIds.toList().asMap().entries.map(
-        (e) => MapEntry(e.value, stocks[e.key]),
-      ),
-    );
-    setState(() {
-      _stockMap.addAll(newStockMap); // Merge with existing stocks
-      _fetchedStockIds.addAll(newStockIds); // Mark as fetched
-      _dataSource?.updateStockMap(_stockMap);
-    });
+
+    try {
+      final stocks = await Future.wait(futures);
+
+      if (!mounted) return; // Check mounted before setState
+
+      final newStockMap = Map<String, Stock>.fromEntries(
+        newStockIds.toList().asMap().entries.map(
+          (e) => MapEntry(e.value, stocks[e.key]),
+        ),
+      );
+
+      setState(() {
+        _stockMap.addAll(newStockMap); // Merge with existing stocks
+        _fetchedStockIds.addAll(newStockIds); // Mark as fetched
+        // _dataSource?.updateStockMap(_stockMap); // REMOVED: DataSource is now local and rebuilds with new map
+      });
+    } catch (e) {
+      talker.error("Error fetching stocks: $e");
+    }
   }
 
   List<Variant> _filterVariantsByStatus(
@@ -531,10 +540,29 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
                                           ),
                                         ),
                                         onPressed: () {
+                                          final nextState = !isExpanded;
                                           setState(() {
                                             _expandedPurchases[purchase.id] =
-                                                !isExpanded;
+                                                nextState;
                                           });
+
+                                          // Trigger fetch if we are expanding
+                                          if (nextState) {
+                                            final purchaseVariants =
+                                                purchase.variants ?? [];
+                                            // We usually only care about the currently filtered variants,
+                                            // but catching all variants for the purchase is also fine.
+                                            // Using the filtered list is better for performance if the filter is active.
+                                            final List<Variant>
+                                            filteredPurchaseVariants =
+                                                _filterVariantsByStatus(
+                                                  purchaseVariants,
+                                                  _selectedStatusFilter,
+                                                );
+                                            _fetchStocks(
+                                              filteredPurchaseVariants,
+                                            );
+                                          }
                                         },
                                       ),
                                     ],
@@ -578,7 +606,9 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
                                           ),
                                         );
                                       }
-                                      _dataSource = PurchaseDataSource(
+
+                                      // Create Local DataSource
+                                      final dataSource = PurchaseDataSource(
                                         filteredPurchaseVariants,
                                         _editedRetailPrices,
                                         _editedSupplyPrices,
@@ -586,7 +616,9 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
                                         () => setState(() {}),
                                         _stockMap,
                                       );
-                                      _fetchStocks(filteredPurchaseVariants);
+
+                                      // REMOVED calling _fetchStocks here!
+
                                       return Padding(
                                         padding: EdgeInsets.symmetric(
                                           horizontal: 16,
@@ -611,7 +643,8 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
                                                   child: SfDataGrid(
                                                     key:
                                                         UniqueKey(), // Add a key to force a rebuild when data changes
-                                                    source: _dataSource!,
+                                                    source:
+                                                        dataSource, // Use local dataSource
                                                     columns:
                                                         buildPurchaseColumns(),
                                                     columnWidthMode:
