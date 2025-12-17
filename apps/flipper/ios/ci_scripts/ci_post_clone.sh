@@ -123,9 +123,20 @@ for i in {1..3}; do
 done
 
 
+
 # CocoaPods setup
 cd "$BASE_PATH/apps/flipper/ios"
 echo "📂 In $(pwd)"
+
+# Ensure Flutter configuration files are generated before pod install
+echo "🔧 Generating Flutter configuration files..."
+cd "$BASE_PATH/apps/flipper"
+flutter pub get
+echo "✅ Flutter pub get completed"
+
+# Return to iOS directory for CocoaPods
+cd "$BASE_PATH/apps/flipper/ios"
+
 
 # Install CocoaPods conditionally
 if [[ -n "$INSTALL_COCOAPODS" ]] && ! command -v pod &> /dev/null; then
