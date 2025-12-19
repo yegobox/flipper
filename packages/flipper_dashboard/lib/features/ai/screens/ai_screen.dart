@@ -647,13 +647,14 @@ class _AiScreenState extends ConsumerState<AiScreen> {
 
         if (message.text.startsWith('[voice](')) {
           final path = message.text.substring(8, message.text.length - 1);
-          return Align(
-            alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4.0),
-              child: AudioPlayerWidget(audioPath: path),
-            ),
-          );
+          //TODO: resume this when just_audio is updated to support 16 page size
+          // return Align(
+          //   alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
+          //   child: Padding(
+          //     padding: const EdgeInsets.symmetric(vertical: 4.0),
+          //     child: AudioPlayerWidget(audioPath: path),
+          //   ),
+          // );
         } else if (message.text.startsWith('[file](')) {
           final path = message.text.substring(7, message.text.length - 1);
           final fileName = path.split('/').last;

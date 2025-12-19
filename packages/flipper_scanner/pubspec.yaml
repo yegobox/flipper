@@ -13,7 +13,7 @@ dependencies:
   hooks_riverpod: ^3.0.3
    # Check latest version
   overlay_support: ^2.1.0 # Check latest version
-  mobile_scanner: ^7.0.1
+  mobile_scanner: ^7.1.4
   connectivity_plus: ^7.0.0 # Check latest version
   flipper_models: any
   flipper_services: any
