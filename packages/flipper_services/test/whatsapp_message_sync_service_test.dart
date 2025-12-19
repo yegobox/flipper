@@ -105,7 +105,7 @@ void main() {
               any(),
               arguments: any(named: 'arguments'),
               onChange: any(named: 'onChange'),
-            )).thenThrow(Exception('Ditto not initialized'));
+            )).thenThrow(Exception('Ditto not initialized:22'));
 
         // Act & Assert
         expect(

@@ -45,7 +45,7 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
     try {
       final ditto = dittoService.dittoInstance;
       if (ditto == null) {
-        talker.error('Ditto not initialized');
+        talker.error('Ditto not initialized:9');
         return [];
       }
 
@@ -175,7 +175,7 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
   }) {
     final ditto = dittoService.dittoInstance;
     if (ditto == null) {
-      talker.error('Ditto not initialized');
+      talker.error('Ditto not initialized:10');
       return Stream.value([]);
     }
 
@@ -283,7 +283,7 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
     try {
       final ditto = dittoService.dittoInstance;
       if (ditto == null) {
-        talker.error('Ditto not initialized');
+        talker.error('Ditto not initialized:12');
         return;
       }
 

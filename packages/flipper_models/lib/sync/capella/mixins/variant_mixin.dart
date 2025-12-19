@@ -58,7 +58,7 @@ mixin CapellaVariantMixin implements VariantInterface {
 
       final ditto = dittoService.dittoInstance;
       if (ditto == null) {
-        talker.error('Ditto not initialized');
+        talker.error('Ditto not initialized:15');
         await logService.logException(
           'Ditto service not initialized',
           type: 'business_fetch',
@@ -76,6 +76,19 @@ mixin CapellaVariantMixin implements VariantInterface {
         return PagedVariants(variants: [], totalCount: 0);
       }
 
+      /// a work around to first register to whole data instead of subset
+      /// this is because after test on new device, it can't pull data using complex query
+      /// there is open issue on ditto https://support.ditto.live/hc/en-us/requests/2648?page=1
+      ditto.sync.registerSubscription(
+        "SELECT * FROM variants WHERE branchId = :branchId",
+        arguments: {'branchId': branchId},
+      );
+      ditto.store.registerObserver(
+        "SELECT * FROM variants WHERE branchId = :branchId",
+        arguments: {'branchId': branchId},
+      );
+
+      /// end of workaround
       await logService.logException(
         'Ditto instance available',
         type: 'business_fetch',
@@ -416,7 +429,7 @@ mixin CapellaVariantMixin implements VariantInterface {
       );
 
       if (dittoService.dittoInstance == null) {
-        talker.error('Ditto not initialized');
+        talker.error('Ditto not initialized:16');
         await logService.logException(
           'Ditto service not initialized in getVariant',
           type: 'business_fetch',
@@ -750,7 +763,7 @@ mixin CapellaVariantMixin implements VariantInterface {
 
       final ditto = dittoService.dittoInstance;
       if (ditto == null) {
-        talker.error('Ditto not initialized');
+        talker.error('Ditto not initialized:17');
         await logService.logException(
           'Ditto service not initialized in variantsByStockId',
           type: 'business_fetch',

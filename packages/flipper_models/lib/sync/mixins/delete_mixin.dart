@@ -166,7 +166,7 @@ mixin DeleteMixin implements DeleteInterface {
 
           final ditto = dittoService.dittoInstance;
           if (ditto == null) {
-            throw Exception('Ditto not initialized');
+            throw Exception('Ditto not initialized:18');
           }
 
           await ditto.store.execute(

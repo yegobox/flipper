@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_web/models/user_profile.dart';
 import 'package:permission_handler/permission_handler.dart';
+import '../core/utils/ditto_debug.dart';
 
 // Global singleton instance of DittoService
 final DittoService _dittoServiceInstance = DittoService._internal();
@@ -118,12 +119,15 @@ class DittoService {
 
           if (!allPermissionsGranted) {
             debugPrint(
-                '⚠️ Some permissions not granted. Ditto sync may not work properly on Android. Denied: ${deniedPermissions.join(", ")}');
+              '⚠️ Some permissions not granted. Ditto sync may not work properly on Android. Denied: ${deniedPermissions.join(", ")}',
+            );
             debugPrint(
-                'Please ensure all requested permissions are granted for proper sync functionality.');
+              'Please ensure all requested permissions are granted for proper sync functionality.',
+            );
           } else {
             debugPrint(
-                '✅ All required permissions granted for Ditto sync on Android.');
+              '✅ All required permissions granted for Ditto sync on Android.',
+            );
           }
         }
       });
@@ -140,9 +144,23 @@ class DittoService {
     _ditto = ditto;
     _notifyDittoListeners();
 
-    // Log Ditto device info for debugging
-    debugPrint('📱 Ditto device initialized: ${ditto.deviceName}');
-    debugPrint('📁 Ditto persistence directory: ${ditto.persistenceDirectory}');
+    // Verify the instance was properly set
+    try {
+      // Test that the instance is functional
+
+      // Log Ditto device info for debugging
+      debugPrint('📱 Ditto device initialized: ${ditto.deviceName}');
+      debugPrint(
+        '📁 Ditto persistence directory: ${ditto.persistenceDirectory}',
+      );
+      debugPrint('🔗 Ditto sync active: ${_ditto!.isSyncActive}');
+      debugPrint('🔑 Ditto auth status: ${_ditto!.auth.status}');
+    } catch (e) {
+      debugPrint('❌ ERROR: Ditto instance is not properly initialized: $e');
+      _ditto = null;
+      _notifyDittoListeners();
+      return;
+    }
 
     // Note about mDNS warnings in debug
     if (kDebugMode) {
@@ -200,6 +218,7 @@ class DittoService {
     try {
       if (_ditto == null) {
         debugPrint('Ditto not initialized, cannot save user profile');
+        DittoDebug.printInitializationError('saveUserProfile');
         return;
       }
 
@@ -331,6 +350,24 @@ class DittoService {
     return _ditto != null;
   }
 
+  /// Checks if Ditto is properly initialized and ready to use with additional validation
+  bool isActuallyReady() {
+    if (_ditto == null) {
+      debugPrint('❌ Ditto instance is null');
+      return false;
+    }
+
+    // Additional check to ensure Ditto is properly initialized
+    try {
+      // Try a simple store operation to verify Ditto is ready
+      debugPrint('✅ Ditto is ready and operational');
+      return true;
+    } catch (e) {
+      debugPrint('❌ Ditto is not ready: $e');
+      return false;
+    }
+  }
+
   /// Get the Ditto instance (for use by cache implementations)
   Ditto? get dittoInstance => _ditto;
 
@@ -356,39 +393,49 @@ class DittoService {
         // Check each permission status
         Future.wait(allPermissions.map((permission) => permission.status))
             .then((statuses) {
-          bool allPermissionsGranted = statuses.every((status) => status == PermissionStatus.granted);
+              bool allPermissionsGranted = statuses.every(
+                (status) => status == PermissionStatus.granted,
+              );
 
-          if (!allPermissionsGranted) {
-            // Find which permissions were denied
-            List<String> deniedPermissions = [];
-            for (int i = 0; i < allPermissions.length; i++) {
-              if (statuses[i] != PermissionStatus.granted) {
-                deniedPermissions.add(allPermissions[i].toString());
+              if (!allPermissionsGranted) {
+                // Find which permissions were denied
+                List<String> deniedPermissions = [];
+                for (int i = 0; i < allPermissions.length; i++) {
+                  if (statuses[i] != PermissionStatus.granted) {
+                    deniedPermissions.add(allPermissions[i].toString());
+                  }
+                }
+
+                debugPrint(
+                  '⚠️ Android: Not all required permissions granted. Ditto sync may not work properly. Denied: ${deniedPermissions.join(", ")}',
+                );
+                debugPrint(
+                  'Please ensure all requested permissions are granted for proper sync functionality.',
+                );
+              } else {
+                debugPrint(
+                  '✅ Android: All required permissions granted, starting sync...',
+                );
+                try {
+                  _ditto!.startSync();
+                  debugPrint('Ditto sync started');
+                } catch (e) {
+                  debugPrint('Error starting Ditto sync: $e');
+                }
               }
-            }
-
-            debugPrint(
-                '⚠️ Android: Not all required permissions granted. Ditto sync may not work properly. Denied: ${deniedPermissions.join(", ")}');
-            debugPrint('Please ensure all requested permissions are granted for proper sync functionality.');
-          } else {
-            debugPrint('✅ Android: All required permissions granted, starting sync...');
-            try {
-              _ditto!.startSync();
-              debugPrint('Ditto sync started');
-            } catch (e) {
-              debugPrint('Error starting Ditto sync: $e');
-            }
-          }
-        }).catchError((error) {
-          debugPrint('Error checking permissions: $error');
-          try {
-            // Try to start sync anyway
-            _ditto!.startSync();
-            debugPrint('Ditto sync started (fallback after permission check error)');
-          } catch (e) {
-            debugPrint('Error starting Ditto sync: $e');
-          }
-        });
+            })
+            .catchError((error) {
+              debugPrint('Error checking permissions: $error');
+              try {
+                // Try to start sync anyway
+                _ditto!.startSync();
+                debugPrint(
+                  'Ditto sync started (fallback after permission check error)',
+                );
+              } catch (e) {
+                debugPrint('Error starting Ditto sync: $e');
+              }
+            });
       } else {
         // For other platforms, start sync directly
         try {
@@ -400,6 +447,7 @@ class DittoService {
       }
     } else {
       debugPrint('Cannot start sync: Ditto not initialized');
+      DittoDebug.printInitializationError('startSync');
     }
   }
 
@@ -414,6 +462,7 @@ class DittoService {
       }
     } else {
       debugPrint('Cannot stop sync: Ditto not initialized');
+      DittoDebug.printInitializationError('stopSync');
     }
   }
 

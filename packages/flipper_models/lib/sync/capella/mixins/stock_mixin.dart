@@ -15,8 +15,8 @@ mixin CapellaStockMixin implements StockInterface {
     try {
       final ditto = dittoService.dittoInstance;
       if (ditto == null) {
-        talker.error('Ditto not initialized');
-        throw Exception('Ditto not initialized');
+        talker.error('Ditto not initialized:3');
+        throw Exception('Ditto not initialized:4');
       }
       final result = await ditto.store.execute(
         'SELECT * FROM stocks WHERE _id = :id LIMIT 1',
@@ -78,7 +78,7 @@ mixin CapellaStockMixin implements StockInterface {
     try {
       final ditto = dittoService.dittoInstance;
       if (ditto == null) {
-        talker.error('Ditto not initialized');
+        talker.error('Ditto not initialized:5');
         return Stream.value(null);
       }
 
@@ -204,7 +204,7 @@ mixin CapellaStockMixin implements StockInterface {
     try {
       final ditto = dittoService.dittoInstance;
       if (ditto == null) {
-        talker.error('Ditto not initialized');
+        talker.error('Ditto not initialized:6');
         return;
       }
 
@@ -279,7 +279,7 @@ mixin CapellaStockMixin implements StockInterface {
   Future<List<InventoryRequest>> requests({required String requestId}) async {
     final ditto = dittoService.dittoInstance;
     if (ditto == null) {
-      throw Exception('Ditto not initialized');
+      throw Exception('Ditto not initialized:7');
     }
 
     final result = await ditto.store.execute(
@@ -308,7 +308,8 @@ mixin CapellaStockMixin implements StockInterface {
           discount: itemMap['discount'] ?? 0,
           prc: itemMap['prc'] ?? 0,
           ttCatCd: itemMap['ttCatCd'],
-          quantityRequested: (itemMap['quantityRequested'] as num?)?.toInt() ?? 0,
+          quantityRequested:
+              (itemMap['quantityRequested'] as num?)?.toInt() ?? 0,
           quantityApproved: (itemMap['quantityApproved'] as num?)?.toInt() ?? 0,
           quantityShipped: (itemMap['quantityShipped'] as num?)?.toInt() ?? 0,
           transactionId: itemMap['transactionId'],
@@ -323,8 +324,9 @@ mixin CapellaStockMixin implements StockInterface {
       mainBranchId: data['mainBranchId'],
       subBranchId: data['subBranchId'],
       branchId: data['branchId'],
-      createdAt:
-          data['createdAt'] != null ? DateTime.tryParse(data['createdAt']) : null,
+      createdAt: data['createdAt'] != null
+          ? DateTime.tryParse(data['createdAt'])
+          : null,
       status: data['status'],
       deliveryDate: data['deliveryDate'] != null
           ? DateTime.tryParse(data['deliveryDate'])
@@ -335,8 +337,9 @@ mixin CapellaStockMixin implements StockInterface {
       driverRequestDeliveryConfirmation:
           data['driverRequestDeliveryConfirmation'],
       driverId: data['driverId'],
-      updatedAt:
-          data['updatedAt'] != null ? DateTime.tryParse(data['updatedAt']) : null,
+      updatedAt: data['updatedAt'] != null
+          ? DateTime.tryParse(data['updatedAt'])
+          : null,
       itemCounts: data['itemCounts'],
       bhfId: data['bhfId'],
       tinNumber: data['tinNumber'],
@@ -350,7 +353,7 @@ mixin CapellaStockMixin implements StockInterface {
     try {
       final ditto = dittoService.dittoInstance;
       if (ditto == null) {
-        talker.error('Ditto not initialized');
+        talker.error('Ditto not initialized:8');
         return Stream.value(null);
       }
 

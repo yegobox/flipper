@@ -48,6 +48,10 @@ Future<void> initializeDitto() async {
     '🔵 DittoSingleton.initialize returned: ${ditto != null ? "non-null" : "NULL"}',
   );
 
+  // Check detailed status from singleton
+  final status = DittoSingleton.instance.getInitializationStatus();
+  debugPrint('🔧 DittoSingleton status: $status');
+
   if (ditto == null) {
     debugPrint('❌ Ditto initialization returned null!');
     throw Exception('Failed to initialize Sync DB - returned null instance');
@@ -66,9 +70,16 @@ Future<void> initializeDitto() async {
   DittoService.instance.setDitto(ditto);
   debugPrint('✅ Sync DB instance set and ready');
 
+  // Wait a bit to ensure the service has properly processed the Ditto instance
+  await Future.delayed(const Duration(milliseconds: 100));
+
   // Verify it was set
   final verifyDitto = DittoService.instance.dittoInstance;
   debugPrint(
     '🔍 Verification: DittoService.instance.dittoInstance is ${verifyDitto != null ? "non-null" : "NULL"}',
   );
+
+  // Also verify with the enhanced readiness check
+  final isActuallyReady = DittoService.instance.isActuallyReady();
+  debugPrint('🔍 Enhanced verification: isActuallyReady = $isActuallyReady');
 }

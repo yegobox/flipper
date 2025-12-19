@@ -30,7 +30,7 @@ class RealDittoObserverRunner implements DittoObserverRunner {
   }) async {
     final ditto = _service.dittoInstance;
     if (ditto == null) {
-      throw Exception('Ditto not initialized');
+      throw Exception('Ditto not initialized:20');
     }
     await ditto.sync.registerSubscription(query, arguments: arguments ?? {});
   }
@@ -43,7 +43,7 @@ class RealDittoObserverRunner implements DittoObserverRunner {
   }) {
     final store = _service.store;
     if (store == null) {
-      throw Exception('Ditto not initialized');
+      throw Exception('Ditto not initialized:21');
     }
     return store.registerObserver(
       query,

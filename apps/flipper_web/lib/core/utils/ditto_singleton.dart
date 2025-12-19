@@ -2,7 +2,6 @@
 
 import 'dart:async';
 import 'package:ditto_live/ditto_live.dart';
-import 'package:flutter/foundation.dart';
 import 'database_path.dart';
 
 /// Singleton manager for Ditto instances to prevent file lock conflicts
@@ -22,7 +21,17 @@ class DittoSingleton {
   Ditto? get ditto => _ditto;
 
   /// Check if Ditto is ready
-  bool get isReady => _ditto != null;
+  bool get isReady => _ditto != null && !_isInitializing;
+
+  /// Get detailed initialization status
+  Map<String, dynamic> getInitializationStatus() {
+    return {
+      'isInitialized': _ditto != null,
+      'isInitializing': _isInitializing,
+      'hasInstance': _ditto != null,
+      'instanceIsNull': _ditto == null,
+    };
+  }
 
   /// Initialize Ditto with proper singleton handling
   Future<Ditto?> initialize({
@@ -53,7 +62,7 @@ class DittoSingleton {
         appID: appId,
         token: token,
         // customAuthUrl: "https://$appId.cloud.ditto.live",
-        enableDittoCloudSync: false,
+        enableDittoCloudSync: true,
       );
 
       final persistenceDirectory = await DatabasePath.getDatabaseDirectory();
@@ -64,23 +73,13 @@ class DittoSingleton {
         persistenceDirectory: persistenceDirectory,
       );
 
-      // Configure transport
-      _ditto!.updateTransportConfig((transportConfig) {
-        if (!kIsWeb) {
-          //enable/disable each transport separately
-
-          //BluetoothLe
-          transportConfig.peerToPeer.bluetoothLE.isEnabled = true;
-          //Local Area Network
-          transportConfig.peerToPeer.lan.isEnabled = true;
-          // Apple Wireless Direct Link
-          transportConfig.peerToPeer.awdl.isEnabled = true;
-          //wifi aware
-          transportConfig.peerToPeer.wifiAware.isEnabled = true;
-        }
-      });
-
-      await _ditto!.store.execute("ALTER SYSTEM SET DQL_STRICT_MODE = false");
+      try {
+        await _ditto!.store.execute("ALTER SYSTEM SET DQL_STRICT_MODE = false");
+      } catch (e) {
+        print(
+          '⚠️ Could not set DQL_STRICT_MODE: $e (this might be normal depending on Ditto version)',
+        );
+      }
 
       // Start sync to connect to Ditto cloud
       _ditto!.startSync();

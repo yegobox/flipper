@@ -41,7 +41,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     try {
       final ditto = dittoService.dittoInstance;
       if (ditto == null) {
-        talker.error('Ditto not initialized');
+        talker.error('Ditto not initialized:13');
         return Stream.value([]);
       }
 
@@ -296,9 +296,18 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     try {
       final ditto = dittoService.dittoInstance;
       if (ditto == null) {
-        talker.error('Ditto not initialized');
+        talker.error('Ditto not initialized:14');
         return [];
       }
+
+      ditto.sync.registerSubscription(
+        "SELECT * FROM transactions WHERE branchId = :branchId",
+        arguments: {'branchId': branchId},
+      );
+      ditto.store.registerObserver(
+        "SELECT * FROM transactions WHERE branchId = :branchId",
+        arguments: {'branchId': branchId},
+      );
 
       // Build SQL WHERE clause conditions
       final List<String> whereClauses = [];
