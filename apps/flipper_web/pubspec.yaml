@@ -5,7 +5,7 @@ description: "A new Flutter project."
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
 
-version: 1.0.0+577
+version: 1.0.0+578
 
 environment:
   sdk: ^3.9.2
@@ -34,6 +34,7 @@ dependencies:
   intl: ^0.20.2
   path_provider: ^2.1.5
   riverpod_annotation: ^3.0.3
+  sqflite_common: ^2.5.4+6
 
 dev_dependencies:
   integration_test:

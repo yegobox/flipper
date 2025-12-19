@@ -68,7 +68,7 @@ class DittoSyncAdapterGenerator extends GeneratorForAnnotation<DittoAdapter> {
       )
       ..writeln('//')
       ..writeln(
-        '// REQUIRED IMPORTS in parent file (${className.toLowerCase()}.model.dart):',
+        '// REQUIRED IMPORTS in parent file (${className!.toLowerCase()}.model.dart):',
       )
       ..writeln('// - import \'package:brick_core/query.dart\';')
       ..writeln(
@@ -484,7 +484,7 @@ String _generateFieldsMapping(List<FieldElement> fields) {
 bool _shouldExcludeFromDitto(FieldElement field) {
   // Check for @Supabase(ignore: true)
   try {
-    final supabaseAnnotation = field.metadata.firstWhere(
+    final supabaseAnnotation = field.metadata.annotations.firstWhere(
       (annotation) => annotation.element?.displayName == 'Supabase',
       orElse: () => throw StateError('Not found'),
     );
@@ -498,7 +498,7 @@ bool _shouldExcludeFromDitto(FieldElement field) {
   }
 
   // Check for @OfflineFirst annotation (usually for relationships)
-  final hasOfflineFirst = field.metadata.any(
+  final hasOfflineFirst = field.metadata.annotations.any(
     (annotation) => annotation.element?.displayName == 'OfflineFirst',
   );
 
@@ -598,7 +598,8 @@ bool _isNullable(FieldElement field) =>
 bool _isDateTime(FieldElement field) =>
     field.type.getDisplayString(withNullability: false) == 'DateTime';
 
-String _generateSeedMethod(String className, {required bool hasBranchId}) {
+String _generateSeedMethod(String? className, {required bool hasBranchId}) {
+  if (className == null) return '';
   final branchFilter = hasBranchId
       ? '''
       final branchId =
@@ -681,7 +682,7 @@ String _generateRelationshipFetch(FieldElement field) {
 List<_BackupLink> _collectBackupLinks(List<FieldElement> fields) {
   final links = <_BackupLink>[];
   for (final field in fields) {
-    for (final annotation in field.metadata) {
+    for (final annotation in field.metadata.annotations) {
       final constant = annotation.computeConstantValue();
       if (constant == null) continue;
       final typeName =
@@ -697,7 +698,7 @@ List<_BackupLink> _collectBackupLinks(List<FieldElement> fields) {
 
       links.add(
         _BackupLink(
-          fieldName: overrideField ?? field.name,
+          fieldName: overrideField ?? field.name!,
           targetType: modelType.getDisplayString(withNullability: false),
           remoteKey: remoteKey,
           cascade: cascade,

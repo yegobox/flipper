@@ -1,6 +1,9 @@
+// ignore_for_file: avoid_print
+
 import 'dart:async';
 import 'package:ditto_live/ditto_live.dart';
 import 'package:flutter/foundation.dart';
+import 'database_path.dart';
 
 /// Singleton manager for Ditto instances to prevent file lock conflicts
 class DittoSingleton {
@@ -25,8 +28,6 @@ class DittoSingleton {
   Future<Ditto?> initialize({
     required String appId,
     required String token,
-    required String persistenceDir,
-    bool enableCloudSync = true,
   }) async {
     // Prevent multiple simultaneous initializations
     if (_isInitializing) {
@@ -51,29 +52,31 @@ class DittoSingleton {
       final identity = OnlinePlaygroundIdentity(
         appID: appId,
         token: token,
-        customAuthUrl: "https://$appId.cloud.ditto.live",
+        // customAuthUrl: "https://$appId.cloud.ditto.live",
         enableDittoCloudSync: false,
       );
 
-      print('📁 Using Ditto directory: $persistenceDir');
+      final persistenceDirectory = await DatabasePath.getDatabaseDirectory();
+      print('📂 Using persistence directory: $persistenceDirectory');
 
       _ditto = await Ditto.open(
         identity: identity,
-        persistenceDirectory: persistenceDir,
+        persistenceDirectory: persistenceDirectory,
       );
 
       // Configure transport
-      _ditto!.updateTransportConfig((config) {
-        // Enable cloud sync by setting the proper WebSocket URL
-        config.connect.webSocketUrls.clear();
-        config.connect.webSocketUrls.add("wss://$appId.cloud.ditto.live");
+      _ditto!.updateTransportConfig((transportConfig) {
+        if (!kIsWeb) {
+          //enable/disable each transport separately
 
-        if (kIsWeb) {
-          // On web, only use cloud sync
-          config.setAllPeerToPeerEnabled(false);
-        } else {
-          // On mobile/desktop, enable both cloud sync and peer-to-peer
-          config.setAllPeerToPeerEnabled(true);
+          //BluetoothLe
+          transportConfig.peerToPeer.bluetoothLE.isEnabled = true;
+          //Local Area Network
+          transportConfig.peerToPeer.lan.isEnabled = true;
+          // Apple Wireless Direct Link
+          transportConfig.peerToPeer.awdl.isEnabled = true;
+          //wifi aware
+          transportConfig.peerToPeer.wifiAware.isEnabled = true;
         }
       });
 

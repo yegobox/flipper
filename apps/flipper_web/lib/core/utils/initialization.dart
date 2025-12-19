@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flipper_web/core/secrets.dart' show AppSecrets;
 import 'package:flipper_web/services/ditto_service.dart';
-import 'package:path_provider/path_provider.dart';
 import 'ditto_singleton.dart';
 // import 'platform.dart';
 
@@ -37,22 +36,12 @@ Future<void> initializeDitto() async {
   final appID = kDebugMode ? AppSecrets.appIdDebug : AppSecrets.appId;
   final token = kDebugMode ? AppSecrets.appTokenDebug : AppSecrets.appTokenProd;
 
-  // Use consistent directory to preserve data
-  String persistenceDir;
-  if (kIsWeb) {
-    persistenceDir = "ditto_flipper_web";
-  } else {
-    final appDocumentDir = await getApplicationDocumentsDirectory();
-    persistenceDir = '${appDocumentDir.path}/flipper_data_bridge';
-  }
-
   debugPrint('🔵 Calling DittoSingleton.instance.initialize...');
 
   // Use singleton to prevent multiple instances
   final ditto = await DittoSingleton.instance.initialize(
     appId: appID,
     token: token,
-    persistenceDir: persistenceDir,
   );
 
   debugPrint(
