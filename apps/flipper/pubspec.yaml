@@ -4,7 +4,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # 1.170.4252223234854+1755779343
 # 1.180.4252223234901+1756527939
 
-version: 1.180.4252223234901+1756528526
+version: 1.180.4252223234901+1756528580
 
 
 environment:
@@ -14,25 +14,25 @@ dependencies:
   flutter:
     sdk: flutter
   sentry: ^9.6.0
-  sentry_flutter: ^9.8.0
+  sentry_flutter: 9.8.0
   jni: ^0.14.2
   firebase_crashlytics: ^5.0.2
   flutter_local_notifications: ^19.5.0
   intl: ^0.20.2
   injectable: ^2.5.0
   get_it: ^8.0.3
-  stacked: ^3.4.3
+  stacked: ^3.5.0
   meta: ^1.16.0
   get: ^4.6.1
   timeago: ^3.4.0
   mime: ^2.0.0
   open_filex: ^4.7.0
   ant_icons: ^2.0.0-nullsafety.0
-  
+  ditto_live: ^4.14.0
   feather_icons: ^1.1.0-nullsafety.0
   flex_color_scheme: ^4.2.0
-  image_picker: ^1.1.2
-  file_picker: ^10.3.3
+  image_picker: ^1.2.1
+  file_picker: ^10.3.7
   firebase_ui_auth: ^3.0.0
   azlistview: ^2.0.0
   cached_network_image: ^3.2.1
@@ -63,12 +63,12 @@ dependencies:
   flipper_localize: ^1.0.0-dev
   tray_manager: ^0.2.3
   pinput: ^6.0.0
-  local_auth: ^2.1.7
-  flutter_riverpod: ^2.4.5
-  riverpod_annotation: ^2.3.0
+  local_auth: ^3.0.0
+  flutter_riverpod: ^3.0.3
+  riverpod_annotation: ^3.0.3
   flutter_hooks:
-  riverpod: ^2.0.0
-  hooks_riverpod: ^2.0.0
+  riverpod: ^3.0.3
+  hooks_riverpod: ^3.0.3
   bottom_sheet: ^4.0.0
   rxdart: ^0.28.0
   badges: ^3.1.2
@@ -94,9 +94,9 @@ dependencies:
   flutter_chat_ui: ^1.6.10
   firebase_remote_config: ^6.0.0
   share_plus: ^10.1.4
-  firebase_messaging: ^16.0.0
+  firebase_messaging: ^16.1.0
   country_code_picker: ^3.0.0
-  firebase_ui_localizations: ^2.0.0
+  firebase_ui_localizations: ^2.0.1
   flutter_localizations:
     sdk: flutter
   flutter_localization: ^0.2.2
@@ -111,11 +111,11 @@ dependencies:
   printing: ^5.14.2
   ffi: ">=2.0.0 <3.0.0"
   pdf_widget_wrapper: '>=1.0.0 <2.0.0'
-  plugin_platform_interface: ^2.1.0
+  # plugin_platform_interface: ^2.1.0
   web: ^1.1.0
   archive: ^3.6.1
   bidi: ^2.0.10
-  crypto: ^3.0.0
+  crypto: ^3.0.7
   path_parsing: ">=0.2.0 <2.0.0"
   vector_math: ^2.1.0
   xml: ">=6.3.0 <7.0.0"
@@ -133,16 +133,16 @@ dependencies:
   flipper_services: any
   flipper_login: any
   supabase_models: any
-  sqlite3: ^3.1.0
-  amplify_core: ^2.7.0
-  amplify_api: ^2.7.0
+  sqlite3: ^3.1.1
+  amplify_core: ^2.8.0
+  amplify_api: ^2.8.0
   amplify_flutter: ^2.7.0
-  amplify_auth_cognito: ^2.7.0
-  amplify_storage_s3: ^2.7.0
+  amplify_auth_cognito: ^2.8.0
+  amplify_storage_s3: ^2.8.0
   shared_preferences: ^2.5.2
   easy_localization: ^3.0.7 
   supabase_flutter: ^2.10.0
-  sqflite_common_ffi: ^2.4.0
+  sqflite_common_ffi: ^2.4.0+1
   sqflite_common_ffi_web: ^1.0.1+1
   posthog_flutter: ^5.4.3
   flipper_web: any
@@ -152,10 +152,10 @@ dependency_overrides:
   http: ^1.2.2
   meta: ^1.16.0
   web: ^1.1.0
-  sqlite3: ^3.1.0
+  sqlite3: ^3.1.1
   stacked_services: ^1.6.0
   stacked: ^3.5.0
-  device_info_plus: ^12.2.0
+  device_info_plus: ^12.3.0
   firebase_ui_auth: ^3.0.0
   archive: ^3.6.1
   mime: ^2.0.0
@@ -179,7 +179,7 @@ dev_dependencies:
     sdk: flutter
   nock: ^1.2.3
   build_runner: ^2.4.15
-  riverpod_lint: ^2.3.7
+  riverpod_lint: ^3.0.3  # Updated to be compatible with flutter_riverpod ^3.0.3
   mockito: ^5.4.4
   test:
 msix_config:
@@ -194,7 +194,7 @@ msix_config:
     force_update_from_any_version: true
   publisher_display_name: yegobox ltd
   identity_name: yegobox.yegoboxflipper
-  msix_version: 1.170.5051.589
+  msix_version: 1.170.5051.643
   publisher: CN=B0F334A1E-8AET-4B2C-BD1B-F239D4F791AE
   logo_path: "./assets/icon.png"
   start_menu_icon_path: "/assets/icon.png"

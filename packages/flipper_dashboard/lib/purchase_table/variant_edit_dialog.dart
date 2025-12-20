@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:dropdown_search/dropdown_search.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:supabase_models/brick/models/all_models.dart';
 import '../utils/variant_utils.dart';
 
 // Add provider for selected variant state
-final selectedVariantProvider =
-    StateProvider.family<Variant?, String>((ref, variantId) => null);
+final selectedVariantProvider = StateProvider.family<Variant?, String>(
+  (ref, variantId) => null,
+);
 
 Future<void> showVariantEditDialog(
   BuildContext context,
@@ -17,7 +19,7 @@ Future<void> showVariantEditDialog(
   required TextEditingController retailPriceController,
   required VoidCallback saveItemName,
   required void Function(Variant? itemToAssign, Variant? itemFromPurchase)
-      selectSale,
+  selectSale,
 }) {
   nameController.text = item.name;
   supplyPriceController.text = item.supplyPrice?.toString() ?? '';
@@ -35,10 +37,12 @@ Future<void> showVariantEditDialog(
             children: [
               Consumer(
                 builder: (context, ref, _) {
-                  final selectedVariant =
-                      ref.watch(selectedVariantProvider(item.id));
-                  final setSelectedVariant =
-                      ref.read(selectedVariantProvider(item.id).notifier);
+                  final selectedVariant = ref.watch(
+                    selectedVariantProvider(item.id),
+                  );
+                  final setSelectedVariant = ref.read(
+                    selectedVariantProvider(item.id).notifier,
+                  );
 
                   return DropdownSearch<Variant>(
                     selectedItem: selectedVariant,
@@ -48,9 +52,7 @@ Future<void> showVariantEditDialog(
                     itemAsString: (Variant v) => v.name,
                     decoratorProps: const DropDownDecoratorProps(
                       baseStyle: TextStyle(fontSize: 13),
-                      decoration: InputDecoration(
-                        border: OutlineInputBorder(),
-                      ),
+                      decoration: InputDecoration(border: OutlineInputBorder()),
                     ),
                     popupProps: const PopupProps.menu(
                       showSearchBox: true,

@@ -11,6 +11,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:record/record.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as models;
 import 'package:supabase_models/brick/models/conversation.model.dart';

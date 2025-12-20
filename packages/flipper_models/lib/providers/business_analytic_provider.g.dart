@@ -6,161 +6,85 @@ part of 'business_analytic_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$fetchStockPerformanceHash() =>
-    r'dec5a38c965aacf12cac0dc65f02e57f5b70e971';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// Copied from Dart SDK
-class _SystemHash {
-  _SystemHash._();
-
-  static int combine(int hash, int value) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + value);
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
-    return hash ^ (hash >> 6);
-  }
-
-  static int finish(int hash) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
-    // ignore: parameter_assignments
-    hash = hash ^ (hash >> 11);
-    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
-  }
-}
-
-/// See also [fetchStockPerformance].
 @ProviderFor(fetchStockPerformance)
-const fetchStockPerformanceProvider = FetchStockPerformanceFamily();
+const fetchStockPerformanceProvider = FetchStockPerformanceFamily._();
 
-/// See also [fetchStockPerformance].
-class FetchStockPerformanceFamily
-    extends Family<AsyncValue<List<BusinessAnalytic>>> {
-  /// See also [fetchStockPerformance].
-  const FetchStockPerformanceFamily();
-
-  /// See also [fetchStockPerformance].
-  FetchStockPerformanceProvider call(
-    int branchId,
-  ) {
-    return FetchStockPerformanceProvider(
-      branchId,
-    );
-  }
-
-  @override
-  FetchStockPerformanceProvider getProviderOverride(
-    covariant FetchStockPerformanceProvider provider,
-  ) {
-    return call(
-      provider.branchId,
-    );
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'fetchStockPerformanceProvider';
-}
-
-/// See also [fetchStockPerformance].
-class FetchStockPerformanceProvider
-    extends AutoDisposeFutureProvider<List<BusinessAnalytic>> {
-  /// See also [fetchStockPerformance].
-  FetchStockPerformanceProvider(
-    int branchId,
-  ) : this._internal(
-          (ref) => fetchStockPerformance(
-            ref as FetchStockPerformanceRef,
-            branchId,
-          ),
-          from: fetchStockPerformanceProvider,
+final class FetchStockPerformanceProvider extends $FunctionalProvider<
+        AsyncValue<List<BusinessAnalytic>>,
+        List<BusinessAnalytic>,
+        FutureOr<List<BusinessAnalytic>>>
+    with
+        $FutureModifier<List<BusinessAnalytic>>,
+        $FutureProvider<List<BusinessAnalytic>> {
+  const FetchStockPerformanceProvider._(
+      {required FetchStockPerformanceFamily super.from,
+      required int super.argument})
+      : super(
+          retry: null,
           name: r'fetchStockPerformanceProvider',
-          debugGetCreateSourceHash:
-              const bool.fromEnvironment('dart.vm.product')
-                  ? null
-                  : _$fetchStockPerformanceHash,
-          dependencies: FetchStockPerformanceFamily._dependencies,
-          allTransitiveDependencies:
-              FetchStockPerformanceFamily._allTransitiveDependencies,
-          branchId: branchId,
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
         );
 
-  FetchStockPerformanceProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.branchId,
-  }) : super.internal();
-
-  final int branchId;
+  @override
+  String debugGetCreateSourceHash() => _$fetchStockPerformanceHash();
 
   @override
-  Override overrideWith(
-    FutureOr<List<BusinessAnalytic>> Function(FetchStockPerformanceRef provider)
-        create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: FetchStockPerformanceProvider._internal(
-        (ref) => create(ref as FetchStockPerformanceRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        branchId: branchId,
-      ),
-    );
+  String toString() {
+    return r'fetchStockPerformanceProvider'
+        ''
+        '($argument)';
   }
 
+  @$internal
   @override
-  AutoDisposeFutureProviderElement<List<BusinessAnalytic>> createElement() {
-    return _FetchStockPerformanceProviderElement(this);
+  $FutureProviderElement<List<BusinessAnalytic>> $createElement(
+          $ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<BusinessAnalytic>> create(Ref ref) {
+    final argument = this.argument as int;
+    return fetchStockPerformance(
+      ref,
+      argument,
+    );
   }
 
   @override
   bool operator ==(Object other) {
-    return other is FetchStockPerformanceProvider && other.branchId == branchId;
+    return other is FetchStockPerformanceProvider && other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, branchId.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin FetchStockPerformanceRef
-    on AutoDisposeFutureProviderRef<List<BusinessAnalytic>> {
-  /// The parameter `branchId` of this provider.
-  int get branchId;
-}
+String _$fetchStockPerformanceHash() =>
+    r'dec5a38c965aacf12cac0dc65f02e57f5b70e971';
 
-class _FetchStockPerformanceProviderElement
-    extends AutoDisposeFutureProviderElement<List<BusinessAnalytic>>
-    with FetchStockPerformanceRef {
-  _FetchStockPerformanceProviderElement(super.provider);
+final class FetchStockPerformanceFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<List<BusinessAnalytic>>, int> {
+  const FetchStockPerformanceFamily._()
+      : super(
+          retry: null,
+          name: r'fetchStockPerformanceProvider',
+          dependencies: null,
+          $allTransitiveDependencies: null,
+          isAutoDispose: true,
+        );
+
+  FetchStockPerformanceProvider call(
+    int branchId,
+  ) =>
+      FetchStockPerformanceProvider._(argument: branchId, from: this);
 
   @override
-  int get branchId => (origin as FetchStockPerformanceProvider).branchId;
+  String toString() => r'fetchStockPerformanceProvider';
 }
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

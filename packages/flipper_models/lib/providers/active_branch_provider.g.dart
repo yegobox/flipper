@@ -6,21 +6,38 @@ part of 'active_branch_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$activeBranchHash() => r'80c65da64c4cae86bd29403dd9c064eefd39f9d8';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// See also [activeBranch].
 @ProviderFor(activeBranch)
-final activeBranchProvider = AutoDisposeStreamProvider<Branch>.internal(
-  activeBranch,
-  name: r'activeBranchProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$activeBranchHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+const activeBranchProvider = ActiveBranchProvider._();
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef ActiveBranchRef = AutoDisposeStreamProviderRef<Branch>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+final class ActiveBranchProvider
+    extends $FunctionalProvider<AsyncValue<Branch>, Branch, Stream<Branch>>
+    with $FutureModifier<Branch>, $StreamProvider<Branch> {
+  const ActiveBranchProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'activeBranchProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$activeBranchHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<Branch> $createElement($ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
+
+  @override
+  Stream<Branch> create(Ref ref) {
+    return activeBranch(ref);
+  }
+}
+
+String _$activeBranchHash() => r'80c65da64c4cae86bd29403dd9c064eefd39f9d8';

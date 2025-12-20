@@ -74,7 +74,7 @@ mixin StockMixin implements StockInterface {
   Future<List<InventoryRequest>> requests({required String requestId}) async {
     final ditto = dittoService.dittoInstance;
     if (ditto == null) {
-      throw Exception('Ditto not initialized');
+      throw Exception('Ditto not initialized:19');
     }
 
     final result = await ditto.store.execute(

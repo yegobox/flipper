@@ -13,4 +13,8 @@ class SelectedSupplier extends _$SelectedSupplier {
   void setSupplier(Branch supplier) {
     state = supplier;
   }
+
+  void clearSupplier() {
+    state = null;
+  }
 }

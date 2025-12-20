@@ -1,50 +1,55 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_web/services/ditto_service.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'challenge_service.dart';
 import 'package:flipper_models/models/challenge_code.dart';
 import 'package:flipper_models/models/claim.dart';
 
+part 'providers.g.dart';
+
 // Provider for DittoService from flipper_web
-final dittoServiceProvider = Provider<DittoService>((ref) {
+@riverpod
+DittoService dittoService(Ref ref) {
   return DittoService.instance;
-});
+}
 
 // Provider for ChallengeService
-final challengeServiceProvider = Provider<ChallengeService>((ref) {
+@riverpod
+ChallengeService challengeService(Ref ref) {
   final dittoService = ref.watch(dittoServiceProvider);
   return ChallengeService(dittoService);
-});
+}
 
 // Provider for available challenge codes stream
-final availableChallengeCodesProvider = StreamProvider<List<ChallengeCode>>((
-  ref,
-) {
+@riverpod
+Stream<List<ChallengeCode>> availableChallengeCodes(Ref ref) {
   final challengeService = ref.watch(challengeServiceProvider);
   return challengeService.availableChallengeCodes;
-});
+}
 
 // Provider for user's claims
-final userClaimsProvider = FutureProvider.family<List<Claim>, String>((
-  ref,
-  userId,
-) {
+@riverpod
+Future<List<Claim>> userClaims(Ref ref, String userId) {
   final challengeService = ref.watch(challengeServiceProvider);
   return challengeService.getClaimsForUser(userId);
-});
+}
 
 // Provider for challenge codes of a business
-final businessChallengeCodesProvider =
-    FutureProvider.family<List<ChallengeCode>, String>((ref, businessId) {
-      final challengeService = ref.watch(challengeServiceProvider);
-      return challengeService.getChallengeCodesForBusiness(businessId);
-    });
+@riverpod
+Future<List<ChallengeCode>> businessChallengeCodes(Ref ref, String businessId) {
+  final challengeService = ref.watch(challengeServiceProvider);
+  return challengeService.getChallengeCodesForBusiness(businessId);
+}
 
 // State notifier for managing challenge claiming
-class ChallengeClaimNotifier extends StateNotifier<AsyncValue<bool>> {
-  final ChallengeService _challengeService;
+@riverpod
+class ChallengeClaim extends _$ChallengeClaim {
+  ChallengeService get _challengeService => ref.watch(challengeServiceProvider);
 
-  ChallengeClaimNotifier(this._challengeService)
-    : super(const AsyncValue.data(false));
+  @override
+  AsyncValue<bool> build() {
+    return const AsyncValue.data(false);
+  }
 
   Future<void> claimChallenge(String userId, String challengeCodeId) async {
     state = const AsyncValue.loading();
@@ -60,14 +65,13 @@ class ChallengeClaimNotifier extends StateNotifier<AsyncValue<bool>> {
   }
 }
 
-final challengeClaimProvider =
-    StateNotifierProvider<ChallengeClaimNotifier, AsyncValue<bool>>((ref) {
-      final challengeService = ref.watch(challengeServiceProvider);
-      return ChallengeClaimNotifier(challengeService);
-    });
-
 // Provider to check if Ditto is ready
-final dittoReadyProvider = Provider<bool>((ref) {
+@riverpod
+bool dittoReady(Ref ref) {
   final dittoService = ref.watch(dittoServiceProvider);
   return dittoService.isReady();
-});
+}
+
+// Typedef/Aliases for compatibility if needed
+typedef ChallengeClaimNotifier = ChallengeClaim;
+// challengeClaimProvider is generated.

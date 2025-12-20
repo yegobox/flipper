@@ -15,7 +15,7 @@ dependencies:
   meta: ^1.3.0
   universal_platform: ^1.0.0+1
   stacked_services: ^1.6.0
-  firebase_auth: ^6.0.1
+  firebase_auth: ^6.1.0
   stacked: ^3.5.0
   built_value: ^8.1.4
   azlistview: ^2.0.0
@@ -25,19 +25,18 @@ dependencies:
   flipper_routing: ^1.0.0
   connectivity_plus: ^7.0.0
   
-  sentry: ^9.6.0
-  sentry_flutter: ^9.8.0
+  sentry: ^9.8.0
+  sentry_flutter: 9.8.0
   
   path_provider: ^2.1.5
   http: ^1.2.2
   html_unescape: ^2.0.0
-  flutter_riverpod: ^2.6.1
-  riverpod_annotation: ^2.6.1
-  flutter_hooks: ^0.18.0
-  riverpod: ^2.0.0
-  hooks_riverpod: ^2.0.0
+  flutter_riverpod: ^3.0.3
+  riverpod_annotation: ^3.0.3
+  flutter_hooks: ^0.21.0
+  riverpod: ^3.0.3
+  hooks_riverpod: ^3.0.3
   freezed_annotation: any
-  isolated_worker: ^0.1.1
   dart_mappable: ^4.2.1
   dio: ^5.4.3+1
   talker_dio_logger: ^4.1.5
@@ -56,7 +55,7 @@ dependencies:
   mime: ^2.0.0
   firebase_core: ^4.2.1
   # sqlite3_flutter_libs: ^0.5.40
-  sqlite3: ^3.1.0
+  sqlite3: ^3.1.1
   permission_handler: ^12.0.1
   json_annotation: ^4.9.0
   supabase_flutter: ^2.10.0
@@ -65,7 +64,7 @@ dependencies:
   pdf: ^3.11.3
   injectfy: ^1.0.1
   mock_supabase_http_client: 0.0.3+1
-  sqlite3_web: '>=0.2.1 <0.4.0'
+  # sqlite3_web: '>=0.2.1 <0.4.0'
   synchronized: ^3.3.0+3
   email_validator: ^2.1.17
   faker: ^2.2.0
@@ -79,9 +78,9 @@ dependency_overrides:
   jni: ^0.14.2
   web: ^1.0.0
   json_annotation: ^4.9.0
-  sqlite3: ^3.1.0
+  sqlite3: ^3.1.1
   stacked_services: ^1.6.0
-  device_info_plus: ^12.2.0
+  device_info_plus: ^12.3.0
   archive: ^3.6.1
   excel: ^4.0.6
   mime: ^2.0.0
@@ -94,8 +93,8 @@ dev_dependencies:
   json_serializable: ^6.9.4
   # cloud_firestore_odm_generator: ^1.0.0-dev.89
   mocktail: ^1.0.4
-  riverpod_generator: ^2.6.5
-  riverpod_lint: ^2.6.3
+  riverpod_generator: ^3.0.0  # Updated to support riverpod_annotation ^3.0.3
+  riverpod_lint: ^3.0.3  # Updated to be compatible with riverpod ^3.0.3
   test: ^1.26.2
   # cloud_firestore_odm_generator: ^1.0.0-dev.88
 flutter:

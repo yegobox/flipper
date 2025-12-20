@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_web/features/login/signup_providers.dart';
 import 'package:flipper_web/repositories/signup_repository.dart';
 import 'package:flipper_web/models/business_type.dart';
@@ -88,9 +89,20 @@ void main() {
   late SignupFormNotifier notifier;
   late MockSignupRepository mockRepository;
 
+  late ProviderContainer container;
+
   setUp(() {
     mockRepository = MockSignupRepository();
-    notifier = SignupFormNotifier(mockRepository);
+    container = ProviderContainer(
+      overrides: [signupRepositoryProvider.overrideWithValue(mockRepository)],
+    );
+    // Keep the provider alive since it is autoDispose
+    container.listen(signupFormProvider, (previous, next) {});
+    notifier = container.read(signupFormProvider.notifier);
+  });
+
+  tearDown(() {
+    container.dispose();
   });
 
   group('SignupFormState', () {
@@ -251,14 +263,14 @@ void main() {
       expect(notifier.state.isUsernameAvailable, isNull);
 
       // Execute
-      notifier.updateUsername('testuser');
+      final future = notifier.updateUsername('testuser');
 
       // First state update - just the username
       expect(notifier.state.username, equals('testuser'));
       expect(notifier.state.isUsernameAvailable, isNull);
 
-      // Move clock forward to trigger the debounce
-      await Future.delayed(const Duration(milliseconds: 600));
+      // Wait for the debounce and API call to complete
+      await future;
 
       // Now the availability check should have been triggered
       expect(mockRepository.checkedUsernames, contains('testuser'));
@@ -335,8 +347,6 @@ void main() {
           typeName: 'Flipper Retailer',
         );
 
-        // Set state manually to bypass async username check
-        notifier = SignupFormNotifier(mockRepository);
         final validState = SignupFormState(
           username: 'testuser',
           fullName: 'Test User',
@@ -389,7 +399,7 @@ void main() {
       final businessType = BusinessType(id: '1', typeName: 'Flipper Retailer');
 
       // Set state manually to bypass async username check
-      notifier = SignupFormNotifier(mockRepository);
+
       final validState = SignupFormState(
         username: 'testuser',
         fullName: 'Test User',

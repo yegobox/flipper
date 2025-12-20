@@ -31,10 +31,7 @@ import 'package:flipper_services/navigation_guard_service.dart';
 enum OrderStatus { pending, approved }
 
 class CheckOut extends StatefulHookConsumerWidget {
-  const CheckOut({
-    Key? key,
-    required this.isBigScreen,
-  }) : super(key: key);
+  const CheckOut({Key? key, required this.isBigScreen}) : super(key: key);
 
   final bool isBigScreen;
 
@@ -63,8 +60,10 @@ class CheckOutState extends ConsumerState<CheckOut>
       vsync: this,
       duration: const Duration(milliseconds: 300),
     );
-    _animation =
-        Tween<double>(begin: 0.0, end: 1.0).animate(_animationController);
+    _animation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(_animationController);
     _animationController.forward();
 
     if (mounted) {
@@ -88,14 +87,13 @@ class CheckOutState extends ConsumerState<CheckOut>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: _buildMainContent(),
-    );
+    return Scaffold(body: _buildMainContent());
   }
 
   Widget _buildMainContent() {
-    final transactionAsyncValue =
-        ref.watch(pendingTransactionStreamProvider(isExpense: false));
+    final transactionAsyncValue = ref.watch(
+      pendingTransactionStreamProvider(isExpense: false),
+    );
 
     return transactionAsyncValue.when(
       data: (transaction) => _buildDataWidget(transaction),
@@ -106,14 +104,20 @@ class CheckOutState extends ConsumerState<CheckOut>
 
   Widget _buildDataWidget(ITransaction transaction) {
     return widget.isBigScreen
-        ? _buildBigScreenLayout(transaction,
-            showCart: ref.watch(oldImplementationOfRiverpod.previewingCart))
-        : _buildSmallScreenLayout(transaction,
-            showCart: ref.watch(oldImplementationOfRiverpod.previewingCart));
+        ? _buildBigScreenLayout(
+            transaction,
+            showCart: ref.watch(oldImplementationOfRiverpod.previewingCart),
+          )
+        : _buildSmallScreenLayout(
+            transaction,
+            showCart: ref.watch(oldImplementationOfRiverpod.previewingCart),
+          );
   }
 
-  Widget _buildBigScreenLayout(ITransaction transaction,
-      {required bool showCart}) {
+  Widget _buildBigScreenLayout(
+    ITransaction transaction, {
+    required bool showCart,
+  }) {
     return ViewModelBuilder<CoreViewModel>.reactive(
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
@@ -160,9 +164,10 @@ class CheckOutState extends ConsumerState<CheckOut>
                 surfaceTintColor: Colors.white,
                 child: Column(
                   children: [
-                    _buildIconRow()
-                        .eligibleToSeeIfYouAre(ref, [UserType.ADMIN]),
-                    SearchInputWithDropdown()
+                    _buildIconRow().eligibleToSeeIfYouAre(ref, [
+                      UserType.ADMIN,
+                    ]),
+                    SearchInputWithDropdown(),
                   ],
                 ),
               ),
@@ -186,30 +191,33 @@ class CheckOutState extends ConsumerState<CheckOut>
               });
               ref
                   .watch(oldImplementationOfRiverpod.stringProvider.notifier)
-                  .updateString(newStatus == OrderStatus.approved
-                      ? RequestStatus.approved
-                      : RequestStatus.pending);
+                  .updateString(
+                    newStatus == OrderStatus.approved
+                        ? RequestStatus.approved
+                        : RequestStatus.pending,
+                  );
             },
           ),
           const SizedBox(height: 20),
-          Flexible(
-            child: SingleChildScrollView(
-              child: const IncomingOrders(),
-            ),
-          ),
+          Flexible(child: SingleChildScrollView(child: const IncomingOrders())),
         ],
       ),
     );
   }
 
   Widget _buildPosDefaultContent(
-      ITransaction transaction, CoreViewModel model) {
+    ITransaction transaction,
+    CoreViewModel model,
+  ) {
     final branchAsync = ref.watch(activeBranchProvider);
     return branchAsync.when(
       data: (branch) {
         return FutureBuilder<bool>(
-          future: ProxyService.strategy.isBranchEnableForPayment(
-              currentBranchId: branch.id) as Future<bool>,
+          future:
+              ProxyService.strategy.isBranchEnableForPayment(
+                    currentBranchId: branch.id,
+                  )
+                  as Future<bool>,
           builder: (context, snapshot) {
             final digitalPaymentEnabled = snapshot.data ?? false;
             return ListView(
@@ -223,14 +231,19 @@ class CheckOutState extends ConsumerState<CheckOut>
                   child: PayableView(
                     transactionId: transaction.id,
                     mode: oldImplementationOfRiverpod.SellingMode.forSelling,
-                    completeTransaction: (immediateCompletion,
-                        [onPaymentConfirmed, onPaymentFailed]) async {
-                      return await _handleCompleteTransaction(
-                          transaction,
-                          immediateCompletion,
+                    completeTransaction:
+                        (
+                          immediateCompletion, [
                           onPaymentConfirmed,
-                          onPaymentFailed);
-                    },
+                          onPaymentFailed,
+                        ]) async {
+                          return await _handleCompleteTransaction(
+                            transaction,
+                            immediateCompletion,
+                            onPaymentConfirmed,
+                            onPaymentFailed,
+                          );
+                        },
                     model: model,
                     ticketHandler: () => handleTicketNavigation(transaction),
                     digitalPaymentEnabled: digitalPaymentEnabled,
@@ -263,10 +276,7 @@ class CheckOutState extends ConsumerState<CheckOut>
       padding: const EdgeInsets.all(8.0),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          return Padding(
-            padding: EdgeInsets.all(8.0),
-            child: IconRow(),
-          );
+          return Padding(padding: EdgeInsets.all(8.0), child: IconRow());
         },
       ),
     );
@@ -274,8 +284,9 @@ class CheckOutState extends ConsumerState<CheckOut>
 
   String getCartText({required String transactionId}) {
     // Get the latest count with a fresh watch to ensure reactivity
-    final itemsAsync =
-        ref.watch(transactionItemsStreamProvider(transactionId: transactionId));
+    final itemsAsync = ref.watch(
+      transactionItemsStreamProvider(transactionId: transactionId),
+    );
 
     // Get the count from the async value
     final count = itemsAsync.when(
@@ -288,8 +299,11 @@ class CheckOutState extends ConsumerState<CheckOut>
   }
 
   Future<bool> _handleCompleteTransaction(
-      ITransaction transaction, bool immediateCompletion,
-      [Function? onPaymentConfirmed, Function(String)? onPaymentFailed]) async {
+    ITransaction transaction,
+    bool immediateCompletion, [
+    Function? onPaymentConfirmed,
+    Function(String)? onPaymentFailed,
+  ]) async {
     final startTime = transaction.createdAt!;
 
     // Set flags to prevent UI flicker during transaction completion
@@ -322,24 +336,31 @@ class CheckOutState extends ConsumerState<CheckOut>
             final endTime = DateTime.now().toUtc();
             final duration = endTime.difference(startTime).inSeconds;
 
-            ProxyService.box
-                .writeBool(key: 'transactionInProgress', value: false);
-            ProxyService.box
-                .writeBool(key: 'transactionCompleting', value: false);
-            PosthogService.instance
-                .capture('transaction_completed', properties: {
-              'transaction_id': transaction.id,
-              'branch_id': transaction.branchId!,
-              'business_id': ProxyService.box.getBusinessId()!,
-              'created_at': startTime.toIso8601String(),
-              'completed_at': endTime.toIso8601String(),
-              'duration_seconds': duration,
-              'source': 'checkout',
-            });
+            ProxyService.box.writeBool(
+              key: 'transactionInProgress',
+              value: false,
+            );
+            ProxyService.box.writeBool(
+              key: 'transactionCompleting',
+              value: false,
+            );
+            PosthogService.instance.capture(
+              'transaction_completed',
+              properties: {
+                'transaction_id': transaction.id,
+                'branch_id': transaction.branchId!,
+                'business_id': ProxyService.box.getBusinessId()!,
+                'created_at': startTime.toIso8601String(),
+                'completed_at': endTime.toIso8601String(),
+                'duration_seconds': duration,
+                'source': 'checkout',
+              },
+            );
           });
         },
-        paymentMethods:
-            ref.watch(oldImplementationOfRiverpod.paymentMethodsProvider),
+        paymentMethods: ref.watch(
+          oldImplementationOfRiverpod.paymentMethodsProvider,
+        ),
       );
       return isWaitingForPayment;
       // No need to call newTransaction here as it's already called in the completeTransaction callback
@@ -354,8 +375,10 @@ class CheckOutState extends ConsumerState<CheckOut>
     }
   }
 
-  Widget _buildSmallScreenLayout(ITransaction transaction,
-      {required bool showCart}) {
+  Widget _buildSmallScreenLayout(
+    ITransaction transaction, {
+    required bool showCart,
+  }) {
     return ViewModelBuilder<CoreViewModel>.reactive(
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
@@ -376,14 +399,20 @@ class CheckOutState extends ConsumerState<CheckOut>
                   tabController: tabController,
                   textEditController: textEditController,
                   model: model,
-                  onCompleteTransaction: (transaction, immediateCompletion,
-                      [onPaymentConfirmed, onPaymentFailed]) async {
-                    return await _handleCompleteTransaction(
+                  onCompleteTransaction:
+                      (
                         transaction,
-                        immediateCompletion,
+                        immediateCompletion, [
                         onPaymentConfirmed,
-                        onPaymentFailed);
-                  },
+                        onPaymentFailed,
+                      ]) async {
+                        return await _handleCompleteTransaction(
+                          transaction,
+                          immediateCompletion,
+                          onPaymentConfirmed,
+                          onPaymentFailed,
+                        );
+                      },
                 )
               : Scaffold(body: SafeArea(child: _buildQuickSellingView())),
         );

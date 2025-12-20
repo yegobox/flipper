@@ -74,7 +74,7 @@ mixin CapellaDelegationMixin implements DelegationInterface {
     try {
       final ditto = dittoService.dittoInstance;
       if (ditto == null) {
-        debugPrint('❌ Ditto not initialized');
+        debugPrint('❌ Ditto not initialized:1');
         return Stream.value([]);
       }
 
@@ -174,7 +174,7 @@ mixin CapellaDelegationMixin implements DelegationInterface {
     try {
       final ditto = dittoService.dittoInstance;
       if (ditto == null) {
-        debugPrint('❌ Ditto not initialized');
+        debugPrint('❌ Ditto not initialized:2');
         return [];
       }
 

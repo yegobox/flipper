@@ -71,9 +71,15 @@ void main() {
 
       mockVariants = [
         _createMockVariant(
-            id: 'variant_id_1', name: 'Variant A', pchsSttsCd: '01'),
+          id: 'variant_id_1',
+          name: 'Variant A',
+          pchsSttsCd: '01',
+        ),
         _createMockVariant(
-            id: 'variant_id_2', name: 'Variant B', pchsSttsCd: '01'),
+          id: 'variant_id_2',
+          name: 'Variant B',
+          pchsSttsCd: '01',
+        ),
       ];
       mockPurchases = [
         _createMockPurchase(
@@ -83,9 +89,10 @@ void main() {
           totAmt: 500.0,
           variants: [
             _createMockVariant(
-                id: 'variant_in_purchase_1',
-                name: 'Variant X',
-                pchsSttsCd: '01')
+              id: 'variant_in_purchase_1',
+              name: 'Variant X',
+              pchsSttsCd: '01',
+            ),
           ],
         ),
         _createMockPurchase(
@@ -95,9 +102,10 @@ void main() {
           totAmt: 750.0,
           variants: [
             _createMockVariant(
-                id: 'variant_in_purchase_2',
-                name: 'Variant Y',
-                pchsSttsCd: '01')
+              id: 'variant_in_purchase_2',
+              name: 'Variant Y',
+              pchsSttsCd: '01',
+            ),
           ],
         ),
       ];
@@ -111,8 +119,9 @@ void main() {
       registerFallbackValue(Exception('test exception'));
     });
 
-    testWidgets('should render PurchaseTable with initial state',
-        (WidgetTester tester) async {
+    testWidgets('should render PurchaseTable with initial state', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
@@ -147,8 +156,9 @@ void main() {
       expect(find.text('Invoice: 1001'), findsOneWidget);
     });
 
-    testWidgets('should filter purchases by status',
-        (WidgetTester tester) async {
+    testWidgets('should filter purchases by status', (
+      WidgetTester tester,
+    ) async {
       // Create a purchase with status '02' (Approved)
       final approvedVariant = _createMockVariant(pchsSttsCd: '02');
 
@@ -166,9 +176,9 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            variantProvider(branchId: 1).overrideWith(
-              (ref) async => mockVariants,
-            ),
+            variantProvider(
+              branchId: 1,
+            ).overrideWith((ref) async => mockVariants),
           ],
           child: MaterialApp(
             home: Scaffold(

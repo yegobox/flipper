@@ -29,14 +29,17 @@ class TransactionListState extends ConsumerState<TransactionList>
     with WidgetsBindingObserver, DateCoreWidget {
   // Use a late initialized key to ensure it's created fresh when needed
   late GlobalKey<SfDataGridState> workBookKey;
+  late GlobalKey<DataViewState> dataViewKey;
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
+  bool _isExporting = false;
 
   @override
   void initState() {
     super.initState();
-    // Initialize the key
+    // Initialize the keys
     workBookKey = GlobalKey<SfDataGridState>();
+    dataViewKey = GlobalKey<DataViewState>();
   }
 
   @override
@@ -59,8 +62,11 @@ class TransactionListState extends ConsumerState<TransactionList>
         if (next) {
           ref.invalidate(transactionItemListProvider);
         } else {
-          ref.invalidate(transactionListProvider(
-              forceRealData: !(ProxyService.box.enableDebug() ?? false)));
+          ref.invalidate(
+            transactionListProvider(
+              forceRealData: !(ProxyService.box.enableDebug() ?? false),
+            ),
+          );
         }
       }
     });
@@ -74,8 +80,11 @@ class TransactionListState extends ConsumerState<TransactionList>
       dataProvider = ref.watch(transactionItemListProvider);
     } else {
       // For summary view, use transactionListProvider
-      dataProvider = ref.watch(transactionListProvider(
-          forceRealData: !(ProxyService.box.enableDebug() ?? false)));
+      dataProvider = ref.watch(
+        transactionListProvider(
+          forceRealData: !(ProxyService.box.enableDebug() ?? false),
+        ),
+      );
     }
 
     // Conditionally cast the data based on the `showDetailed` flag
@@ -91,9 +100,9 @@ class TransactionListState extends ConsumerState<TransactionList>
             transactions = allTransactions.where((transaction) {
               final receiptNumber = transaction.receiptNumber?.toString() ?? '';
 
-              return receiptNumber
-                  .toLowerCase()
-                  .contains(_searchQuery.toLowerCase());
+              return receiptNumber.toLowerCase().contains(
+                _searchQuery.toLowerCase(),
+              );
             }).toList();
           } else {
             transactions = allTransactions;
@@ -118,23 +127,27 @@ class TransactionListState extends ConsumerState<TransactionList>
                 Card(
                   elevation: 2,
                   shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                   color: Colors.white,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 12),
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
                     child: Row(
                       children: [
-                        Icon(Icons.calendar_today,
-                            color: Colors.blue[700], size: 22),
+                        Icon(
+                          Icons.calendar_today,
+                          color: Colors.blue[700],
+                          size: 22,
+                        ),
                         const SizedBox(width: 10),
                         Text(
                           startDate != null && endDate != null
                               ? '${startDate.day}/${startDate.month}/${startDate.year} - ${endDate.day}/${endDate.month}/${endDate.year}'
                               : 'Select date range',
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium
+                          style: Theme.of(context).textTheme.titleMedium
                               ?.copyWith(fontWeight: FontWeight.w600),
                         ),
                         const Spacer(),
@@ -175,9 +188,12 @@ class TransactionListState extends ConsumerState<TransactionList>
                                 )
                               : null,
                           border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8)),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
                           contentPadding: const EdgeInsets.symmetric(
-                              vertical: 0, horizontal: 12),
+                            vertical: 0,
+                            horizontal: 12,
+                          ),
                         ),
                         style: TextStyle(fontSize: 16),
                         onChanged: (value) {
@@ -190,11 +206,30 @@ class TransactionListState extends ConsumerState<TransactionList>
                     const SizedBox(width: 12),
                     Tooltip(
                       message: 'Export as CSV',
-                      child: IconButton(
-                        icon: Icon(Icons.download_rounded),
-                        onPressed: () {
-                          // TODO: Implement export
-                        },
+                      child: SizedBox(
+                        width: 40,
+                        height: 40,
+                        child: _isExporting
+                            ? const Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : IconButton(
+                                icon: Icon(Icons.download_rounded),
+                                onPressed: () async {
+                                  setState(() => _isExporting = true);
+                                  try {
+                                    await dataViewKey.currentState
+                                        ?.triggerExport(headerTitle: "Report");
+                                  } finally {
+                                    if (mounted) {
+                                      setState(() => _isExporting = false);
+                                    }
+                                  }
+                                },
+                              ),
                       ),
                     ),
                     Tooltip(
@@ -235,26 +270,18 @@ class TransactionListState extends ConsumerState<TransactionList>
       ),
       child: Row(
         children: [
-          _buildSwitchOption(
-            'Detailed',
-            showDetailed,
-            () {
-              if (!showDetailed) {
-                // Toggle the report and immediately invalidate both providers
-                ref.read(toggleBooleanValueProvider.notifier).toggleReport();
-              }
-            },
-          ),
-          _buildSwitchOption(
-            'Summary',
-            !showDetailed,
-            () {
-              if (showDetailed) {
-                // Toggle the report and immediately invalidate both providers
-                ref.read(toggleBooleanValueProvider.notifier).toggleReport();
-              }
-            },
-          ),
+          _buildSwitchOption('Detailed', showDetailed, () {
+            if (!showDetailed) {
+              // Toggle the report and immediately invalidate both providers
+              ref.read(toggleBooleanValueProvider.notifier).toggleReport();
+            }
+          }),
+          _buildSwitchOption('Summary', !showDetailed, () {
+            if (showDetailed) {
+              // Toggle the report and immediately invalidate both providers
+              ref.read(toggleBooleanValueProvider.notifier).toggleReport();
+            }
+          }),
         ],
       ),
     );
@@ -304,18 +331,11 @@ class TransactionListState extends ConsumerState<TransactionList>
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
-                  Icons.receipt_long,
-                  size: 60,
-                  color: Colors.grey[400],
-                ),
+                Icon(Icons.receipt_long, size: 60, color: Colors.grey[400]),
                 const SizedBox(height: 16),
                 Text(
                   'No transactions found for the selected period.',
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: Colors.grey[600],
-                  ),
+                  style: TextStyle(fontSize: 18, color: Colors.grey[600]),
                 ),
               ],
             ),
@@ -327,7 +347,7 @@ class TransactionListState extends ConsumerState<TransactionList>
         final validEndDate = endDate ?? DateTime.now();
 
         return DataView(
-          key: ValueKey(showDetailed),
+          key: dataViewKey,
           transactions: transactions,
           transactionItems: transactionItems,
           startDate: validStartDate,
@@ -353,10 +373,7 @@ class TransactionListState extends ConsumerState<TransactionList>
           const SizedBox(height: 16),
           Text(
             'Loading reports...',
-            style: TextStyle(
-              fontSize: 18,
-              color: Colors.grey[600],
-            ),
+            style: TextStyle(fontSize: 18, color: Colors.grey[600]),
           ),
         ],
       ),
@@ -368,11 +385,7 @@ class TransactionListState extends ConsumerState<TransactionList>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(
-            Icons.error_outline,
-            size: 60,
-            color: Colors.red[400],
-          ),
+          Icon(Icons.error_outline, size: 60, color: Colors.red[400]),
           const SizedBox(height: 16),
           Text(
             'Error loading reports',
@@ -392,10 +405,7 @@ class TransactionListState extends ConsumerState<TransactionList>
             ),
             child: Text(
               error.toString(),
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[800],
-              ),
+              style: TextStyle(fontSize: 14, color: Colors.grey[800]),
               textAlign: TextAlign.center,
             ),
           ),

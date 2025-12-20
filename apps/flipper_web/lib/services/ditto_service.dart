@@ -6,6 +6,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_web/models/user_profile.dart';
 import 'package:permission_handler/permission_handler.dart';
+import '../core/utils/ditto_debug.dart';
 
 // Global singleton instance of DittoService
 final DittoService _dittoServiceInstance = DittoService._internal();
@@ -83,30 +84,83 @@ class DittoService {
 
   /// Sets the Ditto instance (called from main.dart after initialization)
   void setDitto(Ditto ditto) {
-    // Only set if we don't already have the same instance
-    if (_ditto == ditto) {
-      debugPrint('Same Ditto instance already set, skipping');
-      return;
-    }
-
-    _ditto = ditto;
-    _notifyDittoListeners();
-
     // Request necessary permissions for Ditto
     final platform = Ditto.currentPlatform;
     if (platform case SupportedPlatform.android || SupportedPlatform.ios) {
+      // Request all necessary permissions
       [
         Permission.bluetoothConnect,
         Permission.bluetoothAdvertise,
         Permission.nearbyWifiDevices,
         Permission.bluetoothScan,
         Permission.location, // Required for Ditto on Android
-      ].request();
+      ].request().then((statuses) async {
+        // Check if location permission was granted (especially important for Android)
+        if (platform == SupportedPlatform.android) {
+          // Check all requested permissions
+          final allPermissions = [
+            Permission.bluetoothConnect,
+            Permission.bluetoothAdvertise,
+            Permission.nearbyWifiDevices,
+            Permission.bluetoothScan,
+            Permission.location,
+          ];
+
+          bool allPermissionsGranted = true;
+          List<String> deniedPermissions = [];
+
+          for (var permission in allPermissions) {
+            final status = await permission.status;
+            if (status != PermissionStatus.granted) {
+              allPermissionsGranted = false;
+              deniedPermissions.add(permission.toString());
+            }
+          }
+
+          if (!allPermissionsGranted) {
+            debugPrint(
+              '⚠️ Some permissions not granted. Ditto sync may not work properly on Android. Denied: ${deniedPermissions.join(", ")}',
+            );
+            debugPrint(
+              'Please ensure all requested permissions are granted for proper sync functionality.',
+            );
+          } else {
+            debugPrint(
+              '✅ All required permissions granted for Ditto sync on Android.',
+            );
+          }
+        }
+      });
     }
 
-    // Log Ditto device info for debugging
-    debugPrint('📱 Ditto device initialized: ${ditto.deviceName}');
-    debugPrint('📁 Ditto persistence directory: ${ditto.persistenceDirectory}');
+    // Only set if we don't already have the same instance
+    if (_ditto == ditto) {
+      debugPrint('Same Ditto instance already set, skipping');
+      // Start sync for existing instance
+      startSync();
+      return;
+    }
+
+    _ditto = ditto;
+    _notifyDittoListeners();
+
+    // Verify the instance was properly set
+    try {
+      // Test that the instance is functional
+
+      // Log Ditto device info for debugging
+      debugPrint('📱 Ditto device initialized: ${ditto.deviceName}');
+      debugPrint(
+        '📁 Ditto persistence directory: ${ditto.persistenceDirectory}',
+      );
+      debugPrint('🔗 Ditto sync active: ${_ditto!.isSyncActive}');
+      debugPrint('🔑 Ditto auth status: ${_ditto!.auth.status}');
+    } catch (e) {
+      debugPrint('❌ ERROR: Ditto instance is not properly initialized: $e');
+      _ditto = null;
+      _notifyDittoListeners();
+      return;
+    }
 
     // Note about mDNS warnings in debug
     if (kDebugMode) {
@@ -117,6 +171,9 @@ class DittoService {
         'ℹ️  File lock conflicts are prevented by using unique directories per instance',
       );
     }
+
+    // Start sync after setting the instance
+    startSync();
 
     _setupObservation();
   }
@@ -161,6 +218,7 @@ class DittoService {
     try {
       if (_ditto == null) {
         debugPrint('Ditto not initialized, cannot save user profile');
+        DittoDebug.printInitializationError('saveUserProfile');
         return;
       }
 
@@ -292,6 +350,24 @@ class DittoService {
     return _ditto != null;
   }
 
+  /// Checks if Ditto is properly initialized and ready to use with additional validation
+  bool isActuallyReady() {
+    if (_ditto == null) {
+      debugPrint('❌ Ditto instance is null');
+      return false;
+    }
+
+    // Additional check to ensure Ditto is properly initialized
+    try {
+      // Try a simple store operation to verify Ditto is ready
+      debugPrint('✅ Ditto is ready and operational');
+      return true;
+    } catch (e) {
+      debugPrint('❌ Ditto is not ready: $e');
+      return false;
+    }
+  }
+
   /// Get the Ditto instance (for use by cache implementations)
   Ditto? get dittoInstance => _ditto;
 
@@ -301,20 +377,92 @@ class DittoService {
   /// Starts Ditto sync if Ditto is initialized
   void startSync() {
     if (_ditto != null) {
-      _ditto!.startSync();
-      debugPrint('Ditto sync started');
+      // Check platform-specific requirements before starting sync
+      final platform = Ditto.currentPlatform;
+      if (platform == SupportedPlatform.android) {
+        // On Android, verify all required permissions are granted
+        // Check all requested permissions
+        final allPermissions = [
+          Permission.bluetoothConnect,
+          Permission.bluetoothAdvertise,
+          Permission.nearbyWifiDevices,
+          Permission.bluetoothScan,
+          Permission.location,
+        ];
+
+        // Check each permission status
+        Future.wait(allPermissions.map((permission) => permission.status))
+            .then((statuses) {
+              bool allPermissionsGranted = statuses.every(
+                (status) => status == PermissionStatus.granted,
+              );
+
+              if (!allPermissionsGranted) {
+                // Find which permissions were denied
+                List<String> deniedPermissions = [];
+                for (int i = 0; i < allPermissions.length; i++) {
+                  if (statuses[i] != PermissionStatus.granted) {
+                    deniedPermissions.add(allPermissions[i].toString());
+                  }
+                }
+
+                debugPrint(
+                  '⚠️ Android: Not all required permissions granted. Ditto sync may not work properly. Denied: ${deniedPermissions.join(", ")}',
+                );
+                debugPrint(
+                  'Please ensure all requested permissions are granted for proper sync functionality.',
+                );
+              } else {
+                debugPrint(
+                  '✅ Android: All required permissions granted, starting sync...',
+                );
+                try {
+                  _ditto!.startSync();
+                  debugPrint('Ditto sync started');
+                } catch (e) {
+                  debugPrint('Error starting Ditto sync: $e');
+                }
+              }
+            })
+            .catchError((error) {
+              debugPrint('Error checking permissions: $error');
+              try {
+                // Try to start sync anyway
+                _ditto!.startSync();
+                debugPrint(
+                  'Ditto sync started (fallback after permission check error)',
+                );
+              } catch (e) {
+                debugPrint('Error starting Ditto sync: $e');
+              }
+            });
+      } else {
+        // For other platforms, start sync directly
+        try {
+          _ditto!.startSync();
+          debugPrint('Ditto sync started');
+        } catch (e) {
+          debugPrint('Error starting Ditto sync: $e');
+        }
+      }
     } else {
       debugPrint('Cannot start sync: Ditto not initialized');
+      DittoDebug.printInitializationError('startSync');
     }
   }
 
   /// Stops Ditto sync if Ditto is initialized
   void stopSync() {
     if (_ditto != null) {
-      _ditto!.stopSync();
-      debugPrint('Ditto sync stopped');
+      try {
+        _ditto!.stopSync();
+        debugPrint('Ditto sync stopped');
+      } catch (e) {
+        debugPrint('Error stopping Ditto sync: $e');
+      }
     } else {
       debugPrint('Cannot stop sync: Ditto not initialized');
+      DittoDebug.printInitializationError('stopSync');
     }
   }
 
@@ -604,7 +752,7 @@ class DittoService {
   }
 
   /// Save an event to the events collection
-  Future<void>  saveEvent(Map<String, dynamic> eventData, String eventId) async {
+  Future<void> saveEvent(Map<String, dynamic> eventData, String eventId) async {
     try {
       if (_ditto == null) {
         debugPrint('Ditto not initialized, cannot save event');

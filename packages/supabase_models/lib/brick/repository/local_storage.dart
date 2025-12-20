@@ -110,6 +110,7 @@ class SharedPreferenceStorage implements LocalStorage {
     'selectedDelegationDeviceId',
     'enableAutoAddSearch',
     'whatsAppPhoneNumberId',
+    'userLoggingEnabled',
     // Add new preference keys above this line
   };
 
@@ -798,6 +799,16 @@ class SharedPreferenceStorage implements LocalStorage {
   @override
   String? branchIdString() {
     return _cache['branchIdString'] as String?;
+  }
+
+  @override
+  bool? getUserLoggingEnabled() {
+    return (_cache['userLoggingEnabled'] as bool?) ?? false;
+  }
+
+  @override
+  Future<void> setUserLoggingEnabled(bool value) async {
+    await writeBool(key: 'userLoggingEnabled', value: value);
   }
 
   @override

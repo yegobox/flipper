@@ -1,4 +1,4 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:hooks_riverpod/legacy.dart';
 
 enum ScanStatus { idle, processing, success, failed, desktopLoginSuccess }
 

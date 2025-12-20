@@ -2,15 +2,21 @@ import 'package:flipper_web/models/user_profile.dart';
 import 'package:flipper_web/repositories/user_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+
+part 'user_profile_page.g.dart';
 
 /// Example controller that demonstrates how to use the UserRepository
 /// to fetch and save user profiles from the API and Ditto
-class UserProfileController extends StateNotifier<AsyncValue<UserProfile?>> {
-  final UserRepository _userRepository;
+@riverpod
+class UserProfileController extends _$UserProfileController {
+  UserRepository get _userRepository => ref.read(userRepositoryProvider);
 
-  UserProfileController(this._userRepository)
-    : super(const AsyncValue.loading());
+  @override
+  AsyncValue<UserProfile?> build() {
+    return const AsyncValue.loading();
+  }
 
   /// Fetch user profile from API and save to Ditto
   Future<void> fetchUserProfile(Session session) async {
@@ -41,28 +47,40 @@ class UserProfileController extends StateNotifier<AsyncValue<UserProfile?>> {
       _userRepository.userProfilesStream;
 }
 
-/// Provider for the user profile controller
-final userProfileControllerProvider =
-    StateNotifierProvider<UserProfileController, AsyncValue<UserProfile?>>((
-      ref,
-    ) {
-      final userRepository = ref.watch(userRepositoryProvider);
-      return UserProfileController(userRepository);
-    });
+// Generated provider: userProfileControllerProvider
 
 /// Example widget that demonstrates how to use the UserProfileController
-class UserProfilePage extends ConsumerWidget {
+class UserProfilePage extends ConsumerStatefulWidget {
   final Session session;
 
   const UserProfilePage({super.key, required this.session});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<UserProfilePage> createState() => _UserProfilePageState();
+}
+
+class _UserProfilePageState extends ConsumerState<UserProfilePage> {
+  @override
+  void initState() {
+    super.initState();
+
+    // Fetch user profile once when the widget is initialized
+    // Guard against fetching if already in progress or data exists
+    final userProfileState = ref.read(userProfileControllerProvider);
+    if (userProfileState.isLoading ||
+        (userProfileState.hasValue && userProfileState.value != null)) {
+      // Skip fetch if already loading or has valid data
+    } else {
+      ref
+          .read(userProfileControllerProvider.notifier)
+          .fetchUserProfile(widget.session);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     // Listen to the user profile state
     final userProfileState = ref.watch(userProfileControllerProvider);
-
-    // Fetch the user profile when the page loads
-    ref.read(userProfileControllerProvider.notifier).fetchUserProfile(session);
 
     return Scaffold(
       appBar: AppBar(title: const Text('User Profile')),

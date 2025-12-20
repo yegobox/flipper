@@ -221,7 +221,7 @@ mixin Headers<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         ),
       ),
       GridColumn(
-        columnName: 'GrossProfit',
+        columnName: 'NetProfit',
         label: Container(
           decoration: BoxDecoration(
             color: Colors.grey.shade200,
@@ -229,8 +229,7 @@ mixin Headers<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           ),
           padding: headerPadding,
           alignment: Alignment.center,
-          child:
-              const Text('Gross profit Made', overflow: TextOverflow.ellipsis),
+          child: const Text('Net Profit', overflow: TextOverflow.ellipsis),
         ),
       ),
     ];

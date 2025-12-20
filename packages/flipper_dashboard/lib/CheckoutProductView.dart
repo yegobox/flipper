@@ -39,9 +39,12 @@ class CheckoutProductView extends StatefulHookConsumerWidget {
   final TabController tabController;
   final TextEditingController textEditController;
   final Future<bool> Function(
-      ITransaction transaction, bool immediateCompletion,
-      [Function? onPaymentConfirmed,
-      Function(String)? onPaymentFailed]) onCompleteTransaction;
+    ITransaction transaction,
+    bool immediateCompletion, [
+    Function? onPaymentConfirmed,
+    Function(String)? onPaymentFailed,
+  ])
+  onCompleteTransaction;
 
   @override
   _CheckoutProductViewState createState() => _CheckoutProductViewState();
@@ -51,7 +54,6 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
     with
         TextEditingControllersMixin,
         TickerProviderStateMixin,
-        WidgetsBindingObserver,
         TransactionMixinOld,
         PreviewCartMixin {
   final TextEditingController searchController = TextEditingController();
@@ -70,13 +72,19 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
     receivedAmountController.dispose();
     customerPhoneNumberController.dispose();
     paymentTypeController.dispose();
+    // Call super.dispose() last to ensure proper cleanup order
+    // This allows mixins to clean up their resources before the widget is disposed
     super.dispose();
   }
 
   String getCartText({required String transactionId}) {
     // Get the latest count with a fresh watch to ensure reactivity
-    final itemsAsync =
-        ref.watch(transactionItemsStreamProvider(transactionId: transactionId));
+    final itemsAsync = ref.watch(
+      transactionItemsStreamProvider(
+        transactionId: transactionId,
+        branchId: ProxyService.box.branchIdString()!,
+      ),
+    );
 
     // Get the count from the async value
     final count = itemsAsync.when(
@@ -114,16 +122,20 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
                 child: Consumer(
                   builder: (context, ref, _) {
                     return ref
-                        .watch(outerVariantsProvider(
-                            ProxyService.box.getBranchId() ?? 0))
+                        .watch(
+                          outerVariantsProvider(
+                            ProxyService.box.getBranchId() ?? 0,
+                          ),
+                        )
                         .when(
                           data: (variants) {
                             if (variants.isEmpty) {
                               return _buildEmptyItemsView(context);
                             }
                             return Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 12.0),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12.0,
+                              ),
                               child: ProductView.normalMode(),
                             );
                           },
@@ -212,15 +224,18 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
   Widget _buildActionButtons() {
     return Consumer(
       builder: (context, ref, _) {
-        final transactionAsyncValue =
-            ref.watch(pendingTransactionStreamProvider(isExpense: false));
+        final transactionAsyncValue = ref.watch(
+          pendingTransactionStreamProvider(isExpense: false),
+        );
 
         return transactionAsyncValue.when(
           data: (transaction) {
             final cartText = getCartText(transactionId: transaction.id);
             return Padding(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 8.0,
+              ),
               child: Row(
                 children: [
                   // OPEN TICKETS Button - Shows bottom sheet like old implementation
@@ -273,14 +288,16 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
                         ),
                       ),
                     ),
-                  )
+                  ),
                 ],
               ),
             );
           },
           loading: () => Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 8.0,
+            ),
             child: Row(
               children: [
                 Expanded(
@@ -326,8 +343,10 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
             ),
           ),
           error: (_, __) => Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 8.0,
+            ),
             child: Row(
               children: [
                 Expanded(
@@ -384,15 +403,28 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
         context: context,
         ref: ref,
         transactionId: transaction.id,
-        onCharge: (transactionId, total, onPaymentConfirmed, onPaymentFailed,
-            [bool immediateCompletion = false]) async {
-          return await widget.onCompleteTransaction(transaction,
-              immediateCompletion, onPaymentConfirmed, onPaymentFailed);
-        },
+        onCharge:
+            (
+              transactionId,
+              total,
+              onPaymentConfirmed,
+              onPaymentFailed, [
+              bool immediateCompletion = false,
+            ]) async {
+              return await widget.onCompleteTransaction(
+                transaction,
+                immediateCompletion,
+                onPaymentConfirmed,
+                onPaymentFailed,
+              );
+            },
         doneDelete: () {
-          ref.refresh(transactionItemsStreamProvider(
+          ref.refresh(
+            transactionItemsStreamProvider(
               branchId: ProxyService.box.branchIdString()!,
-              transactionId: transaction.id));
+              transactionId: transaction.id,
+            ),
+          );
         },
       );
     }
@@ -427,9 +459,9 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
             Text(
               'Items not available',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface,
-                    fontWeight: FontWeight.w500,
-                  ),
+                color: Theme.of(context).colorScheme.onSurface,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ],
         ),
@@ -463,22 +495,23 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
             Text(
               'Error loading Items',
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.error,
-                    fontWeight: FontWeight.w500,
-                  ),
+                color: Theme.of(context).colorScheme.error,
+                fontWeight: FontWeight.w500,
+              ),
             ),
             const SizedBox(height: 8),
             Text(
               error.toString(),
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  ),
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: 24),
             FilledButton.icon(
               onPressed: () => ref.refresh(
-                  outerVariantsProvider(ProxyService.box.getBranchId() ?? 0)),
+                outerVariantsProvider(ProxyService.box.getBranchId() ?? 0),
+              ),
               icon: const Icon(FluentIcons.arrow_sync_20_filled),
               label: const Text('Retry'),
             ),
@@ -494,10 +527,7 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
         padding: EdgeInsets.symmetric(vertical: 180),
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 16),
-          ],
+          children: [CircularProgressIndicator(), SizedBox(height: 16)],
         ),
       ),
     );

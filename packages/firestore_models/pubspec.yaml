@@ -13,7 +13,7 @@ dependencies:
   permission_handler: ^12.0.1
   json_annotation: ^4.9.0
   build_runner: ^2.4.15
-  riverpod_lint: ^2.3.7
+  riverpod_lint: ^3.0.0
   dart_mappable_builder: ^4.4.0
   mockito: ^5.4.4
   json_serializable: ^6.9.4
@@ -27,9 +27,9 @@ dependency_overrides:
   meta: ^1.16.0
   web: ^1.0.0
   json_annotation: ^4.9.0
-  sqlite3: ^3.1.0
+  sqlite3: ^3.1.1
   stacked_services: ^1.6.0
-  device_info_plus: ^12.2.0
+  device_info_plus: ^12.3.0
   archive: ^3.6.1
   excel: ^4.0.6
   cbor: ^6.3.7

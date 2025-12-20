@@ -1,5 +1,6 @@
 import 'package:flipper_models/providers/country_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:supabase_models/brick/models/all_models.dart';
@@ -56,7 +57,8 @@ class CountryOfOriginSelector extends ConsumerWidget {
             }
 
             return DropdownButton<String>(
-              value: selectedCountryCode ??
+              value:
+                  selectedCountryCode ??
                   (uniqueCountriesList.isNotEmpty
                       ? uniqueCountriesList.first.code
                       : null),
@@ -76,7 +78,8 @@ class CountryOfOriginSelector extends ConsumerWidget {
                 return DropdownMenuItem<String>(
                   value: country.code,
                   child: Text(
-                      '${country.name} (${country.code})'), // Show both name and code
+                    '${country.name} (${country.code})',
+                  ), // Show both name and code
                 );
               }).toList(),
               isExpanded: true,

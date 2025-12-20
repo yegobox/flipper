@@ -860,6 +860,7 @@ class App {}
 // │     - See GEMINI.md for all available commands                                                                                                                                                                                                             │
 // │  3. Update CONSTITUTION.md with your project's non-negotiable principles
 // supabase migration up --include-all  (push local migration to supabase)
+// supabase migration down
 // supabase db push --include-all  (push remote migrations to supabase)
 
 // supabase migration down 
@@ -873,3 +874,5 @@ class App {}
 // git diff --no-prefix --unified=0 path/to/file | grep -E "^\+|^\-"
 
 // flutter build apk --release
+// Run `gem update --system 4.0.1` to update your installation.
+//  /Users/richard/Library/Containers/rw.flipper/Data/Documents

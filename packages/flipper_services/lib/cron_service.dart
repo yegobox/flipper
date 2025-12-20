@@ -9,10 +9,15 @@ import 'package:flipper_models/isolateHandelr.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/mixins/TaxController.dart';
 import 'package:flipper_services/drive_service.dart';
+import 'package:flipper_services/log_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+// ignore_for_file: invalid_use_of_visible_for_testing_member
+
+import 'package:ditto_live/ditto_live.dart';
+import 'package:permission_handler/permission_handler.dart';
 // import 'package:flipper_models/services/sqlite_service.dart';
 
 /// A service class that manages scheduled tasks and periodic operations for the Flipper app.
@@ -73,6 +78,77 @@ class CronService {
 
   /// Initializes data by hydrating from remote if queue is empty
   Future<void> _initializeData() async {
+    final platform = Ditto.currentPlatform;
+    if (platform case SupportedPlatform.android || SupportedPlatform.ios) {
+      final logService = LogService();
+      // Request all necessary permissions
+      [
+        Permission.bluetoothConnect,
+        Permission.bluetoothAdvertise,
+        Permission.nearbyWifiDevices,
+        Permission.bluetoothScan,
+      ].request().then((statuses) async {
+        // Check if location permission was granted (especially important for Android)
+        if (platform == SupportedPlatform.android) {
+          // Check all requested permissions
+          final allPermissions = [
+            Permission.bluetoothConnect,
+            Permission.bluetoothAdvertise,
+            Permission.nearbyWifiDevices,
+            Permission.bluetoothScan,
+          ];
+
+          bool allPermissionsGranted = true;
+          List<String> deniedPermissions = [];
+
+          for (var permission in allPermissions) {
+            final status = await permission.status;
+            if (status != PermissionStatus.granted) {
+              allPermissionsGranted = false;
+              deniedPermissions.add(permission.toString());
+            }
+          }
+
+          if (!allPermissionsGranted) {
+            debugPrint(
+                '⚠️ Some permissions not granted. Ditto sync may not work properly on Android. Denied: ${deniedPermissions.join(", ")}');
+            debugPrint(
+                'Please ensure all requested permissions are granted for proper sync functionality.');
+
+            if (ProxyService.box.getUserLoggingEnabled() ?? false) {
+              await logService.logException(
+                'Some permissions not granted: ${deniedPermissions.join(", ")}',
+                type: 'cron_service',
+                tags: {
+                  'userId':
+                      ProxyService.box.getUserId()?.toString() ?? 'unknown',
+                  'method': 'cron_service',
+                  'platform': platform.toString(),
+                  'denied_permissions': deniedPermissions.join(", "),
+                },
+              );
+            }
+          } else {
+            debugPrint(
+                '✅ All required permissions granted for Ditto sync on Android.');
+            if (ProxyService.box.getUserLoggingEnabled() ?? false) {
+              await logService.logException(
+                'All permissions granted',
+                type: 'cron_service',
+                tags: {
+                  'userId':
+                      ProxyService.box.getUserId()?.toString() ?? 'unknown',
+                  'method': 'cron_service',
+                  'platform': platform.toString(),
+                  'all_permissions_granted': 'true',
+                },
+              );
+            }
+          }
+        }
+      });
+    }
+
     // Listen for delegated transactions from mobile devices
     /// the script should run on desktop apps only
     if (!isMobileDevice) {

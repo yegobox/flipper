@@ -33,8 +33,10 @@ class PaymentSummary {
 }
 
 mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
-  void addFooter(DataGridPdfHeaderFooterExportDetails headerFooterExport,
-      {required ExportConfig config}) {
+  void addFooter(
+    DataGridPdfHeaderFooterExportDetails headerFooterExport, {
+    required ExportConfig config,
+  }) {
     final double width = headerFooterExport.pdfPage.getClientSize().width;
 
     // Create a footer element with specific height
@@ -65,8 +67,11 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         top: PdfPen(PdfColor(211, 211, 211), width: 0.5),
         bottom: PdfPen(PdfColor(211, 211, 211), width: 0.5),
       ),
-      font: PdfStandardFont(PdfFontFamily.helvetica, 12,
-          style: PdfFontStyle.bold),
+      font: PdfStandardFont(
+        PdfFontFamily.helvetica,
+        12,
+        style: PdfFontStyle.bold,
+      ),
     );
 
     // Leave the second cell empty
@@ -105,8 +110,11 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         top: PdfPen(PdfColor(211, 211, 211), width: 0.5),
         bottom: PdfPen(PdfColor(211, 211, 211), width: 0.5),
       ),
-      font: PdfStandardFont(PdfFontFamily.helvetica, 12,
-          style: PdfFontStyle.bold),
+      font: PdfStandardFont(
+        PdfFontFamily.helvetica,
+        12,
+        style: PdfFontStyle.bold,
+      ),
     );
 
     // Draw the grid in the footer
@@ -119,9 +127,12 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     headerFooterExport.pdfDocumentTemplate.bottom = footer;
   }
 
-  void exportToPdf(DataGridPdfHeaderFooterExportDetails headerFooterExport,
-      Business business, ExportConfig config,
-      {required String headerTitle}) {
+  void exportToPdf(
+    DataGridPdfHeaderFooterExportDetails headerFooterExport,
+    Business business,
+    ExportConfig config, {
+    required String headerTitle,
+  }) {
     final double width = headerFooterExport.pdfPage.getClientSize().width;
 
     // Adjust the header size to only fit the necessary content
@@ -130,13 +141,20 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     );
 
     // Create fonts
-    final PdfStandardFont titleFont =
-        PdfStandardFont(PdfFontFamily.helvetica, 20, style: PdfFontStyle.bold);
+    final PdfStandardFont titleFont = PdfStandardFont(
+      PdfFontFamily.helvetica,
+      20,
+      style: PdfFontStyle.bold,
+    );
 
     header.graphics.drawRectangle(
       brush: PdfSolidBrush(PdfColor(68, 114, 196)), // Blue background
       bounds: Rect.fromLTWH(
-          0, 0, width, 40), // Increased height for better visibility
+        0,
+        0,
+        width,
+        40,
+      ), // Increased height for better visibility
     );
 
     header.graphics.drawString(
@@ -172,19 +190,20 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       double totalCOGS = 0.0;
       for (final transaction in config.transactions) {
         try {
-          final transactionItems =
-              await ProxyService.getStrategy(Strategy.capella).transactionItems(
-            transactionId: transaction.id,
-          );
+          final transactionItems = await ProxyService.getStrategy(
+            Strategy.capella,
+          ).transactionItems(transactionId: transaction.id);
 
           for (final item in transactionItems) {
             if (item.variantId == null) continue;
             try {
-              final variant =
-                  await ProxyService.strategy.getVariant(id: item.variantId);
+              final variant = await ProxyService.strategy.getVariant(
+                id: item.variantId,
+              );
 
               if (variant != null) {
-                final supplyPrice = variant.supplyPrice ??
+                final supplyPrice =
+                    variant.supplyPrice ??
                     (variant.retailPrice != null
                         ? variant.retailPrice! * 0.7
                         : 0.0);
@@ -199,7 +218,8 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           }
         } catch (e) {
           talker.error(
-              'Error fetching items for transaction ${transaction.id}: $e');
+            'Error fetching items for transaction ${transaction.id}: $e',
+          );
         }
       }
 
@@ -208,8 +228,9 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         startDate: config.startDate,
         endDate: config.endDate,
         grossProfit: config.grossProfit,
-        netProfit:
-            config.grossProfit != null ? config.grossProfit! - totalCOGS : null,
+        netProfit: config.grossProfit != null
+            ? config.grossProfit! - totalCOGS
+            : null,
         cogs: totalCOGS,
         currencyCode: systemCurrency,
         transactions: config.transactions,
@@ -217,23 +238,28 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
       // RESTORE ORIGINAL IMPLEMENTATION WITH WORKBOOK KEY
       ref.read(isProcessingProvider.notifier).startProcessing();
-      final business = await ProxyService.strategy
-          .getBusiness(businessId: ProxyService.box.getBusinessId()!);
+      final business = await ProxyService.strategy.getBusiness(
+        businessId: ProxyService.box.getBusinessId()!,
+      );
 
       if (ProxyService.box.exportAsPdf()) {
-        final PdfDocument document =
-            workBookKey.currentState!.exportToPdfDocument(
-          fitAllColumnsInOnePage: true,
-          autoColumnWidth: true,
-          canRepeatHeaders: false,
-          exportStackedHeaders: false,
-          exportTableSummaries: true,
-          headerFooterExport: (headerFooterExport) {
-            exportToPdf(headerFooterExport, business!, config,
-                headerTitle: headerTitle);
-            addFooter(headerFooterExport, config: config);
-          },
-        );
+        final PdfDocument document = workBookKey.currentState!
+            .exportToPdfDocument(
+              fitAllColumnsInOnePage: true,
+              autoColumnWidth: true,
+              canRepeatHeaders: false,
+              exportStackedHeaders: false,
+              exportTableSummaries: true,
+              headerFooterExport: (headerFooterExport) {
+                exportToPdf(
+                  headerFooterExport,
+                  business!,
+                  config,
+                  headerTitle: headerTitle,
+                );
+                addFooter(headerFooterExport, config: config);
+              },
+            );
 
         filePath = await _savePdfFile(document);
         document.dispose();
@@ -253,7 +279,8 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           } else {
             // For detailed view, we need to create a workbook manually
             talker.warning(
-                'DataGrid state is null, using manual workbook creation');
+              'DataGrid state is null, using manual workbook creation',
+            );
 
             // Keep using the manually created workbook
             // We'll add the data to it in the subsequent steps
@@ -313,26 +340,31 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             columnNames != null &&
             columnNames.isNotEmpty) {
           talker.info(
-              'Populating workbook with manual data (${manualData.length} rows)');
+            'Populating workbook with manual data (${manualData.length} rows)',
+          );
 
           // Create a header style that matches DataGrid export
-          final headerStyle =
-              _getOrCreateStyle(workbook, 'ManualDataHeaderStyle', (style) {
-            style.fontName = 'Calibri';
-            style.fontSize = 11;
-            style.bold = true;
-            style.hAlign = excel.HAlignType.center;
-            style.vAlign = excel.VAlignType.center;
-            style.backColor =
-                '#D9D9D9'; // Light gray background like DataGrid export
-            style.fontColor = '#000000'; // Black text like DataGrid export
-            style.borders.all.lineStyle = excel.LineStyle.none;
-            style.borders.all.color = '#A6A6A6';
-          });
+          final headerStyle = _getOrCreateStyle(
+            workbook,
+            'ManualDataHeaderStyle',
+            (style) {
+              style.fontName = 'Calibri';
+              style.fontSize = 11;
+              style.bold = true;
+              style.hAlign = excel.HAlignType.center;
+              style.vAlign = excel.VAlignType.center;
+              style.backColor =
+                  '#D9D9D9'; // Light gray background like DataGrid export
+              style.fontColor = '#000000'; // Black text like DataGrid export
+              style.borders.all.lineStyle = excel.LineStyle.none;
+              style.borders.all.color = '#A6A6A6';
+            },
+          );
 
           // Create a data cell style that matches DataGrid export
-          final dataStyle =
-              _getOrCreateStyle(workbook, 'ManualDataStyle', (style) {
+          final dataStyle = _getOrCreateStyle(workbook, 'ManualDataStyle', (
+            style,
+          ) {
             style.fontName = 'Calibri';
             style.fontSize = 11;
             style.hAlign = excel.HAlignType.left;
@@ -342,16 +374,19 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           });
 
           // Create a numeric cell style
-          final numericStyle =
-              _getOrCreateStyle(workbook, 'ManualNumericStyle', (style) {
-            style.fontName = 'Calibri';
-            style.fontSize = 11;
-            style.hAlign = excel.HAlignType.left;
-            style.vAlign = excel.VAlignType.center;
-            style.numberFormat = '#,##0.00';
-            style.borders.all.lineStyle = excel.LineStyle.none;
-            style.borders.all.color = '#A6A6A6';
-          });
+          final numericStyle = _getOrCreateStyle(
+            workbook,
+            'ManualNumericStyle',
+            (style) {
+              style.fontName = 'Calibri';
+              style.fontSize = 11;
+              style.hAlign = excel.HAlignType.left;
+              style.vAlign = excel.VAlignType.center;
+              style.numberFormat = '#,##0.00';
+              style.borders.all.lineStyle = excel.LineStyle.none;
+              style.borders.all.color = '#A6A6A6';
+            },
+          );
 
           // Add column headers (starting at row 4 due to the added header information)
           for (int i = 0; i < columnNames.length; i++) {
@@ -361,7 +396,9 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
             // Set column width to match DataGrid export (auto-fit will be applied later)
             reportSheet.setColumnWidthInPixels(
-                i + 1, 120); // Initial width before auto-fit
+              i + 1,
+              120,
+            ); // Initial width before auto-fit
           }
 
           // Add data rows (starting at row 5 due to the added header information)
@@ -392,8 +429,10 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             // Add each cell in the row
             for (int colIndex = 0; colIndex < columnNames.length; colIndex++) {
               final colName = columnNames[colIndex];
-              final cell =
-                  reportSheet.getRangeByIndex(rowIndex + 5, colIndex + 1);
+              final cell = reportSheet.getRangeByIndex(
+                rowIndex + 5,
+                colIndex + 1,
+              );
 
               // Get the value for this column
               var value = rowData[colName];
@@ -456,7 +495,11 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
               expenses != null &&
               expenses.isNotEmpty) {
             _addExpensesSheet(
-                workbook, expenses, styler, config.currencyFormat);
+              workbook,
+              expenses,
+              styler,
+              config.currencyFormat,
+            );
             hasExpensesSheet = true;
           }
 
@@ -518,30 +561,34 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     // Ensure all columns are properly sized
     talker.debug('Auto-fitting all columns in the report sheet');
 
-    // Add GrossProfit sum at the end of all rows
+    // Add NetProfit sum at the end of all rows
     final lastRow = sheet.getLastRow();
     final lastColumn = sheet.getLastColumn();
 
-    // Find the GrossProfit column - typically column 9 based on the formatting above
-    // But let's look for a header with 'GrossProfit' or 'Gross Profit' to be sure
-    int grossProfitColumn = 9; // Default based on currency formatting
+    // Find the NetProfit column - typically column 10 based on the PLU report structure
+    // But let's look for a header with 'NetProfit' or 'Net Profit' to be sure
+    int netProfitColumn = 10; // Default based on PLU report structure
 
-    // Check if we can find a better match for the GrossProfit column by header name
-    for (int col = 1; col <= lastColumn; col++) {
-      final cellValue = sheet.getRangeByIndex(1, col).getText();
-      if (cellValue != null &&
-          (cellValue.toLowerCase().contains('gross') &&
-              cellValue.toLowerCase().contains('profit'))) {
-        grossProfitColumn = col;
-        break;
+    // Check if we can find a better match for the NetProfit column by header name
+    // Check both row 1 (for DataGrid export) and row 4 (for manual data export)
+    for (int headerRow in [4, 1]) {
+      for (int col = 1; col <= lastColumn; col++) {
+        final cellValue = sheet.getRangeByIndex(headerRow, col).getText();
+        if (cellValue != null &&
+            (cellValue.toLowerCase().contains('net') &&
+                cellValue.toLowerCase().contains('profit'))) {
+          netProfitColumn = col;
+          break;
+        }
       }
+      if (netProfitColumn != 10) break; // Found it, stop searching
     }
 
     // Add a total row at the bottom
     final totalRowIndex = lastRow + 2; // Leave one blank row
 
     // Create a style for the total row
-    final style = sheet.workbook.styles.add('GrossProfitTotalStyle');
+    final style = sheet.workbook.styles.add('NetProfitTotalStyle');
     style.fontName = 'Calibri';
     style.fontSize = 12;
     style.bold = true;
@@ -549,25 +596,34 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     style.borders.top.lineStyle = excel.LineStyle.none;
     style.borders.bottom.lineStyle = excel.LineStyle.thin;
 
-    // Add 'Total Gross Profit:' label
+    // Add 'Total Net Profit (Before Expenses):' label
     sheet
-        .getRangeByIndex(totalRowIndex, grossProfitColumn - 1)
-        .setText('Total Gross Profit:');
-    sheet.getRangeByIndex(totalRowIndex, grossProfitColumn - 1).cellStyle =
-        style;
+        .getRangeByIndex(totalRowIndex, netProfitColumn - 1)
+        .setText('Total Net Profit (Before Expenses):');
+    sheet.getRangeByIndex(totalRowIndex, netProfitColumn - 1).cellStyle = style;
 
-    // Add the SUM formula for the GrossProfit column
-    final sumCell = sheet.getRangeByIndex(totalRowIndex, grossProfitColumn);
+    // Add the SUM formula for the NetProfit column
+    final sumCell = sheet.getRangeByIndex(totalRowIndex, netProfitColumn);
+
+    // Determine the starting row for the SUM formula based on where the headers are
+    int dataStartRow = 2; // Default for DataGrid export (headers in row 1)
+    // Check if headers are in row 4 (manual data export)
+    final row4Header = sheet.getRangeByIndex(4, 1).getText();
+    if (row4Header != null && row4Header.isNotEmpty) {
+      dataStartRow = 5; // Data starts in row 5 for manual export
+    }
+
     sumCell.setFormula(
-        '=SUM(${_getColumnLetter(grossProfitColumn)}2:${_getColumnLetter(grossProfitColumn)}$lastRow)');
+      '=SUM(${_getColumnLetter(netProfitColumn)}$dataStartRow:${_getColumnLetter(netProfitColumn)}$lastRow)',
+    );
     sumCell.numberFormat = currencyFormat;
     sumCell.cellStyle = style;
 
     // Auto-fit the columns again after adding the total row
-    sheet.autoFitColumn(grossProfitColumn - 1);
-    sheet.autoFitColumn(grossProfitColumn);
+    sheet.autoFitColumn(netProfitColumn - 1);
+    sheet.autoFitColumn(netProfitColumn);
 
-    // Note: Net Profit calculation is now handled by the _addNetProfitRow method
+    // Note: Final Net Profit (after expenses) calculation is now handled by the _addFinalNetProfitRow method
     // which is called after the Expenses sheet has been created
   }
 
@@ -596,53 +652,68 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     return null;
   }
 
-  // Add Net Profit row to the report sheet after the Expenses sheet has been created
-  void _addNetProfitRow(excel.Worksheet reportSheet, excel.Workbook workbook,
-      String currencyFormat) {
+  // Add Final Net Profit row to the report sheet after the Expenses sheet has been created
+  // This calculates: Total Net Profit (Before Expenses) - Total Expenses = Final Net Profit
+  void _addNetProfitRow(
+    excel.Worksheet reportSheet,
+    excel.Workbook workbook,
+    String currencyFormat,
+  ) {
     try {
-      // Find the last row in the report sheet (where the Gross Profit is)
+      // Find the last row in the report sheet (where the Net Profit Before Expenses is)
       final lastRow = reportSheet.getLastRow();
       final totalRowIndex = lastRow;
 
-      // Find the column with the Gross Profit value (typically column 9 based on currency formatting)
-      int grossProfitColumn = 9;
+      // Find the column with the Net Profit value (typically column 10 based on PLU report structure)
+      int netProfitColumn = 10;
 
-      // Check if we can find a better match for the GrossProfit column by header name
-      for (int col = 1; col <= reportSheet.getLastColumn(); col++) {
-        final cellValue = reportSheet.getRangeByIndex(1, col).getText();
-        if (cellValue != null &&
-            (cellValue.toLowerCase().contains('gross') &&
-                cellValue.toLowerCase().contains('profit'))) {
-          grossProfitColumn = col;
-          break;
+      // Check if we can find a better match for the NetProfit column by header name
+      // Check both row 1 (for DataGrid export) and row 4 (for manual data export)
+      for (int headerRow in [4, 1]) {
+        for (int col = 1; col <= reportSheet.getLastColumn(); col++) {
+          final cellValue = reportSheet
+              .getRangeByIndex(headerRow, col)
+              .getText();
+          if (cellValue != null &&
+              (cellValue.toLowerCase().contains('net') &&
+                  cellValue.toLowerCase().contains('profit'))) {
+            netProfitColumn = col;
+            break;
+          }
         }
+        if (netProfitColumn != 10) break; // Found it, stop searching
       }
 
-      // Add Net Profit row below Gross Profit
-      final netProfitRowIndex = totalRowIndex + 1;
+      // Add Final Net Profit row below Net Profit (Before Expenses)
+      final finalNetProfitRowIndex = totalRowIndex + 1;
 
-      // Create a style for the Net Profit row
-      final netProfitStyle = workbook.styles.add('NetProfitTotalStyle');
-      netProfitStyle.fontName = 'Calibri';
-      netProfitStyle.fontSize = 12;
-      netProfitStyle.bold = true;
-      netProfitStyle.hAlign = excel.HAlignType.left;
-      netProfitStyle.borders.top.lineStyle = excel.LineStyle.none;
-      netProfitStyle.borders.bottom.lineStyle = excel.LineStyle.none;
-      netProfitStyle.backColor =
-          '#E2EFDA'; // Light green background for Net Profit
+      // Create a style for the Final Net Profit row
+      final finalNetProfitStyle = workbook.styles.add(
+        'FinalNetProfitTotalStyle',
+      );
+      finalNetProfitStyle.fontName = 'Calibri';
+      finalNetProfitStyle.fontSize = 12;
+      finalNetProfitStyle.bold = true;
+      finalNetProfitStyle.hAlign = excel.HAlignType.left;
+      finalNetProfitStyle.borders.top.lineStyle = excel.LineStyle.none;
+      finalNetProfitStyle.borders.bottom.lineStyle = excel.LineStyle.double;
+      finalNetProfitStyle.backColor =
+          '#E2EFDA'; // Light green background for Final Net Profit
 
-      // Add 'Net Profit:' label
+      // Add 'Final Net Profit (After Expenses):' label
       reportSheet
-          .getRangeByIndex(netProfitRowIndex, grossProfitColumn - 1)
-          .setText('Net Profit:');
+          .getRangeByIndex(finalNetProfitRowIndex, netProfitColumn - 1)
+          .setText('Final Net Profit (After Expenses):');
       reportSheet
-          .getRangeByIndex(netProfitRowIndex, grossProfitColumn - 1)
-          .cellStyle = netProfitStyle;
+              .getRangeByIndex(finalNetProfitRowIndex, netProfitColumn - 1)
+              .cellStyle =
+          finalNetProfitStyle;
 
-      // Get the Net Profit cell
-      final netProfitCell =
-          reportSheet.getRangeByIndex(netProfitRowIndex, grossProfitColumn);
+      // Get the Final Net Profit cell
+      final finalNetProfitCell = reportSheet.getRangeByIndex(
+        finalNetProfitRowIndex,
+        netProfitColumn,
+      );
 
       // Find the Expenses sheet which we know exists at this point
       final expensesSheet = _findWorksheetByName(workbook, 'Expenses');
@@ -652,30 +723,35 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         // The total expenses are in the cell below the last expense item
         final totalExpensesRowIndex = lastExpenseRow;
 
-        // Create a direct cell reference formula to subtract expenses from gross profit
+        // Create a direct cell reference formula to subtract expenses from net profit (before expenses)
         final formula =
-            '=${_getColumnLetter(grossProfitColumn)}$totalRowIndex-Expenses!B$totalExpensesRowIndex';
+            '=${_getColumnLetter(netProfitColumn)}$totalRowIndex-Expenses!B$totalExpensesRowIndex';
 
         // This is a properly constructed Dart string with proper interpolation
-        netProfitCell.setFormula(formula);
+        finalNetProfitCell.setFormula(formula);
 
         // Log the formula for debugging
-        talker.debug('Created Net Profit formula: $formula');
+        talker.debug('Created Final Net Profit formula: $formula');
         talker.debug(
-            'Referencing Gross Profit cell: ${_getColumnLetter(grossProfitColumn)}$totalRowIndex');
+          'Referencing Net Profit (Before Expenses) cell: ${_getColumnLetter(netProfitColumn)}$totalRowIndex',
+        );
         talker.debug(
-            'Referencing Total Expenses cell: Expenses!B$totalExpensesRowIndex');
+          'Referencing Total Expenses cell: Expenses!B$totalExpensesRowIndex',
+        );
       } else {
         // This shouldn't happen since we only call this method when the Expenses sheet exists
-        talker.error('Expenses sheet not found when adding Net Profit row');
-        // Fallback to just using the Gross Profit value
-        netProfitCell.setFormula(
-            '=${_getColumnLetter(grossProfitColumn)}$totalRowIndex');
+        talker.error(
+          'Expenses sheet not found when adding Final Net Profit row',
+        );
+        // Fallback to just using the Net Profit (Before Expenses) value
+        finalNetProfitCell.setFormula(
+          '=${_getColumnLetter(netProfitColumn)}$totalRowIndex',
+        );
       }
 
-      // Apply formatting to the Net Profit cell
-      netProfitCell.numberFormat = currencyFormat;
-      netProfitCell.cellStyle = netProfitStyle;
+      // Apply formatting to the Final Net Profit cell
+      finalNetProfitCell.numberFormat = currencyFormat;
+      finalNetProfitCell.cellStyle = finalNetProfitStyle;
 
       // Auto-fit all columns after adding the Net Profit row
       for (int i = 1; i <= reportSheet.getLastColumn(); i++) {
@@ -761,7 +837,8 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         for (final paymentType in paymentTypes) {
           if (!_isValidPayment(paymentType)) {
             talker.warning(
-                'Invalid payment data for transaction: ${transaction.id}');
+              'Invalid payment data for transaction: ${transaction.id}',
+            );
             continue;
           }
 
@@ -798,11 +875,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         amount: existing.amount + amount,
         count: existing.count + 1,
       ),
-      ifAbsent: () => PaymentSummary(
-        method: method,
-        amount: amount,
-        count: 1,
-      ),
+      ifAbsent: () => PaymentSummary(method: method, amount: amount, count: 1),
     );
 
     talker.debug('Updated payment total: $method = ${totals[method]?.amount}');
@@ -884,8 +957,12 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     totalPercentCell.numberFormat = '0.00%';
   }
 
-  void _addExpensesSheet(excel.Workbook workbook, List<Expense> expenses,
-      ExcelStyler styler, String currencyFormat) {
+  void _addExpensesSheet(
+    excel.Workbook workbook,
+    List<Expense> expenses,
+    ExcelStyler styler,
+    String currencyFormat,
+  ) {
     final expenseSheet = workbook.worksheets.addWithName('Expenses');
 
     // Add headers without styling
@@ -924,8 +1001,9 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     final List<int>? bytes = workbook.saveAsStream();
 
     if (bytes != null) {
-      final formattedDate =
-          DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
+      final formattedDate = DateFormat(
+        'yyyyMMdd_HHmmss',
+      ).format(DateTime.now());
       final fileName = '${formattedDate}-Report.xlsx';
 
       try {
@@ -967,15 +1045,13 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     if (Platform.isWindows || Platform.isLinux) {
       final bytes = await file.readAsBytes();
       final mimeType = _lookupMimeType(filePath);
-      await Share.shareXFiles(
-        [XFile.fromData(bytes, mimeType: mimeType, name: fileName)],
-        subject: 'Report Download - $formattedDate',
-      );
+      await Share.shareXFiles([
+        XFile.fromData(bytes, mimeType: mimeType, name: fileName),
+      ], subject: 'Report Download - $formattedDate');
     } else {
-      await Share.shareXFiles(
-        [XFile(filePath)],
-        subject: 'Report Download - $formattedDate',
-      );
+      await Share.shareXFiles([
+        XFile(filePath),
+      ], subject: 'Report Download - $formattedDate');
     }
   }
 
@@ -1053,8 +1129,11 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   }
 
   // Helper method to get an existing style or create a new one if it doesn't exist
-  excel.Style _getOrCreateStyle(excel.Workbook workbook, String styleName,
-      Function(excel.Style) configureStyle) {
+  excel.Style _getOrCreateStyle(
+    excel.Workbook workbook,
+    String styleName,
+    Function(excel.Style) configureStyle,
+  ) {
     excel.Style style;
 
     try {
@@ -1123,7 +1202,7 @@ class ExportConfig {
     this.cogs,
     this.currencyCode = 'RWF',
     required this.transactions,
-  })  : currencySymbol = CurrencyOptions.getSymbolForCurrency(currencyCode),
-        currencyFormat =
-            '${CurrencyOptions.getSymbolForCurrency(currencyCode)}#,##0.00_);${CurrencyOptions.getSymbolForCurrency(currencyCode)}#,##0.00;${CurrencyOptions.getSymbolForCurrency(currencyCode)} 0.00';
+  }) : currencySymbol = CurrencyOptions.getSymbolForCurrency(currencyCode),
+       currencyFormat =
+           '${CurrencyOptions.getSymbolForCurrency(currencyCode)}#,##0.00_);${CurrencyOptions.getSymbolForCurrency(currencyCode)}#,##0.00;${CurrencyOptions.getSymbolForCurrency(currencyCode)} 0.00';
 }

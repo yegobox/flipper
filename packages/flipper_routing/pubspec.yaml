@@ -25,9 +25,9 @@ dependency_overrides:
   meta: ^1.16.0
   web: ^1.0.0
   json_annotation: ^4.9.0
-  sqlite3: ^3.1.0
+  sqlite3: ^3.1.1
   stacked: ^3.5.0
-  device_info_plus: ^12.2.0
+  device_info_plus: ^12.3.0
   archive: ^3.6.1
   excel: ^4.0.6
   cbor: ^6.3.7
@@ -39,6 +39,5 @@ dev_dependencies:
     sdk: flutter
   flutter_lints: ^1.0.0
   build_runner: ^2.4.15
-  # stacked_generator: ^2.0.0
+  stacked_generator: ^2.0.0
   mockito: ^5.4.4
-  # realm_generator: ^20.2.0

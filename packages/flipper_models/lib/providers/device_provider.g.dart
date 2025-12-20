@@ -6,156 +6,79 @@ part of 'device_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$devicesForBranchHash() => r'268ba32c393f7251cac837041b1d3f0ba977f117';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// Copied from Dart SDK
-class _SystemHash {
-  _SystemHash._();
-
-  static int combine(int hash, int value) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + value);
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
-    return hash ^ (hash >> 6);
-  }
-
-  static int finish(int hash) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
-    // ignore: parameter_assignments
-    hash = hash ^ (hash >> 11);
-    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
-  }
-}
-
-/// See also [devicesForBranch].
 @ProviderFor(devicesForBranch)
-const devicesForBranchProvider = DevicesForBranchFamily();
+const devicesForBranchProvider = DevicesForBranchFamily._();
 
-/// See also [devicesForBranch].
-class DevicesForBranchFamily extends Family<AsyncValue<List<Device>>> {
-  /// See also [devicesForBranch].
-  const DevicesForBranchFamily();
-
-  /// See also [devicesForBranch].
-  DevicesForBranchProvider call({
-    required int branchId,
-  }) {
-    return DevicesForBranchProvider(
-      branchId: branchId,
-    );
-  }
-
-  @override
-  DevicesForBranchProvider getProviderOverride(
-    covariant DevicesForBranchProvider provider,
-  ) {
-    return call(
-      branchId: provider.branchId,
-    );
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'devicesForBranchProvider';
-}
-
-/// See also [devicesForBranch].
-class DevicesForBranchProvider extends AutoDisposeFutureProvider<List<Device>> {
-  /// See also [devicesForBranch].
-  DevicesForBranchProvider({
-    required int branchId,
-  }) : this._internal(
-          (ref) => devicesForBranch(
-            ref as DevicesForBranchRef,
-            branchId: branchId,
-          ),
-          from: devicesForBranchProvider,
+final class DevicesForBranchProvider extends $FunctionalProvider<
+        AsyncValue<List<Device>>, List<Device>, FutureOr<List<Device>>>
+    with $FutureModifier<List<Device>>, $FutureProvider<List<Device>> {
+  const DevicesForBranchProvider._(
+      {required DevicesForBranchFamily super.from, required int super.argument})
+      : super(
+          retry: null,
           name: r'devicesForBranchProvider',
-          debugGetCreateSourceHash:
-              const bool.fromEnvironment('dart.vm.product')
-                  ? null
-                  : _$devicesForBranchHash,
-          dependencies: DevicesForBranchFamily._dependencies,
-          allTransitiveDependencies:
-              DevicesForBranchFamily._allTransitiveDependencies,
-          branchId: branchId,
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
         );
 
-  DevicesForBranchProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.branchId,
-  }) : super.internal();
-
-  final int branchId;
+  @override
+  String debugGetCreateSourceHash() => _$devicesForBranchHash();
 
   @override
-  Override overrideWith(
-    FutureOr<List<Device>> Function(DevicesForBranchRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: DevicesForBranchProvider._internal(
-        (ref) => create(ref as DevicesForBranchRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        branchId: branchId,
-      ),
-    );
+  String toString() {
+    return r'devicesForBranchProvider'
+        ''
+        '($argument)';
   }
 
+  @$internal
   @override
-  AutoDisposeFutureProviderElement<List<Device>> createElement() {
-    return _DevicesForBranchProviderElement(this);
+  $FutureProviderElement<List<Device>> $createElement(
+          $ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<Device>> create(Ref ref) {
+    final argument = this.argument as int;
+    return devicesForBranch(
+      ref,
+      branchId: argument,
+    );
   }
 
   @override
   bool operator ==(Object other) {
-    return other is DevicesForBranchProvider && other.branchId == branchId;
+    return other is DevicesForBranchProvider && other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, branchId.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin DevicesForBranchRef on AutoDisposeFutureProviderRef<List<Device>> {
-  /// The parameter `branchId` of this provider.
-  int get branchId;
-}
+String _$devicesForBranchHash() => r'268ba32c393f7251cac837041b1d3f0ba977f117';
 
-class _DevicesForBranchProviderElement
-    extends AutoDisposeFutureProviderElement<List<Device>>
-    with DevicesForBranchRef {
-  _DevicesForBranchProviderElement(super.provider);
+final class DevicesForBranchFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<List<Device>>, int> {
+  const DevicesForBranchFamily._()
+      : super(
+          retry: null,
+          name: r'devicesForBranchProvider',
+          dependencies: null,
+          $allTransitiveDependencies: null,
+          isAutoDispose: true,
+        );
+
+  DevicesForBranchProvider call({
+    required int branchId,
+  }) =>
+      DevicesForBranchProvider._(argument: branchId, from: this);
 
   @override
-  int get branchId => (origin as DevicesForBranchProvider).branchId;
+  String toString() => r'devicesForBranchProvider';
 }
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

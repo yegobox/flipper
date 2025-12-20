@@ -25,17 +25,21 @@ void main() {
     env.stubCommonMethods();
 
     // Stub the specific method call that was causing issues.
-    when(() => env.mockDbSync.savePaymentType(
-            amount: any(named: 'amount'),
-            paymentMethod: any(named: 'paymentMethod'),
-            transactionId: any(named: 'transactionId'),
-            singlePaymentOnly: any(named: 'singlePaymentOnly')))
-        .thenAnswer((_) async => Future.value());
+    when(
+      () => env.mockDbSync.savePaymentType(
+        amount: any(named: 'amount'),
+        paymentMethod: any(named: 'paymentMethod'),
+        transactionId: any(named: 'transactionId'),
+        singlePaymentOnly: any(named: 'singlePaymentOnly'),
+      ),
+    ).thenAnswer((_) async => Future.value());
 
-    when(() => env.mockBox.writeString(
-          key: any(named: 'key'),
-          value: any(named: 'value'),
-        )).thenAnswer((_) async => Future.value());
+    when(
+      () => env.mockBox.writeString(
+        key: any(named: 'key'),
+        value: any(named: 'value'),
+      ),
+    ).thenAnswer((_) async => Future.value());
     // Add this stub for paymentMethodCode method
     when(() => env.mockBox.paymentMethodCode(any())).thenReturn('TEST_CODE');
   });
@@ -55,9 +59,7 @@ void main() {
 
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [
-          paymentMethodsProvider.overrideWith((ref) => notifier),
-        ],
+        overrides: [paymentMethodsProvider.overrideWith(() => notifier)],
         child: MaterialApp(
           home: Scaffold(
             body: Form(
@@ -76,12 +78,17 @@ void main() {
   }
 
   group('PaymentMethodsCard Widget Tests', () {
-    testWidgets('should correctly distribute amount when one field is edited',
-        (WidgetTester tester) async {
-      await pumpWidget(tester, totalPayable: 1000, initialPayments: [
-        Payment(amount: 1000, method: 'CASH'),
-        Payment(amount: 0, method: 'CARD'),
-      ]);
+    testWidgets('should correctly distribute amount when one field is edited', (
+      WidgetTester tester,
+    ) async {
+      await pumpWidget(
+        tester,
+        totalPayable: 1000,
+        initialPayments: [
+          Payment(amount: 1000, method: 'CASH'),
+          Payment(amount: 0, method: 'CARD'),
+        ],
+      );
       await tester.pumpAndSettle();
 
       final firstAmountField = find.byType(TextFormField).first;
@@ -99,13 +106,18 @@ void main() {
       expect(secondController.text, '300.00');
     });
 
-    testWidgets('should adjust the first field when the last field is edited',
-        (WidgetTester tester) async {
-      await pumpWidget(tester, totalPayable: 1000, initialPayments: [
-        Payment(amount: 500, method: 'CASH'),
-        Payment(amount: 300, method: 'CARD'),
-        Payment(amount: 200, method: 'MOBILE MONEY'),
-      ]);
+    testWidgets('should adjust the first field when the last field is edited', (
+      WidgetTester tester,
+    ) async {
+      await pumpWidget(
+        tester,
+        totalPayable: 1000,
+        initialPayments: [
+          Payment(amount: 500, method: 'CASH'),
+          Payment(amount: 300, method: 'CARD'),
+          Payment(amount: 200, method: 'MOBILE MONEY'),
+        ],
+      );
       await tester.pumpAndSettle();
 
       final lastAmountField = find.byType(TextFormField).last;
@@ -124,11 +136,14 @@ void main() {
       expect(firstController.text, '300.00');
     });
 
-    testWidgets('adding a new payment method recalculates amounts',
-        (WidgetTester tester) async {
-      await pumpWidget(tester, totalPayable: 1500, initialPayments: [
-        Payment(amount: 1500, method: 'CASH'),
-      ]);
+    testWidgets('adding a new payment method recalculates amounts', (
+      WidgetTester tester,
+    ) async {
+      await pumpWidget(
+        tester,
+        totalPayable: 1500,
+        initialPayments: [Payment(amount: 1500, method: 'CASH')],
+      );
       await tester.pumpAndSettle();
 
       final addButton = find.byIcon(Icons.add);
@@ -149,12 +164,17 @@ void main() {
       expect(secondController.text, '0.00');
     });
 
-    testWidgets('removing a payment method recalculates amounts',
-        (WidgetTester tester) async {
-      await pumpWidget(tester, totalPayable: 1000, initialPayments: [
-        Payment(amount: 800, method: 'CASH'),
-        Payment(amount: 200, method: 'CARD'),
-      ]);
+    testWidgets('removing a payment method recalculates amounts', (
+      WidgetTester tester,
+    ) async {
+      await pumpWidget(
+        tester,
+        totalPayable: 1000,
+        initialPayments: [
+          Payment(amount: 800, method: 'CASH'),
+          Payment(amount: 200, method: 'CARD'),
+        ],
+      );
       await tester.pumpAndSettle();
 
       final removeButton = find.byIcon(Icons.close).first;
@@ -173,12 +193,15 @@ void main() {
       expect(firstController.text, '1000.00');
     });
 
-    testWidgets('should render in list view when isCardView is false',
-        (WidgetTester tester) async {
-      await pumpWidget(tester,
-          totalPayable: 100,
-          initialPayments: [Payment(amount: 100, method: 'CASH')],
-          isCardView: false);
+    testWidgets('should render in list view when isCardView is false', (
+      WidgetTester tester,
+    ) async {
+      await pumpWidget(
+        tester,
+        totalPayable: 100,
+        initialPayments: [Payment(amount: 100, method: 'CASH')],
+        isCardView: false,
+      );
       await tester.pumpAndSettle();
 
       // In list view, the header is simpler. We can check for a specific text.
@@ -187,12 +210,17 @@ void main() {
       expect(find.byIcon(Icons.add), findsOneWidget);
     });
 
-    testWidgets('changing a payment method updates the state',
-        (WidgetTester tester) async {
-      await pumpWidget(tester, totalPayable: 1000, initialPayments: [
-        Payment(amount: 800, method: 'CASH'),
-        Payment(amount: 200, method: 'CARD'),
-      ]);
+    testWidgets('changing a payment method updates the state', (
+      WidgetTester tester,
+    ) async {
+      await pumpWidget(
+        tester,
+        totalPayable: 1000,
+        initialPayments: [
+          Payment(amount: 800, method: 'CASH'),
+          Payment(amount: 200, method: 'CARD'),
+        ],
+      );
       await tester.pumpAndSettle();
 
       // Find the first dropdown and tap it.
@@ -207,14 +235,18 @@ void main() {
       expect(notifier.state[0].method, 'MOBILE MONEY');
     });
 
-    testWidgets('add button does nothing when all payment methods are used',
-        (WidgetTester tester) async {
+    testWidgets('add button does nothing when all payment methods are used', (
+      WidgetTester tester,
+    ) async {
       final allPayments = paymentTypes
           .map((method) => Payment(amount: 10, method: method))
           .toList();
 
-      await pumpWidget(tester,
-          totalPayable: 1000, initialPayments: allPayments);
+      await pumpWidget(
+        tester,
+        totalPayable: 1000,
+        initialPayments: allPayments,
+      );
       await tester.pumpAndSettle();
 
       final addButton = find.byIcon(Icons.add);
@@ -229,16 +261,19 @@ void main() {
       expect(notifier.state.length, paymentTypes.length);
     });
 
-    testWidgets('should show/hide payment methods on mobile toggle',
-        (WidgetTester tester) async {
+    testWidgets('should show/hide payment methods on mobile toggle', (
+      WidgetTester tester,
+    ) async {
       // Set mobile size
       tester.view.physicalSize = Size(360, 640);
       tester.view.devicePixelRatio = 1.0;
       addTearDown(tester.view.reset);
 
-      await pumpWidget(tester, totalPayable: 1000, initialPayments: [
-        Payment(amount: 1000, method: 'CASH'),
-      ]);
+      await pumpWidget(
+        tester,
+        totalPayable: 1000,
+        initialPayments: [Payment(amount: 1000, method: 'CASH')],
+      );
       await tester.pumpAndSettle();
 
       // Initially, TextFormField should not be visible in mobile collapsed state
@@ -264,21 +299,18 @@ void main() {
       expect(find.byType(TextFormField), findsNothing);
     });
 
-    testWidgets('amount field validator shows error for invalid input',
-        (WidgetTester tester) async {
+    testWidgets('amount field validator shows error for invalid input', (
+      WidgetTester tester,
+    ) async {
       // Create a form key
       final formKey = GlobalKey<FormState>();
 
       // Create a simple test widget that wraps your card in a Form
-      notifier = PaymentMethodsNotifier([
-        Payment(amount: 100, method: 'CASH'),
-      ]);
+      notifier = PaymentMethodsNotifier([Payment(amount: 100, method: 'CASH')]);
 
       await tester.pumpWidget(
         ProviderScope(
-          overrides: [
-            paymentMethodsProvider.overrideWith((ref) => notifier),
-          ],
+          overrides: [paymentMethodsProvider.overrideWith(() => notifier)],
           child: MaterialApp(
             home: Scaffold(
               body: Form(

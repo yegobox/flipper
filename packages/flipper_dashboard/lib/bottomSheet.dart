@@ -122,10 +122,11 @@ class BottomSheets {
 }
 
 class _BottomSheetContent extends ConsumerStatefulWidget {
-  const _BottomSheetContent(
-      {required this.transactionIdInt,
-      required this.doneDelete,
-      required this.onCharge});
+  const _BottomSheetContent({
+    required this.transactionIdInt,
+    required this.doneDelete,
+    required this.onCharge,
+  });
   final String transactionIdInt;
   final Function doneDelete;
   final Function onCharge;
@@ -212,7 +213,7 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                       builder: (context, setModalState) {
                         double localQty =
                             double.tryParse(newQtyController.text) ??
-                                transactionItem.qty.toDouble();
+                            transactionItem.qty.toDouble();
                         double localTotal = localQty * transactionItem.price;
 
                         return Column(
@@ -231,17 +232,22 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                                   IconButton(
                                     icon: Icon(Icons.remove, color: Colors.red),
                                     onPressed: () {
-                                      double currentValue = double.tryParse(
-                                              newQtyController.text) ??
+                                      double currentValue =
+                                          double.tryParse(
+                                            newQtyController.text,
+                                          ) ??
                                           0.0;
                                       if (currentValue > 0) {
                                         newQtyController.text =
                                             (currentValue - 1).toString();
-                                        if (newQtyController.text
-                                            .endsWith('.0')) {
+                                        if (newQtyController.text.endsWith(
+                                          '.0',
+                                        )) {
                                           newQtyController.text =
-                                              newQtyController.text
-                                                  .replaceAll('.0', '');
+                                              newQtyController.text.replaceAll(
+                                                '.0',
+                                                '',
+                                              );
                                         }
                                         setModalState(() {});
                                       }
@@ -254,13 +260,16 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                                       controller: newQtyController,
                                       keyboardType:
                                           TextInputType.numberWithOptions(
-                                              decimal: true),
+                                            decimal: true,
+                                          ),
                                       textAlign: TextAlign.center,
                                       decoration: InputDecoration(
                                         labelText: 'Quantity',
                                         border: InputBorder.none,
                                         contentPadding: EdgeInsets.symmetric(
-                                            horizontal: 8, vertical: 16),
+                                          horizontal: 8,
+                                          vertical: 16,
+                                        ),
                                       ),
                                       onChanged: (val) {
                                         setModalState(() {
@@ -274,13 +283,16 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                                   IconButton(
                                     icon: Icon(Icons.add, color: Colors.blue),
                                     onPressed: () {
-                                      double currentValue = double.tryParse(
-                                              newQtyController.text) ??
+                                      double currentValue =
+                                          double.tryParse(
+                                            newQtyController.text,
+                                          ) ??
                                           0.0;
-                                      newQtyController.text =
-                                          (currentValue + 1).toString();
-                                      if (newQtyController.text
-                                          .endsWith('.0')) {
+                                      newQtyController.text = (currentValue + 1)
+                                          .toString();
+                                      if (newQtyController.text.endsWith(
+                                        '.0',
+                                      )) {
                                         newQtyController.text = newQtyController
                                             .text
                                             .replaceAll('.0', '');
@@ -315,7 +327,8 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                                       ),
                                       Text(
                                         formatNumber(
-                                            transactionItem.price.toDouble()),
+                                          transactionItem.price.toDouble(),
+                                        ),
                                         style: TextStyle(
                                           fontSize: 16,
                                           fontWeight: FontWeight.w600,
@@ -356,22 +369,26 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                               width: double.infinity,
                               text: 'Update Quantity',
                               onPressed: () async {
-                                final qty =
-                                    double.tryParse(newQtyController.text);
+                                final qty = double.tryParse(
+                                  newQtyController.text,
+                                );
                                 if (qty != null && qty != 0) {
                                   try {
                                     await ProxyService.strategy
                                         .updateTransactionItem(
-                                      qty: qty,
-                                      ignoreForReport: false,
-                                      transactionItemId: transactionItem.id,
-                                    );
+                                          qty: qty,
+                                          ignoreForReport: false,
+                                          transactionItemId: transactionItem.id,
+                                        );
 
                                     // Force refresh the provider
-                                    await ref.refresh(transactionItemsProvider(
-                                      transactionId: transactionId,
-                                      branchId: ProxyService.box.getBranchId()!,
-                                    ).future);
+                                    await ref.refresh(
+                                      transactionItemsProvider(
+                                        transactionId: transactionId,
+                                        branchId: ProxyService.box
+                                            .getBranchId()!,
+                                      ).future,
+                                    );
 
                                     // Complete with success
                                     completer.complete(true);
@@ -382,8 +399,10 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                                     completer.complete(false);
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
-                                          content: Text(
-                                              'Error updating quantity: ${e.toString()}')),
+                                        content: Text(
+                                          'Error updating quantity: ${e.toString()}',
+                                        ),
+                                      ),
                                     );
                                   }
                                 }
@@ -399,16 +418,18 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                                 try {
                                   await ProxyService.strategy
                                       .deleteItemFromCart(
-                                    transactionItemId: transactionItem,
-                                    transactionId: transactionId,
-                                  );
+                                        transactionItemId: transactionItem,
+                                        transactionId: transactionId,
+                                      );
                                   Navigator.of(context).pop();
                                   doneDelete();
                                 } catch (e) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(
-                                        content: Text(
-                                            'Error removing product: ${e.toString()}')),
+                                      content: Text(
+                                        'Error removing product: ${e.toString()}',
+                                      ),
+                                    ),
                                   );
                                 }
                               },
@@ -421,7 +442,7 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                 ],
               ),
             ),
-          )
+          ),
         ];
       },
     );
@@ -430,10 +451,12 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
     await completer.future;
 
     // Ensure the parent widget rebuilds with the updated data
-    ref.invalidate(transactionItemsProvider(
-      transactionId: transactionId,
-      branchId: ProxyService.box.getBranchId()!,
-    ));
+    ref.invalidate(
+      transactionItemsProvider(
+        transactionId: transactionId,
+        branchId: ProxyService.box.getBranchId()!,
+      ),
+    );
   }
 
   Future<void> _handleCharge(
@@ -546,9 +569,12 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
       }
     });
 
-    final itemsAsync = ref.watch(transactionItemsProvider(
+    final itemsAsync = ref.watch(
+      transactionItemsProvider(
         transactionId: widget.transactionIdInt,
-        branchId: ProxyService.box.getBranchId()!));
+        branchId: ProxyService.box.getBranchId()!,
+      ),
+    );
 
     // Watch digital payment status
     final digitalPaymentAsync = ref.watch(isDigitalPaymentEnabledProvider);
@@ -592,17 +618,11 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
           ),
           title: Text(
             transactionItem.name,
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
           ),
           subtitle: Text(
             '${formatNumber(transactionItem.price.toDouble())} × ${transactionItem.qty}',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[600],
-            ),
+            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
           ),
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
@@ -653,10 +673,7 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
               SizedBox(height: 16),
               Text(
                 'No items in cart',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey[600],
-                ),
+                style: TextStyle(fontSize: 16, color: Colors.grey[600]),
               ),
             ],
           ),
@@ -687,8 +704,10 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
       );
     }
 
-    Widget _buildTotalSection(List<TransactionItem> items,
-        {required bool isDigitalPaymentEnabled}) {
+    Widget _buildTotalSection(
+      List<TransactionItem> items, {
+      required bool isDigitalPaymentEnabled,
+    }) {
       final total = calculateTotal(items);
 
       return Container(
@@ -713,7 +732,8 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                             builder: (context) => AlertDialog(
                               title: Text('Clear All Items'),
                               content: Text(
-                                  'Are you sure you want to remove all items from the cart?'),
+                                'Are you sure you want to remove all items from the cart?',
+                              ),
                               actions: [
                                 TextButton(
                                   onPressed: () => Navigator.pop(context),
@@ -725,29 +745,38 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                                       for (TransactionItem item in items) {
                                         await ProxyService.strategy
                                             .deleteItemFromCart(
-                                          transactionItemId: item,
-                                          transactionId: widget.transactionIdInt
-                                              .toString(),
-                                        );
+                                              transactionItemId: item,
+                                              transactionId: widget
+                                                  .transactionIdInt
+                                                  .toString(),
+                                            );
                                       }
-                                      ref.refresh(transactionItemsProvider(
+                                      ref.refresh(
+                                        transactionItemsProvider(
                                           transactionId:
                                               widget.transactionIdInt,
-                                          branchId:
-                                              ProxyService.box.getBranchId()!));
+                                          branchId: ProxyService.box
+                                              .getBranchId()!,
+                                        ),
+                                      );
                                       widget.doneDelete();
                                       Navigator.pop(context);
                                     } catch (e) {
-                                      ScaffoldMessenger.of(context)
-                                          .showSnackBar(
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
                                         SnackBar(
-                                            content: Text(
-                                                'Error clearing cart: ${e.toString()}')),
+                                          content: Text(
+                                            'Error clearing cart: ${e.toString()}',
+                                          ),
+                                        ),
                                       );
                                     }
                                   },
-                                  child: Text('Clear All',
-                                      style: TextStyle(color: Colors.red)),
+                                  child: Text(
+                                    'Clear All',
+                                    style: TextStyle(color: Colors.red),
+                                  ),
                                 ),
                               ],
                             ),
@@ -760,10 +789,7 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                   children: [
                     Text(
                       'Total Amount',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
-                      ),
+                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                     ),
                     Text(
                       total.toCurrencyFormatted(),
@@ -790,8 +816,11 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                       child: FlipperButton(
                         height: 56,
                         color: Colors.blue.shade700,
-                        text:
-                            _getButtonText(items.isEmpty, total, customerPhone),
+                        text: _getButtonText(
+                          items.isEmpty,
+                          total,
+                          customerPhone,
+                        ),
                         textColor: Colors.white,
                         borderRadius: BorderRadius.only(
                           topLeft: Radius.circular(12),
@@ -801,12 +830,12 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                             !_isImmediateCompletion && _shouldShowSpinner(),
                         onPressed:
                             _getButtonEnabled(items.isEmpty, customerPhone)
-                                ? () => _handleCharge(
-                                      widget.transactionIdInt.toString(),
-                                      total,
-                                      immediateCompletion: false,
-                                    )
-                                : null,
+                            ? () => _handleCharge(
+                                widget.transactionIdInt.toString(),
+                                total,
+                                immediateCompletion: false,
+                              )
+                            : null,
                       ),
                     ),
                     // Divider
@@ -830,12 +859,12 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                             _isImmediateCompletion && _shouldShowSpinner(),
                         onPressed:
                             _getButtonEnabled(items.isEmpty, customerPhone)
-                                ? () => _handleCharge(
-                                      widget.transactionIdInt.toString(),
-                                      total,
-                                      immediateCompletion: true,
-                                    )
-                                : null,
+                            ? () => _handleCharge(
+                                widget.transactionIdInt.toString(),
+                                total,
+                                immediateCompletion: true,
+                              )
+                            : null,
                       ),
                     ),
                   ],
@@ -857,10 +886,10 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                 isLoading: _isImmediateCompletion && _shouldShowSpinner(),
                 onPressed: _getButtonEnabled(items.isEmpty, customerPhone)
                     ? () => _handleCharge(
-                          widget.transactionIdInt.toString(),
-                          total,
-                          immediateCompletion: true,
-                        )
+                        widget.transactionIdInt.toString(),
+                        total,
+                        immediateCompletion: true,
+                      )
                     : null,
               ),
             ],
@@ -873,7 +902,7 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
       data: (items) {
         // Get digital payment status, defaulting to false if loading or error
         final isDigitalPaymentEnabled =
-            digitalPaymentAsync.valueOrNull ?? false;
+            digitalPaymentAsync.asData?.value ?? false;
 
         return SingleChildScrollView(
           child: Column(
@@ -883,8 +912,10 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
               SizedBox(height: 5),
               _buildItemsList(items),
               SizedBox(height: 20),
-              _buildTotalSection(items,
-                  isDigitalPaymentEnabled: isDigitalPaymentEnabled),
+              _buildTotalSection(
+                items,
+                isDigitalPaymentEnabled: isDigitalPaymentEnabled,
+              ),
             ],
           ),
         );
@@ -895,10 +926,7 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
           children: [
             CircularProgressIndicator(),
             SizedBox(height: 16),
-            Text(
-              'Loading items...',
-              style: TextStyle(color: Colors.grey[600]),
-            ),
+            Text('Loading items...', style: TextStyle(color: Colors.grey[600])),
           ],
         ),
       ),
@@ -908,18 +936,11 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                Icons.error_outline,
-                size: 48,
-                color: Colors.red[400],
-              ),
+              Icon(Icons.error_outline, size: 48, color: Colors.red[400]),
               SizedBox(height: 16),
               Text(
                 'Error loading items',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
               ),
               SizedBox(height: 8),
               Text(

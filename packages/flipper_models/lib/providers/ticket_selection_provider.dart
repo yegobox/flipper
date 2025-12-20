@@ -1,8 +1,15 @@
 import 'package:flipper_models/db_model_export.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-class TicketSelectionNotifier extends StateNotifier<Set<String>> {
-  TicketSelectionNotifier() : super({});
+part 'ticket_selection_provider.g.dart';
+
+@riverpod
+class TicketSelection extends _$TicketSelection {
+  @override
+  Set<String> build() {
+    return {};
+  }
 
   void toggleSelection(String ticketId) {
     if (state.contains(ticketId)) {
@@ -21,12 +28,8 @@ class TicketSelectionNotifier extends StateNotifier<Set<String>> {
   }
 
   bool isSelected(String ticketId) => state.contains(ticketId);
-  
+
   bool get hasSelection => state.isNotEmpty;
-  
+
   int get selectedCount => state.length;
 }
-
-final ticketSelectionProvider = StateNotifierProvider<TicketSelectionNotifier, Set<String>>(
-  (ref) => TicketSelectionNotifier(),
-);

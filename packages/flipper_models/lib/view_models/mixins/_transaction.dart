@@ -34,6 +34,7 @@ mixin TransactionMixinOld {
       required TextEditingController customerNameController,
       required Function onComplete,
       required TextEditingController countryCodeController,
+      void Function()? onSuccess,
       required double discount}) async {
     try {
       final businessId = ProxyService.box.getBusinessId();
@@ -44,8 +45,7 @@ mixin TransactionMixinOld {
       final taxEnabled = await ProxyService.strategy
           .isTaxEnabled(businessId: businessId, branchId: branchId);
       RwApiResponse? response;
-      final ebm = await ProxyService.strategy
-          .ebm(branchId: branchId);
+      final ebm = await ProxyService.strategy.ebm(branchId: branchId);
       final hasUser = (await ProxyService.box.bhfId()) != null;
       final isTaxServiceStoped = ProxyService.box.stopTaxService() ?? false;
 
@@ -69,6 +69,7 @@ mixin TransactionMixinOld {
           context: context,
           transaction: transaction,
           purchaseCode: purchaseCode,
+          onSuccess: onSuccess,
         );
         if (response.resultCd != "000") {
           throw Exception(response.resultMsg);
@@ -146,12 +147,14 @@ mixin TransactionMixinOld {
       {String? purchaseCode,
       ITransaction? transaction,
       required GlobalKey<FormState> formKey,
+      void Function()? onSuccess,
       required BuildContext context}) async {
     try {
       final responseFrom =
           await TaxController(object: transaction!).handleReceipt(
         purchaseCode: purchaseCode,
         filterType: getFilterType(transactionType: transaction.receiptType),
+        onSuccess: onSuccess,
       );
       final (:response, :bytes) = responseFrom;
 
@@ -187,12 +190,11 @@ mixin TransactionMixinOld {
       throw Exception('Business ID or Branch ID not found');
     }
 
-    Business? business = await ProxyService.strategy
-        .getBusiness(businessId: businessId);
+    Business? business =
+        await ProxyService.strategy.getBusiness(businessId: businessId);
 
-    final bool isEbmEnabled = await ProxyService.strategy.isTaxEnabled(
-        businessId: business!.serverId,
-        branchId: branchId);
+    final bool isEbmEnabled = await ProxyService.strategy
+        .isTaxEnabled(businessId: business!.serverId, branchId: branchId);
     if (isEbmEnabled) {
       try {
         ProxyService.strategy.updateTransaction(

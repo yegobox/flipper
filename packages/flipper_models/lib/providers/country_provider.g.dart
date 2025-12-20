@@ -6,21 +6,39 @@ part of 'country_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$countriesHash() => r'f78014e20a80f10280b316f8bd4d847ebb52c815';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// See also [countries].
 @ProviderFor(countries)
-final countriesProvider = AutoDisposeFutureProvider<List<Country>>.internal(
-  countries,
-  name: r'countriesProvider',
-  debugGetCreateSourceHash:
-      const bool.fromEnvironment('dart.vm.product') ? null : _$countriesHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
+const countriesProvider = CountriesProvider._();
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef CountriesRef = AutoDisposeFutureProviderRef<List<Country>>;
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
+final class CountriesProvider extends $FunctionalProvider<
+        AsyncValue<List<Country>>, List<Country>, FutureOr<List<Country>>>
+    with $FutureModifier<List<Country>>, $FutureProvider<List<Country>> {
+  const CountriesProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'countriesProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$countriesHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<List<Country>> $createElement(
+          $ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<Country>> create(Ref ref) {
+    return countries(ref);
+  }
+}
+
+String _$countriesHash() => r'f78014e20a80f10280b316f8bd4d847ebb52c815';

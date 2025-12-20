@@ -6,156 +6,79 @@ part of 'metric_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$fetchMetricsHash() => r'46fc0a428b7a138fbfec429b448a8c8b195a004b';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// Copied from Dart SDK
-class _SystemHash {
-  _SystemHash._();
-
-  static int combine(int hash, int value) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + value);
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
-    return hash ^ (hash >> 6);
-  }
-
-  static int finish(int hash) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
-    // ignore: parameter_assignments
-    hash = hash ^ (hash >> 11);
-    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
-  }
-}
-
-/// See also [fetchMetrics].
 @ProviderFor(fetchMetrics)
-const fetchMetricsProvider = FetchMetricsFamily();
+const fetchMetricsProvider = FetchMetricsFamily._();
 
-/// See also [fetchMetrics].
-class FetchMetricsFamily extends Family<AsyncValue<List<Metric>>> {
-  /// See also [fetchMetrics].
-  const FetchMetricsFamily();
-
-  /// See also [fetchMetrics].
-  FetchMetricsProvider call(
-    int branchId,
-  ) {
-    return FetchMetricsProvider(
-      branchId,
-    );
-  }
-
-  @override
-  FetchMetricsProvider getProviderOverride(
-    covariant FetchMetricsProvider provider,
-  ) {
-    return call(
-      provider.branchId,
-    );
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'fetchMetricsProvider';
-}
-
-/// See also [fetchMetrics].
-class FetchMetricsProvider extends AutoDisposeFutureProvider<List<Metric>> {
-  /// See also [fetchMetrics].
-  FetchMetricsProvider(
-    int branchId,
-  ) : this._internal(
-          (ref) => fetchMetrics(
-            ref as FetchMetricsRef,
-            branchId,
-          ),
-          from: fetchMetricsProvider,
+final class FetchMetricsProvider extends $FunctionalProvider<
+        AsyncValue<List<Metric>>, List<Metric>, FutureOr<List<Metric>>>
+    with $FutureModifier<List<Metric>>, $FutureProvider<List<Metric>> {
+  const FetchMetricsProvider._(
+      {required FetchMetricsFamily super.from, required int super.argument})
+      : super(
+          retry: null,
           name: r'fetchMetricsProvider',
-          debugGetCreateSourceHash:
-              const bool.fromEnvironment('dart.vm.product')
-                  ? null
-                  : _$fetchMetricsHash,
-          dependencies: FetchMetricsFamily._dependencies,
-          allTransitiveDependencies:
-              FetchMetricsFamily._allTransitiveDependencies,
-          branchId: branchId,
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
         );
 
-  FetchMetricsProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.branchId,
-  }) : super.internal();
-
-  final int branchId;
+  @override
+  String debugGetCreateSourceHash() => _$fetchMetricsHash();
 
   @override
-  Override overrideWith(
-    FutureOr<List<Metric>> Function(FetchMetricsRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: FetchMetricsProvider._internal(
-        (ref) => create(ref as FetchMetricsRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        branchId: branchId,
-      ),
-    );
+  String toString() {
+    return r'fetchMetricsProvider'
+        ''
+        '($argument)';
   }
 
+  @$internal
   @override
-  AutoDisposeFutureProviderElement<List<Metric>> createElement() {
-    return _FetchMetricsProviderElement(this);
+  $FutureProviderElement<List<Metric>> $createElement(
+          $ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<Metric>> create(Ref ref) {
+    final argument = this.argument as int;
+    return fetchMetrics(
+      ref,
+      argument,
+    );
   }
 
   @override
   bool operator ==(Object other) {
-    return other is FetchMetricsProvider && other.branchId == branchId;
+    return other is FetchMetricsProvider && other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, branchId.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin FetchMetricsRef on AutoDisposeFutureProviderRef<List<Metric>> {
-  /// The parameter `branchId` of this provider.
-  int get branchId;
-}
+String _$fetchMetricsHash() => r'46fc0a428b7a138fbfec429b448a8c8b195a004b';
 
-class _FetchMetricsProviderElement
-    extends AutoDisposeFutureProviderElement<List<Metric>>
-    with FetchMetricsRef {
-  _FetchMetricsProviderElement(super.provider);
+final class FetchMetricsFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<List<Metric>>, int> {
+  const FetchMetricsFamily._()
+      : super(
+          retry: null,
+          name: r'fetchMetricsProvider',
+          dependencies: null,
+          $allTransitiveDependencies: null,
+          isAutoDispose: true,
+        );
+
+  FetchMetricsProvider call(
+    int branchId,
+  ) =>
+      FetchMetricsProvider._(argument: branchId, from: this);
 
   @override
-  int get branchId => (origin as FetchMetricsProvider).branchId;
+  String toString() => r'fetchMetricsProvider';
 }
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

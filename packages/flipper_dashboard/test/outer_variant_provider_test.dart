@@ -5,9 +5,9 @@ import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get_it/get_it.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:flipper_services/FirebaseCrashlyticService.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
 import 'test_helpers/mocks.dart';
@@ -40,12 +40,24 @@ void main() {
   // Sample data for testing.
   final variant1 = Variant(id: '1', name: 'Apple', branchId: 1, taxTyCd: 'B');
   final variant2 = Variant(id: '2', name: 'Banana', branchId: 1, taxTyCd: 'B');
-  final variant3 =
-      Variant(id: '3', name: 'Apple Juice', branchId: 1, taxTyCd: 'C');
-  final remoteVariant =
-      Variant(id: '4', name: 'Remote Apple', branchId: 1, taxTyCd: 'A');
-  final excludedVariant =
-      Variant(id: '5', name: 'Excluded Item', branchId: 1, taxTyCd: 'D');
+  final variant3 = Variant(
+    id: '3',
+    name: 'Apple Juice',
+    branchId: 1,
+    taxTyCd: 'C',
+  );
+  final remoteVariant = Variant(
+    id: '4',
+    name: 'Remote Apple',
+    branchId: 1,
+    taxTyCd: 'A',
+  );
+  final excludedVariant = Variant(
+    id: '5',
+    name: 'Excluded Item',
+    branchId: 1,
+    taxTyCd: 'D',
+  );
 
   setUpAll(() async {
     env = TestEnvironment();
@@ -61,11 +73,19 @@ void main() {
 
     // Set up fallback values
     registerFallbackValue(
-        Customer(branchId: 0, custNm: 'fallback', bhfId: '00'));
-    registerFallbackValue(Business(
-        id: "1", name: "Fallback Business", tinNumber: 123456789, serverId: 1));
+      Customer(branchId: 0, custNm: 'fallback', bhfId: '00'),
+    );
     registerFallbackValue(
-        Variant(id: "fallback_variant", name: "Fallback Variant", branchId: 1));
+      Business(
+        id: "1",
+        name: "Fallback Business",
+        tinNumber: 123456789,
+        serverId: 1,
+      ),
+    );
+    registerFallbackValue(
+      Variant(id: "fallback_variant", name: "Fallback Variant", branchId: 1),
+    );
     registerFallbackValue(<Variant>[]);
   });
 
@@ -117,15 +137,15 @@ void main() {
       vatEnabled: true,
       mrc: 'TEST',
     );
-    when(() => mockDbSync.ebm(
-          branchId: any(named: 'branchId'),
-          fetchRemote: any(named: 'fetchRemote'),
-        )).thenAnswer((_) async => ebmWithVatEnabled);
+    when(
+      () => mockDbSync.ebm(
+        branchId: any(named: 'branchId'),
+        fetchRemote: any(named: 'fetchRemote'),
+      ),
+    ).thenAnswer((_) async => ebmWithVatEnabled);
   });
 
-  ProviderContainer createContainer({
-    List<Override> overrides = const [],
-  }) {
+  ProviderContainer createContainer({List<Override> overrides = const []}) {
     final container = ProviderContainer(overrides: overrides);
     addTearDown(container.dispose);
     return container;
@@ -134,27 +154,31 @@ void main() {
   group('OuterVariants Provider', () {
     test('initial build loads variants using remote-first strategy', () async {
       // Arrange - use any() matchers for all method parameters
-      when(() => mockDbSync.variants(
-                branchId: any(named: 'branchId'),
-                productId: any(named: 'productId'),
-                page: any(named: 'page'),
-                variantId: any(named: 'variantId'),
-                name: any(named: 'name'),
-                pchsSttsCd: any(named: 'pchsSttsCd'),
-                purchaseId: any(named: 'purchaseId'),
-                itemsPerPage: any(named: 'itemsPerPage'),
-                imptItemSttsCd: any(named: 'imptItemSttsCd'),
-                forPurchaseScreen: any(named: 'forPurchaseScreen'),
-                excludeApprovedInWaitingOrCanceledItems:
-                    any(named: 'excludeApprovedInWaitingOrCanceledItems'),
-                fetchRemote: any(named: 'fetchRemote'),
-                forImportScreen: any(named: 'forImportScreen'),
-                stockSynchronized: any(named: 'stockSynchronized'),
-                taxTyCds: any(named: 'taxTyCds'),
-                scanMode: any(named: 'scanMode'),
-              ))
-          .thenAnswer((_) async =>
-              PagedVariants(variants: [variant1, variant2], totalCount: 2));
+      when(
+        () => mockDbSync.variants(
+          branchId: any(named: 'branchId'),
+          productId: any(named: 'productId'),
+          page: any(named: 'page'),
+          variantId: any(named: 'variantId'),
+          name: any(named: 'name'),
+          pchsSttsCd: any(named: 'pchsSttsCd'),
+          purchaseId: any(named: 'purchaseId'),
+          itemsPerPage: any(named: 'itemsPerPage'),
+          imptItemSttsCd: any(named: 'imptItemSttsCd'),
+          forPurchaseScreen: any(named: 'forPurchaseScreen'),
+          excludeApprovedInWaitingOrCanceledItems: any(
+            named: 'excludeApprovedInWaitingOrCanceledItems',
+          ),
+          fetchRemote: any(named: 'fetchRemote'),
+          forImportScreen: any(named: 'forImportScreen'),
+          stockSynchronized: any(named: 'stockSynchronized'),
+          taxTyCds: any(named: 'taxTyCds'),
+          scanMode: any(named: 'scanMode'),
+        ),
+      ).thenAnswer(
+        (_) async =>
+            PagedVariants(variants: [variant1, variant2], totalCount: 2),
+      );
 
       final container = createContainer();
 
@@ -164,56 +188,63 @@ void main() {
       // Assert
       final result = container.read(outerVariantsProvider(1));
       expect(result.value, [variant1, variant2]);
-      verify(() => mockDbSync.variants(
-            branchId: 1,
-            fetchRemote: true,
-            page: 0,
-            itemsPerPage: 10,
-            taxTyCds: ['A', 'B', 'C'],
-            name: '',
-            scanMode: false,
-            productId: null,
-            variantId: null,
-            pchsSttsCd: null,
-            purchaseId: null,
-            imptItemSttsCd: null,
-            forPurchaseScreen: false,
-            excludeApprovedInWaitingOrCanceledItems: false,
-            forImportScreen: false,
-            stockSynchronized: null,
-          )).called(1);
+      verify(
+        () => mockDbSync.variants(
+          branchId: 1,
+          fetchRemote: true,
+          page: 0,
+          itemsPerPage: 10,
+          taxTyCds: ['A', 'B', 'C'],
+          name: '',
+          scanMode: false,
+          productId: null,
+          variantId: null,
+          pchsSttsCd: null,
+          purchaseId: null,
+          imptItemSttsCd: null,
+          forPurchaseScreen: false,
+          excludeApprovedInWaitingOrCanceledItems: false,
+          forImportScreen: false,
+          stockSynchronized: null,
+        ),
+      ).called(1);
     });
 
-    test('subsequent search refines in-memory list without remote fetch',
-        () async {
+    test('subsequent search refines in-memory list without remote fetch', () async {
       // Arrange - Use any() matchers for all parameters
-      when(() => mockDbSync.variants(
-            branchId: any(named: 'branchId'),
-            productId: any(named: 'productId'),
-            page: any(named: 'page'),
-            variantId: any(named: 'variantId'),
-            name: any(named: 'name'),
-            pchsSttsCd: any(named: 'pchsSttsCd'),
-            purchaseId: any(named: 'purchaseId'),
-            itemsPerPage: any(named: 'itemsPerPage'),
-            imptItemSttsCd: any(named: 'imptItemSttsCd'),
-            forPurchaseScreen: any(named: 'forPurchaseScreen'),
-            excludeApprovedInWaitingOrCanceledItems:
-                any(named: 'excludeApprovedInWaitingOrCanceledItems'),
-            fetchRemote: any(named: 'fetchRemote'),
-            forImportScreen: any(named: 'forImportScreen'),
-            stockSynchronized: any(named: 'stockSynchronized'),
-            taxTyCds: any(named: 'taxTyCds'),
-            scanMode: any(named: 'scanMode'),
-          )).thenAnswer((_) async => PagedVariants(
-              variants: [
-                variant1,
-                variant2,
-                variant3,
-                remoteVariant,
-                excludedVariant
-              ],
-              totalCount: 5));
+      when(
+        () => mockDbSync.variants(
+          branchId: any(named: 'branchId'),
+          productId: any(named: 'productId'),
+          page: any(named: 'page'),
+          variantId: any(named: 'variantId'),
+          name: any(named: 'name'),
+          pchsSttsCd: any(named: 'pchsSttsCd'),
+          purchaseId: any(named: 'purchaseId'),
+          itemsPerPage: any(named: 'itemsPerPage'),
+          imptItemSttsCd: any(named: 'imptItemSttsCd'),
+          forPurchaseScreen: any(named: 'forPurchaseScreen'),
+          excludeApprovedInWaitingOrCanceledItems: any(
+            named: 'excludeApprovedInWaitingOrCanceledItems',
+          ),
+          fetchRemote: any(named: 'fetchRemote'),
+          forImportScreen: any(named: 'forImportScreen'),
+          stockSynchronized: any(named: 'stockSynchronized'),
+          taxTyCds: any(named: 'taxTyCds'),
+          scanMode: any(named: 'scanMode'),
+        ),
+      ).thenAnswer(
+        (_) async => PagedVariants(
+          variants: [
+            variant1,
+            variant2,
+            variant3,
+            remoteVariant,
+            excludedVariant,
+          ],
+          totalCount: 5,
+        ),
+      );
 
       final container = createContainer();
 
@@ -230,14 +261,17 @@ void main() {
       final firstSearchResult = container.read(outerVariantsProvider(1)).value;
       expect(firstSearchResult, isNotNull);
       expect(
-          firstSearchResult,
-          hasLength(
-              3)); // variant1, variant3, remoteVariant (excludedVariant filtered out by taxTyCd)
-      expect(firstSearchResult!.map((v) => v.name),
-          containsAll(['Apple', 'Apple Juice', 'Remote Apple']));
+        firstSearchResult,
+        hasLength(3),
+      ); // variant1, variant3, remoteVariant (excludedVariant filtered out by taxTyCd)
       expect(
-          firstSearchResult.every((v) => ['A', 'B', 'C'].contains(v.taxTyCd)),
-          isTrue);
+        firstSearchResult!.map((v) => v.name),
+        containsAll(['Apple', 'Apple Juice', 'Remote Apple']),
+      );
+      expect(
+        firstSearchResult.every((v) => ['A', 'B', 'C'].contains(v.taxTyCd)),
+        isTrue,
+      );
 
       // Act: Refine search - this should further filter the in-memory results
       container
@@ -248,49 +282,57 @@ void main() {
       await container.read(outerVariantsProvider(1).future);
 
       // Assert: Refined search results (should only contain "Apple Juice")
-      final refinedSearchResult =
-          container.read(outerVariantsProvider(1)).value;
+      final refinedSearchResult = container
+          .read(outerVariantsProvider(1))
+          .value;
       expect(refinedSearchResult, isNotNull);
       expect(refinedSearchResult, hasLength(1));
       expect(refinedSearchResult!.first.name, 'Apple Juice');
       expect(refinedSearchResult.first.taxTyCd, 'C');
 
       // Verify that the remote fetch was only called once for initial load
-      verify(() => mockDbSync.variants(
-            branchId: 1,
-            fetchRemote: true,
-            page: 0,
-            itemsPerPage: 10,
-            taxTyCds: any(named: 'taxTyCds'),
-            name: '',
-            scanMode: false,
-          )).called(1);
+      verify(
+        () => mockDbSync.variants(
+          branchId: 1,
+          fetchRemote: true,
+          page: 0,
+          itemsPerPage: 10,
+          taxTyCds: any(named: 'taxTyCds'),
+          name: '',
+          scanMode: false,
+        ),
+      ).called(1);
     });
 
     test('clears search returns to full list', () async {
       // Arrange - Use any() matchers for all parameters
-      when(() => mockDbSync.variants(
-                branchId: any(named: 'branchId'),
-                productId: any(named: 'productId'),
-                page: any(named: 'page'),
-                variantId: any(named: 'variantId'),
-                name: any(named: 'name'),
-                pchsSttsCd: any(named: 'pchsSttsCd'),
-                purchaseId: any(named: 'purchaseId'),
-                itemsPerPage: any(named: 'itemsPerPage'),
-                imptItemSttsCd: any(named: 'imptItemSttsCd'),
-                forPurchaseScreen: any(named: 'forPurchaseScreen'),
-                excludeApprovedInWaitingOrCanceledItems:
-                    any(named: 'excludeApprovedInWaitingOrCanceledItems'),
-                fetchRemote: any(named: 'fetchRemote'),
-                forImportScreen: any(named: 'forImportScreen'),
-                stockSynchronized: any(named: 'stockSynchronized'),
-                taxTyCds: any(named: 'taxTyCds'),
-                scanMode: any(named: 'scanMode'),
-              ))
-          .thenAnswer((_) async => PagedVariants(
-              variants: [variant1, variant2, variant3, excludedVariant],
-              totalCount: 4));
+      when(
+        () => mockDbSync.variants(
+          branchId: any(named: 'branchId'),
+          productId: any(named: 'productId'),
+          page: any(named: 'page'),
+          variantId: any(named: 'variantId'),
+          name: any(named: 'name'),
+          pchsSttsCd: any(named: 'pchsSttsCd'),
+          purchaseId: any(named: 'purchaseId'),
+          itemsPerPage: any(named: 'itemsPerPage'),
+          imptItemSttsCd: any(named: 'imptItemSttsCd'),
+          forPurchaseScreen: any(named: 'forPurchaseScreen'),
+          excludeApprovedInWaitingOrCanceledItems: any(
+            named: 'excludeApprovedInWaitingOrCanceledItems',
+          ),
+          fetchRemote: any(named: 'fetchRemote'),
+          forImportScreen: any(named: 'forImportScreen'),
+          stockSynchronized: any(named: 'stockSynchronized'),
+          taxTyCds: any(named: 'taxTyCds'),
+          scanMode: any(named: 'scanMode'),
+        ),
+      ).thenAnswer(
+        (_) async => PagedVariants(
+          variants: [variant1, variant2, variant3, excludedVariant],
+          totalCount: 4,
+        ),
+      );
 
       final container = createContainer();
 
@@ -304,9 +346,9 @@ void main() {
       // Verify filtered results
       final filteredResult = container.read(outerVariantsProvider(1)).value;
       expect(
-          filteredResult,
-          hasLength(
-              2)); // variant1 and variant3 (excludedVariant filtered out by taxTyCd)
+        filteredResult,
+        hasLength(2),
+      ); // variant1 and variant3 (excludedVariant filtered out by taxTyCd)
 
       // Act: Clear search
       container.read(searchStringProvider.notifier).emitString(value: '');
@@ -315,12 +357,14 @@ void main() {
       // Assert: Should return to full list (but still filtered by taxTyCd)
       final clearedResult = container.read(outerVariantsProvider(1)).value;
       expect(
-          clearedResult,
-          hasLength(
-              3)); // variant1, variant2, variant3 (excludedVariant still filtered out)
+        clearedResult,
+        hasLength(3),
+      ); // variant1, variant2, variant3 (excludedVariant still filtered out)
       expect(clearedResult, containsAll([variant1, variant2, variant3]));
-      expect(clearedResult!.every((v) => ['A', 'B', 'C'].contains(v.taxTyCd)),
-          isTrue);
+      expect(
+        clearedResult!.every((v) => ['A', 'B', 'C'].contains(v.taxTyCd)),
+        isTrue,
+      );
     });
 
     test('filters variants by taxTyCd when VAT is disabled', () async {
@@ -336,35 +380,45 @@ void main() {
         vatEnabled: false,
         mrc: 'TEST',
       );
-      when(() => mockDbSync.ebm(
-            branchId: any(named: 'branchId'),
-            fetchRemote: any(named: 'fetchRemote'),
-          )).thenAnswer((_) async => ebmWithVatDisabled);
+      when(
+        () => mockDbSync.ebm(
+          branchId: any(named: 'branchId'),
+          fetchRemote: any(named: 'fetchRemote'),
+        ),
+      ).thenAnswer((_) async => ebmWithVatDisabled);
 
       final vatDisabledVariant = Variant(
-          id: '6', name: 'VAT Disabled Item', branchId: 1, taxTyCd: 'D');
+        id: '6',
+        name: 'VAT Disabled Item',
+        branchId: 1,
+        taxTyCd: 'D',
+      );
 
-      when(() => mockDbSync.variants(
-                branchId: any(named: 'branchId'),
-                productId: any(named: 'productId'),
-                page: any(named: 'page'),
-                variantId: any(named: 'variantId'),
-                name: any(named: 'name'),
-                pchsSttsCd: any(named: 'pchsSttsCd'),
-                purchaseId: any(named: 'purchaseId'),
-                itemsPerPage: any(named: 'itemsPerPage'),
-                imptItemSttsCd: any(named: 'imptItemSttsCd'),
-                forPurchaseScreen: any(named: 'forPurchaseScreen'),
-                excludeApprovedInWaitingOrCanceledItems:
-                    any(named: 'excludeApprovedInWaitingOrCanceledItems'),
-                fetchRemote: any(named: 'fetchRemote'),
-                forImportScreen: any(named: 'forImportScreen'),
-                stockSynchronized: any(named: 'stockSynchronized'),
-                taxTyCds: any(named: 'taxTyCds'),
-                scanMode: any(named: 'scanMode'),
-              ))
-          .thenAnswer((_) async =>
-              PagedVariants(variants: [vatDisabledVariant], totalCount: 1));
+      when(
+        () => mockDbSync.variants(
+          branchId: any(named: 'branchId'),
+          productId: any(named: 'productId'),
+          page: any(named: 'page'),
+          variantId: any(named: 'variantId'),
+          name: any(named: 'name'),
+          pchsSttsCd: any(named: 'pchsSttsCd'),
+          purchaseId: any(named: 'purchaseId'),
+          itemsPerPage: any(named: 'itemsPerPage'),
+          imptItemSttsCd: any(named: 'imptItemSttsCd'),
+          forPurchaseScreen: any(named: 'forPurchaseScreen'),
+          excludeApprovedInWaitingOrCanceledItems: any(
+            named: 'excludeApprovedInWaitingOrCanceledItems',
+          ),
+          fetchRemote: any(named: 'fetchRemote'),
+          forImportScreen: any(named: 'forImportScreen'),
+          stockSynchronized: any(named: 'stockSynchronized'),
+          taxTyCds: any(named: 'taxTyCds'),
+          scanMode: any(named: 'scanMode'),
+        ),
+      ).thenAnswer(
+        (_) async =>
+            PagedVariants(variants: [vatDisabledVariant], totalCount: 1),
+      );
 
       final container = createContainer();
 
@@ -379,24 +433,26 @@ void main() {
 
       // Verify the correct taxTyCds were passed to the fetch
       // When VAT is disabled, it requests ['D', 'B'] but filters to only show 'D' or TT items
-      verify(() => mockDbSync.variants(
-            branchId: 1,
-            fetchRemote: true,
-            page: 0,
-            itemsPerPage: 10,
-            taxTyCds: ['D', 'B'],
-            name: '',
-            scanMode: false,
-            productId: null,
-            variantId: null,
-            pchsSttsCd: null,
-            purchaseId: null,
-            imptItemSttsCd: null,
-            forPurchaseScreen: false,
-            excludeApprovedInWaitingOrCanceledItems: false,
-            forImportScreen: false,
-            stockSynchronized: null,
-          )).called(1);
+      verify(
+        () => mockDbSync.variants(
+          branchId: 1,
+          fetchRemote: true,
+          page: 0,
+          itemsPerPage: 10,
+          taxTyCds: ['D', 'B'],
+          name: '',
+          scanMode: false,
+          productId: null,
+          variantId: null,
+          pchsSttsCd: null,
+          purchaseId: null,
+          imptItemSttsCd: null,
+          forPurchaseScreen: false,
+          excludeApprovedInWaitingOrCanceledItems: false,
+          forImportScreen: false,
+          stockSynchronized: null,
+        ),
+      ).called(1);
     });
   });
 }

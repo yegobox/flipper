@@ -6,6 +6,7 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'BranchDropdown.dart';
 
@@ -19,8 +20,11 @@ class BranchPerformanceState extends ConsumerState<BranchPerformance>
   @override
   Widget build(BuildContext context) {
     final branch = ref.watch(selectedBranchProvider);
-    final items = ref.watch(variantsProvider(
-        (branchId: branch?.serverId ?? ProxyService.box.getBranchId()!)));
+    final items = ref.watch(
+      variantsProvider((
+        branchId: branch?.serverId ?? ProxyService.box.getBranchId()!,
+      )),
+    );
     final selectedItemId = ref.watch(selectedItemProvider);
 
     return Scaffold(
@@ -48,7 +52,9 @@ class BranchPerformanceState extends ConsumerState<BranchPerformance>
       ),
       body: SafeArea(
         child: items.when(
-          data: (data) => data.isNotEmpty // data is the list of stocks
+          data: (data) =>
+              data
+                  .isNotEmpty // data is the list of stocks
               ? CustomScrollView(
                   slivers: [
                     SliverToBoxAdapter(
@@ -86,11 +92,12 @@ class BranchPerformanceState extends ConsumerState<BranchPerformance>
                   ],
                 )
               : Center(
-                  child: Text('No items found.')), // Show empty state message
+                  child: Text('No items found.'),
+                ), // Show empty state message
           loading: () => const Center(child: CircularProgressIndicator()),
           error: (error, stack) => Center(
-              child:
-                  Text('Error loading items: $error')), // Handle loading state
+            child: Text('Error loading items: $error'),
+          ), // Handle loading state
         ),
       ),
     );
@@ -118,15 +125,9 @@ class StockVisualizationCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Stock Count',
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
+            Text('Stock Count', style: Theme.of(context).textTheme.titleLarge),
             SizedBox(height: 16),
-            AnimatedStockBarChart(
-              items: items,
-              selectedItemId: selectedItemId,
-            ),
+            AnimatedStockBarChart(items: items, selectedItemId: selectedItemId),
           ],
         ),
       ),
@@ -211,7 +212,8 @@ class StockBarChartPainter extends CustomPainter {
     // Filter out items where stock is null or currentStock is null or less than/equal 0
     final filteredItems = items
         .where(
-            (item) => item.stock != null && (item.stock?.currentStock ?? 0) > 0)
+          (item) => item.stock != null && (item.stock?.currentStock ?? 0) > 0,
+        )
         .toList();
 
     if (filteredItems.isEmpty) return;
@@ -220,8 +222,8 @@ class StockBarChartPainter extends CustomPainter {
     // Calculate maxStock from filtered items, defaulting to 1 if no stock is available
     final double maxStock = filteredItems.isNotEmpty
         ? filteredItems
-            .map((e) => e.stock?.currentStock?.toDouble() ?? 0)
-            .reduce(max)
+              .map((e) => e.stock?.currentStock?.toDouble() ?? 0)
+              .reduce(max)
         : 1; // Ensure maxStock is at least 1 to prevent division by zero
 
     final paint = Paint()..style = PaintingStyle.fill;
@@ -231,7 +233,8 @@ class StockBarChartPainter extends CustomPainter {
       // Calculate barHeight, ensure maxStock is not zero
       double barHeight = 0;
       if (maxStock > 0) {
-        barHeight = ((item.stock?.currentStock ?? 0) / maxStock) *
+        barHeight =
+            ((item.stock?.currentStock ?? 0) / maxStock) *
             size.height *
             animationValue;
       }
@@ -260,13 +263,22 @@ class StockBarChartPainter extends CustomPainter {
     }
   }
 
-  void _drawText(Canvas canvas, String text, Offset position, double fontSize,
-      FontWeight fontWeight, Color color) {
+  void _drawText(
+    Canvas canvas,
+    String text,
+    Offset position,
+    double fontSize,
+    FontWeight fontWeight,
+    Color color,
+  ) {
     final textPainter = TextPainter(
       text: TextSpan(
         text: text,
-        style:
-            TextStyle(color: color, fontSize: fontSize, fontWeight: fontWeight),
+        style: TextStyle(
+          color: color,
+          fontSize: fontSize,
+          fontWeight: fontWeight,
+        ),
       ),
       textDirection: TextDirection.ltr,
       textAlign: TextAlign.center,
@@ -326,7 +338,8 @@ class ItemDetailCard extends StatelessWidget {
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {
                           return const Center(
-                              child: CircularProgressIndicator());
+                            child: CircularProgressIndicator(),
+                          );
                         } else if (snapshot.hasError) {
                           return Text('Error: ${snapshot.error}');
                         } else if (snapshot.hasData) {
@@ -341,10 +354,13 @@ class ItemDetailCard extends StatelessWidget {
                     ),
                     SizedBox(height: 8),
                     Text(
-                        'Sold: ${variant.stock?.initialStock ?? 0 - (variant.stock?.currentStock ?? 0)}',
-                        style: Theme.of(context).textTheme.bodyMedium),
-                    Text('In Stock: ${variant.stock?.currentStock}',
-                        style: Theme.of(context).textTheme.bodyMedium),
+                      'Sold: ${(variant.stock?.initialStock ?? 0) - (variant.stock?.currentStock ?? 0)}',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    Text(
+                      'In Stock: ${variant.stock?.currentStock}',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
                   ],
                 ),
               ),
@@ -369,7 +385,8 @@ class BestSellingItemCard extends StatelessWidget {
   Widget build(BuildContext context) {
     /// best selling item is the item that has the currentStock is the lowest
     final bestSeller = items.reduce((current, next) {
-      double currentSold = (current.stock?.initialStock ?? 0) -
+      double currentSold =
+          (current.stock?.initialStock ?? 0) -
           (current.stock?.currentStock ?? 0);
       double nextSold =
           (next.stock?.initialStock ?? 0) - (next.stock?.currentStock ?? 0);
@@ -377,9 +394,9 @@ class BestSellingItemCard extends StatelessWidget {
     });
     double itemsSold =
         bestSeller.stock?.initialStock == bestSeller.stock?.currentStock
-            ? 1
-            : (bestSeller.stock?.initialStock ?? 0) -
-                (bestSeller.stock?.currentStock ?? 0);
+        ? 1
+        : (bestSeller.stock?.initialStock ?? 0) -
+              (bestSeller.stock?.currentStock ?? 0);
     return Card(
       elevation: 4,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -402,8 +419,9 @@ class BestSellingItemCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     FutureBuilder(
-                      future:
-                          ProxyService.strategy.getVariant(id: bestSeller.id),
+                      future: ProxyService.strategy.getVariant(
+                        id: bestSeller.id,
+                      ),
                       builder: (context, snapshot) {
                         if (snapshot.connectionState ==
                             ConnectionState.waiting) {
@@ -414,9 +432,7 @@ class BestSellingItemCard extends StatelessWidget {
                           final variant = snapshot.data as Variant;
                           return Text(
                             variant.productName!,
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineSmall
+                            style: Theme.of(context).textTheme.headlineSmall
                                 ?.copyWith(fontWeight: FontWeight.bold),
                           );
                         } else {
@@ -504,8 +520,13 @@ class CircularStockPainter extends CustomPainter {
 
     canvas.drawCircle(center, radius, basePaint);
     final sweepAngle = 2 * pi * percentage;
-    canvas.drawArc(Rect.fromCircle(center: center, radius: radius), -pi / 2,
-        sweepAngle, false, percentagePaint);
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      -pi / 2,
+      sweepAngle,
+      false,
+      percentagePaint,
+    );
   }
 
   @override

@@ -7,7 +7,7 @@ import 'package:flipper_models/db_model_export.dart';
 void main() {
   group('TicketSelectionProvider', () {
     late ProviderContainer container;
-    late TicketSelectionNotifier notifier;
+    late TicketSelection notifier;
 
     setUp(() {
       container = ProviderContainer();
@@ -27,9 +27,9 @@ void main() {
 
     test('toggleSelection should add ticket when not selected', () {
       const ticketId = 'ticket1';
-      
+
       notifier.toggleSelection(ticketId);
-      
+
       final state = container.read(ticketSelectionProvider);
       expect(state.contains(ticketId), true);
       expect(notifier.isSelected(ticketId), true);
@@ -38,10 +38,10 @@ void main() {
 
     test('toggleSelection should remove ticket when already selected', () {
       const ticketId = 'ticket1';
-      
+
       notifier.toggleSelection(ticketId);
       notifier.toggleSelection(ticketId);
-      
+
       final state = container.read(ticketSelectionProvider);
       expect(state.contains(ticketId), false);
       expect(notifier.isSelected(ticketId), false);
@@ -87,9 +87,9 @@ void main() {
           isExpense: false,
         ),
       ];
-      
+
       notifier.selectAll(tickets);
-      
+
       final state = container.read(ticketSelectionProvider);
       expect(state.length, 3);
       expect(state.contains('ticket1'), true);
@@ -125,10 +125,10 @@ void main() {
           isExpense: false,
         ),
       ];
-      
+
       notifier.selectAll(tickets);
       notifier.clearSelection();
-      
+
       final state = container.read(ticketSelectionProvider);
       expect(state.isEmpty, true);
       expect(notifier.hasSelection, false);

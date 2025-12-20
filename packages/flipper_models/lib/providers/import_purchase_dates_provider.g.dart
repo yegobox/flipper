@@ -6,186 +6,106 @@ part of 'import_purchase_dates_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$importPurchaseDatesHash() =>
-    r'b38581246fcd47ca60ca59d7a6b6a0c2fcf2ac9f';
-
-/// Copied from Dart SDK
-class _SystemHash {
-  _SystemHash._();
-
-  static int combine(int hash, int value) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + value);
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
-    return hash ^ (hash >> 6);
-  }
-
-  static int finish(int hash) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
-    // ignore: parameter_assignments
-    hash = hash ^ (hash >> 11);
-    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
-  }
-}
-
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 /// Provider to fetch the last import/purchase date for a given branch and request type
-///
-/// Copied from [importPurchaseDates].
+
 @ProviderFor(importPurchaseDates)
-const importPurchaseDatesProvider = ImportPurchaseDatesFamily();
+const importPurchaseDatesProvider = ImportPurchaseDatesFamily._();
 
 /// Provider to fetch the last import/purchase date for a given branch and request type
-///
-/// Copied from [importPurchaseDates].
-class ImportPurchaseDatesFamily extends Family<AsyncValue<DateTime?>> {
+
+final class ImportPurchaseDatesProvider extends $FunctionalProvider<
+        AsyncValue<DateTime?>, DateTime?, FutureOr<DateTime?>>
+    with $FutureModifier<DateTime?>, $FutureProvider<DateTime?> {
   /// Provider to fetch the last import/purchase date for a given branch and request type
-  ///
-  /// Copied from [importPurchaseDates].
-  const ImportPurchaseDatesFamily();
-
-  /// Provider to fetch the last import/purchase date for a given branch and request type
-  ///
-  /// Copied from [importPurchaseDates].
-  ImportPurchaseDatesProvider call({
-    required String branchId,
-    required String requestType,
-  }) {
-    return ImportPurchaseDatesProvider(
-      branchId: branchId,
-      requestType: requestType,
-    );
-  }
-
-  @override
-  ImportPurchaseDatesProvider getProviderOverride(
-    covariant ImportPurchaseDatesProvider provider,
-  ) {
-    return call(
-      branchId: provider.branchId,
-      requestType: provider.requestType,
-    );
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'importPurchaseDatesProvider';
-}
-
-/// Provider to fetch the last import/purchase date for a given branch and request type
-///
-/// Copied from [importPurchaseDates].
-class ImportPurchaseDatesProvider extends AutoDisposeFutureProvider<DateTime?> {
-  /// Provider to fetch the last import/purchase date for a given branch and request type
-  ///
-  /// Copied from [importPurchaseDates].
-  ImportPurchaseDatesProvider({
-    required String branchId,
-    required String requestType,
-  }) : this._internal(
-          (ref) => importPurchaseDates(
-            ref as ImportPurchaseDatesRef,
-            branchId: branchId,
-            requestType: requestType,
-          ),
-          from: importPurchaseDatesProvider,
+  const ImportPurchaseDatesProvider._(
+      {required ImportPurchaseDatesFamily super.from,
+      required ({
+        String branchId,
+        String requestType,
+      })
+          super.argument})
+      : super(
+          retry: null,
           name: r'importPurchaseDatesProvider',
-          debugGetCreateSourceHash:
-              const bool.fromEnvironment('dart.vm.product')
-                  ? null
-                  : _$importPurchaseDatesHash,
-          dependencies: ImportPurchaseDatesFamily._dependencies,
-          allTransitiveDependencies:
-              ImportPurchaseDatesFamily._allTransitiveDependencies,
-          branchId: branchId,
-          requestType: requestType,
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
         );
 
-  ImportPurchaseDatesProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.branchId,
-    required this.requestType,
-  }) : super.internal();
-
-  final String branchId;
-  final String requestType;
+  @override
+  String debugGetCreateSourceHash() => _$importPurchaseDatesHash();
 
   @override
-  Override overrideWith(
-    FutureOr<DateTime?> Function(ImportPurchaseDatesRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: ImportPurchaseDatesProvider._internal(
-        (ref) => create(ref as ImportPurchaseDatesRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        branchId: branchId,
-        requestType: requestType,
-      ),
-    );
+  String toString() {
+    return r'importPurchaseDatesProvider'
+        ''
+        '$argument';
   }
 
+  @$internal
   @override
-  AutoDisposeFutureProviderElement<DateTime?> createElement() {
-    return _ImportPurchaseDatesProviderElement(this);
+  $FutureProviderElement<DateTime?> $createElement($ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<DateTime?> create(Ref ref) {
+    final argument = this.argument as ({
+      String branchId,
+      String requestType,
+    });
+    return importPurchaseDates(
+      ref,
+      branchId: argument.branchId,
+      requestType: argument.requestType,
+    );
   }
 
   @override
   bool operator ==(Object other) {
-    return other is ImportPurchaseDatesProvider &&
-        other.branchId == branchId &&
-        other.requestType == requestType;
+    return other is ImportPurchaseDatesProvider && other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, branchId.hashCode);
-    hash = _SystemHash.combine(hash, requestType.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin ImportPurchaseDatesRef on AutoDisposeFutureProviderRef<DateTime?> {
-  /// The parameter `branchId` of this provider.
-  String get branchId;
+String _$importPurchaseDatesHash() =>
+    r'b38581246fcd47ca60ca59d7a6b6a0c2fcf2ac9f';
 
-  /// The parameter `requestType` of this provider.
-  String get requestType;
-}
+/// Provider to fetch the last import/purchase date for a given branch and request type
 
-class _ImportPurchaseDatesProviderElement
-    extends AutoDisposeFutureProviderElement<DateTime?>
-    with ImportPurchaseDatesRef {
-  _ImportPurchaseDatesProviderElement(super.provider);
+final class ImportPurchaseDatesFamily extends $Family
+    with
+        $FunctionalFamilyOverride<
+            FutureOr<DateTime?>,
+            ({
+              String branchId,
+              String requestType,
+            })> {
+  const ImportPurchaseDatesFamily._()
+      : super(
+          retry: null,
+          name: r'importPurchaseDatesProvider',
+          dependencies: null,
+          $allTransitiveDependencies: null,
+          isAutoDispose: true,
+        );
+
+  /// Provider to fetch the last import/purchase date for a given branch and request type
+
+  ImportPurchaseDatesProvider call({
+    required String branchId,
+    required String requestType,
+  }) =>
+      ImportPurchaseDatesProvider._(argument: (
+        branchId: branchId,
+        requestType: requestType,
+      ), from: this);
 
   @override
-  String get branchId => (origin as ImportPurchaseDatesProvider).branchId;
-  @override
-  String get requestType => (origin as ImportPurchaseDatesProvider).requestType;
+  String toString() => r'importPurchaseDatesProvider';
 }
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

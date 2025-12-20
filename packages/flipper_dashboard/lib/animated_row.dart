@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 
 class AnimatedRowItem extends StatefulWidget {
-  Widget item;
-  AnimatedRowItem({required this.item});
+  final Widget item;
+  const AnimatedRowItem({super.key, required this.item});
 
   @override
   _AnimatedRowItemState createState() => _AnimatedRowItemState();

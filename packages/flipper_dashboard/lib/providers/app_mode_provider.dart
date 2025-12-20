@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:flipper_services/proxy.dart';
 
 /// A [StateNotifier] that manages the application's mode (e.g., whether it's in proforma or training mode).
@@ -9,12 +9,14 @@ class AppModeNotifier extends StateNotifier<bool> {
   late StreamSubscription<bool> _trainingModeSubscription;
 
   AppModeNotifier() : super(_calculateCurrentMode()) {
-    _proformaModeSubscription =
-        ProxyService.box.onProformaModeChanged.listen((_) {
+    _proformaModeSubscription = ProxyService.box.onProformaModeChanged.listen((
+      _,
+    ) {
       updateMode();
     });
-    _trainingModeSubscription =
-        ProxyService.box.onTrainingModeChanged.listen((_) {
+    _trainingModeSubscription = ProxyService.box.onTrainingModeChanged.listen((
+      _,
+    ) {
       updateMode();
     });
   }

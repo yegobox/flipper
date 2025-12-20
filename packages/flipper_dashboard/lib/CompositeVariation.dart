@@ -1,5 +1,6 @@
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 final costProvider = StateProvider<double>((ref) => 0.0);
@@ -26,7 +27,7 @@ class VariantState {
   final double cost;
 
   VariantState({required this.variant, this.quantity = 1})
-      : cost = variant.retailPrice * quantity;
+    : cost = variant.retailPrice * quantity;
 
   VariantState copyWith({VVariant? variant, double? quantity}) {
     return VariantState(
@@ -48,7 +49,10 @@ class VariantNotifier extends StateNotifier<List<VariantState>> {
   void updateQuantity(VVariant variant, double quantity) {
     state = [
       for (final vs in state)
-        if (vs.variant.id == variant.id) vs.copyWith(quantity: quantity) else vs
+        if (vs.variant.id == variant.id)
+          vs.copyWith(quantity: quantity)
+        else
+          vs,
     ];
   }
 
@@ -83,8 +87,8 @@ class VariantNotifier extends StateNotifier<List<VariantState>> {
 
 final selectedVariantsLocalProvider =
     StateNotifierProvider<VariantNotifier, List<VariantState>>((ref) {
-  return VariantNotifier();
-});
+      return VariantNotifier();
+    });
 
 class CompositeVariation extends StatefulHookConsumerWidget {
   final EdgeInsets padding;
@@ -122,8 +126,9 @@ class _SearchVariantState extends ConsumerState<CompositeVariation> {
   @override
   Widget build(BuildContext context) {
     final selectedVariants = ref.watch(selectedVariantsLocalProvider);
-    final selectedVariantsNotifier =
-        ref.read(selectedVariantsLocalProvider.notifier);
+    final selectedVariantsNotifier = ref.read(
+      selectedVariantsLocalProvider.notifier,
+    );
 
     /// wait for the state to be initialized with post frame callback
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -135,10 +140,12 @@ class _SearchVariantState extends ConsumerState<CompositeVariation> {
       child: Column(
         children: selectedVariants.map((variantState) {
           final quantityController = TextEditingController(
-              text: variantState.quantity.toString()); // Keep initial value
+            text: variantState.quantity.toString(),
+          ); // Keep initial value
 
-          final costController =
-              TextEditingController(text: variantState.cost.toString());
+          final costController = TextEditingController(
+            text: variantState.cost.toString(),
+          );
 
           return Padding(
             padding: const EdgeInsets.only(bottom: 16.0),
@@ -146,9 +153,11 @@ class _SearchVariantState extends ConsumerState<CompositeVariation> {
               children: [
                 Expanded(
                   flex: 3,
-                  child: Text(variantState.variant.productName +
-                      " " +
-                      (variantState.variant.name ?? "")),
+                  child: Text(
+                    variantState.variant.productName +
+                        " " +
+                        (variantState.variant.name ?? ""),
+                  ),
                 ),
                 Expanded(
                   flex: 2,
@@ -158,14 +167,17 @@ class _SearchVariantState extends ConsumerState<CompositeVariation> {
                     onChanged: (value) {
                       final double quantity = double.tryParse(value) ?? 0.0;
                       selectedVariantsNotifier.updateQuantity(
-                          variantState.variant, quantity);
+                        variantState.variant,
+                        quantity,
+                      );
                       recalculateTotalCost();
                     },
                     decoration: InputDecoration(
                       labelText: 'Quantity',
                       border: OutlineInputBorder(),
-                      contentPadding:
-                          const EdgeInsets.symmetric(horizontal: 8.0),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 8.0,
+                      ),
                     ),
                   ),
                 ),
@@ -178,21 +190,20 @@ class _SearchVariantState extends ConsumerState<CompositeVariation> {
                     decoration: InputDecoration(
                       labelText: 'Cost',
                       border: OutlineInputBorder(),
-                      contentPadding:
-                          const EdgeInsets.symmetric(horizontal: 8.0),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 8.0,
+                      ),
                     ),
                   ),
                 ),
                 IconButton(
                   onPressed: () {
-                    selectedVariantsNotifier
-                        .deleteVariant(variantState.variant);
+                    selectedVariantsNotifier.deleteVariant(
+                      variantState.variant,
+                    );
                     recalculateTotalCost();
                   },
-                  icon: Icon(
-                    Icons.delete,
-                    color: Colors.red,
-                  ),
+                  icon: Icon(Icons.delete, color: Colors.red),
                 ),
               ],
             ),

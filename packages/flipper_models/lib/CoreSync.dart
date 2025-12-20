@@ -2322,7 +2322,7 @@ class CoreSync extends AiStrategyImpl
     try {
       final ditto = dittoService.dittoInstance;
       if (ditto == null) {
-        talker.error('Ditto not initialized');
+        talker.error('Ditto not initialized:001');
         return false;
       }
 
@@ -2575,7 +2575,7 @@ class CoreSync extends AiStrategyImpl
     final access = await repository.get<Access>(
       policy: fetchRemote
           ? OfflineFirstGetPolicy.awaitRemoteWhenNoneExist
-          : OfflineFirstGetPolicy.localOnly,
+          : OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
       query: brick.Query(
         limit: 20,
         where: [
@@ -2687,7 +2687,7 @@ class CoreSync extends AiStrategyImpl
       String? status}) async {
     final ditto = dittoService.dittoInstance;
     if (ditto == null) {
-      throw Exception('Ditto not initialized');
+      throw Exception('Ditto not initialized:002');
     }
 
     final updateData = <String, dynamic>{};
@@ -2715,7 +2715,7 @@ class CoreSync extends AiStrategyImpl
   }) async {
     final ditto = dittoService.dittoInstance;
     if (ditto == null) {
-      throw Exception('Ditto not initialized');
+      throw Exception('Ditto not initialized:003');
     }
 
     // Get the request
@@ -2887,7 +2887,7 @@ class CoreSync extends AiStrategyImpl
 
       final ditto = dittoService.dittoInstance;
       if (ditto == null) {
-        throw Exception('Ditto not initialized');
+        throw Exception('Ditto not initialized:004');
       }
 
       final requestDoc = {

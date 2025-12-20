@@ -1,4 +1,6 @@
-import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+part 'product_sort_provider.g.dart';
 
 enum ProductSortOption {
   defaultSorting('Default sorting'),
@@ -14,6 +16,14 @@ enum ProductSortOption {
   final String label;
 }
 
-final productSortProvider = StateProvider<ProductSortOption>((ref) {
-  return ProductSortOption.latest;
-});
+@riverpod
+class ProductSort extends _$ProductSort {
+  @override
+  ProductSortOption build() {
+    return ProductSortOption.latest;
+  }
+
+  void set(ProductSortOption option) {
+    state = option;
+  }
+}

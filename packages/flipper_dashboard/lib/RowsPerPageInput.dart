@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 class RowsPerPageInput extends ConsumerStatefulWidget {
-  const RowsPerPageInput({
-    Key? key,
-    required this.rowsPerPageProvider,
-  }) : super(key: key);
+  const RowsPerPageInput({Key? key, required this.rowsPerPageProvider})
+    : super(key: key);
 
   final StateProvider<int> rowsPerPageProvider;
 
@@ -20,7 +19,8 @@ class _RowsPerPageInputState extends ConsumerState<RowsPerPageInput> {
   void initState() {
     super.initState();
     _controller = TextEditingController(
-        text: ref.read(widget.rowsPerPageProvider).toString());
+      text: ref.read(widget.rowsPerPageProvider).toString(),
+    );
   }
 
   @override
@@ -41,8 +41,10 @@ class _RowsPerPageInputState extends ConsumerState<RowsPerPageInput> {
           labelStyle: TextStyle(color: Colors.grey[700], fontSize: 14),
           filled: true,
           fillColor: Colors.grey[200],
-          contentPadding:
-              const EdgeInsets.symmetric(vertical: 16.0, horizontal: 12.0),
+          contentPadding: const EdgeInsets.symmetric(
+            vertical: 16.0,
+            horizontal: 12.0,
+          ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(4),
             borderSide: BorderSide(color: Colors.grey[300]!),

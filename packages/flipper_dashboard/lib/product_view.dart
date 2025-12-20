@@ -24,9 +24,9 @@ class ProductView extends StatefulHookConsumerWidget {
   final List<String> existingFavs;
 
   ProductView.normalMode({Key? key})
-      : favIndex = null,
-        existingFavs = [],
-        super(key: key);
+    : favIndex = null,
+      existingFavs = [],
+      super(key: key);
 
   ProductView.favoriteMode({
     Key? key,
@@ -71,8 +71,11 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
   }
 
   void _loadMoreVariants() {
-    ref.read(
-        outerVariantsProvider(ProxyService.box.getBranchId() ?? 0).notifier);
+    ref
+        .read(
+          outerVariantsProvider(ProxyService.box.getBranchId() ?? 0).notifier,
+        )
+        .loadMore();
   }
 
   @override
@@ -141,8 +144,11 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
   }
 
   void _loadInitialProducts() {
-    ref.read(
-        outerVariantsProvider(ProxyService.box.getBranchId() ?? 0).notifier);
+    ref
+        .read(
+          outerVariantsProvider(ProxyService.box.getBranchId() ?? 0).notifier,
+        )
+        .refresh();
   }
 
   void _goToPage(int page) async {
@@ -172,11 +178,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
   Widget _buildMainContent(BuildContext context, ProductViewModel model) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Expanded(
-          child: _buildVariantList(context, model),
-        ),
-      ],
+      children: [Expanded(child: _buildVariantList(context, model))],
     );
   }
 
@@ -194,7 +196,9 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
           });
         }
 
-        return ref.watch(outerVariantsProvider(branchId)).when(
+        return ref
+            .watch(outerVariantsProvider(branchId))
+            .when(
               data: (variants) {
                 if (variants.isEmpty) {
                   return Center(
@@ -211,12 +215,11 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                           const SizedBox(height: 16),
                           Text(
                             'Products not available',
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleLarge
+                            style: Theme.of(context).textTheme.titleLarge
                                 ?.copyWith(
-                                  color:
-                                      Theme.of(context).colorScheme.onSurface,
+                                  color: Theme.of(
+                                    context,
+                                  ).colorScheme.onSurface,
                                   fontWeight: FontWeight.w500,
                                 ),
                           ),
@@ -229,8 +232,10 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
               },
               error: (error, stackTrace) => Center(
                 child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 24, vertical: 180),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 24,
+                    vertical: 180,
+                  ),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -243,24 +248,25 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                       Text(
                         'Error loading products',
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              color: Theme.of(context).colorScheme.error,
-                              fontWeight: FontWeight.w500,
-                            ),
+                          color: Theme.of(context).colorScheme.error,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         error.toString(),
                         textAlign: TextAlign.center,
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurfaceVariant,
-                            ),
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
                       ),
                       const SizedBox(height: 24),
                       FilledButton.icon(
-                        onPressed: () => ref.refresh(outerVariantsProvider(
-                            ProxyService.box.getBranchId() ?? 0)),
+                        onPressed: () => ref.refresh(
+                          outerVariantsProvider(
+                            ProxyService.box.getBranchId() ?? 0,
+                          ),
+                        ),
                         icon: const Icon(FluentIcons.arrow_sync_20_filled),
                         label: const Text('Retry'),
                       ),
@@ -279,8 +285,11 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     );
   }
 
-  Widget _buildVariantsGrid(BuildContext context, ProductViewModel model,
-      {required List<Variant> variants}) {
+  Widget _buildVariantsGrid(
+    BuildContext context,
+    ProductViewModel model, {
+    required List<Variant> variants,
+  }) {
     // Debug display will be shown below after we obtain pagination helpers
     final showProductList = ref.watch(showProductsList);
 
@@ -310,18 +319,20 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               // Showing X–Y of Z results
-              Builder(builder: (context) {
-                final start = loadedCount == 0 ? 0 : (_currentPage * ipp) + 1;
-                final total = notifier.totalCount ?? loadedCount;
-                final end = ((_currentPage + 1) * ipp) > total
-                    ? total
-                    : ((_currentPage + 1) * ipp);
-                final totalText = total.toString();
-                return Text(
-                  'Showing $start–$end of $totalText results',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                );
-              }),
+              Builder(
+                builder: (context) {
+                  final start = loadedCount == 0 ? 0 : (_currentPage * ipp) + 1;
+                  final total = notifier.totalCount ?? loadedCount;
+                  final end = ((_currentPage + 1) * ipp) > total
+                      ? total
+                      : ((_currentPage + 1) * ipp);
+                  final totalText = total.toString();
+                  return Text(
+                    'Showing $start–$end of $totalText results',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  );
+                },
+              ),
               // Sorting dropdown
               _buildSortingDropdown(context),
             ],
@@ -334,22 +345,23 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
         Expanded(
           // Only apply sorting when not searching to avoid interfering with auto-add
           child: _buildMainContentSection(
-              context,
-              model,
-              _shouldApplySorting(ref)
-                  ? _sortVariants(variants, ref)
-                  : variants,
-              showProductList,
-              startDate,
-              endDate,
-              ref),
+            context,
+            model,
+            _shouldApplySorting(ref) ? _sortVariants(variants, ref) : variants,
+            showProductList,
+            startDate,
+            endDate,
+            ref,
+          ),
         ),
 
         // Bottom pagination controls
         if (estimatedTotalPages > 0)
           Padding(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 12.0,
+            ),
             child: Row(
               children: [
                 // Previous button
@@ -364,56 +376,52 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                   child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
-                      children: List.generate(
-                        estimatedTotalPages,
-                        (index) {
-                          // limit displayed page buttons to reasonable number
-                          if (estimatedTotalPages > 10) {
-                            final low = (_currentPage - 2)
-                                .clamp(0, estimatedTotalPages - 1);
-                            final high = (_currentPage + 2)
-                                .clamp(0, estimatedTotalPages - 1);
-                            if (index < low || index > high) {
-                              // show ellipsis instead of the button
-                              return const SizedBox.shrink();
-                            }
+                      children: List.generate(estimatedTotalPages, (index) {
+                        // limit displayed page buttons to reasonable number
+                        if (estimatedTotalPages > 10) {
+                          final low = (_currentPage - 2).clamp(
+                            0,
+                            estimatedTotalPages - 1,
+                          );
+                          final high = (_currentPage + 2).clamp(
+                            0,
+                            estimatedTotalPages - 1,
+                          );
+                          if (index < low || index > high) {
+                            // show ellipsis instead of the button
+                            return const SizedBox.shrink();
                           }
-                          final page = index;
-                          final isCurrent = page == _currentPage;
-                          return Padding(
-                            padding:
-                                const EdgeInsets.symmetric(horizontal: 6.0),
-                            child: InkWell(
-                              onTap: () => _goToPage(page),
-                              child: Container(
-                                width: 40,
-                                height: 36,
-                                alignment: Alignment.center,
-                                decoration: BoxDecoration(
-                                  color: isCurrent
-                                      ? Theme.of(context).colorScheme.primary
-                                      : Colors.transparent,
-                                  border: Border.all(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .primary),
+                        }
+                        final page = index;
+                        final isCurrent = page == _currentPage;
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 6.0),
+                          child: InkWell(
+                            onTap: () => _goToPage(page),
+                            child: Container(
+                              width: 40,
+                              height: 36,
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: isCurrent
+                                    ? Theme.of(context).colorScheme.primary
+                                    : Colors.transparent,
+                                border: Border.all(
+                                  color: Theme.of(context).colorScheme.primary,
                                 ),
-                                child: Text(
-                                  '${page + 1}',
-                                  style: TextStyle(
-                                      color: isCurrent
-                                          ? Theme.of(context)
-                                              .colorScheme
-                                              .onPrimary
-                                          : Theme.of(context)
-                                              .colorScheme
-                                              .primary),
+                              ),
+                              child: Text(
+                                '${page + 1}',
+                                style: TextStyle(
+                                  color: isCurrent
+                                      ? Theme.of(context).colorScheme.onPrimary
+                                      : Theme.of(context).colorScheme.primary,
                                 ),
                               ),
                             ),
-                          );
-                        },
-                      ).where((w) => w != const SizedBox.shrink()).toList(),
+                          ),
+                        );
+                      }).where((w) => w != const SizedBox.shrink()).toList(),
                     ),
                   ),
                 ),
@@ -432,22 +440,27 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
   }
 
   Widget _buildMainContentSection(
-      BuildContext context,
-      ProductViewModel model,
-      List<Variant> variants,
-      bool showProductList,
-      DateTime? startDate,
-      DateTime? endDate,
-      WidgetRef ref) {
+    BuildContext context,
+    ProductViewModel model,
+    List<Variant> variants,
+    bool showProductList,
+    DateTime? startDate,
+    DateTime? endDate,
+    WidgetRef ref,
+  ) {
     return showProductList
         ? _buildProductGrid(context, model, variants)
         : _buildStockView(context, model, variants, startDate, endDate, ref);
   }
 
   Widget _buildProductGrid(
-      BuildContext context, ProductViewModel model, List<Variant> variants) {
+    BuildContext context,
+    ProductViewModel model,
+    List<Variant> variants,
+  ) {
     // Check if the current platform is mobile
-    final bool isMobile = defaultTargetPlatform == TargetPlatform.android ||
+    final bool isMobile =
+        defaultTargetPlatform == TargetPlatform.android ||
         defaultTargetPlatform == TargetPlatform.iOS;
 
     // Use ListView for mobile platforms and GridView for desktop platforms
@@ -500,12 +513,13 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
   }
 
   Widget _buildStockView(
-      BuildContext context,
-      ProductViewModel model,
-      List<Variant> variants,
-      DateTime? startDate,
-      DateTime? endDate,
-      WidgetRef ref) {
+    BuildContext context,
+    ProductViewModel model,
+    List<Variant> variants,
+    DateTime? startDate,
+    DateTime? endDate,
+    WidgetRef ref,
+  ) {
     final GlobalKey<SfDataGridState> workBookKey = GlobalKey<SfDataGridState>();
     return variants.isEmpty
         ? const Center(child: Text("No stock data available"))
@@ -531,10 +545,10 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
               border: Border.all(
-                  color: Theme.of(context)
-                      .colorScheme
-                      .onSurface
-                      .withValues(alpha: 0.2)),
+                color: Theme.of(
+                  context,
+                ).colorScheme.onSurface.withValues(alpha: 0.2),
+              ),
               borderRadius: BorderRadius.circular(4),
             ),
             child: Row(
@@ -542,13 +556,16 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
               children: [
                 Text(currentSort.label),
                 const SizedBox(width: 8),
-                Icon(FluentIcons.chevron_down_20_regular,
-                    size: 16, color: Theme.of(context).colorScheme.onSurface)
+                Icon(
+                  FluentIcons.chevron_down_20_regular,
+                  size: 16,
+                  color: Theme.of(context).colorScheme.onSurface,
+                ),
               ],
             ),
           ),
           onSelected: (ProductSortOption option) {
-            ref.read(productSortProvider.notifier).state = option;
+            ref.read(productSortProvider.notifier).set(option);
           },
           itemBuilder: (BuildContext context) {
             return ProductSortOption.values.map((ProductSortOption option) {
@@ -557,9 +574,11 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                 child: Row(
                   children: [
                     if (option == currentSort)
-                      Icon(FluentIcons.checkmark_20_filled,
-                          size: 16,
-                          color: Theme.of(context).colorScheme.primary)
+                      Icon(
+                        FluentIcons.checkmark_20_filled,
+                        size: 16,
+                        color: Theme.of(context).colorScheme.primary,
+                      )
                     else
                       const SizedBox(width: 16),
                     const SizedBox(width: 8),
@@ -600,27 +619,39 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
       case ProductSortOption.averageRating:
         // Assuming rating is stored in a field, adjust as needed
         sortedVariants.sort(
-            (a, b) => 0); // Placeholder - implement based on your rating field
+          (a, b) => 0,
+        ); // Placeholder - implement based on your rating field
         break;
       case ProductSortOption.latest:
-        sortedVariants.sort((a, b) => (b.lastTouched ?? DateTime(0))
-            .compareTo(a.lastTouched ?? DateTime(0)));
+        sortedVariants.sort(
+          (a, b) => (b.lastTouched ?? DateTime(0)).compareTo(
+            a.lastTouched ?? DateTime(0),
+          ),
+        );
         break;
       case ProductSortOption.priceLowToHigh:
-        sortedVariants
-            .sort((a, b) => (a.retailPrice ?? 0).compareTo(b.retailPrice ?? 0));
+        sortedVariants.sort(
+          (a, b) => (a.retailPrice ?? 0).compareTo(b.retailPrice ?? 0),
+        );
         break;
       case ProductSortOption.priceHighToLow:
-        sortedVariants
-            .sort((a, b) => (b.retailPrice ?? 0).compareTo(a.retailPrice ?? 0));
+        sortedVariants.sort(
+          (a, b) => (b.retailPrice ?? 0).compareTo(a.retailPrice ?? 0),
+        );
         break;
       case ProductSortOption.eventDateOldToNew:
-        sortedVariants.sort((a, b) => (a.lastTouched ?? DateTime(0))
-            .compareTo(b.lastTouched ?? DateTime(0)));
+        sortedVariants.sort(
+          (a, b) => (a.lastTouched ?? DateTime(0)).compareTo(
+            b.lastTouched ?? DateTime(0),
+          ),
+        );
         break;
       case ProductSortOption.eventDateNewToOld:
-        sortedVariants.sort((a, b) => (b.lastTouched ?? DateTime(0))
-            .compareTo(a.lastTouched ?? DateTime(0)));
+        sortedVariants.sort(
+          (a, b) => (b.lastTouched ?? DateTime(0)).compareTo(
+            a.lastTouched ?? DateTime(0),
+          ),
+        );
         break;
     }
 

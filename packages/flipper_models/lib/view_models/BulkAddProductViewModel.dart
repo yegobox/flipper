@@ -6,8 +6,8 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:excel/excel.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as brick;
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:supabase_models/brick/models/all_models.dart';
 
 class BulkAddProductViewModel extends ChangeNotifier {

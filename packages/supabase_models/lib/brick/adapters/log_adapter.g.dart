@@ -18,6 +18,20 @@ Future<Log> _$LogFromSupabase(
         : data['created_at'] == null
         ? null
         : DateTime.tryParse(data['created_at'] as String),
+    tags: data['tags'] == null
+        ? null
+        : data['tags'] == null
+        ? null
+        : data['tags'] is String
+        ? data['tags'] as String
+        : jsonEncode(data['tags']),
+    extra: data['extra'] == null
+        ? null
+        : data['extra'] == null
+        ? null
+        : data['extra'] is String
+        ? data['extra'] as String
+        : jsonEncode(data['extra']),
   );
 }
 
@@ -32,6 +46,8 @@ Future<Map<String, dynamic>> _$LogToSupabase(
     'type': instance.type,
     'business_id': instance.businessId,
     'created_at': instance.createdAt?.toIso8601String(),
+    'tags': instance.tags,
+    'extra': instance.extra,
   };
 }
 
@@ -52,6 +68,8 @@ Future<Log> _$LogFromSqlite(
         : data['created_at'] == null
         ? null
         : DateTime.tryParse(data['created_at'] as String),
+    tags: data['tags'] == null ? null : data['tags'] as String?,
+    extra: data['extra'] == null ? null : data['extra'] as String?,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -66,6 +84,8 @@ Future<Map<String, dynamic>> _$LogToSqlite(
     'type': instance.type,
     'business_id': instance.businessId,
     'created_at': instance.createdAt?.toIso8601String(),
+    'tags': instance.tags,
+    'extra': instance.extra,
   };
 }
 
@@ -98,6 +118,14 @@ class LogAdapter extends OfflineFirstWithSupabaseAdapter<Log> {
     'createdAt': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'created_at',
+    ),
+    'tags': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'tags',
+    ),
+    'extra': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'extra',
     ),
   };
   @override
@@ -141,6 +169,18 @@ class LogAdapter extends OfflineFirstWithSupabaseAdapter<Log> {
       columnName: 'created_at',
       iterable: false,
       type: DateTime,
+    ),
+    'tags': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'tags',
+      iterable: false,
+      type: String,
+    ),
+    'extra': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'extra',
+      iterable: false,
+      type: String,
     ),
   };
   @override

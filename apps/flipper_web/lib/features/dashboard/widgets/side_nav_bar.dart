@@ -1,8 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
 
-final sideNavCollapsedProvider = StateProvider<bool>((ref) => false);
-final selectedNavIndexProvider = StateProvider<int>((ref) => 0);
+part 'side_nav_bar.g.dart';
+
+@riverpod
+class SideNavCollapsed extends _$SideNavCollapsed {
+  @override
+  bool build() => false;
+
+  void toggle() {
+    state = !state;
+  }
+
+  void set(bool value) {
+    state = value;
+  }
+}
+
+@riverpod
+class SelectedNavIndex extends _$SelectedNavIndex {
+  @override
+  int build() => 0;
+
+  void set(int index) {
+    state = index;
+  }
+}
+
+// Aliases for compatibility if needed, but generator creates sideNavCollapsedProvider and selectedNavIndexProvider
+// Since we used class names SideNavCollapsed -> sideNavCollapsedProvider
+// SelectedNavIndex -> selectedNavIndexProvider
+// So alias is implicit/generated.
 
 class SideNavBar extends ConsumerWidget {
   const SideNavBar({super.key});
@@ -79,7 +108,7 @@ class SideNavBar extends ConsumerWidget {
           color: Colors.transparent,
           child: InkWell(
             onTap: () {
-              ref.read(selectedNavIndexProvider.notifier).state = index;
+              ref.read(selectedNavIndexProvider.notifier).set(index);
             },
             child: Container(
               decoration: BoxDecoration(

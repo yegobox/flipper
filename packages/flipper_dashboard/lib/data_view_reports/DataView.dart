@@ -125,16 +125,24 @@ class DataViewState extends ConsumerState<DataView>
       talker.info('DataView: Data source does not need update.');
     }
     debugPrint(
-        '[DataView] didUpdateWidget: _isTransitioning=$_isTransitioning');
+      '[DataView] didUpdateWidget: _isTransitioning=$_isTransitioning',
+    );
+  }
+
+  @override
+  void dispose() {
+    // Clean up resources to prevent memory leaks
+    _dataGridSource.dispose();
+    super.dispose();
   }
 
   bool _shouldUpdateDataSource(DataView oldWidget) {
     final bool changed =
         widget.transactionItems != oldWidget.transactionItems ||
-            widget.transactions != oldWidget.transactions ||
-            widget.variants != oldWidget.variants ||
-            widget.rowsPerPage != oldWidget.rowsPerPage ||
-            widget.showDetailedReport != oldWidget.showDetailedReport;
+        widget.transactions != oldWidget.transactions ||
+        widget.variants != oldWidget.variants ||
+        widget.rowsPerPage != oldWidget.rowsPerPage ||
+        widget.showDetailedReport != oldWidget.showDetailedReport;
     talker.info('DataView: _shouldUpdateDataSource - changed: $changed');
     return changed;
   }
@@ -156,15 +164,18 @@ class DataViewState extends ConsumerState<DataView>
     final columns = _getTableHeaders();
     final rows = _dataGridSource.rows;
     debugPrint(
-        '[DataView] _updateDataGridSource: showDetailedReport=${widget.showDetailedReport}, columns=${columns.length}, dataGridRows=${rows.length}');
+      '[DataView] _updateDataGridSource: showDetailedReport=${widget.showDetailedReport}, columns=${columns.length}, dataGridRows=${rows.length}',
+    );
     if (rows.isNotEmpty) {
       final firstRowCells = rows.first.getCells().length;
       if (firstRowCells != columns.length) {
         debugPrint(
-            '[DataView][ERROR][updateDataGridSource] Column/cell mismatch: columns=${columns.length}, firstRowCells=$firstRowCells');
+          '[DataView][ERROR][updateDataGridSource] Column/cell mismatch: columns=${columns.length}, firstRowCells=$firstRowCells',
+        );
       } else {
         debugPrint(
-            '[DataView][SYNC][updateDataGridSource] Columns and cells are aligned: ${columns.length}');
+          '[DataView][SYNC][updateDataGridSource] Columns and cells are aligned: ${columns.length}',
+        );
       }
     }
     _dataGridSource.notifyListeners(); // Notify listeners of data change
@@ -204,11 +215,58 @@ class DataViewState extends ConsumerState<DataView>
         child: StockRecount(
           itemName: data.productName,
           stockId: data.id,
-          onRecount: (value) {
+          onRecount: (value) async {
             final parsedValue = double.tryParse(value);
             if (parsedValue != null && parsedValue != 0) {
-              ProxyService.strategy
-                  .updateStock(stockId: data.id, qty: parsedValue);
+              try {
+                // Await the updateStock call to catch any errors
+                await ProxyService.strategy.updateStock(
+                  stockId: data.id,
+                  qty: parsedValue,
+                );
+
+                // Log success for diagnostics
+                talker.info(
+                  'Stock updated successfully: stockId=${data.id}, qty=$parsedValue',
+                );
+
+                // Show success feedback to user
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Stock count updated successfully for ${data.productName}',
+                      ),
+                      backgroundColor: Colors.green,
+                      duration: const Duration(seconds: 3),
+                    ),
+                  );
+                }
+              } catch (e, s) {
+                // Log error for diagnostics
+                talker.error(
+                  'Failed to update stock: stockId=${data.id}, qty=$parsedValue, error=$e',
+                );
+                talker.error(s);
+
+                // Show error feedback to user
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        'Failed to update stock count: ${e.toString()}',
+                      ),
+                      backgroundColor: Colors.red,
+                      duration: const Duration(seconds: 5),
+                      action: SnackBarAction(
+                        label: 'Dismiss',
+                        textColor: Colors.white,
+                        onPressed: () {},
+                      ),
+                    ),
+                  );
+                }
+              }
             }
           },
         ),
@@ -253,7 +311,9 @@ class DataViewState extends ConsumerState<DataView>
                   setState(() => _isExportingExcel = true);
                   try {
                     await _export(
-                        headerTitle: "Report", workBookKey: widget.workBookKey);
+                      headerTitle: "Report",
+                      workBookKey: widget.workBookKey,
+                    );
                   } finally {
                     if (mounted) {
                       setState(() => _isExportingExcel = false);
@@ -279,9 +339,10 @@ class DataViewState extends ConsumerState<DataView>
                   setState(() => _isExportingZReport = true);
                   try {
                     await ReportService().generateReport(
-                        reportType: 'Z',
-                        endDate: widget.endDate,
-                        startDate: widget.startDate);
+                      reportType: 'Z',
+                      endDate: widget.endDate,
+                      startDate: widget.startDate,
+                    );
                   } finally {
                     if (mounted) {
                       setState(() => _isExportingZReport = false);
@@ -292,7 +353,9 @@ class DataViewState extends ConsumerState<DataView>
                   setState(() => _isExportingSaleReport = true);
                   try {
                     await SaleReport().generateSaleReport(
-                        startDate: widget.startDate, endDate: widget.endDate);
+                      startDate: widget.startDate,
+                      endDate: widget.endDate,
+                    );
                   } finally {
                     if (mounted) {
                       setState(() => _isExportingSaleReport = false);
@@ -303,7 +366,9 @@ class DataViewState extends ConsumerState<DataView>
                   setState(() => _isExportingPLUReport = true);
                   try {
                     await PLUReport().generatePLUReport(
-                        startDate: widget.startDate, endDate: widget.endDate);
+                      startDate: widget.startDate,
+                      endDate: widget.endDate,
+                    );
                   } finally {
                     if (mounted) {
                       setState(() => _isExportingPLUReport = false);
@@ -317,12 +382,13 @@ class DataViewState extends ConsumerState<DataView>
                   const SizedBox(width: 12),
                   Consumer(
                     builder: (context, ref, _) {
-                      final grossProfitAsync =
-                          ref.watch(grossProfitStreamProvider(
-                        startDate: widget.startDate,
-                        endDate: widget.endDate,
-                        branchId: ProxyService.box.getBranchId(),
-                      ));
+                      final grossProfitAsync = ref.watch(
+                        grossProfitStreamProvider(
+                          startDate: widget.startDate,
+                          endDate: widget.endDate,
+                          branchId: ProxyService.box.getBranchId(),
+                        ),
+                      );
                       return _buildSummaryCard(
                         'Gross Profit',
                         grossProfitAsync.value ?? 0.0,
@@ -334,11 +400,13 @@ class DataViewState extends ConsumerState<DataView>
                   const SizedBox(width: 12),
                   Consumer(
                     builder: (context, ref, _) {
-                      final netProfitAsync = ref.watch(netProfitStreamProvider(
-                        startDate: widget.startDate,
-                        endDate: widget.endDate,
-                        branchId: ProxyService.box.getBranchId(),
-                      ));
+                      final netProfitAsync = ref.watch(
+                        netProfitStreamProvider(
+                          startDate: widget.startDate,
+                          endDate: widget.endDate,
+                          branchId: ProxyService.box.getBranchId(),
+                        ),
+                      );
                       return _buildSummaryCard(
                         'Net Profit',
                         netProfitAsync.value ?? 0.0,
@@ -363,11 +431,15 @@ class DataViewState extends ConsumerState<DataView>
                           if (rows.isNotEmpty &&
                               firstRowCells != columns.length) {
                             debugPrint(
-                                '[DataView][WAITING] Waiting for sync: columns=${columns.length}, firstRowCells=$firstRowCells');
+                              '[DataView][WAITING] Waiting for sync: columns=${columns.length}, firstRowCells=$firstRowCells',
+                            );
                             return Center(child: CircularProgressIndicator());
                           }
                           return _buildDataGridWithKey(
-                              constraints, columns, rows);
+                            constraints,
+                            columns,
+                            rows,
+                          );
                         },
                       ),
               ),
@@ -381,7 +453,11 @@ class DataViewState extends ConsumerState<DataView>
   }
 
   Widget _buildSummaryCard(
-      String label, double? value, bool isLoading, Color color) {
+    String label,
+    double? value,
+    bool isLoading,
+    Color color,
+  ) {
     final displayTotal = value ?? 0.0;
     return Expanded(
       child: Card(
@@ -393,23 +469,29 @@ class DataViewState extends ConsumerState<DataView>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text(label,
-                  style: TextStyle(fontWeight: FontWeight.bold, color: color)),
+              Text(
+                label,
+                style: TextStyle(fontWeight: FontWeight.bold, color: color),
+              ),
               const SizedBox(height: 6),
               isLoading
                   ? SizedBox(
                       height: 18,
                       width: 18,
                       child: CircularProgressIndicator(
-                          strokeWidth: 2, color: color),
+                        strokeWidth: 2,
+                        color: color,
+                      ),
                     )
                   : Text(
                       displayTotal.toCurrencyFormatted(
-                          symbol: ProxyService.box.defaultCurrency()),
+                        symbol: ProxyService.box.defaultCurrency(),
+                      ),
                       style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: color),
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: color,
+                      ),
                     ),
             ],
           ),
@@ -418,10 +500,14 @@ class DataViewState extends ConsumerState<DataView>
     );
   }
 
-  Widget _buildDataGridWithKey(BoxConstraints constraints,
-      List<GridColumn> columns, List<DataGridRow> rows) {
+  Widget _buildDataGridWithKey(
+    BoxConstraints constraints,
+    List<GridColumn> columns,
+    List<DataGridRow> rows,
+  ) {
     debugPrint(
-        '[DataView] _buildDataGridWithKey: columns=${columns.length}, rows=${rows.length}');
+      '[DataView] _buildDataGridWithKey: columns=${columns.length}, rows=${rows.length}',
+    );
     return SfDataGridTheme(
       data: SfDataGridThemeData(
         headerHoverColor: Colors.yellow,
@@ -453,9 +539,11 @@ class DataViewState extends ConsumerState<DataView>
     // Use the upcoming mode to determine column count
     final columns = widget.showDetailedReport
         ? pluReportTableHeader(
-            const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0))
+            const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          )
         : zReportTableHeader(
-            const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0));
+            const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+          );
     debugPrint('[DataView] _buildTransitioningGrid: columns=${columns.length}');
     final tempSource = EmptyDataSource(widget.showDetailedReport);
     return SfDataGridTheme(
@@ -469,7 +557,8 @@ class DataViewState extends ConsumerState<DataView>
       ),
       child: SfDataGrid(
         key: ObjectKey(
-            'transitioning_${widget.showDetailedReport}_${columns.length}'),
+          'transitioning_${widget.showDetailedReport}_${columns.length}',
+        ),
         selectionMode: SelectionMode.none,
         allowSorting: false,
         allowColumnsResizing: false,
@@ -488,11 +577,13 @@ class DataViewState extends ConsumerState<DataView>
   Widget _buildStickyFooter() {
     return Consumer(
       builder: (context, ref, _) {
-        final totalIncomeAsync = ref.watch(totalIncomeStreamProvider(
-          startDate: widget.startDate,
-          endDate: widget.endDate,
-          branchId: ProxyService.box.getBranchId(),
-        ));
+        final totalIncomeAsync = ref.watch(
+          totalIncomeStreamProvider(
+            startDate: widget.startDate,
+            endDate: widget.endDate,
+            branchId: ProxyService.box.getBranchId(),
+          ),
+        );
 
         return Container(
           decoration: BoxDecoration(
@@ -516,8 +607,8 @@ class DataViewState extends ConsumerState<DataView>
                 Text(
                   "Total:",
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 totalIncomeAsync.isLoading
                     ? const SizedBox(
@@ -527,12 +618,13 @@ class DataViewState extends ConsumerState<DataView>
                       )
                     : Text(
                         (totalIncomeAsync.value ?? 0.0).toCurrencyFormatted(
-                            symbol: ProxyService.box.defaultCurrency()),
-                        style:
-                            Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.bold,
-                                  color: Theme.of(context).primaryColor,
-                                ),
+                          symbol: ProxyService.box.defaultCurrency(),
+                        ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              color: Theme.of(context).primaryColor,
+                            ),
                       ),
               ],
             ),
@@ -582,7 +674,8 @@ class DataViewState extends ConsumerState<DataView>
     }
     // Debug log for column count
     debugPrint(
-        '[DataView] _getTableHeaders: mode=${widget.showDetailedReport ? 'detailed' : 'summary'}, columns=${columns.length}');
+      '[DataView] _getTableHeaders: mode=${widget.showDetailedReport ? 'detailed' : 'summary'}, columns=${columns.length}',
+    );
     return columns;
   }
 
@@ -598,18 +691,23 @@ class DataViewState extends ConsumerState<DataView>
   }) {
     if (transactionItems != null && transactionItems.isNotEmpty) {
       return TransactionItemDataSource(
-          transactionItems, rowsPerPage, showDetailed);
+        transactionItems,
+        rowsPerPage,
+        showDetailed,
+      );
     } else if (transactions != null && transactions.isNotEmpty) {
       return TransactionDataSource(transactions, rowsPerPage, showDetailed);
     } else if (variants != null && variants.isNotEmpty) {
       return StockDataSource(variants: variants, rowsPerPage: rowsPerPage);
     }
     return EmptyDataSource(
-        showDetailed); // Pass showDetailed to EmptyDataSource
+      showDetailed,
+    ); // Pass showDetailed to EmptyDataSource
   }
 
   Future<void> _fetchExportAccurateTotal() async {
-    setState(() {});
+    if (!mounted) return;
+
     try {
       final transactions = await ProxyService.strategy.transactions(
         startDate: widget.startDate,
@@ -618,20 +716,28 @@ class DataViewState extends ConsumerState<DataView>
         skipOriginalTransactionCheck: false,
         branchId: ProxyService.box.getBranchId(),
       );
+
+      if (!mounted) return;
+
       transactions.fold<double>(
         0,
         (sum, transaction) => sum + (transaction.subTotal ?? 0),
       );
-      setState(() {});
     } catch (e) {
-      setState(() {});
+      if (!mounted) return;
       talker.error('Failed to fetch export-accurate total: $e');
     }
   }
 
-  Future<void> _export(
-      {String headerTitle = "Report",
-      required GlobalKey<SfDataGridState> workBookKey}) async {
+  /// Public method to trigger export from parent widgets
+  Future<void> triggerExport({String headerTitle = "Report"}) async {
+    await _export(headerTitle: headerTitle, workBookKey: widget.workBookKey);
+  }
+
+  Future<void> _export({
+    String headerTitle = "Report",
+    required GlobalKey<SfDataGridState> workBookKey,
+  }) async {
     // Check if we're in detailed view mode
     final showDetailed = widget.showDetailedReport;
 
@@ -656,7 +762,8 @@ class DataViewState extends ConsumerState<DataView>
     // Check again after waiting
     if (workBookKey.currentState == null) {
       talker.warning(
-          'DataGrid state still null after waiting, using direct export');
+        'DataGrid state still null after waiting, using direct export',
+      );
       await _exportDirectly(headerTitle: headerTitle);
       return;
     }
@@ -677,8 +784,10 @@ class DataViewState extends ConsumerState<DataView>
       branchId: ProxyService.box.getBranchId(),
     );
     // Convert transactions to Expense model
-    final expenses =
-        await Expense.fromTransactions(expenseTransactions, sales: sales);
+    final expenses = await Expense.fromTransactions(
+      expenseTransactions,
+      sales: sales,
+    );
 
     final isStockRecount =
         widget.variants != null && widget.variants!.isNotEmpty;
@@ -694,15 +803,16 @@ class DataViewState extends ConsumerState<DataView>
     }
 
     exportDataGrid(
-        workBookKey: workBookKey,
-        isStockRecount: isStockRecount,
-        config: config,
-        headerTitle: isStockRecount ? "Stock Recount" : headerTitle,
-        expenses: expenses,
-        showProfitCalculations: widget.showDetailedReport,
-        bottomEndOfRowTitle: widget.showDetailed == true
-            ? "Total Gross Profit"
-            : "Closing balance");
+      workBookKey: workBookKey,
+      isStockRecount: isStockRecount,
+      config: config,
+      headerTitle: isStockRecount ? "Stock Recount" : headerTitle,
+      expenses: expenses,
+      showProfitCalculations: widget.showDetailedReport,
+      bottomEndOfRowTitle: widget.showDetailed == true
+          ? "Total Gross Profit"
+          : "Closing balance",
+    );
   }
 
   Future<double> _calculateGrossProfit() async {
@@ -731,7 +841,8 @@ class DataViewState extends ConsumerState<DataView>
       // Get the tax amount for this item
       final taxAmount = item.taxAmt ?? (item.price * item.qty * 0.18);
       talker.info(
-          'Item ${item.id}: price=${item.price}, qty=${item.qty}, taxAmount=$taxAmount');
+        'Item ${item.id}: price=${item.price}, qty=${item.qty}, taxAmount=$taxAmount',
+      );
       totalTaxAmount += taxAmount;
     }
     talker.info('Total tax amount: $totalTaxAmount');
@@ -770,8 +881,10 @@ class DataViewState extends ConsumerState<DataView>
     );
 
     // Convert transactions to Expense model
-    final expenses =
-        await Expense.fromTransactions(expenseTransactions, sales: sales);
+    final expenses = await Expense.fromTransactions(
+      expenseTransactions,
+      sales: sales,
+    );
 
     final isStockRecount =
         widget.variants != null && widget.variants!.isNotEmpty;
@@ -808,16 +921,18 @@ class DataViewState extends ConsumerState<DataView>
           final Map<String, dynamic> rowData = {};
 
           // Map all the columns explicitly based on the actual TransactionItem properties
-          rowData['ItemCode'] = item.id;
+          rowData['ItemCode'] = item.itemCd;
           rowData['Name'] = item.name;
           rowData['Barcode'] = item.bcd ?? '';
           rowData['Price'] = item.price;
 
           // Get the correct tax rate from tax configuration based on item's tax type
           final taxType = item.taxTyCd ?? 'B'; // Default to B if not specified
-          final taxConfig =
-              await ProxyService.strategy.getByTaxType(taxtype: taxType);
-          final taxPercentage = taxConfig?.taxPercentage ??
+          final taxConfig = await ProxyService.strategy.getByTaxType(
+            taxtype: taxType,
+          );
+          final taxPercentage =
+              taxConfig?.taxPercentage ??
               0.0; // Default to 0 if config not found
 
           rowData['TaxRate'] = taxPercentage;
@@ -829,15 +944,18 @@ class DataViewState extends ConsumerState<DataView>
 
           // Ensure zero values are properly formatted (avoid 'RF-' display in Excel)
           rowData['TaxPayable'] = item.taxAmt ?? 0.0;
-          rowData['GrossProfit'] =
-              (item.price * item.qty) - (item.supplyPriceAtSale ?? 0.0);
+          // Calculate net profit per item: TotalSales - (SupplyPrice * Qty)
+          rowData['NetProfit'] =
+              (item.price * item.qty) -
+              ((item.supplyPriceAtSale ?? 0.0) * item.qty);
 
           preparedData.add(rowData);
         }
       }
 
       talker.info(
-          'Prepared ${preparedData.length} transaction items for export with ${columnNames.length} columns');
+        'Prepared ${preparedData.length} transaction items for export with ${columnNames.length} columns',
+      );
       manualData = preparedData;
     } else if (_dataGridSource is TransactionDataSource) {
       // Use transactions directly from widget
@@ -868,23 +986,25 @@ class DataViewState extends ConsumerState<DataView>
       // Get column names from the headers
       columnNames = _getTableHeaders().map((col) => col.columnName).toList();
       talker.info(
-          'Prepared ${preparedData.length} transactions for export with ${columnNames.length} columns');
+        'Prepared ${preparedData.length} transactions for export with ${columnNames.length} columns',
+      );
       manualData = preparedData;
     }
 
     // Use the exportDataGrid method with our config and manual data
     await exportDataGrid(
-        workBookKey: widget.workBookKey, // Use the widget's key
-        isStockRecount: isStockRecount,
-        config: config,
-        headerTitle: isStockRecount ? "Stock Recount" : headerTitle,
-        expenses: expenses,
-        bottomEndOfRowTitle: widget.showDetailedReport
-            ? "Total Gross Profit"
-            : "Closing balance",
-        manualData: manualData,
-        columnNames: columnNames,
-        // Only show profit calculations in detailed report mode
-        showProfitCalculations: widget.showDetailedReport);
+      workBookKey: widget.workBookKey, // Use the widget's key
+      isStockRecount: isStockRecount,
+      config: config,
+      headerTitle: isStockRecount ? "Stock Recount" : headerTitle,
+      expenses: expenses,
+      bottomEndOfRowTitle: widget.showDetailedReport
+          ? "Total Gross Profit"
+          : "Closing balance",
+      manualData: manualData,
+      columnNames: columnNames,
+      // Only show profit calculations in detailed report mode
+      showProfitCalculations: widget.showDetailedReport,
+    );
   }
 }

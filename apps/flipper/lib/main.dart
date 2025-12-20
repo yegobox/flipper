@@ -1,4 +1,3 @@
-// import 'package:flipper_models/helperModels/talker.dart';
 import 'dart:async';
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:flipper_models/secrets.dart';
@@ -27,9 +26,22 @@ import 'package:flipper_services/GlobalLogError.dart';
 import 'package:flipper_web/core/utils/initialization.dart';
 import 'package:supabase_models/sync/ditto_sync_registry.dart';
 
+import 'package:ditto_live/ditto_live.dart';
+import 'package:permission_handler/permission_handler.dart';
+
 // Function to initialize Firebase
 Future<void> _initializeFirebase() async {
   try {
+    final platform = Ditto.currentPlatform;
+
+    if (platform case SupportedPlatform.android || SupportedPlatform.ios) {
+      await [
+        Permission.bluetoothConnect,
+        Permission.bluetoothAdvertise,
+        Permission.nearbyWifiDevices,
+        Permission.bluetoothScan
+      ].request();
+    }
     // Don't use microtask for Firebase as critical services depend on it
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
@@ -137,13 +149,13 @@ Future<void> main() async {
     appRunner: () => runApp(
       FutureBuilder(
         future: initializeApp().timeout(
-          const Duration(seconds: 30),
+          const Duration(seconds: 60),
           onTimeout: () {
-            debugPrint('❌ App initialization timed out after 30 seconds');
+            debugPrint('❌ App initialization timed out after 60 seconds');
 
             final exception = TimeoutException(
               'App initialization timed out',
-              const Duration(seconds: 30),
+              const Duration(seconds: 60),
             );
 
             // Report to telemetry (fire-and-forget)
@@ -153,7 +165,7 @@ Future<void> main() async {
                 stackTrace: StackTrace.current,
                 hint: Hint.withMap({
                   'context': 'App initialization timeout',
-                  'timeout_duration': '30 seconds',
+                  'timeout_duration': '60 seconds',
                 }),
               );
             } catch (e) {

@@ -2,6 +2,7 @@ import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/providers/variants_provider.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:supabase_models/brick/models/all_models.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
@@ -12,8 +13,9 @@ import 'purchase_table/purchase_columns.dart';
 import 'purchase_table/purchase_data_source.dart';
 import 'purchase_table/variant_edit_dialog.dart';
 
-final selectedVariantProvider =
-    StateProvider.family<Variant?, String>((ref, variantId) => null);
+final selectedVariantProvider = StateProvider.family<Variant?, String>(
+  (ref, variantId) => null,
+);
 
 class PurchaseTable extends StatefulHookConsumerWidget {
   const PurchaseTable({
@@ -31,10 +33,8 @@ class PurchaseTable extends StatefulHookConsumerWidget {
   final TextEditingController nameController;
   final TextEditingController supplyPriceController;
   final TextEditingController retailPriceController;
-  final void Function(
-    Variant? itemToAssign,
-    Variant? itemFromPurchase,
-  ) selectSale;
+  final void Function(Variant? itemToAssign, Variant? itemFromPurchase)
+  selectSale;
   final List<Variant> variants;
   final List<Purchase> purchases;
   final VoidCallback saveItemName;
@@ -43,7 +43,8 @@ class PurchaseTable extends StatefulHookConsumerWidget {
     required String pchsSttsCd,
     required Purchase purchase,
     Variant? clickedVariant,
-  }) acceptPurchases;
+  })
+  acceptPurchases;
 
   @override
   ConsumerState<PurchaseTable> createState() => _PurchaseTableState();
@@ -64,7 +65,7 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
   int _currentPage = 0;
   static const int _itemsPerPage = 10;
 
-  PurchaseDataSource? _dataSource;
+  // PurchaseDataSource? _dataSource; // REMOVED: using local variable in build
 
   @override
   void initState() {
@@ -73,7 +74,7 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
 
   @override
   void dispose() {
-    _dataSource?.dispose();
+    // _dataSource?.dispose(); // REMOVED
     super.dispose();
   }
 
@@ -87,27 +88,52 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
     final newStockIds = stockIds.difference(_fetchedStockIds);
     if (newStockIds.isEmpty) return;
 
-    final futures = newStockIds.map((id) =>
-        ProxyService.getStrategy(Strategy.capella).getStockById(id: id));
-    final stocks = await Future.wait(futures);
-    final newStockMap = Map<String, Stock>.fromEntries(
-      newStockIds
-          .toList()
-          .asMap()
-          .entries
-          .map((e) => MapEntry(e.value, stocks[e.key])),
+    final futures = newStockIds.map(
+      (id) => ProxyService.getStrategy(Strategy.capella).getStockById(id: id),
     );
-    setState(() {
-      _stockMap.addAll(newStockMap); // Merge with existing stocks
-      _fetchedStockIds.addAll(newStockIds); // Mark as fetched
-      _dataSource?.updateStockMap(_stockMap);
-    });
+
+    try {
+      final stocks = await Future.wait(futures);
+
+      if (!mounted) return; // Check mounted before setState
+
+      final newStockMap = Map<String, Stock>.fromEntries(
+        newStockIds.toList().asMap().entries.map(
+          (e) => MapEntry(e.value, stocks[e.key]),
+        ),
+      );
+
+      setState(() {
+        _stockMap.addAll(newStockMap); // Merge with existing stocks
+        _fetchedStockIds.addAll(newStockIds); // Mark as fetched
+        // _dataSource?.updateStockMap(_stockMap); // REMOVED: DataSource is now local and rebuilds with new map
+      });
+    } catch (e) {
+      talker.error("Error fetching stocks: $e");
+    }
+  }
+
+  List<Variant> _filterVariantsByStatus(
+    List<Variant> variants,
+    String? statusFilter,
+  ) {
+    if (statusFilter == null) return variants;
+
+    if (statusFilter == '02') {
+      // Handle both 'Approved' statuses
+      return variants
+          .where((v) => v.pchsSttsCd == '02' || v.pchsSttsCd == '03')
+          .toList();
+    }
+
+    return variants.where((v) => v.pchsSttsCd == statusFilter).toList();
   }
 
   @override
   Widget build(BuildContext context) {
-    final variantsAsync =
-        ref.watch(variantProvider(branchId: ProxyService.box.getBranchId()!));
+    final variantsAsync = ref.watch(
+      variantProvider(branchId: ProxyService.box.getBranchId()!),
+    );
 
     return variantsAsync.when(
       loading: () => const Center(
@@ -131,20 +157,24 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
       ),
       data: (allBranchVariants) {
         talker.info(
-            "PurchaseTable.build: Received ${widget.purchases.length} purchases.");
+          "PurchaseTable.build: Received ${widget.purchases.length} purchases.",
+        );
         for (var p_ui_log in widget.purchases) {
           talker.info(
-              "  UI Purchase ID: ${p_ui_log.id}, Invoice: ${p_ui_log.spplrInvcNo}");
+            "  UI Purchase ID: ${p_ui_log.id}, Invoice: ${p_ui_log.spplrInvcNo}",
+          );
           if (p_ui_log.variants == null) {
             talker.info("    p_ui_log.variants is NULL");
           } else if (p_ui_log.variants!.isEmpty) {
             talker.info("    p_ui_log.variants is EMPTY");
           } else {
             talker.info(
-                "    p_ui_log.variants contents (${p_ui_log.variants!.length} items):");
+              "    p_ui_log.variants contents (${p_ui_log.variants!.length} items):",
+            );
             for (var v_ui_log in p_ui_log.variants!) {
               talker.info(
-                  "      UI Variant ID: ${v_ui_log.id}, Status: ${v_ui_log.pchsSttsCd}, Name: ${v_ui_log.name}");
+                "      UI Variant ID: ${v_ui_log.id}, Status: ${v_ui_log.pchsSttsCd}, Name: ${v_ui_log.name}",
+              );
             }
           }
         }
@@ -158,25 +188,21 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
         };
 
         // Filter purchases based on the selected status filter and variant availability
-        final List<Purchase> displayablePurchases =
-            widget.purchases.where((purchase) {
+        final List<Purchase> displayablePurchases = widget.purchases.where((
+          purchase,
+        ) {
           // Rule 1: Purchase must have variants relevant to the purchase screen.
           // purchase.variants is populated by PurchaseMixin with items having pchsSttsCd '01', '02', '03', or '04'.
           if (purchase.variants == null || purchase.variants!.isEmpty) {
             return false;
           }
           // Rule 2: If a specific status filter is active, purchase must have variants matching that status.
-          if (_selectedStatusFilter != null) {
-            if (_selectedStatusFilter == '02') {
-              // Handle both 'Approved' statuses
-              return purchase.variants!
-                  .any((v) => v.pchsSttsCd == '02' || v.pchsSttsCd == '03');
-            }
-            return purchase.variants!
-                .any((v) => v.pchsSttsCd == _selectedStatusFilter);
-          }
           // Rule 3: If filter is "All" (null), and it passed Rule 1, show it.
-          return true;
+          final filtered = _filterVariantsByStatus(
+            purchase.variants!,
+            _selectedStatusFilter,
+          );
+          return filtered.isNotEmpty;
         }).toList();
 
         // Calculate pagination values
@@ -186,8 +212,10 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
         final int endIndex = startIndex + _itemsPerPage < itemCount
             ? startIndex + _itemsPerPage
             : itemCount;
-        final List<Purchase> paginatedPurchases =
-            displayablePurchases.sublist(startIndex, endIndex);
+        final List<Purchase> paginatedPurchases = displayablePurchases.sublist(
+          startIndex,
+          endIndex,
+        );
 
         return Container(
           width: double.infinity,
@@ -206,8 +234,10 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
                         decoration: InputDecoration(
                           labelText: 'Filter by Status',
                           border: OutlineInputBorder(),
-                          contentPadding:
-                              EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          contentPadding: EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
                         ),
                         isDense: true,
                         items: statusOptions.entries.map((entry) {
@@ -249,8 +279,8 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
                           icon: Icon(Icons.chevron_right, size: 24),
                           onPressed:
                               _currentPage < totalPages - 1 && totalPages > 1
-                                  ? () => setState(() => _currentPage++)
-                                  : null,
+                              ? () => setState(() => _currentPage++)
+                              : null,
                           color: _currentPage < totalPages - 1 && totalPages > 1
                               ? Colors.indigo
                               : Colors.grey,
@@ -306,7 +336,9 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
                               children: [
                                 ListTile(
                                   contentPadding: EdgeInsets.symmetric(
-                                      horizontal: 16, vertical: 8),
+                                    horizontal: 16,
+                                    vertical: 8,
+                                  ),
                                   title: Text(
                                     'Supplier: ${purchase.spplrNm} (${purchase.variants?.length ?? 0})',
                                     style: TextStyle(
@@ -318,17 +350,16 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
                                     padding: EdgeInsets.only(top: 4),
                                     child: Text(
                                       'Invoice: ${purchase.spplrInvcNo}',
-                                      style: TextStyle(
-                                        color: Colors.grey[600],
-                                      ),
+                                      style: TextStyle(color: Colors.grey[600]),
                                     ),
                                   ),
                                   trailing: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
                                       Padding(
-                                        padding:
-                                            const EdgeInsets.only(right: 8.0),
+                                        padding: const EdgeInsets.only(
+                                          right: 8.0,
+                                        ),
                                         child: Chip(
                                           label: Text(
                                             timeago.format(
@@ -336,8 +367,9 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
                                               clock: DateTime.now(),
                                             ),
                                             style: TextStyle(
-                                                fontSize: 12,
-                                                color: Colors.white),
+                                              fontSize: 12,
+                                              color: Colors.white,
+                                            ),
                                           ),
                                           backgroundColor: Colors.green,
                                           visualDensity: VisualDensity.compact,
@@ -351,8 +383,9 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
                                               vertical: 6,
                                             ),
                                             decoration: BoxDecoration(
-                                              color: Colors.indigo
-                                                  .withValues(alpha: 0.1),
+                                              color: Colors.indigo.withValues(
+                                                alpha: 0.1,
+                                              ),
                                               borderRadius:
                                                   BorderRadius.circular(16),
                                             ),
@@ -367,21 +400,23 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
                                           SizedBox(width: 8),
                                           Container(
                                             decoration: BoxDecoration(
-                                              color: Colors.green
-                                                  .withValues(alpha: 0.1),
+                                              color: Colors.green.withValues(
+                                                alpha: 0.1,
+                                              ),
                                               borderRadius:
                                                   BorderRadius.circular(16),
                                             ),
-                                            child: _loadingAction[
-                                                        purchase.id] ==
+                                            child:
+                                                _loadingAction[purchase.id] ==
                                                     'accept'
                                                 ? CircularProgressIndicator()
                                                 : TextButton.icon(
                                                     icon: Icon(
-                                                        Icons
-                                                            .check_circle_outline,
-                                                        size: 16,
-                                                        color: Colors.green),
+                                                      Icons
+                                                          .check_circle_outline,
+                                                      size: 16,
+                                                      color: Colors.green,
+                                                    ),
                                                     label: Text(
                                                       'Accept All',
                                                       style: TextStyle(
@@ -395,25 +430,31 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
                                                     onPressed: () async {
                                                       setState(() {
                                                         _loadingAction[purchase
-                                                            .id] = 'accept';
+                                                                .id] =
+                                                            'accept';
                                                       });
                                                       await widget
                                                           .acceptPurchases(
-                                                        purchases: [purchase],
-                                                        pchsSttsCd: '02',
-                                                        purchase: purchase,
-                                                        clickedVariant: null,
-                                                      );
+                                                            purchases: [
+                                                              purchase,
+                                                            ],
+                                                            pchsSttsCd: '02',
+                                                            purchase: purchase,
+                                                            clickedVariant:
+                                                                null,
+                                                          );
                                                       setState(() {
-                                                        _loadingAction[
-                                                            purchase.id] = null;
+                                                        _loadingAction[purchase
+                                                                .id] =
+                                                            null;
                                                       });
                                                     },
                                                     style: TextButton.styleFrom(
                                                       padding:
                                                           EdgeInsets.symmetric(
-                                                              horizontal: 8,
-                                                              vertical: 4),
+                                                            horizontal: 8,
+                                                            vertical: 4,
+                                                          ),
                                                       tapTargetSize:
                                                           MaterialTapTargetSize
                                                               .shrinkWrap,
@@ -424,20 +465,22 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
                                           SizedBox(width: 8),
                                           Container(
                                             decoration: BoxDecoration(
-                                              color: Colors.red
-                                                  .withValues(alpha: 0.1),
+                                              color: Colors.red.withValues(
+                                                alpha: 0.1,
+                                              ),
                                               borderRadius:
                                                   BorderRadius.circular(16),
                                             ),
-                                            child: _loadingAction[
-                                                        purchase.id] ==
+                                            child:
+                                                _loadingAction[purchase.id] ==
                                                     'decline'
                                                 ? CircularProgressIndicator()
                                                 : TextButton.icon(
                                                     icon: Icon(
-                                                        Icons.cancel_outlined,
-                                                        size: 16,
-                                                        color: Colors.red),
+                                                      Icons.cancel_outlined,
+                                                      size: 16,
+                                                      color: Colors.red,
+                                                    ),
                                                     label: Text(
                                                       'Decline All',
                                                       style: TextStyle(
@@ -450,25 +493,31 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
                                                     onPressed: () async {
                                                       setState(() {
                                                         _loadingAction[purchase
-                                                            .id] = 'decline';
+                                                                .id] =
+                                                            'decline';
                                                       });
                                                       await widget
                                                           .acceptPurchases(
-                                                        purchases: [purchase],
-                                                        pchsSttsCd: '04',
-                                                        purchase: purchase,
-                                                        clickedVariant: null,
-                                                      );
+                                                            purchases: [
+                                                              purchase,
+                                                            ],
+                                                            pchsSttsCd: '04',
+                                                            purchase: purchase,
+                                                            clickedVariant:
+                                                                null,
+                                                          );
                                                       setState(() {
-                                                        _loadingAction[
-                                                            purchase.id] = null;
+                                                        _loadingAction[purchase
+                                                                .id] =
+                                                            null;
                                                       });
                                                     },
                                                     style: TextButton.styleFrom(
                                                       padding:
                                                           EdgeInsets.symmetric(
-                                                              horizontal: 8,
-                                                              vertical: 4),
+                                                            horizontal: 8,
+                                                            vertical: 4,
+                                                          ),
                                                       tapTargetSize:
                                                           MaterialTapTargetSize
                                                               .shrinkWrap,
@@ -491,160 +540,181 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
                                           ),
                                         ),
                                         onPressed: () {
+                                          final nextState = !isExpanded;
                                           setState(() {
                                             _expandedPurchases[purchase.id] =
-                                                !isExpanded;
+                                                nextState;
                                           });
+
+                                          // Trigger fetch if we are expanding
+                                          if (nextState) {
+                                            final purchaseVariants =
+                                                purchase.variants ?? [];
+                                            // We usually only care about the currently filtered variants,
+                                            // but catching all variants for the purchase is also fine.
+                                            // Using the filtered list is better for performance if the filter is active.
+                                            final List<Variant>
+                                            filteredPurchaseVariants =
+                                                _filterVariantsByStatus(
+                                                  purchaseVariants,
+                                                  _selectedStatusFilter,
+                                                );
+                                            _fetchStocks(
+                                              filteredPurchaseVariants,
+                                            );
+                                          }
                                         },
                                       ),
                                     ],
                                   ),
                                 ),
                                 if (isExpanded)
-                                  Builder(builder: (context) {
-                                    // Get variants directly from purchase object
-                                    final purchaseVariants =
-                                        purchase.variants ?? [];
+                                  Builder(
+                                    builder: (context) {
+                                      // Get variants directly from purchase object
+                                      final purchaseVariants =
+                                          purchase.variants ?? [];
 
-                                    // Apply the selected status filter
-                                    final List<Variant>
-                                        filteredPurchaseVariants;
-                                    if (_selectedStatusFilter == null) {
+                                      // Apply the selected status filter
+                                      final List<Variant>
                                       filteredPurchaseVariants =
-                                          purchaseVariants;
-                                    } else {
-                                      if (_selectedStatusFilter == '02') {
-                                        filteredPurchaseVariants =
-                                            purchaseVariants
-                                                .where((v) =>
-                                                    v.pchsSttsCd == '02' ||
-                                                    v.pchsSttsCd == '03')
-                                                .toList();
-                                      } else {
-                                        filteredPurchaseVariants =
-                                            purchaseVariants
-                                                .where((v) =>
-                                                    v.pchsSttsCd ==
-                                                    _selectedStatusFilter)
-                                                .toList();
-                                      }
-                                    }
+                                          _filterVariantsByStatus(
+                                            purchaseVariants,
+                                            _selectedStatusFilter,
+                                          );
 
-                                    if (filteredPurchaseVariants.isEmpty) {
+                                      if (filteredPurchaseVariants.isEmpty) {
+                                        return Padding(
+                                          padding: EdgeInsets.all(16),
+                                          child: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.center,
+                                            children: [
+                                              Icon(
+                                                Icons.check_circle_outline,
+                                                color: Colors.green[400],
+                                              ),
+                                              SizedBox(width: 8),
+                                              Text(
+                                                'No variants matching selected filter',
+                                                style: TextStyle(
+                                                  color: Colors.grey[700],
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      }
+
+                                      // Create Local DataSource
+                                      final dataSource = PurchaseDataSource(
+                                        filteredPurchaseVariants,
+                                        _editedRetailPrices,
+                                        _editedSupplyPrices,
+                                        talker,
+                                        () => setState(() {}),
+                                        _stockMap,
+                                      );
+
+                                      // REMOVED calling _fetchStocks here!
+
                                       return Padding(
-                                        padding: EdgeInsets.all(16),
-                                        child: Row(
-                                          mainAxisAlignment:
-                                              MainAxisAlignment.center,
-                                          children: [
-                                            Icon(
-                                              Icons.check_circle_outline,
-                                              color: Colors.green[400],
-                                            ),
-                                            SizedBox(width: 8),
-                                            Text(
-                                              'No variants matching selected filter',
-                                              style: TextStyle(
-                                                color: Colors.grey[700],
-                                                fontWeight: FontWeight.w500,
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: 16,
+                                          vertical: 8,
+                                        ),
+                                        child: Theme(
+                                          data: Theme.of(context).copyWith(
+                                            dataTableTheme: DataTableThemeData(
+                                              headingTextStyle: TextStyle(
+                                                color: Colors.indigo[700],
+                                                fontWeight: FontWeight.bold,
                                               ),
                                             ),
-                                          ],
-                                        ),
-                                      );
-                                    }
-                                    _dataSource = PurchaseDataSource(
-                                      filteredPurchaseVariants,
-                                      _editedRetailPrices,
-                                      _editedSupplyPrices,
-                                      talker,
-                                      () => setState(() {}),
-                                      _stockMap,
-                                    );
-                                    _fetchStocks(filteredPurchaseVariants);
-                                    return Padding(
-                                      padding: EdgeInsets.symmetric(
-                                          horizontal: 16, vertical: 8),
-                                      child: Theme(
-                                        data: Theme.of(context).copyWith(
-                                          dataTableTheme: DataTableThemeData(
-                                            headingTextStyle: TextStyle(
-                                              color: Colors.indigo[700],
-                                              fontWeight: FontWeight.bold,
-                                            ),
                                           ),
-                                        ),
-                                        child: Column(
-                                          children: [
-                                            if (filteredPurchaseVariants
-                                                .isNotEmpty)
-                                              SizedBox(
-                                                height:
-                                                    300, // Adjust this value as needed
-                                                child: SfDataGrid(
-                                                  key:
-                                                      UniqueKey(), // Add a key to force a rebuild when data changes
-                                                  source: _dataSource!,
-                                                  columns:
-                                                      buildPurchaseColumns(),
-                                                  columnWidthMode:
-                                                      ColumnWidthMode.fill,
-                                                  headerRowHeight: 56.0,
-                                                  rowHeight: 50.0,
-                                                  gridLinesVisibility:
-                                                      GridLinesVisibility
-                                                          .horizontal,
-                                                  headerGridLinesVisibility:
-                                                      GridLinesVisibility.both,
-                                                  selectionMode:
-                                                      SelectionMode.single,
-                                                  onCellTap: (details) async {
-                                                    if (details.rowColumnIndex
-                                                            .rowIndex >
-                                                        0) {
-                                                      final item =
-                                                          filteredPurchaseVariants[
-                                                              details.rowColumnIndex
-                                                                      .rowIndex -
-                                                                  1];
-                                                      final paged = await ProxyService
-                                                          .strategy
-                                                          .variants(
-                                                              taxTyCds: ProxyService
+                                          child: Column(
+                                            children: [
+                                              if (filteredPurchaseVariants
+                                                  .isNotEmpty)
+                                                SizedBox(
+                                                  height:
+                                                      300, // Adjust this value as needed
+                                                  child: SfDataGrid(
+                                                    key:
+                                                        UniqueKey(), // Add a key to force a rebuild when data changes
+                                                    source:
+                                                        dataSource, // Use local dataSource
+                                                    columns:
+                                                        buildPurchaseColumns(),
+                                                    columnWidthMode:
+                                                        ColumnWidthMode.fill,
+                                                    headerRowHeight: 56.0,
+                                                    rowHeight: 50.0,
+                                                    gridLinesVisibility:
+                                                        GridLinesVisibility
+                                                            .horizontal,
+                                                    headerGridLinesVisibility:
+                                                        GridLinesVisibility
+                                                            .both,
+                                                    selectionMode:
+                                                        SelectionMode.single,
+                                                    onCellTap: (details) async {
+                                                      if (details
+                                                              .rowColumnIndex
+                                                              .rowIndex >
+                                                          0) {
+                                                        final item =
+                                                            filteredPurchaseVariants[details
+                                                                    .rowColumnIndex
+                                                                    .rowIndex -
+                                                                1];
+                                                        final paged = await ProxyService
+                                                            .strategy
+                                                            .variants(
+                                                              taxTyCds:
+                                                                  ProxyService
                                                                       .box
                                                                       .vatEnabled()
                                                                   ? [
                                                                       'A',
                                                                       'B',
-                                                                      'C'
+                                                                      'C',
                                                                     ]
                                                                   : ['D'],
                                                               fetchRemote:
                                                                   false,
                                                               branchId: ProxyService
                                                                   .box
-                                                                  .getBranchId()!);
+                                                                  .getBranchId()!,
+                                                            );
 
-                                                      final variants =
-                                                          List<Variant>.from(
-                                                              paged.variants);
+                                                        final variants =
+                                                            List<Variant>.from(
+                                                              paged.variants,
+                                                            );
 
-                                                      _showEditDialog(
-                                                          context, item,
+                                                        _showEditDialog(
+                                                          context,
+                                                          item,
                                                           variants: variants
-                                                              .where((v) =>
-                                                                  v.itemTyCd !=
-                                                                  "3")
-                                                              .toList());
-                                                    }
-                                                  },
+                                                              .where(
+                                                                (v) =>
+                                                                    v.itemTyCd !=
+                                                                    "3",
+                                                              )
+                                                              .toList(),
+                                                        );
+                                                      }
+                                                    },
+                                                  ),
                                                 ),
-                                              ),
-                                          ],
+                                            ],
+                                          ),
                                         ),
-                                      ),
-                                    );
-                                  }),
+                                      );
+                                    },
+                                  ),
                               ],
                             ),
                           );
@@ -658,8 +728,11 @@ class _PurchaseTableState extends ConsumerState<PurchaseTable> {
     ); // End of variantsAsync.when(...)
   } // End of build method
 
-  Future<void> _showEditDialog(BuildContext context, Variant item,
-      {required List<Variant> variants}) {
+  Future<void> _showEditDialog(
+    BuildContext context,
+    Variant item, {
+    required List<Variant> variants,
+  }) {
     return showVariantEditDialog(
       context,
       item,

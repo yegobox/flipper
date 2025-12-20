@@ -6,154 +6,79 @@ part of 'branch_business_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$branchesHash() => r'2bd73883d70da52709ec3d54946e89664fd7aafe';
+// GENERATED CODE - DO NOT MODIFY BY HAND
+// ignore_for_file: type=lint, type=warning
 
-/// Copied from Dart SDK
-class _SystemHash {
-  _SystemHash._();
-
-  static int combine(int hash, int value) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + value);
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x0007ffff & hash) << 10));
-    return hash ^ (hash >> 6);
-  }
-
-  static int finish(int hash) {
-    // ignore: parameter_assignments
-    hash = 0x1fffffff & (hash + ((0x03ffffff & hash) << 3));
-    // ignore: parameter_assignments
-    hash = hash ^ (hash >> 11);
-    return 0x1fffffff & (hash + ((0x00003fff & hash) << 15));
-  }
-}
-
-/// See also [branches].
 @ProviderFor(branches)
-const branchesProvider = BranchesFamily();
+const branchesProvider = BranchesFamily._();
 
-/// See also [branches].
-class BranchesFamily extends Family<AsyncValue<List<Branch>>> {
-  /// See also [branches].
-  const BranchesFamily();
-
-  /// See also [branches].
-  BranchesProvider call({
-    int? businessId,
-  }) {
-    return BranchesProvider(
-      businessId: businessId,
-    );
-  }
-
-  @override
-  BranchesProvider getProviderOverride(
-    covariant BranchesProvider provider,
-  ) {
-    return call(
-      businessId: provider.businessId,
-    );
-  }
-
-  static const Iterable<ProviderOrFamily>? _dependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
-
-  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
-
-  @override
-  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
-      _allTransitiveDependencies;
-
-  @override
-  String? get name => r'branchesProvider';
-}
-
-/// See also [branches].
-class BranchesProvider extends AutoDisposeFutureProvider<List<Branch>> {
-  /// See also [branches].
-  BranchesProvider({
-    int? businessId,
-  }) : this._internal(
-          (ref) => branches(
-            ref as BranchesRef,
-            businessId: businessId,
-          ),
-          from: branchesProvider,
+final class BranchesProvider extends $FunctionalProvider<
+        AsyncValue<List<Branch>>, List<Branch>, FutureOr<List<Branch>>>
+    with $FutureModifier<List<Branch>>, $FutureProvider<List<Branch>> {
+  const BranchesProvider._(
+      {required BranchesFamily super.from, required int? super.argument})
+      : super(
+          retry: null,
           name: r'branchesProvider',
-          debugGetCreateSourceHash:
-              const bool.fromEnvironment('dart.vm.product')
-                  ? null
-                  : _$branchesHash,
-          dependencies: BranchesFamily._dependencies,
-          allTransitiveDependencies: BranchesFamily._allTransitiveDependencies,
-          businessId: businessId,
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
         );
 
-  BranchesProvider._internal(
-    super._createNotifier, {
-    required super.name,
-    required super.dependencies,
-    required super.allTransitiveDependencies,
-    required super.debugGetCreateSourceHash,
-    required super.from,
-    required this.businessId,
-  }) : super.internal();
-
-  final int? businessId;
+  @override
+  String debugGetCreateSourceHash() => _$branchesHash();
 
   @override
-  Override overrideWith(
-    FutureOr<List<Branch>> Function(BranchesRef provider) create,
-  ) {
-    return ProviderOverride(
-      origin: this,
-      override: BranchesProvider._internal(
-        (ref) => create(ref as BranchesRef),
-        from: from,
-        name: null,
-        dependencies: null,
-        allTransitiveDependencies: null,
-        debugGetCreateSourceHash: null,
-        businessId: businessId,
-      ),
-    );
+  String toString() {
+    return r'branchesProvider'
+        ''
+        '($argument)';
   }
 
+  @$internal
   @override
-  AutoDisposeFutureProviderElement<List<Branch>> createElement() {
-    return _BranchesProviderElement(this);
+  $FutureProviderElement<List<Branch>> $createElement(
+          $ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<Branch>> create(Ref ref) {
+    final argument = this.argument as int?;
+    return branches(
+      ref,
+      businessId: argument,
+    );
   }
 
   @override
   bool operator ==(Object other) {
-    return other is BranchesProvider && other.businessId == businessId;
+    return other is BranchesProvider && other.argument == argument;
   }
 
   @override
   int get hashCode {
-    var hash = _SystemHash.combine(0, runtimeType.hashCode);
-    hash = _SystemHash.combine(hash, businessId.hashCode);
-
-    return _SystemHash.finish(hash);
+    return argument.hashCode;
   }
 }
 
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-mixin BranchesRef on AutoDisposeFutureProviderRef<List<Branch>> {
-  /// The parameter `businessId` of this provider.
-  int? get businessId;
-}
+String _$branchesHash() => r'2bd73883d70da52709ec3d54946e89664fd7aafe';
 
-class _BranchesProviderElement
-    extends AutoDisposeFutureProviderElement<List<Branch>> with BranchesRef {
-  _BranchesProviderElement(super.provider);
+final class BranchesFamily extends $Family
+    with $FunctionalFamilyOverride<FutureOr<List<Branch>>, int?> {
+  const BranchesFamily._()
+      : super(
+          retry: null,
+          name: r'branchesProvider',
+          dependencies: null,
+          $allTransitiveDependencies: null,
+          isAutoDispose: true,
+        );
+
+  BranchesProvider call({
+    int? businessId,
+  }) =>
+      BranchesProvider._(argument: businessId, from: this);
 
   @override
-  int? get businessId => (origin as BranchesProvider).businessId;
+  String toString() => r'branchesProvider';
 }
-// ignore_for_file: type=lint
-// ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package
