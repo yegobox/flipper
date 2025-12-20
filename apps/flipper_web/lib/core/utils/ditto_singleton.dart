@@ -83,11 +83,15 @@ class DittoSingleton {
         );
       }
 
-      // Start sync to connect to Ditto cloud
-      _ditto!.startSync();
+      try {
+        // Start sync to connect to Ditto cloud
+        _ditto!.startSync();
 
-      print("is sync active: ${_ditto!.isSyncActive}");
-      print("auth status: ${_ditto!.auth.status}");
+        print("is sync active: ${_ditto!.isSyncActive}");
+        print("auth status: ${_ditto!.auth.status}");
+      } catch (e) {
+        print('⚠️ Error starting Ditto sync: $e');
+      }
 
       print('✅ Ditto singleton initialized successfully');
       return _ditto;
