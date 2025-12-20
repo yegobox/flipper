@@ -468,4 +468,12 @@ class SharedPreferenceStorageMock implements LocalStorage {
   String? whatsAppPhoneNumberId() {
     return null; // Mock: no WhatsApp phone number ID by default
   }
+
+  @override
+  bool? getUserLoggingEnabled() {
+    return false;
+  }
+
+  @override
+  Future<void> setUserLoggingEnabled(bool value) async {}
 }

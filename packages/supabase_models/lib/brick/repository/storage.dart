@@ -121,4 +121,7 @@ abstract class LocalStorage {
   String? selectedDelegationDeviceId();
 
   String? whatsAppPhoneNumberId();
+
+  bool? getUserLoggingEnabled();
+  Future<void> setUserLoggingEnabled(bool value);
 }

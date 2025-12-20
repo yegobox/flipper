@@ -41,6 +41,7 @@ class _AdminControlState extends State<AdminControl> {
   Uint8List? receiptLogoBytes;
   bool isUpdatingReceiptLogo = false;
   bool isRemovingReceiptLogo = false;
+  bool userLoggingEnabled = false;
 
   bool _isValidPhoneNumber(String phone) {
     // Remove any spaces or special characters
@@ -111,6 +112,7 @@ class _AdminControlState extends State<AdminControl> {
     switchToCloudSync = ProxyService.box.switchToCloudSync() ?? false;
     enableAutoAddSearch =
         ProxyService.box.readBool(key: 'enableAutoAddSearch') ?? false;
+    userLoggingEnabled = ProxyService.box.getUserLoggingEnabled() ?? false;
     phoneController = TextEditingController();
     final logoBase64 = ProxyService.box.receiptLogoBase64();
     if (logoBase64 != null && logoBase64.isNotEmpty) {
@@ -208,7 +210,8 @@ class _AdminControlState extends State<AdminControl> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text(
-                'Please choose an image under 200KB for best print quality.'),
+              'Please choose an image under 200KB for best print quality.',
+            ),
           ),
         );
         return;
@@ -224,21 +227,17 @@ class _AdminControlState extends State<AdminControl> {
         isUpdatingReceiptLogo = false;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Receipt logo updated.'),
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Receipt logo updated.')));
     } catch (e) {
       if (!mounted) return;
       setState(() {
         isUpdatingReceiptLogo = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to update logo: $e'),
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to update logo: $e')));
     }
   }
 
@@ -267,18 +266,17 @@ class _AdminControlState extends State<AdminControl> {
       setState(() {
         isRemovingReceiptLogo = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to remove logo: $e'),
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Failed to remove logo: $e')));
     }
   }
 
   Future<void> toggleDownload(bool value) async {
     await ProxyService.box.writeBool(
-        key: 'doneDownloadingAsset',
-        value: !ProxyService.box.doneDownloadingAsset());
+      key: 'doneDownloadingAsset',
+      value: !ProxyService.box.doneDownloadingAsset(),
+    );
     ProxyService.strategy.reDownloadAsset();
     setState(() {
       filesDownloaded = ProxyService.box.doneDownloadingAsset();
@@ -288,14 +286,18 @@ class _AdminControlState extends State<AdminControl> {
   Future<void> toggleForceUPSERT(bool value) async {
     try {
       final isVatEnabled = ProxyService.box.vatEnabled();
-      ProxyService.strategy
-          .migrateToNewDateTime(branchId: ProxyService.box.getBranchId()!);
+      ProxyService.strategy.migrateToNewDateTime(
+        branchId: ProxyService.box.getBranchId()!,
+      );
       await ProxyService.strategy.variants(
-          taxTyCds: isVatEnabled ? ['A', 'B', 'C'] : ['D'],
-          branchId: ProxyService.box.getBranchId()!,
-          fetchRemote: true);
+        taxTyCds: isVatEnabled ? ['A', 'B', 'C'] : ['D'],
+        branchId: ProxyService.box.getBranchId()!,
+        fetchRemote: true,
+      );
       await ProxyService.box.writeBool(
-          key: 'forceUPSERT', value: !ProxyService.box.forceUPSERT());
+        key: 'forceUPSERT',
+        value: !ProxyService.box.forceUPSERT(),
+      );
 
       setState(() {
         forceUPSERT = ProxyService.box.forceUPSERT();
@@ -307,7 +309,9 @@ class _AdminControlState extends State<AdminControl> {
 
   Future<void> toggleTaxService(bool value) async {
     await ProxyService.box.writeBool(
-        key: 'stopTaxService', value: !ProxyService.box.stopTaxService()!);
+      key: 'stopTaxService',
+      value: !ProxyService.box.stopTaxService()!,
+    );
     //TODO: put this behind payment plan
 
     setState(() {
@@ -338,16 +342,15 @@ class _AdminControlState extends State<AdminControl> {
   }
 
   void showReInitializeEbmDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => ReInitializeEbmDialog(),
-    );
+    showDialog(context: context, builder: (context) => ReInitializeEbmDialog());
   }
 
   void enableDebugFunc(bool value) async {
     // await DittoSyncCoordinator.instance.hydrate<Stock>();
-    await ProxyService.box
-        .writeBool(key: 'enableDebug', value: !ProxyService.box.enableDebug()!);
+    await ProxyService.box.writeBool(
+      key: 'enableDebug',
+      value: !ProxyService.box.enableDebug()!,
+    );
 
     setState(() {
       enableDebug = ProxyService.box.enableDebug()!;
@@ -359,6 +362,13 @@ class _AdminControlState extends State<AdminControl> {
     await ProxyService.box.writeBool(key: 'enableAutoAddSearch', value: value);
     setState(() {
       enableAutoAddSearch = value;
+    });
+  }
+
+  void toggleUserLogging(bool value) async {
+    await ProxyService.box.setUserLoggingEnabled(value);
+    setState(() {
+      userLoggingEnabled = value;
     });
   }
 
@@ -379,10 +389,7 @@ class _AdminControlState extends State<AdminControl> {
         ),
         title: const Text(
           'Management Dashboard',
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 20,
-          ),
+          style: TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
         ),
       ),
       body: SingleChildScrollView(
@@ -410,9 +417,9 @@ class _AdminControlState extends State<AdminControl> {
           child: Text(
             'Quick Actions',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: Colors.black87,
-                  fontWeight: FontWeight.w600,
-                ),
+              color: Colors.black87,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
         Row(
@@ -451,67 +458,59 @@ class _AdminControlState extends State<AdminControl> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              child: _buildSection(
-                context,
-                'Account Management',
-                [
-                  SettingsCard(
-                    title: 'User Management',
-                    subtitle: 'Manage users and permissions',
-                    icon: Icons.people,
-                    onTap: () {
-                      showDialog(
-                        context: context,
-                        builder: (BuildContext context) => TenantManagement(),
-                      );
-                    },
-                    color: Colors.indigo,
-                  ),
-                  const SizedBox(height: 16),
-                  SettingsCard(
-                    title: 'Branch Management',
-                    subtitle: 'Manage Branch (Locations)',
-                    icon: Icons.business,
-                    onTap: () {
-                      locator<RouterService>().navigateTo(AddBranchRoute());
-                    },
-                    color: Colors.teal,
-                  ),
-                ],
-              ),
+              child: _buildSection(context, 'Account Management', [
+                SettingsCard(
+                  title: 'User Management',
+                  subtitle: 'Manage users and permissions',
+                  icon: Icons.people,
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) => TenantManagement(),
+                    );
+                  },
+                  color: Colors.indigo,
+                ),
+                const SizedBox(height: 16),
+                SettingsCard(
+                  title: 'Branch Management',
+                  subtitle: 'Manage Branch (Locations)',
+                  icon: Icons.business,
+                  onTap: () {
+                    locator<RouterService>().navigateTo(AddBranchRoute());
+                  },
+                  color: Colors.teal,
+                ),
+              ]),
             ),
             const SizedBox(width: 24),
             Expanded(
-              child: _buildSection(
-                context,
-                'Financial Controls',
-                [
-                  SettingsCard(
-                    title: 'Tax Settings',
-                    subtitle: 'Configure tax rules and rates',
-                    icon: Icons.account_balance,
-                    onTap: () {
-                      showDialog(
-                        context: context,
-                        builder: (context) => TaxSettingsModal(
-                          branchId: ProxyService.box.getBranchId()!,
-                        ),
-                      );
-                    },
-                    color: Colors.amber,
-                  ),
-                  const SizedBox(height: 16),
-                  SettingsCard(
-                    title: 'Payment Methods',
-                    subtitle: 'Manage payment options',
-                    icon: Icons.payments,
-                    onTap: () {
-                      showPaymentSettingsModal(context);
-                    },
-                    color: Colors.purple,
-                  ),
-                ],
-              ),
+              child: _buildSection(context, 'Financial Controls', [
+                SettingsCard(
+                  title: 'Tax Settings',
+                  subtitle: 'Configure tax rules and rates',
+                  icon: Icons.account_balance,
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => TaxSettingsModal(
+                        branchId: ProxyService.box.getBranchId()!,
+                      ),
+                    );
+                  },
+                  color: Colors.amber,
+                ),
+                const SizedBox(height: 16),
+                SettingsCard(
+                  title: 'Payment Methods',
+                  subtitle: 'Manage payment options',
+                  icon: Icons.payments,
+                  onTap: () {
+                    showPaymentSettingsModal(context);
+                  },
+                  color: Colors.purple,
+                ),
+              ]),
             ),
           ],
         ),
@@ -566,22 +565,14 @@ class _AdminControlState extends State<AdminControl> {
                         children: [
                           Text(
                             'SMS Phone Number',
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleMedium
-                                ?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                ),
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(fontWeight: FontWeight.w600),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             'Phone number with country code (e.g., +250783054874)',
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyMedium
-                                ?.copyWith(
-                                  color: Colors.grey[600],
-                                ),
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(color: Colors.grey[600]),
                           ),
                         ],
                       ),
@@ -592,8 +583,9 @@ class _AdminControlState extends State<AdminControl> {
                         controller: phoneController,
                         decoration: InputDecoration(
                           hintText: 'Enter phone number',
-                          contentPadding:
-                              const EdgeInsets.symmetric(horizontal: 12),
+                          contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                          ),
                           errorText: phoneError,
                         ),
                         onChanged: (value) {
@@ -635,9 +627,9 @@ class _AdminControlState extends State<AdminControl> {
           child: Text(
             'System Settings',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: Colors.black87,
-                  fontWeight: FontWeight.w600,
-                ),
+              color: Colors.black87,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
         GridView.count(
@@ -699,6 +691,14 @@ class _AdminControlState extends State<AdminControl> {
               onChanged: toggleAutoAddSearch,
               color: Colors.pink,
             ),
+            SwitchSettingsCard(
+              title: 'User Logging',
+              subtitle: 'Enable extensive user logging',
+              icon: Icons.history_edu,
+              value: userLoggingEnabled,
+              onChanged: toggleUserLogging,
+              color: Colors.indigo,
+            ),
           ],
         ),
       ],
@@ -714,9 +714,9 @@ class _AdminControlState extends State<AdminControl> {
           child: Text(
             'Cross-Device Features',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: Colors.black87,
-                  fontWeight: FontWeight.w600,
-                ),
+              color: Colors.black87,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
         const TransactionDelegationSettings(),
@@ -791,8 +791,9 @@ class _AdminControlState extends State<AdminControl> {
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         ElevatedButton.icon(
-                          onPressed:
-                              isUpdatingReceiptLogo ? null : _pickReceiptLogo,
+                          onPressed: isUpdatingReceiptLogo
+                              ? null
+                              : _pickReceiptLogo,
                           style: ElevatedButton.styleFrom(
                             backgroundColor: theme.primaryColor,
                             foregroundColor: Colors.white,
@@ -819,14 +820,15 @@ class _AdminControlState extends State<AdminControl> {
                         TextButton(
                           onPressed:
                               receiptLogoBytes != null && !isRemovingReceiptLogo
-                                  ? _removeReceiptLogo
-                                  : null,
+                              ? _removeReceiptLogo
+                              : null,
                           child: isRemovingReceiptLogo
                               ? const SizedBox(
                                   width: 16,
                                   height: 16,
-                                  child:
-                                      CircularProgressIndicator(strokeWidth: 2),
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                  ),
                                 )
                               : const Text('Remove logo'),
                         ),
@@ -843,7 +845,10 @@ class _AdminControlState extends State<AdminControl> {
   }
 
   Widget _buildSection(
-      BuildContext context, String title, List<Widget> children) {
+    BuildContext context,
+    String title,
+    List<Widget> children,
+  ) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -863,9 +868,9 @@ class _AdminControlState extends State<AdminControl> {
           Text(
             title,
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: Theme.of(context).primaryColor,
-                  fontWeight: FontWeight.bold,
-                ),
+              color: Theme.of(context).primaryColor,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: 20),
           ...children,
@@ -893,9 +898,9 @@ class SettingsSection extends StatelessWidget {
         Text(
           title,
           style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                color: Theme.of(context).primaryColor,
-                fontWeight: FontWeight.bold,
-              ),
+            color: Theme.of(context).primaryColor,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         const SizedBox(height: 16),
         ...children,
@@ -949,11 +954,7 @@ class SettingsCard extends StatelessWidget {
                   color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(
-                  icon,
-                  size: 24,
-                  color: color,
-                ),
+                child: Icon(icon, size: 24, color: color),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -971,20 +972,13 @@ class SettingsCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       subtitle,
-                      style: TextStyle(
-                        color: Colors.grey[600],
-                        fontSize: 13,
-                      ),
+                      style: TextStyle(color: Colors.grey[600], fontSize: 13),
                     ),
                   ],
                 ),
               ),
               if (trailing != null) trailing!,
-              Icon(
-                Icons.arrow_forward_ios,
-                size: 14,
-                color: Colors.grey[400],
-              ),
+              Icon(Icons.arrow_forward_ios, size: 14, color: Colors.grey[400]),
             ],
           ),
         ),
@@ -1035,11 +1029,7 @@ class SwitchSettingsCard extends StatelessWidget {
                 color: color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(
-                icon,
-                size: 24,
-                color: color,
-              ),
+              child: Icon(icon, size: 24, color: color),
             ),
             const SizedBox(width: 12),
             Expanded(
@@ -1057,19 +1047,12 @@ class SwitchSettingsCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     subtitle,
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 13,
-                    ),
+                    style: TextStyle(color: Colors.grey[600], fontSize: 13),
                   ),
                 ],
               ),
             ),
-            Switch(
-              value: value,
-              onChanged: onChanged,
-              activeColor: color,
-            ),
+            Switch(value: value, onChanged: onChanged, activeColor: color),
           ],
         ),
       ),

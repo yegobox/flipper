@@ -23,6 +23,12 @@ class MyDrawer extends ConsumerStatefulWidget {
 
 class _MyDrawerState extends ConsumerState<MyDrawer> {
   String? _switchingBranchId;
+  bool userLoggingEnabled = false;
+  @override
+  void initState() {
+    super.initState();
+    userLoggingEnabled = ProxyService.box.getUserLoggingEnabled() ?? false;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -366,6 +372,19 @@ class _MyDrawerState extends ConsumerState<MyDrawer> {
                   ),
                 ),
               );
+            },
+          ),
+          const SizedBox(height: 12),
+          _ModernSwitchMenuItem(
+            icon: Icons.history_edu_rounded,
+            title: 'User Logging',
+            color: const Color(0xFF0078D4),
+            value: userLoggingEnabled,
+            onChanged: (value) async {
+              await ProxyService.box.setUserLoggingEnabled(value);
+              setState(() {
+                userLoggingEnabled = value;
+              });
             },
           ),
           const SizedBox(height: 12),
@@ -1209,6 +1228,46 @@ class _ModernMenuItem extends StatelessWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _ModernSwitchMenuItem extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final Color color;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  const _ModernSwitchMenuItem({
+    required this.icon,
+    required this.title,
+    required this.color,
+    required this.value,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      child: Row(
+        children: [
+          Icon(icon, color: color, size: 20),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(
+              title,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+                color: color,
+              ),
+            ),
+          ),
+          Switch(value: value, onChanged: onChanged, activeThumbColor: color),
+        ],
       ),
     );
   }

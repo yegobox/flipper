@@ -17,16 +17,18 @@ Future<bool> ebmVatEnabled(Ref ref) async {
     final ebm =
         await ProxyService.strategy.ebm(branchId: branchId, fetchRemote: true);
     // Return the VAT enabled status, default to false if ebm is null
-    final logService = LogService();
-    await logService.logException(
-      "Logger ${ebm?.vatEnabled}",
-      // stackTrace: "Logger",
-      type: 'business_fetch',
-      tags: {
-        'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
-        'method': 'businessesProvider',
-      },
-    );
+    if (ProxyService.box.getUserLoggingEnabled() ?? false) {
+      final logService = LogService();
+      await logService.logException(
+        "Logger ${ebm?.vatEnabled}",
+        // stackTrace: "Logger",
+        type: 'business_fetch',
+        tags: {
+          'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+          'method': 'businessesProvider',
+        },
+      );
+    }
     return ebm?.vatEnabled ?? false;
   } catch (e) {
     // If there's an error, default to false
@@ -46,16 +48,18 @@ Future<bool> getVatEnabledFromEbm() async {
     // to ensure we have the latest data even if this is the first time on a device
     final ebm =
         await ProxyService.strategy.ebm(branchId: branchId, fetchRemote: true);
-    final logService = LogService();
-    await logService.logException(
-      "Logger ${ebm?.vatEnabled}",
-      // stackTrace: "Logger",
-      type: 'business_fetch',
-      tags: {
-        'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
-        'method': 'businessesProvider',
-      },
-    );
+    if (ProxyService.box.getUserLoggingEnabled() ?? false) {
+      final logService = LogService();
+      await logService.logException(
+        "Logger ${ebm?.vatEnabled}",
+        // stackTrace: "Logger",
+        type: 'business_fetch',
+        tags: {
+          'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+          'method': 'businessesProvider',
+        },
+      );
+    }
     return ebm?.vatEnabled ?? false;
   } catch (e) {
     return false;

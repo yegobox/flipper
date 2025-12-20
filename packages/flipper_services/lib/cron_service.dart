@@ -115,29 +115,35 @@ class CronService {
             debugPrint(
                 'Please ensure all requested permissions are granted for proper sync functionality.');
 
-            await logService.logException(
-              'Some permissions not granted: ${deniedPermissions.join(", ")}',
-              type: 'cron_service',
-              tags: {
-                'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
-                'method': 'cron_service',
-                'platform': platform.toString(),
-                'denied_permissions': deniedPermissions.join(", "),
-              },
-            );
+            if (ProxyService.box.getUserLoggingEnabled() ?? false) {
+              await logService.logException(
+                'Some permissions not granted: ${deniedPermissions.join(", ")}',
+                type: 'cron_service',
+                tags: {
+                  'userId':
+                      ProxyService.box.getUserId()?.toString() ?? 'unknown',
+                  'method': 'cron_service',
+                  'platform': platform.toString(),
+                  'denied_permissions': deniedPermissions.join(", "),
+                },
+              );
+            }
           } else {
             debugPrint(
                 '✅ All required permissions granted for Ditto sync on Android.');
-            await logService.logException(
-              'All permissions granted',
-              type: 'cron_service',
-              tags: {
-                'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
-                'method': 'cron_service',
-                'platform': platform.toString(),
-                'all_permissions_granted': 'true',
-              },
-            );
+            if (ProxyService.box.getUserLoggingEnabled() ?? false) {
+              await logService.logException(
+                'All permissions granted',
+                type: 'cron_service',
+                tags: {
+                  'userId':
+                      ProxyService.box.getUserId()?.toString() ?? 'unknown',
+                  'method': 'cron_service',
+                  'platform': platform.toString(),
+                  'all_permissions_granted': 'true',
+                },
+              );
+            }
           }
         }
       });

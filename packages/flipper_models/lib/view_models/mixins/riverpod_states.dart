@@ -563,16 +563,18 @@ final businessesProvider = FutureProvider<List<Business>>((ref) async {
         .businesses(userId: ProxyService.box.getUserId()!);
   } catch (e, stack) {
     // Log the error to our error service
-    final logService = LogService();
-    await logService.logException(
-      e,
-      stackTrace: stack,
-      type: 'business_fetch',
-      tags: {
-        'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
-        'method': 'businessesProvider',
-      },
-    );
+    if (ProxyService.box.getUserLoggingEnabled() ?? false) {
+      final logService = LogService();
+      await logService.logException(
+        e,
+        stackTrace: stack,
+        type: 'business_fetch',
+        tags: {
+          'userId': ProxyService.box.getUserId()?.toString() ?? 'unknown',
+          'method': 'businessesProvider',
+        },
+      );
+    }
 
     // Re-throw the exception so the UI can handle it appropriately
     rethrow;
