@@ -139,12 +139,9 @@ mixin CapellaVariantMixin implements VariantInterface {
 
       // Tax filters
       if (taxTyCds != null && taxTyCds.isNotEmpty) {
-        final taxConditions = taxTyCds
-            .asMap()
-            .entries
-            .map((entry) => 'taxTyCd = :tax${entry.key}')
-            .join(' OR ');
-        query += ' AND ($taxConditions)';
+        final placeholders =
+            taxTyCds.asMap().keys.map((i) => ':tax$i').join(', ');
+        query += ' AND taxTyCd IN ($placeholders)';
         for (int i = 0; i < taxTyCds.length; i++) {
           arguments['tax$i'] = taxTyCds[i];
         }
@@ -362,12 +359,9 @@ mixin CapellaVariantMixin implements VariantInterface {
           }
 
           if (taxTyCds != null && taxTyCds.isNotEmpty) {
-            final taxConditions = taxTyCds
-                .asMap()
-                .entries
-                .map((entry) => 'taxTyCd = :tax${entry.key}')
-                .join(' OR ');
-            countQuery += ' AND ($taxConditions)';
+            final placeholders =
+                taxTyCds.asMap().keys.map((i) => ':tax$i').join(', ');
+            countQuery += ' AND taxTyCd IN ($placeholders)';
           }
 
           if (name != null && name.isNotEmpty) {

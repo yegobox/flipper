@@ -66,7 +66,7 @@ class DittoSingleton {
       );
 
       final persistenceDirectory = await DatabasePath.getDatabaseDirectory(
-        subDirectory: 'db1',
+        subDirectory: 'db2',
       );
       print('📂 Using persistence directory: $persistenceDirectory');
 
