@@ -359,7 +359,10 @@ mixin CapellaStockMixin implements StockInterface {
 
       final controller = StreamController<Stock?>.broadcast();
       dynamic observer;
-
+      ditto.sync.registerSubscription(
+        "SELECT * FROM stocks WHERE id = :id",
+        arguments: {'id': stockId},
+      );
       observer = ditto.store.registerObserver(
         'SELECT * FROM stocks WHERE id = :id',
         arguments: {'id': stockId},

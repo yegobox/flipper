@@ -5,7 +5,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sqflite_common/sqflite.dart';
 
 mixin DatabasePath {
-  static Future<String> getDatabaseDirectory() async {
+  static Future<String> getDatabaseDirectory({String? subDirectory}) async {
     if (isTestEnvironment()) {
       final testDir = Directory('.db');
       if (!await testDir.exists()) {
@@ -21,15 +21,15 @@ mixin DatabasePath {
     } else if (Platform.isWindows) {
       // Windows: Use AppData/Local/rw.flipper for database storage
       final supportDir = await getApplicationSupportDirectory();
-      dbPath = join(supportDir.path, 'rw.flipper');
+      dbPath = join(supportDir.path, 'rw.flipper', subDirectory ?? '');
     } else if (Platform.isMacOS || Platform.isIOS) {
       // macOS/iOS: Use Application Documents directory directly (no subdirectory)
       final supportDir = await getApplicationDocumentsDirectory();
-      dbPath = supportDir.path;
+      dbPath = join(supportDir.path, subDirectory ?? '');
     } else {
       // Linux and others: Use Application Documents with rw.flipper subdirectory
       final supportDir = await getApplicationDocumentsDirectory();
-      dbPath = join(supportDir.path, 'rw.flipper');
+      dbPath = join(supportDir.path, 'rw.flipper', subDirectory ?? '');
     }
 
     debugPrint('Database path: $dbPath');

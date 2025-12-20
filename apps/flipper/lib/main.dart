@@ -149,13 +149,13 @@ Future<void> main() async {
     appRunner: () => runApp(
       FutureBuilder(
         future: initializeApp().timeout(
-          const Duration(seconds: 30),
+          const Duration(seconds: 60),
           onTimeout: () {
-            debugPrint('❌ App initialization timed out after 30 seconds');
+            debugPrint('❌ App initialization timed out after 60 seconds');
 
             final exception = TimeoutException(
               'App initialization timed out',
-              const Duration(seconds: 30),
+              const Duration(seconds: 60),
             );
 
             // Report to telemetry (fire-and-forget)
@@ -165,7 +165,7 @@ Future<void> main() async {
                 stackTrace: StackTrace.current,
                 hint: Hint.withMap({
                   'context': 'App initialization timeout',
-                  'timeout_duration': '30 seconds',
+                  'timeout_duration': '60 seconds',
                 }),
               );
             } catch (e) {

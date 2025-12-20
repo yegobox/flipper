@@ -65,7 +65,9 @@ class DittoSingleton {
         enableDittoCloudSync: true,
       );
 
-      final persistenceDirectory = await DatabasePath.getDatabaseDirectory();
+      final persistenceDirectory = await DatabasePath.getDatabaseDirectory(
+        subDirectory: 'db1',
+      );
       print('📂 Using persistence directory: $persistenceDirectory');
 
       _ditto = await Ditto.open(

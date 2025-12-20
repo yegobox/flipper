@@ -79,6 +79,7 @@ mixin CapellaVariantMixin implements VariantInterface {
       /// a work around to first register to whole data instead of subset
       /// this is because after test on new device, it can't pull data using complex query
       /// there is open issue on ditto https://support.ditto.live/hc/en-us/requests/2648?page=1
+      ///
       ditto.sync.registerSubscription(
         "SELECT * FROM variants WHERE branchId = :branchId",
         arguments: {'branchId': branchId},
@@ -89,6 +90,7 @@ mixin CapellaVariantMixin implements VariantInterface {
       );
 
       /// end of workaround
+      ///
       await logService.logException(
         'Ditto instance available',
         type: 'business_fetch',

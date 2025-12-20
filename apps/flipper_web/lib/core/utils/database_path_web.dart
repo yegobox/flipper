@@ -1,5 +1,5 @@
 mixin DatabasePath {
-  static Future<String> getDatabaseDirectory() async {
+  static Future<String> getDatabaseDirectory({String? subDirectory}) async {
     // For web, we return a simple string which Ditto uses as an IndexedDB namespace/prefix
     return "flipper_db";
   }
