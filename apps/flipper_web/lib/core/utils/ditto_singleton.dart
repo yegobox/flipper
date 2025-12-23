@@ -1,7 +1,9 @@
 // ignore_for_file: avoid_print
 
 import 'dart:async';
+import 'dart:convert';
 import 'package:ditto_live/ditto_live.dart';
+import 'package:http/http.dart' as http;
 import 'database_path.dart';
 
 /// Singleton manager for Ditto instances to prevent file lock conflicts
@@ -58,11 +60,43 @@ class DittoSingleton {
     try {
       await Ditto.init();
 
-      final identity = OnlinePlaygroundIdentity(
+      final authHandler = AuthenticationHandler(
+        authenticationRequired: (authenticator) async {
+          // You can set your own auth webhook and set the URL with your provider name in the Ditto Portal.
+          const provider = "auth-provider-01";
+          const userID = "73268@flipper.rw";
+          final token = await YBAuthIdentity.generateJWT(
+            userID,
+            true,
+            appId: appId, // Use the actual app ID from the initialize method
+          );
+
+          final res = await authenticator.login(
+            token: token,
+            provider: provider,
+          );
+          print(res);
+        },
+        authenticationExpiringSoon: (authenticator, secondsRemaining) async {
+          const provider = "auth-provider-01";
+          const userID = "73268@flipper.rw";
+          final token = await YBAuthIdentity.generateJWT(
+            userID,
+            true,
+            appId: appId,
+          );
+
+          final res = await authenticator.login(
+            token: token,
+            provider: provider,
+          );
+          print(res);
+        },
+      );
+
+      final identity = OnlineWithAuthenticationIdentity(
         appID: appId,
-        token: token,
-        // customAuthUrl: "https://$appId.cloud.ditto.live",
-        enableDittoCloudSync: true,
+        authenticationHandler: authHandler,
       );
 
       final persistenceDirectory = await DatabasePath.getDatabaseDirectory(
@@ -84,6 +118,12 @@ class DittoSingleton {
       }
 
       try {
+        // Configure transports manually for the web/cloud sync
+        _ditto!.updateTransportConfig((config) {
+          // Note: this will not enable peer-to-peer sync on the web platform
+          config.setAllPeerToPeerEnabled(true);
+        });
+
         // Start sync to connect to Ditto cloud
         _ditto!.startSync();
 
@@ -125,6 +165,35 @@ class DittoSingleton {
     if (_instance != null) {
       await _instance!.dispose();
       _instance = null;
+    }
+  }
+}
+
+// This is just an example to return identities.
+// In your app, please use a real identity provider such as Auth0.
+class YBAuthIdentity {
+  static Future<String> generateJWT(
+    String userID,
+    bool isUserRegistered, {
+    required String appId,
+  }) async {
+    // Make API call to auth endpoint to get a valid JWT
+    // Using the local auth service endpoint that matches the Kotlin implementation
+    final url = Uri.parse('https://apihub.yegobox.com/v2/api/auth/ditto/login');
+
+    final response = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({'userId': userID, 'appId': appId}),
+    );
+
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      return data['token'] as String;
+    } else {
+      throw Exception(
+        'Failed to authenticate: ${response.statusCode} - ${response.body}',
+      );
     }
   }
 }
