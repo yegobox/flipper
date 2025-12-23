@@ -16,6 +16,8 @@ cd .. && cd flutter_slidable && git stash &&  git checkout dev  && git add .  &&
 
 cd .. && cd form_bloc    &&  git checkout master  && git add .  && git commit -am "clean-up" && git push origin master
 
+cd .. && cd brick    &&  git checkout main  && git add .  && git commit -am "clean-up" && git push origin main
+
 
 # cd ./android && ./gradlew :clean && cd ..
 # rm -rf ./build
