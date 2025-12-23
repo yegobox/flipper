@@ -350,17 +350,17 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     );
 
     try {
-      await _setDefaultBranch(branch);
-
-      // Save device being logged in
-      await _saveDeviceRecord();
-
       // Trigger Ditto authentication now that we have userId and branch
       final userId = ProxyService.box.getUserId();
       if (userId != null) {
         // await DittoSingleton.instance.logout();
         DittoSingleton.instance.setUserId(userId);
       }
+
+      await _setDefaultBranch(branch);
+
+      // Save device being logged in
+      await _saveDeviceRecord();
 
       // Ensure counters are hydrated now that the branch context is known.
       await DittoSyncCoordinator.instance.hydrate<Counter>();
