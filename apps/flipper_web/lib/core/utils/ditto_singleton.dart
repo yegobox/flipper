@@ -114,21 +114,24 @@ class DittoSingleton {
         identity: identity,
         persistenceDirectory: persistenceDirectory,
       );
+      print('✅ Ditto singleton initialized successfully');
 
       try {
+        print('Setting DQL_STRICT_MODE to false');
         await _ditto!.store.execute("ALTER SYSTEM SET DQL_STRICT_MODE = false");
       } catch (e) {
         print(
           '⚠️ Could not set DQL_STRICT_MODE: $e (this might be normal depending on Ditto version)',
         );
       }
-
+      print('Setting DQL_STRICT_MODE to false Done');
       try {
         // Configure transports manually for the web/cloud sync
         _ditto!.updateTransportConfig((config) {
           // Note: this will not enable peer-to-peer sync on the web platform
           config.setAllPeerToPeerEnabled(true);
         });
+        print('Configuring transports manually for the web/cloud sync Done');
 
         // Start sync to connect to Ditto cloud
         _ditto!.startSync();
