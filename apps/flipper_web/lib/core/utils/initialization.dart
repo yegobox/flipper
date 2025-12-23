@@ -30,7 +30,7 @@ Future<void> initializeSupabase() async {
 }
 
 /// Initializes Ditto with proper configuration for the Flipper app
-Future<void> initializeDitto() async {
+Future<void> initializeDitto({int? userId}) async {
   debugPrint('🔵 initializeDitto() called');
 
   final appID = kDebugMode ? AppSecrets.appIdDebug : AppSecrets.appId;
@@ -42,6 +42,7 @@ Future<void> initializeDitto() async {
   final ditto = await DittoSingleton.instance.initialize(
     appId: appID,
     token: token,
+    userId: userId,
   );
 
   debugPrint(

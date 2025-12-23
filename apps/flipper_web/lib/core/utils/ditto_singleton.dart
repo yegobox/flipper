@@ -3,6 +3,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:ditto_live/ditto_live.dart';
+import 'package:flipper_web/core/secrets.dart';
 import 'package:http/http.dart' as http;
 import 'database_path.dart';
 
@@ -11,12 +12,28 @@ class DittoSingleton {
   static DittoSingleton? _instance;
   static Ditto? _ditto;
   static bool _isInitializing = false;
+  static int? _userId;
+  static Completer<int> _userIdCompleter = Completer<int>();
 
   DittoSingleton._();
 
   static DittoSingleton get instance {
     _instance ??= DittoSingleton._();
     return _instance!;
+  }
+
+  /// Set user ID to unlock authentication
+  void setUserId(int userId) {
+    if (_userId == userId) return;
+    _userId = userId;
+    if (!_userIdCompleter.isCompleted) {
+      _userIdCompleter.complete(userId);
+    } else {
+      // If already completed but with a different ID, we might need a way to re-auth
+      // For now, just reset the completer if it was already completed
+      // (This might happen if a different user logs in without app restart)
+      _userIdCompleter = Completer<int>()..complete(userId);
+    }
   }
 
   /// Get existing Ditto instance or null if not initialized
@@ -39,7 +56,11 @@ class DittoSingleton {
   Future<Ditto?> initialize({
     required String appId,
     required String token,
+    int? userId,
   }) async {
+    if (userId != null) {
+      setUserId(userId);
+    }
     // Prevent multiple simultaneous initializations
     if (_isInitializing) {
       print('⏳ Ditto initialization already in progress, waiting...');
@@ -62,35 +83,32 @@ class DittoSingleton {
 
       final authHandler = AuthenticationHandler(
         authenticationRequired: (authenticator) async {
+          // Wait for userId if not yet provided
+          final activeUserId = await _userIdCompleter.future;
+
           // You can set your own auth webhook and set the URL with your provider name in the Ditto Portal.
           const provider = "auth-provider-01";
-          const userID = "73268@flipper.rw";
+          final userID = "$activeUserId@flipper.rw";
           final token = await YBAuthIdentity.generateJWT(
             userID,
             true,
             appId: appId, // Use the actual app ID from the initialize method
           );
 
-          final res = await authenticator.login(
-            token: token,
-            provider: provider,
-          );
-          print(res);
+          await authenticator.login(token: token, provider: provider);
         },
         authenticationExpiringSoon: (authenticator, secondsRemaining) async {
+          final activeUserId = await _userIdCompleter.future;
+
           const provider = "auth-provider-01";
-          const userID = "73268@flipper.rw";
+          final userID = "$activeUserId@flipper.rw";
           final token = await YBAuthIdentity.generateJWT(
             userID,
             true,
             appId: appId,
           );
 
-          final res = await authenticator.login(
-            token: token,
-            provider: provider,
-          );
-          print(res);
+          await authenticator.login(token: token, provider: provider);
         },
       );
 
@@ -167,6 +185,23 @@ class DittoSingleton {
       _instance = null;
     }
   }
+
+  /// Logout and stop sync
+  Future<void> logout() async {
+    if (_ditto != null) {
+      try {
+        print('🛑 Logging out from Ditto...');
+        _ditto!.stopSync();
+        _ditto!.auth.logout();
+        // Reset userId state
+        _userId = null;
+        _userIdCompleter = Completer<int>();
+        print('✅ Ditto logout complete');
+      } catch (e) {
+        print('❌ Error during Ditto logout: $e');
+      }
+    }
+  }
 }
 
 // This is just an example to return identities.
@@ -179,7 +214,9 @@ class YBAuthIdentity {
   }) async {
     // Make API call to auth endpoint to get a valid JWT
     // Using the local auth service endpoint that matches the Kotlin implementation
-    final url = Uri.parse('https://apihub.yegobox.com/v2/api/auth/ditto/login');
+    final url = Uri.parse(
+      '${AppSecrets.apihubProdDomain}/v2/api/auth/ditto/login',
+    );
 
     final response = await http.post(
       url,
