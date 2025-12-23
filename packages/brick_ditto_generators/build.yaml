@@ -1,0 +1,23 @@
+builders:
+  ditto_sync_adapter:
+    import: "package:brick_ditto_generators/ditto_sync_adapter_generator.dart"
+    builder_factories: ["dittoSyncAdapterBuilder"]
+    build_extensions: {".dart": [".ditto_sync_adapter.g.dart"]}
+    auto_apply: dependents
+    build_to: source
+  
+  ditto_registry_aggregator:
+    import: "package:brick_ditto_generators/ditto_registry_aggregator.dart"
+    builder_factories: ["dittoRegistryAggregatorBuilder"]
+    build_extensions: {"$lib$": ["sync/ditto_models_loader.g.dart"]}
+    auto_apply: dependents
+    build_to: source
+    runs_before: ["brick_ditto_generators|ditto_sync_adapter"]
+
+targets:
+  $default:
+    builders:
+      brick_ditto_generators|ditto_sync_adapter:
+        enabled: true
+        generate_for:
+          - lib/**/*.dart
