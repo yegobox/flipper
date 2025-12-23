@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import '../../../test_helpers/setup.dart';
+
 // flutter test test/features/kitchen_display/widgets/order_column_test.dart --dart-define=FLUTTER_TEST_ENV=true
 void main() {
   late TestEnvironment env;
@@ -24,6 +25,7 @@ void main() {
 
       mockOrders = [
         ITransaction(
+          agentId: 1,
           id: '1',
           branchId: 1,
           transactionNumber: 'ORD001',
@@ -40,6 +42,7 @@ void main() {
           createdAt: DateTime.now(),
         ),
         ITransaction(
+          agentId: 1,
           id: '2',
           branchId: 1,
           transactionNumber: 'ORD002',
@@ -200,7 +203,7 @@ void main() {
 
       final titleFinder = find.text('Red Column');
       expect(titleFinder, findsOneWidget);
-      
+
       final titleWidget = tester.widget<Text>(titleFinder);
       expect(titleWidget.style?.color, Colors.red);
     });
@@ -229,7 +232,7 @@ void main() {
 
     testWidgets('handles single order correctly', (tester) async {
       final singleOrder = [mockOrders.first];
-      
+
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
@@ -277,7 +280,9 @@ void main() {
       expect(container.constraints, const BoxConstraints(maxWidth: 300));
     });
 
-    testWidgets('handles text overflow with ellipsis for long titles', (tester) async {
+    testWidgets('handles text overflow with ellipsis for long titles', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
@@ -285,7 +290,8 @@ void main() {
               body: SizedBox(
                 width: 250,
                 child: OrderColumn(
-                  title: 'This is an extremely long title that should definitely overflow and show ellipsis',
+                  title:
+                      'This is an extremely long title that should definitely overflow and show ellipsis',
                   orders: [],
                   color: Colors.blue,
                   status: OrderStatus.incoming,
@@ -299,9 +305,11 @@ void main() {
 
       await tester.pump();
 
-      final titleFinder = find.text('This is an extremely long title that should definitely overflow and show ellipsis');
+      final titleFinder = find.text(
+        'This is an extremely long title that should definitely overflow and show ellipsis',
+      );
       expect(titleFinder, findsOneWidget);
-      
+
       final titleWidget = tester.widget<Text>(titleFinder);
       expect(titleWidget.overflow, TextOverflow.ellipsis);
     });

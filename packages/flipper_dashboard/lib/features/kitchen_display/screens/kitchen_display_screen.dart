@@ -18,29 +18,33 @@ class KitchenDisplayScreen extends ConsumerStatefulWidget {
 
 class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
   // Refactored: Use a single shared kitchenOrdersStreamProvider
-  static final kitchenOrdersStreamProvider =
-      StreamProvider<List<ITransaction>>((ref) {
+  static final kitchenOrdersStreamProvider = StreamProvider<List<ITransaction>>((
+    ref,
+  ) {
     // Create a single broadcast stream for each status (shared across all consumers)
     final parkedStream = ProxyService.strategy
         .transactionsStream(
-            status: PARKED,
-            removeAdjustmentTransactions: true,
-            skipOriginalTransactionCheck: true,
-            forceRealData: true)
+          status: PARKED,
+          removeAdjustmentTransactions: true,
+          skipOriginalTransactionCheck: true,
+          forceRealData: true,
+        )
         .asBroadcastStream();
     final inProgressStream = ProxyService.strategy
         .transactionsStream(
-            skipOriginalTransactionCheck: true,
-            status: IN_PROGRESS,
-            removeAdjustmentTransactions: true,
-            forceRealData: true)
+          skipOriginalTransactionCheck: true,
+          status: IN_PROGRESS,
+          removeAdjustmentTransactions: true,
+          forceRealData: true,
+        )
         .asBroadcastStream();
     final waitingStream = ProxyService.strategy
         .transactionsStream(
-            skipOriginalTransactionCheck: true,
-            status: WAITING,
-            removeAdjustmentTransactions: true,
-            forceRealData: true)
+          skipOriginalTransactionCheck: true,
+          status: WAITING,
+          removeAdjustmentTransactions: true,
+          forceRealData: true,
+        )
         .asBroadcastStream();
 
     // Instead of polling with Stream.periodic and .first, merge the streams and yield on any update
@@ -154,28 +158,31 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
   }
 
   void _handleOrderMoved(
-      ITransaction order, OrderStatus fromStatus, OrderStatus toStatus) async {
+    ITransaction order,
+    OrderStatus fromStatus,
+    OrderStatus toStatus,
+  ) async {
     // toStatus is now directly passed from the OrderColumn, representing the column where the order was dropped
 
     // Track order progress event
-    await PosthogService.instance
-        .capture('kitchen_order_status_changed', properties: {
-      'order_id': order.id,
-      'from_status': fromStatus.toString(),
-      'to_status': toStatus.toString(),
-      'is_loan': order.isLoan == true,
-      'business_id': ProxyService.box.getBusinessId()!,
-      'branch_id': ProxyService.box.getBranchId()!,
-      'timestamp': DateTime.now().toIso8601String(),
-      'source': 'kitchen_display',
-    });
+    await PosthogService.instance.capture(
+      'kitchen_order_status_changed',
+      properties: {
+        'order_id': order.id,
+        'from_status': fromStatus.toString(),
+        'to_status': toStatus.toString(),
+        'is_loan': order.isLoan == true,
+        'business_id': ProxyService.box.getBusinessId()!,
+        'branch_id': ProxyService.box.getBranchId()!,
+        'timestamp': DateTime.now().toIso8601String(),
+        'source': 'kitchen_display',
+      },
+    );
 
     // Update the UI immediately
-    ref.read(kitchenOrdersProvider.notifier).moveOrder(
-          order,
-          fromStatus,
-          toStatus,
-        );
+    ref
+        .read(kitchenOrdersProvider.notifier)
+        .moveOrder(order, fromStatus, toStatus);
 
     // Update the order status in the database
     try {
@@ -184,6 +191,7 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
 
       // Update the transaction properties using a new instance (do not mutate original)
       final updatedOrder = ITransaction(
+        agentId: order.agentId,
         id: order.id,
         ticketName: order.ticketName,
         categoryId: order.categoryId,
@@ -225,9 +233,9 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
         dueDate: (toStatus == OrderStatus.incoming && order.isLoan != true)
             ? null
             : (toStatus == OrderStatus.inProgress && order.isLoan != true
-                ? (order.dueDate ??
-                    DateTime.now().toUtc().add(const Duration(minutes: 30)))
-                : order.dueDate?.toUtc()),
+                  ? (order.dueDate ??
+                        DateTime.now().toUtc().add(const Duration(minutes: 30)))
+                  : order.dueDate?.toUtc()),
       );
 
       // Use the same approach as in transaction_mixin.dart to update the transaction
@@ -238,21 +246,23 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
       ref.invalidate(kitchenOrdersStreamProvider);
     } catch (e) {
       // Track error event
-      await PosthogService.instance
-          .capture('kitchen_order_status_change_failed', properties: {
-        'order_id': order.id,
-        'from_status': fromStatus.toString(),
-        'to_status': toStatus.toString(),
-        'error': e.toString(),
-        'source': 'kitchen_display',
-        'timestamp': DateTime.now().toIso8601String(),
-      });
+      await PosthogService.instance.capture(
+        'kitchen_order_status_change_failed',
+        properties: {
+          'order_id': order.id,
+          'from_status': fromStatus.toString(),
+          'to_status': toStatus.toString(),
+          'error': e.toString(),
+          'source': 'kitchen_display',
+          'timestamp': DateTime.now().toIso8601String(),
+        },
+      );
 
       // Show error if update fails
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Failed to update order: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to update order: $e')));
         // Revert the UI change since the database update failed
         ref.invalidate(kitchenOrdersStreamProvider);
       }

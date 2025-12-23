@@ -4,6 +4,7 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/sync/models/transaction_with_items.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_models/utils/test_data/dummy_transaction_generator.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:supabase_models/brick/models/sars.model.dart';
 import 'package:supabase_models/brick/repository.dart';
@@ -204,6 +205,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     }
 
     return ITransaction(
+      agentId: ProxyService.box.getUserId()!,
       id: data['_id'] ?? data['id'],
       reference: data['reference'],
       categoryId: data['categoryId'],

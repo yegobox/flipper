@@ -139,6 +139,7 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
   List<TransactionItem>? items;
 
   String? customerPhone;
+  int? agentId;
 
   ITransaction({
     this.ticketName,
@@ -201,6 +202,7 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
     num? discountAmount,
     this.items,
     this.customerPhone,
+    required this.agentId,
   })  : id = id ?? const Uuid().v4(),
         isLoan = isLoan ?? false,
         isAutoBilled = isAutoBilled ?? false,
@@ -350,6 +352,7 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
       items: items ?? this.items,
       customerPhone: customerPhone ?? this.customerPhone,
       ticketName: ticketName ?? this.ticketName,
+      agentId: agentId,
     );
   }
 }

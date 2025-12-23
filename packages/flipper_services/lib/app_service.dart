@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_web/core/utils/ditto_singleton.dart';
 import 'package:stacked/stacked.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -128,6 +129,10 @@ class AppService with ListenableServiceMixin {
       businessId: ProxyService.box.getBusinessId()!,
       active: true,
     );
+    final userId = ProxyService.box.getUserId();
+    if (userId != null) {
+      DittoSingleton.instance.setUserId(userId);
+    }
 
     bool hasMultipleBusinesses = businesses.length > 1;
     bool hasMultipleBranches = branches.length > 1;
@@ -151,26 +156,39 @@ class AppService with ListenableServiceMixin {
     }
 
     // After successful business/branch selection, check for active shift
-    final userId = ProxyService.box.getUserId();
+
     if (userId != null) {
-      final currentShift =
-          await ProxyService.strategy.getCurrentShift(userId: userId);
-      if (currentShift == null) {
-        // No active shift, show dialog to start one
-        final dialogService = locator<DialogService>();
-        final response = await dialogService.showCustomDialog(
-          variant: DialogType.startShift,
-          title: 'Start New Shift',
-        );
-        if (response?.confirmed != true) {
-          // User cancelled starting shift, prevent proceeding
-          throw Exception(
-              'Shift not started. Please start a shift to proceed.');
-        }
-      }
+      await checkAndStartShift(userId: userId);
     } else {
       // User ID is null, this should ideally not happen at this stage
       throw Exception('User not logged in. Cannot start shift.');
+    }
+  }
+
+  Future<void> checkAndStartShift({required int userId}) async {
+    final currentShift =
+        await ProxyService.strategy.getCurrentShift(userId: userId);
+    if (currentShift == null) {
+      // No active shift, show dialog to start one
+      final dialogService = locator<DialogService>();
+      final response = await dialogService.showCustomDialog(
+        variant: DialogType.startShift,
+        title: 'Start New Shift',
+      );
+      if (response?.confirmed != true) {
+        // User cancelled starting shift, prevent proceeding
+        throw Exception('Shift not started. Please start a shift to proceed.');
+      } else {
+        // Start the shift now that we have confirmation and data
+        final openingBalance =
+            response?.data['openingBalance'] as double? ?? 0.0;
+        final notes = response?.data['notes'] as String?;
+        await ProxyService.strategy.startShift(
+          userId: userId,
+          openingBalance: openingBalance,
+          note: notes,
+        );
+      }
     }
   }
 

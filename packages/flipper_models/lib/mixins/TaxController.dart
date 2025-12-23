@@ -530,6 +530,7 @@ class TaxController<OBJ> {
             receiptType == "TR" ||
             receiptType == "CS") {
           final newTransaction = ITransaction(
+            agentId: transaction.agentId,
             originalTransactionId: transaction.id,
             isOriginalTransaction: false,
             receiptNumber: highestInvcNo,

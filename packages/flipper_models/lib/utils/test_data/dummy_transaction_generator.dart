@@ -87,6 +87,7 @@ class DummyTransactionGenerator {
         'TRX-${_formatDate(now)}-${_faker.randomGenerator.integer(99999).toString().padLeft(5, '0')}';
 
     return ITransaction(
+      agentId: 1,
       id: transactionId,
       branchId: branchId,
       status: status ?? '01', // Default to '01' for completed status

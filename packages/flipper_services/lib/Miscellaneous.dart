@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flipper_web/core/utils/ditto_singleton.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
@@ -154,8 +155,9 @@ mixin CoreMiscellaneous implements CoreMiscellaneousInterface {
               "UPDATE events SET loggedOut = true WHERE userId = :userId",
               arguments: {"userId": ProxyService.box.getUserId()},
             );
+            await DittoSingleton.instance.logout();
             print(
-                'Marked Ditto events as logged out for user ${ProxyService.box.getUserId()}');
+                '✅ Marked Ditto events as logged out for user ${ProxyService.box.getUserId()}');
           } catch (e) {
             print('Error updating Ditto events on logout: $e');
           }

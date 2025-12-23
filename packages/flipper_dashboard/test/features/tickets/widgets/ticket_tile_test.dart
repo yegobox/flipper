@@ -2,6 +2,7 @@ import 'package:flipper_dashboard/features/tickets/widgets/ticket_tile.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+
 // flutter test test/features/tickets/widgets/ticket_tile_test.dart
 void main() {
   group('TicketTile Tests', () {
@@ -18,6 +19,7 @@ void main() {
       mockOnDelete = (ticket) => deletedTicket = ticket;
 
       mockTicket = ITransaction(
+        agentId: 1,
         id: 'ticket123',
         branchId: 1,
         transactionNumber: 'TKT001',
@@ -137,6 +139,7 @@ void main() {
 
     testWidgets('displays loan badge when ticket is loan', (tester) async {
       final loanTicket = ITransaction(
+        agentId: 1,
         id: 'loan123',
         branchId: 1,
         transactionNumber: 'LOAN001',
@@ -171,6 +174,7 @@ void main() {
 
     testWidgets('displays due date when present', (tester) async {
       final ticketWithDueDate = ITransaction(
+        agentId: 1,
         id: 'due123',
         branchId: 1,
         transactionNumber: 'DUE001',
@@ -207,6 +211,7 @@ void main() {
 
     testWidgets('handles null ticket name', (tester) async {
       final ticketWithoutName = ITransaction(
+        agentId: 1,
         id: 'noname123',
         branchId: 1,
         transactionNumber: 'NONAME001',
@@ -271,13 +276,14 @@ void main() {
 
       final card = tester.widget<Card>(find.byType(Card));
       expect(card.elevation, 2);
-      
+
       final shape = card.shape as RoundedRectangleBorder;
       expect(shape.borderRadius, BorderRadius.circular(8.0));
     });
 
     testWidgets('handles zero subtotal', (tester) async {
       final zeroSubtotalTicket = ITransaction(
+        agentId: 1,
         id: 'zero123',
         branchId: 1,
         transactionNumber: 'ZERO001',

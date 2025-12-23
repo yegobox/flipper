@@ -305,6 +305,7 @@ mixin TransactionMixin implements TransactionInterface {
       // Base query to find PENDING transactions matching the criteria
       final baseWhere = [
         Where('branchId').isExactly(branchId),
+        Where('agentId').isExactly(ProxyService.box.getUserId()!),
         Where('isExpense').isExactly(isExpense),
         Where('status').isExactly(status),
         Where('transactionType').isExactly(transactionType),
@@ -387,6 +388,7 @@ mixin TransactionMixin implements TransactionInterface {
         final randomRef = randomNumber().toString();
 
         final transaction = ITransaction(
+          agentId: ProxyService.box.getUserId()!,
           lastTouched: now,
           reference: randomRef,
           transactionNumber: randomRef,
@@ -504,6 +506,7 @@ mixin TransactionMixin implements TransactionInterface {
       final randomRef = randomNumber().toString();
 
       final newTransaction = ITransaction(
+        agentId: ProxyService.box.getUserId()!,
         lastTouched: now,
         reference: randomRef,
         transactionNumber: randomRef,

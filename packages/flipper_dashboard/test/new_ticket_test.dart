@@ -8,6 +8,7 @@ void main() {
 
     setUp(() {
       mockTransaction = ITransaction(
+        agentId: 1,
         id: 'test123',
         branchId: 1,
         transactionNumber: 'TXN001',
@@ -80,7 +81,9 @@ void main() {
                       children: [
                         Icon(Icons.event, color: Colors.blue, size: 20),
                         const SizedBox(width: 4),
-                        Text('Due: ${dueDate.toLocal().toString().split(' ')[0]}'),
+                        Text(
+                          'Due: ${dueDate.toLocal().toString().split(' ')[0]}',
+                        ),
                       ],
                     ),
                   ),

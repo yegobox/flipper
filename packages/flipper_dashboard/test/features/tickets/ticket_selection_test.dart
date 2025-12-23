@@ -51,6 +51,7 @@ void main() {
     test('selectAll should select all provided tickets', () {
       final tickets = [
         ITransaction(
+          agentId: 1,
           id: 'ticket1',
           branchId: 1,
           status: 'PARKED',
@@ -63,6 +64,7 @@ void main() {
           isExpense: false,
         ),
         ITransaction(
+          agentId: 1,
           id: 'ticket2',
           branchId: 1,
           status: 'PARKED',
@@ -75,6 +77,7 @@ void main() {
           isExpense: false,
         ),
         ITransaction(
+          agentId: 1,
           id: 'ticket3',
           branchId: 1,
           status: 'PARKED',
@@ -101,6 +104,7 @@ void main() {
     test('clearSelection should remove all selections', () {
       final tickets = [
         ITransaction(
+          agentId: 1,
           id: 'ticket1',
           branchId: 1,
           status: 'PARKED',
@@ -113,6 +117,7 @@ void main() {
           isExpense: false,
         ),
         ITransaction(
+          agentId: 1,
           id: 'ticket2',
           branchId: 1,
           status: 'PARKED',

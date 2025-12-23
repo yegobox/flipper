@@ -262,7 +262,7 @@ PODS:
     - CocoaAsyncSocket (~> 7.6)
     - Flutter
     - FlutterMacOS
-  - PostHog (3.36.1)
+  - PostHog (3.36.2)
   - posthog_flutter (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -520,7 +520,7 @@ SPEC CHECKSUMS:
   pasteboard: 9b69dba6fedbb04866be632205d532fe2f6b1d99
   path_provider_foundation: 0b743cbb62d8e47eab856f09262bb8c1ddcfe6ba
   patrol: 5a504c6012be7a84369231475ede1fce6e777268
-  PostHog: fbc0445010b52e3ed0268f86aab2104690e0e42f
+  PostHog: 43ba4f42cc8dda909b33033e9ba0a1f64a2a8eb2
   posthog_flutter: c7888a7df4a4eb0a6473c50da2e12520c33408c4
   printing: 1dd6a1fce2209ec240698e2439a4adbb9b427637
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47

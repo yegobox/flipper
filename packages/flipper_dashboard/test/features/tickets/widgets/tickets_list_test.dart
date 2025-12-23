@@ -7,6 +7,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mocktail/mocktail.dart';
 
 import '../../../test_helpers/setup.dart';
+
 // flutter test test/features/tickets/widgets/tickets_list_test.dart
 class TestTicketsListWidget extends ConsumerStatefulWidget {
   const TestTicketsListWidget({super.key});
@@ -20,9 +21,7 @@ class _TestTicketsListWidgetState extends ConsumerState<TestTicketsListWidget>
     with TicketsListMixin {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: buildTicketSection(context),
-    );
+    return Scaffold(body: buildTicketSection(context));
   }
 }
 
@@ -31,31 +30,32 @@ void main() {
 
   setUpAll(() {
     registerFallbackValue(DateTime.now());
-    registerFallbackValue(ITransaction(
-      branchId: 1,
-      status: 'test',
-      transactionType: 'test',
-      paymentType: 'test',
-      cashReceived: 0.0,
-      customerChangeDue: 0.0,
-      updatedAt: DateTime.now(),
-      isIncome: true,
-      isExpense: false,
-    ));
+    registerFallbackValue(
+      ITransaction(
+        agentId: 1,
+        branchId: 1,
+        status: 'test',
+        transactionType: 'test',
+        paymentType: 'test',
+        cashReceived: 0.0,
+        customerChangeDue: 0.0,
+        updatedAt: DateTime.now(),
+        isIncome: true,
+        isExpense: false,
+      ),
+    );
   });
 
   Widget buildTestWidget() {
     return ProviderScope(
-      child: MaterialApp(
-        home: const TestTicketsListWidget(),
-      ),
+      child: MaterialApp(home: const TestTicketsListWidget()),
     );
   }
 
   group('TicketsListMixin Tests', () {
-
     testWidgets('TicketCard shows correct information', (tester) async {
       final ticket = ITransaction(
+        agentId: 1,
         id: 'test123',
         branchId: 1,
         status: PARKED,
