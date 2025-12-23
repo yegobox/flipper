@@ -131,7 +131,9 @@ class AppService with ListenableServiceMixin {
     );
     final userId = ProxyService.box.getUserId();
     if (userId != null) {
+      print("Setting user id to $userId");
       DittoSingleton.instance.setUserId(userId);
+      print("User id set to ${userId}");
     }
 
     bool hasMultipleBusinesses = businesses.length > 1;

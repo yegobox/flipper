@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:ditto_live/ditto_live.dart';
 import 'package:flipper_web/core/secrets.dart';
+import 'package:flipper_web/core/utils/platform_web.dart';
 import 'package:http/http.dart' as http;
 import 'database_path.dart';
 
@@ -112,7 +113,7 @@ class DittoSingleton {
 
       _ditto = await Ditto.open(
         identity: identity,
-        persistenceDirectory: persistenceDirectory,
+        persistenceDirectory: isAndroid ? "ditto" : persistenceDirectory,
       );
       print('✅ Ditto singleton initialized successfully');
 
