@@ -59,7 +59,12 @@ Future<void> initializeDitto({int? userId}) async {
   }
 
   // Set device name
-  final platformTag = kIsWeb ? "Web" : "Mobile";
+  final platformTag = kIsWeb
+      ? "Web"
+      : (defaultTargetPlatform == TargetPlatform.android ||
+            defaultTargetPlatform == TargetPlatform.iOS)
+      ? "Mobile"
+      : "Desktop";
   final deviceId = DateTime.now().millisecondsSinceEpoch % 10000;
   ditto.deviceName = "Flipper_${platformTag}_$deviceId";
 
