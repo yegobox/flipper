@@ -335,7 +335,6 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     Branch branch,
     BuildContext context,
   ) async {
-    final scaffoldMessenger = ScaffoldMessenger.of(context);
     final platform = Theme.of(context).platform;
     final isMobile =
         platform == TargetPlatform.android || platform == TargetPlatform.iOS;
@@ -387,56 +386,12 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
             return; // Stop if no app is chosen
           }
         }
-
-        // Handle POS shift logic
-        if (defaultApp == 'POS') {
-          final userId = ProxyService.box.getUserId();
-          if (userId != null) {
-            final currentShift = await ProxyService.strategy.getCurrentShift(
-              userId: userId,
-            );
-            if (currentShift == null) {
-              final dialogService = locator<DialogService>();
-              final response = await dialogService.showCustomDialog(
-                variant: DialogType.startShift,
-                title: 'Start New Shift',
-              );
-              if (response?.confirmed == true) {
-                final openingBalance =
-                    response?.data['openingBalance'] as double? ?? 0.0;
-                final notes = response?.data['notes'] as String?;
-                await ProxyService.strategy.startShift(
-                  userId: userId,
-                  openingBalance: openingBalance,
-                  note: notes,
-                );
-                _completeAuthenticationFlow();
-              } else {
-                if (!mounted) return;
-                scaffoldMessenger.showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                      'Shift not started. Please start a shift to proceed.',
-                    ),
-                    backgroundColor: Colors.orange,
-                  ),
-                );
-                setState(() => _isLoading = false);
-                return;
-              }
-            } else {
-              _completeAuthenticationFlow();
-            }
-          } else {
-            _completeAuthenticationFlow();
-          }
-        } else {
-          // For other apps, complete flow directly
-          _completeAuthenticationFlow();
-        }
-      } else {
-        _completeAuthenticationFlow();
       }
+
+      if (userId != null) {
+        await ProxyService.app.checkAndStartShift(userId: userId);
+      }
+      _completeAuthenticationFlow();
     } catch (e) {
       talker.error('Error handling branch selection: $e');
       if (!mounted) return;

@@ -236,8 +236,6 @@ class DittoSingleton {
   }
 }
 
-// This is just an example to return identities.
-// In your app, please use a real identity provider such as Auth0.
 class YBAuthIdentity {
   static Future<String> generateJWT(
     String userID,
