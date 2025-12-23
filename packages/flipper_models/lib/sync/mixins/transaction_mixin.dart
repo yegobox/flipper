@@ -387,6 +387,7 @@ mixin TransactionMixin implements TransactionInterface {
         final randomRef = randomNumber().toString();
 
         final transaction = ITransaction(
+          agentId: ProxyService.box.getUserId()!,
           lastTouched: now,
           reference: randomRef,
           transactionNumber: randomRef,
@@ -504,6 +505,7 @@ mixin TransactionMixin implements TransactionInterface {
       final randomRef = randomNumber().toString();
 
       final newTransaction = ITransaction(
+        agentId: ProxyService.box.getUserId()!,
         lastTouched: now,
         reference: randomRef,
         transactionNumber: randomRef,

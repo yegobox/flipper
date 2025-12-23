@@ -2,11 +2,13 @@ import 'package:flipper_dashboard/features/tickets/widgets/tickets_list.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+
 // flutter test test/features/tickets/widgets/ticket_card_format_date_test.dart
 void main() {
   group('TicketCard _formatDate Tests', () {
     testWidgets('formats date correctly', (tester) async {
       final ticket = ITransaction(
+        agentId: 1,
         branchId: 1,
         status: 'test',
         transactionType: 'test',
@@ -36,10 +38,9 @@ void main() {
       expect(find.text('Created: 05/15 14:30'), findsOneWidget);
     });
 
-
-
     testWidgets('pads minutes correctly', (tester) async {
       final ticket = ITransaction(
+        agentId: 1,
         branchId: 1,
         status: 'test',
         transactionType: 'test',

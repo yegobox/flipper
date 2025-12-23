@@ -1,5 +1,5 @@
-// dart format width=80
 // GENERATED CODE - DO NOT MODIFY BY HAND
+// dart format width=80
 
 part of 'transaction.model.dart';
 
@@ -231,6 +231,7 @@ class ITransactionDittoAdapter extends DittoSyncAdapter<ITransaction> {
       "numberOfItems": model.numberOfItems,
       "discountAmount": model.discountAmount,
       "customerPhone": model.customerPhone,
+      "agentId": model.agentId,
     };
   }
 
@@ -326,6 +327,7 @@ class ITransactionDittoAdapter extends DittoSyncAdapter<ITransaction> {
       discountAmount: document["discountAmount"],
       items: null, // Excluded from Ditto sync
       customerPhone: document["customerPhone"],
+      agentId: document["agentId"],
     );
   }
 

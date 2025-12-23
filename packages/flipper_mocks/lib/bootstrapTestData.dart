@@ -13,6 +13,7 @@ class CreateMockdata {
     for (var i = 0; i < 1000; i++) {
       await ProxyService.strategy.create<ITransaction>(
         data: ITransaction(
+          agentId: 1,
           lastTouched: DateTime(2023, 10, 28),
           supplierId: 1,
           reference: "2333",

@@ -25,23 +25,19 @@ dependencies:
   sqflite_common_ffi_web: ^1.0.1+1
   flipper_models: any
   flipper_services: any
-  # sqlite3_web: '>=0.2.1 <0.4.0'
   sqlite3: ^3.1.1
-  # never use realm for real data, we use realm as cache layer on whatever we aim to have real time update
-  # e.g querying variant come with stock but refreshing this stock might be time consuming or not effient
-  # realm: ^20.1.1
   ditto_live: ^4.14.0
   flipper_web: any
   brick_ditto_generators: any
 dependency_overrides:
   device_info_plus: ^12.3.0
   sqlite3: ^3.1.1
-  # sqlite3_web: '>=0.2.1 <0.4.0'
   archive: ^3.6.1
   excel: ^4.0.6
   cbor: ^6.3.7
   jni: ^0.14.2
   meta: ^1.16.0
+  source_gen: ">=3.0.0 <5.0.0"
 
 
 flutter:
@@ -54,4 +50,4 @@ dev_dependencies:
   brick_sqlite_generators: ^4.0.0
   brick_offline_first_with_supabase_build: ^2.0.0
   build_runner: ^2.4.15
-  # realm_generator: ^20.2.0
+  source_gen: ">=3.0.0 <5.0.0"
