@@ -305,6 +305,7 @@ mixin TransactionMixin implements TransactionInterface {
       // Base query to find PENDING transactions matching the criteria
       final baseWhere = [
         Where('branchId').isExactly(branchId),
+        Where('agentId').isExactly(ProxyService.box.getUserId()!),
         Where('isExpense').isExactly(isExpense),
         Where('status').isExactly(status),
         Where('transactionType').isExactly(transactionType),

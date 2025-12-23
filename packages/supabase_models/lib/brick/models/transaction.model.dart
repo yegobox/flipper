@@ -139,7 +139,7 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
   List<TransactionItem>? items;
 
   String? customerPhone;
-  int agentId;
+  int? agentId;
 
   ITransaction({
     this.ticketName,

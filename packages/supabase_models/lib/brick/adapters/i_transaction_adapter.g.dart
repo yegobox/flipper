@@ -172,7 +172,7 @@ Future<ITransaction> _$ITransactionFromSupabase(
     customerPhone: data['customer_phone'] == null
         ? null
         : data['customer_phone'] as String?,
-    agentId: data['agent_id'] as int,
+    agentId: data['agent_id'] == null ? null : data['agent_id'] as int?,
   );
 }
 
@@ -428,7 +428,7 @@ Future<ITransaction> _$ITransactionFromSqlite(
     customerPhone: data['customer_phone'] == null
         ? null
         : data['customer_phone'] as String?,
-    agentId: data['agent_id'] as int,
+    agentId: data['agent_id'] == null ? null : data['agent_id'] as int?,
   )..primaryKey = data['_brick_id'] as int;
 }
 
