@@ -23,8 +23,6 @@ import 'package:flipper_dashboard/utils/error_handler.dart';
 import 'package:flipper_models/providers/branch_business_provider.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
-import 'package:flipper_web/core/utils/ditto_singleton.dart';
-// Import for payment plan route is already available from app.router.dart
 // ignore: unnecessary_import
 
 final selectedBusinessIdProvider = StateProvider<int?>((ref) => null);
@@ -349,12 +347,10 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     );
 
     try {
-      // Trigger Ditto authentication now that we have userId and branch
+      // Initialization is now handled centrally in AppService.appInit
+      // which is called when navigating to the main app or starting up.
+      // Removed manual setUserId/logout here.
       final userId = ProxyService.box.getUserId();
-      if (userId != null) {
-        // await DittoSingleton.instance.logout();
-        DittoSingleton.instance.setUserId(userId);
-      }
 
       await _setDefaultBranch(branch);
 

@@ -10,6 +10,8 @@ import 'package:flipper_routing/app.dialogs.dart';
 import 'proxy.dart';
 // import 'package:flipper_nfc/flipper_nfc.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:flipper_web/core/secrets.dart';
 
 const socialApp = "socials";
 
@@ -132,8 +134,18 @@ class AppService with ListenableServiceMixin {
     final userId = ProxyService.box.getUserId();
     if (userId != null) {
       print("Setting user id to $userId");
-      DittoSingleton.instance.setUserId(userId);
-      print("User id set to ${userId}");
+
+      // Initialize Ditto with the authenticated user ID
+      final appID = kDebugMode ? AppSecrets.appIdDebug : AppSecrets.appId;
+      final token =
+          kDebugMode ? AppSecrets.appTokenDebug : AppSecrets.appTokenProd;
+
+      await DittoSingleton.instance.initialize(
+        appId: appID,
+        token: token,
+        userId: userId,
+      );
+      print("User id set to ${userId} and Ditto initialized");
     }
 
     bool hasMultipleBusinesses = businesses.length > 1;

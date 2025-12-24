@@ -23,7 +23,7 @@ import 'firebase_options.dart';
 import 'package:flipper_models/power_sync/supabase.dart';
 import 'package:flipper_services/GlobalLogError.dart';
 // Flag to control dependency initialization in tests
-import 'package:flipper_web/core/utils/initialization.dart';
+// import 'package:flipper_web/core/utils/initialization.dart';
 import 'package:supabase_models/sync/ditto_sync_registry.dart';
 
 import 'package:ditto_live/ditto_live.dart';
@@ -57,7 +57,7 @@ Future<void> _initializeSupabase() async {
   try {
     await loadSupabase();
 
-    await initializeDitto();
+    // await initializeDitto(); // Initialization moved to AppService
   } catch (e) {
     // talker.info('Supabase initialization error: $e');
   }
