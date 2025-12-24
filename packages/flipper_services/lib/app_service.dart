@@ -137,12 +137,9 @@ class AppService with ListenableServiceMixin {
 
       // Initialize Ditto with the authenticated user ID
       final appID = kDebugMode ? AppSecrets.appIdDebug : AppSecrets.appId;
-      final token =
-          kDebugMode ? AppSecrets.appTokenDebug : AppSecrets.appTokenProd;
 
       await DittoSingleton.instance.initialize(
         appId: appID,
-        token: token,
         userId: userId,
       );
       print("User id set to ${userId} and Ditto initialized");

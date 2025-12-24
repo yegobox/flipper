@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:ditto_live/ditto_live.dart';
 import 'package:flipper_web/core/secrets.dart';
+// import 'package:flipper_web/core/utils/platform.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:http/http.dart' as http;
 import 'database_path.dart';
@@ -42,9 +43,9 @@ class DittoSingleton {
   /// Initialize Ditto with proper singleton handling
   Future<Ditto?> initialize({
     required String appId,
-    required String token,
     required int userId,
   }) async {
+    print('Initializing Ditto...');
     // Detect user mismatch and force logout/reset to prevent silent user swaps
     // If a non-null userId is passed that differs from the currently stored _userId,
     // we perform a logout and set _ditto to null to force a fresh initialization.
@@ -75,7 +76,9 @@ class DittoSingleton {
     _initCompleter = Completer<Ditto?>();
 
     try {
+      print('Initializing Ditto...');
       await Ditto.init();
+      print('Initializing Ditto Done');
 
       final authHandler = AuthenticationHandler(
         authenticationRequired: (authenticator) =>
@@ -83,12 +86,13 @@ class DittoSingleton {
         authenticationExpiringSoon: (authenticator, secondsRemaining) =>
             _performAuthentication(authenticator, appId),
       );
+      print('Initializing AuthenticationHandler Done');
 
       final identity = OnlineWithAuthenticationIdentity(
         appID: appId,
         authenticationHandler: authHandler,
       );
-
+      print('Initializing OnlineWithAuthenticationIdentity Done');
       final persistenceDirectory = await DatabasePath.getDatabaseDirectory(
         subDirectory: 'db2',
       );
@@ -97,7 +101,7 @@ class DittoSingleton {
       _ditto = await Ditto.open(
         identity: identity,
         persistenceDirectory: persistenceDirectory,
-      ).timeout(const Duration(seconds: 10));
+      );
       print('✅ Ditto singleton initialized successfully');
 
       try {

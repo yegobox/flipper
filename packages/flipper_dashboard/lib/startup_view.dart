@@ -20,7 +20,9 @@ class _StartUpViewState extends State<StartUpView> {
     return ViewModelBuilder<StartupViewModel>.reactive(
       viewModelBuilder: () => StartupViewModel(),
       onViewModelReady: (viewModel) {
-        SchedulerBinding.instance.addPostFrameCallback((timeStamp) async {
+        print("here11!");
+        // Use a delayed call to ensure the widget is fully built
+        WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
           await viewModel.runStartupLogic();
         });
       },
@@ -67,7 +69,8 @@ class _StartUpViewState extends State<StartUpView> {
                         height: 20,
                         child: CircularProgressIndicator(
                           valueColor: AlwaysStoppedAnimation<Color>(
-                              Colors.black.withValues(alpha: 0.7)),
+                            Colors.black.withValues(alpha: 0.7),
+                          ),
                           strokeWidth: 3,
                           backgroundColor: Colors.grey.shade300,
                         ),

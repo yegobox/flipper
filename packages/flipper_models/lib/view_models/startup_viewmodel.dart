@@ -43,7 +43,7 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
   Future<void> runStartupLogic() async {
     // await logOut();
     try {
-      debugPrint('🚀 [StartupViewModel] Starting runStartupLogic...');
+      print('🚀 [StartupViewModel] Starting runStartupLogic...');
       final startTime = DateTime.now();
 
       final forceLogout = ProxyService.box.getForceLogout();
@@ -58,13 +58,13 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       talker.warning("StartupViewModel runStartupLogic");
       // ------------------------------------------------------
 
-      debugPrint('⏳ [StartupViewModel] Checking requirements...');
+      print('⏳ [StartupViewModel] Checking requirements...');
       // Ensure db is initialized before proceeding.
       await _allRequirementsMeets();
-      debugPrint(
+      print(
           '✅ [StartupViewModel] Requirements met (${DateTime.now().difference(startTime).inMilliseconds}ms)');
 
-      debugPrint('⏳ [StartupViewModel] Initializing app components...');
+      print('⏳ [StartupViewModel] Initializing app components...');
       // Ensure admin access for API/onboarded users
       AppInitializer.initialize();
 
@@ -75,10 +75,10 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       AssetSyncService().initialize();
 
       ProxyService.strategy.cleanDuplicatePlans();
-      debugPrint(
+      print(
           '✅ [StartupViewModel] App components initialized (${DateTime.now().difference(startTime).inMilliseconds}ms)');
 
-      debugPrint('⏳ [StartupViewModel] Setting up payment verification...');
+      print('⏳ [StartupViewModel] Setting up payment verification...');
       // Set up payment verification callback and start periodic verification
       _paymentVerificationService
           .setPaymentStatusChangeCallback(_handlePaymentStatusChange);
@@ -87,23 +87,23 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
 
       // Start periodic internet connection check (check every 6 hours)
       _internetConnectionService.startPeriodicConnectionCheck();
-      debugPrint(
+      print(
           '✅ [StartupViewModel] Payment verification setup complete (${DateTime.now().difference(startTime).inMilliseconds}ms)');
 
       /// listen all database change and replicate them in sync db.
       // ProxyService.backUp.listen();
-      debugPrint('⏳ [StartupViewModel] Running appService.appInit()...');
+      print('⏳ [StartupViewModel] Running appService.appInit()...');
       await appService.appInit();
-      debugPrint(
+      print(
           '✅ [StartupViewModel] appService.appInit() complete (${DateTime.now().difference(startTime).inMilliseconds}ms)');
 
       // Check payment status before navigating to main app
-      debugPrint('⏳ [StartupViewModel] Verifying payment status...');
+      print('⏳ [StartupViewModel] Verifying payment status...');
       await _handleInitialPaymentVerification();
-      debugPrint(
+      print(
           '✅ [StartupViewModel] Payment verification complete (${DateTime.now().difference(startTime).inMilliseconds}ms)');
 
-      debugPrint(
+      print(
           '🎉 [StartupViewModel] runStartupLogic completed in ${DateTime.now().difference(startTime).inMilliseconds}ms');
     } catch (e, stackTrace) {
       talker.info("StartupViewModel ${e}");
