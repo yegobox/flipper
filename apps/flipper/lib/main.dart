@@ -39,7 +39,7 @@ Future<void> _initializeFirebase() async {
         Permission.bluetoothConnect,
         Permission.bluetoothAdvertise,
         Permission.nearbyWifiDevices,
-        Permission.bluetoothScan
+        Permission.notification,
       ].request();
     }
     // Don't use microtask for Firebase as critical services depend on it

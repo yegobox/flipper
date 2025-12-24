@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flipper_models/helperModels/branch.dart';
 import 'package:flipper_models/helperModels/business.dart';
@@ -23,6 +24,8 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:flipper_models/ebm_helper.dart';
+import 'package:flipper_web/core/secrets.dart';
+import 'package:flipper_web/core/utils/ditto_singleton.dart';
 
 mixin AuthMixin implements AuthInterface {
   String get apihub;
@@ -321,8 +324,8 @@ mixin AuthMixin implements AuthInterface {
 
       // Make PIN patching non-blocking for the login flow
       try {
-        await _patchPin(user.id!, flipperHttpClient, apihub,
-            ownerName: user.tenants.first.name!);
+        unawaited(_patchPin(user.id!, flipperHttpClient, apihub,
+            ownerName: user.tenants.first.name!));
       } catch (e) {
         // Log the error but don't block login
         talker.warning("Failed to patch PIN, but continuing login: $e");
@@ -330,6 +333,20 @@ mixin AuthMixin implements AuthInterface {
       }
 
       ProxyService.box.writeInt(key: 'userId', value: user.id!);
+
+      // Initialize Ditto with the authenticated user ID
+      final appID =
+          foundation.kDebugMode ? AppSecrets.appIdDebug : AppSecrets.appId;
+      final token = foundation.kDebugMode
+          ? AppSecrets.appTokenDebug
+          : AppSecrets.appTokenProd;
+
+      await DittoSingleton.instance.initialize(
+        appId: appID,
+        token: token,
+        userId: user.id!,
+      );
+      print("User id set to ${user.id} and Ditto initialized");
 
       // Only perform Firebase login if not already logged in
       if (currentUser == null || currentUser.uid != user.uid) {

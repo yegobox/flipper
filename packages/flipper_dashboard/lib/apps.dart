@@ -42,7 +42,7 @@ class _AppsState extends ConsumerState<Apps> {
     "Today",
     "This Week",
     "This Month",
-    "This Year"
+    "This Year",
   ];
 
   String profitType = "Net Profit";
@@ -77,9 +77,7 @@ class _AppsState extends ConsumerState<Apps> {
                   child: Column(
                     children: [
                       _buildGauge(context, ref),
-                      AppIconsGrid(
-                        isBigScreen: widget.isBigScreen,
-                      ),
+                      AppIconsGrid(isBigScreen: widget.isBigScreen),
                       const SizedBox(height: 24),
                       _buildFooter(),
                       const SizedBox(height: 16),
@@ -208,12 +206,18 @@ class _AppsState extends ConsumerState<Apps> {
 
     return transactionsData.when(
       data: (value) {
-        final filteredTransactions =
-            _filterTransactionsByPeriod(value, transactionPeriod);
-        final cashIn =
-            _calculateCashIn(filteredTransactions, transactionPeriod);
-        final cashOut =
-            _calculateCashOut(filteredTransactions, transactionPeriod);
+        final filteredTransactions = _filterTransactionsByPeriod(
+          value,
+          transactionPeriod,
+        );
+        final cashIn = _calculateCashIn(
+          filteredTransactions,
+          transactionPeriod,
+        );
+        final cashOut = _calculateCashOut(
+          filteredTransactions,
+          transactionPeriod,
+        );
 
         return SemiCircleGauge(
           dataOnGreenSide: cashIn,
@@ -225,14 +229,12 @@ class _AppsState extends ConsumerState<Apps> {
       },
       error: (err, stack) {
         log('error: $err stack: $stack');
-        return const Center(
-          child: Padding(
-            padding: EdgeInsets.all(16.0),
-            child: Text(
-              'An error occurred while loading data',
-              style: TextStyle(color: Colors.red),
-            ),
-          ),
+        return SemiCircleGauge(
+          dataOnGreenSide: 0,
+          dataOnRedSide: 0,
+          startPadding: 0.0,
+          profitType: profitType,
+          areValueColumnsVisible: true,
         );
       },
       loading: () => const Center(
@@ -245,13 +247,17 @@ class _AppsState extends ConsumerState<Apps> {
   }
 
   List<ITransaction> _filterTransactionsByPeriod(
-      List<ITransaction> transactions, String period) {
+    List<ITransaction> transactions,
+    String period,
+  ) {
     log(transactions.length.toString(), name: 'render transactions on gauge');
     DateTime startingDate = _calculateStartingDate(transactionPeriod);
     return transactions
-        .where((transaction) =>
-            transaction.createdAt!.isAfter(startingDate) ||
-            transaction.createdAt!.isAtSameMomentAs(startingDate))
+        .where(
+          (transaction) =>
+              transaction.createdAt!.isAfter(startingDate) ||
+              transaction.createdAt!.isAtSameMomentAs(startingDate),
+        )
         .toList();
   }
 
@@ -261,8 +267,11 @@ class _AppsState extends ConsumerState<Apps> {
       return DateTime.utc(now.year, now.month, now.day);
     } else if (transactionPeriod == 'This Week') {
       final weekday = now.weekday; // 1 (Mon) - 7 (Sun)
-      return DateTime.utc(now.year, now.month, now.day)
-          .subtract(Duration(days: weekday - 1));
+      return DateTime.utc(
+        now.year,
+        now.month,
+        now.day,
+      ).subtract(Duration(days: weekday - 1));
     } else if (transactionPeriod == 'This Month') {
       return DateTime.utc(now.year, now.month, 1);
     } else {

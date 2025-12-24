@@ -24,10 +24,13 @@ class MyDrawer extends ConsumerStatefulWidget {
 class _MyDrawerState extends ConsumerState<MyDrawer> {
   String? _switchingBranchId;
   bool userLoggingEnabled = false;
+  bool backgroundSyncEnabled = false;
   @override
   void initState() {
     super.initState();
     userLoggingEnabled = ProxyService.box.getUserLoggingEnabled() ?? false;
+    backgroundSyncEnabled =
+        ProxyService.box.readBool(key: 'background_sync_enabled') ?? false;
   }
 
   @override
@@ -385,6 +388,28 @@ class _MyDrawerState extends ConsumerState<MyDrawer> {
               setState(() {
                 userLoggingEnabled = value;
               });
+            },
+          ),
+          const SizedBox(height: 12),
+          _ModernSwitchMenuItem(
+            icon: Icons.sync_lock_rounded,
+            title: 'Background Sync',
+            color: const Color(0xFF0078D4),
+            value: backgroundSyncEnabled,
+            onChanged: (value) async {
+              await ProxyService.box.writeBool(
+                key: 'background_sync_enabled',
+                value: value,
+              );
+              setState(() {
+                backgroundSyncEnabled = value;
+              });
+              if (value) {
+                await ProxyService.notification.sendLocalNotification(
+                  body:
+                      "Background syncing is enabled. You can disable it again in the drawer.",
+                );
+              }
             },
           ),
           const SizedBox(height: 12),

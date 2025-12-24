@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:ditto_live/ditto_live.dart';
 import 'package:flipper_web/core/secrets.dart';
+import 'package:flipper_web/services/ditto_service.dart';
 import 'package:http/http.dart' as http;
 import 'database_path.dart';
 
@@ -118,6 +119,8 @@ class DittoSingleton {
 
         // Start sync to connect to Ditto cloud
         _ditto!.startSync();
+
+        DittoService().setDitto(_ditto!);
 
         print("is sync active: ${_ditto!.isSyncActive}");
         print("auth status: ${_ditto!.auth.status}");
