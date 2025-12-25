@@ -398,7 +398,7 @@ class _MyDrawerState extends ConsumerState<MyDrawer> {
           const SizedBox(height: 12),
           _ModernSwitchMenuItem(
             icon: Icons.sync_lock_rounded,
-            title: 'V3',
+            title: 'Background Sync',
             color: const Color(0xFF0078D4),
             value: backgroundSyncEnabled,
             onChanged: (value) async {
@@ -421,7 +421,8 @@ class _MyDrawerState extends ConsumerState<MyDrawer> {
                     userId: userId,
                   );
                   await ProxyService.notification.sendLocalNotification(
-                    body: "hahah $userId",
+                    body:
+                        "Background Sync Enabled, to disable it, go to settings and disable it",
                   );
                 }
               }

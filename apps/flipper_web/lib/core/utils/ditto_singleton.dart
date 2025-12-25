@@ -1,10 +1,10 @@
 // ignore_for_file: avoid_print
-
 import 'dart:async';
 import 'dart:convert';
 import 'package:ditto_live/ditto_live.dart';
 import 'package:flipper_web/core/secrets.dart';
-// import 'package:flipper_web/core/utils/platform.dart';
+import 'package:flipper_web/core/utils/platform.dart';
+import 'package:flipper_web/core/utils/platform_utils.dart.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:http/http.dart' as http;
 import 'database_path.dart';
@@ -132,6 +132,10 @@ class DittoSingleton {
         print('Configuring transports manually for the web/cloud sync Done');
 
         // Start sync to connect to Ditto cloud
+
+        final userName = platformUserName;
+        final platform = getPlatformName();
+        _ditto!.deviceName = '$userName-$platform-$userId';
         _ditto!.startSync();
 
         DittoService().setDitto(_ditto!);
