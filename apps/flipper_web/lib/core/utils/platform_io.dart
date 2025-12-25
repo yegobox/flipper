@@ -9,3 +9,4 @@ bool get isMacOS => Platform.isMacOS;
 bool get isLinux => Platform.isLinux;
 bool get isWeb => Platform.isFuchsia;
 String get platformUserName => Platform.environment['USER'] ?? 'Unknown';
+bool get isIOS => Platform.isIOS;
