@@ -20,6 +20,7 @@ class DittoSingleton {
   DittoSingleton._();
 
   static DittoSingleton get instance {
+    print('📦 Accessing DittoSingleton instance');
     _instance ??= DittoSingleton._();
     return _instance!;
   }
@@ -46,6 +47,10 @@ class DittoSingleton {
     required int userId,
   }) async {
     print('Initializing Ditto...');
+    if (appId.isEmpty) {
+      print('❌ Ditto initialization failed: appId is empty');
+      return null;
+    }
     // Detect user mismatch and force logout/reset to prevent silent user swaps
     // If a non-null userId is passed that differs from the currently stored _userId,
     // we perform a logout and set _ditto to null to force a fresh initialization.
@@ -97,6 +102,11 @@ class DittoSingleton {
         subDirectory: 'db2',
       );
       print('📂 Using persistence directory: $persistenceDirectory');
+
+      if (persistenceDirectory.isEmpty) {
+        print('❌ Ditto initialization failed: persistenceDirectory is empty');
+        return null;
+      }
       // isAndroid ? "ditto" :
       _ditto = await Ditto.open(
         identity: identity,

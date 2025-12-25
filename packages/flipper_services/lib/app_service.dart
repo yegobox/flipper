@@ -116,6 +116,7 @@ class AppService with ListenableServiceMixin {
   /// check the default business/branch
   /// set the env the current user is operating in.
   Future<void> appInit() async {
+    print("App init");
     // Check if this is a fresh signup - always show login choices
     bool isFreshSignup = ProxyService.box.readBool(key: 'freshSignup') ?? false;
     if (isFreshSignup) {
@@ -132,6 +133,7 @@ class AppService with ListenableServiceMixin {
       active: true,
     );
     final userId = ProxyService.box.getUserId();
+    print("User id is $userId");
     if (userId != null) {
       print("Setting user id to $userId");
 

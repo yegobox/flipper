@@ -1,14 +1,19 @@
 import 'package:flipper_models/providers/branch_business_provider.dart';
 import 'package:flipper_models/providers/ebm_provider.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
+import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
-import 'package:flipper_routing/app.dialogs.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'dart:async';
+import 'package:flipper_web/core/utils/ditto_singleton.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper_routing/app.dialogs.dart';
+// import 'package:flipper_nfc/flipper_nfc.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_dashboard/mfa_setup_view.dart';
 import 'package:flipper_dashboard/utils/snack_bar_utils.dart';
@@ -393,7 +398,7 @@ class _MyDrawerState extends ConsumerState<MyDrawer> {
           const SizedBox(height: 12),
           _ModernSwitchMenuItem(
             icon: Icons.sync_lock_rounded,
-            title: 'Background Sync',
+            title: 'V3',
             color: const Color(0xFF0078D4),
             value: backgroundSyncEnabled,
             onChanged: (value) async {
@@ -405,10 +410,20 @@ class _MyDrawerState extends ConsumerState<MyDrawer> {
                 backgroundSyncEnabled = value;
               });
               if (value) {
-                await ProxyService.notification.sendLocalNotification(
-                  body:
-                      "Background syncing is enabled. You can disable it again in the drawer.",
-                );
+                final appID = kDebugMode
+                    ? AppSecrets.appIdDebug
+                    : AppSecrets.appId;
+
+                final userId = ProxyService.box.getUserId();
+                if (userId != null && appID.isNotEmpty) {
+                  await DittoSingleton.instance.initialize(
+                    appId: appID,
+                    userId: userId,
+                  );
+                  await ProxyService.notification.sendLocalNotification(
+                    body: "hahah $userId",
+                  );
+                }
               }
             },
           ),
