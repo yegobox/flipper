@@ -34,6 +34,7 @@ final dashboardTransactionsProvider = StreamProvider<List<ITransaction>>((ref) {
   );
 });
 
+
 @riverpod
 Stream<List<ITransaction>> transactionList(
   Ref ref, {

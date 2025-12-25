@@ -59,7 +59,10 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       final List<String> whereClauses = [];
       final Map<String, dynamic> arguments = {};
 
-      // Status filter - conditional based on includePending
+      // Add agentId filter
+      final agentId = ProxyService.box.getUserId()!;
+      whereClauses.add('agentId = :agentId');
+      arguments['agentId'] = agentId;
       if (includePending) {
         // Include both COMPLETE and PENDING statuses
         whereClauses.add('(status = :status OR status = :pendingStatus)');

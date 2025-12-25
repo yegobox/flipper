@@ -203,9 +203,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
 
   Future<int> sendReport({required List<TransactionItem> transactionItems});
 
-  Future<TransactionItem?> getTransactionItem(
-      {required String variantId, String? transactionId});
-
   Future<void> saveDiscount(
       {required int branchId, required name, double? amount});
 

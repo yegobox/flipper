@@ -18,6 +18,9 @@ abstract class TransactionItemInterface {
     TransactionItem? item,
     required bool ignoreForReport,
   });
+
+  Future<TransactionItem?> getTransactionItem(
+      {required String variantId, String? transactionId});
   FutureOr<List<TransactionItem>> transactionItems({
     String? transactionId,
     bool? doneWithTransaction,

@@ -7,6 +7,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.dialogs.dart';
+import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
 import 'proxy.dart';
 // import 'package:flipper_nfc/flipper_nfc.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -144,6 +145,7 @@ class AppService with ListenableServiceMixin {
         appId: appID,
         userId: userId,
       );
+      DittoSyncCoordinator.instance.setDitto(DittoSingleton.instance.ditto);
       print("User id set to ${userId} and Ditto initialized");
     }
 

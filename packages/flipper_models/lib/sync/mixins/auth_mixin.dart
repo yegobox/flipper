@@ -26,6 +26,7 @@ import 'package:sentry_flutter/sentry_flutter.dart';
 import 'package:flipper_models/ebm_helper.dart';
 import 'package:flipper_web/core/secrets.dart';
 import 'package:flipper_web/core/utils/ditto_singleton.dart';
+import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
 
 mixin AuthMixin implements AuthInterface {
   String get apihub;
@@ -342,6 +343,7 @@ mixin AuthMixin implements AuthInterface {
         appId: appID,
         userId: user.id!,
       );
+      DittoSyncCoordinator.instance.setDitto(DittoSingleton.instance.ditto);
       print("Ditto initialized");
 
       // Only perform Firebase login if not already logged in

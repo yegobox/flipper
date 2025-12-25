@@ -18,6 +18,7 @@ import 'package:flipper_services/app_service.dart';
 import 'package:flipper_dashboard/mfa_setup_view.dart';
 import 'package:flipper_dashboard/utils/snack_bar_utils.dart';
 import 'package:flipper_models/providers/device_provider.dart';
+import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
 
 class MyDrawer extends ConsumerStatefulWidget {
   const MyDrawer({Key? key}) : super(key: key);
@@ -419,6 +420,9 @@ class _MyDrawerState extends ConsumerState<MyDrawer> {
                   await DittoSingleton.instance.initialize(
                     appId: appID,
                     userId: userId,
+                  );
+                  DittoSyncCoordinator.instance.setDitto(
+                    DittoSingleton.instance.ditto,
                   );
                   await ProxyService.notification.sendLocalNotification(
                     body:
