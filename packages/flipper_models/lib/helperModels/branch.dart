@@ -42,10 +42,19 @@ class IBranch extends IJsonSerializable {
   String? description;
   String? name;
   int? businessId;
+  @JsonKey(
+    fromJson: _parseStringField,
+  )
   String? longitude;
+  @JsonKey(
+    fromJson: _parseStringField,
+  )
   String? latitude;
   DateTime? createdAt;
   dynamic updatedAt;
+  @JsonKey(
+    fromJson: _parseStringField,
+  )
   dynamic location;
   bool? isDefault;
   bool? branchDefault;
@@ -53,6 +62,24 @@ class IBranch extends IJsonSerializable {
   factory IBranch.fromJson(Map<String, dynamic> json) {
     /// assign remoteId to the value of id because this method is used to encode
     /// data from remote server and id from remote server is considered remoteId on local
+
+    // Handle both camelCase and snake_case field names for compatibility
+    // Map snake_case to camelCase for json_serializable
+    if (json.containsKey('server_id') && !json.containsKey('serverId')) {
+      json['serverId'] = json['server_id'];
+    }
+    if (json.containsKey('business_id') && !json.containsKey('businessId')) {
+      json['businessId'] = json['business_id'];
+    }
+    if (json.containsKey('is_default') && !json.containsKey('isDefault')) {
+      json['isDefault'] = json['is_default'];
+    }
+    if (json.containsKey('created_at') && !json.containsKey('createdAt')) {
+      json['createdAt'] = json['created_at'];
+    }
+    if (json.containsKey('updated_at') && !json.containsKey('updatedAt')) {
+      json['updatedAt'] = json['updated_at'];
+    }
 
     json['lastTouched'] =
         json['lastTouched'].toString().isEmpty || json['lastTouched'] == null
@@ -67,4 +94,13 @@ class IBranch extends IJsonSerializable {
 
   @override
   Map<String, dynamic> toJson() => _$IBranchToJson(this);
+
+  /// Helper method to parse string fields that might be "null"
+  static String? _parseStringField(dynamic value) {
+    if (value == null) return null;
+    if (value == 'null' || value.toString().toLowerCase() == 'null') {
+      return null;
+    }
+    return value.toString();
+  }
 }

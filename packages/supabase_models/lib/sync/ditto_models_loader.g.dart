@@ -3,6 +3,7 @@
 
 // ignore_for_file: unused_import, depend_on_referenced_packages
 
+import 'package:supabase_models/brick/models/branch.model.dart' as branch_model;
 import 'package:supabase_models/brick/models/business.model.dart' as business_model;
 import 'package:supabase_models/brick/models/business_analytic.model.dart' as business_analytic_model;
 import 'package:supabase_models/brick/models/counter.model.dart' as counter_model;
@@ -23,6 +24,7 @@ import 'package:supabase_models/brick/models/variant.model.dart' as variant_mode
 /// Call this before using DittoSyncRegistry.
 void ensureDittoAdaptersLoaded() {
   // Access registryToken getter to force static field init
+  branch_model.BranchDittoAdapter.registryToken; // ignore: unnecessary_statements
   business_model.BusinessDittoAdapter.registryToken; // ignore: unnecessary_statements
   business_analytic_model.BusinessAnalyticDittoAdapter.registryToken; // ignore: unnecessary_statements
   counter_model.CounterDittoAdapter.registryToken; // ignore: unnecessary_statements

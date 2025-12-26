@@ -104,10 +104,12 @@ class TenantOperationsMixin {
           location: name, // Using name for location as well
           isDefault: false,
           active: false,
+          flipperHttpClient: ProxyService.http,
         );
       } else {
         // Use the selected or default branch for other user types
-        branch = ref.read(selectedBranchProvider) ??
+        branch =
+            ref.read(selectedBranchProvider) ??
             await ProxyService.strategy.defaultBranch();
       }
 

@@ -44,4 +44,4 @@ final class EbmVatEnabledProvider
   }
 }
 
-String _$ebmVatEnabledHash() => r'5a4b8b2933e2f56b5524f1f92ff4e4c6c27d8a52';
+String _$ebmVatEnabledHash() => r'd05cc6b4204816346879154fd475f5d016d2227d';

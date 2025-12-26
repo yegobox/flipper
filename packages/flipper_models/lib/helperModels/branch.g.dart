@@ -8,19 +8,19 @@ part of 'branch.dart';
 
 IBranch _$IBranchFromJson(Map<String, dynamic> json) => IBranch(
       id: json['id'] as String?,
-      serverId: (json['serverId'] as num?)?.toInt(),
+      serverId: (json['server_id'] as num?)?.toInt(),
       active: json['active'] as bool?,
       description: json['description'] as String?,
       name: json['name'] as String?,
-      businessId: (json['businessId'] as num?)?.toInt(),
-      longitude: json['longitude'] as String?,
-      latitude: json['latitude'] as String?,
-      createdAt: json['createdAt'] == null
+      businessId: (json['business_id'] as num?)?.toInt(),
+      longitude: IBranch._parseStringField(json['longitude']),
+      latitude: IBranch._parseStringField(json['latitude']),
+      createdAt: json['created_at'] == null
           ? null
-          : DateTime.parse(json['createdAt'] as String),
-      updatedAt: json['updatedAt'],
-      location: json['location'],
-      isDefault: json['isDefault'] as bool?,
+          : DateTime.parse(json['created_at'] as String),
+      updatedAt: json['updated_at'],
+      location: IBranch._parseStringField(json['location']),
+      isDefault: json['is_default'] as bool?,
       branchDefault: json['branchDefault'] as bool?,
     )
       ..lastTouched = json['lastTouched'] == null
@@ -36,16 +36,16 @@ Map<String, dynamic> _$IBranchToJson(IBranch instance) => <String, dynamic>{
       'deletedAt': instance.deletedAt?.toIso8601String(),
       'action': instance.action,
       'id': instance.id,
-      'serverId': instance.serverId,
+      'server_id': instance.serverId,
       'active': instance.active,
       'description': instance.description,
       'name': instance.name,
-      'businessId': instance.businessId,
+      'business_id': instance.businessId,
       'longitude': instance.longitude,
       'latitude': instance.latitude,
-      'createdAt': instance.createdAt?.toIso8601String(),
-      'updatedAt': instance.updatedAt,
+      'created_at': instance.createdAt?.toIso8601String(),
+      'updated_at': instance.updatedAt,
       'location': instance.location,
-      'isDefault': instance.isDefault,
+      'is_default': instance.isDefault,
       'branchDefault': instance.branchDefault,
     };

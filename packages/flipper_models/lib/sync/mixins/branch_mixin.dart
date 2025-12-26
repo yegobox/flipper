@@ -1,5 +1,9 @@
 import 'dart:async';
+import 'dart:convert';
 
+import 'package:flipper_models/flipper_http_client.dart';
+import 'package:flipper_models/helperModels/branch.dart';
+import 'package:flipper_models/secrets.dart';
 import 'package:flipper_models/sync/interfaces/branch_interface.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/DatabaseSyncInterface.dart';
@@ -10,9 +14,51 @@ import 'package:brick_offline_first/brick_offline_first.dart';
 
 mixin BranchMixin implements BranchInterface {
   Repository get repository;
+  final String apihub = AppSecrets.apihubProd;
 
   @override
   Future<bool> logOut();
+
+  @override
+  FutureOr<Branch> addBranch(
+      {required String name,
+      required int businessId,
+      required String location,
+      String? userOwnerPhoneNumber,
+      required HttpClientInterface flipperHttpClient,
+      int? serverId,
+      String? description,
+      String? longitude,
+      String? latitude,
+      required bool isDefault,
+      required bool active,
+      DateTime? lastTouched,
+      DateTime? deletedAt,
+      int? id}) async {
+    final response = await flipperHttpClient.post(
+      Uri.parse(apihub + '/v2/api/branch/create'),
+      body: jsonEncode(<String, dynamic>{
+        "name": name,
+        "businessId": businessId,
+        "location": location
+      }),
+    );
+    if (response.statusCode == 201) {
+      IBranch remoteBranch = IBranch.fromJson(json.decode(response.body));
+      return await repository.upsert<Branch>(Branch(
+        serverId: remoteBranch.serverId,
+        location: location,
+        description: description,
+        name: name,
+        businessId: businessId,
+        longitude: longitude,
+        latitude: latitude,
+        isDefault: isDefault,
+        active: active,
+      ));
+    }
+    throw Exception('Failed to create branch');
+  }
 
   @override
   FutureOr<Branch?> branch({required int serverId}) async {
@@ -65,7 +111,7 @@ mixin BranchMixin implements BranchInterface {
     try {
       // First get local branches
       final localBranches = await repository.get<Branch>(
-        policy: OfflineFirstGetPolicy.localOnly,
+        policy: OfflineFirstGetPolicy.alwaysHydrate,
         query: query,
       );
 

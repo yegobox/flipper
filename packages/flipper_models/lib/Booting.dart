@@ -139,6 +139,7 @@ mixin Booting {
           serverId: branch.serverId!,
           location: branch.location ?? "",
           description: branch.description,
+          flipperHttpClient: ProxyService.http,
           name: branch.name!,
           businessId: branch.businessId!,
           longitude: branch.longitude,

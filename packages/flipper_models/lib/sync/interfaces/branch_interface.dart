@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/DatabaseSyncInterface.dart';
+import 'package:flipper_models/flipper_http_client.dart';
 
 abstract class BranchInterface {
   Future<bool> logOut();
@@ -10,6 +11,22 @@ abstract class BranchInterface {
     int? businessId,
     bool? active,
     int? excludeId,
+  });
+  FutureOr<Branch> addBranch({
+    required String name,
+    required int businessId,
+    required String location,
+    String? userOwnerPhoneNumber,
+    required HttpClientInterface flipperHttpClient,
+    int? serverId,
+    String? description,
+    String? longitude,
+    String? latitude,
+    required bool isDefault,
+    required bool active,
+    DateTime? lastTouched,
+    DateTime? deletedAt,
+    int? id,
   });
   void clearData({required ClearData data, required int identifier});
   Future<List<Business>> businesses(

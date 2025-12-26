@@ -2477,59 +2477,7 @@ class CoreSync extends AiStrategyImpl
     print("I am coresync");
   }
 
-  @override
-  FutureOr<Branch> addBranch(
-      {required String name,
-      required int businessId,
-      required String location,
-      String? userOwnerPhoneNumber,
-      HttpClientInterface? flipperHttpClient,
-      int? serverId,
-      String? description,
-      String? longitude,
-      String? latitude,
-      required bool isDefault,
-      required bool active,
-      DateTime? lastTouched,
-      DateTime? deletedAt,
-      int? id}) async {
-    if (flipperHttpClient == null) {
-      return await repository.upsert<Branch>(Branch(
-        serverId: serverId,
-        location: location,
-        description: description,
-        name: name,
-        businessId: businessId,
-        longitude: longitude,
-        latitude: latitude,
-        isDefault: isDefault,
-        active: active,
-      ));
-    }
-    final response = await flipperHttpClient.post(
-      Uri.parse(apihub + '/v2/api/branch/${userOwnerPhoneNumber}'),
-      body: jsonEncode(<String, dynamic>{
-        "name": name,
-        "businessId": businessId,
-        "location": location
-      }),
-    );
-    if (response.statusCode == 201) {
-      IBranch remoteBranch = IBranch.fromJson(json.decode(response.body));
-      return await repository.upsert<Branch>(Branch(
-        serverId: remoteBranch.serverId,
-        location: location,
-        description: description,
-        name: name,
-        businessId: businessId,
-        longitude: longitude,
-        latitude: latitude,
-        isDefault: isDefault,
-        active: active,
-      ));
-    }
-    throw Exception('Failed to create branch');
-  }
+ 
 
   @override
   void updateAccess(

@@ -475,22 +475,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
 
   FutureOr<void> addColor({required String name, required int branchId});
 
-  FutureOr<Branch> addBranch({
-    required String name,
-    required int businessId,
-    required String location,
-    String? userOwnerPhoneNumber,
-    HttpClientInterface? flipperHttpClient,
-    int? serverId,
-    String? description,
-    String? longitude,
-    String? latitude,
-    required bool isDefault,
-    required bool active,
-    DateTime? lastTouched,
-    DateTime? deletedAt,
-    int? id,
-  });
+ 
 
   void whoAmI();
 
