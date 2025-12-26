@@ -344,7 +344,11 @@ mixin AuthMixin implements AuthInterface {
           appId: appID,
           userId: user.id!,
         );
-        DittoSyncCoordinator.instance.setDitto(DittoSingleton.instance.ditto);
+        DittoSyncCoordinator.instance.setDitto(
+          DittoSingleton.instance.ditto,
+          skipInitialFetch:
+              true, // Skip initial fetch to prevent upserting all models on startup
+        );
       } catch (e) {
         talker.error("Failed to initialize Ditto: $e");
       }

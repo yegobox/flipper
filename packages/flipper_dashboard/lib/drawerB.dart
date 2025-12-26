@@ -51,7 +51,11 @@ class _MyDrawerState extends ConsumerState<MyDrawer> {
     final userId = ProxyService.box.getUserId();
     if (userId != null && appID.isNotEmpty) {
       await DittoSingleton.instance.initialize(appId: appID, userId: userId);
-      DittoSyncCoordinator.instance.setDitto(DittoSingleton.instance.ditto);
+      DittoSyncCoordinator.instance.setDitto(
+        DittoSingleton.instance.ditto,
+        skipInitialFetch:
+            true, // Skip initial fetch to prevent upserting all models on startup
+      );
     }
   }
 
@@ -439,6 +443,8 @@ class _MyDrawerState extends ConsumerState<MyDrawer> {
                   );
                   DittoSyncCoordinator.instance.setDitto(
                     DittoSingleton.instance.ditto,
+                    skipInitialFetch:
+                        true, // Skip initial fetch to prevent upserting all models on startup
                   );
                   await ProxyService.notification.sendLocalNotification(
                     body:

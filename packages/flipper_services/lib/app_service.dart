@@ -145,7 +145,11 @@ class AppService with ListenableServiceMixin {
         appId: appID,
         userId: userId,
       );
-      DittoSyncCoordinator.instance.setDitto(DittoSingleton.instance.ditto);
+      DittoSyncCoordinator.instance.setDitto(
+        DittoSingleton.instance.ditto,
+        skipInitialFetch:
+            true, // Skip initial fetch to prevent upserting all models on startup
+      );
       print("User id set to ${userId} and Ditto initialized");
     }
 
