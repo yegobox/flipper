@@ -85,11 +85,33 @@ class TenantOperationsMixin {
   }) async {
     try {
       Business? business = await ProxyService.strategy.defaultBusiness();
-      Branch? branch =
-          ref.read(selectedBranchProvider) ??
-          await ProxyService.strategy.defaultBranch();
 
-      if (business == null || branch == null) {
+      if (business == null) {
+        showCustomSnackBarUtil(
+          context,
+          'Business not found',
+          backgroundColor: Colors.red[600],
+        );
+        return;
+      }
+
+      Branch? branch;
+      if (userType == 'Agent') {
+        // Create a new branch for the agent
+        branch = await ProxyService.strategy.addBranch(
+          businessId: business.serverId,
+          name: name,
+          location: name, // Using name for location as well
+          isDefault: false,
+          active: false,
+        );
+      } else {
+        // Use the selected or default branch for other user types
+        branch = ref.read(selectedBranchProvider) ??
+            await ProxyService.strategy.defaultBranch();
+      }
+
+      if (branch == null) {
         showCustomSnackBarUtil(
           context,
           'Business or Branch not found',

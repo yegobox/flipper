@@ -280,7 +280,7 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
               // Use the instance dropdown to ensure correct userType wiring
               buildUserTypeDropdown(),
               SizedBox(height: 16),
-              buildBranchDropdown(),
+              if (selectedUserType != 'Agent') buildBranchDropdown(),
               SizedBox(height: 20),
               buildPermissionsSection(),
               SizedBox(height: 24),
