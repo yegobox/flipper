@@ -43,6 +43,11 @@ mixin BranchMixin implements BranchInterface {
         "location": location
       }),
     );
+    // find a branch by name create the branch if only it does not exist
+    Branch? existingBranch = await branch(name: name);
+    if (existingBranch != null) {
+      return existingBranch;
+    }
     if (response.statusCode == 201) {
       IBranch remoteBranch = IBranch.fromJson(json.decode(response.body));
       return await repository.upsert<Branch>(Branch(
@@ -61,9 +66,15 @@ mixin BranchMixin implements BranchInterface {
   }
 
   @override
-  FutureOr<Branch?> branch({required int serverId}) async {
+  FutureOr<Branch?> branch({String? name, int? serverId}) async {
     final repository = Repository();
-    final query = Query(where: [Where('serverId').isExactly(serverId)]);
+    Query? query = null;
+    if (name != null) {
+      query = Query(where: [Where('name').isExactly(name)]);
+    }
+    if (serverId != null) {
+      query = Query(where: [Where('serverId').isExactly(serverId)]);
+    }
     final result = await repository.get<Branch>(
         query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
     final branch = result.firstOrNull;

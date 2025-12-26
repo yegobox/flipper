@@ -17,7 +17,7 @@ mixin GetterOperationsMixin implements GetterOperationsInterface {
   FutureOr<Business?> getBusinessById(
       {required int businessId, bool fetchOnline = false});
   @override
-  FutureOr<Branch?> branch({required int serverId});
+  FutureOr<Branch?> branch({String? name, int? serverId});
   @override
   Future<List<ITransaction>> transactions({
     DateTime? startDate,

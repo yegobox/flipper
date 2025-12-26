@@ -6,7 +6,7 @@ import 'package:flipper_models/flipper_http_client.dart';
 
 abstract class BranchInterface {
   Future<bool> logOut();
-  FutureOr<Branch?> branch({required int serverId});
+  FutureOr<Branch?> branch({ int? serverId, String? name});
   Future<List<Branch>> branches({
     int? businessId,
     bool? active,

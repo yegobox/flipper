@@ -383,7 +383,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
 
   Future<void> deleteBranch(
       {required int branchId, required HttpClientInterface flipperHttpClient});
-  FutureOr<Branch?> branch({required int serverId});
 
   FutureOr<void> savePaymentType(
       {TransactionPaymentRecord? paymentRecord,

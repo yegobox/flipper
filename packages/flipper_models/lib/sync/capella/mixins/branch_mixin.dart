@@ -11,7 +11,7 @@ mixin CapellaBranchMixin implements BranchInterface {
   Talker get talker;
 
   @override
-  Future<Branch?> branch({required int serverId}) async {
+  Future<Branch?> branch({String? name, int? serverId}) async {
     throw UnimplementedError('branch needs to be implemented for Capella');
   }
 
