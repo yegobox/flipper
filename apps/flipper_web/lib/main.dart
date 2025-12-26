@@ -21,7 +21,7 @@ Future<void> main() async {
   await initializeSupabase();
 
   // Initialize Ditto
-  await initializeDitto();
+  // await initializeDitto(); // Removed early initialization as it requires userId
 
   runApp(const ProviderScope(child: MyApp()));
 }

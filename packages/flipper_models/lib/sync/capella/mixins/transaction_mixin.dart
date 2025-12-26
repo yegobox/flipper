@@ -46,11 +46,23 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         return Stream.value([]);
       }
 
+      ditto.sync.registerSubscription(
+        "SELECT * FROM transactions WHERE branchId = :branchId",
+        arguments: {'branchId': branchId},
+      );
+      ditto.store.registerObserver(
+        "SELECT * FROM transactions WHERE branchId = :branchId",
+        arguments: {'branchId': branchId},
+      );
+
       // Build SQL WHERE clause conditions
       final List<String> whereClauses = [];
       final Map<String, dynamic> arguments = {};
 
-      // Status filter - conditional based on includePending
+      // Add agentId filter
+      final agentId = ProxyService.box.getUserId()!;
+      whereClauses.add('agentId = :agentId');
+      arguments['agentId'] = agentId;
       if (includePending) {
         // Include both COMPLETE and PENDING statuses
         whereClauses.add('(status = :status OR status = :pendingStatus)');

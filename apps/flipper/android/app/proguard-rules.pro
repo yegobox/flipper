@@ -8,10 +8,17 @@
 # Keep all Ditto classes and their members
 -keep class live.ditto.** { *; }
 -keep class com.ditto.** { *; }
+# This rule ensures that all native bindings related to Ditto are preserved and available at runtime.
+-keep class live.ditto.internal.swig.ffi.** { *; }
+# This rule retains all Ditto classes, which is essential for features like Presence Viewer, and ensures Jackson classes are preserved for proper JSON deserialization.
+-keepnames class com.fasterxml.jackson.** { *; }
 
 # Keep Ditto JNI interfaces
 -keep class * extends live.ditto.Ditto { *; }
 -keep class * implements live.ditto.Ditto { *; }
+
+# Keep rustls platform verifier classes
+-keep class org.rustls.platformverifier.** { *; }
 
 # Keep Ditto transport classes
 -keep class live.ditto.transports.** { *; }

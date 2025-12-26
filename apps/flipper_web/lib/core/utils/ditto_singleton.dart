@@ -1,9 +1,11 @@
 // ignore_for_file: avoid_print
-
 import 'dart:async';
 import 'dart:convert';
 import 'package:ditto_live/ditto_live.dart';
 import 'package:flipper_web/core/secrets.dart';
+import 'package:flipper_web/core/utils/platform.dart';
+import 'package:flipper_web/core/utils/platform_utils.dart';
+import 'package:flipper_web/services/ditto_service.dart';
 import 'package:http/http.dart' as http;
 import 'database_path.dart';
 
@@ -14,27 +16,13 @@ class DittoSingleton {
   static bool _isInitializing = false;
   static Completer<Ditto?>? _initCompleter;
   static int? _userId;
-  static final StreamController<int> _userIdController =
-      StreamController<int>.broadcast();
 
   DittoSingleton._();
 
   static DittoSingleton get instance {
+    print('📦 Accessing DittoSingleton instance');
     _instance ??= DittoSingleton._();
     return _instance!;
-  }
-
-  /// Get the current user ID or a future that completes with the next one
-  Future<int> get userIdFuture async {
-    if (_userId != null) return _userId!;
-    return _userIdController.stream.first;
-  }
-
-  /// Set user ID to unlock authentication
-  void setUserId(int userId) {
-    if (_userId == userId) return;
-    _userId = userId;
-    _userIdController.add(userId);
   }
 
   /// Get existing Ditto instance or null if not initialized
@@ -56,13 +44,17 @@ class DittoSingleton {
   /// Initialize Ditto with proper singleton handling
   Future<Ditto?> initialize({
     required String appId,
-    required String token,
-    int? userId,
+    required int userId,
   }) async {
+    print('Initializing Ditto...');
+    if (appId.isEmpty) {
+      print('❌ Ditto initialization failed: appId is empty');
+      return null;
+    }
     // Detect user mismatch and force logout/reset to prevent silent user swaps
     // If a non-null userId is passed that differs from the currently stored _userId,
     // we perform a logout and set _ditto to null to force a fresh initialization.
-    if (userId != null && _userId != null && userId != _userId) {
+    if (_userId != null && userId != _userId) {
       print(
         '⚠️ User mismatch detected ($userId != $_userId). Forcing logout and re-initialization.',
       );
@@ -70,9 +62,7 @@ class DittoSingleton {
       _ditto = null;
     }
 
-    if (userId != null) {
-      setUserId(userId);
-    }
+    _userId = userId;
     // Prevent multiple simultaneous initializations
     if (_isInitializing) {
       print(
@@ -91,7 +81,9 @@ class DittoSingleton {
     _initCompleter = Completer<Ditto?>();
 
     try {
+      print('Initializing Ditto...');
       await Ditto.init();
+      print('Initializing Ditto Done');
 
       final authHandler = AuthenticationHandler(
         authenticationRequired: (authenticator) =>
@@ -99,39 +91,54 @@ class DittoSingleton {
         authenticationExpiringSoon: (authenticator, secondsRemaining) =>
             _performAuthentication(authenticator, appId),
       );
+      print('Initializing AuthenticationHandler Done');
 
       final identity = OnlineWithAuthenticationIdentity(
         appID: appId,
         authenticationHandler: authHandler,
       );
-
+      print('Initializing OnlineWithAuthenticationIdentity Done');
       final persistenceDirectory = await DatabasePath.getDatabaseDirectory(
         subDirectory: 'db2',
       );
       print('📂 Using persistence directory: $persistenceDirectory');
 
+      if (persistenceDirectory.isEmpty) {
+        print('❌ Ditto initialization failed: persistenceDirectory is empty');
+        return null;
+      }
+      // isAndroid ? "ditto" :
       _ditto = await Ditto.open(
         identity: identity,
         persistenceDirectory: persistenceDirectory,
       );
+      print('✅ Ditto singleton initialized successfully');
 
       try {
+        print('Setting DQL_STRICT_MODE to false');
         await _ditto!.store.execute("ALTER SYSTEM SET DQL_STRICT_MODE = false");
       } catch (e) {
         print(
           '⚠️ Could not set DQL_STRICT_MODE: $e (this might be normal depending on Ditto version)',
         );
       }
-
+      print('Setting DQL_STRICT_MODE to false Done');
       try {
         // Configure transports manually for the web/cloud sync
         _ditto!.updateTransportConfig((config) {
           // Note: this will not enable peer-to-peer sync on the web platform
           config.setAllPeerToPeerEnabled(true);
         });
+        print('Configuring transports manually for the web/cloud sync Done');
 
         // Start sync to connect to Ditto cloud
+
+        final userName = platformUserName;
+        final platform = getPlatformName();
+        _ditto!.deviceName = '$userName-$platform-$userId';
         _ditto!.startSync();
+
+        DittoService().setDitto(_ditto!);
 
         print("is sync active: ${_ditto!.isSyncActive}");
         print("auth status: ${_ditto!.auth.status}");
@@ -203,19 +210,15 @@ class DittoSingleton {
     try {
       print('🔐 Starting Ditto authentication for appId: $appId');
 
-      // Wait for userId if not yet provided, with a 30-second timeout
-      final activeUserId = await userIdFuture.timeout(
-        const Duration(seconds: 120),
-        onTimeout: () {
-          throw TimeoutException(
-            'Timed out waiting for userId during Ditto authentication. '
-            'Ensure setUserId() is called before or shortly after initialization.',
-          );
-        },
-      );
+      if (_userId == null) {
+        throw StateError(
+          'Ditto authentication failed: User ID is null. '
+          'Ensure initialize() is called with a valid userId.',
+        );
+      }
 
       const provider = "auth-provider-01";
-      final userID = "$activeUserId@flipper.rw";
+      final userID = "$_userId@flipper.rw";
 
       print('🔑 Generating JWT for user: $userID');
       final token = await YBAuthIdentity.generateJWT(

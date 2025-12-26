@@ -166,7 +166,9 @@ class AndroidNotifications extends BaseNotifications {
     // Use a microtask to prevent blocking the main thread
     await Future<void>.microtask(() async {
       try {
-        final notificationDetails = createPlatformNotificationDetails();
+        final notificationDetails = NotificationDetails(
+          android: _buildAndroidDetails(body),
+        );
 
         await notificationsPlugin
             .zonedSchedule(
@@ -208,8 +210,8 @@ class AndroidNotifications extends BaseNotifications {
     // Use a microtask to prevent blocking the main thread
     await Future<void>.microtask(() async {
       try {
-        final notificationDetails = const NotificationDetails(
-          android: androidNotificationDetails,
+        final notificationDetails = NotificationDetails(
+          android: _buildAndroidDetails(body),
         );
 
         // Generate a unique ID if none provided
@@ -244,8 +246,25 @@ class AndroidNotifications extends BaseNotifications {
 
   @override
   NotificationDetails createPlatformNotificationDetails() {
-    return const NotificationDetails(
-      android: androidNotificationDetails,
+    return NotificationDetails(
+      android: _buildAndroidDetails(''),
+    );
+  }
+
+  AndroidNotificationDetails _buildAndroidDetails(String body) {
+    return AndroidNotificationDetails(
+      kPackageId,
+      'App notifications',
+      importance: Importance.max,
+      priority: Priority.high,
+      styleInformation: BigTextStyleInformation(
+        body,
+        htmlFormatBigText: true,
+        contentTitle: null,
+        htmlFormatContentTitle: true,
+        summaryText: null,
+        htmlFormatSummaryText: true,
+      ),
     );
   }
 }

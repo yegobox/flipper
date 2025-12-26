@@ -1,18 +1,24 @@
 import 'package:flipper_models/providers/branch_business_provider.dart';
 import 'package:flipper_models/providers/ebm_provider.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
+import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
-import 'package:flipper_routing/app.dialogs.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'dart:async';
+import 'package:flipper_web/core/utils/ditto_singleton.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper_routing/app.dialogs.dart';
+// import 'package:flipper_nfc/flipper_nfc.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_dashboard/mfa_setup_view.dart';
 import 'package:flipper_dashboard/utils/snack_bar_utils.dart';
 import 'package:flipper_models/providers/device_provider.dart';
+import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
 
 class MyDrawer extends ConsumerStatefulWidget {
   const MyDrawer({Key? key}) : super(key: key);
@@ -24,10 +30,29 @@ class MyDrawer extends ConsumerStatefulWidget {
 class _MyDrawerState extends ConsumerState<MyDrawer> {
   String? _switchingBranchId;
   bool userLoggingEnabled = false;
+  bool backgroundSyncEnabled = false;
   @override
   void initState() {
     super.initState();
     userLoggingEnabled = ProxyService.box.getUserLoggingEnabled() ?? false;
+    backgroundSyncEnabled =
+        ProxyService.box.readBool(key: 'background_sync_enabled') ?? false;
+
+    // Initialize Ditto if background sync is enabled
+    if (backgroundSyncEnabled) {
+      _initializeDittoIfEnabled();
+    }
+  }
+
+  /// Initialize Ditto if background sync is enabled
+  Future<void> _initializeDittoIfEnabled() async {
+    final appID = kDebugMode ? AppSecrets.appIdDebug : AppSecrets.appId;
+
+    final userId = ProxyService.box.getUserId();
+    if (userId != null && appID.isNotEmpty) {
+      await DittoSingleton.instance.initialize(appId: appID, userId: userId);
+      DittoSyncCoordinator.instance.setDitto(DittoSingleton.instance.ditto);
+    }
   }
 
   @override
@@ -385,6 +410,49 @@ class _MyDrawerState extends ConsumerState<MyDrawer> {
               setState(() {
                 userLoggingEnabled = value;
               });
+            },
+          ),
+          const SizedBox(height: 12),
+          _ModernSwitchMenuItem(
+            icon: Icons.sync_lock_rounded,
+            title: 'Background Sync',
+            color: const Color(0xFF0078D4),
+            value: backgroundSyncEnabled,
+            onChanged: (value) async {
+              await ProxyService.box.writeBool(
+                key: 'background_sync_enabled',
+                value: value,
+              );
+              setState(() {
+                backgroundSyncEnabled = value;
+              });
+              if (value) {
+                final appID = kDebugMode
+                    ? AppSecrets.appIdDebug
+                    : AppSecrets.appId;
+
+                final userId = ProxyService.box.getUserId();
+                if (userId != null && appID.isNotEmpty) {
+                  await DittoSingleton.instance.initialize(
+                    appId: appID,
+                    userId: userId,
+                  );
+                  DittoSyncCoordinator.instance.setDitto(
+                    DittoSingleton.instance.ditto,
+                  );
+                  await ProxyService.notification.sendLocalNotification(
+                    body:
+                        "Background Sync Enabled, to disable it, go to settings and disable it",
+                  );
+                }
+              } else {
+                // Stop Ditto sync and cleanup when disabling
+                await DittoSyncCoordinator.instance.setDitto(null);
+                await DittoSingleton.instance.dispose();
+                await ProxyService.notification.sendLocalNotification(
+                  body: "Background Sync Disabled",
+                );
+              }
             },
           ),
           const SizedBox(height: 12),

@@ -2285,20 +2285,7 @@ class CoreSync extends AiStrategyImpl
             brick.Query(where: [brick.Where('branchId').isExactly(branchId)]));
   }
 
-  @override
-  Future<models.TransactionItem?> getTransactionItem(
-      {required String variantId, String? transactionId}) async {
-    return (await repository.get<TransactionItem>(
-            policy: OfflineFirstGetPolicy.localOnly,
-            query: brick.Query(where: [
-              brick.Where('variantId',
-                  value: variantId, compare: brick.Compare.exact),
-              if (transactionId != null)
-                brick.Where('transactionId',
-                    value: transactionId, compare: brick.Compare.exact),
-            ])))
-        .firstOrNull;
-  }
+
 
   Future<ITransaction?> _getTransaction({String? transactionId}) async {
     return (await repository.get<ITransaction>(

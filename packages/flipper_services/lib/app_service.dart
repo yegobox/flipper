@@ -7,9 +7,12 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.dialogs.dart';
+import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
 import 'proxy.dart';
 // import 'package:flipper_nfc/flipper_nfc.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:flipper_web/core/secrets.dart';
 
 const socialApp = "socials";
 
@@ -114,6 +117,7 @@ class AppService with ListenableServiceMixin {
   /// check the default business/branch
   /// set the env the current user is operating in.
   Future<void> appInit() async {
+    print("App init");
     // Check if this is a fresh signup - always show login choices
     bool isFreshSignup = ProxyService.box.readBool(key: 'freshSignup') ?? false;
     if (isFreshSignup) {
@@ -130,8 +134,19 @@ class AppService with ListenableServiceMixin {
       active: true,
     );
     final userId = ProxyService.box.getUserId();
+    print("User id is $userId");
     if (userId != null) {
-      DittoSingleton.instance.setUserId(userId);
+      print("Setting user id to $userId");
+
+      // Initialize Ditto with the authenticated user ID
+      final appID = kDebugMode ? AppSecrets.appIdDebug : AppSecrets.appId;
+
+      await DittoSingleton.instance.initialize(
+        appId: appID,
+        userId: userId,
+      );
+      DittoSyncCoordinator.instance.setDitto(DittoSingleton.instance.ditto);
+      print("User id set to ${userId} and Ditto initialized");
     }
 
     bool hasMultipleBusinesses = businesses.length > 1;

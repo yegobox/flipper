@@ -48,6 +48,14 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
         talker.error('Ditto not initialized:9');
         return [];
       }
+      ditto.sync.registerSubscription(
+        "SELECT * FROM transaction_items WHERE branchId = :branchId",
+        arguments: {'branchId': branchId},
+      );
+      ditto.store.registerObserver(
+        "SELECT * FROM transaction_items WHERE branchId = :branchId",
+        arguments: {'branchId': branchId},
+      );
 
       String query = 'SELECT * FROM transaction_items';
       final arguments = <String, dynamic>{};

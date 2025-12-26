@@ -12,6 +12,20 @@ mixin TransactionItemMixin implements TransactionItemInterface {
   Repository get repository;
 
   @override
+  Future<TransactionItem?> getTransactionItem(
+      {required String variantId, String? transactionId}) async {
+    return (await repository.get<TransactionItem>(
+            policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+            query: Query(where: [
+              Where('variantId', value: variantId, compare: Compare.exact),
+              if (transactionId != null)
+                Where('transactionId',
+                    value: transactionId, compare: Compare.exact),
+            ])))
+        .firstOrNull;
+  }
+
+  @override
   Future<void> addTransactionItem({
     ITransaction? transaction,
     required bool ignoreForReport,
