@@ -4,7 +4,7 @@ import 'dart:convert';
 import 'package:ditto_live/ditto_live.dart';
 import 'package:flipper_web/core/secrets.dart';
 import 'package:flipper_web/core/utils/platform.dart';
-import 'package:flipper_web/core/utils/platform_utils.dart.dart';
+import 'package:flipper_web/core/utils/platform_utils.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:http/http.dart' as http;
 import 'database_path.dart';

@@ -8,5 +8,5 @@ bool get isWindows => Platform.isWindows;
 bool get isMacOS => Platform.isMacOS;
 bool get isLinux => Platform.isLinux;
 bool get isWeb => Platform.isFuchsia;
-String get platformUserName => Platform.environment['USER'] ?? 'Unknown';
+String get platformUserName => Platform.environment['USER'] ?? Platform.environment['USERNAME'] ?? '-';
 bool get isIOS => Platform.isIOS;

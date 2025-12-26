@@ -339,11 +339,15 @@ mixin AuthMixin implements AuthInterface {
       final appID =
           foundation.kDebugMode ? AppSecrets.appIdDebug : AppSecrets.appId;
       print("User id set to ${user.id} and Ditto initializing now");
-      await DittoSingleton.instance.initialize(
-        appId: appID,
-        userId: user.id!,
-      );
-      DittoSyncCoordinator.instance.setDitto(DittoSingleton.instance.ditto);
+      try {
+        await DittoSingleton.instance.initialize(
+          appId: appID,
+          userId: user.id!,
+        );
+        DittoSyncCoordinator.instance.setDitto(DittoSingleton.instance.ditto);
+      } catch (e) {
+        talker.error("Failed to initialize Ditto: $e");
+      }
       print("Ditto initialized");
 
       // Only perform Firebase login if not already logged in

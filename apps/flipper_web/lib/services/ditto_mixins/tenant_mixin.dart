@@ -6,23 +6,23 @@ import 'ditto_core_mixin.dart';
 mixin TenantMixin on DittoCore {
   /// Save a tenant to the tenants collection
   Future<void> saveTenant(Tenant tenant) async {
-    if (dittoInstance == null) return _handleNotInitialized('saveTenant');
+    if (dittoInstance == null) return handleNotInitialized('saveTenant');
     final docId = tenant.id;
-    await _executeUpsert('tenants', docId, tenant.toJson());
+    await executeUpsert('tenants', docId, tenant.toJson());
     debugPrint('Saved tenant with ID: ${tenant.id}');
   }
 
   /// Update a tenant in the tenants collection
   Future<void> updateTenant(Tenant tenant) async {
-    if (dittoInstance == null) return _handleNotInitialized('updateTenant');
+    if (dittoInstance == null) return handleNotInitialized('updateTenant');
     final docId = tenant.id;
-    await _executeUpdate('tenants', docId, tenant.toJson());
+    await executeUpdate('tenants', docId, tenant.toJson());
     debugPrint('Successfully updated tenant with ID: ${tenant.id}');
   }
 
   /// Get tenants for a specific user
   Future<List<Tenant>> getTenantsForUser(String userId) async {
-    if (dittoInstance == null) return _handleNotInitializedAndReturn('getTenantsForUser', []);
+    if (dittoInstance == null) return handleNotInitializedAndReturn('getTenantsForUser', []);
     final result = await dittoInstance!.store.execute(
       "SELECT * FROM tenants WHERE userId = :userId",
       arguments: {"userId": userId},
@@ -30,35 +30,5 @@ mixin TenantMixin on DittoCore {
     return result.items
         .map((doc) => Tenant.fromJson(Map<String, dynamic>.from(doc.value)))
         .toList();
-  }
-
-  /// Helper method to handle not initialized case
-  void _handleNotInitialized(String methodName) {
-    debugPrint('Ditto not initialized, cannot $methodName');
-  }
-
-  /// Helper method to handle not initialized case and return a value
-  T _handleNotInitializedAndReturn<T>(String methodName, T defaultValue) {
-    debugPrint('Ditto not initialized, cannot $methodName');
-    return defaultValue;
-  }
-
-  /// Helper method to execute upsert operation
-  Future<void> _executeUpsert(String collection, String docId, Map<String, dynamic> data) async {
-    await dittoInstance!.store.execute(
-      "INSERT INTO $collection DOCUMENTS (:data) ON ID CONFLICT DO UPDATE",
-      arguments: {
-        "data": {"_id": docId, ...data},
-      },
-    );
-  }
-
-  /// Helper method to execute update operation
-  Future<void> _executeUpdate(String collection, String docId, Map<String, dynamic> data) async {
-    final fields = data.keys.map((key) => '$key = :$key').join(', ');
-    await dittoInstance!.store.execute(
-      "UPDATE $collection SET $fields WHERE _id = :id",
-      arguments: {"id": docId, ...data},
-    );
   }
 }

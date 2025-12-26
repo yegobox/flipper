@@ -6,9 +6,9 @@ import 'ditto_core_mixin.dart';
 mixin ChallengeCodeMixin on DittoCore {
   /// Save a challenge code to the challengeCodes collection
   Future<void> saveChallengeCode(Map<String, dynamic> challengeCode) async {
-    if (dittoInstance == null) return _handleNotInitialized('saveChallengeCode');
+    if (dittoInstance == null) return handleNotInitialized('saveChallengeCode');
     final docId = challengeCode['_id'] ?? challengeCode['id'];
-    await _executeUpsert('challengeCodes', docId, challengeCode);
+    await executeUpsert('challengeCodes', docId, challengeCode);
     debugPrint('Saved challenge code with ID: $docId');
   }
 
@@ -17,7 +17,7 @@ mixin ChallengeCodeMixin on DittoCore {
     String? businessId,
     bool onlyValid = true,
   }) async {
-    if (dittoInstance == null) return _handleNotInitializedAndReturn('getChallengeCodes', []);
+    if (dittoInstance == null) return handleNotInitializedAndReturn('getChallengeCodes', []);
     String query = "SELECT * FROM challengeCodes";
     final arguments = <String, dynamic>{};
     if (businessId != null) {
@@ -72,26 +72,5 @@ mixin ChallengeCodeMixin on DittoCore {
       await controller.close();
     };
     return controller.stream;
-  }
-
-  /// Helper method to handle not initialized case
-  void _handleNotInitialized(String methodName) {
-    debugPrint('Ditto not initialized, cannot $methodName');
-  }
-
-  /// Helper method to handle not initialized case and return a value
-  T _handleNotInitializedAndReturn<T>(String methodName, T defaultValue) {
-    debugPrint('Ditto not initialized, cannot $methodName');
-    return defaultValue;
-  }
-
-  /// Helper method to execute upsert operation
-  Future<void> _executeUpsert(String collection, String docId, Map<String, dynamic> data) async {
-    await dittoInstance!.store.execute(
-      "INSERT INTO $collection DOCUMENTS (:data) ON ID CONFLICT DO UPDATE",
-      arguments: {
-        "data": {"_id": docId, ...data},
-      },
-    );
   }
 }

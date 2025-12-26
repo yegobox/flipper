@@ -37,6 +37,22 @@ class _MyDrawerState extends ConsumerState<MyDrawer> {
     userLoggingEnabled = ProxyService.box.getUserLoggingEnabled() ?? false;
     backgroundSyncEnabled =
         ProxyService.box.readBool(key: 'background_sync_enabled') ?? false;
+
+    // Initialize Ditto if background sync is enabled
+    if (backgroundSyncEnabled) {
+      _initializeDittoIfEnabled();
+    }
+  }
+
+  /// Initialize Ditto if background sync is enabled
+  Future<void> _initializeDittoIfEnabled() async {
+    final appID = kDebugMode ? AppSecrets.appIdDebug : AppSecrets.appId;
+
+    final userId = ProxyService.box.getUserId();
+    if (userId != null && appID.isNotEmpty) {
+      await DittoSingleton.instance.initialize(appId: appID, userId: userId);
+      DittoSyncCoordinator.instance.setDitto(DittoSingleton.instance.ditto);
+    }
   }
 
   @override
@@ -429,6 +445,13 @@ class _MyDrawerState extends ConsumerState<MyDrawer> {
                         "Background Sync Enabled, to disable it, go to settings and disable it",
                   );
                 }
+              } else {
+                // Stop Ditto sync and cleanup when disabling
+                await DittoSyncCoordinator.instance.setDitto(null);
+                await DittoSingleton.instance.dispose();
+                await ProxyService.notification.sendLocalNotification(
+                  body: "Background Sync Disabled",
+                );
               }
             },
           ),

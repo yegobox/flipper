@@ -5,9 +5,9 @@ import 'ditto_core_mixin.dart';
 mixin EventMixin on DittoCore {
   /// Save an event to the events collection
   Future<void> saveEvent(Map<String, dynamic> eventData, String eventId) async {
-    if (dittoInstance == null) return _handleNotInitialized('saveEvent');
+    if (dittoInstance == null) return handleNotInitialized('saveEvent');
     final flattened = _flattenEventData(eventData, eventId);
-    await _executeUpsert('events', eventId, flattened);
+    await executeUpsert('events', eventId, flattened);
     debugPrint('Saved event with ID: $eventId');
   }
 
@@ -16,7 +16,7 @@ mixin EventMixin on DittoCore {
     String channel,
     String eventType,
   ) async {
-    if (dittoInstance == null) return _handleNotInitializedAndReturn('getEvents', []);
+    if (dittoInstance == null) return handleNotInitializedAndReturn('getEvents', []);
     final result = await dittoInstance!.store.execute(
       "SELECT * FROM events WHERE channel = :channel AND type = :eventType ORDER BY timestamp DESC",
       arguments: {"channel": channel, "eventType": eventType},
@@ -38,26 +38,5 @@ mixin EventMixin on DittoCore {
     flattened['_id'] = eventId;
     flattened['channel'] = eventId;
     return flattened;
-  }
-
-  /// Helper method to handle not initialized case
-  void _handleNotInitialized(String methodName) {
-    debugPrint('Ditto not initialized, cannot $methodName');
-  }
-
-  /// Helper method to handle not initialized case and return a value
-  T _handleNotInitializedAndReturn<T>(String methodName, T defaultValue) {
-    debugPrint('Ditto not initialized, cannot $methodName');
-    return defaultValue;
-  }
-
-  /// Helper method to execute upsert operation
-  Future<void> _executeUpsert(String collection, String docId, Map<String, dynamic> data) async {
-    await dittoInstance!.store.execute(
-      "INSERT INTO $collection DOCUMENTS (:data) ON ID CONFLICT DO UPDATE",
-      arguments: {
-        "data": {"_id": docId, ...data},
-      },
-    );
   }
 }

@@ -5,17 +5,17 @@ import 'ditto_core_mixin.dart';
 mixin BranchMixin on DittoCore {
   /// Save a branch to the branches collection
   Future<void> saveBranch(Branch branch) async {
-    if (dittoInstance == null) return _handleNotInitialized('saveBranch');
+    if (dittoInstance == null) return handleNotInitialized('saveBranch');
     final docId = branch.id;
-    await _executeUpsert('branches', docId, branch.toJson());
+    await executeUpsert('branches', docId, branch.toJson());
     debugPrint('Saved branch with ID: ${branch.id}');
   }
 
   /// Update a branch in the branches collection
   Future<void> updateBranch(Branch branch) async {
-    if (dittoInstance == null) return _handleNotInitialized('updateBranch');
+    if (dittoInstance == null) return handleNotInitialized('updateBranch');
     final docId = branch.id;
-    await _executeUpdate('branches', docId, branch.toJson());
+    await executeUpdate('branches', docId, branch.toJson());
     debugPrint('Successfully updated branch with ID: ${branch.id}');
   }
 
@@ -23,7 +23,7 @@ mixin BranchMixin on DittoCore {
   Future<List<Branch>> getBranchesForBusiness(String serverId) async {
     debugPrint('🔍 Querying branches for serverId : $serverId');
     if (dittoInstance == null) {
-      return _handleNotInitializedAndReturn('getBranchesForBusiness', []);
+      return handleNotInitializedAndReturn('getBranchesForBusiness', []);
     }
     final businessIdInt = int.tryParse(serverId);
     if (businessIdInt == null) {
@@ -37,43 +37,5 @@ mixin BranchMixin on DittoCore {
     return result.items
         .map((doc) => Branch.fromJson(Map<String, dynamic>.from(doc.value)))
         .toList();
-  }
-
-  /// Helper method to handle not initialized case
-  void _handleNotInitialized(String methodName) {
-    debugPrint('Ditto not initialized, cannot $methodName');
-  }
-
-  /// Helper method to handle not initialized case and return a value
-  T _handleNotInitializedAndReturn<T>(String methodName, T defaultValue) {
-    debugPrint('Ditto not initialized, cannot $methodName');
-    return defaultValue;
-  }
-
-  /// Helper method to execute upsert operation
-  Future<void> _executeUpsert(
-    String collection,
-    String docId,
-    Map<String, dynamic> data,
-  ) async {
-    await dittoInstance!.store.execute(
-      "INSERT INTO $collection DOCUMENTS (:data) ON ID CONFLICT DO UPDATE",
-      arguments: {
-        "data": {"_id": docId, ...data},
-      },
-    );
-  }
-
-  /// Helper method to execute update operation
-  Future<void> _executeUpdate(
-    String collection,
-    String docId,
-    Map<String, dynamic> data,
-  ) async {
-    final fields = data.keys.map((key) => '$key = :$key').join(', ');
-    await dittoInstance!.store.execute(
-      "UPDATE $collection SET $fields WHERE _id = :id",
-      arguments: {"id": docId, ...data},
-    );
   }
 }

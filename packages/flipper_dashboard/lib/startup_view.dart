@@ -3,7 +3,6 @@ library flipper_dashboard;
 import 'package:flipper_models/db_model_export.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:stacked/stacked.dart';
 
 class StartUpView extends StatefulWidget {
@@ -20,7 +19,6 @@ class _StartUpViewState extends State<StartUpView> {
     return ViewModelBuilder<StartupViewModel>.reactive(
       viewModelBuilder: () => StartupViewModel(),
       onViewModelReady: (viewModel) {
-        print("here11!");
         // Use a delayed call to ensure the widget is fully built
         WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
           await viewModel.runStartupLogic();
