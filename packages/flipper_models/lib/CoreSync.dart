@@ -5,7 +5,6 @@ import 'dart:ui';
 import 'package:amplify_flutter/amplify_flutter.dart' as amplify;
 import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
-import 'package:flipper_models/helperModels/branch.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_mocks/mocks.dart';
@@ -265,9 +264,6 @@ class CoreSync extends AiStrategyImpl
       {required bool offlineLogin}) async {
     // Add system configuration logic here
 
-    if (offlineLogin == false) {
-      await saveNeccessaryData(user);
-    }
     await ProxyService.box.writeString(key: 'userId', value: user.id);
     await ProxyService.box.writeString(key: 'userPhone', value: userPhone);
 
@@ -275,7 +271,7 @@ class CoreSync extends AiStrategyImpl
     if (user.uid != null) {
       // Check if a PIN with this userId already exists
       final existingPin = await ProxyService.strategy.getPinLocal(
-          userId: user.id!,
+          userId: user.id,
           alwaysHydrate: false // Use local-only to avoid network calls
           );
 
@@ -285,7 +281,7 @@ class CoreSync extends AiStrategyImpl
           talker.debug(
               "Updating existing PIN with correct UID during configureSystem");
           await ProxyService.strategy.updatePin(
-              userId: user.id!, tokenUid: user.uid, phoneNumber: userPhone);
+              userId: user.id, tokenUid: user.uid, phoneNumber: userPhone);
         }
       }
     }

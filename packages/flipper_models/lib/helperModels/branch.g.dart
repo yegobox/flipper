@@ -22,6 +22,9 @@ IBranch _$IBranchFromJson(Map<String, dynamic> json) => IBranch(
       location: IBranch._parseStringField(json['location']),
       isDefault: json['isDefault'] as bool?,
       branchDefault: json['branchDefault'] as bool?,
+      accesses: (json['accesses'] as List<dynamic>?)
+          ?.map((e) => IAccess.fromJson(e as Map<String, dynamic>))
+          .toList(),
     )
       ..lastTouched = json['lastTouched'] == null
           ? null
@@ -48,4 +51,5 @@ Map<String, dynamic> _$IBranchToJson(IBranch instance) => <String, dynamic>{
       'location': instance.location,
       'isDefault': instance.isDefault,
       'branchDefault': instance.branchDefault,
+      'accesses': instance.accesses,
     };

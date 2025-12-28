@@ -313,7 +313,14 @@ class SharedPreferenceStorage implements LocalStorage {
 
   @override
   String? getUserId() {
-    return _cache['userId'] as String?;
+    final value = _cache['userId'];
+    if (value is String) {
+      return value;
+    } else if (value is int) {
+      // Handle the case where an integer was mistakenly stored (e.g., due to LoginData bug)
+      return value.toString();
+    }
+    return null;
   }
 
   bool isNumeric(String? s) {

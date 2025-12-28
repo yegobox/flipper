@@ -233,7 +233,7 @@ mixin TenantMixin implements TenantInterface {
         for (IBusiness business in jTenant.businesses ?? []) {
           Business biz = Business(
               phoneNumber: business.phoneNumber!,
-              serverId: business.serverId,
+              serverId: business.serverId!,
               userId: business.userId,
               name: business.name,
               currency: business.currency,
@@ -271,8 +271,6 @@ mixin TenantMixin implements TenantInterface {
               taxEnabled: business.taxEnabled,
               isDefault: false,
               businessTypeId: business.businessTypeId,
-              lastTouched: business.lastTouched,
-              deletedAt: business.deletedAt,
               encryptionKey: business.encryptionKey);
           Business? exist = (await repository.get<Business>(
                   query:

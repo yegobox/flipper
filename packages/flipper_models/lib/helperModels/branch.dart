@@ -1,5 +1,6 @@
 library flipper_models;
 
+import 'package:flipper_models/helperModels/iaccess.dart';
 import 'package:flipper_services/constants.dart';
 
 import 'package:json_annotation/json_annotation.dart';
@@ -22,6 +23,7 @@ class IBranch extends IJsonSerializable {
     this.location,
     this.isDefault,
     this.branchDefault,
+    this.accesses,
   });
   IBranch.copy(IBranch other, {bool? active, String? name})
       : isDefault = other.isDefault,
@@ -30,6 +32,7 @@ class IBranch extends IJsonSerializable {
         location = other.location,
         active = active ?? other.active,
         branchDefault = other.branchDefault,
+        accesses = other.accesses,
         businessId = other.businessId,
         createdAt = other.createdAt,
         description = other.description,
@@ -58,6 +61,7 @@ class IBranch extends IJsonSerializable {
   dynamic location;
   bool? isDefault;
   bool? branchDefault;
+  List<IAccess>? accesses;
 
   factory IBranch.fromJson(Map<String, dynamic> json) {
     /// assign remoteId to the value of id because this method is used to encode
@@ -81,11 +85,12 @@ class IBranch extends IJsonSerializable {
       json['updatedAt'] = json['updated_at'];
     }
 
-    json['lastTouched'] =
-        json['lastTouched'].toString().isEmpty || json['lastTouched'] == null
-            ? DateTime.now().toIso8601String()
-            : DateTime.parse(json['lastTouched'] ?? DateTime.now())
-                .toIso8601String();
+    json['lastTouched'] = (json['lastTouched'] == null ||
+            json['lastTouched'].toString().isEmpty)
+        ? DateTime.now().toIso8601String()
+        : (json['lastTouched'] is String
+            ? json['lastTouched']
+            : DateTime.parse(json['lastTouched'].toString()).toIso8601String());
 
     // this line ony added in both business and branch as they are not part of sync schemd
     json['action'] = AppActions.created;

@@ -14,8 +14,8 @@ Future<Business> _$BusinessFromSupabase(
     categoryId: data['category_id'] == null
         ? null
         : data['category_id'] as String?,
-    latitude: data['latitude'] == null ? null : data['latitude'] as String?,
-    longitude: data['longitude'] == null ? null : data['longitude'] as String?,
+    latitude: data['latitude'] == null ? null : data['latitude'] as num?,
+    longitude: data['longitude'] == null ? null : data['longitude'] as num?,
     userId: data['user_id'] == null ? null : data['user_id'] as String?,
     timeZone: data['time_zone'] == null ? null : data['time_zone'] as String?,
     country: data['country'] == null ? null : data['country'] as String?,
@@ -83,16 +83,6 @@ Future<Business> _$BusinessFromSupabase(
     referredBy: data['referred_by'] == null
         ? null
         : data['referred_by'] as String?,
-    lastTouched: data['last_touched'] == null
-        ? null
-        : data['last_touched'] == null
-        ? null
-        : DateTime.tryParse(data['last_touched'] as String),
-    deletedAt: data['deleted_at'] == null
-        ? null
-        : data['deleted_at'] == null
-        ? null
-        : DateTime.tryParse(data['deleted_at'] as String),
     encryptionKey: data['encryption_key'] == null
         ? null
         : data['encryption_key'] as String?,
@@ -157,8 +147,6 @@ Future<Map<String, dynamic>> _$BusinessToSupabase(
     'is_default': instance.isDefault,
     'business_type_id': instance.businessTypeId,
     'referred_by': instance.referredBy,
-    'last_touched': instance.lastTouched?.toIso8601String(),
-    'deleted_at': instance.deletedAt?.toIso8601String(),
     'encryption_key': instance.encryptionKey,
     'phone_number': instance.phoneNumber,
     'messaging_channels': instance.messagingChannels,
@@ -178,8 +166,8 @@ Future<Business> _$BusinessFromSqlite(
     categoryId: data['category_id'] == null
         ? null
         : data['category_id'] as String?,
-    latitude: data['latitude'] == null ? null : data['latitude'] as String?,
-    longitude: data['longitude'] == null ? null : data['longitude'] as String?,
+    latitude: data['latitude'] == null ? null : data['latitude'] as num?,
+    longitude: data['longitude'] == null ? null : data['longitude'] as num?,
     userId: data['user_id'] == null ? null : data['user_id'] as String?,
     timeZone: data['time_zone'] == null ? null : data['time_zone'] as String?,
     country: data['country'] == null ? null : data['country'] as String?,
@@ -245,16 +233,6 @@ Future<Business> _$BusinessFromSqlite(
     referredBy: data['referred_by'] == null
         ? null
         : data['referred_by'] as String?,
-    lastTouched: data['last_touched'] == null
-        ? null
-        : data['last_touched'] == null
-        ? null
-        : DateTime.tryParse(data['last_touched'] as String),
-    deletedAt: data['deleted_at'] == null
-        ? null
-        : data['deleted_at'] == null
-        ? null
-        : DateTime.tryParse(data['deleted_at'] as String),
     encryptionKey: data['encryption_key'] == null
         ? null
         : data['encryption_key'] as String?,
@@ -323,8 +301,6 @@ Future<Map<String, dynamic>> _$BusinessToSqlite(
         : (instance.isDefault! ? 1 : 0),
     'business_type_id': instance.businessTypeId,
     'referred_by': instance.referredBy,
-    'last_touched': instance.lastTouched?.toIso8601String(),
-    'deleted_at': instance.deletedAt?.toIso8601String(),
     'encryption_key': instance.encryptionKey,
     'phone_number': instance.phoneNumber,
     'messaging_channels': instance.messagingChannels,
@@ -505,14 +481,6 @@ class BusinessAdapter extends OfflineFirstWithSupabaseAdapter<Business> {
       association: false,
       columnName: 'referred_by',
     ),
-    'lastTouched': const RuntimeSupabaseColumnDefinition(
-      association: false,
-      columnName: 'last_touched',
-    ),
-    'deletedAt': const RuntimeSupabaseColumnDefinition(
-      association: false,
-      columnName: 'deleted_at',
-    ),
     'encryptionKey': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'encryption_key',
@@ -572,13 +540,13 @@ class BusinessAdapter extends OfflineFirstWithSupabaseAdapter<Business> {
       association: false,
       columnName: 'latitude',
       iterable: false,
-      type: String,
+      type: num,
     ),
     'longitude': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'longitude',
       iterable: false,
-      type: String,
+      type: num,
     ),
     'userId': const RuntimeSqliteColumnDefinition(
       association: false,
@@ -783,18 +751,6 @@ class BusinessAdapter extends OfflineFirstWithSupabaseAdapter<Business> {
       columnName: 'referred_by',
       iterable: false,
       type: String,
-    ),
-    'lastTouched': const RuntimeSqliteColumnDefinition(
-      association: false,
-      columnName: 'last_touched',
-      iterable: false,
-      type: DateTime,
-    ),
-    'deletedAt': const RuntimeSqliteColumnDefinition(
-      association: false,
-      columnName: 'deleted_at',
-      iterable: false,
-      type: DateTime,
     ),
     'encryptionKey': const RuntimeSqliteColumnDefinition(
       association: false,

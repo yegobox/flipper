@@ -54,7 +54,7 @@ class UploadViewModel extends ProductViewModel {
       throw Exception('No file selected');
     }
 
-    int branchId = ProxyService.box.getBranchId()!;
+    String branchId = ProxyService.box.getBranchId()!;
     final platformFile = result.files.single;
     final uuid = randomNumber().toString();
     final uniqueFileName = '$uuid.${platformFile.extension!}';

@@ -989,8 +989,8 @@ final branchMock = Branch(
 final businessMock = Business(
   serverId: randomNumber(),
   active: true,
-  latitude: '0',
-  longitude: '2',
+  latitude: 0,
+  longitude: 0,
   name: 'name',
   isDefault: true,
   phoneNumber: '+250783054871',

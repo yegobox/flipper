@@ -1,7 +1,7 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20251227205309.migration.dart';
+part '20251228164607.migration.dart';
 part '20251206093643.migration.dart';
 part '20251212042542.migration.dart';
 part '20251212052427.migration.dart';
@@ -14,10 +14,12 @@ part '20251227185249.migration.dart';
 part '20251227195512.migration.dart';
 part '20251227200851.migration.dart';
 part '20251227202731.migration.dart';
+part '20251227205309.migration.dart';
+part '20251228163424.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20251227205309(),
+  const Migration20251228164607(),
   const Migration20251206093643(),
   const Migration20251212042542(),
   const Migration20251212052427(),
@@ -30,11 +32,13 @@ final migrations = <Migration>{
   const Migration20251227195512(),
   const Migration20251227200851(),
   const Migration20251227202731(),
+  const Migration20251227205309(),
+  const Migration20251228163424(),
 };
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
-  20251227202731,
+  20251228163424,
   generatorVersion: 1,
   tables: <SchemaTable>{
     SchemaTable(
@@ -186,8 +190,8 @@ final schema = Schema(
         SchemaColumn('name', Column.varchar),
         SchemaColumn('currency', Column.varchar),
         SchemaColumn('category_id', Column.varchar),
-        SchemaColumn('latitude', Column.varchar),
-        SchemaColumn('longitude', Column.varchar),
+        SchemaColumn('latitude', Column.num),
+        SchemaColumn('longitude', Column.num),
         SchemaColumn('user_id', Column.varchar),
         SchemaColumn('time_zone', Column.varchar),
         SchemaColumn('country', Column.varchar),
@@ -222,8 +226,6 @@ final schema = Schema(
         SchemaColumn('is_default', Column.boolean),
         SchemaColumn('business_type_id', Column.varchar),
         SchemaColumn('referred_by', Column.varchar),
-        SchemaColumn('last_touched', Column.datetime),
-        SchemaColumn('deleted_at', Column.datetime),
         SchemaColumn('encryption_key', Column.varchar),
         SchemaColumn('phone_number', Column.varchar),
         SchemaColumn('messaging_channels', Column.varchar),
@@ -1016,7 +1018,7 @@ final schema = Schema(
         SchemaColumn('tax_id', Column.varchar),
         SchemaColumn('color', Column.varchar),
         SchemaColumn('business_id', Column.varchar),
-        SchemaColumn('branch_id', Column.integer),
+        SchemaColumn('branch_id', Column.varchar),
         SchemaColumn('supplier_id', Column.varchar),
         SchemaColumn('category_id', Column.varchar),
         SchemaColumn('created_at', Column.datetime),

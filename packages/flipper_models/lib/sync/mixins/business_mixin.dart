@@ -127,10 +127,9 @@ mixin BusinessMixin implements BusinessInterface {
     final http.Response response =
         await flipperHttpClient.get(Uri.parse("$apihub/v2/api/business/$id"));
     if (response.statusCode == 200) {
-      int id = randomNumber();
       IBusiness iBusiness = IBusiness.fromJson(json.decode(response.body));
       Business business = Business(
-          serverId: iBusiness.serverId,
+          serverId: iBusiness.serverId!,
           name: iBusiness.name,
           phoneNumber: iBusiness.phoneNumber!,
           userId: iBusiness.userId,
@@ -152,8 +151,8 @@ mixin BusinessMixin implements BusinessInterface {
       String? name,
       String? currency,
       String? categoryId,
-      String? latitude,
-      String? longitude,
+      num? latitude,
+      num? longitude,
       String? timeZone,
       String? country,
       String? businessUrl,
@@ -241,8 +240,6 @@ mixin BusinessMixin implements BusinessInterface {
         taxServerUrl: taxServerUrl,
         isDefault: isDefault,
         businessTypeId: businessTypeId,
-        lastTouched: lastTouched,
-        deletedAt: deletedAt,
         encryptionKey: encryptionKey,
       ));
     }

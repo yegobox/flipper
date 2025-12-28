@@ -32,8 +32,8 @@ class Business extends OfflineFirstWithSupabaseModel {
   String? name;
   String? currency;
   String? categoryId;
-  String? latitude;
-  String? longitude;
+  num? latitude;
+  num? longitude;
   String? userId;
   String? timeZone;
   String? country;
@@ -69,10 +69,6 @@ class Business extends OfflineFirstWithSupabaseModel {
   bool? isDefault;
   String? businessTypeId;
   String? referredBy;
-
-  DateTime? lastTouched;
-
-  DateTime? deletedAt;
 
   String? encryptionKey;
   String? phoneNumber;
@@ -131,8 +127,6 @@ class Business extends OfflineFirstWithSupabaseModel {
     this.isDefault,
     this.businessTypeId,
     this.referredBy,
-    this.lastTouched,
-    this.deletedAt,
     this.encryptionKey,
     this.phoneNumber,
     this.messagingChannels,
@@ -145,8 +139,8 @@ class Business extends OfflineFirstWithSupabaseModel {
     int? serverId,
     String? currency,
     String? categoryId,
-    String? latitude,
-    String? longitude,
+    num? latitude,
+    num? longitude,
     String? userId,
     String? timeZone,
     String? country,
@@ -232,8 +226,8 @@ class Business extends OfflineFirstWithSupabaseModel {
       name: map['name'] as String?,
       currency: map['currency'] as String?,
       categoryId: map['category_id'] as String?,
-      latitude: map['latitude'] as String?,
-      longitude: map['longitude'] as String?,
+      latitude: map['latitude'] as num?,
+      longitude: map['longitude'] as num?,
       userId: map['user_id'] is int
           ? map['user_id'].toString()
           : map['user_id'] as String?,
@@ -272,12 +266,6 @@ class Business extends OfflineFirstWithSupabaseModel {
           ? map['business_type_id'].toString()
           : map['business_type_id'] as String?,
       referredBy: map['referred_by'] as String?,
-      lastTouched: map['last_touched'] == null
-          ? null
-          : DateTime.tryParse(map['last_touched'].toString()),
-      deletedAt: map['deleted_at'] == null
-          ? null
-          : DateTime.tryParse(map['deleted_at'].toString()),
       encryptionKey: map['encryption_key'] as String?,
       phoneNumber: map['phone_number'] as String?,
       messagingChannels: map['messaging_channels'] as String?,
@@ -326,8 +314,6 @@ class Business extends OfflineFirstWithSupabaseModel {
       'isDefault': isDefault,
       'businessTypeId': businessTypeId,
       'referredBy': referredBy,
-      'lastTouched': lastTouched,
-      'deletedAt': deletedAt,
       'encryptionKey': encryptionKey,
       'phoneNumber': phoneNumber,
       'messaging_channels': messagingChannels,

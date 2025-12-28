@@ -29,6 +29,7 @@ export 'helperModels/social.dart';
 export 'helperModels/social_token.dart';
 export 'helperModels/conversation.dart';
 export 'helperModels/business_type.dart';
+export 'helperModels/iaccess.dart';
 export 'package:uuid/uuid.dart';
 export 'helperModels/userActivity.dart';
 export 'exceptions.dart';
