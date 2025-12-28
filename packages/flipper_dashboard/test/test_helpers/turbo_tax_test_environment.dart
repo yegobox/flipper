@@ -87,7 +87,7 @@
 //     registerFallbackValue(ITransaction(
 //       id: 'fallback_transaction',
 //       status: 'pending',
-//       branchId: 1,
+//       branchId: "",
 //       invoiceNumber: 1,
 //       items: [],
 //       isIncome: true,
@@ -121,7 +121,7 @@
 //       custNm: 'Fallback Customer',
 //       email: 'fallback@example.com',
 //       telNo: '123-456-7890',
-//       branchId: 1,
+//       branchId: "",
 //       custNo: '123',
 //       custTin: '123456789',
 //       ebmSynced: false,
@@ -184,7 +184,7 @@
 //           updatedAt: DateTime.now(),
 //           createdAt: DateTime.now(),
 //           transactionType: 'NS',
-//           branchId: 1,
+//           branchId: "",
 //           id: 'test_transaction',
 //           status: 'pending',
 //         ));
@@ -201,7 +201,7 @@
 //         )).thenAnswer((_) async => ITransaction(
 //           id: 'test_transaction',
 //           status: 'pending',
-//           branchId: 1,
+//           branchId: "",
 //           transactionType: 'NS',
 //           invoiceNumber: 1,
 //           items: [],

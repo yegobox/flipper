@@ -19,7 +19,7 @@ abstract class StockInterface {
       required double rsdQty,
       required String productId,
       required String variantId,
-      required int branchId,
+      required String branchId,
       required double currentStock,
       required double value});
   Stream<Stock?> watchStockByVariantId({required String stockId});

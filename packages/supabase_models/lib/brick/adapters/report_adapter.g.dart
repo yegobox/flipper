@@ -8,10 +8,10 @@ Future<Report> _$ReportFromSupabase(
 }) async {
   return Report(
     id: data['id'] as String?,
-    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
     businessId: data['business_id'] == null
         ? null
-        : data['business_id'] as int?,
+        : data['business_id'] as String?,
     filename: data['filename'] == null ? null : data['filename'] as String?,
     s3Url: data['s3_url'] == null ? null : data['s3_url'] as String?,
     downloaded: data['downloaded'] == null ? null : data['downloaded'] as bool?,
@@ -40,10 +40,10 @@ Future<Report> _$ReportFromSqlite(
 }) async {
   return Report(
     id: data['id'] as String,
-    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
     businessId: data['business_id'] == null
         ? null
-        : data['business_id'] as int?,
+        : data['business_id'] as String?,
     filename: data['filename'] == null ? null : data['filename'] as String?,
     s3Url: data['s3_url'] == null ? null : data['s3_url'] as String?,
     downloaded: data['downloaded'] == null ? null : data['downloaded'] == 1,
@@ -124,13 +124,13 @@ class ReportAdapter extends OfflineFirstWithSupabaseAdapter<Report> {
       association: false,
       columnName: 'branch_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'businessId': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'business_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'filename': const RuntimeSqliteColumnDefinition(
       association: false,

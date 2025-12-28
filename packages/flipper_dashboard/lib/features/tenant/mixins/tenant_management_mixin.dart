@@ -21,7 +21,7 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
   String selectedUserType = 'Agent';
   Map<String, bool> activeFeatures = {};
   Map<String, String> tenantAllowedFeatures = {};
-  int? userId;
+  String? userId;
   Tenant? editedTenant;
 
   @override
@@ -94,7 +94,7 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
     required String name,
     required String phone,
     required String userType,
-    required int? userId,
+    required String? userId,
   }) async {
     try {
       await TenantOperationsMixin.addUserStatic(

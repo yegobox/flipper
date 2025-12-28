@@ -5,13 +5,13 @@ import 'package:flipper_services/constants.dart';
 import 'package:supabase_models/brick/models/sars.model.dart';
 
 abstract class TransactionInterface {
-  Future<Sar?> getSar({required int branchId});
+  Future<Sar?> getSar({required String branchId});
   Future<List<ITransaction>> transactions({
     DateTime? startDate,
     DateTime? endDate,
     String? status,
     String? transactionType,
-    int? branchId,
+    String? branchId,
     bool isCashOut = false,
     String? id,
     bool isExpense = false,
@@ -39,14 +39,14 @@ abstract class TransactionInterface {
   FutureOr<void> addTransaction({required ITransaction transaction});
 
   Stream<ITransaction> pendingTransaction({
-    int? branchId,
+    String? branchId,
     required String transactionType,
     required bool isExpense,
     bool forceRealData = true,
   });
 
   Future<ITransaction?> pendingTransactionFuture({
-    int? branchId,
+    String? branchId,
     required String transactionType,
     required bool isExpense,
     bool forceRealData = true,
@@ -55,7 +55,7 @@ abstract class TransactionInterface {
   Stream<List<ITransaction>> transactionsStream({
     String? status,
     String? transactionType,
-    int? branchId,
+    String? branchId,
     bool isCashOut = false,
     String? id,
     FilterType? filterType,
@@ -67,7 +67,7 @@ abstract class TransactionInterface {
     required bool skipOriginalTransactionCheck,
   });
 
-  Future<List<Configurations>> taxes({required int branchId});
+  Future<List<Configurations>> taxes({required String branchId});
 
   Future<Configurations> saveTax({
     required String configId,
@@ -79,7 +79,7 @@ abstract class TransactionInterface {
   Future<ITransaction?> manageTransaction({
     required String transactionType,
     required bool isExpense,
-    required int branchId,
+    required String branchId,
     String status = PENDING,
     bool includeSubTotalCheck = false,
     String? shiftId,
@@ -88,7 +88,7 @@ abstract class TransactionInterface {
   Stream<ITransaction> manageTransactionStream({
     required String transactionType,
     required bool isExpense,
-    required int branchId,
+    required String branchId,
     bool includeSubTotalCheck = false,
   });
 
@@ -171,18 +171,18 @@ abstract class TransactionInterface {
   });
   Future<ITransaction?> getTransaction(
       {String? sarNo,
-      required int branchId,
+      required String branchId,
       String? id,
       bool awaitRemote = false});
   Future<bool> deleteTransaction({required ITransaction transaction});
 
-  Future<bool> migrateToNewDateTime({required int branchId});
+  Future<bool> migrateToNewDateTime({required String branchId});
   Future<List<TransactionWithItems>> transactionsAndItems({
     DateTime? startDate,
     DateTime? endDate,
     String? status,
     String? transactionType,
-    int? branchId,
+    String? branchId,
     bool isCashOut = false,
     bool fetchRemote = false,
     String? id,

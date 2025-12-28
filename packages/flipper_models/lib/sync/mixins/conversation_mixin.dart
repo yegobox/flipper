@@ -29,7 +29,7 @@ mixin ConversationMixin implements ConversationInterface {
   Future<Message> saveMessage({
     required String text,
     required String phoneNumber,
-    required int branchId,
+    required String branchId,
     required String role,
     required String conversationId,
     String? aiResponse,

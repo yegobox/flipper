@@ -1460,7 +1460,8 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
   }
 
   @override
-  Future<List<odm.Configurations>> taxConfigs({required int branchId}) async {
+  Future<List<odm.Configurations>> taxConfigs(
+      {required String branchId}) async {
     final repository = Repository();
     List<Configurations> taxConfigs = await repository.get<Configurations>(
         policy: OfflineFirstGetPolicy.alwaysHydrate,

@@ -35,16 +35,16 @@ class ItemCodeDittoAdapter extends DittoSyncAdapter<ItemCode> {
   dynamic _activeObserver;
   dynamic _activeSubscription;
 
-  static int? Function()? _branchIdProviderOverride;
-  static int? Function()? _businessIdProviderOverride;
+  static String? Function()? _branchIdProviderOverride;
+  static String? Function()? _businessIdProviderOverride;
 
   /// Allows tests to override how the current branch ID is resolved.
-  void overrideBranchIdProvider(int? Function()? provider) {
+  void overrideBranchIdProvider(String? Function()? provider) {
     _branchIdProviderOverride = provider;
   }
 
   /// Allows tests to override how the current business ID is resolved.
-  void overrideBusinessIdProvider(int? Function()? provider) {
+  void overrideBusinessIdProvider(String? Function()? provider) {
     _businessIdProviderOverride = provider;
   }
 
@@ -74,8 +74,8 @@ class ItemCodeDittoAdapter extends DittoSyncAdapter<ItemCode> {
   @override
   bool get supportsBackupPull => false;
 
-  Future<int?> _resolveBranchId({bool waitForValue = false}) async {
-    int? branchId =
+  Future<String?> _resolveBranchId({bool waitForValue = false}) async {
+    String? branchId =
         _branchIdProviderOverride?.call() ?? ProxyService.box.getBranchId();
     if (!waitForValue || branchId != null) {
       return branchId;

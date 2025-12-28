@@ -12,7 +12,7 @@ Future<Favorite> _$FavoriteFromSupabase(
     productId: data['product_id'] == null
         ? null
         : data['product_id'] as String?,
-    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
     lastTouched: data['last_touched'] == null
         ? null
         : data['last_touched'] == null
@@ -52,7 +52,7 @@ Future<Favorite> _$FavoriteFromSqlite(
     productId: data['product_id'] == null
         ? null
         : data['product_id'] as String?,
-    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
     lastTouched: data['last_touched'] == null
         ? null
         : data['last_touched'] == null
@@ -150,7 +150,7 @@ class FavoriteAdapter extends OfflineFirstWithSupabaseAdapter<Favorite> {
       association: false,
       columnName: 'branch_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'lastTouched': const RuntimeSqliteColumnDefinition(
       association: false,

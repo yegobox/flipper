@@ -41,7 +41,7 @@ void main() {
     registerFallbackValue(Message(
       text: '',
       phoneNumber: '',
-      branchId: 1,
+      branchId: "",
       delivered: true,
       role: 'user',
       conversationId: '',
@@ -49,7 +49,7 @@ void main() {
     ));
     registerFallbackValue(Conversation(
       title: '',
-      branchId: 1,
+      branchId: "",
     ));
     registerFallbackValue(Where('field'));
   });

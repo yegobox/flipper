@@ -14,8 +14,8 @@ Future<Configurations> _$ConfigurationsFromSupabase(
         : data['tax_percentage'] as double?,
     businessId: data['business_id'] == null
         ? null
-        : data['business_id'] as int?,
-    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+        : data['business_id'] as String?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
   );
 }
 
@@ -46,8 +46,8 @@ Future<Configurations> _$ConfigurationsFromSqlite(
         : data['tax_percentage'] as double?,
     businessId: data['business_id'] == null
         ? null
-        : data['business_id'] as int?,
-    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+        : data['business_id'] as String?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -131,13 +131,13 @@ class ConfigurationsAdapter
       association: false,
       columnName: 'business_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'branchId': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'branch_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
   };
   @override

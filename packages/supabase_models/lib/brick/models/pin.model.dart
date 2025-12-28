@@ -11,11 +11,11 @@ class Pin extends OfflineFirstWithSupabaseModel {
   @Sqlite(index: true, unique: true)
   final String id;
 
-  int? userId;
+  String? userId;
   String? phoneNumber;
   int? pin;
-  int? branchId;
-  int? businessId;
+  String? branchId;
+  String? businessId;
   String? ownerName;
   String? tokenUid;
   String? uid;

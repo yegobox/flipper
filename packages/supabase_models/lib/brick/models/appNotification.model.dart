@@ -13,7 +13,7 @@ class AppNotification extends OfflineFirstWithSupabaseModel {
 
   String? type;
   String? message;
-  int? identifier;
+  String? identifier;
   bool? completed;
 
   AppNotification({

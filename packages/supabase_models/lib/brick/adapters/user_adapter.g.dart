@@ -11,6 +11,27 @@ Future<User> _$UserFromSupabase(
     name: data['name'] == null ? null : data['name'] as String?,
     key: data['key'] == null ? null : data['key'] as String?,
     uuid: data['uuid'] == null ? null : data['uuid'] as String?,
+    pin: data['pin'] == null ? null : data['pin'] as int?,
+    editId: data['edit_id'] == null ? null : data['edit_id'] as bool?,
+    isExternal: data['is_external'] == null
+        ? null
+        : data['is_external'] as bool?,
+    ownership: data['ownership'] == null ? null : data['ownership'] as String?,
+    groupId: data['group_id'] == null ? null : data['group_id'] as int?,
+    external: data['external'] == null ? null : data['external'] as bool?,
+    updatedAt: data['updated_at'] == null
+        ? null
+        : data['updated_at'] == null
+        ? null
+        : DateTime.tryParse(data['updated_at'] as String),
+    deletedAt: data['deleted_at'] == null
+        ? null
+        : data['deleted_at'] == null
+        ? null
+        : DateTime.tryParse(data['deleted_at'] as String),
+    phoneNumber: data['phone_number'] == null
+        ? null
+        : data['phone_number'] as String?,
   );
 }
 
@@ -24,6 +45,15 @@ Future<Map<String, dynamic>> _$UserToSupabase(
     'name': instance.name,
     'key': instance.key,
     'uuid': instance.uuid,
+    'pin': instance.pin,
+    'edit_id': instance.editId,
+    'is_external': instance.isExternal,
+    'ownership': instance.ownership,
+    'group_id': instance.groupId,
+    'external': instance.external,
+    'updated_at': instance.updatedAt?.toIso8601String(),
+    'deleted_at': instance.deletedAt?.toIso8601String(),
+    'phone_number': instance.phoneNumber,
   };
 }
 
@@ -37,6 +67,25 @@ Future<User> _$UserFromSqlite(
     name: data['name'] == null ? null : data['name'] as String?,
     key: data['key'] == null ? null : data['key'] as String?,
     uuid: data['uuid'] == null ? null : data['uuid'] as String?,
+    pin: data['pin'] == null ? null : data['pin'] as int?,
+    editId: data['edit_id'] == null ? null : data['edit_id'] == 1,
+    isExternal: data['is_external'] == null ? null : data['is_external'] == 1,
+    ownership: data['ownership'] == null ? null : data['ownership'] as String?,
+    groupId: data['group_id'] == null ? null : data['group_id'] as int?,
+    external: data['external'] == null ? null : data['external'] == 1,
+    updatedAt: data['updated_at'] == null
+        ? null
+        : data['updated_at'] == null
+        ? null
+        : DateTime.tryParse(data['updated_at'] as String),
+    deletedAt: data['deleted_at'] == null
+        ? null
+        : data['deleted_at'] == null
+        ? null
+        : DateTime.tryParse(data['deleted_at'] as String),
+    phoneNumber: data['phone_number'] == null
+        ? null
+        : data['phone_number'] as String?,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -50,6 +99,17 @@ Future<Map<String, dynamic>> _$UserToSqlite(
     'name': instance.name,
     'key': instance.key,
     'uuid': instance.uuid,
+    'pin': instance.pin,
+    'edit_id': instance.editId == null ? null : (instance.editId! ? 1 : 0),
+    'is_external': instance.isExternal == null
+        ? null
+        : (instance.isExternal! ? 1 : 0),
+    'ownership': instance.ownership,
+    'group_id': instance.groupId,
+    'external': instance.external == null ? null : (instance.external! ? 1 : 0),
+    'updated_at': instance.updatedAt?.toIso8601String(),
+    'deleted_at': instance.deletedAt?.toIso8601String(),
+    'phone_number': instance.phoneNumber,
   };
 }
 
@@ -78,6 +138,42 @@ class UserAdapter extends OfflineFirstWithSupabaseAdapter<User> {
     'uuid': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'uuid',
+    ),
+    'pin': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'pin',
+    ),
+    'editId': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'edit_id',
+    ),
+    'isExternal': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'is_external',
+    ),
+    'ownership': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'ownership',
+    ),
+    'groupId': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'group_id',
+    ),
+    'external': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'external',
+    ),
+    'updatedAt': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'updated_at',
+    ),
+    'deletedAt': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'deleted_at',
+    ),
+    'phoneNumber': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'phone_number',
     ),
   };
   @override
@@ -113,6 +209,60 @@ class UserAdapter extends OfflineFirstWithSupabaseAdapter<User> {
     'uuid': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'uuid',
+      iterable: false,
+      type: String,
+    ),
+    'pin': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'pin',
+      iterable: false,
+      type: int,
+    ),
+    'editId': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'edit_id',
+      iterable: false,
+      type: bool,
+    ),
+    'isExternal': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'is_external',
+      iterable: false,
+      type: bool,
+    ),
+    'ownership': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'ownership',
+      iterable: false,
+      type: String,
+    ),
+    'groupId': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'group_id',
+      iterable: false,
+      type: int,
+    ),
+    'external': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'external',
+      iterable: false,
+      type: bool,
+    ),
+    'updatedAt': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'updated_at',
+      iterable: false,
+      type: DateTime,
+    ),
+    'deletedAt': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'deleted_at',
+      iterable: false,
+      type: DateTime,
+    ),
+    'phoneNumber': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'phone_number',
       iterable: false,
       type: String,
     ),

@@ -11,13 +11,13 @@ mixin CapellaBranchMixin implements BranchInterface {
   Talker get talker;
 
   @override
-  Future<Branch?> branch({String? name, int? serverId}) async {
+  Future<Branch?> branch({String? name, String? serverId}) async {
     throw UnimplementedError('branch needs to be implemented for Capella');
   }
 
   @override
   FutureOr<void> updateBranch(
-      {required int branchId,
+      {required String branchId,
       String? name,
       bool? active,
       bool? isDefault}) async {
@@ -32,26 +32,26 @@ mixin CapellaBranchMixin implements BranchInterface {
 
   @override
   Future<List<Branch>> branches({
-    int? businessId,
+    String? businessId,
     bool? active = false,
-    int? excludeId,
+    String? excludeId,
   }) async {
     throw UnimplementedError('branches needs to be implemented for Capella');
   }
 
   @override
-  void clearData({required ClearData data, required int identifier}) {
+  void clearData({required ClearData data, required String identifier}) {
     throw UnimplementedError('clearData needs to be implemented for Capella');
   }
 
   @override
   Future<List<Business>> businesses(
-      {int? userId, bool fetchOnline = false, bool active = false}) async {
+      {String? userId, bool fetchOnline = false, bool active = false}) async {
     throw UnimplementedError('businesses needs to be implemented for Capella');
   }
 
   @override
-  Future<List<Category>> categories({required int branchId}) async {
+  Future<List<Category>> categories({required String branchId}) async {
     throw UnimplementedError('categories needs to be implemented for Capella');
   }
 

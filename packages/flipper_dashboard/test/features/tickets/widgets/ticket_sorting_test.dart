@@ -9,9 +9,9 @@ void main() {
     test('separates loan and regular tickets correctly', () {
       final tickets = [
         ITransaction(
-          agentId: 1,
+          agentId: "1",
           id: 'regular1',
-          branchId: 1,
+          branchId: "",
           status: PARKED,
           transactionType: 'sale',
           paymentType: 'cash',
@@ -23,9 +23,9 @@ void main() {
           isLoan: false,
         ),
         ITransaction(
-          agentId: 1,
+          agentId: "1",
           id: 'loan1',
-          branchId: 1,
+          branchId: "",
           status: PARKED,
           transactionType: 'sale',
           paymentType: 'cash',
@@ -49,9 +49,9 @@ void main() {
 
     testWidgets('TicketCard displays correctly', (tester) async {
       final ticket = ITransaction(
-        agentId: 1,
+        agentId: "1",
         id: 'test123',
-        branchId: 1,
+        branchId: "",
         status: PARKED,
         transactionType: 'sale',
         paymentType: 'cash',

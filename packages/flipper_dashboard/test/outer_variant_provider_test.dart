@@ -38,24 +38,24 @@ void main() {
   late TestEnvironment env;
 
   // Sample data for testing.
-  final variant1 = Variant(id: '1', name: 'Apple', branchId: 1, taxTyCd: 'B');
-  final variant2 = Variant(id: '2', name: 'Banana', branchId: 1, taxTyCd: 'B');
+  final variant1 = Variant(id: '1', name: 'Apple', branchId: "", taxTyCd: 'B');
+  final variant2 = Variant(id: '2', name: 'Banana', branchId: "", taxTyCd: 'B');
   final variant3 = Variant(
     id: '3',
     name: 'Apple Juice',
-    branchId: 1,
+    branchId: "",
     taxTyCd: 'C',
   );
   final remoteVariant = Variant(
     id: '4',
     name: 'Remote Apple',
-    branchId: 1,
+    branchId: "",
     taxTyCd: 'A',
   );
   final excludedVariant = Variant(
     id: '5',
     name: 'Excluded Item',
-    branchId: 1,
+    branchId: "",
     taxTyCd: 'D',
   );
 
@@ -73,7 +73,7 @@ void main() {
 
     // Set up fallback values
     registerFallbackValue(
-      Customer(branchId: 0, custNm: 'fallback', bhfId: '00'),
+      Customer(branchId: "0", custNm: 'fallback', bhfId: '00'),
     );
     registerFallbackValue(
       Business(
@@ -84,7 +84,7 @@ void main() {
       ),
     );
     registerFallbackValue(
-      Variant(id: "fallback_variant", name: "Fallback Variant", branchId: 1),
+      Variant(id: "fallback_variant", name: "Fallback Variant", branchId: "1"),
     );
     registerFallbackValue(<Variant>[]);
   });
@@ -123,17 +123,17 @@ void main() {
     }
 
     when(() => mockBox.itemPerPage()).thenReturn(10);
-    when(() => mockBox.getBranchId()).thenReturn(1);
+    when(() => mockBox.getBranchId()).thenReturn("1");
 
     // Mock ebm() to return EBM with VAT enabled by default
     final ebmWithVatEnabled = Ebm(
       bhfId: '00',
       tinNumber: 123456789,
       dvcSrlNo: 'TEST123',
-      userId: 1,
+      userId: "1",
       taxServerUrl: 'https://test.rra.gov.rw',
-      businessId: 1,
-      branchId: 1,
+      businessId: "1",
+      branchId: "",
       vatEnabled: true,
       mrc: 'TEST',
     );
@@ -183,14 +183,14 @@ void main() {
       final container = createContainer();
 
       // Act
-      await container.read(outerVariantsProvider(1).future);
+      await container.read(outerVariantsProvider("1").future);
 
       // Assert
-      final result = container.read(outerVariantsProvider(1));
+      final result = container.read(outerVariantsProvider("1"));
       expect(result.value, [variant1, variant2]);
       verify(
         () => mockDbSync.variants(
-          branchId: 1,
+          branchId: "",
           fetchRemote: true,
           page: 0,
           itemsPerPage: 10,
@@ -249,16 +249,16 @@ void main() {
       final container = createContainer();
 
       // Load initial data
-      await container.read(outerVariantsProvider(1).future);
+      await container.read(outerVariantsProvider("1").future);
 
       // Act: First search - this should immediately filter the loaded data
       container.read(searchStringProvider.notifier).emitString(value: 'Apple');
 
       // Wait for the provider to rebuild with the search filter
-      await container.read(outerVariantsProvider(1).future);
+      await container.read(outerVariantsProvider("1").future);
 
       // Assert: First search results (should contain variants with "Apple" in name and valid taxTyCd)
-      final firstSearchResult = container.read(outerVariantsProvider(1)).value;
+      final firstSearchResult = container.read(outerVariantsProvider("1")).value;
       expect(firstSearchResult, isNotNull);
       expect(
         firstSearchResult,
@@ -279,11 +279,11 @@ void main() {
           .emitString(value: 'Apple J');
 
       // Wait for the provider to rebuild with the refined filter
-      await container.read(outerVariantsProvider(1).future);
+      await container.read(outerVariantsProvider("1").future);
 
       // Assert: Refined search results (should only contain "Apple Juice")
       final refinedSearchResult = container
-          .read(outerVariantsProvider(1))
+          .read(outerVariantsProvider("1"))
           .value;
       expect(refinedSearchResult, isNotNull);
       expect(refinedSearchResult, hasLength(1));
@@ -293,7 +293,7 @@ void main() {
       // Verify that the remote fetch was only called once for initial load
       verify(
         () => mockDbSync.variants(
-          branchId: 1,
+          branchId: "",
           fetchRemote: true,
           page: 0,
           itemsPerPage: 10,
@@ -337,14 +337,14 @@ void main() {
       final container = createContainer();
 
       // Load initial data
-      await container.read(outerVariantsProvider(1).future);
+      await container.read(outerVariantsProvider("1").future);
 
       // Apply search filter
       container.read(searchStringProvider.notifier).emitString(value: 'Apple');
-      await container.read(outerVariantsProvider(1).future);
+      await container.read(outerVariantsProvider("1").future);
 
       // Verify filtered results
-      final filteredResult = container.read(outerVariantsProvider(1)).value;
+      final filteredResult = container.read(outerVariantsProvider("1")).value;
       expect(
         filteredResult,
         hasLength(2),
@@ -352,10 +352,10 @@ void main() {
 
       // Act: Clear search
       container.read(searchStringProvider.notifier).emitString(value: '');
-      await container.read(outerVariantsProvider(1).future);
+      await container.read(outerVariantsProvider("1").future);
 
       // Assert: Should return to full list (but still filtered by taxTyCd)
-      final clearedResult = container.read(outerVariantsProvider(1)).value;
+      final clearedResult = container.read(outerVariantsProvider("1")).value;
       expect(
         clearedResult,
         hasLength(3),
@@ -373,10 +373,10 @@ void main() {
         bhfId: '00',
         tinNumber: 123456789,
         dvcSrlNo: 'TEST123',
-        userId: 1,
+        userId: "1",
         taxServerUrl: 'https://test.rra.gov.rw',
-        businessId: 1,
-        branchId: 1,
+        businessId: "1",
+        branchId: "",
         vatEnabled: false,
         mrc: 'TEST',
       );
@@ -390,7 +390,7 @@ void main() {
       final vatDisabledVariant = Variant(
         id: '6',
         name: 'VAT Disabled Item',
-        branchId: 1,
+        branchId: "",
         taxTyCd: 'D',
       );
 
@@ -423,10 +423,10 @@ void main() {
       final container = createContainer();
 
       // Load initial data
-      await container.read(outerVariantsProvider(1).future);
+      await container.read(outerVariantsProvider("1").future);
 
       // Assert: Should only show variants with taxTyCd 'D'
-      final result = container.read(outerVariantsProvider(1)).value;
+      final result = container.read(outerVariantsProvider("1")).value;
       expect(result, hasLength(1));
       expect(result!.first.taxTyCd, 'D');
       expect(result.first.name, 'VAT Disabled Item');
@@ -435,7 +435,7 @@ void main() {
       // When VAT is disabled, it requests ['D', 'B'] but filters to only show 'D' or TT items
       verify(
         () => mockDbSync.variants(
-          branchId: 1,
+          branchId: "",
           fetchRemote: true,
           page: 0,
           itemsPerPage: 10,

@@ -22,7 +22,7 @@ mixin BranchMixin implements BranchInterface {
   @override
   FutureOr<Branch> addBranch(
       {required String name,
-      required int businessId,
+      required String businessId,
       required String location,
       String? userOwnerPhoneNumber,
       required HttpClientInterface flipperHttpClient,
@@ -66,7 +66,7 @@ mixin BranchMixin implements BranchInterface {
   }
 
   @override
-  FutureOr<Branch?> branch({String? name, int? serverId}) async {
+  FutureOr<Branch?> branch({String? name, String? serverId}) async {
     final repository = Repository();
     Query? query = null;
     if (name != null) {
@@ -89,7 +89,7 @@ mixin BranchMixin implements BranchInterface {
 
   @override
   FutureOr<void> updateBranch(
-      {required int branchId,
+      {required String branchId,
       String? name,
       bool? active,
       bool? isDefault}) async {
@@ -105,14 +105,15 @@ mixin BranchMixin implements BranchInterface {
 
   @override
   Future<List<Branch>> branches({
-    int? businessId,
+    String? businessId,
     bool? active = false,
-    int? excludeId,
+    String? excludeId,
   }) async {
     return await _getBranches(businessId, excludeId: excludeId);
   }
 
-  Future<List<Branch>> _getBranches(int? businessId, {int? excludeId}) async {
+  Future<List<Branch>> _getBranches(String? businessId,
+      {String? excludeId}) async {
     final filters = <Where>[
       if (businessId != null) Where('businessId').isExactly(businessId),
       if (excludeId != null) Where('serverId').isNot(excludeId),
@@ -135,7 +136,7 @@ mixin BranchMixin implements BranchInterface {
   }
 
   @override
-  void clearData({required ClearData data, required int identifier}) async {
+  void clearData({required ClearData data, required String identifier}) async {
     try {
       if (data == ClearData.Branch) {
         final List<Branch> branches = await repository.get<Branch>(
@@ -167,7 +168,7 @@ mixin BranchMixin implements BranchInterface {
 
   @override
   Future<List<Business>> businesses(
-      {int? userId, bool fetchOnline = false, bool active = false}) async {
+      {String? userId, bool fetchOnline = false, bool active = false}) async {
     return await repository.get<Business>(
       policy: fetchOnline
           ? OfflineFirstGetPolicy.alwaysHydrate
@@ -180,7 +181,7 @@ mixin BranchMixin implements BranchInterface {
   }
 
   @override
-  Future<List<Category>> categories({required int branchId}) async {
+  Future<List<Category>> categories({required String branchId}) async {
     return repository.get<Category>(
       query: Query(where: [Where('branchId').isExactly(branchId)]),
     );

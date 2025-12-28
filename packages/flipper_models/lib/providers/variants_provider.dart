@@ -9,7 +9,7 @@ part 'variants_provider.g.dart';
 @riverpod
 Future<List<Variant>> variant(
   Ref ref, {
-  required int branchId,
+  required String branchId,
   String? key,
   bool forImportScreen = false,
   bool forPurchaseScreen = false,
@@ -30,7 +30,7 @@ Future<List<Variant>> variant(
 @riverpod
 Future<List<Variant>> purchaseVariant(
   Ref ref, {
-  required int branchId,
+  required String branchId,
   String? purchaseId,
 }) async {
   print('Fetching variants for branchId: $branchId');

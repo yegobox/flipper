@@ -8,7 +8,7 @@ mixin CapellaShiftMixin implements ShiftApi {
 
   @override
   Future<models.Shift> startShift(
-      {required int userId,
+      {required String userId,
       required double openingBalance,
       String? note}) async {
     throw UnimplementedError('startShift needs to be implemented for Capella');
@@ -23,14 +23,14 @@ mixin CapellaShiftMixin implements ShiftApi {
   }
 
   @override
-  Future<models.Shift?> getCurrentShift({required int userId}) async {
+  Future<models.Shift?> getCurrentShift({required String userId}) async {
     throw UnimplementedError(
         'getCurrentShift needs to be implemented for Capella');
   }
 
   @override
   Stream<List<models.Shift>> getShifts(
-      {required int businessId, DateTimeRange? dateRange}) {
+      {required String businessId, DateTimeRange? dateRange}) {
     throw UnimplementedError('getShifts needs to be implemented for Capella');
   }
 

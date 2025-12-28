@@ -12,8 +12,8 @@ class SKU extends OfflineFirstWithSupabaseModel {
   final String id;
 
   int? sku;
-  int? branchId;
-  int? businessId;
+  String? branchId;
+  String? businessId;
   bool? consumed = false;
   SKU({
     String? id,

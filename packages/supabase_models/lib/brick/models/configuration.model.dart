@@ -13,8 +13,8 @@ class Configurations extends OfflineFirstWithSupabaseModel {
 
   String? taxType = "B";
   double? taxPercentage = 18.0;
-  int? businessId;
-  int? branchId;
+  String? businessId;
+  String? branchId;
   Configurations({
     String? id,
     this.taxType,

@@ -17,7 +17,7 @@ class Location extends OfflineFirstWithSupabaseModel {
 
   String? description;
   String? name;
-  int? businessId;
+  String? businessId;
   String? longitude;
   String? latitude;
   String? location;

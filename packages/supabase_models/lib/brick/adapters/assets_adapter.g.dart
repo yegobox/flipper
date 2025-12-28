@@ -8,10 +8,10 @@ Future<Assets> _$AssetsFromSupabase(
 }) async {
   return Assets(
     id: data['id'] as String?,
-    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
     businessId: data['business_id'] == null
         ? null
-        : data['business_id'] as int?,
+        : data['business_id'] as String?,
     assetName: data['asset_name'] == null
         ? null
         : data['asset_name'] as String?,
@@ -48,10 +48,10 @@ Future<Assets> _$AssetsFromSqlite(
 }) async {
   return Assets(
     id: data['id'] as String,
-    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
     businessId: data['business_id'] == null
         ? null
-        : data['business_id'] as int?,
+        : data['business_id'] as String?,
     assetName: data['asset_name'] == null
         ? null
         : data['asset_name'] as String?,
@@ -142,13 +142,13 @@ class AssetsAdapter extends OfflineFirstWithSupabaseAdapter<Assets> {
       association: false,
       columnName: 'branch_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'businessId': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'business_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'assetName': const RuntimeSqliteColumnDefinition(
       association: false,

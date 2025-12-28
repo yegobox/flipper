@@ -8,7 +8,7 @@ part 'branch_business_provider.g.dart';
 @riverpod
 Future<List<Branch>> branches(
   Ref ref, {
-  int? businessId,
+  String? businessId,
 }) async {
   final branches = await ProxyService.strategy.branches(
       businessId: businessId, excludeId: ProxyService.box.getBranchId());

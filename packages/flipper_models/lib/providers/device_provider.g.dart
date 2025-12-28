@@ -16,7 +16,8 @@ final class DevicesForBranchProvider extends $FunctionalProvider<
         AsyncValue<List<Device>>, List<Device>, FutureOr<List<Device>>>
     with $FutureModifier<List<Device>>, $FutureProvider<List<Device>> {
   const DevicesForBranchProvider._(
-      {required DevicesForBranchFamily super.from, required int super.argument})
+      {required DevicesForBranchFamily super.from,
+      required String super.argument})
       : super(
           retry: null,
           name: r'devicesForBranchProvider',
@@ -43,7 +44,7 @@ final class DevicesForBranchProvider extends $FunctionalProvider<
 
   @override
   FutureOr<List<Device>> create(Ref ref) {
-    final argument = this.argument as int;
+    final argument = this.argument as String;
     return devicesForBranch(
       ref,
       branchId: argument,
@@ -61,10 +62,10 @@ final class DevicesForBranchProvider extends $FunctionalProvider<
   }
 }
 
-String _$devicesForBranchHash() => r'268ba32c393f7251cac837041b1d3f0ba977f117';
+String _$devicesForBranchHash() => r'bcb6fbb9c9a7f398df7ccc8d7f7561c8c9fed68b';
 
 final class DevicesForBranchFamily extends $Family
-    with $FunctionalFamilyOverride<FutureOr<List<Device>>, int> {
+    with $FunctionalFamilyOverride<FutureOr<List<Device>>, String> {
   const DevicesForBranchFamily._()
       : super(
           retry: null,
@@ -75,7 +76,7 @@ final class DevicesForBranchFamily extends $Family
         );
 
   DevicesForBranchProvider call({
-    required int branchId,
+    required String branchId,
   }) =>
       DevicesForBranchProvider._(argument: branchId, from: this);
 

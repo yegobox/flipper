@@ -146,7 +146,7 @@ class GeminiResponse extends _$GeminiResponse {
 @riverpod
 class GeminiBusinessAnalytics extends _$GeminiBusinessAnalytics {
   @override
-  Future<String> build(int branchId, String userPrompt,
+  Future<String> build(String branchId, String userPrompt,
       {String? filePath, List<Content>? history}) async {
     final businessAnalyticsData =
         await ProxyService.getStrategy(Strategy.capella)
@@ -305,7 +305,7 @@ Future<String> geminiSummary(Ref ref, String prompt) async {
 
 @riverpod
 Stream<List<BusinessAnalytic>> streamedBusinessAnalytics(
-    Ref ref, int branchId) {
+    Ref ref, String branchId) {
   return ProxyService.getStrategy(Strategy.capella)
       .streamRemoteAnalytics(branchId: branchId);
 }

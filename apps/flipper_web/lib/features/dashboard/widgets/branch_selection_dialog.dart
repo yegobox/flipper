@@ -46,7 +46,7 @@ Future<void> showBranchSelectionDialog(
               padding: const EdgeInsets.all(20),
               child: FutureBuilder<List<Branch>>(
                 future: userRepository.getBranchesForBusiness(
-                  selectedBusiness.serverId.toString(),
+                  selectedBusiness.id,
                 ),
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {

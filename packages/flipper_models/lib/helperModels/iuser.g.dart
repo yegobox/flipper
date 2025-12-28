@@ -7,7 +7,7 @@ part of 'iuser.dart';
 // **************************************************************************
 
 IUser _$IUserFromJson(Map<String, dynamic> json) => IUser(
-      id: (json['id'] as num?)?.toInt(),
+      id: json['id'] as String,
       phoneNumber: json['phoneNumber'] as String,
       token: json['token'] as String?,
       uid: json['uid'] as String?,

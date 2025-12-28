@@ -11,7 +11,7 @@ Future<Category> _$CategoryFromSupabase(
     active: data['active'] == null ? null : data['active'] as bool?,
     focused: data['focused'] as bool,
     name: data['name'] == null ? null : data['name'] as String?,
-    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
     deletedAt: data['deleted_at'] == null
         ? null
         : data['deleted_at'] == null
@@ -51,7 +51,7 @@ Future<Category> _$CategoryFromSqlite(
     active: data['active'] == null ? null : data['active'] == 1,
     focused: data['focused'] == 1,
     name: data['name'] == null ? null : data['name'] as String?,
-    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
     deletedAt: data['deleted_at'] == null
         ? null
         : data['deleted_at'] == null
@@ -160,7 +160,7 @@ class CategoryAdapter extends OfflineFirstWithSupabaseAdapter<Category> {
       association: false,
       columnName: 'branch_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'deletedAt': const RuntimeSqliteColumnDefinition(
       association: false,

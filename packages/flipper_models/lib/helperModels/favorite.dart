@@ -11,7 +11,7 @@ class Favorite extends IJsonSerializable {
   int? favIndex;
 
   int? productId;
-  int? branchId;
+  String? branchId;
 
   @JsonKey(includeIfNull: true)
   DateTime? lastTouched;

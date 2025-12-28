@@ -24,11 +24,7 @@ void main() {
       env.injectMocks();
       env.stubCommonMethods();
 
-      mockBranch = Branch(
-        id: '1',
-        name: 'Main Branch',
-        businessId: 1,
-      );
+      mockBranch = Branch(id: '1', name: 'Main Branch', businessId: "1");
 
       mockRequest = InventoryRequest(
         id: '1',
@@ -66,8 +62,9 @@ void main() {
         ),
       ];
 
-      when(() => env.mockDbSync.transactionItems(requestId: '1'))
-          .thenAnswer((_) async => mockItems);
+      when(
+        () => env.mockDbSync.transactionItems(requestId: '1'),
+      ).thenAnswer((_) async => mockItems);
     });
 
     tearDown(() {
@@ -78,9 +75,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
-            home: Scaffold(
-              body: ItemsList(request: mockRequest),
-            ),
+            home: Scaffold(body: ItemsList(request: mockRequest)),
           ),
         ),
       );
@@ -94,9 +89,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
-            home: Scaffold(
-              body: ItemsList(request: mockRequest),
-            ),
+            home: Scaffold(body: ItemsList(request: mockRequest)),
           ),
         ),
       );
@@ -108,9 +101,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
-            home: Scaffold(
-              body: ItemsList(request: mockRequest),
-            ),
+            home: Scaffold(body: ItemsList(request: mockRequest)),
           ),
         ),
       );
@@ -125,9 +116,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
-            home: Scaffold(
-              body: ItemsList(request: mockRequest),
-            ),
+            home: Scaffold(body: ItemsList(request: mockRequest)),
           ),
         ),
       );
@@ -138,14 +127,13 @@ void main() {
       expect(find.text('8/8'), findsOneWidget); // Item 2: approved/requested
     });
 
-    testWidgets('shows pending quantity for partially approved items',
-        (tester) async {
+    testWidgets('shows pending quantity for partially approved items', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
-            home: Scaffold(
-              body: ItemsList(request: mockRequest),
-            ),
+            home: Scaffold(body: ItemsList(request: mockRequest)),
           ),
         ),
       );
@@ -159,17 +147,17 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
-            home: Scaffold(
-              body: ItemsList(request: mockRequest),
-            ),
+            home: Scaffold(body: ItemsList(request: mockRequest)),
           ),
         ),
       );
 
       await tester.pump();
 
-      expect(find.text('Approve'),
-          findsOneWidget); // Only Item 1 should have approve button
+      expect(
+        find.text('Approve'),
+        findsOneWidget,
+      ); // Only Item 1 should have approve button
       expect(find.byIcon(Icons.check_circle_outline), findsOneWidget);
     });
 
@@ -177,30 +165,29 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
-            home: Scaffold(
-              body: ItemsList(request: mockRequest),
-            ),
+            home: Scaffold(body: ItemsList(request: mockRequest)),
           ),
         ),
       );
 
       await tester.pump();
 
-      expect(find.byType(Column),
-          findsNWidgets(4)); // Main column + 2 item columns + 1 data column
+      expect(
+        find.byType(Column),
+        findsNWidgets(4),
+      ); // Main column + 2 item columns + 1 data column
       expect(find.byType(Card), findsNWidgets(2)); // 2 item cards
     });
 
     testWidgets('handles empty items list', (tester) async {
-      when(() => env.mockDbSync.transactionItems(requestId: '1'))
-          .thenAnswer((_) async => []);
+      when(
+        () => env.mockDbSync.transactionItems(requestId: '1'),
+      ).thenAnswer((_) async => []);
 
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
-            home: Scaffold(
-              body: ItemsList(request: mockRequest),
-            ),
+            home: Scaffold(body: ItemsList(request: mockRequest)),
           ),
         ),
       );
@@ -222,9 +209,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
-            home: Scaffold(
-              body: ItemsList(request: approvedRequest),
-            ),
+            home: Scaffold(body: ItemsList(request: approvedRequest)),
           ),
         ),
       );

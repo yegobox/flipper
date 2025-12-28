@@ -52,7 +52,7 @@ void main() {
         text: 'fallback',
         role: 'user',
         conversationId: 'fallback_conversation',
-        branchId: 1,
+        branchId: "",
         phoneNumber: '123',
         delivered: false,
       ),
@@ -60,7 +60,7 @@ void main() {
     registerFallbackValue(
       models.BusinessAnalytic(
         id: 'fallback_analytic',
-        branchId: 1,
+        branchId: "",
         date: DateTime.now(),
         stockRemainedAtTheTimeOfSale: 0,
         transactionId: 'fallback_transaction',
@@ -85,7 +85,7 @@ void main() {
       Conversation(
         id: 'fallback_conversation',
         title: 'Fallback Conversation',
-        branchId: 1,
+        branchId: "",
         createdAt: DateTime.now(),
       ),
     );
@@ -118,7 +118,7 @@ void main() {
     reset(mockRepository);
 
     // Default mocks for ProxyService
-    when(() => mockBox.getBranchId()).thenReturn(1);
+    when(() => mockBox.getBranchId()).thenReturn("1");
     when(() => mockBox.getUserPhone()).thenReturn('123456789');
     when(() => mockDbSync.activeBusiness()).thenAnswer(
       (_) async => models.Business(id: '1', name: 'Test Business', serverId: 1),
@@ -142,7 +142,7 @@ void main() {
       (_) async => Conversation(
         id: 'new_conversation_id',
         title: 'New Conversation',
-        branchId: 1,
+        branchId: "",
         createdAt: DateTime.now(),
       ),
     );
@@ -170,7 +170,7 @@ void main() {
         text: 'saved',
         role: 'user',
         conversationId: 'new_conversation_id',
-        branchId: 1,
+        branchId: "",
         phoneNumber: '123456789',
         delivered: false,
       ),
@@ -236,7 +236,7 @@ void main() {
     //         AiConversation(
     //           id: 'existing_conversation',
     //           title: 'Existing Conversation',
-    //           branchId: 1,
+    //           branchId: "",
     //           createdAt: DateTime.now(),
     //         )
     //       ]);
@@ -249,7 +249,7 @@ void main() {
     //           text: 'Hello',
     //           role: 'user',
     //           conversationId: 'existing_conversation',
-    //           branchId: 1,
+    //           branchId: "",
     //           phoneNumber: '123',
     //           delivered: false,
     //         )
@@ -275,7 +275,7 @@ void main() {
     //         text: 'Hello AI',
     //         role: 'user',
     //         conversationId: 'existing_conversation',
-    //         branchId: 1,
+    //         branchId: "",
     //         phoneNumber: '123456789',
     //         delivered: false,
     //       ));
@@ -292,7 +292,7 @@ void main() {
     //         text: 'AI response text',
     //         role: 'assistant',
     //         conversationId: 'existing_conversation',
-    //         branchId: 1,
+    //         branchId: "",
     //         phoneNumber: '123456789',
     //         delivered: false,
     //       ));
@@ -359,7 +359,7 @@ void main() {
           Conversation(
             id: 'existing_conversation',
             title: 'Existing Conversation',
-            branchId: 1,
+            branchId: "",
             createdAt: DateTime.now(),
           ),
         ],
@@ -378,7 +378,7 @@ void main() {
           messageSource: 'ai',
           text: 'Test message',
           phoneNumber: '123456789',
-          branchId: 1,
+          branchId: "",
           role: 'user',
           conversationId: 'existing_conversation',
           aiResponse: null,
@@ -390,7 +390,7 @@ void main() {
           text: 'Test message',
           role: 'user',
           conversationId: 'existing_conversation',
-          branchId: 1,
+          branchId: "",
           phoneNumber: '123456789',
           delivered: false,
         ),
@@ -401,7 +401,7 @@ void main() {
           const AiScreen(),
           overrides: [
             geminiBusinessAnalyticsProvider(
-              1,
+              "1",
               'Test message',
             ).overrideWith(() => throw Exception('AI service unavailable')),
           ],
@@ -430,13 +430,13 @@ void main() {
     //         Conversation(
     //           id: 'conv1',
     //           title: 'Conversation 1',
-    //           branchId: 1,
+    //           branchId: "",
     //           createdAt: DateTime.now(),
     //         ),
     //         Conversation(
     //           id: 'conv2',
     //           title: 'Conversation 2',
-    //           branchId: 1,
+    //           branchId: "",
     //           createdAt: DateTime.now(),
     //         ),
     //       ]);
@@ -449,7 +449,7 @@ void main() {
     //           text: 'Message from Conv1',
     //           role: 'user',
     //           conversationId: 'conv1',
-    //           branchId: 1,
+    //           branchId: "",
     //           phoneNumber: '123',
     //           delivered: false,
     //           timestamp: DateTime.now(),
@@ -464,7 +464,7 @@ void main() {
     //           text: 'Message from Conv2',
     //           role: 'user',
     //           conversationId: 'conv2',
-    //           branchId: 1,
+    //           branchId: "",
     //           phoneNumber: '123',
     //           delivered: false,
     //           timestamp: DateTime.now(),
@@ -478,7 +478,7 @@ void main() {
     //                 text: 'Message from Conv1',
     //                 role: 'user',
     //                 conversationId: 'conv1',
-    //                 branchId: 1,
+    //                 branchId: "",
     //                 phoneNumber: '123',
     //                 delivered: false,
     //                 timestamp: DateTime.now(),
@@ -493,7 +493,7 @@ void main() {
     //                 text: 'Message from Conv2',
     //                 role: 'user',
     //                 conversationId: 'conv2',
-    //                 branchId: 1,
+    //                 branchId: "",
     //                 phoneNumber: '123',
     //                 delivered: false,
     //                 timestamp: DateTime.now(),
@@ -532,7 +532,7 @@ void main() {
             Conversation(
               id: 'single_conv',
               title: 'Single Conversation',
-              branchId: 1,
+              branchId: "",
               createdAt: DateTime.now(),
             ),
           ],
@@ -562,7 +562,7 @@ void main() {
           (_) async => Conversation(
             id: 'new_conv_after_delete',
             title: 'New Conversation',
-            branchId: 1,
+            branchId: "",
             createdAt: DateTime.now(),
           ),
         );

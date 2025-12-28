@@ -45,8 +45,9 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                        color: Colors.blue.withValues(alpha: 0.3),
-                        blurRadius: 8.0)
+                      color: Colors.blue.withValues(alpha: 0.3),
+                      blurRadius: 8.0,
+                    ),
                   ]
                 : null,
           ),
@@ -58,8 +59,10 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
                       height: 24,
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
-                  : Icon(icon,
-                      color: isSelected ? Colors.blue : Colors.grey[600]),
+                  : Icon(
+                      icon,
+                      color: isSelected ? Colors.blue : Colors.grey[600],
+                    ),
               const SizedBox(width: 16.0),
               Expanded(
                 child: Text(
@@ -95,7 +98,7 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
       print('Branch switch already in progress, ignoring request');
       return;
     }
-    setLoadingState(branch.serverId?.toString());
+    setLoadingState(branch.id?.toString());
     setIsLoading(true);
     final appService = loc.getIt<AppService>();
 
@@ -104,7 +107,7 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
       final currentBranchId = ProxyService.box.readInt(key: 'branchId');
 
       // Only update if we're actually changing branches
-      if (currentBranchId != branch.serverId) {
+      if (currentBranchId != branch.id) {
         // First update the database to maintain consistency
         await _syncBranchWithDatabase(branch);
 
@@ -115,21 +118,27 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
         // Call setDefaultBranch but wrap it in try/catch to prevent app reload
         try {
           // We're manually setting a flag to prevent app reload during branch switch
-          await ProxyService.box
-              .writeBool(key: 'branch_switching', value: true);
+          await ProxyService.box.writeBool(
+            key: 'branch_switching',
+            value: true,
+          );
           await setDefaultBranch(branch);
-          await ProxyService.box
-              .writeBool(key: 'branch_switching', value: false);
+          await ProxyService.box.writeBool(
+            key: 'branch_switching',
+            value: false,
+          );
         } catch (e) {
-          await ProxyService.box
-              .writeBool(key: 'branch_switching', value: false);
+          await ProxyService.box.writeBool(
+            key: 'branch_switching',
+            value: false,
+          );
           print('Error in setDefaultBranch: $e');
           // Continue even if setDefaultBranch fails
         }
 
         // Force refresh of all branch-dependent data
         // This is critical to ensure variants are refreshed
-        await _forceRefreshAfterBranchSwitch(branch.serverId!);
+        await _forceRefreshAfterBranchSwitch(branch.id);
       }
 
       onComplete();
@@ -144,18 +153,23 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
   }
 
   // Method to force refresh after branch switch without causing navigation loops
-  Future<void> _forceRefreshAfterBranchSwitch(int branchId) async {
+  Future<void> _forceRefreshAfterBranchSwitch(String branchId) async {
     try {
       // Set flags to trigger refresh in other components
       await ProxyService.box.writeBool(key: 'branch_switched', value: true);
       await ProxyService.box.writeInt(
-          key: 'last_branch_switch_timestamp',
-          value: DateTime.now().millisecondsSinceEpoch);
-      await ProxyService.box.writeInt(key: 'active_branch_id', value: branchId);
+        key: 'last_branch_switch_timestamp',
+        value: DateTime.now().millisecondsSinceEpoch,
+      );
+      await ProxyService.box.writeString(
+        key: 'active_branch_id',
+        value: branchId,
+      );
 
       // Force refresh of branch providers
       ref.invalidate(
-          branchesProvider(businessId: ProxyService.box.getBusinessId()));
+        branchesProvider(businessId: ProxyService.box.getBusinessId()),
+      );
 
       // Add a small delay to ensure branch ID is fully set before invalidating transaction providers
       await Future.delayed(Duration(milliseconds: 100));
@@ -198,9 +212,7 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
     routerService.replaceWith(LoginRoute());
   }
 
-  Future<bool> showLogoutConfirmationDialog(
-    BuildContext context,
-  ) async {
+  Future<bool> showLogoutConfirmationDialog(BuildContext context) async {
     final result = await showDialog<bool>(
       context: context,
       barrierDismissible: false,
@@ -221,9 +233,7 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
                 locator<RouterService>().navigateTo(LoginRoute());
               },
               child: const Text('Logout'),
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.red,
-              ),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
             ),
           ],
         );
@@ -244,7 +254,8 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
       required Future<void> Function(Branch branch) setDefaultBranch,
       required VoidCallback onComplete,
       required void Function(bool) setIsLoading,
-    }) handleBranchSelection,
+    })
+    handleBranchSelection,
     required VoidCallback onLogout,
     required void Function(String? id) setLoadingState,
   }) async {
@@ -253,7 +264,8 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
     if (ProxyService.box.readBool(key: 'branch_navigation_in_progress') ??
         false) {
       print(
-          'Branch navigation already in progress, skipping branch selection dialog');
+        'Branch navigation already in progress, skipping branch selection dialog',
+      );
       return;
     }
     // Show dialog immediately without waiting for branches
@@ -299,10 +311,9 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
                     Icons.location_on_rounded,
                     color: branch.isDefault ?? false
                         ? Theme.of(context).primaryColor
-                        : Theme.of(context)
-                            .iconTheme
-                            .color
-                            ?.withValues(alpha: .7),
+                        : Theme.of(
+                            context,
+                          ).iconTheme.color?.withValues(alpha: .7),
                     size: 24,
                   ),
                   const SizedBox(width: 16),
@@ -366,9 +377,7 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
       context: context,
       builder: (_) => Dialog(
         backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
         child: Container(
           padding: const EdgeInsets.all(20),
           height: 160,
@@ -401,21 +410,25 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
 
   Future<void> _updateBranchActive(Branch branch) async {
     await ProxyService.strategy.updateBranch(
-        branchId: branch.serverId!, active: true, isDefault: true);
+      branchId: branch.id!,
+      active: true,
+      isDefault: true,
+    );
   }
 
   Future<void> _syncBranchWithDatabase(Branch branch) async {
     // Update the branch ID in storage with explicit flush
-    await ProxyService.box.writeInt(key: 'branchId', value: branch.serverId!);
+    await ProxyService.box.writeString(key: 'branchId', value: branch.id);
     await ProxyService.box.writeString(key: 'branchIdString', value: branch.id);
 
     // Force flush to ensure data is written to storage immediately
 
     // Verify the branch ID was set correctly
     final verifyBranchId = ProxyService.box.getBranchId();
-    if (verifyBranchId != branch.serverId) {
+    if (verifyBranchId != branch.id) {
       throw StateError(
-          'Failed to set branch ID properly: expected ${branch.serverId}, got $verifyBranchId');
+        'Failed to set branch ID properly: expected ${branch.id}, got $verifyBranchId',
+      );
     }
   }
 
@@ -430,7 +443,8 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
     try {
       // Force a refresh of branch providers
       ref.invalidate(
-          branchesProvider(businessId: ProxyService.box.getBusinessId()));
+        branchesProvider(businessId: ProxyService.box.getBusinessId()),
+      );
 
       // Invalidate transaction providers to refresh for new branch
       ref.invalidate(pendingTransactionStreamProvider);
@@ -440,8 +454,9 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
       // This can be used by other widgets to detect when they should refresh
       ProxyService.box.writeBool(key: 'branch_switched', value: true);
       ProxyService.box.writeInt(
-          key: 'last_branch_switch_timestamp',
-          value: DateTime.now().millisecondsSinceEpoch);
+        key: 'last_branch_switch_timestamp',
+        value: DateTime.now().millisecondsSinceEpoch,
+      );
 
       // Show a snackbar to indicate the branch switch
       if (context.mounted) {
@@ -477,7 +492,8 @@ class _BranchSwitchDialog extends StatefulWidget {
     required Future<void> Function(Branch branch) setDefaultBranch,
     required VoidCallback onComplete,
     required void Function(bool) setIsLoading,
-  }) handleBranchSelection;
+  })
+  handleBranchSelection;
   final VoidCallback onLogout;
   final void Function(String? id) setLoadingState;
 
@@ -537,9 +553,7 @@ class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       elevation: 8,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
@@ -589,8 +603,10 @@ class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
                   widget.onLogout();
                 },
                 child: Padding(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 8,
+                  ),
                   child: Row(
                     children: [
                       Icon(
@@ -669,8 +685,10 @@ class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
                     widget.onLogout();
                   },
                   child: Padding(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                     child: Row(
                       children: [
                         Icon(
@@ -727,9 +745,7 @@ class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
     }
 
     return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       elevation: 8,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
@@ -772,7 +788,9 @@ class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
                     },
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 8),
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
                       child: Row(
                         children: [
                           Icon(
@@ -800,10 +818,9 @@ class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               decoration: BoxDecoration(
-                color: Theme.of(context)
-                    .colorScheme
-                    .surfaceContainerHighest
-                    .withValues(alpha: .5),
+                color: Theme.of(
+                  context,
+                ).colorScheme.surfaceContainerHighest.withValues(alpha: .5),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: TextField(
@@ -812,10 +829,7 @@ class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
                 decoration: InputDecoration(
                   hintText: 'Search branches...',
                   border: InputBorder.none,
-                  icon: Icon(
-                    Icons.search,
-                    color: Theme.of(context).hintColor,
-                  ),
+                  icon: Icon(Icons.search, color: Theme.of(context).hintColor),
                   suffixIcon: ValueListenableBuilder<String>(
                     valueListenable: searchNotifier,
                     builder: (context, searchValue, _) {
@@ -841,8 +855,8 @@ class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
               child: ValueListenableBuilder<String>(
                 valueListenable: searchNotifier,
                 builder: (context, searchValue, _) {
-                  final int currentBusinessId =
-                      ProxyService.box.getBusinessId() ?? 0;
+                  final String currentBusinessId =
+                      ProxyService.box.getBusinessId() ?? "";
                   final searchLower = searchValue.toLowerCase();
                   final filteredBranches = branches.where((branch) {
                     if (branch.businessId != currentBusinessId) return false;
@@ -878,9 +892,9 @@ class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
                     itemBuilder: (context, index) {
                       final branch = filteredBranches[index];
                       // Check if this is the current active branch
-                      final isActive = branch.serverId == currentBranchId;
+                      final isActive = branch.id == currentBranchId;
                       final isLoading =
-                          widget.loadingItemId == branch.serverId?.toString();
+                          widget.loadingItemId == branch.id?.toString();
 
                       return Material(
                         color: Colors.transparent,
@@ -906,7 +920,8 @@ class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
                                   return Future.value();
                                 } catch (e) {
                                   print(
-                                      'Error in modified setDefaultBranch: $e');
+                                    'Error in modified setDefaultBranch: $e',
+                                  );
                                   return Future.value();
                                 }
                               },
@@ -916,12 +931,14 @@ class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
                                 if (mounted) {
                                   // Set a flag to indicate we're handling navigation ourselves
                                   ProxyService.box.writeBool(
-                                      key: 'branch_navigation_in_progress',
-                                      value: true);
+                                    key: 'branch_navigation_in_progress',
+                                    value: true,
+                                  );
 
                                   // Force immediate navigation to the main app route
-                                  locator<RouterService>()
-                                      .replaceWith(FlipperAppRoute());
+                                  locator<RouterService>().replaceWith(
+                                    FlipperAppRoute(),
+                                  );
 
                                   // Close the dialog after navigation is initiated
                                   Navigator.of(context).pop();
@@ -934,12 +951,15 @@ class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
                                   );
 
                                   // Clear the navigation flag after a delay
-                                  Future.delayed(const Duration(seconds: 2),
-                                      () {
-                                    ProxyService.box.writeBool(
+                                  Future.delayed(
+                                    const Duration(seconds: 2),
+                                    () {
+                                      ProxyService.box.writeBool(
                                         key: 'branch_navigation_in_progress',
-                                        value: false);
-                                  });
+                                        value: false,
+                                      );
+                                    },
+                                  );
                                 }
                               },
                               setIsLoading: (_) {},
@@ -947,17 +967,17 @@ class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
                           },
                           child: Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 12),
+                              horizontal: 16,
+                              vertical: 12,
+                            ),
                             child: Row(
                               children: [
                                 Icon(
                                   Icons.location_on_rounded,
                                   color: isActive
                                       ? Theme.of(context).primaryColor
-                                      : Theme.of(context)
-                                          .iconTheme
-                                          .color
-                                          ?.withValues(alpha: 0.7),
+                                      : Theme.of(context).iconTheme.color
+                                            ?.withValues(alpha: 0.7),
                                   size: 24,
                                 ),
                                 const SizedBox(width: 16),
@@ -973,10 +993,9 @@ class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
                                           fontWeight: isActive
                                               ? FontWeight.w600
                                               : FontWeight.normal,
-                                          color: Theme.of(context)
-                                              .textTheme
-                                              .bodyLarge
-                                              ?.color,
+                                          color: Theme.of(
+                                            context,
+                                          ).textTheme.bodyLarge?.color,
                                         ),
                                       ),
                                       if (isActive) ...[
@@ -985,8 +1004,9 @@ class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
                                           'Active Branch',
                                           style: TextStyle(
                                             fontSize: 12,
-                                            color:
-                                                Theme.of(context).primaryColor,
+                                            color: Theme.of(
+                                              context,
+                                            ).primaryColor,
                                             fontWeight: FontWeight.w500,
                                           ),
                                         ),

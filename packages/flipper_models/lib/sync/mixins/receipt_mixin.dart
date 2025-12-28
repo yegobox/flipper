@@ -17,7 +17,7 @@ mixin ReceiptMixin implements ReceiptInterface {
       required int highestInvcNo,
       required String timeReceivedFromserver,
       required int invoiceNumber}) async {
-    int branchId = ProxyService.box.getBranchId()!;
+    String branchId = ProxyService.box.getBranchId()!;
 
     Receipt receipt = Receipt(
         branchId: branchId,

@@ -470,7 +470,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
           variants:
               ref
                   .watch(
-                    outerVariantsProvider(ProxyService.box.getBranchId() ?? 0),
+                    outerVariantsProvider(ProxyService.box.getBranchId() ?? ""),
                   )
                   .value ??
               [],
@@ -497,7 +497,7 @@ class _ImportPurchasePageState extends ConsumerState<ImportPurchasePage>
         final allPurchases = purchaseSnapshot.data!;
         // Get variants from outerVariantsProvider (watch so it updates on search)
         final allVariants = ref.watch(
-          outerVariantsProvider(ProxyService.box.getBranchId() ?? 0),
+          outerVariantsProvider(ProxyService.box.getBranchId() ?? ""),
         );
 
         return Purchases(

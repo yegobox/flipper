@@ -17,7 +17,6 @@ part 'business.g.dart';
 /// and a contact at the same time i.e. a person then it make sense to add bellow fields too!
 /// All possible roles user can have.
 
-
 @JsonSerializable()
 class IBusiness extends IJsonSerializable {
   IBusiness({
@@ -144,7 +143,7 @@ class IBusiness extends IJsonSerializable {
   dynamic adrs;
   bool? taxEnabled;
   bool? isDefault;
-  int? businessTypeId;
+  String? businessTypeId;
   String? encryptionKey;
   bool? businessDefault;
   bool? lastSubscriptionPaymentSucceeded;

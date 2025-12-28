@@ -4,12 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 class TaxSettingsModal extends StatefulWidget {
-  final int branchId;
+  final String branchId;
 
-  const TaxSettingsModal({
-    Key? key,
-    required this.branchId,
-  }) : super(key: key);
+  const TaxSettingsModal({Key? key, required this.branchId}) : super(key: key);
 
   @override
   State<TaxSettingsModal> createState() => _TaxSettingsModalState();
@@ -35,7 +32,9 @@ class _TaxSettingsModalState extends State<TaxSettingsModal> {
   }
 
   Future<void> _saveTaxConfiguration(
-      String configId, String newTaxValue) async {
+    String configId,
+    String newTaxValue,
+  ) async {
     try {
       setState(() {
         _isLoading = true;
@@ -89,8 +88,9 @@ class _TaxSettingsModalState extends State<TaxSettingsModal> {
     final bool isEditing = _editingStates[config.id] ?? false;
 
     if (!_controllers.containsKey(config.id)) {
-      _controllers[config.id] =
-          TextEditingController(text: config.taxPercentage.toString());
+      _controllers[config.id] = TextEditingController(
+        text: config.taxPercentage.toString(),
+      );
       _formKeys[config.id] = GlobalKey<FormState>();
     }
 
@@ -104,8 +104,10 @@ class _TaxSettingsModalState extends State<TaxSettingsModal> {
                   controller: _controllers[config.id],
                   decoration: const InputDecoration(
                     isDense: true,
-                    contentPadding:
-                        EdgeInsets.symmetric(horizontal: 0, vertical: 8),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 0,
+                      vertical: 8,
+                    ),
                     suffixText: '%',
                   ),
                   keyboardType: TextInputType.numberWithOptions(decimal: true),
@@ -169,10 +171,7 @@ class _TaxSettingsModalState extends State<TaxSettingsModal> {
             children: [
               const Text(
                 'Tax Settings',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
               if (_statusMessage != null)

@@ -27,7 +27,7 @@ mixin VariantMixin implements VariantInterface {
       String? itemClsCd,
       String? itemNm,
       String? stockId}) async {
-    int branchId = ProxyService.box.getBranchId()!;
+    String branchId = ProxyService.box.getBranchId()!;
     final query = Query(where: [
       if (productId != null)
         Where('productId', value: productId, compare: Compare.exact),
@@ -58,7 +58,7 @@ mixin VariantMixin implements VariantInterface {
 
   @override
   Future<PagedVariants> variants({
-    required int branchId,
+    required String branchId,
     String? productId,
     int? page,
     String? variantId,
@@ -236,7 +236,7 @@ mixin VariantMixin implements VariantInterface {
   @override
   Future<int> addVariant({
     required List<Variant> variations,
-    required int branchId,
+    required String branchId,
     required bool skipRRaCall,
   }) async {
     final results = await Future.wait(
@@ -327,7 +327,7 @@ mixin VariantMixin implements VariantInterface {
   }
 
   @override
-  Future<List<IUnit>> units({required int branchId}) async {
+  Future<List<IUnit>> units({required String branchId}) async {
     return await repository.get<IUnit>(
       query: Query(where: [Where('branchId').isExactly(branchId)]),
     );
@@ -507,7 +507,7 @@ mixin VariantMixin implements VariantInterface {
 
   @override
   Future<List<Variant>> getExpiredItems({
-    required int branchId,
+    required String branchId,
     int? daysToExpiry,
     int? limit,
   }) async {

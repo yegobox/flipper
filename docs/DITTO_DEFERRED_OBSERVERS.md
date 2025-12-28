@@ -75,7 +75,7 @@ Added state tracking:
 ### 3. LoginChoices (_setDefaultBranch)
 After setting branchId:
 ```dart
-await ProxyService.box.writeInt(key: 'branchId', value: branch.serverId!);
+await ProxyService.box.writeString(key: 'branchId', value: branch.id!);
 
 // ✨ NOW REGISTER OBSERVER FOR COUNTER ONLY
 await DittoSyncRegistry.registerObserversForTypes([Counter]);

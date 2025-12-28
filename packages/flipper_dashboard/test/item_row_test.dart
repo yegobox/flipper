@@ -28,7 +28,7 @@
 
 //   @override
 //   Stock? get stock => Stock(
-//         branchId: 1,
+//         branchId: "",
 //         currentStock: 10.0,
 //       );
 // }

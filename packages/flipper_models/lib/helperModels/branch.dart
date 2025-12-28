@@ -41,7 +41,7 @@ class IBranch extends IJsonSerializable {
   bool? active;
   String? description;
   String? name;
-  int? businessId;
+  String? businessId;
   @JsonKey(
     fromJson: _parseStringField,
   )

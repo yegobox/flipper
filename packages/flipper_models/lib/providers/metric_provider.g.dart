@@ -16,7 +16,7 @@ final class FetchMetricsProvider extends $FunctionalProvider<
         AsyncValue<List<Metric>>, List<Metric>, FutureOr<List<Metric>>>
     with $FutureModifier<List<Metric>>, $FutureProvider<List<Metric>> {
   const FetchMetricsProvider._(
-      {required FetchMetricsFamily super.from, required int super.argument})
+      {required FetchMetricsFamily super.from, required String super.argument})
       : super(
           retry: null,
           name: r'fetchMetricsProvider',
@@ -43,7 +43,7 @@ final class FetchMetricsProvider extends $FunctionalProvider<
 
   @override
   FutureOr<List<Metric>> create(Ref ref) {
-    final argument = this.argument as int;
+    final argument = this.argument as String;
     return fetchMetrics(
       ref,
       argument,
@@ -61,10 +61,10 @@ final class FetchMetricsProvider extends $FunctionalProvider<
   }
 }
 
-String _$fetchMetricsHash() => r'46fc0a428b7a138fbfec429b448a8c8b195a004b';
+String _$fetchMetricsHash() => r'86d3fda28b0d29c8662a037ed56c49c6c27a89fb';
 
 final class FetchMetricsFamily extends $Family
-    with $FunctionalFamilyOverride<FutureOr<List<Metric>>, int> {
+    with $FunctionalFamilyOverride<FutureOr<List<Metric>>, String> {
   const FetchMetricsFamily._()
       : super(
           retry: null,
@@ -75,7 +75,7 @@ final class FetchMetricsFamily extends $Family
         );
 
   FetchMetricsProvider call(
-    int branchId,
+    String branchId,
   ) =>
       FetchMetricsProvider._(argument: branchId, from: this);
 

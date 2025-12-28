@@ -11,8 +11,8 @@ class Assets extends OfflineFirstWithSupabaseModel {
   @Sqlite(index: true, unique: true)
   final String id;
 
-  int? branchId;
-  int? businessId;
+  String? branchId;
+  String? businessId;
   String? assetName;
   String? productId;
 

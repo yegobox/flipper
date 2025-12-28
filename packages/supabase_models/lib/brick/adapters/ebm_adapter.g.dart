@@ -11,10 +11,10 @@ Future<Ebm> _$EbmFromSupabase(
     bhfId: data['bhf_id'] as String,
     tinNumber: data['tin_number'] as int,
     dvcSrlNo: data['dvc_srl_no'] as String,
-    userId: data['user_id'] as int,
+    userId: data['user_id'] as String,
     taxServerUrl: data['tax_server_url'] as String,
-    businessId: data['business_id'] as int,
-    branchId: data['branch_id'] as int,
+    businessId: data['business_id'] as String,
+    branchId: data['branch_id'] as String,
     vatEnabled: data['vat_enabled'] == null
         ? null
         : data['vat_enabled'] as bool?,
@@ -51,10 +51,10 @@ Future<Ebm> _$EbmFromSqlite(
     bhfId: data['bhf_id'] as String,
     tinNumber: data['tin_number'] as int,
     dvcSrlNo: data['dvc_srl_no'] as String,
-    userId: data['user_id'] as int,
+    userId: data['user_id'] as String,
     taxServerUrl: data['tax_server_url'] as String,
-    businessId: data['business_id'] as int,
-    branchId: data['branch_id'] as int,
+    businessId: data['business_id'] as String,
+    branchId: data['branch_id'] as String,
     vatEnabled: data['vat_enabled'] == null ? null : data['vat_enabled'] == 1,
     mrc: data['mrc'] as String,
   )..primaryKey = data['_brick_id'] as int;
@@ -172,7 +172,7 @@ class EbmAdapter extends OfflineFirstWithSupabaseAdapter<Ebm> {
       association: false,
       columnName: 'user_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'taxServerUrl': const RuntimeSqliteColumnDefinition(
       association: false,
@@ -184,13 +184,13 @@ class EbmAdapter extends OfflineFirstWithSupabaseAdapter<Ebm> {
       association: false,
       columnName: 'business_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'branchId': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'branch_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'vatEnabled': const RuntimeSqliteColumnDefinition(
       association: false,

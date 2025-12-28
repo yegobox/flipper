@@ -22,8 +22,8 @@ Future<UnversalProduct> _$UnversalProductFromSupabase(
     useYn: data['use_yn'] == null ? null : data['use_yn'] as String?,
     businessId: data['business_id'] == null
         ? null
-        : data['business_id'] as int?,
-    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+        : data['business_id'] as String?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
   );
 }
 
@@ -66,8 +66,8 @@ Future<UnversalProduct> _$UnversalProductFromSqlite(
     useYn: data['use_yn'] == null ? null : data['use_yn'] as String?,
     businessId: data['business_id'] == null
         ? null
-        : data['business_id'] as int?,
-    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+        : data['business_id'] as String?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -195,13 +195,13 @@ class UnversalProductAdapter
       association: false,
       columnName: 'business_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'branchId': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'branch_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
   };
   @override

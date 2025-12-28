@@ -18,7 +18,7 @@ final class VariantProvider extends $FunctionalProvider<
   const VariantProvider._(
       {required VariantFamily super.from,
       required ({
-        int branchId,
+        String branchId,
         String? key,
         bool forImportScreen,
         bool forPurchaseScreen,
@@ -51,7 +51,7 @@ final class VariantProvider extends $FunctionalProvider<
   @override
   FutureOr<List<Variant>> create(Ref ref) {
     final argument = this.argument as ({
-      int branchId,
+      String branchId,
       String? key,
       bool forImportScreen,
       bool forPurchaseScreen,
@@ -76,14 +76,14 @@ final class VariantProvider extends $FunctionalProvider<
   }
 }
 
-String _$variantHash() => r'a17d4daf12dfead182571ec7beb47c39c53bf2e8';
+String _$variantHash() => r'633c8c170a2dc31357da90faf430dd7748bf5808';
 
 final class VariantFamily extends $Family
     with
         $FunctionalFamilyOverride<
             FutureOr<List<Variant>>,
             ({
-              int branchId,
+              String branchId,
               String? key,
               bool forImportScreen,
               bool forPurchaseScreen,
@@ -98,7 +98,7 @@ final class VariantFamily extends $Family
         );
 
   VariantProvider call({
-    required int branchId,
+    required String branchId,
     String? key,
     bool forImportScreen = false,
     bool forPurchaseScreen = false,
@@ -123,7 +123,7 @@ final class PurchaseVariantProvider extends $FunctionalProvider<
   const PurchaseVariantProvider._(
       {required PurchaseVariantFamily super.from,
       required ({
-        int branchId,
+        String branchId,
         String? purchaseId,
       })
           super.argument})
@@ -154,7 +154,7 @@ final class PurchaseVariantProvider extends $FunctionalProvider<
   @override
   FutureOr<List<Variant>> create(Ref ref) {
     final argument = this.argument as ({
-      int branchId,
+      String branchId,
       String? purchaseId,
     });
     return purchaseVariant(
@@ -175,14 +175,14 @@ final class PurchaseVariantProvider extends $FunctionalProvider<
   }
 }
 
-String _$purchaseVariantHash() => r'661e989996a1d7f320e5c09b8b37610691e224c4';
+String _$purchaseVariantHash() => r'86ba21467610a011e19f121d9b465416f943af01';
 
 final class PurchaseVariantFamily extends $Family
     with
         $FunctionalFamilyOverride<
             FutureOr<List<Variant>>,
             ({
-              int branchId,
+              String branchId,
               String? purchaseId,
             })> {
   const PurchaseVariantFamily._()
@@ -195,7 +195,7 @@ final class PurchaseVariantFamily extends $Family
         );
 
   PurchaseVariantProvider call({
-    required int branchId,
+    required String branchId,
     String? purchaseId,
   }) =>
       PurchaseVariantProvider._(argument: (

@@ -32,7 +32,7 @@ void main() {
       serverId: 1,
       longitude: '0',
       latitude: '0',
-      userId: 1,
+      userId: "1",
       tinNumber: 12345,
       encryptionKey: 'k',
     );

@@ -17,7 +17,7 @@ class Product extends OfflineFirstWithSupabaseModel {
   String? description;
   String? taxId;
   String color;
-  final int businessId;
+  final String businessId;
 
   final int branchId;
   String? supplierId;

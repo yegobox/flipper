@@ -2,7 +2,6 @@ import 'package:flipper_services/DeviceType.dart';
 import 'package:flipper_dashboard/profile.dart';
 import 'package:flipper_dashboard/tax_configuration.dart';
 import 'package:flipper_models/db_model_export.dart';
-import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 
@@ -12,8 +11,10 @@ import 'package:flipper_routing/app.router.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_settings_ui/flutter_settings_ui.dart';
 
-Widget SettingLayout(
-    {required SettingViewModel model, required BuildContext context}) {
+Widget SettingLayout({
+  required SettingViewModel model,
+  required BuildContext context,
+}) {
   final _routerService = locator<RouterService>();
 
   String _getDeviceType(BuildContext context) {
@@ -35,30 +36,25 @@ Widget SettingLayout(
             SettingsSection(
               tiles: [
                 if (deviceType == 'Phone') // Show other settings only on phones
-                  ...[
+                ...[
                   SettingsTile(
                     title: Text("Linked Devices"),
                     leading: CircleAvatar(
                       backgroundColor: Colors.white,
-                      child: Icon(
-                        FluentIcons.desktop_24_regular,
-                      ),
+                      child: Icon(FluentIcons.desktop_24_regular),
                     ),
                     onPressed: (BuildContext context) async {
                       Tenant? tenant = await ProxyService.strategy.getTenant(
                         userId: ProxyService.box.getUserId()!,
                       );
-                      _routerService
-                          .navigateTo(DevicesRoute(pin: tenant?.userId));
+                      _routerService.navigateTo(DevicesRoute(pin: tenant?.pin));
                     },
                   ),
                   SettingsTile(
                     title: Text("Printing configuration"),
                     leading: CircleAvatar(
                       backgroundColor: Colors.white,
-                      child: Icon(
-                        FluentIcons.print_24_regular,
-                      ),
+                      child: Icon(FluentIcons.print_24_regular),
                     ),
                     onPressed: (BuildContext context) {
                       _routerService.navigateTo(PrintingRoute());
@@ -68,9 +64,7 @@ Widget SettingLayout(
                     title: Text("Security"),
                     leading: CircleAvatar(
                       backgroundColor: Colors.white,
-                      child: Icon(
-                        FluentIcons.lock_closed_32_regular,
-                      ),
+                      child: Icon(FluentIcons.lock_closed_32_regular),
                     ),
                     onPressed: (BuildContext context) async {
                       _routerService.navigateTo(SecurityRoute());
@@ -80,9 +74,7 @@ Widget SettingLayout(
                     title: Text("Add users"),
                     leading: CircleAvatar(
                       backgroundColor: Colors.white,
-                      child: Icon(
-                        FluentIcons.people_add_24_regular,
-                      ),
+                      child: Icon(FluentIcons.people_add_24_regular),
                     ),
                     onPressed: (BuildContext context) async {
                       _routerService.navigateTo(TenantManagementRoute());
@@ -92,13 +84,9 @@ Widget SettingLayout(
                     title: Text("Close a day"),
                     leading: CircleAvatar(
                       backgroundColor: Colors.white,
-                      child: Icon(
-                        FluentIcons.paint_brush_24_regular,
-                      ),
+                      child: Icon(FluentIcons.paint_brush_24_regular),
                     ),
-                    onPressed: (BuildContext context) async {
-                      
-                    },
+                    onPressed: (BuildContext context) async {},
                   ),
                 ],
                 if (deviceType !=
@@ -107,9 +95,7 @@ Widget SettingLayout(
                     title: Text("Tax Configuration"),
                     leading: CircleAvatar(
                       backgroundColor: Colors.white,
-                      child: Icon(
-                        FluentIcons.calculator_24_regular,
-                      ),
+                      child: Icon(FluentIcons.calculator_24_regular),
                     ),
                     onPressed: (BuildContext context) {
                       showModalBottomSheet(
@@ -117,14 +103,13 @@ Widget SettingLayout(
                         backgroundColor: Colors.white,
                         context: context,
                         shape: const RoundedRectangleBorder(
-                          borderRadius:
-                              BorderRadius.vertical(top: Radius.circular(10.0)),
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(10.0),
+                          ),
                         ),
                         useRootNavigator: true,
                         builder: (BuildContext context) {
-                          return SystemConfig(
-                            showheader: true,
-                          );
+                          return SystemConfig(showheader: true);
                         },
                       );
                     },

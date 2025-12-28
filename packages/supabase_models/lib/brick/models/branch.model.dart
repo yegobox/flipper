@@ -29,12 +29,14 @@ class Branch extends OfflineFirstWithSupabaseModel {
   String? location;
   String? description;
   bool? active;
-  int? businessId;
+  String? businessId;
   String? latitude;
   String? longitude;
   bool? isDefault;
   bool? isOnline;
   String? tinNumber;
+  DateTime? deletedAt;
+  DateTime? updatedAt;
 
   Branch({
     String? id,
@@ -49,6 +51,8 @@ class Branch extends OfflineFirstWithSupabaseModel {
     this.tinNumber,
     this.isDefault = false,
     this.isOnline = false,
+    this.deletedAt,
+    this.updatedAt,
   }) : id = id ?? const Uuid().v4();
   // copyWith method
   Branch copyWith({
@@ -58,12 +62,14 @@ class Branch extends OfflineFirstWithSupabaseModel {
     String? location,
     String? description,
     bool? active,
-    int? businessId,
+    String? businessId,
     String? latitude,
     String? longitude,
     bool? isDefault,
     bool? isOnline,
     String? tinNumber,
+    DateTime? deletedAt,
+    DateTime? updatedAt,
   }) {
     return Branch(
         id: id ?? this.id,
@@ -77,7 +83,9 @@ class Branch extends OfflineFirstWithSupabaseModel {
         longitude: longitude ?? this.longitude,
         isDefault: isDefault ?? this.isDefault,
         isOnline: isOnline ?? this.isOnline,
-        tinNumber: tinNumber ?? this.tinNumber);
+        tinNumber: tinNumber ?? this.tinNumber,
+        deletedAt: deletedAt ?? this.deletedAt,
+        updatedAt: updatedAt ?? this.updatedAt);
   }
 
   Map<String, dynamic> toFlipperJson() {
@@ -93,7 +101,9 @@ class Branch extends OfflineFirstWithSupabaseModel {
       'longitude': longitude,
       'isDefault': isDefault,
       'isOnline': isOnline,
-      'tinNumber': tinNumber
+      'tinNumber': tinNumber,
+      'deletedAt': deletedAt,
+      'updatedAt': updatedAt
     };
   }
 }

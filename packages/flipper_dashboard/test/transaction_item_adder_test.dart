@@ -25,14 +25,14 @@ void main() {
         id: 'fallback',
         productId: 'fallback',
         name: 'fallback',
-        branchId: 1,
+        branchId: "",
       ),
     );
     registerFallbackValue(
       ITransaction(
-        agentId: 1,
+        agentId: "1",
         id: 'fallback',
-        branchId: 1,
+        branchId: "",
         status: 'pending',
         subTotal: 0,
         isExpense: false,
@@ -50,28 +50,28 @@ void main() {
     );
   });
 
-  final branchId = 1;
-  final businessId = 1;
+  final branchId = "1";
+  final businessId = "1";
   final variant = Variant(
     id: 'variant_1',
     productId: 'prod_1',
     name: 'Variant 1',
     retailPrice: 10.0,
-    stock: Stock(currentStock: 5, id: "1", branchId: 1),
+    stock: Stock(currentStock: 5, id: "1", branchId: "1"),
     taxTyCd: "A",
     itemTyCd: "1",
-    branchId: 1,
+    branchId: "",
   );
   final product = Product(
     id: 'prod_1',
     name: 'Product 1',
     isComposite: false,
-    branchId: 1,
+    branchId: "",
     color: "FFFFFF",
-    businessId: 1,
+    businessId: "1",
   );
   final pendingTransaction = ITransaction(
-    agentId: 1,
+    agentId: "1",
     id: 'txn_1',
     branchId: branchId,
     status: 'pending',
@@ -93,7 +93,7 @@ void main() {
 
     when(
       () => mockDbSync.getStockById(id: any()),
-    ).thenAnswer((_) async => Stock(currentStock: 5, id: "1", branchId: 1));
+    ).thenAnswer((_) async => Stock(currentStock: 5, id: "1", branchId: "1"));
 
     when(() => mockDbSync.saveLog(any())).thenAnswer((_) async {});
 
@@ -196,15 +196,15 @@ void main() {
         productId: 'prod_2',
         name: 'Variant 2',
         retailPrice: 20.0,
-        stock: Stock(currentStock: 0, id: "2", branchId: 1),
+        stock: Stock(currentStock: 0, id: "2", branchId: "1"),
         taxTyCd: "A",
         itemTyCd: "1",
-        branchId: 1,
+        branchId: "",
       );
 
       when(
         () => mockDbSync.getStockById(id: 'variant_2'),
-      ).thenAnswer((_) async => Stock(currentStock: 0, id: "2", branchId: 1));
+      ).thenAnswer((_) async => Stock(currentStock: 0, id: "2", branchId: "1"));
 
       await tester.pumpWidget(
         ProviderScope(

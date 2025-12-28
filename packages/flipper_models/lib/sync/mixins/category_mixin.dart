@@ -7,7 +7,7 @@ mixin CategoryMixin implements CategoryInterface {
   Repository get repository;
 
   @override
-  Future<List<Category>> categories({required int branchId}) {
+  Future<List<Category>> categories({required String branchId}) {
     return repository.get<Category>(
         query: Query(where: [Where('branchId').isExactly(branchId)]));
   }

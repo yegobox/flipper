@@ -151,9 +151,9 @@ class AuthScannerActions implements ScannerActions {
     // HapticFeedback.mediumImpact(); // HapticFeedback is in flutter/services.dart, not accessible here
 
     try {
-      int userId = getUserId();
-      int businessId = getBusinessId();
-      int branchId = getBranchId();
+      String userId = getUserId();
+      String businessId = getBusinessId();
+      String branchId = getBranchId();
       String phone = getUserPhone();
       String defaultApp = getDefaultApp();
       String linkingCode = randomNumber().toString();
@@ -255,18 +255,18 @@ class AuthScannerActions implements ScannerActions {
   }
 
   @override
-  int getUserId() => ProxyService.box.getUserId()!;
+  String getUserId() => ProxyService.box.getUserId()!;
   @override
-  int getBusinessId() => ProxyService.box.getBusinessId()!;
+  String getBusinessId() => ProxyService.box.getBusinessId()!;
   @override
-  int getBranchId() => ProxyService.box.getBranchId()!;
+  String getBranchId() => ProxyService.box.getBranchId()!;
   @override
   String getUserPhone() => ProxyService.box.getUserPhone()!;
   @override
   String getDefaultApp() => ProxyService.box.getDefaultApp() ?? "1";
   @override
   FutureOr<Pin?> getPinLocal(
-          {required int userId, required bool alwaysHydrate}) =>
+          {required String userId, required bool alwaysHydrate}) =>
       ProxyService.strategy
           .getPinLocal(alwaysHydrate: alwaysHydrate, userId: userId);
   @override

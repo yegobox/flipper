@@ -45,7 +45,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
   Future<void> updateTax(Variant variant, String newTaxType) async {
     print('ScannViewModel.updateTax called with: ${variant.id}, $newTaxType');
     try {
-      int branchId = ProxyService.box.getBranchId()!;
+      String branchId = ProxyService.box.getBranchId()!;
       // 3. Update the local scannedVariants list by creating a copy of the variant with new taxtype.
       final index = scannedVariants.indexWhere((v) => v.id == variant.id);
       if (index != -1) {
@@ -237,7 +237,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       required double supplyPrice,
       required bool editmode,
       required String countryCode}) async {
-    int branchId = ProxyService.box.getBranchId()!;
+    String branchId = ProxyService.box.getBranchId()!;
 
     /// scan item if the same item is scanned more than once
     /// then its quantity will be incremented otherwise if the item is not found
@@ -305,8 +305,8 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
 
   Future<Product?> createProduct(
       {required String name, required bool createItemCode}) async {
-    int businessId = ProxyService.box.getBusinessId()!;
-    int branchId = ProxyService.box.getBranchId()!;
+    String businessId = ProxyService.box.getBusinessId()!;
+    String branchId = ProxyService.box.getBranchId()!;
     String bhfid = (await ProxyService.box.bhfId()) ?? "00";
     return await ProxyService.strategy.createProduct(
       skipRRaCall: false,
@@ -363,7 +363,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
     try {
       // Find the variant with the specified id
       int index = scannedVariants.indexWhere((variant) => variant.id == id);
-      int branchId = ProxyService.box.getBranchId()!;
+      String branchId = ProxyService.box.getBranchId()!;
 
       if (index != -1) {
         // Create a *new* Variant object with the updated quantity

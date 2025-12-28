@@ -20,7 +20,7 @@ class TenantOperationsMixin {
     String userType,
     Map<String, String> tenantAllowedFeatures,
     Map<String, bool> activeFeatures,
-    int? userId, {
+    String? userId, {
     required String phoneNumber,
   }) async {
     for (final entry in tenantAllowedFeatures.entries) {
@@ -36,8 +36,8 @@ class TenantOperationsMixin {
         ProxyService.strategy.updateAccess(
           accessId: existingAccess.first.id,
           userId: newTenant?.userId ?? userId!,
-          branchId: branch!.serverId!,
-          businessId: business!.serverId,
+          branchId: branch!.id,
+          businessId: business!.id,
           featureName: featureName,
           accessLevel: accessLevel.toLowerCase(),
           status: activeFeatures[featureName] != null
@@ -49,8 +49,8 @@ class TenantOperationsMixin {
         );
       } else {
         await ProxyService.strategy.addAccess(
-          branchId: branch!.serverId!,
-          businessId: business!.serverId,
+          branchId: branch!.id,
+          businessId: business!.id,
           userId: newTenant?.userId ?? userId!,
           featureName: featureName,
           accessLevel: accessLevel.toLowerCase(),
@@ -78,7 +78,7 @@ class TenantOperationsMixin {
     required String name,
     required String phone,
     required String userType,
-    required int? userId,
+    required String? userId,
     required WidgetRef ref,
     required Map<String, String> tenantAllowedFeatures,
     required Map<String, bool> activeFeatures,
@@ -99,7 +99,7 @@ class TenantOperationsMixin {
       if (userType == 'Agent') {
         // Create a new branch for the agent
         branch = await ProxyService.strategy.addBranch(
-          businessId: business.serverId,
+          businessId: business.id,
           name: name,
           location: name, // Using name for location as well
           isDefault: false,
@@ -142,9 +142,9 @@ class TenantOperationsMixin {
           phoneNumber: newTenant.phoneNumber,
           email: '',
           userId: newTenant.userId,
-          businessId: business.serverId,
+          businessId: business.id,
           type: userType,
-          pin: newTenant.userId,
+          pin: newTenant.pin,
           sessionActive: true,
         );
       } else {

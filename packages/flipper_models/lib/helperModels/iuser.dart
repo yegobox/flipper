@@ -13,7 +13,7 @@ class IUser {
       required this.tenants,
       this.pin});
 
-  int? id;
+  String id;
   String phoneNumber;
   String? token;
 

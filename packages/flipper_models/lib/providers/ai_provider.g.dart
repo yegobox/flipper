@@ -114,7 +114,7 @@ final class GeminiBusinessAnalyticsProvider
   const GeminiBusinessAnalyticsProvider._(
       {required GeminiBusinessAnalyticsFamily super.from,
       required (
-        int,
+        String,
         String, {
         String? filePath,
         List<Content>? history,
@@ -155,7 +155,7 @@ final class GeminiBusinessAnalyticsProvider
 }
 
 String _$geminiBusinessAnalyticsHash() =>
-    r'612a9acb20665a4ee5c7b2efda811770cf8c307e';
+    r'fd64812a1f608a4a2bbbb020744788ccc53bdceb';
 
 final class GeminiBusinessAnalyticsFamily extends $Family
     with
@@ -165,7 +165,7 @@ final class GeminiBusinessAnalyticsFamily extends $Family
             String,
             FutureOr<String>,
             (
-              int,
+              String,
               String, {
               String? filePath,
               List<Content>? history,
@@ -180,7 +180,7 @@ final class GeminiBusinessAnalyticsFamily extends $Family
         );
 
   GeminiBusinessAnalyticsProvider call(
-    int branchId,
+    String branchId,
     String userPrompt, {
     String? filePath,
     List<Content>? history,
@@ -198,18 +198,18 @@ final class GeminiBusinessAnalyticsFamily extends $Family
 
 abstract class _$GeminiBusinessAnalytics extends $AsyncNotifier<String> {
   late final _$args = ref.$arg as (
-    int,
+    String,
     String, {
     String? filePath,
     List<Content>? history,
   });
-  int get branchId => _$args.$1;
+  String get branchId => _$args.$1;
   String get userPrompt => _$args.$2;
   String? get filePath => _$args.filePath;
   List<Content>? get history => _$args.history;
 
   FutureOr<String> build(
-    int branchId,
+    String branchId,
     String userPrompt, {
     String? filePath,
     List<Content>? history,
@@ -318,7 +318,7 @@ final class StreamedBusinessAnalyticsProvider extends $FunctionalProvider<
         $StreamProvider<List<BusinessAnalytic>> {
   const StreamedBusinessAnalyticsProvider._(
       {required StreamedBusinessAnalyticsFamily super.from,
-      required int super.argument})
+      required String super.argument})
       : super(
           retry: null,
           name: r'streamedBusinessAnalyticsProvider',
@@ -345,7 +345,7 @@ final class StreamedBusinessAnalyticsProvider extends $FunctionalProvider<
 
   @override
   Stream<List<BusinessAnalytic>> create(Ref ref) {
-    final argument = this.argument as int;
+    final argument = this.argument as String;
     return streamedBusinessAnalytics(
       ref,
       argument,
@@ -365,10 +365,10 @@ final class StreamedBusinessAnalyticsProvider extends $FunctionalProvider<
 }
 
 String _$streamedBusinessAnalyticsHash() =>
-    r'e08be810e878598fc06f65775e1bbfb585aff745';
+    r'087c0b987e5d3f7d085c717d3a13b92d9613dc5e';
 
 final class StreamedBusinessAnalyticsFamily extends $Family
-    with $FunctionalFamilyOverride<Stream<List<BusinessAnalytic>>, int> {
+    with $FunctionalFamilyOverride<Stream<List<BusinessAnalytic>>, String> {
   const StreamedBusinessAnalyticsFamily._()
       : super(
           retry: null,
@@ -379,7 +379,7 @@ final class StreamedBusinessAnalyticsFamily extends $Family
         );
 
   StreamedBusinessAnalyticsProvider call(
-    int branchId,
+    String branchId,
   ) =>
       StreamedBusinessAnalyticsProvider._(argument: branchId, from: this);
 

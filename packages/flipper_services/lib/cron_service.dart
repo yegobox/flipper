@@ -57,7 +57,7 @@ class CronService {
   Future<void> schedule() async {
     try {
       ProxyService.strategy.businesses(
-          userId: ProxyService.box.getUserId() ?? 0, fetchOnline: true);
+          userId: ProxyService.box.getUserId() ?? "", fetchOnline: true);
       await _initializeData();
       _setupPeriodicTasks();
       await _configureServices();

@@ -61,6 +61,7 @@ import '../brick/models/branch.model.dart';
 import '../brick/models/branch_sms_config.model.dart';
 import '../brick/models/business.model.dart';
 import '../brick/models/business_analytic.model.dart';
+import '../brick/models/business_type.model.dart';
 import '../brick/models/category.model.dart';
 import '../brick/models/color.model.dart';
 import '../brick/models/composite.model.dart';
@@ -119,6 +120,7 @@ part 'adapters/branch_adapter.g.dart';
 part 'adapters/branch_sms_config_adapter.g.dart';
 part 'adapters/business_adapter.g.dart';
 part 'adapters/business_analytic_adapter.g.dart';
+part 'adapters/business_type_adapter.g.dart';
 part 'adapters/category_adapter.g.dart';
 part 'adapters/p_color_adapter.g.dart';
 part 'adapters/composite_adapter.g.dart';
@@ -179,6 +181,7 @@ final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
   BranchSmsConfig: BranchSmsConfigAdapter(),
   Business: BusinessAdapter(),
   BusinessAnalytic: BusinessAnalyticAdapter(),
+  BusinessType: BusinessTypeAdapter(),
   Category: CategoryAdapter(),
   PColor: PColorAdapter(),
   Composite: CompositeAdapter(),
@@ -241,6 +244,7 @@ final Map<Type, SqliteAdapter<SqliteModel>> sqliteMappings = {
   BranchSmsConfig: BranchSmsConfigAdapter(),
   Business: BusinessAdapter(),
   BusinessAnalytic: BusinessAnalyticAdapter(),
+  BusinessType: BusinessTypeAdapter(),
   Category: CategoryAdapter(),
   PColor: PColorAdapter(),
   Composite: CompositeAdapter(),

@@ -9,7 +9,7 @@ mixin CapellaProductMixin implements ProductInterface {
   Talker get talker;
 
   @override
-  Future<List<Product>> products({required int branchId}) async {
+  Future<List<Product>> products({required String branchId}) async {
     throw UnimplementedError('products needs to be implemented for Capella');
   }
 
@@ -25,7 +25,7 @@ mixin CapellaProductMixin implements ProductInterface {
   }
 
   @override
-  Stream<double> wholeStockValue({required int branchId}) {
+  Stream<double> wholeStockValue({required String branchId}) {
     throw UnimplementedError(
         'wholeStockValue needs to be implemented for Capella');
   }
@@ -35,7 +35,7 @@ mixin CapellaProductMixin implements ProductInterface {
     required String countryCode,
     required String productType,
     required packagingUnit,
-    required int branchId,
+    required String branchId,
     required String quantityUnit,
   }) async {
     throw UnimplementedError('itemCode needs to be implemented for Capella');
@@ -45,24 +45,25 @@ mixin CapellaProductMixin implements ProductInterface {
   Future<Product?> getProduct({
     String? id,
     String? barCode,
-    required int branchId,
+    required String branchId,
     String? name,
-    required int businessId,
+    required String businessId,
   }) async {
     throw UnimplementedError('getProduct needs to be implemented for Capella');
   }
 
   @override
-  FutureOr<SKU> getSku({required int branchId, required int businessId}) async {
+  FutureOr<SKU> getSku(
+      {required String branchId, required String businessId}) async {
     throw UnimplementedError('getSku needs to be implemented for Capella');
   }
 
   @override
   Future<Product?> createProduct({
     required Product product,
-    required int businessId,
+    required String businessId,
     required bool skipRRaCall,
-    required int branchId,
+    required String branchId,
     required int tinNumber,
     required String bhFId,
     Map<String, String>? taxTypes,
@@ -116,8 +117,8 @@ mixin CapellaProductMixin implements ProductInterface {
       bool? isComposite,
       String? unit,
       String? color,
-      required int branchId,
-      required int businessId,
+      required String branchId,
+      required String businessId,
       String? imageUrl,
       String? expiryDate,
       String? categoryId}) {
@@ -131,13 +132,13 @@ mixin CapellaProductMixin implements ProductInterface {
   }
 
   @override
-  Future<void> hydrateCodes({required int branchId}) {
+  Future<void> hydrateCodes({required String branchId}) {
     // TODO: implement hydrateCodes
     throw UnimplementedError();
   }
 
   @override
-  Future<void> hydrateSars({required int branchId}) {
+  Future<void> hydrateSars({required String branchId}) {
     // TODO: implement hydrateSars
     throw UnimplementedError();
   }

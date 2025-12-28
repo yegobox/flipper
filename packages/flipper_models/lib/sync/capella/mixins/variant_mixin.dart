@@ -13,7 +13,7 @@ mixin CapellaVariantMixin implements VariantInterface {
   Talker get talker;
   @override
   Future<PagedVariants> variants({
-    required int branchId,
+    required String branchId,
     String? productId,
     bool scanMode = false,
     int? page,
@@ -756,13 +756,13 @@ mixin CapellaVariantMixin implements VariantInterface {
   @override
   Future<int> addVariant(
       {required List<Variant> variations,
-      required int branchId,
+      required String branchId,
       required bool skipRRaCall}) {
     throw UnimplementedError('addVariant needs to be implemented for Capella');
   }
 
   @override
-  Future<List<IUnit>> units({required int branchId}) {
+  Future<List<IUnit>> units({required String branchId}) {
     throw UnimplementedError('units needs to be implemented for Capella');
   }
 
@@ -813,7 +813,7 @@ mixin CapellaVariantMixin implements VariantInterface {
 
   @override
   Future<List<Variant>> getExpiredItems({
-    required int branchId,
+    required String branchId,
     int? daysToExpiry,
     int? limit,
   }) async {

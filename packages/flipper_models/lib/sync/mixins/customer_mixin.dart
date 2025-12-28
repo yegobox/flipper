@@ -30,7 +30,7 @@ mixin CustomerMixin implements CustomerInterface {
   /// This method ensures efficient customer search and avoids duplicate entries in the results.
   @override
   FutureOr<List<Customer>> customers({
-    int? branchId,
+    String? branchId,
     String? key,
     String? id,
   }) async {

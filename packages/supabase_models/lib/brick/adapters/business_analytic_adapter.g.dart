@@ -21,7 +21,7 @@ Future<BusinessAnalytic> _$BusinessAnalyticFromSupabase(
     trafficCount: data['traffic_count'] == null
         ? null
         : data['traffic_count'] as int?,
-    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
     categoryName: data['category_name'] == null
         ? null
         : data['category_name'] as String?,
@@ -108,7 +108,7 @@ Future<BusinessAnalytic> _$BusinessAnalyticFromSqlite(
     trafficCount: data['traffic_count'] == null
         ? null
         : data['traffic_count'] as int?,
-    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
     categoryName: data['category_name'] == null
         ? null
         : data['category_name'] as String?,
@@ -345,7 +345,7 @@ class BusinessAnalyticAdapter
       association: false,
       columnName: 'branch_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'categoryName': const RuntimeSqliteColumnDefinition(
       association: false,

@@ -23,7 +23,7 @@ Future<Token> _$TokenFromSupabase(
         : DateTime.tryParse(data['valid_until'] as String),
     businessId: data['business_id'] == null
         ? null
-        : data['business_id'] as int?,
+        : data['business_id'] as String?,
     lastTouched: data['last_touched'] == null
         ? null
         : data['last_touched'] == null
@@ -71,7 +71,7 @@ Future<Token> _$TokenFromSqlite(
         : DateTime.tryParse(data['valid_until'] as String),
     businessId: data['business_id'] == null
         ? null
-        : data['business_id'] as int?,
+        : data['business_id'] as String?,
     lastTouched: data['last_touched'] == null
         ? null
         : data['last_touched'] == null
@@ -192,7 +192,7 @@ class TokenAdapter extends OfflineFirstWithSupabaseAdapter<Token> {
       association: false,
       columnName: 'business_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'lastTouched': const RuntimeSqliteColumnDefinition(
       association: false,

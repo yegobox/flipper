@@ -86,12 +86,12 @@ class YourModel extends OfflineFirstWithSupabaseModel {
   /// Business ID for multi-tenant filtering
   /// If present, enables business-level data isolation
   @Sqlite(index: true)
-  final int? businessId;
+  final String? businessId;
 
   /// Branch ID for multi-location filtering
   /// If present, the generated adapter will automatically filter by current branch
   @Sqlite(index: true)
-  final int? branchId;
+  final String? branchId;
 
   // ============================================================================
   // DOMAIN FIELDS
@@ -128,8 +128,8 @@ class YourModel extends OfflineFirstWithSupabaseModel {
   /// Create a copy of this model with updated fields
   YourModel copyWith({
     String? id,
-    int? businessId,
-    int? branchId,
+    String? businessId,
+    String? branchId,
     String? name,
     String? description,
     double? amount,

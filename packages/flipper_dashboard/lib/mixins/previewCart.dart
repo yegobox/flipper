@@ -108,7 +108,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       // ignore: unused_local_variable
       String orderId = await ProxyService.strategy.createStockRequest(
         items,
-        mainBranchId: supplier.serverId!,
+        mainBranchId: supplier.id,
         subBranchId: ProxyService.box.getBranchId()!,
         deliveryNote: deliveryNote,
         orderNote: null,
@@ -226,7 +226,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
     try {
       // Fetch the latest transaction from the database to ensure subTotal is up-to-date
-      int branchIdInt = ProxyService.box.getBranchId()!;
+      String branchIdInt = ProxyService.box.getBranchId()!;
       final transaction = await ProxyService.strategy.getTransaction(
         id: transactionId,
         branchId: branchIdInt,

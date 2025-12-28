@@ -65,8 +65,10 @@ class FlipperApp extends HookConsumerWidget {
 
   void _requestPermissions() {
     if (!isWindows && !isMacOs && !isIos) {
-      [permission.Permission.storage, permission.Permission.notification]
-          .request();
+      [
+        permission.Permission.storage,
+        permission.Permission.notification,
+      ].request();
     }
   }
 }
@@ -136,14 +138,13 @@ class StatusAppBar extends ConsumerWidget implements PreferredSizeWidget {
   }
 
   TextStyle _appBarTextStyle() => GoogleFonts.poppins(
-        fontSize: 16.0,
-        fontWeight: FontWeight.w300,
-        color: Colors.white,
-      );
+    fontSize: 16.0,
+    fontWeight: FontWeight.w300,
+    color: Colors.white,
+  );
 
   @override
-  Size get preferredSize =>
-      const Size.fromHeight(25); // Simplified height logic
+  Size get preferredSize => const Size.fromHeight(25); // Simplified height logic
 }
 
 class FlipperAppBody extends StatelessWidget {
@@ -152,8 +153,9 @@ class FlipperAppBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<Tenant?>(
-      stream: ProxyService.strategy
-          .authState(branchId: ProxyService.box.getBranchId() ?? 0),
+      stream: ProxyService.strategy.authState(
+        branchId: ProxyService.box.getBranchId() ?? "",
+      ),
       builder: (context, snapshot) => const DashboardLayout(),
     );
   }

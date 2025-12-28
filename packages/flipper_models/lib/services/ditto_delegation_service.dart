@@ -75,7 +75,7 @@ class DittoDelegationService {
   /// This saves the delegation to Ditto, which automatically syncs to desktop
   Future<void> createDelegation({
     required String transactionId,
-    required int branchId,
+    required String branchId,
     required String receiptType,
     String? customerName,
     String? customerTin,
@@ -133,7 +133,7 @@ class DittoDelegationService {
   /// Desktop: Start monitoring for new delegations in real-time
   /// Uses Ditto's observer pattern for instant notifications
   void startMonitoring({
-    required int branchId,
+    required String branchId,
     required Function(Map<String, dynamic>) onNewDelegation,
   }) {
     try {
@@ -313,7 +313,7 @@ class DittoDelegationService {
 
   /// Get all delegations for a branch (useful for debugging/admin)
   Future<List<Map<String, dynamic>>> getDelegationsForBranch({
-    required int branchId,
+    required String branchId,
     String? status,
   }) async {
     try {
@@ -371,7 +371,7 @@ class DittoDelegationService {
 
   /// Observe delegations stream (alternative to callback-based monitoring)
   Stream<List<Map<String, dynamic>>> observeDelegations({
-    required int branchId,
+    required String branchId,
     String? status,
   }) {
     if (_ditto == null) {

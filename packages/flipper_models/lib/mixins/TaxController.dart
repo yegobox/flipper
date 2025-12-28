@@ -470,7 +470,7 @@ class TaxController<OBJ> {
     Customer? customer,
   }) async {
     try {
-      int branchId = ProxyService.box.getBranchId()!;
+      String branchId = ProxyService.box.getBranchId()!;
       List<brick.Counter> counters =
           await ProxyService.getStrategy(Strategy.capella).getCounters(
               branchId: ProxyService.box.getBranchId()!,

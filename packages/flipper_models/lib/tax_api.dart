@@ -97,5 +97,5 @@ abstract class TaxApi implements NoticeInterface {
   Future<RwApiResponse> updateImportItems(
       {required Variant item, required String URI});
 
-  Future<List<Configurations>> taxConfigs({required int branchId});
+  Future<List<Configurations>> taxConfigs({required String branchId});
 }

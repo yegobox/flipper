@@ -10,7 +10,7 @@ Future<Discount> _$DiscountFromSupabase(
     id: data['id'] as String?,
     name: data['name'] == null ? null : data['name'] as String?,
     amount: data['amount'] == null ? null : data['amount'] as double?,
-    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
   );
 }
 
@@ -36,7 +36,7 @@ Future<Discount> _$DiscountFromSqlite(
     id: data['id'] as String,
     name: data['name'] == null ? null : data['name'] as String?,
     amount: data['amount'] == null ? null : data['amount'] as double?,
-    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -114,7 +114,7 @@ class DiscountAdapter extends OfflineFirstWithSupabaseAdapter<Discount> {
       association: false,
       columnName: 'branch_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
   };
   @override

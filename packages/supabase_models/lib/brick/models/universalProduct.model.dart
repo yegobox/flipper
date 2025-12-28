@@ -18,8 +18,8 @@ class UnversalProduct extends OfflineFirstWithSupabaseModel {
   String? mjrTgYn;
   String? useYn;
 
-  int? businessId;
-  int? branchId;
+  String? businessId;
+  String? branchId;
   UnversalProduct({
     String? id,
     this.itemClsCd,
@@ -41,8 +41,8 @@ class UnversalProduct extends OfflineFirstWithSupabaseModel {
       taxTyCd: map['tax_ty_cd'] as String?,
       mjrTgYn: map['mjr_tg_yn'] as String?,
       useYn: map['use_yn'] as String?,
-      businessId: map['business_id'] as int?,
-      branchId: map['branch_id'] as int?,
+      businessId: map['business_id'] as String?,
+      branchId: map['branch_id'] as String?,
     );
   }
 }

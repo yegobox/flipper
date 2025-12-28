@@ -15,7 +15,7 @@ class Sar extends OfflineFirstWithSupabaseModel {
   int sarNo;
 
   @Sqlite(index: true)
-  final int branchId;
+  final String branchId;
 
   @Sqlite(index: true)
   final DateTime createdAt;
@@ -31,7 +31,7 @@ class Sar extends OfflineFirstWithSupabaseModel {
   Sar copyWith({
     String? id,
     int? sarNo,
-    int? branchId,
+    String? branchId,
     DateTime? createdAt,
   }) {
     return Sar(

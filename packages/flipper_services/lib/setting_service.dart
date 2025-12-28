@@ -28,8 +28,8 @@ class SettingsService with ListenableServiceMixin {
   Future<bool> updateSettings({required Map map}) async {
     //todo: when no setting for this user create one with given detail
     //if the setting exist then update the given detail.
-    int userId = ProxyService.box.getUserId()!;
-    int businessId = ProxyService.box.getBusinessId()!;
+    String userId = ProxyService.box.getUserId()!;
+    String businessId = ProxyService.box.getBusinessId()!;
 
     Setting? setting =
         await ProxyService.strategy.getSetting(businessId: businessId);
@@ -69,7 +69,7 @@ class SettingsService with ListenableServiceMixin {
 
   Future<Setting?> settings() async {
     return ProxyService.strategy
-        .getSetting(businessId: ProxyService.box.getBusinessId() ?? 0);
+        .getSetting(businessId: ProxyService.box.getBusinessId() ?? "");
   }
 
   Future<bool> isDailyReportEnabled() async {
@@ -167,7 +167,7 @@ class SettingsService with ListenableServiceMixin {
       {required bool bool, required Function callback}) async {
     Setting? setting = await settings();
     if (setting != null) {
-      // int businessId = ProxyService.box.getBusinessId()!;
+      // String businessId = ProxyService.box.getBusinessId()!;
       // await ProxyService.strategy
       //     .enableAttendance(businessId: businessId, email: setting.email!);
       return callback(true);

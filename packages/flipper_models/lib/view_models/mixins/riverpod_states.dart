@@ -40,9 +40,9 @@ final connectivityStreamProvider = StreamProvider<bool>((ref) {
 });
 
 final customersStreamProvider = StreamProvider.autoDispose
-    .family<List<Customer>, ({int? branchId, String? id})>((ref, params) {
+    .family<List<Customer>, ({String? branchId, String? id})>((ref, params) {
   final (:branchId, :id) = params;
-  return ProxyService.strategy.customersStream(branchId: branchId ?? 0, id: id);
+  return ProxyService.strategy.customersStream(branchId: branchId ?? "", id: id);
 });
 
 final customerProvider = FutureProvider.autoDispose
@@ -97,7 +97,7 @@ class SellingModeNotifier extends Notifier<SellingMode> {
 }
 
 final initialStockProvider =
-    StreamProvider.autoDispose.family<double, int>((ref, branchId) {
+    StreamProvider.autoDispose.family<double, String>((ref, branchId) {
   return ProxyService.strategy.totalSales(branchId: branchId);
 });
 
@@ -177,7 +177,7 @@ class PaginatedVariantsNotifier extends Notifier<AsyncValue<List<Variant>>> {
 
 final matchedProductProvider = Provider.autoDispose<Product?>((ref) {
   final productsState =
-      ref.watch(productsProvider(ProxyService.box.getBranchId() ?? 0));
+      ref.watch(productsProvider(ProxyService.box.getBranchId() ?? ""));
   return productsState.maybeWhen(
     data: (products) {
       try {
@@ -220,11 +220,11 @@ final customersProvider =
         CustomersNotifier.new);
 
 class CustomersNotifier extends Notifier<AsyncValue<List<Customer>>> {
-  late int branchId;
+  late String branchId;
 
   @override
   AsyncValue<List<Customer>> build() {
-    branchId = ProxyService.box.getBranchId() ?? 0;
+    branchId = ProxyService.box.getBranchId() ?? "";
     final searchString = ref.watch(searchStringProvider);
     // We should not await here for build method synchronous return,
     // but we can start async load.
@@ -357,7 +357,7 @@ final selectImportItemsProvider = FutureProvider.autoDispose
 
 final ordersStreamProvider =
     StreamProvider.autoDispose<List<ITransaction>>((ref) {
-  int branchId = ProxyService.box.getBranchId() ?? 0;
+  String branchId = ProxyService.box.getBranchId() ?? "";
   return ProxyService.strategy.transactionsStream(
       branchId: branchId,
       skipOriginalTransactionCheck: true,
@@ -372,7 +372,7 @@ final universalProductsNames =
 
     // Check if units are already present in the database
     final existingUnits =
-        await ProxyService.strategy.universalProductNames(branchId: 1);
+        await ProxyService.strategy.universalProductNames(branchId: "1");
 
     return AsyncData(existingUnits);
   } catch (error) {
@@ -382,7 +382,7 @@ final universalProductsNames =
 });
 
 final skuProvider =
-    StreamProvider.autoDispose.family<SKU?, int>((ref, branchId) {
+    StreamProvider.autoDispose.family<SKU?, String>((ref, branchId) {
   return ProxyService.strategy
       .sku(branchId: branchId, businessId: ProxyService.box.getBusinessId()!);
 });
@@ -501,7 +501,7 @@ class CombinedNotifier {
 }
 
 final reportsProvider =
-    StreamProvider.autoDispose.family<List<Report>, int>((ref, branchId) {
+    StreamProvider.autoDispose.family<List<Report>, String>((ref, branchId) {
   return ProxyService.strategy.reports(branchId: branchId).map((reports) {
     talker.warning(reports);
     return reports;
@@ -676,7 +676,7 @@ class BranchSelectionNotifier extends Notifier<BranchSelectionState> {
 }
 
 final variantsProvider = FutureProvider.autoDispose
-    .family<List<Variant>, ({int branchId})>((ref, params) async {
+    .family<List<Variant>, ({String branchId})>((ref, params) async {
   final (:branchId) = params;
   final paged = await ProxyService.strategy.variants(
       branchId: branchId,

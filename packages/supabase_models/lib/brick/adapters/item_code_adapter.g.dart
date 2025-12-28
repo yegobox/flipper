@@ -10,7 +10,7 @@ Future<ItemCode> _$ItemCodeFromSupabase(
     id: data['id'] as String?,
     code: data['code'] as String,
     createdAt: DateTime.parse(data['created_at'] as String),
-    branchId: data['branch_id'] as int,
+    branchId: data['branch_id'] as String,
   );
 }
 
@@ -36,7 +36,7 @@ Future<ItemCode> _$ItemCodeFromSqlite(
     id: data['id'] as String,
     code: data['code'] as String,
     createdAt: DateTime.parse(data['created_at'] as String),
-    branchId: data['branch_id'] as int,
+    branchId: data['branch_id'] as String,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -114,7 +114,7 @@ class ItemCodeAdapter extends OfflineFirstWithSupabaseAdapter<ItemCode> {
       association: false,
       columnName: 'branch_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
   };
   @override

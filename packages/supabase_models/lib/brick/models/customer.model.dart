@@ -19,7 +19,7 @@ class Customer extends OfflineFirstWithSupabaseModel {
 
   /// address
   String? adrs;
-  int? branchId;
+  String? branchId;
   DateTime? updatedAt;
   // Customer Number
   String? custNo;
@@ -100,7 +100,7 @@ class Customer extends OfflineFirstWithSupabaseModel {
     String? email,
     String? telNo,
     String? adrs,
-    int? branchId,
+    String? branchId,
     DateTime? updatedAt,
     String? custNo,
     String? custTin,

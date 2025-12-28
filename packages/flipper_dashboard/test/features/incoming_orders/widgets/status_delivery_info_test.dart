@@ -2,6 +2,7 @@ import 'package:flipper_dashboard/features/incoming_orders/widgets/status_delive
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+
 // flutter test test/features/incoming_orders/widgets/status_delivery_info_test.dart --dart-define=FLUTTER_TEST_ENV=true
 void main() {
   group('StatusDeliveryInfo Tests', () {
@@ -9,11 +10,7 @@ void main() {
     late Branch mockBranch;
 
     setUp(() {
-      mockBranch = Branch(
-        id: '1',
-        name: 'Main Branch',
-        businessId: 1,
-      );
+      mockBranch = Branch(id: '1', name: 'Main Branch', businessId: '1');
 
       mockRequest = InventoryRequest(
         id: '1',
@@ -27,9 +24,7 @@ void main() {
     testWidgets('displays title correctly', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: StatusDeliveryInfo(request: mockRequest),
-          ),
+          home: Scaffold(body: StatusDeliveryInfo(request: mockRequest)),
         ),
       );
 
@@ -39,9 +34,7 @@ void main() {
     testWidgets('displays status information correctly', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: StatusDeliveryInfo(request: mockRequest),
-          ),
+          home: Scaffold(body: StatusDeliveryInfo(request: mockRequest)),
         ),
       );
 
@@ -52,9 +45,7 @@ void main() {
     testWidgets('displays delivery information correctly', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: StatusDeliveryInfo(request: mockRequest),
-          ),
+          home: Scaffold(body: StatusDeliveryInfo(request: mockRequest)),
         ),
       );
 
@@ -65,9 +56,7 @@ void main() {
     testWidgets('shows correct status icon for pending', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: StatusDeliveryInfo(request: mockRequest),
-          ),
+          home: Scaffold(body: StatusDeliveryInfo(request: mockRequest)),
         ),
       );
 
@@ -85,9 +74,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: StatusDeliveryInfo(request: approvedRequest),
-          ),
+          home: Scaffold(body: StatusDeliveryInfo(request: approvedRequest)),
         ),
       );
 
@@ -106,9 +93,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: StatusDeliveryInfo(request: voidedRequest),
-          ),
+          home: Scaffold(body: StatusDeliveryInfo(request: voidedRequest)),
         ),
       );
 
@@ -127,9 +112,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: StatusDeliveryInfo(request: nullStatusRequest),
-          ),
+          home: Scaffold(body: StatusDeliveryInfo(request: nullStatusRequest)),
         ),
       );
 
@@ -140,9 +123,7 @@ void main() {
     testWidgets('shows calendar icon for delivery info', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: StatusDeliveryInfo(request: mockRequest),
-          ),
+          home: Scaffold(body: StatusDeliveryInfo(request: mockRequest)),
         ),
       );
 
@@ -152,9 +133,7 @@ void main() {
     testWidgets('has correct container structure', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: StatusDeliveryInfo(request: mockRequest),
-          ),
+          home: Scaffold(body: StatusDeliveryInfo(request: mockRequest)),
         ),
       );
 
@@ -169,11 +148,7 @@ void main() {
     late Branch mockBranch;
 
     setUp(() {
-      mockBranch = Branch(
-        id: '1',
-        name: 'Main Branch',
-        businessId: 1,
-      );
+      mockBranch = Branch(id: '1', name: 'Main Branch', businessId: "1");
 
       mockRequest = InventoryRequest(
         id: '1',
@@ -186,9 +161,7 @@ void main() {
     testWidgets('displays order note title', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: OrderNote(request: mockRequest),
-          ),
+          home: Scaffold(body: OrderNote(request: mockRequest)),
         ),
       );
 
@@ -198,9 +171,7 @@ void main() {
     testWidgets('displays order note content', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: OrderNote(request: mockRequest),
-          ),
+          home: Scaffold(body: OrderNote(request: mockRequest)),
         ),
       );
 
@@ -217,9 +188,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: OrderNote(request: nullNoteRequest),
-          ),
+          home: Scaffold(body: OrderNote(request: nullNoteRequest)),
         ),
       );
 
@@ -230,9 +199,7 @@ void main() {
     testWidgets('has correct structure', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
-          home: Scaffold(
-            body: OrderNote(request: mockRequest),
-          ),
+          home: Scaffold(body: OrderNote(request: mockRequest)),
         ),
       );
 

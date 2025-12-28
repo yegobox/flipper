@@ -31,7 +31,7 @@ mixin PurchaseMixin
   /// Retrieves the last request date for a given branch and request type
   /// Returns null if no record exists
   Future<String?> getLastRequestDate({
-    required int branchId,
+    required String branchId,
     required String requestType,
   }) async {
     final lastRequestRecords = await repository.get<ImportPurchaseDates>(
@@ -50,7 +50,7 @@ mixin PurchaseMixin
   }
 
   @override
-  Future<void> saveVariant(Variant item, Business business, int branchId,
+  Future<void> saveVariant(Variant item, Business business, String branchId,
       {required bool skipRRaCall}) async {
     await createProduct(
       skipRRaCall: skipRRaCall,
@@ -161,8 +161,8 @@ mixin PurchaseMixin
         item.taxTyCd = ebm?.vatEnabled == true ? "B" : "D";
         item.color = randomizeColor();
         item.itemCd = "2";
-        saveVariantTasks.add(saveVariant(item, business, activeBranch.serverId!,
-            skipRRaCall: true));
+        saveVariantTasks.add(
+            saveVariant(item, business, activeBranch.id, skipRRaCall: true));
       }
       await Future.wait(saveVariantTasks);
 
@@ -231,7 +231,7 @@ mixin PurchaseMixin
         ),
       );
 
-      int branchId = ProxyService.box.getBranchId()!;
+      String branchId = ProxyService.box.getBranchId()!;
 
       try {
         response = await ProxyService.tax.selectTrnsPurchaseSales(

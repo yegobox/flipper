@@ -295,12 +295,12 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
         talker.warning(
             "Checking permission for userId: $userId, feature: $feature");
         List<Access> hasAccess = await ProxyService.strategy.access(
-            userId: int.parse(userId), featureName: feature, fetchRemote: true);
+            userId: userId, featureName: feature, fetchRemote: true);
         if (hasAccess.isEmpty) {
           await ProxyService.strategy.addAccess(
-            branchId: int.parse(branchId),
-            businessId: int.parse(businessId),
-            userId: int.parse(userId),
+            branchId: branchId,
+            businessId: businessId,
+            userId: userId,
             featureName: feature,
             accessLevel: 'admin',
             status: 'active',

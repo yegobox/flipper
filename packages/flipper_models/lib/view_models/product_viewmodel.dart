@@ -30,7 +30,7 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
 
   List<IUnit> units = [];
   Future<void> loadUnits() async {
-    int? branchId = ProxyService.box.getBranchId();
+    String? branchId = ProxyService.box.getBranchId();
     units = await ProxyService.strategy.units(branchId: branchId!);
   }
 
@@ -76,7 +76,7 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
   List<PColor> colors = [];
 
   Future<void> loadColors() async {
-    int? branchId = ProxyService.box.getBranchId();
+    String? branchId = ProxyService.box.getBranchId();
 
     colors = await ProxyService.strategy.colors(branchId: branchId!);
     notifyListeners();
@@ -157,7 +157,7 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
 
   ///create a new category and refresh list of categories
   Future<void> createCategory() async {
-    final int? branchId = ProxyService.box.getBranchId();
+    final String? branchId = ProxyService.box.getBranchId();
     if (categoryName == null) return;
     final Category category = Category(
       name: categoryName!,
@@ -171,7 +171,7 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
   }
 
   void updateCategory({required Category category}) async {
-    int branchId = ProxyService.box.getBranchId()!;
+    String branchId = ProxyService.box.getBranchId()!;
     for (Category category in categories) {
       if (category.focused) {
         ProxyService.strategy.updateCategory(
@@ -197,7 +197,7 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
   /// the Id can be ID of product or variant
   void saveFocusedUnit(
       {required IUnit newUnit, String? id, required String type}) async {
-    final int branchId = ProxyService.box.getBranchId()!;
+    final String branchId = ProxyService.box.getBranchId()!;
 
     for (IUnit unit in units) {
       if (unit.active ?? false) {
@@ -386,7 +386,7 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
   Future<void> deleteProduct({required String productId}) async {
     try {
       //get variants->delete
-      int branchId = ProxyService.box.getBranchId()!;
+      String branchId = ProxyService.box.getBranchId()!;
       final paged = await ProxyService.strategy.variants(
           branchId: branchId,
           productId: productId,
@@ -444,7 +444,7 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
   /// loop through transaction's items and update item with discount in consideration
   /// a discount can not go beyond the item's price
   Future<bool> applyDiscount({required Discount discount}) async {
-    int branchId = ProxyService.box.getBranchId()!;
+    String branchId = ProxyService.box.getBranchId()!;
     ITransaction? transaction =
         await ProxyService.keypad.getPendingTransaction(branchId: branchId);
 

@@ -15,8 +15,8 @@ class Composite extends OfflineFirstWithSupabaseModel {
   String? productId;
   String? variantId;
   double? qty;
-  int? branchId;
-  int? businessId;
+  String? branchId;
+  String? businessId;
 
   /// this hold the actual price of the sum of item on composite
   /// sound like if we have 4 item on a composite, they will all have this column to represent the price

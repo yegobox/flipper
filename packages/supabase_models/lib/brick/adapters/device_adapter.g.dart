@@ -21,11 +21,11 @@ Future<Device> _$DeviceFromSupabase(
         ? null
         : data['pub_nub_published'] as bool?,
     phone: data['phone'] == null ? null : data['phone'] as String?,
-    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
     businessId: data['business_id'] == null
         ? null
-        : data['business_id'] as int?,
-    userId: data['user_id'] == null ? null : data['user_id'] as int?,
+        : data['business_id'] as String?,
+    userId: data['user_id'] == null ? null : data['user_id'] as String?,
     defaultApp: data['default_app'] == null
         ? null
         : data['default_app'] as String?,
@@ -77,11 +77,11 @@ Future<Device> _$DeviceFromSqlite(
         ? null
         : data['pub_nub_published'] == 1,
     phone: data['phone'] == null ? null : data['phone'] as String?,
-    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
     businessId: data['business_id'] == null
         ? null
-        : data['business_id'] as int?,
-    userId: data['user_id'] == null ? null : data['user_id'] as int?,
+        : data['business_id'] as String?,
+    userId: data['user_id'] == null ? null : data['user_id'] as String?,
     defaultApp: data['default_app'] == null
         ? null
         : data['default_app'] as String?,
@@ -222,19 +222,19 @@ class DeviceAdapter extends OfflineFirstWithSupabaseAdapter<Device> {
       association: false,
       columnName: 'branch_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'businessId': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'business_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'userId': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'user_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'defaultApp': const RuntimeSqliteColumnDefinition(
       association: false,

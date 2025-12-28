@@ -11,6 +11,6 @@ Stream<List<Category>> category(Ref ref) {
 }
 
 @riverpod
-Future<List<Category>> categories(Ref ref, {required int branchId}) async {
+Future<List<Category>> categories(Ref ref, {required String branchId}) async {
   return await ProxyService.strategy.categories(branchId: branchId);
 }

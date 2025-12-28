@@ -20,15 +20,17 @@ void main() {
     mockBox = env.mockBox;
 
     // Register fallback for Credit model
-    registerFallbackValue(Credit(
-      branchServerId: 1,
-      id: 'fallback_credit',
-      branchId: '1',
-      credits: 0.0,
-      businessId: '1',
-      createdAt: DateTime.now(),
-      updatedAt: DateTime.now(),
-    ));
+    registerFallbackValue(
+      Credit(
+        branchServerId: "1",
+        id: 'fallback_credit',
+        branchId: '1',
+        credits: 0.0,
+        businessId: '1',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      ),
+    );
   });
 
   setUp(() {
@@ -41,14 +43,14 @@ void main() {
     env.stubCommonMethods();
 
     // Default mock for getBranchId
-    when(() => mockBox.getBranchId()).thenReturn(1);
+    when(() => mockBox.getBranchId()).thenReturn("1");
   });
 
   group('creditStreamProvider', () {
     test('should emit credit data from ProxyService.strategy.credit', () async {
-      final testBranchId = 1;
+      final testBranchId = "1";
       final expectedCredit = Credit(
-        branchServerId: 1,
+        branchServerId: "1",
         id: 'test_credit_id',
         branchId: testBranchId.toString(),
         credits: 100.0,
@@ -59,19 +61,20 @@ void main() {
 
       // Create a StreamController to control the stream emissions
       final controller = StreamController<Credit?>();
-      when(() => mockDbSync.credit(branchId: testBranchId.toString()))
-          .thenAnswer((_) => controller.stream);
+      when(
+        () => mockDbSync.credit(branchId: testBranchId.toString()),
+      ).thenAnswer((_) => controller.stream);
 
       final container = ProviderContainer();
       addTearDown(container.dispose);
 
       final emittedCredits = <Credit?>[];
-      final sub = container.listen(
-        creditStreamProvider(testBranchId),
-        (previous, next) {
-          emittedCredits.add(next.value);
-        },
-      );
+      final sub = container.listen(creditStreamProvider(testBranchId), (
+        previous,
+        next,
+      ) {
+        emittedCredits.add(next.value);
+      });
       addTearDown(sub.close); // Close the subscription when the test ends
 
       // Emit the expected credit
@@ -82,60 +85,65 @@ void main() {
       expect(emittedCredits, [expectedCredit]);
 
       // Verify that the correct method was called on the mock
-      verify(() => mockDbSync.credit(branchId: testBranchId.toString()))
-          .called(1);
+      verify(
+        () => mockDbSync.credit(branchId: testBranchId.toString()),
+      ).called(1);
 
       await controller.close(); // Close the controller
     });
 
-    test('should emit null if ProxyService.strategy.credit emits null',
-        () async {
-      final testBranchId = 1;
+    test(
+      'should emit null if ProxyService.strategy.credit emits null',
+      () async {
+        final testBranchId = "1";
 
-      final controller = StreamController<Credit?>();
-      when(() => mockDbSync.credit(branchId: testBranchId.toString()))
-          .thenAnswer((_) => controller.stream);
+        final controller = StreamController<Credit?>();
+        when(
+          () => mockDbSync.credit(branchId: testBranchId.toString()),
+        ).thenAnswer((_) => controller.stream);
 
-      final container = ProviderContainer();
-      addTearDown(container.dispose);
+        final container = ProviderContainer();
+        addTearDown(container.dispose);
 
-      final emittedCredits = <Credit?>[];
-      final sub = container.listen(
-        creditStreamProvider(testBranchId),
-        (previous, next) {
+        final emittedCredits = <Credit?>[];
+        final sub = container.listen(creditStreamProvider(testBranchId), (
+          previous,
+          next,
+        ) {
           emittedCredits.add(next.value);
-        },
-      );
-      addTearDown(sub.close);
+        });
+        addTearDown(sub.close);
 
-      controller.add(null);
-      await container.pump();
+        controller.add(null);
+        await container.pump();
 
-      expect(emittedCredits, [null]);
+        expect(emittedCredits, [null]);
 
-      await controller.close();
-    });
+        await controller.close();
+      },
+    );
 
     test('should handle errors from ProxyService.strategy.credit', () async {
-      final testBranchId = 1;
+      final testBranchId = "1";
       final errorMessage = 'Failed to fetch credit';
 
       final controller = StreamController<Credit?>();
-      when(() => mockDbSync.credit(branchId: testBranchId.toString()))
-          .thenAnswer((_) => controller.stream);
+      when(
+        () => mockDbSync.credit(branchId: testBranchId.toString()),
+      ).thenAnswer((_) => controller.stream);
 
       final container = ProviderContainer();
       addTearDown(container.dispose);
 
       Object? capturedError;
-      final sub = container.listen(
-        creditStreamProvider(testBranchId),
-        (previous, next) {
-          if (next.hasError) {
-            capturedError = next.error;
-          }
-        },
-      );
+      final sub = container.listen(creditStreamProvider(testBranchId), (
+        previous,
+        next,
+      ) {
+        if (next.hasError) {
+          capturedError = next.error;
+        }
+      });
       addTearDown(sub.close);
 
       controller.addError(Exception(errorMessage));

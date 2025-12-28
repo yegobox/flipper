@@ -8,19 +8,19 @@ part of 'branch.dart';
 
 IBranch _$IBranchFromJson(Map<String, dynamic> json) => IBranch(
       id: json['id'] as String?,
-      serverId: (json['server_id'] as num?)?.toInt(),
+      serverId: (json['serverId'] as num?)?.toInt(),
       active: json['active'] as bool?,
       description: json['description'] as String?,
       name: json['name'] as String?,
-      businessId: (json['business_id'] as num?)?.toInt(),
+      businessId: json['businessId'] as String?,
       longitude: IBranch._parseStringField(json['longitude']),
       latitude: IBranch._parseStringField(json['latitude']),
-      createdAt: json['created_at'] == null
+      createdAt: json['createdAt'] == null
           ? null
-          : DateTime.parse(json['created_at'] as String),
-      updatedAt: json['updated_at'],
+          : DateTime.parse(json['createdAt'] as String),
+      updatedAt: json['updatedAt'],
       location: IBranch._parseStringField(json['location']),
-      isDefault: json['is_default'] as bool?,
+      isDefault: json['isDefault'] as bool?,
       branchDefault: json['branchDefault'] as bool?,
     )
       ..lastTouched = json['lastTouched'] == null
@@ -36,16 +36,16 @@ Map<String, dynamic> _$IBranchToJson(IBranch instance) => <String, dynamic>{
       'deletedAt': instance.deletedAt?.toIso8601String(),
       'action': instance.action,
       'id': instance.id,
-      'server_id': instance.serverId,
+      'serverId': instance.serverId,
       'active': instance.active,
       'description': instance.description,
       'name': instance.name,
-      'business_id': instance.businessId,
+      'businessId': instance.businessId,
       'longitude': instance.longitude,
       'latitude': instance.latitude,
-      'created_at': instance.createdAt?.toIso8601String(),
-      'updated_at': instance.updatedAt,
+      'createdAt': instance.createdAt?.toIso8601String(),
+      'updatedAt': instance.updatedAt,
       'location': instance.location,
-      'is_default': instance.isDefault,
+      'isDefault': instance.isDefault,
       'branchDefault': instance.branchDefault,
     };

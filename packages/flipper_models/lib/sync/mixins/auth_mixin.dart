@@ -153,11 +153,11 @@ mixin AuthMixin implements AuthInterface {
   // Required methods that should be provided by other mixins
   @override
   Future<List<Business>> businesses(
-      {int? userId, bool fetchOnline = false, bool active = false});
+      {String? userId, bool fetchOnline = false, bool active = false});
 
   @override
   Future<bool> firebaseLogin({String? token}) async {
-    int? userId = ProxyService.box.getUserId();
+    String? userId = ProxyService.box.getUserId();
     if (userId == null) return false;
 
     // Get the existing PIN for this user ID
@@ -261,7 +261,8 @@ mixin AuthMixin implements AuthInterface {
       bool freshUser = false,
       required bool isInSignUpProgress}) async {
     List<Business> businessesE = await businesses(userId: pin.userId!);
-    List<Branch> branchesE = await branches(businessId: pin.businessId!);
+    List<Branch> branchesE = await ProxyService.strategy
+        .branches(businessId: pin.businessId!);
 
     final bool shouldEnableOfflineLogin = forceOffline ||
         (businessesE.isNotEmpty &&
@@ -325,7 +326,7 @@ mixin AuthMixin implements AuthInterface {
 
       // Make PIN patching non-blocking for the login flow
       try {
-        unawaited(_patchPin(user.id!, flipperHttpClient, apihub,
+        unawaited(_patchPin(user.pin!, flipperHttpClient, apihub,
             ownerName: user.tenants.first.name!));
       } catch (e) {
         // Log the error but don't block login
@@ -333,7 +334,7 @@ mixin AuthMixin implements AuthInterface {
         // This ensures offline login still works even if PIN patching fails
       }
 
-      ProxyService.box.writeInt(key: 'userId', value: user.id!);
+      ProxyService.box.writeString(key: 'userId', value: user.id);
 
       // Initialize Ditto with the authenticated user ID
       final appID =
@@ -400,7 +401,7 @@ mixin AuthMixin implements AuthInterface {
       if (pin.businessId != null) {
         talker.debug("Setting businessId to ${pin.businessId}");
         await ProxyService.box
-            .writeInt(key: 'businessId', value: pin.businessId!);
+            .writeString(key: 'businessId', value: pin.businessId!);
 
         // Also set business preferences
         try {
@@ -410,7 +411,7 @@ mixin AuthMixin implements AuthInterface {
           // Find the matching business or use the first one if none matches
           for (final business in businesses) {
             // Compare serverId with pin.businessId, handling both string and int types
-            if (business.serverId.toString() == pin.businessId.toString()) {
+            if (business.id.toString() == pin.businessId.toString()) {
               selectedBusiness = business;
               break;
             }
@@ -468,17 +469,17 @@ mixin AuthMixin implements AuthInterface {
       // Handle the case where pin already has a branchId (for backward compatibility)
       if (pin.branchId != null && pin.businessId != null) {
         talker.debug("Setting branchId to ${pin.branchId}");
-        await ProxyService.box.writeInt(key: 'branchId', value: pin.branchId!);
+        await ProxyService.box.writeString(key: 'branchId', value: pin.branchId!);
 
         try {
           // Get the branch ID string if available
-          final branches = await this.branches(businessId: pin.businessId!);
+          final branches = await ProxyService.strategy.branches(businessId: pin.businessId!);
           Branch? selectedBranch;
 
           // Find the matching branch or use the first one if none matches
           for (final branch in branches) {
             // Compare serverId with pin.branchId, handling both string and int types
-            if (branch.serverId.toString() == pin.branchId.toString()) {
+            if (branch.id.toString() == pin.branchId.toString()) {
               selectedBranch = branch;
               break;
             }
@@ -557,7 +558,7 @@ mixin AuthMixin implements AuthInterface {
         .getPinLocal(phoneNumber: phoneNumber, alwaysHydrate: false);
     uid ??= savedLocalPinForThis?.uid;
     final tenants = await ProxyService.strategy
-        .getTenant(pin: savedLocalPinForThis?.userId ?? 0);
+        .getTenant(pin: savedLocalPinForThis?.pin ?? 0);
 
     // Check if we have sufficient local data to skip the API call
     if (savedLocalPinForThis != null &&
@@ -566,7 +567,7 @@ mixin AuthMixin implements AuthInterface {
       final businesses = await ProxyService.strategy
           .businesses(userId: savedLocalPinForThis.userId!);
       final branches = await ProxyService.strategy
-          .branches(businessId: tenants.businessId ?? 0);
+          .branches(businessId: tenants.businessId ?? "");
 
       if (businesses.isNotEmpty && branches.isNotEmpty) {
         talker.debug(
@@ -695,8 +696,8 @@ mixin AuthMixin implements AuthInterface {
             final iBusiness = IBusiness.fromJson(businessData);
             // Convert IBusiness to Business (from supabase_models)
             /// get this business locally.
-            await ProxyService.strategy.getBusinessById(
-                businessId: iBusiness.serverId, fetchOnline: true);
+            await ProxyService.strategy
+                .getBusinessById(businessId: iBusiness.id, fetchOnline: true);
           }
         }
 
@@ -820,7 +821,7 @@ mixin AuthMixin implements AuthInterface {
         adrs: e.adrs ?? '',
         taxEnabled: e.taxEnabled ?? false,
         isDefault: e.isDefault ?? false,
-        businessTypeId: e.businessTypeId ?? 0,
+        businessTypeId: e.businessTypeId ?? "",
         encryptionKey: e.encryptionKey ?? '',
       );
     }).toList();
@@ -900,10 +901,10 @@ mixin AuthMixin implements AuthInterface {
             pin!.phoneNumber, // Use the phone number from the OTP request
         skipDefaultAppSetup: false,
         pin: Pin(
-            userId: int.parse(userId),
+            userId: userId,
             pin: pin.pin,
             businessId: serverId,
-            branchId: 0, // Will be determined in the login flow
+            branchId: "", // Will be determined in the login flow
             ownerName: '', // Will be updated in the login flow
             phoneNumber: phoneNumber),
         isInSignUpProgress: false,

@@ -27,9 +27,9 @@ class Device extends OfflineFirstWithSupabaseModel {
   String? deviceVersion;
   bool? pubNubPublished;
   String? phone;
-  int? branchId;
-  int? businessId;
-  int? userId;
+  String? branchId;
+  String? businessId;
+  String? userId;
   String? defaultApp;
 
   /// for sync
@@ -57,9 +57,9 @@ class Device extends OfflineFirstWithSupabaseModel {
       deviceVersion: json['deviceVersion'] as String?,
       pubNubPublished: json['pubNubPublished'] as bool?,
       phone: json['phone'] as String?,
-      branchId: json['branchId'] as int?,
-      businessId: json['businessId'] as int?,
-      userId: json['userId'] as int?,
+      branchId: json['branchId'] as String?,
+      businessId: json['businessId'] as String?,
+      userId: json['userId'] as String?,
       defaultApp: json['defaultApp'] as String?,
       deletedAt: json['deletedAt'] != null
           ? DateTime.tryParse(json['deletedAt'].toString())

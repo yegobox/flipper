@@ -40,9 +40,9 @@ mixin TenantMixin implements TenantInterface {
     String? name,
     String? id,
     String? email,
-    int? businessId,
+    String? businessId,
     bool? sessionActive,
-    int? branchId,
+    String? branchId,
     String? imageUrl,
     int? pin,
     bool? isDefault,
@@ -52,7 +52,7 @@ mixin TenantMixin implements TenantInterface {
     final data = jsonEncode({
       "phoneNumber": phoneNumber,
       "name": name,
-      "businessId": business.serverId,
+      "businessId": business.id,
       "type": userType.toLowerCase(),
       "permissions": [
         {"name": userType.toLowerCase()}
@@ -60,13 +60,13 @@ mixin TenantMixin implements TenantInterface {
       "businesses": [
         {
           ...business.toFlipperJson(),
-          'id': business.serverId,
+          'id': business.id,
         }
       ],
       "branches": [
         {
           ...branch.toFlipperJson(),
-          'id': branch.serverId,
+          'id': branch.id,
         }
       ]
     });
@@ -80,9 +80,9 @@ mixin TenantMixin implements TenantInterface {
         await createPin(
           flipperHttpClient: flipperHttpClient,
           phoneNumber: phoneNumber!,
-          pin: jTenant.userId!,
-          branchId: business.serverId.toString(),
-          businessId: branch.serverId!.toString(),
+          pin: jTenant.pin!,
+          branchId: branch.id.toString(),
+          businessId: business.id.toString(),
           defaultApp: 1,
         );
 
@@ -91,9 +91,9 @@ mixin TenantMixin implements TenantInterface {
           phoneNumber: phoneNumber,
           email: email,
           nfcEnabled: false,
-          businessId: business.serverId,
+          businessId: business.id,
           userId: jTenant.userId,
-          pin: jTenant.userId,
+          pin: jTenant.pin,
         );
       } catch (e) {
         rethrow;
@@ -123,7 +123,7 @@ mixin TenantMixin implements TenantInterface {
   }
 
   @override
-  Stream<Tenant?> getDefaultTenant({required int businessId}) {
+  Stream<Tenant?> getDefaultTenant({required String businessId}) {
     // Add default tenant retrieval logic here
     throw UnimplementedError();
   }
@@ -172,8 +172,8 @@ mixin TenantMixin implements TenantInterface {
 
   @override
   Future<Tenant?> tenant(
-      {int? businessId,
-      int? userId,
+      {String? businessId,
+      String? userId,
       String? id,
       required bool fetchRemote}) async {
     if (businessId != null) {
@@ -204,7 +204,7 @@ mixin TenantMixin implements TenantInterface {
   }
 
   @override
-  Future<List<Tenant>> tenants({int? businessId, int? excludeUserId}) {
+  Future<List<Tenant>> tenants({String? businessId, int? excludeUserId}) {
     return repository.get<Tenant>(
         query: Query(where: [
       Where('businessId').isExactly(businessId),
@@ -214,7 +214,7 @@ mixin TenantMixin implements TenantInterface {
 
   @override
   Future<List<ITenant>> tenantsFromOnline(
-      {required int businessId,
+      {required String businessId,
       required HttpClientInterface flipperHttpClient}) async {
     final http.Response response = await flipperHttpClient
         .get(Uri.parse("$apihub/v2/api/tenant/$businessId"));
@@ -234,7 +234,7 @@ mixin TenantMixin implements TenantInterface {
           Business biz = Business(
               phoneNumber: business.phoneNumber!,
               serverId: business.serverId,
-              userId: int.parse(business.userId),
+              userId: business.userId,
               name: business.name,
               currency: business.currency,
               categoryId: business.categoryId,
@@ -344,13 +344,13 @@ mixin TenantMixin implements TenantInterface {
       String? name,
       String? phoneNumber,
       String? email,
-      int? userId,
-      int? businessId,
+      String? userId,
+      String? businessId,
       String? type,
-      int? id,
+      String? id,
       int? pin,
       bool? sessionActive,
-      int? branchId}) async {
+      String? branchId}) async {
     final tenant = (await repository.get<Tenant>(
             query: Query(where: [
       Where('userId').isExactly(userId),
@@ -371,7 +371,7 @@ mixin TenantMixin implements TenantInterface {
   }
 
   @override
-  Future<void> deleteTenantsWithNullPin({int? businessId}) async {
+  Future<void> deleteTenantsWithNullPin({String? businessId}) async {
     // Fetch tenants scoped by businessId if provided, otherwise all tenants.
     final query = Query(where: [
       if (businessId != null) Where('businessId').isExactly(businessId),

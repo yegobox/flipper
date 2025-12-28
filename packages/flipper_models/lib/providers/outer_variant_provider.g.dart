@@ -15,7 +15,7 @@ const outerVariantsProvider = OuterVariantsFamily._();
 final class OuterVariantsProvider
     extends $AsyncNotifierProvider<OuterVariants, List<Variant>> {
   const OuterVariantsProvider._(
-      {required OuterVariantsFamily super.from, required int super.argument})
+      {required OuterVariantsFamily super.from, required String super.argument})
       : super(
           retry: null,
           name: r'outerVariantsProvider',
@@ -49,12 +49,12 @@ final class OuterVariantsProvider
   }
 }
 
-String _$outerVariantsHash() => r'eb215931c88c330061e3777c04cf858338f452aa';
+String _$outerVariantsHash() => r'29c78f1bf8fc750a388a793a61de29b1a73b513a';
 
 final class OuterVariantsFamily extends $Family
     with
         $ClassFamilyOverride<OuterVariants, AsyncValue<List<Variant>>,
-            List<Variant>, FutureOr<List<Variant>>, int> {
+            List<Variant>, FutureOr<List<Variant>>, String> {
   const OuterVariantsFamily._()
       : super(
           retry: null,
@@ -65,7 +65,7 @@ final class OuterVariantsFamily extends $Family
         );
 
   OuterVariantsProvider call(
-    int branchId,
+    String branchId,
   ) =>
       OuterVariantsProvider._(argument: branchId, from: this);
 
@@ -74,11 +74,11 @@ final class OuterVariantsFamily extends $Family
 }
 
 abstract class _$OuterVariants extends $AsyncNotifier<List<Variant>> {
-  late final _$args = ref.$arg as int;
-  int get branchId => _$args;
+  late final _$args = ref.$arg as String;
+  String get branchId => _$args;
 
   FutureOr<List<Variant>> build(
-    int branchId,
+    String branchId,
   );
   @$mustCallSuper
   @override
@@ -102,7 +102,7 @@ const productsProvider = ProductsFamily._();
 final class ProductsProvider
     extends $AsyncNotifierProvider<Products, List<Product>> {
   const ProductsProvider._(
-      {required ProductsFamily super.from, required int super.argument})
+      {required ProductsFamily super.from, required String super.argument})
       : super(
           retry: null,
           name: r'productsProvider',
@@ -136,12 +136,12 @@ final class ProductsProvider
   }
 }
 
-String _$productsHash() => r'48b3f55713014a116dfd34ad2342668f17108211';
+String _$productsHash() => r'f4eb328d1fab5bdec459275da0a20f26da8acbf4';
 
 final class ProductsFamily extends $Family
     with
         $ClassFamilyOverride<Products, AsyncValue<List<Product>>, List<Product>,
-            FutureOr<List<Product>>, int> {
+            FutureOr<List<Product>>, String> {
   const ProductsFamily._()
       : super(
           retry: null,
@@ -152,7 +152,7 @@ final class ProductsFamily extends $Family
         );
 
   ProductsProvider call(
-    int branchId,
+    String branchId,
   ) =>
       ProductsProvider._(argument: branchId, from: this);
 
@@ -161,11 +161,11 @@ final class ProductsFamily extends $Family
 }
 
 abstract class _$Products extends $AsyncNotifier<List<Product>> {
-  late final _$args = ref.$arg as int;
-  int get branchId => _$args;
+  late final _$args = ref.$arg as String;
+  String get branchId => _$args;
 
   FutureOr<List<Product>> build(
-    int branchId,
+    String branchId,
   );
   @$mustCallSuper
   @override

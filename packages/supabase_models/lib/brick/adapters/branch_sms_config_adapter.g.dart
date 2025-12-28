@@ -8,7 +8,7 @@ Future<BranchSmsConfig> _$BranchSmsConfigFromSupabase(
 }) async {
   return BranchSmsConfig(
     id: data['id'] as String?,
-    branchId: data['branch_id'] as int,
+    branchId: data['branch_id'] as String,
     smsPhoneNumber: data['sms_phone_number'] == null
         ? null
         : data['sms_phone_number'] as String?,
@@ -36,7 +36,7 @@ Future<BranchSmsConfig> _$BranchSmsConfigFromSqlite(
 }) async {
   return BranchSmsConfig(
     id: data['id'] as String,
-    branchId: data['branch_id'] as int,
+    branchId: data['branch_id'] as String,
     smsPhoneNumber: data['sms_phone_number'] == null
         ? null
         : data['sms_phone_number'] as String?,
@@ -107,7 +107,7 @@ class BranchSmsConfigAdapter
       association: false,
       columnName: 'branch_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'smsPhoneNumber': const RuntimeSqliteColumnDefinition(
       association: false,

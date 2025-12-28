@@ -269,7 +269,7 @@ class FlipperApp {
     }
 
     private preSubscribeToBranch(branch: FlipperBranch): void {
-        if (!branch.serverId) {
+        if (!branch.id) {
             return;
         }
 
@@ -278,7 +278,7 @@ class FlipperApp {
         const endDate = new Date();
         endDate.setHours(23, 59, 59, 999);
 
-        this.dittoService.subscribeToTransactions(branch.serverId, startDate, endDate).catch(console.error);
+        this.dittoService.subscribeToTransactions(branch.id, startDate, endDate).catch(console.error);
     }
 
     private handleBranchSelection(event: Event): void {

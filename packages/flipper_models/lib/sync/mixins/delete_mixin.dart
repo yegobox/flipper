@@ -15,9 +15,9 @@ mixin DeleteMixin implements DeleteInterface {
   Future<Product?> getProduct({
     String? id,
     String? barCode,
-    required int branchId,
+    required String branchId,
     String? name,
-    required int businessId,
+    required String businessId,
   }) async {
     final query = Query(where: [
       if (id != null) Where('id').isExactly(id),
@@ -32,8 +32,9 @@ mixin DeleteMixin implements DeleteInterface {
   }
 
   Future<Stock?> getStockById({required String id});
-  FutureOr<List<Customer>> customers({int? branchId, String? key, String? id});
-  // FutureOr<List<InventoryRequest>> requests({int? branchId, String? requestId});
+  FutureOr<List<Customer>> customers(
+      {String? branchId, String? key, String? id});
+  // FutureOr<List<InventoryRequest>> requests({String? branchId, String? requestId});
   @override
   Future<void> deleteTransactionItemAndResequence({required String id}) async {
     try {

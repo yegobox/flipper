@@ -34,7 +34,7 @@ class Business extends OfflineFirstWithSupabaseModel {
   String? categoryId;
   String? latitude;
   String? longitude;
-  int? userId;
+  String? userId;
   String? timeZone;
   String? country;
   String? businessUrl;
@@ -67,7 +67,8 @@ class Business extends OfflineFirstWithSupabaseModel {
   bool? taxEnabled;
   String? taxServerUrl;
   bool? isDefault;
-  int? businessTypeId;
+  String? businessTypeId;
+  String? referredBy;
 
   DateTime? lastTouched;
 
@@ -129,6 +130,7 @@ class Business extends OfflineFirstWithSupabaseModel {
     this.taxServerUrl,
     this.isDefault,
     this.businessTypeId,
+    this.referredBy,
     this.lastTouched,
     this.deletedAt,
     this.encryptionKey,
@@ -145,7 +147,7 @@ class Business extends OfflineFirstWithSupabaseModel {
     String? categoryId,
     String? latitude,
     String? longitude,
-    int? userId,
+    String? userId,
     String? timeZone,
     String? country,
     String? businessUrl,
@@ -177,7 +179,8 @@ class Business extends OfflineFirstWithSupabaseModel {
     bool? taxEnabled,
     String? taxServerUrl,
     bool? isDefault,
-    int? businessTypeId,
+    String? businessTypeId,
+    String? referredBy,
     DateTime? lastTouched,
     DateTime? deletedAt,
     String? encryptionKey,
@@ -217,6 +220,7 @@ class Business extends OfflineFirstWithSupabaseModel {
       backupFileId: backupFileId ?? this.backupFileId,
       phoneNumber: phoneNumber ?? this.phoneNumber,
       messagingChannels: messagingChannels ?? this.messagingChannels,
+      referredBy: referredBy ?? this.referredBy,
     );
   }
 
@@ -230,9 +234,9 @@ class Business extends OfflineFirstWithSupabaseModel {
       categoryId: map['category_id'] as String?,
       latitude: map['latitude'] as String?,
       longitude: map['longitude'] as String?,
-      userId: map['user_id'] is String
-          ? int.parse(map['user_id'])
-          : map['user_id'] as int,
+      userId: map['user_id'] is int
+          ? map['user_id'].toString()
+          : map['user_id'] as String?,
       timeZone: map['time_zone'] as String?,
       country: map['country'] as String?,
       businessUrl: map['business_url'] as String?,
@@ -264,7 +268,10 @@ class Business extends OfflineFirstWithSupabaseModel {
       taxEnabled: map['tax_enabled'] as bool?,
       taxServerUrl: map['tax_server_url'] as String?,
       isDefault: map['is_default'] as bool?,
-      businessTypeId: map['business_type_id'] as int?,
+      businessTypeId: map['business_type_id'] is int
+          ? map['business_type_id'].toString()
+          : map['business_type_id'] as String?,
+      referredBy: map['referred_by'] as String?,
       lastTouched: map['last_touched'] == null
           ? null
           : DateTime.tryParse(map['last_touched'].toString()),
@@ -318,6 +325,7 @@ class Business extends OfflineFirstWithSupabaseModel {
       'taxServerUrl': taxServerUrl,
       'isDefault': isDefault,
       'businessTypeId': businessTypeId,
+      'referredBy': referredBy,
       'lastTouched': lastTouched,
       'deletedAt': deletedAt,
       'encryptionKey': encryptionKey,

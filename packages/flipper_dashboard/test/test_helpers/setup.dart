@@ -31,12 +31,21 @@ class TestEnvironment {
 
     // Register fallback values once
     registerFallbackValue(
-        Customer(branchId: 0, custNm: 'fallback', bhfId: '00'));
-    registerFallbackValue(Business(
-        id: "1", name: "Fallback Business", tinNumber: 123456789, serverId: 1));
+      Customer(branchId: "0", custNm: 'fallback', bhfId: '00'),
+    );
     registerFallbackValue(
-        Variant(id: "fallback_variant", name: "Fallback Variant", branchId: 1));
-    registerFallbackValue(Purchase(
+      Business(
+        id: "1",
+        name: "Fallback Business",
+        tinNumber: 123456789,
+        serverId: 1,
+      ),
+    );
+    registerFallbackValue(
+      Variant(id: "fallback_variant", name: "Fallback Variant", branchId: "1"),
+    );
+    registerFallbackValue(
+      Purchase(
         id: "fallback_purchase",
         createdAt: DateTime.now(),
         totTaxAmt: 0.0,
@@ -63,19 +72,24 @@ class TestEnvironment {
         taxAmtC: 0.0,
         taxAmtD: 0.0,
         spplrInvcNo: 1,
-        branchId: 0,
-        variants: []));
+        branchId: "0",
+        variants: [],
+      ),
+    );
     registerFallbackValue(<Variant>[]);
     registerFallbackValue(RwApiResponse(resultCd: "000", resultMsg: "Success"));
-    registerFallbackValue(Ebm(
+    registerFallbackValue(
+      Ebm(
         mrc: "123",
         bhfId: "00",
         tinNumber: 111,
         dvcSrlNo: "111",
-        userId: 111,
+        userId: "111",
         taxServerUrl: "https://test.flipper.rw",
-        businessId: 1,
-        branchId: 1));
+        businessId: "1",
+        branchId: "1",
+      ),
+    );
     registerFallbackValue(Plan());
   }
 
@@ -106,36 +120,45 @@ class TestEnvironment {
   }
 
   void stubCommonMethods() {
-    when(() => mockBox.getBusinessId()).thenReturn(1);
-    when(() => mockBox.getBranchId()).thenReturn(1);
+    when(() => mockBox.getBusinessId()).thenReturn("1");
+    when(() => mockBox.getBranchId()).thenReturn("1");
     when(() => mockBox.bhfId()).thenAnswer((_) async => "00");
-    when(() => mockBox.getServerUrl())
-        .thenAnswer((_) async => "https://test.flipper.rw");
+    when(
+      () => mockBox.getServerUrl(),
+    ).thenAnswer((_) async => "https://test.flipper.rw");
 
-    when(() => mockDbSync.getBusiness(businessId: any(named: 'businessId')))
-        .thenAnswer(
+    when(
+      () => mockDbSync.getBusiness(businessId: any(named: 'businessId')),
+    ).thenAnswer(
       (_) async => Business(
-          id: "1", name: "Test Business", tinNumber: 123456789, serverId: 1),
+        id: "1",
+        name: "Test Business",
+        tinNumber: 123456789,
+        serverId: 1,
+      ),
     );
 
     when(() => mockDbSync.ebm(branchId: any(named: 'branchId'))).thenAnswer(
       (_) async => Ebm(
-          mrc: "123",
-          bhfId: "00",
-          tinNumber: 111,
-          dvcSrlNo: "111",
-          userId: 111,
-          taxServerUrl: "https://test.flipper.rw",
-          businessId: 1,
-          branchId: 1),
+        mrc: "123",
+        bhfId: "00",
+        tinNumber: 111,
+        dvcSrlNo: "111",
+        userId: "111",
+        taxServerUrl: "https://test.flipper.rw",
+        businessId: "1",
+        branchId: "1",
+      ),
     );
 
-    when(() => mockDbSync.itemCode(
-          countryCode: any(named: 'countryCode'),
-          productType: any(named: 'productType'),
-          packagingUnit: any(named: 'packagingUnit'),
-          quantityUnit: any(named: 'quantityUnit'),
-          branchId: any(named: 'branchId'),
-        )).thenAnswer((_) async => "ITEM123");
+    when(
+      () => mockDbSync.itemCode(
+        countryCode: any(named: 'countryCode'),
+        productType: any(named: 'productType'),
+        packagingUnit: any(named: 'packagingUnit'),
+        quantityUnit: any(named: 'quantityUnit'),
+        branchId: any(named: 'branchId'),
+      ),
+    ).thenAnswer((_) async => "ITEM123");
   }
 }

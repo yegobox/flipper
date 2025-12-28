@@ -53,13 +53,13 @@ class SharedPreferenceStorageMock implements LocalStorage {
   }
 
   @override
-  int? getBranchId() {
-    return 1; // Sample branch ID
+  String? getBranchId() {
+    return "1"; // Sample branch ID
   }
 
   @override
-  int? getBusinessId() {
-    return 1;
+  String? getBusinessId() {
+    return "1";
   }
 
   @override
@@ -83,8 +83,8 @@ class SharedPreferenceStorageMock implements LocalStorage {
   }
 
   @override
-  int? getUserId() {
-    return 24300; // Sample user ID
+  String? getUserId() {
+    return "24300"; // Sample user ID
   }
 
   @override

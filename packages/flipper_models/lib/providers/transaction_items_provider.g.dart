@@ -24,7 +24,7 @@ final class TransactionItemsProvider extends $FunctionalProvider<
       required ({
         String? transactionId,
         String? requestId,
-        int? branchId,
+        String? branchId,
         bool fetchRemote,
         bool doneWithTransaction,
       })
@@ -58,7 +58,7 @@ final class TransactionItemsProvider extends $FunctionalProvider<
     final argument = this.argument as ({
       String? transactionId,
       String? requestId,
-      int? branchId,
+      String? branchId,
       bool fetchRemote,
       bool doneWithTransaction,
     });
@@ -83,7 +83,7 @@ final class TransactionItemsProvider extends $FunctionalProvider<
   }
 }
 
-String _$transactionItemsHash() => r'b7bbec484cfaba8e042dc874cbb43b17d12be689';
+String _$transactionItemsHash() => r'f97a4240403ac44b2210038dc7027332dd8001b4';
 
 final class TransactionItemsFamily extends $Family
     with
@@ -92,7 +92,7 @@ final class TransactionItemsFamily extends $Family
             ({
               String? transactionId,
               String? requestId,
-              int? branchId,
+              String? branchId,
               bool fetchRemote,
               bool doneWithTransaction,
             })> {
@@ -108,7 +108,7 @@ final class TransactionItemsFamily extends $Family
   TransactionItemsProvider call({
     String? transactionId,
     String? requestId,
-    int? branchId,
+    String? branchId,
     bool fetchRemote = false,
     bool doneWithTransaction = false,
   }) =>

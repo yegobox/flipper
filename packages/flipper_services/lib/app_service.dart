@@ -18,9 +18,9 @@ const socialApp = "socials";
 
 class AppService with ListenableServiceMixin {
   // required constants
-  int? get userid => ProxyService.box.getUserId();
-  int? get businessId => ProxyService.box.getBusinessId();
-  int? get branchId => ProxyService.box.getBranchId();
+  String? get userid => ProxyService.box.getUserId();
+  String? get businessId => ProxyService.box.getBusinessId();
+  String? get branchId => ProxyService.box.getBranchId();
 
   final _business = ReactiveValue<Business>(Business(
     serverId: randomNumber(),
@@ -52,10 +52,10 @@ class AppService with ListenableServiceMixin {
   List<Category> get categories => _categories.value;
 
   void loadCategories() async {
-    int? branchId = ProxyService.box.getBranchId();
+    String? branchId = ProxyService.box.getBranchId();
 
     final List<Category> result =
-        await ProxyService.strategy.categories(branchId: branchId ?? 0);
+        await ProxyService.strategy.categories(branchId: branchId ?? "0");
 
     _categories.value = result;
     notifyListeners();
@@ -109,8 +109,8 @@ class AppService with ListenableServiceMixin {
       active: true,
     );
     for (final branch in branches) {
-      await ProxyService.strategy.updateBranch(
-          branchId: branch.serverId!, active: false, isDefault: false);
+      await ProxyService.strategy
+          .updateBranch(branchId: branch.id, active: false, isDefault: false);
     }
   }
 
@@ -159,7 +159,7 @@ class AppService with ListenableServiceMixin {
     if (businesses.length == 1) {
       // set it as default
       await ProxyService.strategy.updateBusiness(
-        businessId: businesses.first.serverId,
+        businessId: businesses.first.id,
         active: true,
         isDefault: true,
       );
@@ -167,7 +167,7 @@ class AppService with ListenableServiceMixin {
     if (branches.length == 1) {
       // set it as default directly
       await ProxyService.strategy.updateBranch(
-          branchId: branches.first.serverId!, active: true, isDefault: true);
+          branchId: branches.first.id, active: true, isDefault: true);
     }
 
     if ((hasMultipleBusinesses || hasMultipleBranches)) {
@@ -184,7 +184,7 @@ class AppService with ListenableServiceMixin {
     }
   }
 
-  Future<void> checkAndStartShift({required int userId}) async {
+  Future<void> checkAndStartShift({required String userId}) async {
     final currentShift =
         await ProxyService.strategy.getCurrentShift(userId: userId);
     if (currentShift == null) {
@@ -232,7 +232,7 @@ class AppService with ListenableServiceMixin {
 
   Future<bool> isSocialLoggedin() async {
     if (ProxyService.box.getDefaultApp() == "2") {
-      // int businessId = ProxyService.box.getBusinessId()!;
+      // String businessId = ProxyService.box.getBusinessId()!;
       // return await ProxyService.strategy
       //     .isTokenValid(businessId: businessId, tokenType: socialApp);
     }

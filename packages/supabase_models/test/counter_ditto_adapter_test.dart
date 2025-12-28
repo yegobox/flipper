@@ -5,8 +5,8 @@ void main() {
   final adapter = CounterDittoAdapter.instance;
 
   setUp(() {
-    adapter.overrideBranchIdProvider(() => 1);
-    adapter.overrideBusinessIdProvider(() => 10);
+    adapter.overrideBranchIdProvider(() => "1");
+    adapter.overrideBusinessIdProvider(() => "10");
   });
 
   tearDown(() {
@@ -20,8 +20,8 @@ void main() {
 
       final counter = Counter(
         id: 'counter-1',
-        branchId: 1,
-        businessId: 10,
+        branchId: "",
+        businessId: "10",
         receiptType: 'SALES',
         totRcptNo: 100,
         curRcptNo: 50,

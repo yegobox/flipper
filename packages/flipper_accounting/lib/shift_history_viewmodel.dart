@@ -3,7 +3,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:stacked/stacked.dart';
 
 class ShiftHistoryViewModel extends StreamViewModel<List<Shift>> {
-  final int businessId;
+  final String businessId;
 
   String _searchQuery = '';
   ShiftStatus? _selectedStatus;
@@ -37,9 +37,8 @@ class ShiftHistoryViewModel extends StreamViewModel<List<Shift>> {
 
     // Apply status filter
     if (_selectedStatus != null) {
-      shifts = shifts
-          .where((shift) => shift.status == _selectedStatus)
-          .toList();
+      shifts =
+          shifts.where((shift) => shift.status == _selectedStatus).toList();
     }
 
     // Apply date range filter

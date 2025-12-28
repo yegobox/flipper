@@ -10,7 +10,7 @@ Future<Stock> _$StockFromSupabase(
     id: data['id'] as String?,
     tin: data['tin'] == null ? null : data['tin'] as int?,
     bhfId: data['bhf_id'] == null ? null : data['bhf_id'] as String?,
-    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
     currentStock: data['current_stock'] == null
         ? null
         : data['current_stock'] as double? ?? 0.0,
@@ -72,7 +72,7 @@ Future<Stock> _$StockFromSqlite(
     id: data['id'] as String,
     tin: data['tin'] == null ? null : data['tin'] as int?,
     bhfId: data['bhf_id'] == null ? null : data['bhf_id'] as String?,
-    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
     currentStock: data['current_stock'] == null
         ? null
         : data['current_stock'] as double?,
@@ -228,7 +228,7 @@ class StockAdapter extends OfflineFirstWithSupabaseAdapter<Stock> {
       association: false,
       columnName: 'branch_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'currentStock': const RuntimeSqliteColumnDefinition(
       association: false,

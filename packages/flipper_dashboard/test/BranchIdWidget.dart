@@ -9,7 +9,7 @@ class BranchIdWidget extends StatefulWidget {
 }
 
 class _BranchIdWidgetState extends State<BranchIdWidget> {
-  int? _branchId;
+  String? _branchId;
 
   @override
   void initState() {

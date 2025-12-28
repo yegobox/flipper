@@ -26,7 +26,7 @@ void main() {
       // final stock = Stock(
       //   id: 'test-stock-123',
       //   currentStock: 10,
-      //   branchId: 1,
+      //   branchId: "",
       // );
 
       // // Save stock to cache
@@ -51,7 +51,7 @@ void main() {
       //   stock: Stock(
       //     id: 'stock-1',
       //     currentStock: 5,
-      //     branchId: 1,
+      //     branchId: "",
       //   ),
       // );
 
@@ -62,7 +62,7 @@ void main() {
       //   stock: Stock(
       //     id: 'stock-2',
       //     currentStock: 15,
-      //     branchId: 1,
+      //     branchId: "",
       //   ),
       // );
 
@@ -92,7 +92,7 @@ void main() {
       //   final stock = Stock(
       //     id: 'test-stock-update',
       //     currentStock: 10,
-      //     branchId: 1,
+      //     branchId: "",
       //   );
 
       //   await cacheManager.saveStock(stock);
@@ -101,7 +101,7 @@ void main() {
       //   final updatedStock = Stock(
       //     id: 'test-stock-update',
       //     currentStock: 20, // Changed value
-      //     branchId: 1,
+      //     branchId: "",
       //   );
 
       //   await cacheManager.saveStock(updatedStock);

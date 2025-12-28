@@ -11,7 +11,7 @@ import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
 import 'package:supabase_models/sync/ditto_sync_generated.dart';
 import 'package:uuid/uuid.dart';
 
-part 'stock.model.ditto_sync_adapter.g.dart'; 
+part 'stock.model.ditto_sync_adapter.g.dart';
 
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'stocks'),
@@ -31,7 +31,7 @@ class Stock extends OfflineFirstWithSupabaseModel {
 
   /// we kee both branchId and businessId as int as we are storing in it
   /// the server it, but local id will be uuid
-  int? branchId;
+  String? branchId;
   @Supabase(defaultValue: "0.0")
   double? currentStock;
 
@@ -85,7 +85,7 @@ class Stock extends OfflineFirstWithSupabaseModel {
     String? id,
     int? tin,
     String? bhfId,
-    int? branchId,
+    String? branchId,
     double? currentStock,
     double? lowStock,
     bool? canTrackingStock,

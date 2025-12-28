@@ -14,7 +14,7 @@ class Conversation extends OfflineFirstWithSupabaseModel {
   final String id;
 
   final String title;
-  final int branchId;
+  final String branchId;
 
   @Sqlite(nullable: true)
   final DateTime? createdAt;

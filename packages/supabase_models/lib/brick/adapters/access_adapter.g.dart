@@ -8,11 +8,12 @@ Future<Access> _$AccessFromSupabase(
 }) async {
   return Access(
     id: data['id'] as String?,
-    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
     businessId: data['business_id'] == null
         ? null
-        : data['business_id'] as int?,
-    userId: data['user_id'] == null ? null : data['user_id'] as int?,
+        : data['business_id'] as String?,
+    userId: data['user_id'] == null ? null : data['user_id'] as String?,
+    tenantId: data['tenant_id'] == null ? null : data['tenant_id'] as String?,
     featureName: data['feature_name'] == null
         ? null
         : data['feature_name'] as String?,
@@ -44,6 +45,7 @@ Future<Map<String, dynamic>> _$AccessToSupabase(
     'branch_id': instance.branchId,
     'business_id': instance.businessId,
     'user_id': instance.userId,
+    'tenant_id': instance.tenantId,
     'feature_name': instance.featureName,
     'user_type': instance.userType,
     'access_level': instance.accessLevel,
@@ -60,11 +62,12 @@ Future<Access> _$AccessFromSqlite(
 }) async {
   return Access(
     id: data['id'] as String,
-    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
     businessId: data['business_id'] == null
         ? null
-        : data['business_id'] as int?,
-    userId: data['user_id'] == null ? null : data['user_id'] as int?,
+        : data['business_id'] as String?,
+    userId: data['user_id'] == null ? null : data['user_id'] as String?,
+    tenantId: data['tenant_id'] == null ? null : data['tenant_id'] as String?,
     featureName: data['feature_name'] == null
         ? null
         : data['feature_name'] as String?,
@@ -96,6 +99,7 @@ Future<Map<String, dynamic>> _$AccessToSqlite(
     'branch_id': instance.branchId,
     'business_id': instance.businessId,
     'user_id': instance.userId,
+    'tenant_id': instance.tenantId,
     'feature_name': instance.featureName,
     'user_type': instance.userType,
     'access_level': instance.accessLevel,
@@ -130,6 +134,10 @@ class AccessAdapter extends OfflineFirstWithSupabaseAdapter<Access> {
     'userId': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'user_id',
+    ),
+    'tenantId': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'tenant_id',
     ),
     'featureName': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -178,19 +186,25 @@ class AccessAdapter extends OfflineFirstWithSupabaseAdapter<Access> {
       association: false,
       columnName: 'branch_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'businessId': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'business_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'userId': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'user_id',
       iterable: false,
-      type: int,
+      type: String,
+    ),
+    'tenantId': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'tenant_id',
+      iterable: false,
+      type: String,
     ),
     'featureName': const RuntimeSqliteColumnDefinition(
       association: false,

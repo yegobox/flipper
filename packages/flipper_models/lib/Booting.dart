@@ -28,7 +28,7 @@ mixin Booting {
       businessId: tenant.businessId,
       nfcEnabled: tenant.nfcEnabled ?? false,
       email: tenant.email,
-      userId: int.tryParse(userId),
+      userId: userId,
       phoneNumber: tenant.phoneNumber,
       pin: tenant.pin,
     );
@@ -53,14 +53,13 @@ mixin Booting {
     Tenant iTenant,
     String userId,
   ) async {
-    Tenant? exist =
-        await ProxyService.strategy.getTenant(userId: int.parse(userId));
+    Tenant? exist = await ProxyService.strategy.getTenant(userId: userId);
     if (exist == null) {
       await ProxyService.strategy.updateTenant(
           businessId: iTenant.businessId,
           branchId: ProxyService.box.getBranchId()!,
           name: iTenant.name,
-          userId: int.parse(userId),
+          userId: userId,
           tenantId: iTenant.id,
           sessionActive: (userId == iTenant.userId));
     }
@@ -96,44 +95,13 @@ mixin Booting {
         }
       }
     }
-    for (IPermission permission in permissions) {
-      final perm = LPermission(
-        name: permission.name,
-        userId: permission.userId,
-      );
-      permissionToAdd.add(perm);
-
-      // Check if the permission is "admin" and handle access creation
-      if (permission.name.toLowerCase() == 'admin') {
-        for (String featureName in features) {
-          final List<Access> existingAccess = await ProxyService.strategy
-              .access(
-                  userId: permission.userId,
-                  featureName: featureName,
-                  fetchRemote: true);
-
-          if (existingAccess.isEmpty) {
-            await ProxyService.strategy.addAccess(
-              branchId: ProxyService.box.getBranchId()!,
-              businessId: ProxyService.box.getBusinessId()!,
-              userId: permission.userId,
-              featureName: featureName,
-              accessLevel: 'Admin'.toLowerCase(),
-              status: 'active',
-              userType: "Admin",
-            );
-          }
-        }
-      }
-    }
   }
 
   Future<void> addOrUpdateBranches(List<IBranch> branches,
       {required bool usenewVersion}) async {
     for (IBranch branch in branches) {
-      if (branch.serverId == null) continue;
-      Branch? exist =
-          await ProxyService.strategy.branch(serverId: branch.serverId!);
+      if (branch.id == null) continue;
+      Branch? exist = await ProxyService.strategy.branch(serverId: branch.id);
       if (exist == null) {
         await ProxyService.strategy.addBranch(
           serverId: branch.serverId!,
@@ -159,10 +127,9 @@ mixin Booting {
       final resolvedTin = await effectiveTin(business: business);
       await ProxyService.strategy.addBusiness(
         id: business.id,
+        businessId: business.id,
         phoneNumber: business.phoneNumber!,
-        userId: business.userId is String
-            ? int.parse(business.userId)
-            : business.userId,
+        userId: business.userId,
         encryptionKey: business.encryptionKey ?? "",
         serverId: business.serverId,
         name: business.name,
@@ -240,24 +207,24 @@ mixin Booting {
     /// the token from firebase that link this user with firebase
     /// so it can be used to login to other devices
     await ProxyService.box.writeString(key: 'uid', value: user.uid ?? "");
-    await ProxyService.box.writeInt(key: 'userId', value: user.id!);
+    await ProxyService.box.writeString(key: 'userId', value: user.id);
 
-    int? branchId = user.tenants.first.branches?.first.serverId;
-    int? businessId = user.tenants.first.businesses?.first.serverId;
+    String? branchId = user.tenants.first.branches?.first.id;
+    String? businessId = user.tenants.first.businesses?.first.id;
     if (branchId == null) {
       // get any local saved branch
       Branch branch = await ProxyService.strategy.activeBranch();
-      branchId = branch.serverId!;
+      branchId = branch.id!;
     }
 
     // get any local saved business
 
-    await ProxyService.box
-        .writeInt(key: 'branchId', value: user.tenants.isEmpty ? 0 : branchId);
+    await ProxyService.box.writeString(
+        key: 'branchId', value: user.tenants.isEmpty ? "" : branchId);
 
     if (businessId != null) {
-      await ProxyService.box.writeInt(
-          key: 'businessId', value: user.tenants.isEmpty ? 0 : businessId);
+      await ProxyService.box.writeString(
+          key: 'businessId', value: user.tenants.isEmpty ? "" : businessId);
     }
     await ProxyService.box.writeString(
         key: 'encryptionKey',

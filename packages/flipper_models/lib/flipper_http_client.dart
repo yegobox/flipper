@@ -137,10 +137,10 @@ mixin FlipperHttpClient implements HttpClientInterface {
   }
 
   Future<Map<String, String>> _getHeaders() async {
-    int? userId = ProxyService.box.getUserId();
+    String? userId = ProxyService.box.getUserId();
     Map<String, String> headers = {
       'Content-Type': 'application/json',
-      'userId': userId?.toString() ?? "",
+      'userId': userId ?? "",
     };
 
     // Add basic authentication using credentials from AppSecrets

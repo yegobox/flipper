@@ -12,7 +12,7 @@ mixin CapellaDelegationMixin implements DelegationInterface {
   @override
   Future<void> createDelegation({
     required String transactionId,
-    required int branchId,
+    required String branchId,
     required String receiptType,
     String? customerName,
     String? customerTin,
@@ -67,7 +67,7 @@ mixin CapellaDelegationMixin implements DelegationInterface {
 
   @override
   Stream<List<TransactionDelegation>> delegationsStream({
-    int? branchId,
+    String? branchId,
     String? status,
     required String onDeviceId,
   }) {
@@ -169,7 +169,7 @@ mixin CapellaDelegationMixin implements DelegationInterface {
 
   @override
   Future<List<Device>> getDevicesByBranch({
-    required int branchId,
+    required String branchId,
   }) async {
     try {
       final ditto = dittoService.dittoInstance;

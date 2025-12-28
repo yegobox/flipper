@@ -15,7 +15,7 @@ class Credit extends OfflineFirstWithSupabaseModel {
   double credits;
   DateTime createdAt;
   DateTime updatedAt;
-  int branchServerId;
+  String branchServerId;
 
   Credit(
       {String? id,

@@ -12,7 +12,7 @@ ICustomer _$ICustomerFromJson(Map<String, dynamic> json) => ICustomer(
       email: json['email'] as String?,
       telNo: json['telNo'] as String?,
       adrs: json['adrs'] as String?,
-      branchId: (json['branchId'] as num?)?.toInt(),
+      branchId: json['branchId'] as String?,
       custNo: json['custNo'] as String?,
       custTin: json['custTin'] as String?,
       regrNm: json['regrNm'] as String?,

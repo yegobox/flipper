@@ -2,23 +2,23 @@ import 'dart:async';
 import 'package:flipper_models/db_model_export.dart';
 
 abstract class ProductInterface {
-  Future<List<Product>> products({required int branchId});
+  Future<List<Product>> products({required String branchId});
   FutureOr<void> updateProduct(
       {String? productId,
       String? name,
       bool? isComposite,
       String? unit,
       String? color,
-      required int branchId,
-      required int businessId,
+      required String branchId,
+      required String businessId,
       String? imageUrl,
       String? expiryDate,
       String? categoryId});
   Stream<List<Product>> productStreams({String? prodIndex});
   Future<double> totalStock({String? productId, String? variantId});
-  Stream<double> wholeStockValue({required int branchId});
+  Stream<double> wholeStockValue({required String branchId});
   Future<String> itemCode({
-    required int branchId,
+    required String branchId,
     required String countryCode, // e.g., "RW"
     required String productType, // e.g., "2"
     required String packagingUnit, // e.g., "NT"
@@ -28,15 +28,15 @@ abstract class ProductInterface {
   Future<Product?> getProduct({
     String? id,
     String? barCode,
-    required int branchId,
+    required String branchId,
     String? name,
-    required int businessId,
+    required String businessId,
   });
-  FutureOr<SKU> getSku({required int branchId, required int businessId});
+  FutureOr<SKU> getSku({required String branchId, required String businessId});
   Future<Product?> createProduct({
     required Product product,
-    required int businessId,
-    required int branchId,
+    required String businessId,
+    required String branchId,
     required int tinNumber,
     required String bhFId,
     Map<String, String>? taxTypes,
@@ -82,6 +82,6 @@ abstract class ProductInterface {
   });
 
   Future<void> hydrateDate({required String branchId});
-  Future<void> hydrateCodes({required int branchId});
-  Future<void> hydrateSars({required int branchId});
+  Future<void> hydrateCodes({required String branchId});
+  Future<void> hydrateSars({required String branchId});
 }

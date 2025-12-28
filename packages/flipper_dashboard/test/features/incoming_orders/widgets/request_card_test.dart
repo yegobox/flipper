@@ -25,16 +25,12 @@ void main() {
       env.injectMocks();
       env.stubCommonMethods();
 
-      mockBranch = Branch(
-        id: '1',
-        name: 'Source Branch',
-        businessId: 1,
-      );
+      mockBranch = Branch(id: '1', name: 'Source Branch', businessId: "1");
 
       mockIncomingBranch = Branch(
         id: '2',
         name: 'Incoming Branch',
-        businessId: 1,
+        businessId: "1",
       );
 
       mockItems = [
@@ -63,8 +59,9 @@ void main() {
         orderNote: 'Test order note',
       );
 
-      when(() => env.mockDbSync.transactionItems(requestId: '1'))
-          .thenAnswer((_) async => mockItems);
+      when(
+        () => env.mockDbSync.transactionItems(requestId: '1'),
+      ).thenAnswer((_) async => mockItems);
     });
 
     tearDown(() {
@@ -163,8 +160,10 @@ void main() {
 
       // Check for child widgets
       expect(find.text('Items'), findsOneWidget); // ItemsList
-      expect(find.textContaining('Source Branch'),
-          findsAtLeastNWidgets(1)); // BranchInfo + RequestHeader
+      expect(
+        find.textContaining('Source Branch'),
+        findsAtLeastNWidgets(1),
+      ); // BranchInfo + RequestHeader
       expect(find.text('Test order note'), findsOneWidget); // OrderNote
     });
 

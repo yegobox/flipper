@@ -25,7 +25,7 @@ import 'package:flipper_routing/app.dialogs.dart';
 import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
 // ignore: unnecessary_import
 
-final selectedBusinessIdProvider = StateProvider<int?>((ref) => null);
+final selectedBusinessIdProvider = StateProvider<String?>((ref) => null);
 
 class LoginChoices extends StatefulHookConsumerWidget {
   const LoginChoices({Key? key}) : super(key: key);
@@ -76,7 +76,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
   Widget build(BuildContext context) {
     // Re-validate userId exists during build to prevent errors if it gets cleared
     final userId = ProxyService.box.getUserId();
-    if (userId == null || userId <= 0) {
+    if (userId == null) {
       talker.error(
         'UserId is not set or invalid in LoginChoices build. Redirecting to login.',
       );
@@ -182,7 +182,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
 
   Widget _buildBusinessList({
     List<Business>? businesses,
-    int? selectedBusinessId,
+    String? selectedBusinessId,
   }) {
     if (businesses == null) return const SizedBox();
     return ListView.separated(
@@ -192,10 +192,10 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
         final business = businesses[index];
         return _buildSelectionTile(
           title: business.name!,
-          isSelected: business.serverId == selectedBusinessId,
+          isSelected: business.id == selectedBusinessId,
           onTap: () => _handleBusinessSelection(business),
           icon: Icons.business,
-          isLoading: _loadingItemId == (business.serverId.toString()),
+          isLoading: _loadingItemId == (business.id.toString()),
         );
       },
     );
@@ -270,7 +270,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     // remove any branchId selected before
     await ProxyService.box.remove(key: 'branchId');
     setState(() {
-      _loadingItemId = business.serverId.toString();
+      _loadingItemId = business.id.toString();
     });
 
     // Check if this is an individual business (businessTypeId == 2)
@@ -287,13 +287,10 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
       return;
     }
 
-    ref.read(selectedBusinessIdProvider.notifier).state = business.serverId;
+    ref.read(selectedBusinessIdProvider.notifier).state = business.id;
     try {
       // Save business ID to local storage
-      await ProxyService.box.writeInt(
-        key: 'businessId',
-        value: business.serverId,
-      );
+      await ProxyService.box.writeString(key: 'businessId', value: business.id);
       await _setDefaultBusiness(business);
       // Get the latest payment plan online.
       await ProxyService.strategy.getPaymentPlan(
@@ -301,7 +298,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
         fetchOnline: true,
       );
       final branches = await ProxyService.strategy.branches(
-        businessId: business.serverId,
+        businessId: business.id,
         active: false,
       );
 
@@ -337,7 +334,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     final isMobile =
         platform == TargetPlatform.android || platform == TargetPlatform.iOS;
     setState(() {
-      _loadingItemId = branch.serverId?.toString();
+      _loadingItemId = branch.id.toString();
       _isLoading = true;
     });
 
@@ -436,7 +433,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
       // Then set the selected branch as active and default
       await _updateBranchActive(branch);
       // Update branch ID in storage
-      await ProxyService.box.writeInt(key: 'branchId', value: branch.serverId!);
+      await ProxyService.box.writeString(key: 'branchId', value: branch.id);
       await ProxyService.box.writeString(
         key: 'branchIdString',
         value: branch.id,
@@ -447,9 +444,9 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
         key: 'last_branch_switch_timestamp',
         value: DateTime.now().millisecondsSinceEpoch,
       );
-      await ProxyService.box.writeInt(
+      await ProxyService.box.writeString(
         key: 'active_branch_id',
-        value: branch.serverId!,
+        value: branch.id,
       );
 
       // Refresh providers to reflect changes
@@ -467,7 +464,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     );
     for (final business in businesses) {
       await ProxyService.strategy.updateBusiness(
-        businessId: business.serverId,
+        businessId: business.id,
         active: false,
         isDefault: false,
       );
@@ -476,7 +473,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
 
   Future<void> _updateBusinessActive(Business business) async {
     await ProxyService.strategy.updateBusiness(
-      businessId: business.serverId,
+      businessId: business.id,
       active: true,
       isDefault: true,
     );
@@ -490,7 +487,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     final futures = <Future>[];
 
     futures.add(
-      ProxyService.box.writeInt(key: 'businessId', value: business.serverId),
+      ProxyService.box.writeString(key: 'businessId', value: business.id),
     );
     futures.add(
       ProxyService.box.writeString(
@@ -535,7 +532,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     );
     for (final branch in branches) {
       await ProxyService.strategy.updateBranch(
-        branchId: branch.serverId!,
+        branchId: branch.id,
         active: false,
         isDefault: false,
       );
@@ -544,7 +541,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
 
   Future<void> _updateBranchActive(Branch branch) async {
     await ProxyService.strategy.updateBranch(
-      branchId: branch.serverId!,
+      branchId: branch.id,
       active: true,
       isDefault: true,
     );

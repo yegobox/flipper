@@ -7,7 +7,7 @@ class SmsNotificationService {
   static final Repository _repository = Repository();
 
   static Future<void> sendOrderRequestNotification({
-    required int receiverBranchId,
+    required String receiverBranchId,
     required String orderDetails,
     required String requesterPhone,
   }) async {
@@ -29,7 +29,7 @@ class SmsNotificationService {
   }
 
   static Future<void> sendOrderStatusNotification({
-    required int requesterBranchId,
+    required String requesterBranchId,
     required String orderDetails,
     required String status,
   }) async {
@@ -49,7 +49,7 @@ class SmsNotificationService {
     }
   }
 
-  static Future<BranchSmsConfig?> getBranchSmsConfig(int branchId) async {
+  static Future<BranchSmsConfig?> getBranchSmsConfig(String branchId) async {
     try {
       final configs = await _repository.get<BranchSmsConfig>(
         query: Query(
@@ -67,7 +67,7 @@ class SmsNotificationService {
   static Future<void> createMessage({
     required String text,
     required String phoneNumber,
-    required int branchId,
+    required String branchId,
   }) async {
     final message = Message(
       text: text,
@@ -79,7 +79,7 @@ class SmsNotificationService {
   }
 
   static Future<void> updateBranchSmsConfig({
-    required int branchId,
+    required String branchId,
     String? smsPhoneNumber,
     bool? enableNotification,
   }) async {

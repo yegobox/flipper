@@ -10,13 +10,13 @@ class InventoryService {
   /// [daysToExpiry] - Optional, include items expiring within this many days
   /// [limit] - Optional, limit the number of results returned
   Future<List<InventoryItem>> getExpiredItems({
-    int? branchId,
+    String? branchId,
     int? daysToExpiry,
     int? limit,
   }) async {
     try {
       // Use the branch ID from the proxy service if not provided
-      final activeBranchId = branchId ?? ProxyService.box.getBranchId() ?? 0;
+      final activeBranchId = branchId ?? ProxyService.box.getBranchId() ?? "";
 
       // Call the CoreSync API to get expired variants
       final variants = await ProxyService.strategy.getExpiredItems(
@@ -44,13 +44,13 @@ class InventoryService {
   /// [daysToExpiry] - Items expiring within this many days (default: 7)
   /// [limit] - Optional, limit the number of results returned
   Future<List<InventoryItem>> getNearExpiryItems({
-    int? branchId,
+    String? branchId,
     int daysToExpiry = 7,
     int? limit,
   }) async {
     try {
       // Use the branch ID from the proxy service if not provided
-      final activeBranchId = branchId ?? ProxyService.box.getBranchId() ?? 0;
+      final activeBranchId = branchId ?? ProxyService.box.getBranchId() ?? "";
 
       // Call the CoreSync API to get variants that will expire soon
       final variants = await ProxyService.strategy.getExpiredItems(
@@ -62,9 +62,11 @@ class InventoryService {
       // Filter to only include items that haven't expired yet but will soon
       final now = DateTime.now();
       final nearExpiryVariants = variants
-          .where((variant) =>
-              variant.expirationDate != null &&
-              variant.expirationDate!.isAfter(now))
+          .where(
+            (variant) =>
+                variant.expirationDate != null &&
+                variant.expirationDate!.isAfter(now),
+          )
           .toList();
 
       // Convert variants to InventoryItem objects with branch names
@@ -87,12 +89,14 @@ class InventoryService {
     if (variant.branchId != null) {
       print('Fetching branch name for branchId: ${variant.branchId}');
       try {
-        final activeBranch =
-            await ProxyService.strategy.branch(serverId: variant.branchId!);
+        final activeBranch = await ProxyService.strategy.branch(
+          serverId: variant.branchId!,
+        );
 
         if (activeBranch != null && activeBranch.businessId != null) {
           print(
-              'Getting all branches for business: ${activeBranch.businessId}');
+            'Getting all branches for business: ${activeBranch.businessId}',
+          );
 
           // Get all branches for this business
           final allBranches = await ProxyService.strategy.branches(
@@ -113,7 +117,8 @@ class InventoryService {
             location = matchingBranch.name!;
           } else {
             print(
-                'No matching branch found with name for ID: ${variant.branchId}');
+              'No matching branch found with name for ID: ${variant.branchId}',
+            );
             location = 'Branch ${variant.branchId}';
           }
         } else {
@@ -145,7 +150,7 @@ class InventoryService {
   Future<TotalItemsData> getTotalItems() async {
     try {
       // Get the active branch ID
-      final activeBranchId = ProxyService.box.getBranchId() ?? 0;
+      final activeBranchId = ProxyService.box.getBranchId() ?? "";
 
       // Get current date and date from a week ago
       final now = DateTime.now();
@@ -192,8 +197,8 @@ class InventoryService {
       // based on typical inventory growth patterns
       bool estimateUsed = false;
       if (previousCount == 0 && totalCount > 0) {
-        previousCount =
-            (totalCount * 0.95).round(); // Assume 5% growth as fallback
+        previousCount = (totalCount * 0.95)
+            .round(); // Assume 5% growth as fallback
         estimateUsed = true;
       }
 
@@ -234,7 +239,7 @@ class InventoryService {
   Future<TotalItemsData> getLowStockItems() async {
     try {
       // Get the active branch ID
-      final activeBranchId = ProxyService.box.getBranchId() ?? 0;
+      final activeBranchId = ProxyService.box.getBranchId() ?? "";
 
       // Get current date and date from a week ago
       final now = DateTime.now();
@@ -276,8 +281,8 @@ class InventoryService {
       // If we don't have any historical data, use a reasonable estimate
       bool estimateUsed = false;
       if (previousCount == 0 && totalCount > 0) {
-        previousCount =
-            (totalCount * 0.9).round(); // Assume 10% change as fallback
+        previousCount = (totalCount * 0.9)
+            .round(); // Assume 10% change as fallback
         estimateUsed = true;
       }
 
@@ -316,7 +321,7 @@ class InventoryService {
   Future<TotalItemsData> getPendingOrders() async {
     try {
       // Get the active branch ID
-      final activeBranchId = ProxyService.box.getBranchId() ?? 0;
+      final activeBranchId = ProxyService.box.getBranchId() ?? "";
 
       // In a real implementation, we would fetch pending orders from the backend
       // For now, we'll use transactions as a proxy for pending orders
@@ -358,8 +363,8 @@ class InventoryService {
       // If we don't have any historical data, use a reasonable estimate
       bool estimateUsed = false;
       if (previousCount == 0 && totalCount > 0) {
-        previousCount =
-            (totalCount * 0.9).round(); // Assume 10% change as fallback
+        previousCount = (totalCount * 0.9)
+            .round(); // Assume 10% change as fallback
         estimateUsed = true;
       }
 

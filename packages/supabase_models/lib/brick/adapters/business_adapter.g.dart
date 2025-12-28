@@ -16,7 +16,7 @@ Future<Business> _$BusinessFromSupabase(
         : data['category_id'] as String?,
     latitude: data['latitude'] == null ? null : data['latitude'] as String?,
     longitude: data['longitude'] == null ? null : data['longitude'] as String?,
-    userId: data['user_id'] == null ? null : data['user_id'] as int?,
+    userId: data['user_id'] == null ? null : data['user_id'] as String?,
     timeZone: data['time_zone'] == null ? null : data['time_zone'] as String?,
     country: data['country'] == null ? null : data['country'] as String?,
     businessUrl: data['business_url'] == null
@@ -79,7 +79,10 @@ Future<Business> _$BusinessFromSupabase(
     isDefault: data['is_default'] == null ? null : data['is_default'] as bool?,
     businessTypeId: data['business_type_id'] == null
         ? null
-        : data['business_type_id'] as int?,
+        : data['business_type_id'] as String?,
+    referredBy: data['referred_by'] == null
+        ? null
+        : data['referred_by'] as String?,
     lastTouched: data['last_touched'] == null
         ? null
         : data['last_touched'] == null
@@ -153,6 +156,7 @@ Future<Map<String, dynamic>> _$BusinessToSupabase(
     'tax_server_url': instance.taxServerUrl,
     'is_default': instance.isDefault,
     'business_type_id': instance.businessTypeId,
+    'referred_by': instance.referredBy,
     'last_touched': instance.lastTouched?.toIso8601String(),
     'deleted_at': instance.deletedAt?.toIso8601String(),
     'encryption_key': instance.encryptionKey,
@@ -176,7 +180,7 @@ Future<Business> _$BusinessFromSqlite(
         : data['category_id'] as String?,
     latitude: data['latitude'] == null ? null : data['latitude'] as String?,
     longitude: data['longitude'] == null ? null : data['longitude'] as String?,
-    userId: data['user_id'] == null ? null : data['user_id'] as int?,
+    userId: data['user_id'] == null ? null : data['user_id'] as String?,
     timeZone: data['time_zone'] == null ? null : data['time_zone'] as String?,
     country: data['country'] == null ? null : data['country'] as String?,
     businessUrl: data['business_url'] == null
@@ -237,7 +241,10 @@ Future<Business> _$BusinessFromSqlite(
     isDefault: data['is_default'] == null ? null : data['is_default'] == 1,
     businessTypeId: data['business_type_id'] == null
         ? null
-        : data['business_type_id'] as int?,
+        : data['business_type_id'] as String?,
+    referredBy: data['referred_by'] == null
+        ? null
+        : data['referred_by'] as String?,
     lastTouched: data['last_touched'] == null
         ? null
         : data['last_touched'] == null
@@ -315,6 +322,7 @@ Future<Map<String, dynamic>> _$BusinessToSqlite(
         ? null
         : (instance.isDefault! ? 1 : 0),
     'business_type_id': instance.businessTypeId,
+    'referred_by': instance.referredBy,
     'last_touched': instance.lastTouched?.toIso8601String(),
     'deleted_at': instance.deletedAt?.toIso8601String(),
     'encryption_key': instance.encryptionKey,
@@ -493,6 +501,10 @@ class BusinessAdapter extends OfflineFirstWithSupabaseAdapter<Business> {
       association: false,
       columnName: 'business_type_id',
     ),
+    'referredBy': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'referred_by',
+    ),
     'lastTouched': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'last_touched',
@@ -572,7 +584,7 @@ class BusinessAdapter extends OfflineFirstWithSupabaseAdapter<Business> {
       association: false,
       columnName: 'user_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'timeZone': const RuntimeSqliteColumnDefinition(
       association: false,
@@ -764,7 +776,13 @@ class BusinessAdapter extends OfflineFirstWithSupabaseAdapter<Business> {
       association: false,
       columnName: 'business_type_id',
       iterable: false,
-      type: int,
+      type: String,
+    ),
+    'referredBy': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'referred_by',
+      iterable: false,
+      type: String,
     ),
     'lastTouched': const RuntimeSqliteColumnDefinition(
       association: false,

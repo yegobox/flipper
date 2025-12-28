@@ -10,7 +10,7 @@ Social _$SocialFromJson(Map<String, dynamic> json) => Social(
       id: (json['id'] as num?)?.toInt(),
       isAccountSet: json['isAccountSet'] as bool,
       socialType: json['socialType'] as String,
-      branchId: (json['branchId'] as num).toInt(),
+      branchId: json['branchId'] as String,
       message: json['message'] as String?,
       socialUrl: json['socialUrl'] as String,
       lastTouched: json['lastTouched'] == null

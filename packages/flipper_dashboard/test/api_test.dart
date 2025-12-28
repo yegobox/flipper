@@ -106,7 +106,7 @@
 //               PagedVariants(variants: [_createTestVariant()], totalCount: 1));
 
 //       final paged = await ProxyService.strategy
-//           .variants(branchId: 1, taxTyCds: ['A', 'B', 'C']);
+//           .variants(branchId: "", taxTyCds: ['A', 'B', 'C']);
 //       final variants = List<Variant>.from(paged.variants);
 
 //       expect(variants, isA<List<Variant>>());
@@ -123,7 +123,7 @@
 //               ], totalCount: 1));
 
 //       final paged =
-//           await ProxyService.strategy.variants(branchId: 1, taxTyCds: ['D']);
+//           await ProxyService.strategy.variants(branchId: "", taxTyCds: ['D']);
 //       final variants = List<Variant>.from(paged.variants);
 
 //       expect(variants, isA<List<Variant>>());
@@ -947,7 +947,7 @@
 //         ITransaction(
 //           id: 'txn_1',
 //           lastTouched: DateTime(2025, 7, 29, 8, 30, 0),
-//           branchId: 1,
+//           branchId: "",
 //           status: 'complete',
 //           subTotal: 100.0,
 //           isOriginalTransaction: true,
@@ -967,7 +967,7 @@
 //             endDate: targetDate,
 //             status: null,
 //             transactionType: null,
-//             branchId: 1,
+//             branchId: "",
 //             isCashOut: false,
 //             fetchRemote: false,
 //             id: null,
@@ -983,7 +983,7 @@
 //       final result = await ProxyService.strategy.transactions(
 //         startDate: targetDate,
 //         endDate: targetDate,
-//         branchId: 1,
+//         branchId: "",
 //       );
 
 //       expect(result, isA<List<ITransaction>>());
@@ -1001,7 +1001,7 @@
 //             endDate: endDate,
 //             status: null,
 //             transactionType: null,
-//             branchId: 1,
+//             branchId: "",
 //             isCashOut: false,
 //             fetchRemote: false,
 //             id: null,
@@ -1017,7 +1017,7 @@
 //       await ProxyService.strategy.transactions(
 //         startDate: startDate,
 //         endDate: endDate,
-//         branchId: 1,
+//         branchId: "",
 //       );
 
 //       verify(() => mockDbSync.transactions(
@@ -1025,7 +1025,7 @@
 //             endDate: endDate,
 //             status: null,
 //             transactionType: null,
-//             branchId: 1,
+//             branchId: "",
 //             isCashOut: false,
 //             fetchRemote: false,
 //             id: null,
@@ -1047,7 +1047,7 @@
 //             endDate: endDate,
 //             status: null,
 //             transactionType: null,
-//             branchId: 1,
+//             branchId: "",
 //             isCashOut: false,
 //             id: null,
 //             removeAdjustmentTransactions: false,
@@ -1059,7 +1059,7 @@
 //             ITransaction(
 //               id: 'stream_txn_1',
 //               lastTouched: DateTime(2025, 7, 29, 12, 0, 0),
-//               branchId: 1,
+//               branchId: "",
 //               status: 'complete',
 //               subTotal: 100.0,
 //               isOriginalTransaction: true,
@@ -1077,7 +1077,7 @@
 //       final stream = ProxyService.strategy.transactionsStream(
 //         startDate: startDate,
 //         endDate: endDate,
-//         branchId: 1,
+//         branchId: "",
 //         removeAdjustmentTransactions: false,
 //         skipOriginalTransactionCheck: false,
 //       );
@@ -1100,7 +1100,7 @@
 //             endDate: localDate,
 //             status: null,
 //             transactionType: null,
-//             branchId: 1,
+//             branchId: "",
 //             isCashOut: false,
 //             fetchRemote: false,
 //             id: null,
@@ -1115,7 +1115,7 @@
 //             ITransaction(
 //               id: 'utc_txn',
 //               lastTouched: utcDate,
-//               branchId: 1,
+//               branchId: "",
 //               status: 'complete',
 //               subTotal: 100.0,
 //               isOriginalTransaction: true,
@@ -1133,7 +1133,7 @@
 //       final result = await ProxyService.strategy.transactions(
 //         startDate: localDate,
 //         endDate: localDate,
-//         branchId: 1,
+//         branchId: "",
 //       );
 
 //       expect(result.length, 1);
@@ -1144,7 +1144,7 @@
 //             endDate: localDate,
 //             status: null,
 //             transactionType: null,
-//             branchId: 1,
+//             branchId: "",
 //             isCashOut: false,
 //             fetchRemote: false,
 //             id: null,
@@ -1166,7 +1166,7 @@
 //             endDate: localDate,
 //             status: null,
 //             transactionType: null,
-//             branchId: 1,
+//             branchId: "",
 //             isCashOut: false,
 //             id: null,
 //             removeAdjustmentTransactions: false,
@@ -1178,7 +1178,7 @@
 //             ITransaction(
 //               id: 'tz_stream_txn',
 //               lastTouched: DateTime.utc(2025, 7, 29, 23, 30, 0),
-//               branchId: 1,
+//               branchId: "",
 //               status: 'complete',
 //               subTotal: 100.0,
 //               isOriginalTransaction: true,
@@ -1196,7 +1196,7 @@
 //       final stream = ProxyService.strategy.transactionsStream(
 //         startDate: localDate,
 //         endDate: localDate,
-//         branchId: 1,
+//         branchId: "",
 //         removeAdjustmentTransactions: false,
 //         skipOriginalTransactionCheck: false,
 //       );

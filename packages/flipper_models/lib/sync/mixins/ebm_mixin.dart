@@ -15,7 +15,7 @@ mixin EbmMixin implements EbmInterface {
 
   @override
   Future<void> saveEbm({
-    required int branchId,
+    required String branchId,
     required String severUrl,
     required String mrc,
     required String bhFId,
@@ -51,7 +51,7 @@ mixin EbmMixin implements EbmInterface {
           dvcSrlNo: business.dvcSrlNo ?? "vsdcyegoboxltd",
           userId: ProxyService.box.getUserId()!,
           taxServerUrl: severUrl,
-          businessId: business.serverId,
+          businessId: business.id,
           branchId: branchId,
           vatEnabled: vatEnabled,
         );
@@ -66,7 +66,7 @@ mixin EbmMixin implements EbmInterface {
   }
 
   @override
-  Future<Ebm?> ebm({required int branchId, bool fetchRemote = true}) async {
+  Future<Ebm?> ebm({required String branchId, bool fetchRemote = true}) async {
     try {
       // First try to get from local repository with offline-first approach
       final query = Query(
@@ -110,19 +110,19 @@ mixin EbmMixin implements EbmInterface {
               dvcSrlNo: ebmData['dvcSrlNo'] as String? ??
                   ebmData['dvc_srl_no'] as String? ??
                   "",
-              userId: ebmData['userId'] as int? ??
-                  ebmData['user_id'] as int? ??
+              userId: ebmData['userId'] as String? ??
+                  ebmData['user_id'] as String? ??
                   ProxyService.box.getUserId() ??
-                  0,
+                  "",
               taxServerUrl: ebmData['taxServerUrl'] as String? ??
                   ebmData['tax_server_url'] as String? ??
                   '',
-              businessId: ebmData['businessId'] as int? ??
-                  ebmData['business_id'] as int? ??
+              businessId: ebmData['businessId'] as String? ??
+                  ebmData['business_id'] as String? ??
                   ProxyService.box.getBusinessId() ??
-                  0,
-              branchId: ebmData['branchId'] as int? ??
-                  ebmData['branch_id'] as int? ??
+                  "",
+              branchId: ebmData['branchId'] as String? ??
+                  ebmData['branch_id'] as String? ??
                   branchId,
               vatEnabled: ebmData['vatEnabled'] as bool? ??
                   ebmData['vat_enabled'] as bool?,

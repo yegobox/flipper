@@ -16,8 +16,8 @@ Future<Tenant> _$TenantFromSupabase(
     nfcEnabled: data['nfc_enabled'] as bool,
     businessId: data['business_id'] == null
         ? null
-        : data['business_id'] as int?,
-    userId: data['user_id'] == null ? null : data['user_id'] as int?,
+        : data['business_id'] as String?,
+    userId: data['user_id'] == null ? null : data['user_id'] as String?,
     imageUrl: data['image_url'] == null ? null : data['image_url'] as String?,
     lastTouched: data['last_touched'] == null
         ? null
@@ -30,6 +30,7 @@ Future<Tenant> _$TenantFromSupabase(
         ? null
         : DateTime.tryParse(data['deleted_at'] as String),
     pin: data['pin'] == null ? null : data['pin'] as int?,
+    isDefault: data['is_default'] == null ? null : data['is_default'] as bool?,
     sessionActive: data['session_active'] == null
         ? null
         : data['session_active'] as bool?,
@@ -54,6 +55,7 @@ Future<Map<String, dynamic>> _$TenantToSupabase(
     'last_touched': instance.lastTouched?.toIso8601String(),
     'deleted_at': instance.deletedAt?.toIso8601String(),
     'pin': instance.pin,
+    'is_default': instance.isDefault,
     'session_active': instance.sessionActive,
     'type': instance.type,
   };
@@ -74,8 +76,8 @@ Future<Tenant> _$TenantFromSqlite(
     nfcEnabled: data['nfc_enabled'] == 1,
     businessId: data['business_id'] == null
         ? null
-        : data['business_id'] as int?,
-    userId: data['user_id'] == null ? null : data['user_id'] as int?,
+        : data['business_id'] as String?,
+    userId: data['user_id'] == null ? null : data['user_id'] as String?,
     imageUrl: data['image_url'] == null ? null : data['image_url'] as String?,
     lastTouched: data['last_touched'] == null
         ? null
@@ -88,6 +90,7 @@ Future<Tenant> _$TenantFromSqlite(
         ? null
         : DateTime.tryParse(data['deleted_at'] as String),
     pin: data['pin'] == null ? null : data['pin'] as int?,
+    isDefault: data['is_default'] == null ? null : data['is_default'] == 1,
     sessionActive: data['session_active'] == null
         ? null
         : data['session_active'] == 1,
@@ -112,6 +115,9 @@ Future<Map<String, dynamic>> _$TenantToSqlite(
     'last_touched': instance.lastTouched?.toIso8601String(),
     'deleted_at': instance.deletedAt?.toIso8601String(),
     'pin': instance.pin,
+    'is_default': instance.isDefault == null
+        ? null
+        : (instance.isDefault! ? 1 : 0),
     'session_active': instance.sessionActive == null
         ? null
         : (instance.sessionActive! ? 1 : 0),
@@ -173,6 +179,10 @@ class TenantAdapter extends OfflineFirstWithSupabaseAdapter<Tenant> {
       association: false,
       columnName: 'pin',
     ),
+    'isDefault': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'is_default',
+    ),
     'sessionActive': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'session_active',
@@ -228,13 +238,13 @@ class TenantAdapter extends OfflineFirstWithSupabaseAdapter<Tenant> {
       association: false,
       columnName: 'business_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'userId': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'user_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'imageUrl': const RuntimeSqliteColumnDefinition(
       association: false,
@@ -259,6 +269,12 @@ class TenantAdapter extends OfflineFirstWithSupabaseAdapter<Tenant> {
       columnName: 'pin',
       iterable: false,
       type: int,
+    ),
+    'isDefault': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'is_default',
+      iterable: false,
+      type: bool,
     ),
     'sessionActive': const RuntimeSqliteColumnDefinition(
       association: false,

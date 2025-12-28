@@ -12,7 +12,7 @@ mixin CapellaTenantMixin implements TenantInterface {
   Repository get repository;
   Talker get talker;
   @override
-  Future<void> deleteTenantsWithNullPin({int? businessId}) {
+  Future<void> deleteTenantsWithNullPin({String? businessId}) {
     throw UnimplementedError();
   }
 
@@ -23,7 +23,7 @@ mixin CapellaTenantMixin implements TenantInterface {
   }
 
   @override
-  Stream<Tenant?> getDefaultTenant({required int businessId}) {
+  Stream<Tenant?> getDefaultTenant({required String businessId}) {
     // TODO: implement getDefaultTenant
     throw UnimplementedError();
   }
@@ -36,9 +36,9 @@ mixin CapellaTenantMixin implements TenantInterface {
       String? name,
       String? id,
       String? email,
-      int? businessId,
+      String? businessId,
       bool? sessionActive,
-      int? branchId,
+      String? branchId,
       String? imageUrl,
       int? pin,
       bool? isDefault,
@@ -74,38 +74,27 @@ mixin CapellaTenantMixin implements TenantInterface {
 
   @override
   Future<Tenant?> tenant(
-      {int? businessId, int? userId, String? id, required bool fetchRemote}) {
+      {String? businessId,
+      String? userId,
+      String? id,
+      required bool fetchRemote}) {
     // TODO: implement tenant
     throw UnimplementedError();
   }
 
   @override
-  Future<List<Tenant>> tenants({int? businessId, int? excludeUserId}) {
+  Future<List<Tenant>> tenants({String? businessId, int? excludeUserId}) {
     // TODO: implement tenants
     throw UnimplementedError();
   }
 
   @override
   Future<List<ITenant>> tenantsFromOnline(
-      {required int businessId,
+      {required String businessId,
       required HttpClientInterface flipperHttpClient}) {
     // TODO: implement tenantsFromOnline
     throw UnimplementedError();
   }
 
-  @override
-  Future<void> updateTenant(
-      {String? tenantId,
-      String? name,
-      String? phoneNumber,
-      String? email,
-      int? userId,
-      int? businessId,
-      String? type,
-      int? id,
-      int? pin,
-      bool? sessionActive,
-      int? branchId}) {
-    throw UnimplementedError();
-  }
+  
 }

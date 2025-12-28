@@ -14,7 +14,7 @@ class Social extends IJsonSerializable {
 
   String socialUrl;
 
-  int branchId;
+  String branchId;
 
   @JsonKey(includeIfNull: true)
   DateTime? lastTouched;

@@ -119,13 +119,14 @@ class DittoSyncAdapterGenerator extends GeneratorForAnnotation<DittoAdapter> {
       ..writeln('  dynamic _activeObserver;')
       ..writeln('  dynamic _activeSubscription;')
       ..writeln('')
-      ..writeln('  static int? Function()? _branchIdProviderOverride;')
-      ..writeln('  static int? Function()? _businessIdProviderOverride;')
+      ..writeln('  static String? Function()? _branchIdProviderOverride;')
+      ..writeln('  static String? Function()? _businessIdProviderOverride;')
       ..writeln('')
       ..writeln(
         '  /// Allows tests to override how the current branch ID is resolved.',
       )
-      ..writeln('  void overrideBranchIdProvider(int? Function()? provider) {')
+      ..writeln(
+          '  void overrideBranchIdProvider(String? Function()? provider) {')
       ..writeln('    _branchIdProviderOverride = provider;')
       ..writeln('  }')
       ..writeln('')
@@ -133,7 +134,7 @@ class DittoSyncAdapterGenerator extends GeneratorForAnnotation<DittoAdapter> {
         '  /// Allows tests to override how the current business ID is resolved.',
       )
       ..writeln(
-        '  void overrideBusinessIdProvider(int? Function()? provider) {',
+        '  void overrideBusinessIdProvider(String? Function()? provider) {',
       )
       ..writeln('    _businessIdProviderOverride = provider;')
       ..writeln('  }')
@@ -230,10 +231,10 @@ class DittoSyncAdapterGenerator extends GeneratorForAnnotation<DittoAdapter> {
     if (hasBranchId) {
       buffer
         ..writeln(
-          '  Future<int?> _resolveBranchId({bool waitForValue = false}) async {',
+          '  Future<String?> _resolveBranchId({bool waitForValue = false}) async {',
         )
         ..writeln(
-          '    int? branchId = _branchIdProviderOverride?.call() ?? ProxyService.box.getBranchId();',
+          '    String? branchId = _branchIdProviderOverride?.call() ?? ProxyService.box.getBranchId();',
         )
         ..writeln('    if (!waitForValue || branchId != null) {')
         ..writeln('      return branchId;')

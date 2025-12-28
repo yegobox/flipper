@@ -8,7 +8,7 @@ part 'business_analytic_provider.g.dart';
 
 @riverpod
 Future<List<BusinessAnalytic>> fetchStockPerformance(
-    Ref ref, int branchId) async {
+    Ref ref, String branchId) async {
   final capella = await ProxyService.getStrategy(Strategy.capella);
   return await capella.analytics(branchId: branchId);
 }

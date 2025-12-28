@@ -2,6 +2,7 @@ class LoginData {
   LoginData({
     required this.channel,
     required this.userId,
+    required this.pin,
     required this.businessId,
     required this.branchId,
     required this.phone,
@@ -15,9 +16,10 @@ class LoginData {
 
   String channel;
 
-  int userId;
-  int businessId;
-  int branchId;
+  String userId;
+  int pin;
+  String businessId;
+  String branchId;
   String phone;
   String defaultApp;
   String linkingCode;
@@ -30,6 +32,7 @@ class LoginData {
   factory LoginData.fromMap(Map<String, dynamic> json) => LoginData(
         channel: json["channel"] ?? '',
         userId: json["userId"] ?? 0,
+        pin: json["pin"] ?? 0,
         businessId: json["businessId"] ?? 0,
         branchId: json["branchId"] ?? 0,
         phone: json["phone"] ?? '',
@@ -44,6 +47,7 @@ class LoginData {
   Map<String, dynamic> toMap() => {
         "channel": channel,
         "userId": userId,
+        "pin": pin,
         "businessId": businessId,
         "branchId": branchId,
         "phone": phone,

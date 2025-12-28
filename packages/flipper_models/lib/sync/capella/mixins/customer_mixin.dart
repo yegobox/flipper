@@ -18,7 +18,8 @@ mixin CapellaCustomerMixin implements CustomerInterface {
     throw UnimplementedError('addCustomer needs to be implemented for Capella');
   }
 
-  FutureOr<List<Customer>> customers({int? branchId, String? key, String? id}) {
+  FutureOr<List<Customer>> customers(
+      {String? branchId, String? key, String? id}) {
     throw UnimplementedError('addCustomer needs to be implemented for Capella');
   }
 

@@ -14,7 +14,7 @@ const profitProvider = ProfitFamily._();
 
 final class ProfitProvider extends $AsyncNotifierProvider<Profit, double> {
   const ProfitProvider._(
-      {required ProfitFamily super.from, required int super.argument})
+      {required ProfitFamily super.from, required String super.argument})
       : super(
           retry: null,
           name: r'profitProvider',
@@ -48,12 +48,12 @@ final class ProfitProvider extends $AsyncNotifierProvider<Profit, double> {
   }
 }
 
-String _$profitHash() => r'ba20502703e92bbcef30fae4c19cbb67a8493847';
+String _$profitHash() => r'2d52323242eb1f46bbf278fa78929ac97d547069';
 
 final class ProfitFamily extends $Family
     with
         $ClassFamilyOverride<Profit, AsyncValue<double>, double,
-            FutureOr<double>, int> {
+            FutureOr<double>, String> {
   const ProfitFamily._()
       : super(
           retry: null,
@@ -64,7 +64,7 @@ final class ProfitFamily extends $Family
         );
 
   ProfitProvider call(
-    int branchId,
+    String branchId,
   ) =>
       ProfitProvider._(argument: branchId, from: this);
 
@@ -73,11 +73,11 @@ final class ProfitFamily extends $Family
 }
 
 abstract class _$Profit extends $AsyncNotifier<double> {
-  late final _$args = ref.$arg as int;
-  int get branchId => _$args;
+  late final _$args = ref.$arg as String;
+  String get branchId => _$args;
 
   FutureOr<double> build(
-    int branchId,
+    String branchId,
   );
   @$mustCallSuper
   @override

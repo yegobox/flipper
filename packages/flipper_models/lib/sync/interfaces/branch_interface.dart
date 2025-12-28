@@ -6,15 +6,15 @@ import 'package:flipper_models/flipper_http_client.dart';
 
 abstract class BranchInterface {
   Future<bool> logOut();
-  FutureOr<Branch?> branch({ int? serverId, String? name});
+  FutureOr<Branch?> branch({String? serverId, String? name});
   Future<List<Branch>> branches({
-    int? businessId,
+    String? businessId,
     bool? active,
-    int? excludeId,
+    String? excludeId,
   });
   FutureOr<Branch> addBranch({
     required String name,
-    required int businessId,
+    required String businessId,
     required String location,
     String? userOwnerPhoneNumber,
     required HttpClientInterface flipperHttpClient,
@@ -28,14 +28,14 @@ abstract class BranchInterface {
     DateTime? deletedAt,
     int? id,
   });
-  void clearData({required ClearData data, required int identifier});
+  void clearData({required ClearData data, required String identifier});
   Future<List<Business>> businesses(
-      {required int userId, required bool active});
-  Future<List<Category>> categories({required int branchId});
+      {required String userId, required bool active});
+  Future<List<Category>> categories({required String branchId});
   Stream<List<Category>> categoryStream();
   Future<Branch> activeBranch();
   Stream<Branch> activeBranchStream();
   Future<void> saveBranch(Branch branch);
   FutureOr<void> updateBranch(
-      {required int branchId, String? name, bool? active, bool? isDefault});
+      {required String branchId, String? name, bool? active, bool? isDefault});
 }

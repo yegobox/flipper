@@ -38,7 +38,7 @@ class ChartOfAccounts extends OfflineFirstWithSupabaseModel {
   final String id;
 
   @Sqlite(index: true)
-  final int businessId;
+  final String businessId;
 
   final String accountName;
 
@@ -85,7 +85,7 @@ class JournalEntry extends OfflineFirstWithSupabaseModel {
   final String id;
 
   @Sqlite(index: true)
-  final int businessId;
+  final String businessId;
 
   final DateTime date;
 
@@ -163,7 +163,7 @@ class FinancialPeriod extends OfflineFirstWithSupabaseModel {
   final String id;
 
   @Sqlite(index: true)
-  final int businessId;
+  final String businessId;
 
   final DateTime startDate;
   final DateTime endDate;
@@ -197,7 +197,7 @@ class AccountingSettings extends OfflineFirstWithSupabaseModel {
   final String id;
 
   @Sqlite(index: true)
-  final int businessId;
+  final String businessId;
 
   final String? cashAccountId;
   final String? accountsReceivableAccountId;
@@ -225,7 +225,7 @@ class AccountingSettings extends OfflineFirstWithSupabaseModel {
 
   AccountingSettings copyWith({
     String? id,
-    int? businessId,
+    String? businessId,
     String? cashAccountId,
     String? accountsReceivableAccountId,
     String? inventoryAccountId,

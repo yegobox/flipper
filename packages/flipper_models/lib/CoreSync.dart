@@ -118,7 +118,7 @@ class CoreSync extends AiStrategyImpl
 
   @override
   Future<bool> firebaseLogin({String? token}) async {
-    int? userId = ProxyService.box.getUserId();
+    String? userId = ProxyService.box.getUserId();
     if (userId == null) return false;
     final pinLocal = await ProxyService.strategy
         .getPinLocal(userId: userId, alwaysHydrate: true);
@@ -213,7 +213,7 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Stream<Tenant?> authState({required int branchId}) async* {
+  Stream<Tenant?> authState({required String branchId}) async* {
     final userId = ProxyService.box.getUserId();
 
     if (userId == null) {
@@ -239,7 +239,7 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Future<List<PColor>> colors({required int branchId}) async {
+  Future<List<PColor>> colors({required String branchId}) async {
     return await repository.get<PColor>(
         query:
             brick.Query(where: [brick.Where('branchId').isExactly(branchId)]));
@@ -264,15 +264,11 @@ class CoreSync extends AiStrategyImpl
   Future<void> configureSystem(String userPhone, IUser user,
       {required bool offlineLogin}) async {
     // Add system configuration logic here
-    if (user.id == null) {
-      talker.error(
-          'User ID is null in configureSystem for user: ${user.phoneNumber}');
-      return;
-    }
+
     if (offlineLogin == false) {
       await saveNeccessaryData(user);
     }
-    await ProxyService.box.writeInt(key: 'userId', value: user.id!);
+    await ProxyService.box.writeString(key: 'userId', value: user.id);
     await ProxyService.box.writeString(key: 'userPhone', value: userPhone);
 
     // Ensure the PIN record has the correct UID to prevent duplicates
@@ -313,7 +309,7 @@ class CoreSync extends AiStrategyImpl
     }
   }
 
-  Future<models.Variant> _createRegularVariant(int branchId, int? tinNumber,
+  Future<models.Variant> _createRegularVariant(String branchId, int? tinNumber,
       {required double qty,
       required double supplierPrice,
       required double retailPrice,
@@ -457,7 +453,7 @@ class CoreSync extends AiStrategyImpl
     required int invoiceNumber,
     required String timeReceivedFromserver,
   }) async {
-    int branchId = ProxyService.box.getBranchId()!;
+    String branchId = ProxyService.box.getBranchId()!;
 
     Receipt receipt = Receipt(
         branchId: branchId,
@@ -572,7 +568,7 @@ class CoreSync extends AiStrategyImpl
 
   @override
   Future<void> deleteBranch(
-      {required int branchId,
+      {required String branchId,
       required HttpClientInterface flipperHttpClient}) async {
     try {
       await flipperHttpClient
@@ -666,8 +662,8 @@ class CoreSync extends AiStrategyImpl
 
   @override
   Future<Variant?> getCustomVariant(
-      {required int businessId,
-      required int branchId,
+      {required String businessId,
+      required String branchId,
       required int tinNumber,
       required String bhFId}) async {
     final repository = Repository();
@@ -711,7 +707,7 @@ class CoreSync extends AiStrategyImpl
 
   @override
   Stream<List<Customer>> customersStream({
-    required int branchId,
+    required String branchId,
     String? key,
     String? id,
   }) async* {
@@ -762,7 +758,7 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Stream<Tenant?> getDefaultTenant({required int businessId}) {
+  Stream<Tenant?> getDefaultTenant({required String businessId}) {
     final query =
         brick.Query(where: [brick.Where('businessId').isExactly(businessId)]);
     // Return the stream directly instead of storing in variable
@@ -824,7 +820,7 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Future<List<Device>> getDevices({required int businessId}) async {
+  Future<List<Device>> getDevices({required String businessId}) async {
     final query = brick.Query(
       where: [brick.Where('businessId').isExactly(businessId)],
     );
@@ -936,9 +932,8 @@ class CoreSync extends AiStrategyImpl
               ownerName: localPin.firstOrNull!.ownerName ?? "N/A",
               tokenUid: localPin.firstOrNull!.tokenUid ?? "N/A");
         } else {
-          clearData(data: ClearData.Branch, identifier: branchE?.serverId ?? 0);
-          clearData(
-              data: ClearData.Business, identifier: business?.serverId ?? 0);
+          clearData(data: ClearData.Branch, identifier: branchE?.id ?? "");
+          clearData(data: ClearData.Business, identifier: business?.id ?? "");
         }
       }
       final response = await flipperHttpClient.get(uri);
@@ -957,7 +952,9 @@ class CoreSync extends AiStrategyImpl
 
   @override
   FutureOr<Pin?> getPinLocal(
-      {int? userId, required bool alwaysHydrate, String? phoneNumber}) async {
+      {String? userId,
+      required bool alwaysHydrate,
+      String? phoneNumber}) async {
     return (await repository.get<Pin>(
             policy: alwaysHydrate
                 ? OfflineFirstGetPolicy.awaitRemote
@@ -995,7 +992,7 @@ class CoreSync extends AiStrategyImpl
 
   @override
   Future<List<Product>> getProducts(
-      {String? key, int? prodIndex, required int branchId}) async {
+      {String? key, int? prodIndex, required String branchId}) async {
     if (key != null) {
       return await repository.get<Product>(
           query: brick.Query(where: [brick.Where('name').isExactly(key)]));
@@ -1019,7 +1016,7 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  FutureOr<Tenant?> getTenant({int? userId, int? pin}) async {
+  FutureOr<Tenant?> getTenant({String? userId, int? pin}) async {
     if (userId != null) {
       return (await repository.get<Tenant>(
               query: brick.Query(
@@ -1105,7 +1102,7 @@ class CoreSync extends AiStrategyImpl
 
   @override
   FutureOr<bool> isAdmin(
-      {required int userId, required String appFeature}) async {
+      {required String userId, required String appFeature}) async {
     final anyAccess = await repository.get<Access>(
         query: brick.Query(where: [brick.Where('userId').isExactly(userId)]));
 
@@ -1140,7 +1137,7 @@ class CoreSync extends AiStrategyImpl
   @override
   Future<bool> removeS3File({required String fileName}) async {
     await syncUserWithAwsIncognito(identifier: "yegobox@gmail.com");
-    int branchId = ProxyService.box.getBranchId()!;
+    String branchId = ProxyService.box.getBranchId()!;
     try {
       final result = await amplify.Amplify.Storage
           .remove(
@@ -1157,7 +1154,7 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Stream<List<Report>> reports({required int branchId}) {
+  Stream<List<Report>> reports({required String branchId}) {
     return repository.subscribe(
         query:
             brick.Query(where: [brick.Where('branchId').isExactly(branchId)]));
@@ -1165,7 +1162,7 @@ class CoreSync extends AiStrategyImpl
 
   @override
   Future<List<models.InventoryRequest>> requests(
-      {int? branchId, String? requestId}) async {
+      {String? branchId, String? requestId}) async {
     final ditto = dittoService.dittoInstance;
     if (ditto == null) {
       throw Exception('Ditto not initialized');
@@ -1206,7 +1203,7 @@ class CoreSync extends AiStrategyImpl
 
   @override
   Stream<List<InventoryRequest>> requestsStream({
-    required int branchId,
+    required String branchId,
     String filter = RequestStatus.pending,
     String? search,
   }) {
@@ -1573,7 +1570,7 @@ class CoreSync extends AiStrategyImpl
 
   @override
 // Helper method to save a variant
-  Future<void> saveVariant(Variant item, Business business, int branchId,
+  Future<void> saveVariant(Variant item, Business business, String branchId,
       {required bool skipRRaCall}) async {
     final resolvedTin = (await effectiveTin(business: business))!;
     await createProduct(
@@ -1691,8 +1688,8 @@ class CoreSync extends AiStrategyImpl
       // and synced via tenantsFromOnline method, so no need for local creation
 
       // Save branch and business IDs early
-      ProxyService.box.writeInt(key: 'businessId', value: bus.serverId);
-      ProxyService.box.writeInt(key: 'branchId', value: bus.serverId);
+      ProxyService.box.writeString(key: 'businessId', value: bus.id);
+      ProxyService.box.writeString(key: 'branchId', value: bus.id);
 
       // Step 3: Create PIN
       // Ensure userId is not null
@@ -1703,13 +1700,14 @@ class CoreSync extends AiStrategyImpl
 
       try {
         talker.info('Signup: Creating PIN');
-        await ProxyService.strategy.createPin(
-            flipperHttpClient: flipperHttpClient,
-            phoneNumber: business['phoneNumber'],
-            pin: bus.userId ?? 0, // Handle null case with default value
-            branchId: bus.serverId.toString(),
-            businessId: bus.serverId.toString(),
-            defaultApp: 1);
+        // TODO: this is deprecated with new architecture
+        // await ProxyService.strategy.createPin(
+        //     flipperHttpClient: flipperHttpClient,
+        //     phoneNumber: business['phoneNumber'],
+        //     pin: bus.pin ?? "", // Handle null case with default value
+        //     branchId: bus.serverId.toString(),
+        //     businessId: bus.serverId.toString(),
+        //     defaultApp: 1);
         talker.info('Signup: PIN created successfully');
       } catch (e, s) {
         talker.error('Signup: Error in creating PIN: $e', s);
@@ -1724,8 +1722,8 @@ class CoreSync extends AiStrategyImpl
             pin: Pin(
                 userId: bus.userId,
                 id: bus.userId.toString(),
-                branchId: bus.serverId,
-                businessId: bus.serverId,
+                branchId: bus.id,
+                businessId: bus.id,
                 ownerName: business['name'] ?? '',
                 phoneNumber: business['phoneNumber'] ?? ''));
 
@@ -1770,15 +1768,15 @@ class CoreSync extends AiStrategyImpl
         .businesses(fetchOnline: false, active: false);
     for (final business in businesses) {
       await ProxyService.strategy.updateBusiness(
-        businessId: business.serverId,
+        businessId: business.id,
         active: false,
         isDefault: false,
       );
     }
     final branches = await ProxyService.strategy.branches(active: false);
     for (final branch in branches) {
-      await ProxyService.strategy.updateBranch(
-          branchId: branch.serverId!, active: false, isDefault: false);
+      await ProxyService.strategy
+          .updateBranch(branchId: branch.id, active: false, isDefault: false);
     }
   }
 
@@ -1913,7 +1911,7 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Future<List<IUnit>> units({required int branchId}) async {
+  Future<List<IUnit>> units({required String branchId}) async {
     final existingUnits = await repository.get<IUnit>(
         query:
             brick.Query(where: [brick.Where('branchId').isExactly(branchId)]));
@@ -1928,7 +1926,7 @@ class CoreSync extends AiStrategyImpl
 
   @override
   Future<List<UnversalProduct>> universalProductNames(
-      {required int branchId}) async {
+      {required String branchId}) async {
     return repository.get<UnversalProduct>(
       policy: OfflineFirstGetPolicy.alwaysHydrate,
     );
@@ -1938,7 +1936,7 @@ class CoreSync extends AiStrategyImpl
   Future<String> uploadPdfToS3(Uint8List pdfData, String fileName,
       {required String transactionId}) async {
     try {
-      int branchId = ProxyService.box.getBranchId()!;
+      String branchId = ProxyService.box.getBranchId()!;
       final filePath = 'public/invoices-${branchId}/$fileName.pdf';
 
       final result = await amplify.Amplify.Storage
@@ -1985,7 +1983,7 @@ class CoreSync extends AiStrategyImpl
     ITransaction? transaction,
     required String paymentType,
     required double discount,
-    required int branchId,
+    required String branchId,
     required String bhfId,
     required String countryCode,
     required bool isProformaMode,
@@ -2079,13 +2077,13 @@ class CoreSync extends AiStrategyImpl
 
   @override
   FutureOr<void> addAccess(
-      {required int userId,
+      {required String userId,
       required String featureName,
       required String accessLevel,
       required String userType,
       required String status,
-      required int branchId,
-      required int businessId,
+      required String branchId,
+      required String businessId,
       DateTime? createdAt}) async {
     await repository.upsert<Access>(Access(
       branchId: branchId,
@@ -2102,7 +2100,7 @@ class CoreSync extends AiStrategyImpl
   @override
   Future<void> addCategory(
       {required String name,
-      required int branchId,
+      required String branchId,
       required bool active,
       required bool focused,
       required DateTime lastTouched,
@@ -2126,7 +2124,7 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  FutureOr<void> addColor({required String name, required int branchId}) {
+  FutureOr<void> addColor({required String name, required String branchId}) {
     repository.upsert<PColor>(PColor(
       name: name,
       active: false,
@@ -2144,7 +2142,7 @@ class CoreSync extends AiStrategyImpl
       String? name,
       bool? active,
       bool? focused,
-      int? branchId}) async {
+      String? branchId}) async {
     final category = (await repository.get<Category>(
             query: brick.Query(where: [
       brick.Where('id', value: categoryId, compare: Compare.exact),
@@ -2278,14 +2276,12 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Future<List<Configurations>> taxes({required int branchId}) async {
+  Future<List<Configurations>> taxes({required String branchId}) async {
     return await repository.get<Configurations>(
         policy: OfflineFirstGetPolicy.localOnly,
         query:
             brick.Query(where: [brick.Where('branchId').isExactly(branchId)]));
   }
-
-
 
   Future<ITransaction?> _getTransaction({String? transactionId}) async {
     return (await repository.get<ITransaction>(
@@ -2305,7 +2301,7 @@ class CoreSync extends AiStrategyImpl
 
   @override
   Future<bool> isTaxEnabled(
-      {required int businessId, required int branchId}) async {
+      {required String businessId, required String branchId}) async {
     try {
       final ditto = dittoService.dittoInstance;
       if (ditto == null) {
@@ -2464,7 +2460,7 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  FutureOr<LPermission?> permission({required int userId}) async {
+  FutureOr<LPermission?> permission({required String userId}) async {
     return (await repository.get<LPermission>(
             query:
                 brick.Query(where: [brick.Where('userId').isExactly(userId)]),
@@ -2477,17 +2473,15 @@ class CoreSync extends AiStrategyImpl
     print("I am coresync");
   }
 
- 
-
   @override
   void updateAccess(
       {required String accessId,
-      required int userId,
+      required String userId,
       required String featureName,
       required String accessLevel,
       required String status,
-      required int branchId,
-      required int businessId,
+      required String branchId,
+      required String businessId,
       required String userType}) {
     Access access = Access(
       id: accessId,
@@ -2504,7 +2498,7 @@ class CoreSync extends AiStrategyImpl
 
   @override
   Future<List<Access>> access(
-      {required int userId,
+      {required String userId,
       String? featureName,
       required bool fetchRemote}) async {
     final access = await repository.get<Access>(
@@ -2536,7 +2530,8 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  FutureOr<SKU> getSku({required int branchId, required int businessId}) async {
+  FutureOr<SKU> getSku(
+      {required String branchId, required String businessId}) async {
     final query = brick.Query(
       where: [
         brick.Where('branchId').isExactly(branchId),
@@ -2563,7 +2558,7 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Stream<SKU?> sku({required int branchId, required int businessId}) {
+  Stream<SKU?> sku({required String branchId, required String businessId}) {
     final query = brick.Query(
       where: [
         brick.Where('branchId').isExactly(branchId),
@@ -2585,7 +2580,7 @@ class CoreSync extends AiStrategyImpl
       {required String barCode,
       required int sku,
       required String productId,
-      required int branchId,
+      required String branchId,
       required double retailPrice,
       required double supplierPrice,
       required double qty,
@@ -2701,7 +2696,7 @@ class CoreSync extends AiStrategyImpl
   Future<void> createNewStock(
       {required Variant variant,
       required TransactionItem item,
-      required int subBranchId}) async {
+      required String subBranchId}) async {
     final newStock = Stock(
       lastTouched: DateTime.now().toUtc(),
       branchId: subBranchId,
@@ -2764,8 +2759,8 @@ class CoreSync extends AiStrategyImpl
   @override
   Future<String> createStockRequest(
     List<models.TransactionItem> items, {
-    required int mainBranchId,
-    required int subBranchId,
+    required String mainBranchId,
+    required String subBranchId,
     String? deliveryNote,
     String? orderNote,
     String? financingId,
@@ -2891,7 +2886,7 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Future<models.Setting?> getSetting({required int businessId}) {
+  Future<models.Setting?> getSetting({required String businessId}) {
     // TODO: implement getSetting
     throw UnimplementedError();
   }
@@ -3102,14 +3097,17 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  bool isSubscribed({required String feature, required int businessId}) {
+  bool isSubscribed({required String feature, required String businessId}) {
     // TODO: implement isSubscribed
     throw UnimplementedError();
   }
 
   @override
   Future<void> loadConversations(
-      {required int businessId, int? pageSize = 10, String? pk, String? sk}) {
+      {required String businessId,
+      int? pageSize = 10,
+      String? pk,
+      String? sk}) {
     // TODO: implement loadConversations
     throw UnimplementedError();
   }
@@ -3133,7 +3131,7 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  FutureOr<List<models.LPermission>> permissions({required int userId}) {
+  FutureOr<List<models.LPermission>> permissions({required String userId}) {
     // TODO: implement permissions
     throw UnimplementedError();
   }
@@ -3145,19 +3143,20 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Future<List<models.Product>> products({required int branchId}) {
+  Future<List<models.Product>> products({required String branchId}) {
     // TODO: implement products
     throw UnimplementedError();
   }
 
   @override
-  Future<List<models.Product>> productsFuture({required int branchId}) {
+  Future<List<models.Product>> productsFuture({required String branchId}) {
     // TODO: implement productsFuture
     throw UnimplementedError();
   }
 
   @override
-  Future<void> refreshSession({required int branchId, int? refreshRate = 5}) {
+  Future<void> refreshSession(
+      {required String branchId, int? refreshRate = 5}) {
     // TODO: implement refreshSession
     throw UnimplementedError();
   }
@@ -3189,7 +3188,7 @@ class CoreSync extends AiStrategyImpl
 
   @override
   Future<void> saveDiscount(
-      {required int branchId, required name, double? amount}) {
+      {required String branchId, required name, double? amount}) {
     // TODO: implement saveDiscount
     throw UnimplementedError();
   }
@@ -3247,7 +3246,7 @@ class CoreSync extends AiStrategyImpl
 
   @override
   Future<({String customerCode, String url, int userId})> subscribe(
-      {required int businessId,
+      {required String businessId,
       required models.Business business,
       required int agentCode,
       required HttpClientInterface flipperHttpClient,
@@ -3258,7 +3257,7 @@ class CoreSync extends AiStrategyImpl
 
   @override
   FutureOr<void> updateAcess(
-      {required int userId,
+      {required String userId,
       String? featureName,
       String? status,
       String? accessLevel,
@@ -3289,7 +3288,7 @@ class CoreSync extends AiStrategyImpl
 
   @override
   Future<void> updatePin(
-      {required int userId, String? phoneNumber, String? tokenUid}) async {
+      {required String userId, String? phoneNumber, String? tokenUid}) async {
     try {
       List<Pin> pins = await repository.get<Pin>(
           query: brick.Query(where: [brick.Where('userId').isExactly(userId)]));
@@ -3327,7 +3326,7 @@ class CoreSync extends AiStrategyImpl
 
   @override
   FutureOr<void> updateUnit(
-      {required String unitId, String? name, bool? active, int? branchId}) {
+      {required String unitId, String? name, bool? active, String? branchId}) {
     // TODO: implement updateUnit
     throw UnimplementedError();
   }
@@ -3434,7 +3433,7 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Future<double> fetchCost(int branchId) async {
+  Future<double> fetchCost(String branchId) async {
     double totalCost = 0.0;
 
     // Fetch all variants for the given branch
@@ -3455,7 +3454,7 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Future<double> fetchProfit(int branchId) async {
+  Future<double> fetchProfit(String branchId) async {
     double totalProfit = 0.0;
 
     // Fetch all variants for the given branch
@@ -3504,7 +3503,7 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Stream<double> wholeStockValue({required int branchId}) {
+  Stream<double> wholeStockValue({required String branchId}) {
     return repository
         .subscribe<Stock>(
             query: brick.Query(
@@ -3514,7 +3513,7 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Stream<double> totalSales({required int branchId}) async* {
+  Stream<double> totalSales({required String branchId}) async* {
     // Fetch all stock records for the given branch
     final stocks = await repository.get<Stock>(
       query: brick.Query(where: [
@@ -3555,7 +3554,7 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Future<List<BusinessAnalytic>> analytics({required int branchId}) async {
+  Future<List<BusinessAnalytic>> analytics({required String branchId}) async {
     try {
       final data = await repository.get<BusinessAnalytic>(
         /// since we always want fresh data and assumption is that ai is supposed to work with internet on, then this make sense.
@@ -3573,7 +3572,7 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Future<List<models.Stock>> stocks({required int branchId}) async {
+  Future<List<models.Stock>> stocks({required String branchId}) async {
     return await repository.get<Stock>(
         policy: OfflineFirstGetPolicy.alwaysHydrate,
         query:
@@ -3661,7 +3660,7 @@ class CoreSync extends AiStrategyImpl
   Future<Message> saveMessage({
     required String text,
     required String phoneNumber,
-    required int branchId,
+    required String branchId,
     required String role,
     required String conversationId,
     String? aiResponse,
@@ -3694,7 +3693,7 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Future<List<Access>> allAccess({required int userId}) async {
+  Future<List<Access>> allAccess({required String userId}) async {
     return (await repository.get<Access>(
       policy: OfflineFirstGetPolicy.localOnly,
       query: Query(
@@ -3752,7 +3751,7 @@ class CoreSync extends AiStrategyImpl
 
   @override
   Stream<List<models.BusinessAnalytic>> streamRemoteAnalytics(
-      {required int branchId}) {
+      {required String branchId}) {
     return repository.subscribeToRealtime<BusinessAnalytic>(
       policy: OfflineFirstGetPolicy.alwaysHydrate,
       query: Query(

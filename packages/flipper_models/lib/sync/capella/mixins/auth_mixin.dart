@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/sync/interfaces/auth_interface.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -19,7 +21,7 @@ mixin CapellaAuthMixin implements AuthInterface {
 
   @override
   Future<List<Business>> businesses(
-      {int? userId, bool fetchOnline = false, bool active = false}) async {
+      {String? userId, bool fetchOnline = false, bool active = false}) async {
     throw UnimplementedError('businesses needs to be implemented for Capella');
   }
 
@@ -73,11 +75,6 @@ mixin CapellaAuthMixin implements AuthInterface {
   }) async {
     throw UnimplementedError(
         'loginOnSocial needs to be implemented for Capella');
-  }
-
-  @override
-  Future<List<Branch>> branches({int? businessId, bool? active = false}) async {
-    throw UnimplementedError('branches needs to be implemented for Capella');
   }
 
   @override

@@ -194,7 +194,7 @@ mixin TransactionMixinOld {
         await ProxyService.strategy.getBusiness(businessId: businessId);
 
     final bool isEbmEnabled = await ProxyService.strategy
-        .isTaxEnabled(businessId: business!.serverId, branchId: branchId);
+        .isTaxEnabled(businessId: business!.id, branchId: branchId);
     if (isEbmEnabled) {
       try {
         ProxyService.strategy.updateTransaction(

@@ -20,9 +20,9 @@ class ITenant {
   List<dynamic>? permissions;
   List<IBranch>? branches;
   List<IBusiness>? businesses;
-  int? businessId;
+  String? businessId;
   bool? nfcEnabled;
-  int? userId;
+  String? userId;
   int? pin;
 
   ITenant({

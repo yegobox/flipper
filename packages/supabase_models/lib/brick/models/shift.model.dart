@@ -17,10 +17,10 @@ class Shift extends OfflineFirstWithSupabaseModel {
   final String id;
 
   @Sqlite(index: true)
-  final int businessId;
+  final String businessId;
 
   @Sqlite(index: true)
-  final int userId;
+  final String userId;
 
   final DateTime startAt;
   final DateTime? endAt;
@@ -66,8 +66,8 @@ class Shift extends OfflineFirstWithSupabaseModel {
   //copyWith
   Shift copyWith(
       {String? id,
-      int? businessId,
-      int? userId,
+      String? businessId,
+      String? userId,
       DateTime? startAt,
       DateTime? endAt,
       num? openingBalance,

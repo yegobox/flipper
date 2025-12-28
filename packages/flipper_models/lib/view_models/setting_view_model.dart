@@ -59,7 +59,7 @@ class SettingViewModel extends CoreViewModel {
   // }
 
   loadUserSettings() async {
-    int businessId = ProxyService.box.getBusinessId()!;
+    String businessId = ProxyService.box.getBusinessId()!;
     _setting = await ProxyService.strategy.getSetting(businessId: businessId);
     notifyListeners();
   }
@@ -71,7 +71,7 @@ class SettingViewModel extends CoreViewModel {
   bool get getIsSyncSubscribed => isSubscribedOnSync();
 
   bool isSubscribedOnSync() {
-    int businessId = 0;
+    String businessId = "";
     if (ProxyService.box.getBusinessId().runtimeType is int) {
       businessId = ProxyService.box.getBusinessId()!;
     } else if (ProxyService.box.getBusinessId().runtimeType is String) {
@@ -91,7 +91,7 @@ class SettingViewModel extends CoreViewModel {
     required Function callback,
   }) {
     // settingService.enableSync(bool: !settingService.enableSync);
-    int businessId = ProxyService.box.getBusinessId()!;
+    String businessId = ProxyService.box.getBusinessId()!;
     bool isSubscribed = false;
 
     /// do we have a subscription on the feature

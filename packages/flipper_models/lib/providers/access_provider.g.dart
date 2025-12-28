@@ -18,7 +18,7 @@ final class IsAdminProvider
   const IsAdminProvider._(
       {required IsAdminFamily super.from,
       required (
-        int, {
+        String, {
         String featureName,
       })
           super.argument})
@@ -48,7 +48,7 @@ final class IsAdminProvider
   @override
   FutureOr<bool> create(Ref ref) {
     final argument = this.argument as (
-      int, {
+      String, {
       String featureName,
     });
     return isAdmin(
@@ -69,14 +69,14 @@ final class IsAdminProvider
   }
 }
 
-String _$isAdminHash() => r'416198676268569ff4c9c3747693349817595a8a';
+String _$isAdminHash() => r'851984c66008a3d6bff1255ecc04b4a7994fdce7';
 
 final class IsAdminFamily extends $Family
     with
         $FunctionalFamilyOverride<
             FutureOr<bool>,
             (
-              int, {
+              String, {
               String featureName,
             })> {
   const IsAdminFamily._()
@@ -89,7 +89,7 @@ final class IsAdminFamily extends $Family
         );
 
   IsAdminProvider call(
-    int userId, {
+    String userId, {
     required String featureName,
   }) =>
       IsAdminProvider._(argument: (
@@ -110,7 +110,7 @@ final class UserAccessesProvider extends $FunctionalProvider<
   const UserAccessesProvider._(
       {required UserAccessesFamily super.from,
       required (
-        int, {
+        String, {
         String featureName,
       })
           super.argument})
@@ -141,7 +141,7 @@ final class UserAccessesProvider extends $FunctionalProvider<
   @override
   FutureOr<List<Access>> create(Ref ref) {
     final argument = this.argument as (
-      int, {
+      String, {
       String featureName,
     });
     return userAccesses(
@@ -162,14 +162,14 @@ final class UserAccessesProvider extends $FunctionalProvider<
   }
 }
 
-String _$userAccessesHash() => r'bb185f317a17ad40cdcd2491b53e2995ac90545b';
+String _$userAccessesHash() => r'bdee75c10ced4deea1d09af69517ba79518899f7';
 
 final class UserAccessesFamily extends $Family
     with
         $FunctionalFamilyOverride<
             FutureOr<List<Access>>,
             (
-              int, {
+              String, {
               String featureName,
             })> {
   const UserAccessesFamily._()
@@ -182,7 +182,7 @@ final class UserAccessesFamily extends $Family
         );
 
   UserAccessesProvider call(
-    int userId, {
+    String userId, {
     required String featureName,
   }) =>
       UserAccessesProvider._(argument: (
@@ -201,7 +201,7 @@ final class AllAccessesProvider extends $FunctionalProvider<
         AsyncValue<List<Access>>, List<Access>, FutureOr<List<Access>>>
     with $FutureModifier<List<Access>>, $FutureProvider<List<Access>> {
   const AllAccessesProvider._(
-      {required AllAccessesFamily super.from, required int super.argument})
+      {required AllAccessesFamily super.from, required String super.argument})
       : super(
           retry: null,
           name: r'allAccessesProvider',
@@ -228,7 +228,7 @@ final class AllAccessesProvider extends $FunctionalProvider<
 
   @override
   FutureOr<List<Access>> create(Ref ref) {
-    final argument = this.argument as int;
+    final argument = this.argument as String;
     return allAccesses(
       ref,
       argument,
@@ -246,10 +246,10 @@ final class AllAccessesProvider extends $FunctionalProvider<
   }
 }
 
-String _$allAccessesHash() => r'980941f566daf3451516ccdb9bcb74bb68069f36';
+String _$allAccessesHash() => r'fd7365d30cdb76a733b716498c120cf7201d0964';
 
 final class AllAccessesFamily extends $Family
-    with $FunctionalFamilyOverride<FutureOr<List<Access>>, int> {
+    with $FunctionalFamilyOverride<FutureOr<List<Access>>, String> {
   const AllAccessesFamily._()
       : super(
           retry: null,
@@ -260,7 +260,7 @@ final class AllAccessesFamily extends $Family
         );
 
   AllAccessesProvider call(
-    int userId,
+    String userId,
   ) =>
       AllAccessesProvider._(argument: userId, from: this);
 
@@ -275,7 +275,7 @@ final class TenantProvider
     extends $FunctionalProvider<AsyncValue<Tenant?>, Tenant?, FutureOr<Tenant?>>
     with $FutureModifier<Tenant?>, $FutureProvider<Tenant?> {
   const TenantProvider._(
-      {required TenantFamily super.from, required int super.argument})
+      {required TenantFamily super.from, required String super.argument})
       : super(
           retry: null,
           name: r'tenantProvider',
@@ -301,7 +301,7 @@ final class TenantProvider
 
   @override
   FutureOr<Tenant?> create(Ref ref) {
-    final argument = this.argument as int;
+    final argument = this.argument as String;
     return tenant(
       ref,
       argument,
@@ -319,10 +319,10 @@ final class TenantProvider
   }
 }
 
-String _$tenantHash() => r'9ec05505f59ddf5d88ddfea41c3455b669547954';
+String _$tenantHash() => r'055c38c0a9dce197cee9721713664d3941718f97';
 
 final class TenantFamily extends $Family
-    with $FunctionalFamilyOverride<FutureOr<Tenant?>, int> {
+    with $FunctionalFamilyOverride<FutureOr<Tenant?>, String> {
   const TenantFamily._()
       : super(
           retry: null,
@@ -333,7 +333,7 @@ final class TenantFamily extends $Family
         );
 
   TenantProvider call(
-    int userId,
+    String userId,
   ) =>
       TenantProvider._(argument: userId, from: this);
 
@@ -349,7 +349,7 @@ final class FeatureAccessProvider extends $FunctionalProvider<bool, bool, bool>
   const FeatureAccessProvider._(
       {required FeatureAccessFamily super.from,
       required ({
-        int userId,
+        String userId,
         String featureName,
       })
           super.argument})
@@ -379,7 +379,7 @@ final class FeatureAccessProvider extends $FunctionalProvider<bool, bool, bool>
   @override
   bool create(Ref ref) {
     final argument = this.argument as ({
-      int userId,
+      String userId,
       String featureName,
     });
     return featureAccess(
@@ -408,14 +408,14 @@ final class FeatureAccessProvider extends $FunctionalProvider<bool, bool, bool>
   }
 }
 
-String _$featureAccessHash() => r'66b5f4e7cca3d8204de4cafecfb039b4413b2700';
+String _$featureAccessHash() => r'2354d8ec52b91ec8b8c20b4db8b5ca73dc11a6ea';
 
 final class FeatureAccessFamily extends $Family
     with
         $FunctionalFamilyOverride<
             bool,
             ({
-              int userId,
+              String userId,
               String featureName,
             })> {
   const FeatureAccessFamily._()
@@ -428,7 +428,7 @@ final class FeatureAccessFamily extends $Family
         );
 
   FeatureAccessProvider call({
-    required int userId,
+    required String userId,
     required String featureName,
   }) =>
       FeatureAccessProvider._(argument: (
@@ -459,7 +459,7 @@ final class FeatureAccessLevelProvider
   const FeatureAccessLevelProvider._(
       {required FeatureAccessLevelFamily super.from,
       required ({
-        int userId,
+        String userId,
         String accessLevel,
       })
           super.argument})
@@ -489,7 +489,7 @@ final class FeatureAccessLevelProvider
   @override
   bool create(Ref ref) {
     final argument = this.argument as ({
-      int userId,
+      String userId,
       String accessLevel,
     });
     return featureAccessLevel(
@@ -519,7 +519,7 @@ final class FeatureAccessLevelProvider
 }
 
 String _$featureAccessLevelHash() =>
-    r'7325be65b8384fac7ea13e03ed91ae48db73fb33';
+    r'1220ad1930e5da6952aff803b1fb3ec8f9b2c84f';
 
 /// this check if a user has one accessLevel required to grant him access regardles of the feature
 /// e.g if a fature Requires Write, or Admin it will check if a user has these permission in one of the feature and grant them access
@@ -530,7 +530,7 @@ final class FeatureAccessLevelFamily extends $Family
         $FunctionalFamilyOverride<
             bool,
             ({
-              int userId,
+              String userId,
               String accessLevel,
             })> {
   const FeatureAccessLevelFamily._()
@@ -547,7 +547,7 @@ final class FeatureAccessLevelFamily extends $Family
   /// to whatever he is trying to access
 
   FeatureAccessLevelProvider call({
-    required int userId,
+    required String userId,
     required String accessLevel,
   }) =>
       FeatureAccessLevelProvider._(argument: (

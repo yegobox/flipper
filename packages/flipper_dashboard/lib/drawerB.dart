@@ -687,7 +687,7 @@ class _MyDrawerState extends ConsumerState<MyDrawer> {
     }
 
     setState(() {
-      _switchingBranchId = branch.serverId.toString();
+      _switchingBranchId = branch.id.toString();
     });
 
     final appService = locator<AppService>();
@@ -697,32 +697,29 @@ class _MyDrawerState extends ConsumerState<MyDrawer> {
 
       final currentBranchId = ProxyService.box.readInt(key: 'branchId');
 
-      if (currentBranchId != branch.serverId) {
-        await ProxyService.box.writeInt(
-          key: 'branchId',
-          value: branch.serverId!,
-        );
+      if (currentBranchId != branch.id) {
+        await ProxyService.box.writeString(key: 'branchId', value: branch.id!);
         await ProxyService.box.writeString(
           key: 'branchIdString',
           value: branch.id,
         );
-        await ProxyService.box.writeInt(
+        await ProxyService.box.writeString(
           key: 'currentBusinessId',
-          value: business.serverId,
+          value: business.id,
         );
-        await ProxyService.box.writeInt(
+        await ProxyService.box.writeString(
           key: 'currentBranchId',
-          value: branch.serverId!,
+          value: branch.id!,
         );
 
         await appService.updateAllBranchesInactive();
         await ProxyService.strategy.updateBranch(
-          branchId: branch.serverId!,
+          branchId: branch.id!,
           active: true,
           isDefault: true,
         );
 
-        ref.invalidate(branchesProvider(businessId: business.serverId));
+        ref.invalidate(branchesProvider(businessId: business.id));
         ref.read(searchStringProvider.notifier).emitString(value: "search");
         ref.read(searchStringProvider.notifier).emitString(value: "");
       }
@@ -1021,7 +1018,7 @@ class _ModernBusinessCard extends StatelessWidget {
         ],
       ),
       child: FutureBuilder<List<Branch>>(
-        future: ProxyService.strategy.branches(businessId: business.serverId),
+        future: ProxyService.strategy.branches(businessId: business.id),
         builder: (context, branchSnapshot) {
           if (branchSnapshot.connectionState == ConnectionState.waiting) {
             return _buildLoadingCard();
@@ -1168,14 +1165,14 @@ class _ModernBusinessCard extends StatelessWidget {
                   branch: Branch(
                     id: 'main',
                     name: 'Main Branch',
-                    businessId: business.serverId,
+                    businessId: business.id,
                   ),
                   switchingBranchId: switchingBranchId,
                   onTap: () => onBranchSelected(
                     Branch(
                       id: 'main',
                       name: 'Main Branch',
-                      businessId: business.serverId,
+                      businessId: business.id,
                     ),
                   ),
                 ),
@@ -1207,8 +1204,8 @@ class _BranchItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool isActive = ProxyService.box.getBranchId() == branch.serverId;
-    final bool isLoading = switchingBranchId == branch.serverId.toString();
+    final bool isActive = ProxyService.box.getBranchId() == branch.id;
+    final bool isLoading = switchingBranchId == branch.id.toString();
 
     return Material(
       color: Colors.transparent,

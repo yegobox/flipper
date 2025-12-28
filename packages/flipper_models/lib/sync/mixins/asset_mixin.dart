@@ -15,7 +15,7 @@ abstract class AssetInterface {
   Future<Stream<double>> downloadAssetSave(
       {String? assetName, String? subPath = "branch"});
   Future<Stream<double>> downloadAsset(
-      {required int branchId,
+      {required String branchId,
       required String assetName,
       required String subPath});
 
@@ -24,16 +24,16 @@ abstract class AssetInterface {
   FutureOr<void> addAsset(
       {required String productId,
       required assetName,
-      required int branchId,
-      required int businessId});
+      required String branchId,
+      required String businessId});
 
   /// Save an image file locally and create an asset record
   /// Returns the asset record with local path information
   Future<Assets> saveImageLocally({
     required File imageFile,
     required String productId,
-    required int branchId,
-    required int businessId,
+    required String branchId,
+    required String businessId,
   });
 
   /// Synchronize offline assets by uploading them to cloud storage
@@ -55,7 +55,7 @@ mixin AssetMixin implements AssetInterface {
       {String? assetName, String? subPath = "branch"}) async {
     try {
       talker.info("Starting downloadAssetSave");
-      int branchId = ProxyService.box.getBranchId()!;
+      String branchId = ProxyService.box.getBranchId()!;
 
       // Case 1: Single asset download
       if (assetName != null) {
@@ -172,7 +172,7 @@ mixin AssetMixin implements AssetInterface {
   }
 
   Future<Stream<double>> downloadAsset(
-      {required int branchId,
+      {required String branchId,
       required String assetName,
       required String subPath}) async {
     Directory directoryPath = await getSupportDir();
@@ -257,8 +257,8 @@ mixin AssetMixin implements AssetInterface {
   Future<void> addAsset(
       {required String productId,
       required assetName,
-      required int branchId,
-      required int businessId}) async {
+      required String branchId,
+      required String businessId}) async {
     final asset = await repository.get<Assets>(
         query: brick.Query(where: [
       brick.Where('productId').isExactly(productId),
@@ -285,8 +285,8 @@ mixin AssetMixin implements AssetInterface {
   Future<Assets> saveImageLocally({
     required File imageFile,
     required String productId,
-    required int branchId,
-    required int businessId,
+    required String branchId,
+    required String businessId,
   }) async {
     try {
       // Generate a unique filename using UUID

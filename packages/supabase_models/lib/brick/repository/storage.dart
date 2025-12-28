@@ -7,15 +7,15 @@ abstract class LocalStorage {
   Future<void> writeDouble({required String key, required double value});
   Future<void> writeString({required String key, required String value});
   Future<void> writeBool({required String key, required bool value});
-  int? getBusinessId();
+  String? getBusinessId();
   int? getBusinessServerId();
   String? getReceiptFileName();
-  int? getBranchId();
+  String? getBranchId();
   String? branchIdString();
   int? getBranchServerId();
   bool? getIsTokenRegistered();
   String? getUserPhone();
-  int? getUserId();
+  String? getUserId();
   double? getCashReceived();
   bool getNeedAccountLinkWithPhone();
   Future<String?> getServerUrl();

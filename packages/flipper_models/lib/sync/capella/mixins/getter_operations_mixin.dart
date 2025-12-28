@@ -24,7 +24,7 @@ mixin CapellaGetterOperationsMixin implements GetterOperationsInterface {
   }
 
   @override
-  Future<List<Device>> getDevices({required int businessId}) async {
+  Future<List<Device>> getDevices({required String businessId}) async {
     throw UnimplementedError('getDevices needs to be implemented for Capella');
   }
 
@@ -84,7 +84,6 @@ mixin CapellaGetterOperationsMixin implements GetterOperationsInterface {
     throw UnimplementedError('getPin needs to be implemented for Capella');
   }
 
-
   @override
   Future<String?> getPlatformDeviceId() async {
     throw UnimplementedError(
@@ -93,7 +92,7 @@ mixin CapellaGetterOperationsMixin implements GetterOperationsInterface {
 
   @override
   Future<List<Product>> getProducts(
-      {String? key, int? prodIndex, required int branchId}) async {
+      {String? key, int? prodIndex, required String branchId}) async {
     throw UnimplementedError('getProducts needs to be implemented for Capella');
   }
 
@@ -103,7 +102,7 @@ mixin CapellaGetterOperationsMixin implements GetterOperationsInterface {
   }
 
   @override
-  FutureOr<Tenant?> getTenant({int? userId, int? pin}) async {
+  FutureOr<Tenant?> getTenant({String? userId, int? pin}) async {
     throw UnimplementedError('getTenant needs to be implemented for Capella');
   }
 
@@ -114,17 +113,15 @@ mixin CapellaGetterOperationsMixin implements GetterOperationsInterface {
         'getTransactionsAmountsSum needs to be implemented for Capella');
   }
 
-
-
   @override
   FutureOr<Business?> getBusinessById(
-      {required int businessId, bool fetchOnline = false}) async {
+      {required String businessId, bool fetchOnline = false}) async {
     throw UnimplementedError(
         'getBusinessById needs to be implemented for Capella');
   }
 
   @override
-  Future<Branch?> branch({String? name, int? serverId}) async {
+  Future<Branch?> branch({String? name, String? serverId}) async {
     throw UnimplementedError('branch needs to be implemented for Capella');
   }
 
@@ -140,7 +137,7 @@ mixin CapellaGetterOperationsMixin implements GetterOperationsInterface {
     String? id,
     bool isExpense = false,
     FilterType? filterType,
-    int? branchId,
+    String? branchId,
     bool includeZeroSubTotal = false,
     bool includePending = false,
     bool forceRealData = true,

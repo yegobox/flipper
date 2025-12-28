@@ -6,8 +6,8 @@ abstract class GetterInterface {
   FutureOr<Branch?> branch({required int serverId});
   Stream<List<Variant>> geVariantStreamByProductId({required String productId});
   FutureOr<Assets?> getAsset({String? assetName, String? productId});
-  FutureOr<Business?> getBusiness({int? businessId});
-  FutureOr<Business?> getBusinessById({required int businessId});
+  FutureOr<Business?> getBusiness({String? businessId});
+  FutureOr<Business?> getBusinessById({required String businessId});
   Future<Business?> getBusinessFromOnlineGivenId({
     required int id,
     required HttpClientInterface flipperHttpClient,
@@ -15,21 +15,21 @@ abstract class GetterInterface {
   FutureOr<Configurations?> getByTaxType({required String taxtype});
   Future<PColor?> getColor({required String id});
   Future<Counter?> getCounter({
-    required int branchId,
+    required String branchId,
     required String receiptType,
   });
   Future<List<Counter>> getCounters({
-    required int branchId,
+    required String branchId,
     bool fetchRemote = false,
   });
   Future<Variant?> getCustomVariant({
-    required int businessId,
-    required int branchId,
+    required String businessId,
+    required String branchId,
     required int tinNumber,
     required String bhFId,
   });
   FutureOr<List<Customer>> customers({
-    int? branchId,
+    String? branchId,
     String? key,
     String? id,
   });

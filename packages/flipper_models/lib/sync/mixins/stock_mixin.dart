@@ -146,7 +146,7 @@ mixin StockMixin implements StockInterface {
       required double rsdQty,
       required String productId,
       required String variantId,
-      required int branchId,
+      required String branchId,
       required double currentStock,
       required double value}) async {
     final stock = Stock(

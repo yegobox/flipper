@@ -124,7 +124,7 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
                     return ref
                         .watch(
                           outerVariantsProvider(
-                            ProxyService.box.getBranchId() ?? 0,
+                            ProxyService.box.getBranchId() ?? "",
                           ),
                         )
                         .when(
@@ -510,7 +510,7 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
             const SizedBox(height: 24),
             FilledButton.icon(
               onPressed: () => ref.refresh(
-                outerVariantsProvider(ProxyService.box.getBranchId() ?? 0),
+                outerVariantsProvider(ProxyService.box.getBranchId() ?? ""),
               ),
               icon: const Icon(FluentIcons.arrow_sync_20_filled),
               label: const Text('Retry'),

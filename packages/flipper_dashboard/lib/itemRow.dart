@@ -45,7 +45,7 @@ Map<int, String> positionString = {
   12: 'thirteenth',
   13: 'fourteenth',
   14: 'fifteenth',
-  15: 'sixteenth'
+  15: 'sixteenth',
 };
 
 typedef void DeleteProductFunction(String? id, String type);
@@ -121,7 +121,7 @@ class _RowItemState extends ConsumerState<RowItem>
   // Image loading state management
   Future<String>? _cachedRemoteUrlFuture;
   String? _imageUrl;
-  int? _branchId;
+  String? _branchId;
   Widget? _cachedImageWidget;
 
   @override
@@ -172,14 +172,16 @@ class _RowItemState extends ConsumerState<RowItem>
   @override
   Widget build(BuildContext context) {
     final selectedItem = ref.watch(selectedItemIdProvider);
-    final isSelected = selectedItem == widget.variant?.id ||
+    final isSelected =
+        selectedItem == widget.variant?.id ||
         widget.product?.id == selectedItem;
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
     // Check if we should use list view mode
     final deviceType = DeviceType.getDeviceType(context);
-    final bool useListView = deviceType == 'Phone' ||
+    final bool useListView =
+        deviceType == 'Phone' ||
         (widget.forceListView &&
             deviceType !=
                 'Desktop'); // Use list view on phones or when forced (except on desktop)
@@ -187,7 +189,8 @@ class _RowItemState extends ConsumerState<RowItem>
     // Debug the selection state
     if (isSelected) {
       talker.debug(
-          "Card is selected: ${widget.variant?.id ?? widget.product?.id}");
+        "Card is selected: ${widget.variant?.id ?? widget.product?.id}",
+      );
     }
 
     return ViewModelBuilder.nonReactive(
@@ -231,8 +234,9 @@ class _RowItemState extends ConsumerState<RowItem>
                       NO_SELECTION;
                   return;
                 }
-                final flipperWatch? w =
-                    kDebugMode ? flipperWatch("onAddingItemToQuickSell") : null;
+                final flipperWatch? w = kDebugMode
+                    ? flipperWatch("onAddingItemToQuickSell")
+                    : null;
                 w?.start();
                 await onTapItem(model: model, isOrdering: widget.isOrdering);
                 w?.log("Item Added to Quick Sell");
@@ -254,10 +258,14 @@ class _RowItemState extends ConsumerState<RowItem>
                 children: [
                   Padding(
                     padding: const EdgeInsets.all(
-                        contentPadding - 4), // Further reduced padding
+                      contentPadding - 4,
+                    ), // Further reduced padding
                     child: useListView
                         ? _buildListItemContent(
-                            isSelected, textTheme, colorScheme)
+                            isSelected,
+                            textTheme,
+                            colorScheme,
+                          )
                         : _buildItemContent(isSelected, textTheme, colorScheme),
                   ),
 
@@ -278,59 +286,67 @@ class _RowItemState extends ConsumerState<RowItem>
   }
 
   Widget _buildItemContent(
-      bool isSelected, TextTheme textTheme, ColorScheme colorScheme) {
+    bool isSelected,
+    TextTheme textTheme,
+    ColorScheme colorScheme,
+  ) {
     // Check if we're on desktop Windows
     final isDesktopWindows = Platform.isWindows;
 
-    return LayoutBuilder(builder: (context, constraints) {
-      // Calculate available height for content
-      final double maxHeight = constraints.maxHeight;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Calculate available height for content
+        final double maxHeight = constraints.maxHeight;
 
-      // Allocate space for image and info sections
-      // Reserve at least 40px for product info to prevent overflow
-      final double maxInfoHeight = 50.0; // Minimum height for info section
-      final double availableForImage =
-          maxHeight - maxInfoHeight - 4; // 4px for spacing
+        // Allocate space for image and info sections
+        // Reserve at least 40px for product info to prevent overflow
+        final double maxInfoHeight = 50.0; // Minimum height for info section
+        final double availableForImage =
+            maxHeight - maxInfoHeight - 4; // 4px for spacing
 
-      // Cap image height to prevent overflow
-      final double imageHeight = isDesktopWindows
-          ? math.min(100, availableForImage) // More conservative on Windows
-          : math.min(availableForImage,
-              maxHeight * 0.55); // Cap at 55% of available height
+        // Cap image height to prevent overflow
+        final double imageHeight = isDesktopWindows
+            ? math.min(100, availableForImage) // More conservative on Windows
+            : math.min(
+                availableForImage,
+                maxHeight * 0.55,
+              ); // Cap at 55% of available height
 
-      return Column(
-        mainAxisSize: MainAxisSize.min, // Important to prevent overflow
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Product Image Section with explicit constraints
-          SizedBox(
-            height: imageHeight,
-            width: double.infinity,
-            child: _buildProductImageSection(isSelected),
-          ),
+        return Column(
+          mainAxisSize: MainAxisSize.min, // Important to prevent overflow
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Product Image Section with explicit constraints
+            SizedBox(
+              height: imageHeight,
+              width: double.infinity,
+              child: _buildProductImageSection(isSelected),
+            ),
 
-          const SizedBox(height: 2), // Minimal spacing
-
-          // Product Info Section with fixed maximum height
-          Container(
-            constraints: BoxConstraints(maxHeight: maxInfoHeight),
-            child: _buildCompactProductInfo(textTheme),
-          ),
-        ],
-      );
-    });
+            const SizedBox(height: 2), // Minimal spacing
+            // Product Info Section with fixed maximum height
+            Container(
+              constraints: BoxConstraints(maxHeight: maxInfoHeight),
+              child: _buildCompactProductInfo(textTheme),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   // New compact product info section specifically designed to avoid overflow
   Widget _buildCompactProductInfo(TextTheme textTheme) {
     // Get appropriate display names with safe fallbacks
     final String displayProductName = _truncateString(
-        widget.productName.isNotEmpty ? widget.productName : "Unnamed Product",
-        20);
+      widget.productName.isNotEmpty ? widget.productName : "Unnamed Product",
+      20,
+    );
 
     final String displayVariantName = _truncateString(
-        widget.variantName.isNotEmpty ? widget.variantName : "Default Variant",
-        20);
+      widget.variantName.isNotEmpty ? widget.variantName : "Default Variant",
+      20,
+    );
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -365,7 +381,8 @@ class _RowItemState extends ConsumerState<RowItem>
             widget.variant?.retailPrice != 0)
           Text(
             (widget.variant?.retailPrice ?? 0).toCurrencyFormatted(
-                symbol: ProxyService.box.defaultCurrency()),
+              symbol: ProxyService.box.defaultCurrency(),
+            ),
             style: textTheme.labelSmall?.copyWith(
               color: Colors.blue[700],
               fontWeight: FontWeight.w600,
@@ -379,8 +396,9 @@ class _RowItemState extends ConsumerState<RowItem>
         RepaintBoundary(
           child: Consumer(
             builder: (context, ref, child) {
-              final stockAsync = ref
-                  .watch(stockByVariantProvider(widget.variant?.stockId ?? ''));
+              final stockAsync = ref.watch(
+                stockByVariantProvider(widget.variant?.stockId ?? ''),
+              );
               final stockValue = stockAsync.value?.currentStock ?? 0;
 
               return Text(
@@ -401,116 +419,123 @@ class _RowItemState extends ConsumerState<RowItem>
   }
 
   Widget _buildListItemContent(
-      bool isSelected, TextTheme textTheme, ColorScheme colorScheme) {
-    return LayoutBuilder(builder: (context, constraints) {
-      // Calculate available width for product info
-      final double maxWidth = constraints.maxWidth;
-      final double imageWidth = 70; // Fixed image width
-      final double spacing = 8; // Reduced spacing
-      final double availableForInfo = maxWidth - imageWidth - spacing;
+    bool isSelected,
+    TextTheme textTheme,
+    ColorScheme colorScheme,
+  ) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Calculate available width for product info
+        final double maxWidth = constraints.maxWidth;
+        final double imageWidth = 70; // Fixed image width
+        final double spacing = 8; // Reduced spacing
+        final double availableForInfo = maxWidth - imageWidth - spacing;
 
-      return Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // Product Image - Fixed size for list view
-          SizedBox(
-            width: imageWidth,
-            height: 70,
-            child: _buildProductImageSection(isSelected),
-          ),
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Product Image - Fixed size for list view
+            SizedBox(
+              width: imageWidth,
+              height: 70,
+              child: _buildProductImageSection(isSelected),
+            ),
 
-          SizedBox(width: spacing),
+            SizedBox(width: spacing),
 
-          // Product Info - Constrained width
-          Container(
-            width: availableForInfo,
-            constraints: BoxConstraints(maxHeight: 70), // Match image height
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Product name
-                Text(
-                  _truncateString(
+            // Product Info - Constrained width
+            Container(
+              width: availableForInfo,
+              constraints: BoxConstraints(maxHeight: 70), // Match image height
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Product name
+                  Text(
+                    _truncateString(
                       widget.productName.isNotEmpty
                           ? widget.productName
                           : "Unnamed Product",
-                      20),
-                  style: textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: Colors.black87,
-                    fontSize: 12, // Smaller font size
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-
-                const SizedBox(height: 2), // Reduced spacing
-
-                // Variant name (if different from product name)
-                if (widget.variantName != widget.productName &&
-                    widget.variantName.isNotEmpty)
-                  Text(
-                    _truncateString(widget.variantName, 20),
-                    style: textTheme.bodyMedium?.copyWith(
-                      color: Colors.grey[600],
-                      fontSize: 10, // Smaller font size
+                      20,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-
-                const SizedBox(height: 4), // Reduced spacing
-
-                // Price tag - simplified to avoid overflow
-                if (widget.variant?.retailPrice != null &&
-                    widget.variant?.retailPrice != 0)
-                  Text(
-                    (widget.variant?.retailPrice ?? 0).toCurrencyFormatted(
-                        symbol: ProxyService.box.defaultCurrency()),
-                    style: textTheme.labelSmall?.copyWith(
-                      color: Colors.blue[700],
+                    style: textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.w600,
-                      fontSize: 12,
+                      color: Colors.black87,
+                      fontSize: 12, // Smaller font size
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
 
-                // Stock display with live updates from Riverpod
-                RepaintBoundary(
-                  child: Consumer(
-                    builder: (context, ref, child) {
-                      final stockAsync = ref.watch(stockByVariantProvider(
-                          widget.variant?.stockId ?? ''));
-                      final stockValue = stockAsync.value?.currentStock ?? 0;
+                  const SizedBox(height: 2), // Reduced spacing
+                  // Variant name (if different from product name)
+                  if (widget.variantName != widget.productName &&
+                      widget.variantName.isNotEmpty)
+                    Text(
+                      _truncateString(widget.variantName, 20),
+                      style: textTheme.bodyMedium?.copyWith(
+                        color: Colors.grey[600],
+                        fontSize: 10, // Smaller font size
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
 
-                      return Text(
-                        '$stockValue in stock',
-                        style: textTheme.bodySmall?.copyWith(
-                          color: stockValue > 0
-                              ? Colors.green[700]
-                              : Colors.red[700],
-                          fontSize: 11,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      );
-                    },
+                  const SizedBox(height: 4), // Reduced spacing
+                  // Price tag - simplified to avoid overflow
+                  if (widget.variant?.retailPrice != null &&
+                      widget.variant?.retailPrice != 0)
+                    Text(
+                      (widget.variant?.retailPrice ?? 0).toCurrencyFormatted(
+                        symbol: ProxyService.box.defaultCurrency(),
+                      ),
+                      style: textTheme.labelSmall?.copyWith(
+                        color: Colors.blue[700],
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+
+                  // Stock display with live updates from Riverpod
+                  RepaintBoundary(
+                    child: Consumer(
+                      builder: (context, ref, child) {
+                        final stockAsync = ref.watch(
+                          stockByVariantProvider(widget.variant?.stockId ?? ''),
+                        );
+                        final stockValue = stockAsync.value?.currentStock ?? 0;
+
+                        return Text(
+                          '$stockValue in stock',
+                          style: textTheme.bodySmall?.copyWith(
+                            color: stockValue > 0
+                                ? Colors.green[700]
+                                : Colors.red[700],
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        );
+                      },
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
-      );
-    });
+          ],
+        );
+      },
+    );
   }
 
   Widget _buildProductImageSection(bool isSelected) {
     return Hero(
-      tag: widget.variant?.id ??
+      tag:
+          widget.variant?.id ??
           widget.product?.id ??
           'product_image_${widget.product?.id}',
       child: Container(
@@ -534,18 +559,19 @@ class _RowItemState extends ConsumerState<RowItem>
                 Container(
                   decoration: BoxDecoration(
                     color: HexColor(
-                        widget.color.isEmpty ? "#FF0000" : widget.color),
+                      widget.color.isEmpty ? "#FF0000" : widget.color,
+                    ),
                     borderRadius: BorderRadius.circular(imageBorderRadius),
                   ),
                   child: Center(
                     child: Text(
                       widget.variantName.isNotEmpty
                           ? (widget.variantName.length > 3
-                              ? widget.variantName.substring(0, 3)
-                              : widget.variantName)
+                                ? widget.variantName.substring(0, 3)
+                                : widget.variantName)
                           : (widget.productName.length > 3
-                              ? widget.productName.substring(0, 3)
-                              : widget.productName),
+                                ? widget.productName.substring(0, 3)
+                                : widget.productName),
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 22.0,
@@ -727,10 +753,7 @@ class _RowItemState extends ConsumerState<RowItem>
           const SizedBox(height: 2),
           Text(
             'No Image',
-            style: TextStyle(
-              color: Colors.grey[600],
-              fontSize: 10,
-            ),
+            style: TextStyle(color: Colors.grey[600], fontSize: 10),
           ),
         ],
       ),
@@ -742,14 +765,16 @@ class _RowItemState extends ConsumerState<RowItem>
     required CoreViewModel model,
     required bool isOrdering,
   }) async {
-    final flipperWatch? w =
-        kDebugMode ? flipperWatch("onAddingItemToQuickSell") : null;
+    final flipperWatch? w = kDebugMode
+        ? flipperWatch("onAddingItemToQuickSell")
+        : null;
     w?.start();
 
     if (widget.variant != null) {
       // Debug: Log ttCatCd before adding to transaction
       talker.warning(
-          "DEBUG: onTapItem - variant.ttCatCd before adding: ${widget.variant!.ttCatCd}");
+        "DEBUG: onTapItem - variant.ttCatCd before adding: ${widget.variant!.ttCatCd}",
+      );
 
       // Use the shared TransactionItemAdder
       final itemAdder = TransactionItemAdder(context, ref);
@@ -800,20 +825,24 @@ class _RowItemState extends ConsumerState<RowItem>
     }
   }
 
-  Future<String> preSignedUrl(
-      {required String imageInS3, required int branchId}) async {
+  Future<String> preSignedUrl({
+    required String imageInS3,
+    required String branchId,
+  }) async {
     try {
       final filePath = 'public/branch-$branchId/$imageInS3';
       talker.warning("GettingPreSignedURL:$filePath");
 
       final file = await Amplify.Storage.getUrl(
-          path: StoragePath.fromString(filePath),
-          options: StorageGetUrlOptions(
-              pluginOptions: S3GetUrlPluginOptions(
+        path: StoragePath.fromString(filePath),
+        options: StorageGetUrlOptions(
+          pluginOptions: S3GetUrlPluginOptions(
             validateObjectExistence:
                 false, // Don't validate existence to avoid delays
             expiresIn: Duration(minutes: 30),
-          ))).result;
+          ),
+        ),
+      ).result;
 
       final url = file.url.toString();
       talker.info('Generated presigned URL: $url');
@@ -874,23 +903,25 @@ class _RowItemState extends ConsumerState<RowItem>
     return Container(
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.9),
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(12),
-        ),
+        borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(12)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           // Delete button
           IconButton(
-            icon:
-                Icon(Icons.delete_outline, color: colorScheme.error, size: 20),
+            icon: Icon(
+              Icons.delete_outline,
+              color: colorScheme.error,
+              size: 20,
+            ),
             tooltip: 'Delete',
             onPressed: () async {
               if (widget.variant != null) {
                 final strategy = ProxyService.getStrategy(Strategy.capella);
-                final stock =
-                    await strategy.getStockById(id: widget.variant!.stockId!);
+                final stock = await strategy.getStockById(
+                  id: widget.variant!.stockId!,
+                );
 
                 if ((stock.currentStock ?? 0) > 0 && !kDebugMode) {
                   final dialogService = locator<DialogService>();
@@ -911,8 +942,11 @@ class _RowItemState extends ConsumerState<RowItem>
 
           // Edit button
           IconButton(
-            icon:
-                Icon(Icons.edit_outlined, color: colorScheme.primary, size: 20),
+            icon: Icon(
+              Icons.edit_outlined,
+              color: colorScheme.primary,
+              size: 20,
+            ),
             tooltip: 'Edit',
             onPressed: () {
               if (widget.variant != null) {

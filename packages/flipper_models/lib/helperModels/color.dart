@@ -10,7 +10,7 @@ class PColor extends IJsonSerializable {
   int? id;
   late String? name;
   List<String>? colors;
-  late int? branchId;
+  late String? branchId;
   late bool active;
 
   @JsonKey(includeIfNull: true)

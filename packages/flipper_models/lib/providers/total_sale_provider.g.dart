@@ -16,7 +16,7 @@ final class TotalSaleProvider
     extends $FunctionalProvider<AsyncValue<double>, double, FutureOr<double>>
     with $FutureModifier<double>, $FutureProvider<double> {
   const TotalSaleProvider._(
-      {required TotalSaleFamily super.from, required int super.argument})
+      {required TotalSaleFamily super.from, required String super.argument})
       : super(
           retry: null,
           name: r'totalSaleProvider',
@@ -42,7 +42,7 @@ final class TotalSaleProvider
 
   @override
   FutureOr<double> create(Ref ref) {
-    final argument = this.argument as int;
+    final argument = this.argument as String;
     return TotalSale(
       ref,
       branchId: argument,
@@ -60,10 +60,10 @@ final class TotalSaleProvider
   }
 }
 
-String _$totalSaleHash() => r'a900d74bf26cef2fda75f60ea11bc394bc3cd8aa';
+String _$totalSaleHash() => r'ca4aeafa03a148bd15abf3aaa937e077254d2abb';
 
 final class TotalSaleFamily extends $Family
-    with $FunctionalFamilyOverride<FutureOr<double>, int> {
+    with $FunctionalFamilyOverride<FutureOr<double>, String> {
   const TotalSaleFamily._()
       : super(
           retry: null,
@@ -74,7 +74,7 @@ final class TotalSaleFamily extends $Family
         );
 
   TotalSaleProvider call({
-    required int branchId,
+    required String branchId,
   }) =>
       TotalSaleProvider._(argument: branchId, from: this);
 

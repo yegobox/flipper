@@ -22,7 +22,7 @@ class OuterVariants extends _$OuterVariants {
   bool _isVatEnabled = false;
 
   @override
-  FutureOr<List<Variant>> build(int branchId) async {
+  FutureOr<List<Variant>> build(String branchId) async {
     // Initialize itemsPerPage once. Use a smaller default for better performance
     final int _defaultPageSize = 15; // Reduced from 20 for better performance
     const int _maxPageSize = 50; // Reduced max from 100
@@ -49,7 +49,7 @@ class OuterVariants extends _$OuterVariants {
   }
 
   Future<PagedVariants> _fetchVariants(
-      int branchId, int page, String searchString) async {
+      String branchId, int page, String searchString) async {
     talker.info(
         'OuterVariants: _fetchVariants called (page=$page, itemsPerPage=${_itemsPerPage ?? 'null'}, searchString="$searchString")');
 
@@ -163,7 +163,7 @@ class Products extends _$Products {
   bool _initialLoadComplete = false;
 
   @override
-  FutureOr<List<Product>> build(int branchId) async {
+  FutureOr<List<Product>> build(String branchId) async {
     final searchString = ref.watch(searchStringProvider);
     final scanMode = ref.watch(scanningModeProvider);
 

@@ -1,3 +1,3 @@
 abstract class PaymentInterface {
-  // Future<List<Payment>> payments({required int branchId});
+  // Future<List<Payment>> payments({required String branchId});
 }

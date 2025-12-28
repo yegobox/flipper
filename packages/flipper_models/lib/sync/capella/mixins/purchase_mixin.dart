@@ -33,12 +33,8 @@ mixin CapellaPurchaseMixin implements PurchaseInterface {
   }
 
   @override
-  Future<void> saveVariant(
-    Variant item,
-    Business business,
-    int branchId,
-      {required bool skipRRaCall}
-  ) async {
+  Future<void> saveVariant(Variant item, Business business, String branchId,
+      {required bool skipRRaCall}) async {
     throw UnimplementedError('saveVariant needs to be implemented for Capella');
   }
 

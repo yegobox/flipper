@@ -8,8 +8,8 @@ part of 'counter.dart';
 
 ICounter _$ICounterFromJson(Map<String, dynamic> json) => ICounter(
       id: (json['id'] as num?)?.toInt(),
-      businessId: (json['businessId'] as num).toInt(),
-      branchId: (json['branchId'] as num).toInt(),
+      businessId: json['businessId'] as String,
+      branchId: json['branchId'] as String,
       receiptType: json['receiptType'] as String,
       totRcptNo: (json['totRcptNo'] as num).toInt(),
       curRcptNo: (json['curRcptNo'] as num).toInt(),

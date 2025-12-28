@@ -8,7 +8,7 @@ abstract class StockRecountInterface {
   /// Start a new recount session
   /// Returns the created StockRecount with 'draft' status
   Future<StockRecount> startRecountSession({
-    required int branchId,
+    required String branchId,
     String? userId,
     String? deviceId,
     String? deviceName,
@@ -18,7 +18,7 @@ abstract class StockRecountInterface {
   /// Get all recount sessions for a branch
   /// [status] - Optional filter: 'draft', 'submitted', 'synced'
   Future<List<StockRecount>> getRecounts({
-    required int branchId,
+    required String branchId,
     String? status,
   });
 
@@ -64,14 +64,14 @@ abstract class StockRecountInterface {
 
   /// Stream of recounts for real-time updates
   Stream<List<StockRecount>> recountsStream({
-    required int branchId,
+    required String branchId,
     String? status,
   });
 
   /// Get stock summary for recount
   /// Returns current stock quantities for variants in the branch
   Future<Map<String, double>> getStockSummary({
-    required int branchId,
+    required String branchId,
     List<String>? variantIds,
   });
 }

@@ -11,7 +11,7 @@ class IUnit extends OfflineFirstWithSupabaseModel {
   @Sqlite(index: true, unique: true)
   final String id;
 
-  int? branchId;
+  String? branchId;
   String? name;
   String? value;
   @Sqlite(defaultValue: "false")

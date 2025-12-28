@@ -243,7 +243,7 @@ class AuditLog extends OfflineFirstWithSupabaseModel {
   final String id;
   
   @Sqlite(index: true)
-  final int? branchId;
+  final String? branchId;
   
   final String action;
   final String userId;

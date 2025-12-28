@@ -9,7 +9,7 @@ class AiStrategyImpl implements AiStrategy {
   final brick.Repository repository = brick.Repository();
 
   @override
-  Stream<List<Conversation>> conversationsStream({required int branchId}) {
+  Stream<List<Conversation>> conversationsStream({required String branchId}) {
     try {
       return repository
           .subscribe<Conversation>(
@@ -30,7 +30,7 @@ class AiStrategyImpl implements AiStrategy {
 
   @override
   Future<List<Conversation>> getConversations({
-    required int branchId,
+    required String branchId,
     int? limit,
     int? offset,
   }) async {
@@ -55,7 +55,7 @@ class AiStrategyImpl implements AiStrategy {
   @override
   Future<Conversation> createConversation({
     required String title,
-    required int branchId,
+    required String branchId,
   }) async {
     try {
       final conversation = Conversation(
@@ -159,7 +159,7 @@ class AiStrategyImpl implements AiStrategy {
   Future<Message> saveMessage({
     required String text,
     required String phoneNumber,
-    required int branchId,
+    required String branchId,
     required String role,
     required String conversationId,
     String? aiResponse,

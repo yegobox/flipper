@@ -8,7 +8,7 @@ Future<IUnit> _$IUnitFromSupabase(
 }) async {
   return IUnit(
     id: data['id'] as String?,
-    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
     name: data['name'] == null ? null : data['name'] as String?,
     value: data['value'] == null ? null : data['value'] as String?,
     active: data['active'] == null ? null : data['active'] as bool? ?? false,
@@ -52,7 +52,7 @@ Future<IUnit> _$IUnitFromSqlite(
 }) async {
   return IUnit(
     id: data['id'] as String,
-    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
     name: data['name'] == null ? null : data['name'] as String?,
     value: data['value'] == null ? null : data['value'] as String?,
     active: data['active'] == null ? null : data['active'] == 1,
@@ -158,7 +158,7 @@ class IUnitAdapter extends OfflineFirstWithSupabaseAdapter<IUnit> {
       association: false,
       columnName: 'branch_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'name': const RuntimeSqliteColumnDefinition(
       association: false,

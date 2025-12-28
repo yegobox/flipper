@@ -125,7 +125,7 @@ class CoreViewModel extends FlipperBaseModel
   }
 
   Future<bool> updateCategoryCore({required Category category}) async {
-    int branchId = ProxyService.box.getBranchId()!;
+    String branchId = ProxyService.box.getBranchId()!;
 
     try {
       List<Category> allCategories = await ProxyService.strategy.categories(
@@ -167,11 +167,12 @@ class CoreViewModel extends FlipperBaseModel
     /// query for an item that is not active so we can edit it
     /// if the item is not available it will be created, if we are done with working with item
     /// we then change status of active from false to true
-    List<TransactionItem> items = await ProxyService.getStrategy(Strategy.capella).transactionItems(
-        branchId: (await ProxyService.strategy.activeBranch()).id,
-        transactionId: pendingTransaction?.id,
-        doneWithTransaction: false,
-        active: false);
+    List<TransactionItem> items =
+        await ProxyService.getStrategy(Strategy.capella).transactionItems(
+            branchId: (await ProxyService.strategy.activeBranch()).id,
+            transactionId: pendingTransaction?.id,
+            doneWithTransaction: false,
+            active: false);
 
     switch (key) {
       case 'C':
@@ -305,8 +306,8 @@ class CoreViewModel extends FlipperBaseModel
           .getTransactionItem(
               variantId: variation.id, transactionId: pendingTransaction?.id);
 
-      List<TransactionItem> items = await ProxyService.getStrategy(Strategy.capella)
-          .transactionItems(
+      List<TransactionItem> items =
+          await ProxyService.getStrategy(Strategy.capella).transactionItems(
               branchId: (await ProxyService.strategy.activeBranch()).id,
               transactionId: pendingTransaction?.id,
               doneWithTransaction: false,
@@ -325,8 +326,8 @@ class CoreViewModel extends FlipperBaseModel
           subTotal: items.fold(0, (a, b) => a! + (b.price * b.qty) + amount),
         );
       } else {
-        List<TransactionItem> items = await ProxyService.getStrategy(Strategy.capella)
-            .transactionItems(
+        List<TransactionItem> items =
+            await ProxyService.getStrategy(Strategy.capella).transactionItems(
                 branchId: (await ProxyService.strategy.activeBranch()).id,
                 transactionId: pendingTransaction?.id,
                 doneWithTransaction: false,
@@ -391,7 +392,7 @@ class CoreViewModel extends FlipperBaseModel
 
   ///create a new category and refresh list of categories
   Future<void> createCategory() async {
-    final int? branchId = ProxyService.box.getBranchId();
+    final String? branchId = ProxyService.box.getBranchId();
     if (categoryName == null) return;
     final Category category = Category(
       name: categoryName!,
@@ -463,7 +464,7 @@ class CoreViewModel extends FlipperBaseModel
   }
 
   Future<List<Variant>> getVariants({required String productId}) async {
-    int branchId = ProxyService.box.getBranchId()!;
+    String branchId = ProxyService.box.getBranchId()!;
     final pagedVariants = await ProxyService.strategy.variants(
         branchId: branchId,
         productId: productId,
@@ -542,7 +543,7 @@ class CoreViewModel extends FlipperBaseModel
       required String customerType,
       String? id,
       String? tinNumber}) async {
-    int branchId = ProxyService.box.getBranchId()!;
+    String branchId = ProxyService.box.getBranchId()!;
     ProxyService.strategy.addCustomer(
         customer: Customer(
           id: id,
@@ -748,13 +749,13 @@ class CoreViewModel extends FlipperBaseModel
   List<TransactionItem> transactionItems = [];
 
   void loadReport() async {
-    int branchId = ProxyService.box.getBranchId()!;
+    String branchId = ProxyService.box.getBranchId()!;
     List<ITransaction> completedTransactions = await ProxyService.strategy
         .transactions(branchId: branchId, status: COMPLETE);
     Set<TransactionItem> allItems = {};
     for (ITransaction completedTransaction in completedTransactions) {
-      List<TransactionItem> transactionItems = await ProxyService.getStrategy(Strategy.capella)
-          .transactionItems(
+      List<TransactionItem> transactionItems =
+          await ProxyService.getStrategy(Strategy.capella).transactionItems(
               branchId: (await ProxyService.strategy.activeBranch()).id,
               transactionId: completedTransaction.id);
       allItems.addAll(transactionItems.toSet());
@@ -889,12 +890,12 @@ class CoreViewModel extends FlipperBaseModel
     return res;
   }
 
-  weakUp({required String pin, required int userId}) async {
+  weakUp({required String pin, required String userId}) async {
     // ProxyService.strategy.recordUserActivity(
     //   userId: userId,
     //   activity: 'session',
     // );
-    ProxyService.box.writeInt(key: 'userId', value: userId);
+    ProxyService.box.writeString(key: 'userId', value: userId);
     Tenant? tenant = await ProxyService.strategy.getTenant(userId: userId);
 
     ProxyService.strategy.updateTenant(

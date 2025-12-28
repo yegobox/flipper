@@ -20,7 +20,7 @@ class LogService {
     Object exception, {
     StackTrace? stackTrace,
     String? type,
-    int? businessId,
+    String? businessId,
     Map<String, String>? tags,
     Map<String, dynamic>? extra,
   }) async {
@@ -38,7 +38,8 @@ $formattedStack
 ''';
 
       // Get business ID from proxy service if not provided
-      final int? logBusinessId = businessId ?? ProxyService.box.getBusinessId();
+      final String? logBusinessId =
+          businessId ?? ProxyService.box.getBusinessId();
 
       // Create log entry
       final log = Log(
@@ -68,13 +69,14 @@ $formattedStack
   Future<void> logMessage(
     String message, {
     String? type,
-    int? businessId,
+    String? businessId,
     Map<String, String>? tags,
     Map<String, dynamic>? extra,
   }) async {
     try {
       // Get business ID from proxy service if not provided
-      final int? logBusinessId = businessId ?? ProxyService.box.getBusinessId();
+      final String? logBusinessId =
+          businessId ?? ProxyService.box.getBusinessId();
 
       // Create log entry
       final log = Log(
@@ -113,7 +115,7 @@ $formattedStack
   /// [limit] - Maximum number of logs to retrieve (default: 100)
   Future<List<Log>> getLogs({
     String? type,
-    int? businessId,
+    String? businessId,
     int limit = 100,
   }) async {
     try {
@@ -134,7 +136,7 @@ $formattedStack
   /// [businessId] - Optional business ID to filter by
   Future<int> clearOldLogs({
     required Duration olderThan,
-    int? businessId,
+    String? businessId,
   }) async {
     try {
       return await ProxyService.strategy.clearOldLogs(

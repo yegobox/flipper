@@ -35,16 +35,16 @@ class BranchDittoAdapter extends DittoSyncAdapter<Branch> {
   dynamic _activeObserver;
   dynamic _activeSubscription;
 
-  static int? Function()? _branchIdProviderOverride;
-  static int? Function()? _businessIdProviderOverride;
+  static String? Function()? _branchIdProviderOverride;
+  static String? Function()? _businessIdProviderOverride;
 
   /// Allows tests to override how the current branch ID is resolved.
-  void overrideBranchIdProvider(int? Function()? provider) {
+  void overrideBranchIdProvider(String? Function()? provider) {
     _branchIdProviderOverride = provider;
   }
 
   /// Allows tests to override how the current business ID is resolved.
-  void overrideBusinessIdProvider(int? Function()? provider) {
+  void overrideBusinessIdProvider(String? Function()? provider) {
     _businessIdProviderOverride = provider;
   }
 
@@ -121,6 +121,8 @@ class BranchDittoAdapter extends DittoSyncAdapter<Branch> {
       "isDefault": model.isDefault,
       "isOnline": model.isOnline,
       "tinNumber": model.tinNumber,
+      "deletedAt": model.deletedAt?.toIso8601String(),
+      "updatedAt": model.updatedAt?.toIso8601String(),
     };
   }
 
@@ -165,6 +167,8 @@ class BranchDittoAdapter extends DittoSyncAdapter<Branch> {
       isDefault: document["isDefault"],
       isOnline: document["isOnline"],
       tinNumber: document["tinNumber"],
+      deletedAt: DateTime.tryParse(document["deletedAt"]?.toString() ?? ""),
+      updatedAt: DateTime.tryParse(document["updatedAt"]?.toString() ?? ""),
     );
   }
 
