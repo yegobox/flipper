@@ -20,8 +20,8 @@ abstract class BranchInterface {
     required HttpClientInterface flipperHttpClient,
     int? serverId,
     String? description,
-    String? longitude,
-    String? latitude,
+    num? longitude,
+    num? latitude,
     required bool isDefault,
     required bool active,
     DateTime? lastTouched,
@@ -34,7 +34,7 @@ abstract class BranchInterface {
   Future<List<Category>> categories({required String branchId});
   Stream<List<Category>> categoryStream();
   Future<Branch> activeBranch();
-  Stream<Branch> activeBranchStream();
+  Stream<Branch> activeBranchStream({required String businessId});
   Future<void> saveBranch(Branch branch);
   FutureOr<void> updateBranch(
       {required String branchId, String? name, bool? active, bool? isDefault});

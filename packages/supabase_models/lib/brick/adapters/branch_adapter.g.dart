@@ -18,8 +18,8 @@ Future<Branch> _$BranchFromSupabase(
     businessId: data['business_id'] == null
         ? null
         : data['business_id'] as String?,
-    latitude: data['latitude'] == null ? null : data['latitude'] as String?,
-    longitude: data['longitude'] == null ? null : data['longitude'] as String?,
+    latitude: data['latitude'] == null ? null : data['latitude'] as num?,
+    longitude: data['longitude'] == null ? null : data['longitude'] as num?,
     isDefault: data['is_default'] == null ? null : data['is_default'] as bool?,
     isOnline: data['is_online'] == null ? null : data['is_online'] as bool?,
     tinNumber: data['tin_number'] == null
@@ -78,8 +78,8 @@ Future<Branch> _$BranchFromSqlite(
     businessId: data['business_id'] == null
         ? null
         : data['business_id'] as String?,
-    latitude: data['latitude'] == null ? null : data['latitude'] as String?,
-    longitude: data['longitude'] == null ? null : data['longitude'] as String?,
+    latitude: data['latitude'] == null ? null : data['latitude'] as num?,
+    longitude: data['longitude'] == null ? null : data['longitude'] as num?,
     isDefault: data['is_default'] == null ? null : data['is_default'] == 1,
     isOnline: data['is_online'] == null ? null : data['is_online'] == 1,
     tinNumber: data['tin_number'] == null
@@ -250,13 +250,13 @@ class BranchAdapter extends OfflineFirstWithSupabaseAdapter<Branch> {
       association: false,
       columnName: 'latitude',
       iterable: false,
-      type: String,
+      type: num,
     ),
     'longitude': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'longitude',
       iterable: false,
-      type: String,
+      type: num,
     ),
     'isDefault': const RuntimeSqliteColumnDefinition(
       association: false,

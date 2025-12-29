@@ -222,7 +222,7 @@ class Business extends OfflineFirstWithSupabaseModel {
   factory Business.fromMap(Map<String, dynamic> map) {
     return Business(
       id: map['id'] as String,
-      serverId: map['server_id'] as int,
+      serverId: (map['server_id'] ?? map['serverId'] ?? 0) as int,
       name: map['name'] as String?,
       currency: map['currency'] as String?,
       categoryId: map['category_id'] as String?,

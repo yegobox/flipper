@@ -1,4 +1,4 @@
-// igimport 'package:flipper_models/providers/branch_business_provider.dart';
+import 'package:flipper_models/providers/branch_business_provider.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -16,13 +16,12 @@ import 'package:flipper_personal/flipper_personal.dart';
 // removed unused import
 import 'dart:async';
 import 'dart:io';
-import 'package:flipper_models/ebm_helper.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_dashboard/BranchSelectionMixin.dart';
 import 'package:flipper_dashboard/utils/error_handler.dart';
-import 'package:flipper_models/providers/branch_business_provider.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
+import 'package:flipper_services/app_service.dart';
 // ignore: unnecessary_import
 
 final selectedBusinessIdProvider = StateProvider<String?>((ref) => null);
@@ -208,61 +207,12 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     required IconData icon,
     required bool isLoading,
   }) {
-    return GestureDetector(
+    return buildBranchSelectionTile(
+      title: title,
+      isSelected: isSelected,
       onTap: onTap,
-      child: MouseRegion(
-        cursor: SystemMouseCursors.click,
-        child: Container(
-          padding: const EdgeInsets.all(20.0),
-          decoration: BoxDecoration(
-            color: isSelected
-                ? Colors.blue.withValues(alpha: 0.1)
-                : Colors.grey[100],
-            borderRadius: BorderRadius.circular(12.0),
-            border: Border.all(
-              color: isSelected ? Colors.blue : Colors.transparent,
-              width: 2.0,
-            ),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: Colors.blue.withValues(alpha: 0.3),
-                      blurRadius: 8.0,
-                    ),
-                  ]
-                : null,
-          ),
-          child: Row(
-            children: [
-              isLoading
-                  ? const SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Icon(
-                      icon,
-                      color: isSelected ? Colors.blue : Colors.grey[600],
-                    ),
-              const SizedBox(width: 16.0),
-              Expanded(
-                child: Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 20.0,
-                    fontWeight: FontWeight.w500,
-                    color: isSelected ? Colors.blue : Colors.black,
-                  ),
-                ),
-              ),
-              Icon(
-                Icons.chevron_right,
-                color: isSelected ? Colors.blue : Colors.grey[400],
-              ),
-            ],
-          ),
-        ),
-      ),
+      icon: icon,
+      loadingItemId: isLoading ? 'loading' : null,
     );
   }
 
@@ -291,20 +241,22 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     try {
       // Save business ID to local storage
       await ProxyService.box.writeString(key: 'businessId', value: business.id);
-      await _setDefaultBusiness(business);
+      await locator<AppService>().setDefaultBusiness(business);
       // Get the latest payment plan online.
       await ProxyService.strategy.getPaymentPlan(
         businessId: business.id,
         fetchOnline: true,
       );
-      final branches = await ProxyService.strategy.branches(
-        businessId: business.id,
-        active: false,
-      );
+      final userId = ProxyService.box.getUserId();
+      final List<Map<String, dynamic>> branchesJson = await ProxyService.ditto
+          .getBranches(userId!, business.id);
+
+      final branches = branchesJson.map((j) => Branch.fromMap(j)).toList();
 
       if (branches.length == 1) {
         // If there's only one branch, set it as default and complete login
-        await _setDefaultBranch(branches.first);
+        await locator<AppService>().setDefaultBranch(branches.first);
+        _invalidateProviders();
         _completeAuthenticationFlow();
       } else {
         // If multiple branches, show branch selection
@@ -330,9 +282,9 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     Branch branch,
     BuildContext context,
   ) async {
-    final platform = Theme.of(context).platform;
     final isMobile =
-        platform == TargetPlatform.android || platform == TargetPlatform.iOS;
+        Theme.of(context).platform == TargetPlatform.android ||
+        Theme.of(context).platform == TargetPlatform.iOS;
     setState(() {
       _loadingItemId = branch.id.toString();
       _isLoading = true;
@@ -349,7 +301,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
       // Removed manual setUserId/logout here.
       final userId = ProxyService.box.getUserId();
 
-      await _setDefaultBranch(branch);
+      await locator<AppService>().setDefaultBranch(branch);
 
       // Save device being logged in
       await _saveDeviceRecord();
@@ -399,153 +351,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     }
   }
 
-  Future<void> _setDefaultBusiness(Business business) async {
-    ref.read(businessSelectionProvider.notifier).setLoading(true);
-
-    try {
-      // First make all businesses inactive
-      await _updateAllBusinessesInactive();
-      // Then set the selected business as active and default
-      await _updateBusinessActive(business);
-      // Update preferences
-      await _updateBusinessPreferences(business);
-      // Refresh providers to reflect changes
-      _refreshBusinessAndBranchProviders();
-    } catch (e) {
-      talker.error('Error setting default business: $e');
-      if (mounted) {
-        ErrorHandler.showErrorSnackBar(context, e);
-        rethrow;
-      }
-    } finally {
-      if (mounted) {
-        ref.read(businessSelectionProvider.notifier).setLoading(false);
-      }
-    }
-  }
-
-  Future<void> _setDefaultBranch(Branch branch) async {
-    ref.read(branchSelectionProvider.notifier).setLoading(true);
-
-    try {
-      // First make all branches inactive
-      await _updateAllBranchesInactive();
-      // Then set the selected branch as active and default
-      await _updateBranchActive(branch);
-      // Update branch ID in storage
-      await ProxyService.box.writeString(key: 'branchId', value: branch.id);
-      await ProxyService.box.writeString(
-        key: 'branchIdString',
-        value: branch.id,
-      );
-      // Set switched flag for other components to detect
-      await ProxyService.box.writeBool(key: 'branch_switched', value: true);
-      await ProxyService.box.writeInt(
-        key: 'last_branch_switch_timestamp',
-        value: DateTime.now().millisecondsSinceEpoch,
-      );
-      await ProxyService.box.writeString(
-        key: 'active_branch_id',
-        value: branch.id,
-      );
-
-      // Refresh providers to reflect changes
-      _refreshBusinessAndBranchProviders();
-    } catch (e) {
-      talker.error('Error setting default branch: $e');
-    } finally {
-      ref.read(branchSelectionProvider.notifier).setLoading(false);
-    }
-  }
-
-  Future<void> _updateAllBusinessesInactive() async {
-    final businesses = await ProxyService.strategy.businesses(
-      userId: ProxyService.box.getUserId()!,
-    );
-    for (final business in businesses) {
-      await ProxyService.strategy.updateBusiness(
-        businessId: business.id,
-        active: false,
-        isDefault: false,
-      );
-    }
-  }
-
-  Future<void> _updateBusinessActive(Business business) async {
-    await ProxyService.strategy.updateBusiness(
-      businessId: business.id,
-      active: true,
-      isDefault: true,
-    );
-  }
-
-  Future<void> _updateBusinessPreferences(Business business) async {
-    // Get existing tin value if available
-    final existingTin = ProxyService.box.readInt(key: 'tin');
-
-    // Collect all storage write futures
-    final futures = <Future>[];
-
-    futures.add(
-      ProxyService.box.writeString(key: 'businessId', value: business.id),
-    );
-    futures.add(
-      ProxyService.box.writeString(
-        key: 'bhfId',
-        value: (await ProxyService.box.bhfId()) ?? "00",
-      ),
-    );
-
-    // Resolve effective TIN (prefer Ebm for active branch) and update box if needed
-    final resolvedTin = await effectiveTin(business: business);
-    if (resolvedTin != null || existingTin == null) {
-      futures.add(
-        ProxyService.box.writeInt(
-          key: 'tin',
-          value: resolvedTin ?? existingTin ?? 0,
-        ),
-      );
-      talker.debug(
-        'Setting tin to ${resolvedTin ?? existingTin ?? 0} (from ${resolvedTin != null ? 'ebm/business' : 'existing value'})',
-      );
-    } else {
-      talker.debug('Preserving existing tin value: $existingTin');
-    }
-
-    futures.add(
-      ProxyService.box.writeString(
-        key: 'encryptionKey',
-        value: business.encryptionKey ?? "",
-      ),
-    );
-
-    // Wait for all storage operations to complete
-    await Future.wait(futures);
-  }
-
-  Future<void> _updateAllBranchesInactive() async {
-    final businessId = ref.read(selectedBusinessIdProvider);
-    if (businessId == null) return;
-    final branches = await ProxyService.strategy.branches(
-      businessId: businessId,
-      active: true,
-    );
-    for (final branch in branches) {
-      await ProxyService.strategy.updateBranch(
-        branchId: branch.id,
-        active: false,
-        isDefault: false,
-      );
-    }
-  }
-
-  Future<void> _updateBranchActive(Branch branch) async {
-    await ProxyService.strategy.updateBranch(
-      branchId: branch.id,
-      active: true,
-      isDefault: true,
-    );
-  }
+  // Consolidating logic into AppService
 
   void _completeAuthenticationFlow() {
     final selectedBusinessId = ref.read(selectedBusinessIdProvider);
@@ -571,7 +377,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     });
   }
 
-  void _refreshBusinessAndBranchProviders() {
+  void _invalidateProviders() {
     // Refresh providers to reflect changes
     ref.invalidate(businessesProvider);
     final businessId = ref.read(selectedBusinessIdProvider);
@@ -579,6 +385,8 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
       ref.invalidate(branchesProvider(businessId: businessId));
     }
   }
+
+  // Consolidating logic into AppService
 
   bool get isMobileDevice {
     return Platform.isAndroid || Platform.isIOS;

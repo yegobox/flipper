@@ -980,8 +980,8 @@ final branchMock = Branch(
   active: false,
   description: 'desc',
   businessId: "10",
-  latitude: '0',
-  longitude: '2',
+  latitude: 0,
+  longitude: 0,
   name: 'name',
   isDefault: false,
 );

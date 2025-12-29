@@ -529,10 +529,18 @@ class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
 
   Future<void> _fetchBranches() async {
     try {
-      final branches = await ProxyService.strategy.branches(
-        businessId: ProxyService.box.getBusinessId()!,
-        active: false,
-      );
+      final userId = ProxyService.box.getUserId();
+      final businessId = ProxyService.box.getBusinessId();
+
+      if (userId == null || businessId == null) {
+        setState(() => _isLoading = false);
+        return;
+      }
+
+      final List<Map<String, dynamic>> branchesJson = await ProxyService.ditto
+          .getBranches(userId, businessId);
+
+      final branches = branchesJson.map((j) => Branch.fromMap(j)).toList();
 
       if (mounted) {
         setState(() {

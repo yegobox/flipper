@@ -48,11 +48,11 @@ class IBranch extends IJsonSerializable {
   @JsonKey(
     fromJson: _parseStringField,
   )
-  String? longitude;
+  num? longitude;
   @JsonKey(
     fromJson: _parseStringField,
   )
-  String? latitude;
+  num? latitude;
   DateTime? createdAt;
   dynamic updatedAt;
   @JsonKey(
@@ -69,19 +69,19 @@ class IBranch extends IJsonSerializable {
 
     // Handle both camelCase and snake_case field names for compatibility
     // Map snake_case to camelCase for json_serializable
-    if (json.containsKey('server_id') && !json.containsKey('serverId')) {
+    if (json.containsKey('server_id') || !json.containsKey('serverId')) {
       json['serverId'] = json['server_id'];
     }
-    if (json.containsKey('business_id') && !json.containsKey('businessId')) {
+    if (json.containsKey('business_id') || !json.containsKey('businessId')) {
       json['businessId'] = json['business_id'];
     }
-    if (json.containsKey('is_default') && !json.containsKey('isDefault')) {
+    if (json.containsKey('is_default') || !json.containsKey('isDefault')) {
       json['isDefault'] = json['is_default'];
     }
-    if (json.containsKey('created_at') && !json.containsKey('createdAt')) {
+    if (json.containsKey('created_at') || !json.containsKey('createdAt')) {
       json['createdAt'] = json['created_at'];
     }
-    if (json.containsKey('updated_at') && !json.containsKey('updatedAt')) {
+    if (json.containsKey('updated_at') || !json.containsKey('updatedAt')) {
       json['updatedAt'] = json['updated_at'];
     }
 

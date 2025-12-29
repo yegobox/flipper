@@ -30,8 +30,8 @@ class Branch extends OfflineFirstWithSupabaseModel {
   String? description;
   bool? active;
   String? businessId;
-  String? latitude;
-  String? longitude;
+  num? latitude;
+  num? longitude;
   bool? isDefault;
   bool? isOnline;
   String? tinNumber;
@@ -63,8 +63,8 @@ class Branch extends OfflineFirstWithSupabaseModel {
     String? description,
     bool? active,
     String? businessId,
-    String? latitude,
-    String? longitude,
+    num? latitude,
+    num? longitude,
     bool? isDefault,
     bool? isOnline,
     String? tinNumber,
@@ -105,5 +105,28 @@ class Branch extends OfflineFirstWithSupabaseModel {
       'deletedAt': deletedAt,
       'updatedAt': updatedAt
     };
+  }
+
+  factory Branch.fromMap(Map<String, dynamic> map) {
+    return Branch(
+      id: map['id'] as String,
+      name: map['name'] as String?,
+      serverId: (map['serverId'] ?? map['server_id']) as int?,
+      location: map['location'] as String?,
+      description: map['description'] as String?,
+      active: map['active'] as bool?,
+      businessId: map['businessId'] as String?,
+      latitude: map['latitude'],
+      longitude: map['longitude'],
+      isDefault: map['isDefault'] as bool? ?? false,
+      isOnline: map['isOnline'] as bool? ?? false,
+      tinNumber: map['tinNumber'] as String?,
+      deletedAt: map['deletedAt'] != null
+          ? DateTime.tryParse(map['deletedAt'] as String)
+          : null,
+      updatedAt: map['updatedAt'] != null
+          ? DateTime.tryParse(map['updatedAt'] as String)
+          : null,
+    );
   }
 }

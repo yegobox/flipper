@@ -1099,20 +1099,14 @@ class CoreSync extends AiStrategyImpl
   @override
   FutureOr<bool> isAdmin(
       {required String userId, required String appFeature}) async {
-    final anyAccess = await repository.get<Access>(
-        query: brick.Query(where: [brick.Where('userId').isExactly(userId)]));
+    final accesses = await allAccess(userId: userId);
 
     /// cases where no access was set to a user he is admin by default.
-    if (anyAccess.firstOrNull == null) return true;
+    if (accesses.isEmpty) return true;
 
-    final accesses = await repository.get<Access>(
-        query: brick.Query(where: [
-      brick.Where('userId').isExactly(userId),
-      brick.Where('featureName').isExactly(appFeature),
-      brick.Where('accessLevel').isExactly('admin'),
-    ]));
-
-    return accesses.firstOrNull != null;
+    return accesses.any((access) =>
+        access.featureName == appFeature &&
+        access.accessLevel?.toLowerCase() == 'admin');
   }
 
   bool isEmail(String input) {
@@ -2497,21 +2491,13 @@ class CoreSync extends AiStrategyImpl
       {required String userId,
       String? featureName,
       required bool fetchRemote}) async {
-    final access = await repository.get<Access>(
-      policy: fetchRemote
-          ? OfflineFirstGetPolicy.awaitRemoteWhenNoneExist
-          : OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
-      query: brick.Query(
-        limit: 20,
-        where: [
-          brick.Where('userId').isExactly(userId),
-          if (featureName != null)
-            brick.Where('featureName').isExactly(featureName),
-        ],
-        orderBy: [brick.OrderBy('id', ascending: true)],
-      ),
-    );
-    return access;
+    final accesses = await allAccess(userId: userId);
+    if (featureName != null) {
+      return accesses
+          .where((element) => element.featureName == featureName)
+          .toList();
+    }
+    return accesses;
   }
 
   @override
@@ -3690,12 +3676,48 @@ class CoreSync extends AiStrategyImpl
 
   @override
   Future<List<Access>> allAccess({required String userId}) async {
-    return (await repository.get<Access>(
-      policy: OfflineFirstGetPolicy.localOnly,
-      query: Query(
-        where: [Where('userId').isExactly(userId)],
-      ),
-    ));
+    final userAccessJson = await ProxyService.ditto.getUserAccess(userId);
+    return _mapUserAccessToAccessList(userAccessJson);
+  }
+
+  List<Access> _mapUserAccessToAccessList(
+      Map<String, dynamic>? userAccessJson) {
+    if (userAccessJson == null || !userAccessJson.containsKey('businesses')) {
+      return [];
+    }
+
+    final List<Access> allAccesses = [];
+    final List<dynamic> businesses = userAccessJson['businesses'];
+
+    for (final business in businesses) {
+      if (business.containsKey('branches')) {
+        final List<dynamic> branches = business['branches'];
+        for (final branch in branches) {
+          if (branch.containsKey('accesses')) {
+            final List<dynamic> accesses = branch['accesses'];
+            for (final accessJson in accesses) {
+              allAccesses.add(
+                Access(
+                  id: accessJson['id'],
+                  branchId: accessJson['branch_id'],
+                  businessId: accessJson['business_id'],
+                  userId: accessJson['user_id'],
+                  featureName: accessJson['feature_name'],
+                  userType: accessJson['user_type'],
+                  accessLevel: accessJson['access_level'],
+                  status: accessJson['status'],
+                  createdAt: accessJson['created_at'] != null
+                      ? DateTime.tryParse(accessJson['created_at'])
+                      : null,
+                ),
+              );
+            }
+          }
+        }
+      }
+    }
+
+    return allAccesses;
   }
 
   @override

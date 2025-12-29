@@ -42,7 +42,8 @@ final connectivityStreamProvider = StreamProvider<bool>((ref) {
 final customersStreamProvider = StreamProvider.autoDispose
     .family<List<Customer>, ({String? branchId, String? id})>((ref, params) {
   final (:branchId, :id) = params;
-  return ProxyService.strategy.customersStream(branchId: branchId ?? "", id: id);
+  return ProxyService.strategy
+      .customersStream(branchId: branchId ?? "", id: id);
 });
 
 final customerProvider = FutureProvider.autoDispose
@@ -559,8 +560,17 @@ final tenantProvider = FutureProvider<Tenant?>((ref) async {
 
 final businessesProvider = FutureProvider<List<Business>>((ref) async {
   try {
-    return await ProxyService.strategy
-        .businesses(userId: ProxyService.box.getUserId()!);
+    final userId = ProxyService.box.getUserId();
+    if (userId == null) return [];
+
+    final userAccess = await ProxyService.ditto.getUserAccess(userId);
+    if (userAccess != null && userAccess.containsKey('businesses')) {
+      final List<dynamic> businessesJson = userAccess['businesses'];
+      return businessesJson
+          .map((json) => Business.fromMap(Map<String, dynamic>.from(json)))
+          .toList();
+    }
+    return [];
   } catch (e, stack) {
     // Log the error to our error service
     if (ProxyService.box.getUserLoggingEnabled() ?? false) {

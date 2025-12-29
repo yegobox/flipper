@@ -31,6 +31,15 @@ mixin UserAccessMixin on DittoCore {
       return handleNotInitializedAndReturn('getUserAccess', null);
 
     try {
+      dittoInstance!.sync.registerSubscription(
+        "SELECT * FROM user_access WHERE _id = :id",
+        arguments: {'id': userId},
+      );
+      dittoInstance!.store.registerObserver(
+        "SELECT * FROM user_access WHERE _id = :id",
+        arguments: {'id': userId},
+      );
+
       final result = await dittoInstance!.store.execute(
         "SELECT * FROM user_access WHERE _id = :id",
         arguments: {"id": userId},
@@ -43,6 +52,29 @@ mixin UserAccessMixin on DittoCore {
       debugPrint('❌ Error retrieving user access data from Ditto: $e');
       return null;
     }
+  }
+
+  /// Get branches for a specific business from user access data.
+  Future<List<Map<String, dynamic>>> getBranches(
+    String userId,
+    String businessId,
+  ) async {
+    final userAccess = await getUserAccess(userId);
+    if (userAccess == null || !userAccess.containsKey('businesses')) {
+      return [];
+    }
+
+    final List<dynamic> businesses = userAccess['businesses'];
+    final business = businesses.firstWhere(
+      (b) => b['id'] == businessId,
+      orElse: () => null,
+    );
+
+    if (business != null && business.containsKey('branches')) {
+      return List<Map<String, dynamic>>.from(business['branches']);
+    }
+
+    return [];
   }
 
   /// Delete user access data from Ditto.

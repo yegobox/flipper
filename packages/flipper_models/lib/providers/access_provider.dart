@@ -79,17 +79,16 @@ bool featureAccess(Ref ref,
 bool featureAccessLevel(Ref ref,
     {required String userId, required String accessLevel}) {
   try {
-    Tenant? accesses = ref.watch(tenantProvider(userId)).value;
-    final granted = accesses?.type?.toLowerCase() == accessLevel.toLowerCase();
+    final accesses = ref.watch(allAccessesProvider(userId)).value ?? [];
+    final granted = accesses.any((access) =>
+        access.userType?.toLowerCase() == accessLevel.toLowerCase());
 
     if (granted) {
       talker.info(
-          "AccessLevel GRANTED for userId: $userId, accessLevel: $accessLevel | Accesses: ${accesses?.type}");
+          "AccessLevel GRANTED for userId: $userId, accessLevel: $accessLevel | User types found: ${accesses.map((a) => a.userType).toList()}");
     } else {
-      talker.info(accesses?.type);
-      talker.info(accessLevel);
       talker.info(
-          "AccessLevel DENIED for userId: $userId, accessLevel: $accessLevel | Accesses: ${accesses?.type}");
+          "AccessLevel DENIED for userId: $userId, accessLevel: $accessLevel | User types found: ${accesses.map((a) => a.userType).toList()}");
     }
 
     return granted;

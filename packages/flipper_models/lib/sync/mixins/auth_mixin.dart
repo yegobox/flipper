@@ -259,9 +259,25 @@ mixin AuthMixin implements AuthInterface {
       {bool forceOffline = false,
       bool freshUser = false,
       required bool isInSignUpProgress}) async {
-    List<Business> businessesE = await businesses(userId: pin.userId!);
-    List<Branch> branchesE =
-        await ProxyService.strategy.branches(businessId: pin.businessId!);
+    final userId = pin.userId ?? ProxyService.box.getUserId();
+    final userAccess = await ProxyService.ditto.getUserAccess(userId!);
+    List<Business> businessesE = [];
+    List<Branch> branchesE = [];
+
+    if (userAccess != null && userAccess.containsKey('businesses')) {
+      final List<dynamic> businessesJson = userAccess['businesses'];
+      businessesE = businessesJson.map((j) => Business.fromMap(j)).toList();
+
+      final businessJson = businessesJson.firstWhere(
+        (b) => b['id'] == pin.businessId,
+        orElse: () => null,
+      );
+
+      if (businessJson != null && businessJson.containsKey('branches')) {
+        final List<dynamic> branchesJson = businessJson['branches'];
+        branchesE = branchesJson.map((j) => Branch.fromMap(j)).toList();
+      }
+    }
 
     final bool shouldEnableOfflineLogin = forceOffline ||
         (businessesE.isNotEmpty &&
@@ -678,8 +694,7 @@ mixin AuthMixin implements AuthInterface {
           final iBranch = IBranch.fromJson(branchData);
           // Only set the last branch ID if there's only one branch total (legacy behavior)
           if (branchesData.length == 1 && businessesData.length == 1) {
-            ProxyService.box
-                .writeInt(key: 'branchId', value: iBranch.serverId!);
+            ProxyService.box.writeString(key: 'branchId', value: iBranch.id!);
           }
 
           final branch = Branch(

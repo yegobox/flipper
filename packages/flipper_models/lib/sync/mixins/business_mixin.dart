@@ -91,12 +91,12 @@ mixin BusinessMixin implements BusinessInterface {
   FutureOr<Business?> getBusinessById(
       {required String businessId, bool fetchOnline = false}) async {
     final repository = Repository();
-    final query = Query(where: [Where('serverId').isExactly(businessId)]);
+    final query = Query(where: [Where('id').isExactly(businessId)]);
     final result = await repository.get<Business>(
         query: query,
         policy: fetchOnline
             ? OfflineFirstGetPolicy.awaitRemoteWhenNoneExist
-            : OfflineFirstGetPolicy.localOnly);
+            : OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
     return result.firstOrNull;
   }
 
@@ -105,7 +105,7 @@ mixin BusinessMixin implements BusinessInterface {
     final repository = Repository();
     final query = Query(
         where: businessId != null
-            ? [Where('serverId').isExactly(businessId)]
+            ? [Where('id').isExactly(businessId)]
             : [Where('isDefault').isExactly(true)]);
     final result = await repository.get<Business>(
         query: query, policy: OfflineFirstGetPolicy.localOnly);
@@ -118,7 +118,7 @@ mixin BusinessMixin implements BusinessInterface {
   Future<Business?> getBusinessFromOnlineGivenId(
       {required int id, required HttpClientInterface flipperHttpClient}) async {
     final repository = Repository();
-    final query = Query(where: [Where('serverId').isExactly(id)]);
+    final query = Query(where: [Where('id').isExactly(id)]);
     final result = await repository.get<Business>(
         query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
     Business? business = result.firstOrNull;

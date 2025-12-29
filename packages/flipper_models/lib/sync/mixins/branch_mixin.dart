@@ -28,8 +28,8 @@ mixin BranchMixin implements BranchInterface {
       required HttpClientInterface flipperHttpClient,
       int? serverId,
       String? description,
-      String? longitude,
-      String? latitude,
+      num? longitude,
+      num? latitude,
       required bool isDefault,
       required bool active,
       DateTime? lastTouched,
@@ -73,7 +73,7 @@ mixin BranchMixin implements BranchInterface {
       query = Query(where: [Where('name').isExactly(name)]);
     }
     if (serverId != null) {
-      query = Query(where: [Where('serverId').isExactly(serverId)]);
+      query = Query(where: [Where('id').isExactly(serverId)]);
     }
     final result = await repository.get<Branch>(
         query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
@@ -116,7 +116,7 @@ mixin BranchMixin implements BranchInterface {
       {String? excludeId}) async {
     final filters = <Where>[
       if (businessId != null) Where('businessId').isExactly(businessId),
-      if (excludeId != null) Where('serverId').isNot(excludeId),
+      if (excludeId != null) Where('id').isNot(excludeId),
     ];
     var query = Query(where: filters);
 
@@ -140,7 +140,7 @@ mixin BranchMixin implements BranchInterface {
     try {
       if (data == ClearData.Branch) {
         final List<Branch> branches = await repository.get<Branch>(
-          query: Query(where: [Where('serverId').isExactly(identifier)]),
+          query: Query(where: [Where('id').isExactly(identifier)]),
         );
 
         for (final branch in branches) {
@@ -153,7 +153,7 @@ mixin BranchMixin implements BranchInterface {
 
       if (data == ClearData.Business) {
         final List<Business> businesses = await repository.get<Business>(
-          query: Query(where: [Where('serverId').isExactly(identifier)]),
+          query: Query(where: [Where('id').isExactly(identifier)]),
         );
 
         for (final business in businesses) {
@@ -222,10 +222,11 @@ mixin BranchMixin implements BranchInterface {
   }
 
   @override
-  Stream<Branch> activeBranchStream() {
+  Stream<Branch> activeBranchStream({required String businessId}) {
     return repository
         .subscribe<Branch>(
       policy: OfflineFirstGetPolicy.localOnly,
+      query: Query(where: [Where('businessId').isExactly(businessId)]),
     )
         .map((branches) {
       final branch = branches.firstWhere(

@@ -2,9 +2,10 @@ import 'package:flipper_models/providers/branch_business_provider.dart';
 import 'package:flipper_models/providers/ebm_provider.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_models/secrets.dart';
+import 'package:flipper_models/db_model_export.dart';
+
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
-import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'dart:async';
@@ -230,7 +231,16 @@ class _MyDrawerState extends ConsumerState<MyDrawer> {
     }
 
     return FutureBuilder<List<Business>>(
-      future: ProxyService.strategy.businesses(userId: userId),
+      future: () async {
+        final userAccess = await ProxyService.ditto.getUserAccess(userId);
+        if (userAccess != null && userAccess.containsKey('businesses')) {
+          final List<dynamic> businessesJson = userAccess['businesses'];
+          return businessesJson
+              .map((json) => Business.fromMap(Map<String, dynamic>.from(json)))
+              .toList();
+        }
+        return <Business>[];
+      }(),
       builder: (context, businessSnapshot) {
         if (businessSnapshot.connectionState == ConnectionState.waiting) {
           return _buildLoadingState('Loading businesses...');
@@ -698,26 +708,8 @@ class _MyDrawerState extends ConsumerState<MyDrawer> {
       final currentBranchId = ProxyService.box.readInt(key: 'branchId');
 
       if (currentBranchId != branch.id) {
-        await ProxyService.box.writeString(key: 'branchId', value: branch.id!);
-        await ProxyService.box.writeString(
-          key: 'branchIdString',
-          value: branch.id,
-        );
-        await ProxyService.box.writeString(
-          key: 'currentBusinessId',
-          value: business.id,
-        );
-        await ProxyService.box.writeString(
-          key: 'currentBranchId',
-          value: branch.id!,
-        );
-
-        await appService.updateAllBranchesInactive();
-        await ProxyService.strategy.updateBranch(
-          branchId: branch.id!,
-          active: true,
-          isDefault: true,
-        );
+        await appService.setDefaultBusiness(business);
+        await appService.setDefaultBranch(branch);
 
         ref.invalidate(branchesProvider(businessId: business.id));
         ref.read(searchStringProvider.notifier).emitString(value: "search");
@@ -725,7 +717,6 @@ class _MyDrawerState extends ConsumerState<MyDrawer> {
       }
 
       Navigator.pop(context);
-      // locator<RouterService>().navigateTo(DashboardViewRoute());
     } finally {
       setState(() {
         _switchingBranchId = null;
@@ -928,10 +919,10 @@ class _ModernShiftTileState extends State<ModernShiftTile> {
         variant: DialogType.startShift,
         title: 'Start New Shift',
       );
-      if (response?.confirmed == true) {
+      if (response != null && response.confirmed) {
         final openingBalance =
-            response?.data['openingBalance'] as double? ?? 0.0;
-        final notes = response?.data['notes'] as String?;
+            response.data['openingBalance'] as double? ?? 0.0;
+        final notes = response.data['notes'] as String?;
         await ProxyService.strategy.startShift(
           userId: userId,
           openingBalance: openingBalance,

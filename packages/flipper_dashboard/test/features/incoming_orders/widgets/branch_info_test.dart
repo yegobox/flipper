@@ -15,8 +15,8 @@ void main() {
         id: '1',
         name: 'Main Branch',
         businessId: "1",
-        longitude: '0.0',
-        latitude: '0.0',
+        longitude: 0.0,
+        latitude: 0.0,
         location: 'Downtown',
         isDefault: true,
       );
@@ -36,8 +36,8 @@ void main() {
         id: '2',
         name: 'Sub Branch',
         businessId: "1",
-        longitude: '0.0',
-        latitude: '0.0',
+        longitude: 0.0,
+        latitude: 0.0,
         location: 'Uptown',
         isDefault: false,
       );
