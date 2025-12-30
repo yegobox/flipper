@@ -7,8 +7,6 @@ import 'package:flipper_services/proxy.dart';
 import 'package:http/http.dart' as http;
 
 mixin Booting {
-  
-
   Future<void> addOrUpdatePermissions(List<IPermission> permissions,
       {required bool usenewVersion}) async {
     final List<String> features = ['Sales', 'Inventory', 'Reports', 'Settings'];
@@ -39,9 +37,6 @@ mixin Booting {
       }
     }
   }
-
-
- 
 
   Future<void> handleLoginErrorInBooting(http.Response response) async {
     if (response.statusCode == 401) {
@@ -82,7 +77,8 @@ mixin Booting {
 
     if (branchId == null) {
       // get any local saved branch
-      Branch branch = await ProxyService.strategy.activeBranch();
+      Branch branch =
+          await ProxyService.strategy.activeBranch(businessId: businessId!);
       branchId = branch.id;
     }
 

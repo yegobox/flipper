@@ -603,7 +603,9 @@ class CoreSync extends AiStrategyImpl
     TransactionItem item = (await transactionItems(
             id: transactionItemId.id,
             transactionId: transactionId,
-            branchId: (await ProxyService.strategy.activeBranch()).id))
+            branchId: (await ProxyService.strategy.activeBranch(
+                    businessId: ProxyService.box.getBusinessId()!))
+                .id))
         .first;
     await repository.delete(item);
   }
@@ -2797,7 +2799,9 @@ class CoreSync extends AiStrategyImpl
         orderNote: orderNote,
         bhfId: bhfId,
         tinNumber: tin!.toString(),
-        branchId: (await ProxyService.strategy.activeBranch()).id,
+        branchId: (await ProxyService.strategy
+                .activeBranch(businessId: ProxyService.box.getBusinessId()!))
+            .id,
         financingId: financingId,
         itemCounts: items.length,
         transactionItems: items
@@ -3333,11 +3337,12 @@ class CoreSync extends AiStrategyImpl
     final payment_status = await repository.get<BranchPaymentIntegration>(
         policy: fetchRemote
             ? OfflineFirstGetPolicy.alwaysHydrate
-            : OfflineFirstGetPolicy.localOnly,
+            : OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
         query: brick.Query(where: [
           brick.Where('branchId').isExactly(currentBranchId),
         ]));
-    return payment_status.firstOrNull?.isEnabled ?? false;
+    final decision = payment_status.firstOrNull?.isEnabled ?? false;
+    return decision;
   }
 
   @override

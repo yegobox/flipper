@@ -246,7 +246,9 @@ class TaxController<OBJ> {
         transactionItems =
             await ProxyService.getStrategy(Strategy.capella).transactionItems(
           transactionId: transaction.id,
-          branchId: (await ProxyService.strategy.activeBranch()).id,
+          branchId: (await ProxyService.strategy
+                  .activeBranch(businessId: ProxyService.box.getBusinessId()!))
+              .id,
         );
       } catch (e) {
         // If we can't fetch items, continue with empty list for delegation
@@ -580,7 +582,9 @@ class TaxController<OBJ> {
           //query item and re-assign
           final List<TransactionItem> items =
               await ProxyService.getStrategy(Strategy.capella).transactionItems(
-            branchId: (await ProxyService.strategy.activeBranch()).id,
+            branchId: (await ProxyService.strategy.activeBranch(
+                    businessId: ProxyService.box.getBusinessId()!))
+                .id,
             transactionId: transaction.id,
           );
           // copy TransactionItem

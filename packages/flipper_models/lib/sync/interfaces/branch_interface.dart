@@ -33,7 +33,7 @@ abstract class BranchInterface {
       {required String userId, required bool active});
   Future<List<Category>> categories({required String branchId});
   Stream<List<Category>> categoryStream({String? branchId});
-  Future<Branch> activeBranch();
+  Future<Branch> activeBranch({required String businessId});
   Stream<Branch> activeBranchStream({required String businessId});
   Future<void> saveBranch(Branch branch);
   FutureOr<void> updateBranch(

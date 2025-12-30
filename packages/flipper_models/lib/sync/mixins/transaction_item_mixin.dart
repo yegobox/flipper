@@ -226,7 +226,9 @@ mixin TransactionItemMixin implements TransactionItemInterface {
 
           modrId: variation.modrId,
           modrNm: variation.modrNm,
-          branchId: (await ProxyService.strategy.activeBranch()).id,
+          branchId: (await ProxyService.strategy
+                  .activeBranch(businessId: ProxyService.box.getBusinessId()!))
+              .id,
           ebmSynced: false, // Assuming default value
           partOfComposite: partOfComposite,
           compositePrice: compositePrice,

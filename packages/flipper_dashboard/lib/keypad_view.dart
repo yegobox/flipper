@@ -104,7 +104,8 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
       children: [
         Text(
           double.tryParse(keypad)?.toCurrencyFormatted(
-                  symbol: ProxyService.box.defaultCurrency()) ??
+                symbol: ProxyService.box.defaultCurrency(),
+              ) ??
               '0',
           style: GoogleFonts.poppins(
             fontSize: 40 * textScaleFactor,
@@ -137,8 +138,9 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
     final textScaleFactor = MediaQuery.of(context).textScaleFactor;
 
     return Text(
-      (double.tryParse(keypad) ?? 0.0)
-          .toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency()),
+      (double.tryParse(keypad) ?? 0.0).toCurrencyFormatted(
+        symbol: ProxyService.box.defaultCurrency(),
+      ),
       style: GoogleFonts.poppins(
         fontSize: 40 * textScaleFactor,
         fontWeight: FontWeight.w600,
@@ -166,20 +168,25 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
     );
   }
 
-  Widget _buildKeyPadRow(
-      {required List<String> keys, required BoxConstraints constraints}) {
+  Widget _buildKeyPadRow({
+    required List<String> keys,
+    required BoxConstraints constraints,
+  }) {
     return Expanded(
       child: Row(
         children: keys
             .map(
-                (key) => _buildKeyPadButton(key: key, constraints: constraints))
+              (key) => _buildKeyPadButton(key: key, constraints: constraints),
+            )
             .toList(),
       ),
     );
   }
 
-  Widget _buildKeyPadButton(
-      {required String key, required BoxConstraints constraints}) {
+  Widget _buildKeyPadButton({
+    required String key,
+    required BoxConstraints constraints,
+  }) {
     final isSpecialKey = ['C', 'Confirm', '+'].contains(key);
     final backgroundColor = isSpecialKey ? Colors.blue[700] : Colors.white;
     final textColor = isSpecialKey ? Colors.white : Colors.blue[700];
@@ -193,8 +200,11 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
           splashColor: Colors.blue.withValues(alpha: 0.3),
           child: Center(
             child: key == 'Confirm'
-                ? Icon(Icons.check,
-                    color: textColor, size: constraints.maxWidth * 0.1)
+                ? Icon(
+                    Icons.check,
+                    color: textColor,
+                    size: constraints.maxWidth * 0.1,
+                  )
                 : Text(
                     key,
                     style: GoogleFonts.poppins(
@@ -237,20 +247,25 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
   }
 
   Future<void> _handleSpecialKey(String key) async {
-    final transaction = ref.read(pendingTransactionStreamProvider(
-      isExpense:
-          widget.transactionType == TransactionType.cashOut ? true : false,
-    ));
+    final transaction = ref.read(
+      pendingTransactionStreamProvider(
+        isExpense: widget.transactionType == TransactionType.cashOut
+            ? true
+            : false,
+      ),
+    );
 
     if (key == 'C') {
       // Properly handle the clear key by calling the CoreViewModel's handleClearKey method
       List<TransactionItem> items =
           await ProxyService.getStrategy(Strategy.capella).transactionItems(
-        branchId: (await ProxyService.strategy.activeBranch()).id,
-        transactionId: transaction.value?.id,
-        doneWithTransaction: false,
-        active: false,
-      );
+            branchId: (await ProxyService.strategy.activeBranch(
+              businessId: ProxyService.box.getBusinessId()!,
+            )).id,
+            transactionId: transaction.value?.id,
+            doneWithTransaction: false,
+            active: false,
+          );
 
       widget.model.handleClearKey(items, transaction.value, () {
         ref.read(keypadProvider.notifier).reset();
@@ -292,7 +307,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
               onPressed: () async {
                 final bool isIncome =
                     (widget.transactionType == TransactionType.cashIn ||
-                        widget.transactionType == TransactionType.sale);
+                    widget.transactionType == TransactionType.sale);
                 Category? activeCat = await ProxyService.strategy
                     .activeCategory(branchId: ProxyService.box.getBranchId()!);
                 if (activeCat == null) {
@@ -300,10 +315,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                     SnackBar(
                       content: Text('A category must be selected'),
                       duration: Duration(seconds: 3),
-                      action: SnackBarAction(
-                        label: 'OK',
-                        onPressed: () {},
-                      ),
+                      action: SnackBarAction(label: 'OK', onPressed: () {}),
                     ),
                   );
                   return;
@@ -320,8 +332,9 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                   widget.onConfirm(); // Ensure pop is called
                 } catch (e) {
                   talker.error(e);
-                  Navigator.of(context)
-                      .pop(true); // Return true even on error to close dialog
+                  Navigator.of(
+                    context,
+                  ).pop(true); // Return true even on error to close dialog
                   widget.onConfirm(); // Ensure pop is called
                 }
               },
@@ -372,12 +385,12 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
       await lock.synchronized(() async {
         // First, ensure we have a transaction by calling manageTransaction directly
         // This follows the pattern used in QuickSellingView
-        ITransaction? pendingTransaction =
-            await ProxyService.strategy.manageTransaction(
-          branchId: ProxyService.box.getBranchId()!,
-          transactionType: transactionType,
-          isExpense: !isIncome,
-        );
+        ITransaction? pendingTransaction = await ProxyService.strategy
+            .manageTransaction(
+              branchId: ProxyService.box.getBranchId()!,
+              transactionType: transactionType,
+              isExpense: !isIncome,
+            );
 
         if (pendingTransaction == null) {
           talker.error("Failed to create or get a pending transaction");
@@ -393,8 +406,9 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
           },
         );
 
-        Category? category = await ProxyService.strategy
-            .activeCategory(branchId: ProxyService.box.getBranchId()!);
+        Category? category = await ProxyService.strategy.activeCategory(
+          branchId: ProxyService.box.getBranchId()!,
+        );
         var shortestSide = MediaQuery.of(context).size.shortestSide;
         var useMobileLayout = shortestSide < 600;
 
@@ -410,23 +424,24 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
         );
 
         // Ensure the transaction is properly updated with the subtotal and marked as complete
-        ITransaction updatedTransaction =
-            await ProxyService.strategy.collectPayment(
-          cashReceived: cashReceived,
-          countryCode: "N/A",
-          branchId: ProxyService.box.getBranchId()!,
-          bhfId: (await ProxyService.box.bhfId()) ?? "00",
-          isProformaMode: ProxyService.box.isProformaMode(),
-          isTrainingMode: ProxyService.box.isTrainingMode(),
-          transaction: pendingTransaction,
-          paymentType: paymentType,
-          discount: discount.toDouble(),
-          transactionType:
-              useMobileLayout ? category?.name ?? "" : TransactionType.sale,
-          directlyHandleReceipt: false,
-          isIncome: isIncome,
-          categoryId: category?.id.toString(),
-        );
+        ITransaction updatedTransaction = await ProxyService.strategy
+            .collectPayment(
+              cashReceived: cashReceived,
+              countryCode: "N/A",
+              branchId: ProxyService.box.getBranchId()!,
+              bhfId: (await ProxyService.box.bhfId()) ?? "00",
+              isProformaMode: ProxyService.box.isProformaMode(),
+              isTrainingMode: ProxyService.box.isTrainingMode(),
+              transaction: pendingTransaction,
+              paymentType: paymentType,
+              discount: discount.toDouble(),
+              transactionType: useMobileLayout
+                  ? category?.name ?? ""
+                  : TransactionType.sale,
+              directlyHandleReceipt: false,
+              isIncome: isIncome,
+              categoryId: category?.id.toString(),
+            );
 
         // Always explicitly update the transaction status to ensure it's marked as complete
         updatedTransaction.status = COMPLETE;
@@ -451,11 +466,13 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
         );
 
         talker.info(
-            "Transaction explicitly marked as complete with subtotal: $subTotal");
+          "Transaction explicitly marked as complete with subtotal: $subTotal",
+        );
 
         // Refresh providers to update UI
         ref.refresh(
-            transactionItemsProvider(transactionId: pendingTransaction.id));
+          transactionItemsProvider(transactionId: pendingTransaction.id),
+        );
         ref.refresh(pendingTransactionStreamProvider(isExpense: !isIncome));
         ref.refresh(dashboardTransactionsProvider);
       });

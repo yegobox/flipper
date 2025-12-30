@@ -2,7 +2,9 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 
 void showPaymentSettingsModal(BuildContext context) async {
-  final String branchId = (await ProxyService.strategy.activeBranch()).id;
+  final String branchId = (await ProxyService.strategy.activeBranch(
+    businessId: ProxyService.box.getBusinessId()!,
+  )).id;
   final ValueNotifier<bool> isEnabledNotifier = ValueNotifier<bool>(false);
 
   // Fetch initial toggle state
@@ -26,10 +28,7 @@ void showPaymentSettingsModal(BuildContext context) async {
               children: [
                 const Text(
                   'Payment Settings',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 IconButton(
                   icon: const Icon(Icons.close),
@@ -47,8 +46,11 @@ void showPaymentSettingsModal(BuildContext context) async {
                     width: 40,
                     height: 40,
                     errorBuilder: (context, error, stackTrace) {
-                      return const Icon(Icons.mobile_friendly,
-                          size: 40, color: Colors.yellow);
+                      return const Icon(
+                        Icons.mobile_friendly,
+                        size: 40,
+                        color: Colors.yellow,
+                      );
                     },
                   ),
                   title: const Text('MTN Mobile Money'),

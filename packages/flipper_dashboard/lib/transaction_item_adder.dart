@@ -26,8 +26,9 @@ class TransactionItemAdder {
     required Variant variant,
     required bool isOrdering,
   }) async {
-    final flipperWatch? w =
-        kDebugMode ? flipperWatch("addItemToTransaction") : null;
+    final flipperWatch? w = kDebugMode
+        ? flipperWatch("addItemToTransaction")
+        : null;
     w?.start();
 
     try {
@@ -40,8 +41,9 @@ class TransactionItemAdder {
       final businessId = ProxyService.box.getBusinessId()!;
 
       // Manage transaction
-      final pendingTransaction = await ref
-          .read(pendingTransactionStreamProvider(isExpense: isOrdering).future);
+      final pendingTransaction = await ref.read(
+        pendingTransactionStreamProvider(isExpense: isOrdering).future,
+      );
 
       // Fetch product details
       final product = await ProxyService.strategy.getProduct(
@@ -55,8 +57,9 @@ class TransactionItemAdder {
         // Get the latest stock from cache
         Stock? cachedStock;
         if (variant.id.isNotEmpty) {
-          cachedStock = await ProxyService.getStrategy(Strategy.capella)
-              .getStockById(id: variant.stockId!);
+          cachedStock = await ProxyService.getStrategy(
+            Strategy.capella,
+          ).getStockById(id: variant.stockId!);
         }
 
         // Use cached stock if available, otherwise fall back to variant.stock
@@ -70,8 +73,12 @@ class TransactionItemAdder {
           if (context.mounted) {
             ScaffoldMessenger.of(context).hideCurrentSnackBar();
           }
-          showCustomSnackBarUtil(context, "You do not have enough stock",
-              backgroundColor: Colors.red, showCloseButton: true);
+          showCustomSnackBarUtil(
+            context,
+            "You do not have enough stock",
+            backgroundColor: Colors.red,
+            showCloseButton: true,
+          );
           return;
         }
         if (variant.taxTyCd != "D" &&
@@ -80,24 +87,31 @@ class TransactionItemAdder {
           if (context.mounted) {
             ScaffoldMessenger.of(context).hideCurrentSnackBar();
           }
-          showCustomSnackBarUtil(context, "You do not have enough stock",
-              backgroundColor: Colors.red, showCloseButton: true);
+          showCustomSnackBarUtil(
+            context,
+            "You do not have enough stock",
+            backgroundColor: Colors.red,
+            showCloseButton: true,
+          );
           return;
         }
       }
 
       // Use a lock to prevent multiple simultaneous operations
       await _lock.synchronized(() async {
-        Stock stock = await ProxyService.getStrategy(Strategy.capella)
-            .getStockById(id: variant.stockId!);
+        Stock stock = await ProxyService.getStrategy(
+          Strategy.capella,
+        ).getStockById(id: variant.stockId!);
         if (product != null && product.isComposite == true) {
           // Handle composite product
-          final composites =
-              await ProxyService.strategy.composites(productId: product.id);
+          final composites = await ProxyService.strategy.composites(
+            productId: product.id,
+          );
 
           for (final composite in composites) {
-            final compositeVariant = await ProxyService.strategy
-                .getVariant(id: composite.variantId!);
+            final compositeVariant = await ProxyService.strategy.getVariant(
+              id: composite.variantId!,
+            );
             if (compositeVariant != null) {
               await ProxyService.strategy.saveTransactionItem(
                 variation: compositeVariant,
@@ -139,9 +153,14 @@ class TransactionItemAdder {
       //await Future.delayed(const Duration(milliseconds: 100));
 
       // Immediately refresh the transaction items
-      ref.refresh(transactionItemsStreamProvider(
+      ref.refresh(
+        transactionItemsStreamProvider(
           transactionId: pendingTransaction.id,
-          branchId: (await ProxyService.strategy.activeBranch()).id));
+          branchId: (await ProxyService.strategy.activeBranch(
+            businessId: ProxyService.box.getBusinessId()!,
+          )).id,
+        ),
+      );
 
       w?.log("ItemAddedToTransactionSuccess"); // Log success
     } catch (e, s) {
@@ -161,8 +180,11 @@ class TransactionItemAdder {
           'timestamp': DateTime.now().toIso8601String(),
         },
       );
-      showCustomSnackBarUtil(context, "Failed to add item to cart",
-          backgroundColor: Colors.red);
+      showCustomSnackBarUtil(
+        context,
+        "Failed to add item to cart",
+        backgroundColor: Colors.red,
+      );
       if (context.mounted) {
         w?.log("ItemAddedToTransactionFailed"); // Log failure
       }

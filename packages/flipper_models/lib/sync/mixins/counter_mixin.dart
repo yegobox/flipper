@@ -24,8 +24,8 @@ mixin CounterMixin implements CounterInterface {
     final counter = await repository.get<Counter>(
         query: query,
         policy: fetchRemote == true
-            ? brick.OfflineFirstGetPolicy.alwaysHydrate
-            : brick.OfflineFirstGetPolicy.localOnly);
+            ? brick.OfflineFirstGetPolicy.awaitRemoteWhenNoneExist
+            : brick.OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
     return counter.firstOrNull;
   }
 
@@ -37,8 +37,8 @@ mixin CounterMixin implements CounterInterface {
     final counters = await repository.get<Counter>(
         query: query,
         policy: fetchRemote == true
-            ? brick.OfflineFirstGetPolicy.alwaysHydrate
-            : brick.OfflineFirstGetPolicy.localOnly);
+            ? brick.OfflineFirstGetPolicy.awaitRemoteWhenNoneExist
+            : brick.OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
 
     return counters;
   }

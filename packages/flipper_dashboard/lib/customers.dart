@@ -47,7 +47,7 @@ class CustomersState extends ConsumerState<Customers> {
   }
 
   void _onSearchChanged(String value) {
-    ref.read(customerSearchStringProvider.notifier).state = value;
+    ref.read(customerSearchStringProvider.notifier).emitString(value: value);
   }
 
   @override

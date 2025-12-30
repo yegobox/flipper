@@ -184,7 +184,9 @@ class OrderingViewModel extends ProductViewModel
 
       final items = await ProxyService.getStrategy(Strategy.capella)
           .transactionItems(
-            branchId: (await ProxyService.strategy.activeBranch()).id,
+            branchId: (await ProxyService.strategy.activeBranch(
+              businessId: ProxyService.box.getBusinessId()!,
+            )).id,
             transactionId: transaction.id,
             doneWithTransaction: false,
             active: true,

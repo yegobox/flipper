@@ -11,12 +11,6 @@ mixin CapellaBusinessMixin implements BusinessInterface {
   Talker get talker;
 
   @override
-  Future<Branch> activeBranch() async {
-    throw UnimplementedError(
-        'activeBranch needs to be implemented for Capella');
-  }
-
-  @override
   Future<Business?> activeBusiness({int? userId}) async {
     throw UnimplementedError(
         'activeBusiness needs to be implemented for Capella');

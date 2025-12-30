@@ -86,7 +86,9 @@ class KeyPadService with ListenableServiceMixin {
     );
 
     List<TransactionItem> items = await ProxyService.strategy.transactionItems(
-        branchId: (await ProxyService.strategy.activeBranch()).id,
+        branchId: (await ProxyService.strategy
+                .activeBranch(businessId: ProxyService.box.getBusinessId()!))
+            .id,
         transactionId: transaction?.id,
         doneWithTransaction: false,
         active: true);
@@ -104,7 +106,9 @@ class KeyPadService with ListenableServiceMixin {
     List<TransactionItem> transactionItems =
         await ProxyService.getStrategy(Strategy.capella).transactionItems(
             transactionId: transaction?.id,
-            branchId: (await ProxyService.strategy.activeBranch()).id);
+            branchId: (await ProxyService.strategy.activeBranch(
+                    businessId: ProxyService.box.getBusinessId()!))
+                .id);
     _countTransactionItems.value = transactionItems.length;
 
     _transaction.value = transaction;

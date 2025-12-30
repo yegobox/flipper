@@ -338,7 +338,9 @@ class CronService {
       ProxyService.tax.taxConfigs(branchId: branchId).then((_) {});
       ProxyService.strategy
           .hydrateDate(
-              branchId: (await ProxyService.strategy.activeBranch()).id)
+              branchId: (await ProxyService.strategy.activeBranch(
+                      businessId: ProxyService.box.getBusinessId()!))
+                  .id)
           .then((_) {});
       ProxyService.strategy
           .access(userId: ProxyService.box.getUserId()!, fetchRemote: true);

@@ -39,7 +39,9 @@ Future<List<TransactionItem>> _getTransactionItems({
 }) async {
   final items = await ProxyService.getStrategy(Strategy.capella)
       .transactionItems(
-        branchId: (await ProxyService.strategy.activeBranch()).id,
+        branchId: (await ProxyService.strategy.activeBranch(
+          businessId: ProxyService.box.getBusinessId()!,
+        )).id,
         transactionId: transaction.id,
         doneWithTransaction: false,
         active: true,
@@ -88,7 +90,9 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
       final items = await ProxyService.getStrategy(Strategy.capella)
           .transactionItems(
-            branchId: (await ProxyService.strategy.activeBranch()).id,
+            branchId: (await ProxyService.strategy.activeBranch(
+              businessId: ProxyService.box.getBusinessId()!,
+            )).id,
             transactionId: transaction.id,
             doneWithTransaction: false,
             active: true,
@@ -160,7 +164,9 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     // get items on cart
     final items = await ProxyService.getStrategy(Strategy.capella)
         .transactionItems(
-          branchId: (await ProxyService.strategy.activeBranch()).id,
+          branchId: (await ProxyService.strategy.activeBranch(
+            businessId: ProxyService.box.getBusinessId()!,
+          )).id,
           transactionId: transaction.id,
           doneWithTransaction: false,
           active: true,
@@ -298,7 +304,9 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       final amount = double.tryParse(receivedAmountController.text) ?? 0;
       final discount = double.tryParse(discountController.text) ?? 0;
 
-      final String branchId = (await ProxyService.strategy.activeBranch()).id;
+      final String branchId = (await ProxyService.strategy.activeBranch(
+        businessId: ProxyService.box.getBusinessId()!,
+      )).id;
       final paymentType = ProxyService.box.paymentType() ?? "Cash";
 
       // Get customer if exists
@@ -473,7 +481,9 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         phoneNumber = customer!.telNo!.replaceAll("+", "");
       } else {
         // Get country code dynamically from business country
-        final branch = await ProxyService.strategy.activeBranch();
+        final branch = await ProxyService.strategy.activeBranch(
+          businessId: ProxyService.box.getBusinessId()!,
+        );
         final business = await ProxyService.strategy.getBusiness(
           businessId: branch.businessId!,
         );

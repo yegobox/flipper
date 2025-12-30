@@ -125,7 +125,7 @@ void main() {
         compositePrice: any(named: 'compositePrice'),
       ),
     ).thenAnswer((_) async => Future.value(true));
-    when(() => mockDbSync.activeBranch()).thenAnswer(
+    when(() => mockDbSync.activeBranch(businessId: any())).thenAnswer(
       (_) async => Branch(
         id: branchId.toString(),
         name: "Default",

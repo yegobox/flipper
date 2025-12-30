@@ -197,13 +197,13 @@ mixin BranchMixin implements BranchInterface {
   }
 
   @override
-  Future<Branch> activeBranch() async {
+  Future<Branch> activeBranch({required String businessId}) async {
     try {
       // Use a direct query to filter for the default branch at the database level
       // Query for branches where isDefault is either true or 1
       final branches = await repository.get<Branch>(
-        policy: OfflineFirstGetPolicy.localOnly,
-        query: Query(where: [Where('isDefault').isExactly(true)]),
+        policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+        query: Query(where: [Where('businessId').isExactly(businessId)]),
       );
 
       // If we found a default branch, return it
