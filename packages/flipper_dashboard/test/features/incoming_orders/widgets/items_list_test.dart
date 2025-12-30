@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/features/incoming_orders/widgets/items_list.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -23,6 +24,11 @@ void main() {
     setUp(() {
       env.injectMocks();
       env.stubCommonMethods();
+
+      // Mock the getStrategy method to return the mockDbSync
+      when(
+        () => env.mockSyncStrategy.getStrategy(Strategy.capella),
+      ).thenReturn(env.mockDbSync);
 
       mockBranch = Branch(id: '1', name: 'Main Branch', businessId: "1");
 
@@ -86,6 +92,10 @@ void main() {
     });
 
     testWidgets('shows loading indicator initially', (tester) async {
+      when(
+        () => env.mockSyncStrategy.getStrategy(Strategy.capella),
+      ).thenReturn(env.mockDbSync);
+
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
@@ -181,6 +191,9 @@ void main() {
 
     testWidgets('handles empty items list', (tester) async {
       when(
+        () => env.mockSyncStrategy.getStrategy(Strategy.capella),
+      ).thenReturn(env.mockDbSync);
+      when(
         () => env.mockDbSync.transactionItems(requestId: '1'),
       ).thenAnswer((_) async => []);
 
@@ -199,12 +212,19 @@ void main() {
     });
 
     testWidgets('handles approved request status', (tester) async {
+      when(
+        () => env.mockSyncStrategy.getStrategy(Strategy.capella),
+      ).thenReturn(env.mockDbSync);
       final approvedRequest = InventoryRequest(
         id: '1',
         branchId: '1',
         status: 'approved',
         branch: mockBranch,
       );
+
+      when(
+        () => env.mockDbSync.transactionItems(requestId: '1'),
+      ).thenAnswer((_) async => mockItems);
 
       await tester.pumpWidget(
         ProviderScope(
