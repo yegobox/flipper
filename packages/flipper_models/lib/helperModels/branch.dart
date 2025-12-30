@@ -45,13 +45,7 @@ class IBranch extends IJsonSerializable {
   String? description;
   String? name;
   String? businessId;
-  @JsonKey(
-    fromJson: _parseStringField,
-  )
   num? longitude;
-  @JsonKey(
-    fromJson: _parseStringField,
-  )
   num? latitude;
   DateTime? createdAt;
   dynamic updatedAt;

@@ -51,14 +51,18 @@ class AppService with ListenableServiceMixin {
       ReactiveValue<List<Category>>(List<Category>.empty(growable: true));
   List<Category> get categories => _categories.value;
 
-  void loadCategories() async {
+  StreamSubscription<List<Category>>? _categorySubscription;
+  void loadCategories() {
     String? branchId = ProxyService.box.getBranchId();
+    if (branchId == null) return;
 
-    final List<Category> result =
-        await ProxyService.strategy.categories(branchId: branchId ?? "0");
-
-    _categories.value = result;
-    notifyListeners();
+    _categorySubscription?.cancel();
+    _categorySubscription = ProxyService.strategy
+        .categoryStream(branchId: branchId)
+        .listen((result) {
+      _categories.value = result;
+      notifyListeners();
+    });
   }
 
   /// we fist log in to the business portal

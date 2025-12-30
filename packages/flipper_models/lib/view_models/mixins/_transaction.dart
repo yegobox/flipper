@@ -236,7 +236,7 @@ mixin TransactionMixinOld {
       // Only fetch customer from DB if transaction has a valid customerId
       if (transaction.customerId != null &&
           transaction.customerId!.isNotEmpty) {
-        customer = (await ProxyService.strategy.customers(
+        customer = (await ProxyService.getStrategy(Strategy.capella).customers(
           id: transaction.customerId,
         ))
             .firstOrNull;

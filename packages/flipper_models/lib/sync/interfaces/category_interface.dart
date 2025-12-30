@@ -3,5 +3,5 @@ import 'package:flipper_models/db_model_export.dart';
 abstract class CategoryInterface {
   Future<List<Category>> categories({required String branchId});
   Future<Category?> category({required String id});
-  Stream<List<Category>> categoryStream();
+  Stream<List<Category>> categoryStream({String? branchId});
 }

@@ -1,5 +1,5 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'active_branch_provider.dart';
 
 import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/models/all_models.dart';
@@ -7,10 +7,13 @@ part 'category_provider.g.dart';
 
 @riverpod
 Stream<List<Category>> category(Ref ref) {
-  return ProxyService.strategy.categoryStream();
+  final branch = ref.watch(activeBranchProvider).value;
+  final branchId = branch?.id ?? ProxyService.box.getBranchId();
+  if (branchId == null) return const Stream.empty();
+  return ProxyService.strategy.categoryStream(branchId: branchId);
 }
 
 @riverpod
-Future<List<Category>> categories(Ref ref, {required String branchId}) async {
-  return await ProxyService.strategy.categories(branchId: branchId);
+Stream<List<Category>> categories(Ref ref, {required String branchId}) {
+  return ProxyService.strategy.categoryStream(branchId: branchId);
 }

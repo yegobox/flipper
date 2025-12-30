@@ -7,6 +7,7 @@ import 'package:supabase_models/brick/models/branch.model.dart' as branch_model;
 import 'package:supabase_models/brick/models/business.model.dart' as business_model;
 import 'package:supabase_models/brick/models/business_analytic.model.dart' as business_analytic_model;
 import 'package:supabase_models/brick/models/counter.model.dart' as counter_model;
+import 'package:supabase_models/brick/models/customer.model.dart' as customer_model;
 import 'package:supabase_models/brick/models/device.model.dart' as device_model;
 import 'package:supabase_models/brick/models/ebm.model.dart' as ebm_model;
 import 'package:supabase_models/brick/models/itemCode.model.dart' as itemCode_model;
@@ -28,6 +29,7 @@ void ensureDittoAdaptersLoaded() {
   business_model.BusinessDittoAdapter.registryToken; // ignore: unnecessary_statements
   business_analytic_model.BusinessAnalyticDittoAdapter.registryToken; // ignore: unnecessary_statements
   counter_model.CounterDittoAdapter.registryToken; // ignore: unnecessary_statements
+  customer_model.CustomerDittoAdapter.registryToken; // ignore: unnecessary_statements
   device_model.DeviceDittoAdapter.registryToken; // ignore: unnecessary_statements
   ebm_model.EbmDittoAdapter.registryToken; // ignore: unnecessary_statements
   itemCode_model.ItemCodeDittoAdapter.registryToken; // ignore: unnecessary_statements

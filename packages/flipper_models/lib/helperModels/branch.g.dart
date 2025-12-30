@@ -13,8 +13,8 @@ IBranch _$IBranchFromJson(Map<String, dynamic> json) => IBranch(
       description: json['description'] as String?,
       name: json['name'] as String?,
       businessId: json['businessId'] as String?,
-      longitude: json['longitude'],
-      latitude: json['latitude'],
+      longitude: json['longitude'] as num?,
+      latitude: json['latitude'] as num?,
       createdAt: json['createdAt'] == null
           ? null
           : DateTime.parse(json['createdAt'] as String),

@@ -21,17 +21,6 @@ class CustomersState extends ConsumerState<Customers> {
   final TextEditingController _searchController = TextEditingController();
   final _routerService = locator<RouterService>();
 
-  // --- Paging State ---
-  final ScrollController _scrollController = ScrollController();
-  List<Customer> displayedCustomers = [];
-  bool isLoadingMore = false;
-  bool hasMore = true;
-  int pageSize = 30;
-  String lastSearch = '';
-  int currentPage = 0;
-
-  bool _hasLoadedInitialCustomers = false;
-
   // Color scheme constants - Microsoft Fluent inspired
   final Color primaryColor = const Color(0xFF0078D4); // Microsoft blue
   final Color secondaryColor = const Color(0xFF106EBE);
@@ -47,82 +36,27 @@ class CustomersState extends ConsumerState<Customers> {
   @override
   void initState() {
     super.initState();
-    _scrollController.addListener(_onScroll);
+    // Initialize search controller with the provider's value
+    _searchController.text = ref.read(customerSearchStringProvider);
   }
 
   @override
   void dispose() {
-    _scrollController.removeListener(_onScroll);
-    _scrollController.dispose();
     _searchController.dispose();
     super.dispose();
   }
 
-  void _onScroll() {
-    // If scrolled near the bottom, try to load more
-    if (_scrollController.position.pixels >=
-            _scrollController.position.maxScrollExtent - 200 &&
-        !isLoadingMore &&
-        hasMore) {
-      _loadMoreCustomers();
-    }
-  }
-
   void _onSearchChanged(String value) {
-    lastSearch = value;
-    currentPage = 0;
-    hasMore = true;
-    displayedCustomers.clear();
-    _hasLoadedInitialCustomers = false; // Reset flag so paging can re-init
-    _loadInitialCustomers();
-  }
-
-  Future<void> _loadInitialCustomers() async {
-    final customers = ref.read(customersProvider.notifier).filterCustomers(
-          ref.read(customersProvider).asData?.value ?? [],
-          lastSearch,
-        );
-    setState(() {
-      displayedCustomers = customers.take(pageSize).toList();
-      hasMore = customers.length > pageSize;
-      currentPage = 1;
-    });
-  }
-
-  Future<void> _loadMoreCustomers() async {
-    if (isLoadingMore || !hasMore) return;
-    setState(() {
-      isLoadingMore = true;
-    });
-    await Future.delayed(const Duration(milliseconds: 300)); // Simulate loading
-    final customers = ref.read(customersProvider.notifier).filterCustomers(
-          ref.read(customersProvider).asData?.value ?? [],
-          lastSearch,
-        );
-    final nextPage =
-        customers.skip(currentPage * pageSize).take(pageSize).toList();
-    setState(() {
-      displayedCustomers.addAll(nextPage);
-      isLoadingMore = false;
-      hasMore = customers.length > displayedCustomers.length;
-      currentPage += 1;
-    });
+    ref.read(customerSearchStringProvider.notifier).state = value;
   }
 
   @override
   Widget build(BuildContext context) {
     final searchKeyword = ref.watch(customerSearchStringProvider);
     final customersRef = ref.watch(customersProvider);
-    final transactionAsyncValue =
-        ref.watch(pendingTransactionStreamProvider(isExpense: false));
-
-    // Listen for provider data becoming available and trigger initial load only once
-    ref.listen<AsyncValue<List<Customer>>>(customersProvider, (previous, next) {
-      if (next is AsyncData<List<Customer>> && !_hasLoadedInitialCustomers) {
-        _hasLoadedInitialCustomers = true;
-        _loadInitialCustomers();
-      }
-    });
+    final transactionAsyncValue = ref.watch(
+      pendingTransactionStreamProvider(isExpense: false),
+    );
 
     return ViewModelBuilder<CoreViewModel>.reactive(
       viewModelBuilder: () => CoreViewModel(),
@@ -144,7 +78,8 @@ class CustomersState extends ConsumerState<Customers> {
               icon: Icon(Icons.arrow_back_ios, color: primaryColor, size: 22),
               onPressed: () {
                 ref.invalidate(
-                    pendingTransactionStreamProvider(isExpense: false));
+                  pendingTransactionStreamProvider(isExpense: false),
+                );
                 _routerService.pop();
               },
             ),
@@ -162,21 +97,31 @@ class CustomersState extends ConsumerState<Customers> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            _buildHelpItem(Icons.search,
-                                'Search for customers by name or phone number'),
-                            _buildHelpItem(Icons.swipe,
-                                'Swipe left to delete or edit a customer'),
-                            _buildHelpItem(Icons.swipe_right,
-                                'Swipe right to add/remove from sale'),
-                            _buildHelpItem(Icons.add_circle_outline,
-                                'Add a new customer using the button below'),
+                            _buildHelpItem(
+                              Icons.search,
+                              'Search for customers by name or phone number',
+                            ),
+                            _buildHelpItem(
+                              Icons.swipe_left,
+                              'Swipe left to delete or edit a customer',
+                            ),
+                            _buildHelpItem(
+                              Icons.swipe_right,
+                              'Swipe right to add/remove from sale',
+                            ),
+                            _buildHelpItem(
+                              Icons.add_circle_outline,
+                              'Add a new customer using the button below',
+                            ),
                           ],
                         ),
                       ),
                       actions: [
                         TextButton(
-                          child: Text('Close',
-                              style: TextStyle(color: primaryColor)),
+                          child: Text(
+                            'Close',
+                            style: TextStyle(color: primaryColor),
+                          ),
                           onPressed: () => Navigator.of(context).pop(),
                         ),
                       ],
@@ -190,16 +135,35 @@ class CustomersState extends ConsumerState<Customers> {
             loading: () => const Center(child: CircularProgressIndicator()),
             error: (error, stack) => Center(child: Text('Error: $error')),
             data: (transaction) {
-              return Column(
-                children: [
-                  _buildSearchBar(),
-                  _buildResultStats(), // New: shows number of results
-                  Expanded(
-                    child: _buildCustomerList(model, transaction),
-                  ),
-                  _buildAddButton(
-                      context, model, customersRef, searchKeyword, transaction),
-                ],
+              return customersRef.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (error, stack) => Center(child: Text('Error: $error')),
+                data: (allCustomers) {
+                  final filteredCustomers = ref
+                      .read(customersProvider.notifier)
+                      .filterCustomers(allCustomers, searchKeyword);
+
+                  return Column(
+                    children: [
+                      _buildSearchBar(),
+                      _buildResultStats(filteredCustomers),
+                      Expanded(
+                        child: _buildCustomerList(
+                          model,
+                          transaction,
+                          filteredCustomers,
+                        ),
+                      ),
+                      _buildAddButton(
+                        context,
+                        model,
+                        customersRef,
+                        searchKeyword,
+                        transaction,
+                      ),
+                    ],
+                  );
+                },
               );
             },
           ),
@@ -216,20 +180,22 @@ class CustomersState extends ConsumerState<Customers> {
           Icon(icon, color: primaryColor, size: 20),
           const SizedBox(width: 12),
           Expanded(
-            child: Text(text,
-                style: TextStyle(fontSize: 14, color: textSecondaryColor)),
+            child: Text(
+              text,
+              style: TextStyle(fontSize: 14, color: textSecondaryColor),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildResultStats() {
+  Widget _buildResultStats(List<Customer> customers) {
     return Padding(
       padding: const EdgeInsets.only(left: 16, right: 16, bottom: 8),
       child: Align(
         alignment: Alignment.centerLeft,
-        child: displayedCustomers.isEmpty
+        child: customers.isEmpty
             ? Text(
                 'No customers found',
                 style: TextStyle(
@@ -239,11 +205,8 @@ class CustomersState extends ConsumerState<Customers> {
                 ),
               )
             : Text(
-                '${displayedCustomers.length} ${displayedCustomers.length == 1 ? 'customer' : 'customers'} found',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: textSecondaryColor,
-                ),
+                '${customers.length} ${customers.length == 1 ? 'customer' : 'customers'} found',
+                style: TextStyle(fontSize: 14, color: textSecondaryColor),
               ),
       ),
     );
@@ -288,18 +251,16 @@ class CustomersState extends ConsumerState<Customers> {
                           onPressed: () {
                             _searchController.clear();
                             _onSearchChanged("");
-                            setState(() {});
                           },
                         )
                       : null,
                   border: InputBorder.none,
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 16,
+                  ),
                 ),
-                onChanged: (value) {
-                  _onSearchChanged(value);
-                  setState(() {});
-                },
+                onChanged: _onSearchChanged,
               ),
             ),
           ),
@@ -308,29 +269,20 @@ class CustomersState extends ConsumerState<Customers> {
     );
   }
 
-  Widget _buildCustomerList(CoreViewModel model, ITransaction transaction) {
+  Widget _buildCustomerList(
+    CoreViewModel model,
+    ITransaction transaction,
+    List<Customer> displayedCustomers,
+  ) {
     if (displayedCustomers.isEmpty) {
       return _buildEmptyState(transaction);
     }
 
     return ListView.builder(
-      controller: _scrollController,
       padding: const EdgeInsets.only(bottom: 16),
-      physics:
-          const AlwaysScrollableScrollPhysics(), // Makes empty lists scrollable
-      itemCount: displayedCustomers.length + (hasMore ? 1 : 0),
+      physics: const AlwaysScrollableScrollPhysics(),
+      itemCount: displayedCustomers.length,
       itemBuilder: (context, index) {
-        if (index == displayedCustomers.length) {
-          return Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(primaryColor),
-                strokeWidth: 3,
-              ),
-            ),
-          );
-        }
         final customer = displayedCustomers[index];
         return _buildCustomerCard(customer, model, transaction);
       },
@@ -366,14 +318,14 @@ class CustomersState extends ConsumerState<Customers> {
             _searchController.text.isNotEmpty
                 ? ElevatedButton.icon(
                     onPressed: () {
-                      // Quick add: open add customer modal with search text
                       showModalBottomSheet(
                         constraints: BoxConstraints(maxHeight: maxHeight),
                         showDragHandle: true,
                         context: context,
                         shape: const RoundedRectangleBorder(
-                          borderRadius:
-                              BorderRadius.vertical(top: Radius.circular(16.0)),
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(16.0),
+                          ),
                         ),
                         isScrollControlled: true,
                         builder: (BuildContext context) {
@@ -388,25 +340,29 @@ class CustomersState extends ConsumerState<Customers> {
                       );
                     },
                     icon: const Icon(Icons.add_circle_outline),
-                    label:
-                        Text('Add "${_searchController.text}" as new customer'),
+                    label: Text(
+                      'Add "${_searchController.text}" as new customer',
+                    ),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 12),
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8)),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                   )
                 : ElevatedButton.icon(
                     onPressed: () {
-                      // Open add customer modal
                       showModalBottomSheet(
                         constraints: BoxConstraints(maxHeight: maxHeight),
                         showDragHandle: true,
                         context: context,
                         shape: const RoundedRectangleBorder(
-                          borderRadius:
-                              BorderRadius.vertical(top: Radius.circular(16.0)),
+                          borderRadius: BorderRadius.vertical(
+                            top: Radius.circular(16.0),
+                          ),
                         ),
                         isScrollControlled: true,
                         builder: (BuildContext context) {
@@ -429,9 +385,12 @@ class CustomersState extends ConsumerState<Customers> {
                     label: const Text('Add New Customer'),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 24, vertical: 12),
+                        horizontal: 24,
+                        vertical: 12,
+                      ),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8)),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
                     ),
                   ),
           ],
@@ -441,17 +400,16 @@ class CustomersState extends ConsumerState<Customers> {
   }
 
   Widget _buildCustomerCard(
-      Customer customer, CoreViewModel model, ITransaction transaction) {
-    // Get first letter of customer name safely
+    Customer customer,
+    CoreViewModel model,
+    ITransaction transaction,
+  ) {
     String nameInitial =
         (customer.custNm != null && customer.custNm!.isNotEmpty)
-            ? customer.custNm![0].toUpperCase()
-            : '?';
+        ? customer.custNm![0].toUpperCase()
+        : '?';
 
-    // Generate a consistent color based on the customer name
     Color avatarColor = _getAvatarColor(customer.custNm ?? '');
-
-    // Check if this customer is selected in the current transaction
     bool isSelected = transaction.customerId == customer.id;
 
     return Padding(
@@ -463,28 +421,30 @@ class CustomersState extends ConsumerState<Customers> {
           children: [
             SlidableAction(
               onPressed: (_) async {
-                // Show confirmation dialog
                 showDialog(
                   context: context,
                   builder: (context) => AlertDialog(
                     title: const Text('Delete Customer'),
                     content: Text(
-                        'Are you sure you want to delete ${customer.custNm}?'),
+                      'Are you sure you want to delete ${customer.custNm}?',
+                    ),
                     actions: [
                       TextButton(
                         child: const Text('Cancel'),
                         onPressed: () => Navigator.of(context).pop(),
                       ),
                       TextButton(
-                        child: Text('Delete',
-                            style: TextStyle(color: deleteColor)),
+                        child: Text(
+                          'Delete',
+                          style: TextStyle(color: deleteColor),
+                        ),
                         onPressed: () async {
                           Navigator.of(context).pop();
                           await model.deleteCustomer(
-                              customer.id, (message) => toast(message));
-                          ref
-                              .refresh(customersProvider.notifier)
-                              .loadCustomers(searchString: '');
+                            customer.id,
+                            (message) => toast(message),
+                          );
+                          ref.refresh(customersProvider);
                         },
                       ),
                     ],
@@ -495,18 +455,17 @@ class CustomersState extends ConsumerState<Customers> {
               foregroundColor: Colors.white,
               icon: Icons.delete,
               label: 'Delete',
-              // borderRadius: BorderRadius.horizontal(left: Radius.circular(12)),
             ),
             SlidableAction(
               onPressed: (_) {
-                // Show edit customer form
                 showModalBottomSheet(
                   constraints: BoxConstraints(maxHeight: maxHeight),
                   showDragHandle: true,
                   context: context,
                   shape: const RoundedRectangleBorder(
-                    borderRadius:
-                        BorderRadius.vertical(top: Radius.circular(16.0)),
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(16.0),
+                    ),
                   ),
                   isScrollControlled: true,
                   builder: (BuildContext context) {
@@ -515,7 +474,6 @@ class CustomersState extends ConsumerState<Customers> {
                       child: AddCustomer(
                         transactionId: transaction.id,
                         searchedKey: customer.custNm ?? '',
-                        // isEdit: true,
                         customer: customer,
                       ),
                     );
@@ -535,7 +493,9 @@ class CustomersState extends ConsumerState<Customers> {
             SlidableAction(
               onPressed: (_) {
                 model.assignToSale(
-                    customer: customer, transaction: transaction);
+                  customer: customer,
+                  transaction: transaction,
+                );
                 model.getTransactionById();
               },
               backgroundColor: successColor,
@@ -547,8 +507,6 @@ class CustomersState extends ConsumerState<Customers> {
               onPressed: (_) async {
                 await model.removeFromSale(transaction: transaction);
                 model.getTransactionById();
-
-                // Show elegant toast instead of alert
                 showSimpleNotification(
                   const Text(
                     "Customer removed from sale",
@@ -563,7 +521,6 @@ class CustomersState extends ConsumerState<Customers> {
               foregroundColor: Colors.white,
               icon: Icons.remove,
               label: 'Remove',
-              // borderRadius: BorderRadius.horizontal(right: Radius.circular(12)),
             ),
           ],
         ),
@@ -619,8 +576,11 @@ class CustomersState extends ConsumerState<Customers> {
                             padding: const EdgeInsets.only(top: 4.0),
                             child: Row(
                               children: [
-                                Icon(Icons.phone,
-                                    size: 14, color: textSecondaryColor),
+                                Icon(
+                                  Icons.phone,
+                                  size: 14,
+                                  color: textSecondaryColor,
+                                ),
                                 const SizedBox(width: 4),
                                 Text(
                                   customer.telNo!,
@@ -635,8 +595,11 @@ class CustomersState extends ConsumerState<Customers> {
                             padding: const EdgeInsets.only(top: 4.0),
                             child: Row(
                               children: [
-                                Icon(Icons.receipt,
-                                    size: 14, color: textSecondaryColor),
+                                Icon(
+                                  Icons.receipt,
+                                  size: 14,
+                                  color: textSecondaryColor,
+                                ),
                                 const SizedBox(width: 4),
                                 Text(
                                   "TIN: ${customer.custTin!}",
@@ -652,14 +615,10 @@ class CustomersState extends ConsumerState<Customers> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: successColor.withValues(alpha: 0.2),
+                        color: successColor.withOpacity(0.2),
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(
-                        Icons.check,
-                        color: successColor,
-                        size: 20,
-                      ),
+                      child: Icon(Icons.check, color: successColor, size: 20),
                     ),
                 ],
               ),
@@ -671,35 +630,31 @@ class CustomersState extends ConsumerState<Customers> {
   }
 
   Color _getAvatarColor(String name) {
-    // Generate consistent colors based on name
     final List<Color> colors = [
-      const Color(0xFF0078D4), // Blue
-      const Color(0xFF107C10), // Green
-      const Color(0xFFD83B01), // Red
-      const Color(0xFF5C2D91), // Purple
-      const Color(0xFF008575), // Teal
-      const Color(0xFFE3008C), // Magenta
-      const Color(0xFF00B7C3), // Cyan
-      const Color(0xFFFFB900), // Yellow
+      const Color(0xFF0078D4),
+      const Color(0xFF107C10),
+      const Color(0xFFD83B01),
+      const Color(0xFF5C2D91),
+      const Color(0xFF008575),
+      const Color(0xFFE3008C),
+      const Color(0xFF00B7C3),
+      const Color(0xFFFFB900),
     ];
-
     if (name.isEmpty) return colors[0];
-
-    // Simple hash function
     int hash = 0;
     for (int i = 0; i < name.length; i++) {
       hash = name.codeUnitAt(i) + ((hash << 5) - hash);
     }
-
     return colors[hash.abs() % colors.length];
   }
 
   Widget _buildAddButton(
-      BuildContext context,
-      CoreViewModel model,
-      AsyncValue<List<Customer>> customersRef,
-      String searchKeyword,
-      ITransaction transaction) {
+    BuildContext context,
+    CoreViewModel model,
+    AsyncValue<List<Customer>> customersRef,
+    String searchKeyword,
+    ITransaction transaction,
+  ) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -707,7 +662,7 @@ class CustomersState extends ConsumerState<Customers> {
         color: cardColor,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
             offset: const Offset(0, -5),
           ),
@@ -718,26 +673,30 @@ class CustomersState extends ConsumerState<Customers> {
         label: Text(_getButtonText(customersRef, searchKeyword)),
         style: ElevatedButton.styleFrom(
           padding: const EdgeInsets.symmetric(vertical: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           elevation: 0,
         ),
         onPressed: () => _handleButtonPress(
-            context, model, customersRef, searchKeyword, transaction),
+          context,
+          model,
+          customersRef,
+          searchKeyword,
+          transaction,
+        ),
       ),
     );
   }
 
   String _getButtonText(
-      AsyncValue<List<Customer>> customersRef, String searchKeyword) {
+    AsyncValue<List<Customer>> customersRef,
+    String searchKeyword,
+  ) {
     final customers = customersRef.asData?.value ?? [];
     final isCustomerListEmpty = ref
         .read(customersProvider.notifier)
         .filterCustomers(customers, searchKeyword)
         .isEmpty;
 
-    // If search is empty, just say "Add New Customer"
     if (searchKeyword.isEmpty) {
       return 'Add New Customer';
     }
@@ -748,11 +707,12 @@ class CustomersState extends ConsumerState<Customers> {
   }
 
   Future<void> _handleButtonPress(
-      BuildContext context,
-      CoreViewModel model,
-      AsyncValue<List<Customer>> customersRef,
-      String searchKeyword,
-      ITransaction transaction) async {
+    BuildContext context,
+    CoreViewModel model,
+    AsyncValue<List<Customer>> customersRef,
+    String searchKeyword,
+    ITransaction transaction,
+  ) async {
     final customers = customersRef.asData?.value ?? [];
     final filteredCustomers = ref
         .read(customersProvider.notifier)

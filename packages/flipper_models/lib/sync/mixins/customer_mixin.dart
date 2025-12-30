@@ -2,7 +2,8 @@ import 'dart:async';
 
 import 'package:flipper_models/sync/interfaces/customer_interface.dart';
 import 'package:flipper_models/db_model_export.dart';
-import 'package:supabase_models/brick/repository.dart';
+import 'package:supabase_models/brick/repository.dart'
+    show Repository, WherePhrase;
 import 'package:brick_offline_first/brick_offline_first.dart';
 
 mixin CustomerMixin implements CustomerInterface {
@@ -19,15 +20,14 @@ mixin CustomerMixin implements CustomerInterface {
   /// Returns a list of customers filtered by [branchId], [key], and/or [id].
   ///
   /// - If [key] is provided and not empty:
-  ///   - Searches across 'custNm', 'email', and 'telNo' fields using a contains match.
-  ///   - Combines results from all fields, filters by [branchId] if provided.
-  ///   - If [id] is provided, further filters results to only those with the matching id.
-  ///   - Deduplicates the final list by customer id.
+  ///   - Performs case-insensitive search across 'custNm', 'email', and 'telNo' fields.
+  ///   - Uses a single query with OR conditions for efficient searching.
+  ///   - Filters by [branchId] and/or [id] if provided.
   /// - If [key] is not provided or empty:
   ///   - Filters by [id] and/or [branchId] if provided.
   ///   - If no filters are provided, returns an empty list.
   ///
-  /// This method ensures efficient customer search and avoids duplicate entries in the results.
+  /// This method ensures efficient, case-insensitive customer search.
   @override
   FutureOr<List<Customer>> customers({
     String? branchId,
@@ -35,33 +35,35 @@ mixin CustomerMixin implements CustomerInterface {
     String? id,
   }) async {
     if (key != null && key.isNotEmpty) {
-      final searchFields = ['custNm', 'email', 'telNo'];
+      // Use a single query with OR conditions for all search fields
+      // Convert search key to lowercase for case-insensitive matching
+      final searchKey = key.toLowerCase();
 
-      final queries = searchFields.map((field) => Query(where: [
-            Where(field, value: key, compare: Compare.contains),
-            if (branchId != null)
-              Where('branchId', value: branchId, compare: Compare.exact),
-          ]));
+      final query = Query(where: [
+        // OR phrase for searching across multiple fields
+        WherePhrase([
+          Where('custNm', value: searchKey, compare: Compare.contains),
+          Where('email', value: searchKey, compare: Compare.contains),
+          Where('telNo', value: searchKey, compare: Compare.contains),
+        ], isRequired: true),
+        // AND conditions for filtering
+        if (branchId != null && branchId.isNotEmpty)
+          Where('branchId', value: branchId, compare: Compare.exact),
+        if (id != null && id.isNotEmpty)
+          Where('id', value: id, compare: Compare.exact),
+      ]);
 
-      final results = await Future.wait(
-        queries.map((query) => repository.get<Customer>(
-              policy: OfflineFirstGetPolicy.alwaysHydrate,
-              query: query,
-            )),
+      final response = await repository.get<Customer>(
+        policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+        query: query,
       );
-
-      var flattened = results.expand((c) => c);
-      if (id != null) {
-        flattened = flattened.where((c) => c.id == id);
-      }
-
-      // Remove duplicates by id
-      return {for (final c in flattened) c.id: c}.values.toList();
+      return response;
     }
 
     final query = Query(where: [
-      if (id != null) Where('id', value: id, compare: Compare.exact),
-      if (branchId != null)
+      if (id != null && id.isNotEmpty)
+        Where('id', value: id, compare: Compare.exact),
+      if (branchId != null && branchId.isNotEmpty)
         Where('branchId', value: branchId, compare: Compare.exact),
     ]);
 
@@ -69,10 +71,11 @@ mixin CustomerMixin implements CustomerInterface {
       return [];
     }
 
-    return repository.get<Customer>(
-      policy: OfflineFirstGetPolicy.alwaysHydrate,
+    final response = await repository.get<Customer>(
+      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
       query: query,
     );
+    return response;
   }
 
   /// Convenience method to fetch a single [Customer] by [id].

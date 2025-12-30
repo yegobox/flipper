@@ -56,7 +56,7 @@ mixin CapellaBranchMixin implements BranchInterface {
   }
 
   @override
-  Stream<List<Category>> categoryStream() {
+  Stream<List<Category>> categoryStream({String? branchId}) {
     throw UnimplementedError(
         'categoryStream needs to be implemented for Capella');
   }

@@ -188,10 +188,11 @@ mixin BranchMixin implements BranchInterface {
   }
 
   @override
-  Stream<List<Category>> categoryStream() {
-    final branchId = ProxyService.box.getBranchId()!;
+  Stream<List<Category>> categoryStream({String? branchId}) {
+    final id = branchId ?? ProxyService.box.getBranchId()!;
     return repository.subscribe<Category>(
-      query: Query(where: [Where('branchId').isExactly(branchId)]),
+      policy: OfflineFirstGetPolicy.localOnly,
+      query: Query(where: [Where('branchId').isExactly(id)]),
     );
   }
 

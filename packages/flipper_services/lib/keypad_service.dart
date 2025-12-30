@@ -99,16 +99,16 @@ class KeyPadService with ListenableServiceMixin {
   /// this function update _transactions.value the same as getTransactions but this takes id of the transaction we want
   /// it is very important to not fonfuse these functions. later on.
   Future<ITransaction?> getTransactionById({required String id}) async {
-    ITransaction? od =
+    ITransaction? transaction =
         (await ProxyService.strategy.transactions(id: id)).firstOrNull;
     List<TransactionItem> transactionItems =
         await ProxyService.getStrategy(Strategy.capella).transactionItems(
-            transactionId: od!.id,
+            transactionId: transaction?.id,
             branchId: (await ProxyService.strategy.activeBranch()).id);
     _countTransactionItems.value = transactionItems.length;
 
-    _transaction.value = od;
-    return _transaction.value!;
+    _transaction.value = transaction;
+    return _transaction.value;
   }
 
   void increaseQty({required bool custom, double? qty}) {

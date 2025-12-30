@@ -49,8 +49,23 @@ final customersStreamProvider = StreamProvider.autoDispose
 final customerProvider = FutureProvider.autoDispose
     .family<Customer?, ({String? id})>((ref, params) async {
   final (:id) = params;
-  return (await ProxyService.strategy
+  return (await ProxyService.getStrategy(Strategy.capella)
           .customers(id: id, branchId: ProxyService.box.getBranchId()!))
+      .firstOrNull;
+});
+
+/// Provider specifically for fetching a single attached customer by ID.
+/// Returns null when no valid customerId is provided, preventing unnecessary
+/// queries that would return all customers for the branch.
+final attachedCustomerProvider = FutureProvider.autoDispose
+    .family<Customer?, String?>((ref, customerId) async {
+  // Return null immediately if customerId is null or empty
+  if (customerId == null || customerId.isEmpty) {
+    return null;
+  }
+
+  return (await ProxyService.getStrategy(Strategy.capella)
+          .customers(id: customerId, branchId: ProxyService.box.getBranchId()!))
       .firstOrNull;
 });
 
@@ -226,28 +241,18 @@ class CustomersNotifier extends Notifier<AsyncValue<List<Customer>>> {
   @override
   AsyncValue<List<Customer>> build() {
     branchId = ProxyService.box.getBranchId() ?? "";
-    final searchString = ref.watch(searchStringProvider);
     // We should not await here for build method synchronous return,
     // but we can start async load.
-    // However, if we want to reflect the search string change,
-    // we should validly load.
-    loadCustomers(searchString: searchString);
+    loadCustomers();
     return const AsyncValue.loading();
   }
 
-  Future<void> loadCustomers({required String searchString}) async {
+  Future<void> loadCustomers() async {
     try {
       // await any ongoing database persistance
       List<Customer> customers =
-          await ProxyService.strategy.customers(branchId: branchId);
-
-      if (searchString.isNotEmpty) {
-        customers = customers
-            .where((customer) => customer.custNm!
-                .toLowerCase()
-                .contains(searchString.toLowerCase()))
-            .toList();
-      }
+          await ProxyService.getStrategy(Strategy.capella)
+              .customers(branchId: branchId);
 
       state = AsyncData(customers);
     } catch (error) {

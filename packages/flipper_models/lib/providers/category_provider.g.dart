@@ -41,14 +41,14 @@ final class CategoryProvider extends $FunctionalProvider<
   }
 }
 
-String _$categoryHash() => r'd7d1a2fc3392925647a96665eac419cdddcd4ec5';
+String _$categoryHash() => r'078d28b9faa37937a91462d2216464d98605ede6';
 
 @ProviderFor(categories)
 const categoriesProvider = CategoriesFamily._();
 
 final class CategoriesProvider extends $FunctionalProvider<
-        AsyncValue<List<Category>>, List<Category>, FutureOr<List<Category>>>
-    with $FutureModifier<List<Category>>, $FutureProvider<List<Category>> {
+        AsyncValue<List<Category>>, List<Category>, Stream<List<Category>>>
+    with $FutureModifier<List<Category>>, $StreamProvider<List<Category>> {
   const CategoriesProvider._(
       {required CategoriesFamily super.from, required String super.argument})
       : super(
@@ -71,12 +71,12 @@ final class CategoriesProvider extends $FunctionalProvider<
 
   @$internal
   @override
-  $FutureProviderElement<List<Category>> $createElement(
+  $StreamProviderElement<List<Category>> $createElement(
           $ProviderPointer pointer) =>
-      $FutureProviderElement(pointer);
+      $StreamProviderElement(pointer);
 
   @override
-  FutureOr<List<Category>> create(Ref ref) {
+  Stream<List<Category>> create(Ref ref) {
     final argument = this.argument as String;
     return categories(
       ref,
@@ -95,10 +95,10 @@ final class CategoriesProvider extends $FunctionalProvider<
   }
 }
 
-String _$categoriesHash() => r'3a111d27f0996a1702e2463f8f90879a4ed33ea4';
+String _$categoriesHash() => r'2cc09d31f52b7081bc5f2e94cbb6fecc59eb2c4d';
 
 final class CategoriesFamily extends $Family
-    with $FunctionalFamilyOverride<FutureOr<List<Category>>, String> {
+    with $FunctionalFamilyOverride<Stream<List<Category>>, String> {
   const CategoriesFamily._()
       : super(
           retry: null,

@@ -519,7 +519,7 @@ final class FeatureAccessLevelProvider
 }
 
 String _$featureAccessLevelHash() =>
-    r'1220ad1930e5da6952aff803b1fb3ec8f9b2c84f';
+    r'ca5706e11e1c269b92fd3426ce984b35354d8614';
 
 /// this check if a user has one accessLevel required to grant him access regardles of the feature
 /// e.g if a fature Requires Write, or Admin it will check if a user has these permission in one of the feature and grant them access

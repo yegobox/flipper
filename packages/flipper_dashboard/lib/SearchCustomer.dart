@@ -1,5 +1,6 @@
 // ignore_for_file: unused_result
 
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -86,8 +87,9 @@ class _CustomDropdownButtonState extends State<CustomDropdownButton> {
       onTap: _showDropdown,
       child: Container(
         padding: EdgeInsets.symmetric(
-            horizontal: widget.compact ? 8 : 12,
-            vertical: widget.compact ? 6 : 8),
+          horizontal: widget.compact ? 8 : 12,
+          vertical: widget.compact ? 6 : 8,
+        ),
         decoration: BoxDecoration(
           color: Colors.grey[200],
           borderRadius: BorderRadius.circular(8),
@@ -96,8 +98,11 @@ class _CustomDropdownButtonState extends State<CustomDropdownButton> {
           mainAxisSize: MainAxisSize.min,
           children: [
             if (widget.icon != null)
-              Icon(widget.icon,
-                  size: widget.compact ? 14 : 16, color: Colors.black54),
+              Icon(
+                widget.icon,
+                size: widget.compact ? 14 : 16,
+                color: Colors.black54,
+              ),
             if (widget.icon != null) SizedBox(width: widget.compact ? 2 : 4),
             Flexible(
               child: Text(
@@ -152,25 +157,32 @@ class _SearchInputWithDropdownState
   }
 
   Future<void> _initializeSearchBox() async {
-    final transaction =
-        ref.read(pendingTransactionStreamProvider(isExpense: false));
+    final transaction = ref.read(
+      pendingTransactionStreamProvider(isExpense: false),
+    );
 
     // Only initialize from database customer if there's no manually entered customer name
     final existingCustomerName = ProxyService.box.customerName();
 
     if (transaction.value?.customerId != null && existingCustomerName == null) {
-      final customer = await ProxyService.strategy.customers(
-        id: transaction.value!.customerId,
-        branchId: ProxyService.box.getBranchId()!,
-      );
+      final customer = await ProxyService.getStrategy(Strategy.capella)
+          .customers(
+            id: transaction.value!.customerId,
+            branchId: ProxyService.box.getBranchId()!,
+          );
       if (customer.isNotEmpty) {
         ProxyService.box.writeString(
-            key: 'currentSaleCustomerPhoneNumber',
-            value: customer.first.telNo!);
-        ProxyService.box
-            .writeString(key: 'customerName', value: customer.first.custNm!);
-        ProxyService.box
-            .writeString(key: 'customerTin', value: customer.first.custTin!);
+          key: 'currentSaleCustomerPhoneNumber',
+          value: customer.first.telNo!,
+        );
+        ProxyService.box.writeString(
+          key: 'customerName',
+          value: customer.first.custNm!,
+        );
+        ProxyService.box.writeString(
+          key: 'customerTin',
+          value: customer.first.custTin!,
+        );
         _searchController.text = customer.first.custNm!;
         // Update the Riverpod provider for customer phone number
         Future(() {
@@ -191,18 +203,16 @@ class _SearchInputWithDropdownState
   }
 
   Future<void> _removeCustomer() async {
-    final transaction = ref.read(pendingTransactionStreamProvider(
-      isExpense: false,
-    ));
+    final transaction = ref.read(
+      pendingTransactionStreamProvider(isExpense: false),
+    );
     ProxyService.box.remove(key: 'customerTin');
     if (transaction.value?.id != null) {
       await ProxyService.strategy.removeCustomerFromTransaction(
         transaction: transaction.value!,
       );
 
-      ref.refresh(pendingTransactionStreamProvider(
-        isExpense: false,
-      ));
+      ref.refresh(pendingTransactionStreamProvider(isExpense: false));
 
       setState(() {
         _searchController.clear();
@@ -226,10 +236,9 @@ class _SearchInputWithDropdownState
       }
 
       try {
-        final customers = await ProxyService.strategy.customers(
-          key: searchKey,
-          branchId: ProxyService.box.getBranchId()!,
-        );
+        final customers = await ProxyService.getStrategy(
+          Strategy.capella,
+        ).customers(key: searchKey, branchId: ProxyService.box.getBranchId()!);
 
         setState(() {
           _searchResults = customers;
@@ -244,7 +253,9 @@ class _SearchInputWithDropdownState
   }
 
   void _addCustomerToTransaction(
-      Customer customer, ITransaction transaction) async {
+    Customer customer,
+    ITransaction transaction,
+  ) async {
     final customerNameController = ref.read(customerNameControllerProvider);
     try {
       customerNameController.text = customer.custNm!;
@@ -254,15 +265,23 @@ class _SearchInputWithDropdownState
       );
 
       // Save customer information to ProxyService.box for receipt generation
-      await ProxyService.box
-          .writeString(key: 'customerName', value: customer.custNm!);
       await ProxyService.box.writeString(
-          key: 'currentSaleCustomerPhoneNumber', value: customer.telNo ?? '');
+        key: 'customerName',
+        value: customer.custNm!,
+      );
+      await ProxyService.box.writeString(
+        key: 'currentSaleCustomerPhoneNumber',
+        value: customer.telNo ?? '',
+      );
 
       // Save customer's TIN for future use
       if (customer.custTin != null && customer.custTin!.isNotEmpty) {
-        unawaited(ProxyService.box
-            .writeString(key: 'customerTin', value: customer.custTin!));
+        unawaited(
+          ProxyService.box.writeString(
+            key: 'customerTin',
+            value: customer.custTin!,
+          ),
+        );
       }
 
       // Update the Riverpod provider for customer phone number
@@ -279,9 +298,7 @@ class _SearchInputWithDropdownState
               onPressed: () {
                 Navigator.of(context).pop();
                 // Refresh the transaction
-                ref.refresh(pendingTransactionStreamProvider(
-                  isExpense: false,
-                ));
+                ref.refresh(pendingTransactionStreamProvider(isExpense: false));
               },
               child: const Text('OK'),
             ),
@@ -304,12 +321,12 @@ class _SearchInputWithDropdownState
 
   @override
   Widget build(BuildContext context) {
-    final transaction = ref.watch(pendingTransactionStreamProvider(
-      isExpense: false,
-    ));
+    final transaction = ref.watch(
+      pendingTransactionStreamProvider(isExpense: false),
+    );
 
-    final attachedCustomerFuture = ref.watch(
-      customerProvider((id: transaction.value?.customerId ?? '')),
+    final attachedCustomerAsync = ref.watch(
+      attachedCustomerProvider(transaction.value?.customerId),
     );
 
     final screenWidth = MediaQuery.of(context).size.width;
@@ -329,45 +346,45 @@ class _SearchInputWithDropdownState
       ProxyService.box.writeString(key: 'stockInOutType', value: "11");
     }
 
-    return attachedCustomerFuture.when(
-      data: (attachedCustomer) {
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              isMobileWidth
-                  ? _buildMobileLayout(attachedCustomer)
-                  : _buildDesktopLayout(attachedCustomer),
-              const SizedBox(height: 16.0),
-              if (_searchResults.isNotEmpty)
-                ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: _searchResults.length,
-                  itemBuilder: (context, index) {
-                    final customer = _searchResults[index];
-                    return GestureDetector(
-                      onTap: () => _addCustomerToTransaction(
-                          customer, transaction.value!),
-                      child: Card(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12.0),
-                        ),
-                        child: ListTile(
-                          title: Text(customer.custNm ?? 'Unknown'),
-                          subtitle: Text(customer.custTin ?? 'No TIN'),
-                          trailing: const Icon(Icons.add_circle_outline),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-            ],
-          ),
-        );
-      },
-      loading: () => const SizedBox.shrink(),
-      error: (err, stack) => Center(child: Text('Error: $err')),
+    // Extract the customer value, defaulting to null if loading or error
+    final attachedCustomer = attachedCustomerAsync.maybeWhen(
+      data: (customer) => customer,
+      orElse: () => null,
+    );
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          isMobileWidth
+              ? _buildMobileLayout(attachedCustomer)
+              : _buildDesktopLayout(attachedCustomer),
+          const SizedBox(height: 16.0),
+          if (_searchResults.isNotEmpty)
+            ListView.builder(
+              shrinkWrap: true,
+              itemCount: _searchResults.length,
+              itemBuilder: (context, index) {
+                final customer = _searchResults[index];
+                return GestureDetector(
+                  onTap: () =>
+                      _addCustomerToTransaction(customer, transaction.value!),
+                  child: Card(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12.0),
+                    ),
+                    child: ListTile(
+                      title: Text(customer.custNm ?? 'Unknown'),
+                      subtitle: Text(customer.custTin ?? 'No TIN'),
+                      trailing: const Icon(Icons.add_circle_outline),
+                    ),
+                  ),
+                );
+              },
+            ),
+        ],
+      ),
     );
   }
 

@@ -427,10 +427,9 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
   Future<Customer?> _getCustomer(String? customerId) async {
     if (customerId == null) return null;
 
-    final customers = await ProxyService.strategy.customers(
-      id: customerId,
-      branchId: ProxyService.box.getBranchId()!,
-    );
+    final customers = await ProxyService.getStrategy(
+      Strategy.capella,
+    ).customers(id: customerId, branchId: ProxyService.box.getBranchId()!);
     return customers.firstOrNull;
   }
 

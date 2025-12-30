@@ -2268,7 +2268,7 @@ class CoreSync extends AiStrategyImpl
   @override
   Future<List<Configurations>> taxes({required String branchId}) async {
     return await repository.get<Configurations>(
-        policy: OfflineFirstGetPolicy.localOnly,
+        policy: OfflineFirstGetPolicy.awaitRemote,
         query:
             brick.Query(where: [brick.Where('branchId').isExactly(branchId)]));
   }
@@ -2298,6 +2298,14 @@ class CoreSync extends AiStrategyImpl
         talker.error('Ditto not initialized:001');
         return false;
       }
+      ditto.sync.registerSubscription(
+        "SELECT * FROM ebms WHERE businessId = :businessId AND branchId = :branchId",
+        arguments: {'businessId': businessId, 'branchId': branchId},
+      );
+      ditto.store.registerObserver(
+        "SELECT * FROM ebms WHERE businessId = :businessId AND branchId = :branchId",
+        arguments: {'businessId': businessId, 'branchId': branchId},
+      );
 
       // Query the ebms table using Ditto
       String query =
