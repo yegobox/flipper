@@ -2,7 +2,6 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class TinInputField extends StatefulWidget {
   final TextFieldBloc<String> tinNumberBloc;
@@ -77,15 +76,15 @@ class _TinInputFieldState extends State<TinInputField> {
           textFieldBloc: widget.tinNumberBloc,
           decoration: InputDecoration(
             labelText: 'TIN Number',
-            labelStyle: GoogleFonts.poppins(
-              color: const Color(0xFF1A1F36),
+            labelStyle: const TextStyle(
+              color: Colors.black87,
               fontSize: 14,
               fontWeight: FontWeight.w500,
             ),
             prefixIcon: const Icon(
               Icons.numbers_outlined,
               size: 20,
-              color: Color(0xFF1A1F36),
+              color: Colors.black87,
             ),
             suffixIcon: IconButton(
               icon: _isLoading
@@ -97,42 +96,42 @@ class _TinInputFieldState extends State<TinInputField> {
                   : const Icon(
                       Icons.upload_file_outlined,
                       size: 20,
-                      color: Color(0xFF1A1F36),
+                      color: Colors.black87,
                     ),
               onPressed: _isLoading ? null : _pickAndProcessPdf,
               tooltip: 'Upload PDF with TIN',
             ),
             border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(8.0),
               borderSide: BorderSide(color: Colors.grey[300]!),
             ),
             enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(8.0),
               borderSide: BorderSide(color: Colors.grey[300]!),
             ),
             focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: Color(0xFF006AFE)),
+              borderRadius: BorderRadius.circular(8.0),
+              borderSide: const BorderSide(color: Color(0xFF0078D4)),
             ),
             errorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(8.0),
               borderSide: const BorderSide(color: Colors.red),
             ),
             focusedErrorBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(8.0),
               borderSide: const BorderSide(color: Colors.red),
             ),
             errorText: _errorText,
             hintText: 'Enter TIN number or tap the upload icon',
-            hintStyle: GoogleFonts.poppins(
+            hintStyle: TextStyle(
               color: Colors.grey[400],
               fontSize: 14,
             ),
           ),
           keyboardType: TextInputType.number,
-          style: GoogleFonts.poppins(
+          style: const TextStyle(
             fontSize: 14,
-            color: const Color(0xFF1A1F36),
+            color: Colors.black87,
           ),
         ),
         if (_errorText != null)
@@ -140,7 +139,7 @@ class _TinInputFieldState extends State<TinInputField> {
             padding: const EdgeInsets.only(top: 4.0, left: 12.0, right: 12.0),
             child: Text(
               _errorText!,
-              style: GoogleFonts.poppins(
+              style: const TextStyle(
                 color: Colors.red,
                 fontSize: 12,
               ),

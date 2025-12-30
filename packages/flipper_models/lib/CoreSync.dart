@@ -1643,6 +1643,9 @@ class CoreSync extends AiStrategyImpl
     try {
       // Step 1: Create business via API
       talker.info('Signup: Creating business via API ${apihub}');
+      talker.info('Signup: Creating business via API ${business}');
+      // remove businessTypeId from business map
+      business.remove('businessTypeId');
       final http.Response response = await flipperHttpClient.post(
           Uri.parse("$apihub/v2/api/business"),
           body: jsonEncode(business));
@@ -1688,22 +1691,6 @@ class CoreSync extends AiStrategyImpl
       if (bus.userId == null) {
         talker.error('Signup: Business userId is null');
         throw Exception('Business userId is null');
-      }
-
-      try {
-        talker.info('Signup: Creating PIN');
-        // TODO: this is deprecated with new architecture
-        // await ProxyService.strategy.createPin(
-        //     flipperHttpClient: flipperHttpClient,
-        //     phoneNumber: business['phoneNumber'],
-        //     pin: bus.pin ?? "", // Handle null case with default value
-        //     branchId: bus.serverId.toString(),
-        //     businessId: bus.serverId.toString(),
-        //     defaultApp: 1);
-        talker.info('Signup: PIN created successfully');
-      } catch (e, s) {
-        talker.error('Signup: Error in creating PIN: $e', s);
-        throw e;
       }
 
       // Step 4: Save PIN locally

@@ -125,6 +125,16 @@ class SignupViewModel extends BaseViewModel {
         business: businessMap,
         flipperHttpClient: ProxyService.http,
       );
+
+      // After successfully creating the business, re-fetch the user data
+      // to get the updated list of businesses and save it to Ditto.
+      if (phoneNumber != null && phoneNumber.isNotEmpty) {
+        await ProxyService.strategy.sendLoginRequest(
+          phoneNumber,
+          ProxyService.http,
+          AppSecrets.apihubProdDomain,
+        );
+      }
     } catch (e) {
       showSimpleNotification(
         const Text("Error while signing up try again later"),

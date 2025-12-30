@@ -1,91 +1,68 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:flipper_login/blocs/signup_form_bloc.dart';
 
-/// UI components for the signup view with Duolingo-inspired design
+/// UI components for the signup view aligned with the app's standard design system.
 class SignupComponents {
-  // Duolingo-inspired color palette
-  static const Color primaryGreen = Color(0xFF58CC02);
-  static const Color darkGreen = Color(0xFF46A302);
-  static const Color lightGreen = Color(0xFFE8F5E8);
-  static const Color accentBlue = Color(0xFF1CB0F6);
-  static const Color backgroundColor = Color(0xFFF7F7F7);
-  static const Color textPrimary = Color(0xFF3C3C41);
-  static const Color textSecondary = Color(0xFF777777);
-  static const Color errorRed = Color(0xFFFF4B4B);
-  static const Color warningOrange = Color(0xFFFF9600);
+  // App's standard color palette
+  static const Color primaryColor = Color(0xFF0078D4);
+  static const Color accentColor = Color(0xFF0078D4);
+  static const Color backgroundColor = Color(0xFFF5F7FA);
+  static const Color textPrimary = Colors.black87;
+  static const Color textSecondary = Color.fromRGBO(117, 117, 117, 1);
+  static const Color errorColor = Colors.red;
+  static const Color surfaceColor = Colors.white;
 
-  /// Build the header section with playful animations and mascot-style logo
+  /// Build the header section with the app's branding.
   static Widget buildHeaderSection() {
     return Column(
       children: [
-        // Logo container with subtle bounce animation
         Container(
           padding: const EdgeInsets.symmetric(vertical: 40),
           child: Stack(
             alignment: Alignment.center,
             children: [
-              // Background circle for logo (Duolingo-style)
               Container(
                 width: 100,
                 height: 100,
                 decoration: BoxDecoration(
-                  color: lightGreen,
+                  color: primaryColor.withOpacity(0.1),
                   shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: primaryGreen.withValues(alpha: 0.2),
-                      blurRadius: 20,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
                 ),
               ),
-              // Logo
-              Container(
-                padding: const EdgeInsets.all(20),
-                child: Image.asset(
-                  'assets/flipper_logo.png',
-                  height: 60,
-                ),
+              Image.asset(
+                'assets/flipper_logo.png',
+                height: 60,
               ),
             ],
           ),
         ),
-
-        // Main title with Duolingo-style typography
-        Text(
-          'Join Flipper!',
-          style: GoogleFonts.nunito(
-            fontSize: 32,
-            fontWeight: FontWeight.w800,
+        const Text(
+          'Join Flipper',
+          style: TextStyle(
+            fontSize: 28,
+            fontWeight: FontWeight.w600,
             color: textPrimary,
-            letterSpacing: -0.5,
           ),
         ),
         const SizedBox(height: 8),
-
-        // Subtitle with encouraging tone
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 40),
-          child: Text(
+          child: const Text(
             'Start your journey with us today 🚀',
             textAlign: TextAlign.center,
-            style: GoogleFonts.nunito(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
+            style: TextStyle(
+              fontSize: 16,
               color: textSecondary,
-              height: 1.4,
             ),
           ),
         ),
-        const SizedBox(height: 40),
+        const SizedBox(height: 32),
       ],
     );
   }
 
-  /// Build an input field with Duolingo-inspired styling
+  /// Build a styled input field.
   static Widget buildInputField({
     required TextFieldBloc fieldBloc,
     required String label,
@@ -94,7 +71,7 @@ class SignupComponents {
     String? hint,
   }) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 24),
+      margin: const EdgeInsets.only(bottom: 20),
       child: TextFieldBlocBuilder(
         textFieldBloc: fieldBloc,
         suffixButton: SuffixButton.asyncValidating,
@@ -102,80 +79,47 @@ class SignupComponents {
         decoration: InputDecoration(
           labelText: label,
           hintText: hint,
-          hintStyle: GoogleFonts.nunito(
-            color: textSecondary.withValues(alpha: 0.7),
-            fontSize: 16,
-          ),
-          prefixIcon: Container(
-            margin: const EdgeInsets.only(right: 12),
-            child: Icon(
-              icon,
-              color: primaryGreen,
-              size: 24,
-            ),
-          ),
-
-          // Duolingo-style borders with rounded corners
+          hintStyle: TextStyle(color: textSecondary.withOpacity(0.7)),
+          prefixIcon: Icon(icon, color: textSecondary, size: 22),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: const BorderSide(
-              color: Color(0xFFE5E5E5),
-              width: 2,
-            ),
+            borderRadius: BorderRadius.circular(8.0),
+            borderSide: BorderSide(color: Colors.grey.shade300, width: 1),
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: const BorderSide(
-              color: Color(0xFFE5E5E5),
-              width: 2,
-            ),
+            borderRadius: BorderRadius.circular(8.0),
+            borderSide: BorderSide(color: Colors.grey.shade300, width: 1),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: const BorderSide(
-              color: accentBlue,
-              width: 3,
-            ),
+            borderRadius: BorderRadius.circular(8.0),
+            borderSide: const BorderSide(color: primaryColor, width: 2),
           ),
           errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: const BorderSide(
-              color: errorRed,
-              width: 2,
-            ),
+            borderRadius: BorderRadius.circular(8.0),
+            borderSide: const BorderSide(color: errorColor, width: 1),
           ),
-
           filled: true,
-          fillColor: Colors.white,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 20,
-          ),
-
-          // Custom label style
-          labelStyle: GoogleFonts.nunito(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
+          fillColor: surfaceColor,
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          labelStyle: const TextStyle(
             color: textSecondary,
+            fontWeight: FontWeight.w500,
           ),
-          floatingLabelStyle: GoogleFonts.nunito(
-            fontSize: 14,
-            fontWeight: FontWeight.w700,
-            color: primaryGreen,
+          floatingLabelStyle: const TextStyle(
+            color: primaryColor,
+            fontWeight: FontWeight.w600,
           ),
         ),
-
-        // Custom text style
-        style: GoogleFonts.nunito(
-          fontSize: 18,
-          fontWeight: FontWeight.w600,
+        style: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
           color: textPrimary,
         ),
       ),
     );
   }
 
-  /// Build a dropdown field with Duolingo-inspired styling
+  /// Build a styled dropdown field.
   static Widget buildDropdownField<T>({
     required SelectFieldBloc<T, dynamic> fieldBloc,
     required String label,
@@ -184,61 +128,40 @@ class SignupComponents {
     Function(T?)? onChanged,
   }) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 24),
+      margin: const EdgeInsets.only(bottom: 20),
       child: DropdownFieldBlocBuilder<T>(
         showEmptyItem: false,
         selectFieldBloc: fieldBloc,
         decoration: InputDecoration(
           labelText: label,
-          prefixIcon: Container(
-            margin: const EdgeInsets.only(right: 12),
-            child: Icon(
-              icon,
-              color: primaryGreen,
-              size: 24,
-            ),
-          ),
+          prefixIcon: Icon(icon, color: textSecondary, size: 22),
           suffixIcon: const Icon(
             Icons.keyboard_arrow_down_rounded,
             color: textSecondary,
-            size: 28,
           ),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: const BorderSide(
-              color: Color(0xFFE5E5E5),
-              width: 2,
-            ),
+            borderRadius: BorderRadius.circular(8.0),
+            borderSide: BorderSide(color: Colors.grey.shade300, width: 1),
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: const BorderSide(
-              color: Color(0xFFE5E5E5),
-              width: 2,
-            ),
+            borderRadius: BorderRadius.circular(8.0),
+            borderSide: BorderSide(color: Colors.grey.shade300, width: 1),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: const BorderSide(
-              color: accentBlue,
-              width: 3,
-            ),
+            borderRadius: BorderRadius.circular(8.0),
+            borderSide: const BorderSide(color: primaryColor, width: 2),
           ),
           filled: true,
-          fillColor: Colors.white,
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 20,
-          ),
-          labelStyle: GoogleFonts.nunito(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
+          fillColor: surfaceColor,
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          labelStyle: const TextStyle(
             color: textSecondary,
+            fontWeight: FontWeight.w500,
           ),
-          floatingLabelStyle: GoogleFonts.nunito(
-            fontSize: 14,
-            fontWeight: FontWeight.w700,
-            color: primaryGreen,
+          floatingLabelStyle: const TextStyle(
+            color: primaryColor,
+            fontWeight: FontWeight.w600,
           ),
         ),
         itemBuilder: itemBuilder,
@@ -247,35 +170,23 @@ class SignupComponents {
     );
   }
 
-  /// Build the submit button with Duolingo-inspired styling and animations
+  /// Build the submit button.
   static Widget buildSubmitButton(
       AsyncFieldValidationFormBloc formBloc, bool isLoading) {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 40),
+      margin: const EdgeInsets.symmetric(vertical: 24),
       width: double.infinity,
-      height: 64,
+      height: 52,
       child: ElevatedButton(
         onPressed: isLoading ? null : formBloc.submit,
         style: ElevatedButton.styleFrom(
-          backgroundColor: primaryGreen,
+          backgroundColor: primaryColor,
           foregroundColor: Colors.white,
-          disabledBackgroundColor: primaryGreen.withValues(alpha: 0.6),
+          disabledBackgroundColor: primaryColor.withOpacity(0.6),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(8.0),
           ),
           elevation: 0,
-          shadowColor: darkGreen.withValues(alpha: 0.3),
-
-          // Duolingo-style button press effect
-        ).copyWith(
-          overlayColor: WidgetStateProperty.resolveWith<Color?>(
-            (Set<WidgetState> states) {
-              if (states.contains(WidgetState.pressed)) {
-                return darkGreen;
-              }
-              return null;
-            },
-          ),
         ),
         child: isLoading
             ? const SizedBox(
@@ -286,97 +197,13 @@ class SignupComponents {
                   strokeWidth: 3,
                 ),
               )
-            : Text(
+            : const Text(
                 'Create Account',
-                style: GoogleFonts.nunito(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  color: Colors.white,
-                  letterSpacing: 0.5,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
-      ),
-    );
-  }
-
-  /// Build a progress indicator (Duolingo-style)
-  static Widget buildProgressIndicator(double progress) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 32),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Almost there!',
-            style: GoogleFonts.nunito(
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-              color: textPrimary,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Container(
-            height: 8,
-            decoration: BoxDecoration(
-              color: const Color(0xFFE5E5E5),
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: FractionallySizedBox(
-              alignment: Alignment.centerLeft,
-              widthFactor: progress,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: primaryGreen,
-                  borderRadius: BorderRadius.circular(4),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// Build a motivational tip card (optional enhancement)
-  static Widget buildMotivationalTip(String tip) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 24),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: lightGreen,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: primaryGreen.withValues(alpha: 0.2),
-          width: 1,
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: const BoxDecoration(
-              color: primaryGreen,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.lightbulb_rounded,
-              color: Colors.white,
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Text(
-              tip,
-              style: GoogleFonts.nunito(
-                fontSize: 15,
-                fontWeight: FontWeight.w600,
-                color: textPrimary,
-                height: 1.4,
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

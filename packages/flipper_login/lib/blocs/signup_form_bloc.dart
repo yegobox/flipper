@@ -26,7 +26,7 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
   final phoneNumber = TextFieldBloc(
     validators: [
       FieldBlocValidators.required,
-      _validatePhoneNumber,
+      _validateContactInfo,
     ],
     asyncValidatorDebounceTime: const Duration(milliseconds: 300),
   );
@@ -102,17 +102,25 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
     return null;
   }
 
-  /// Validates phone number format
-  static String? _validatePhoneNumber(String? phone) {
-    if (phone == null || phone.isEmpty) {
-      return 'Phone number is required';
+  /// Validates phone number format or email format
+  static String? _validateContactInfo(String? contact) {
+    if (contact == null || contact.isEmpty) {
+      return 'Phone number or email is required';
     }
-    // Phone number must start with + followed by digits
+
+    // Regex for phone number (starts with +, 8-15 digits, spaces, hyphens, parentheses allowed)
     final phoneRegex = RegExp(r'^\+[0-9\s\-\(\)]{8,15}$');
-    if (!phoneRegex.hasMatch(phone)) {
-      return 'Phone number must start with + and contain only digits';
+    // Regex for email
+    final emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+
+    if (phoneRegex.hasMatch(contact)) {
+      return null; // Valid phone number
     }
-    return null;
+    if (emailRegex.hasMatch(contact)) {
+      return null; // Valid email
+    }
+
+    return 'Please enter a valid phone number (e.g., +250...) or email address';
   }
 
   /// Checks if username is available

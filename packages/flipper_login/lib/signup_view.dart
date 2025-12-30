@@ -1,7 +1,7 @@
 import 'package:flipper_models/helperModels/business_type.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+
 import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
 
@@ -112,7 +112,7 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
               }
 
               return Scaffold(
-                backgroundColor: const Color(0xFFF7FAFC),
+                backgroundColor: const Color(0xFFF5F7FA),
                 body: SafeArea(
                   child: Center(
                     child: SingleChildScrollView(
@@ -129,7 +129,11 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                               Card(
                                 elevation: 0,
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16),
+                                  borderRadius: BorderRadius.circular(12.0),
+                                  side: BorderSide(
+                                    color: Colors.grey.shade300,
+                                    width: 1,
+                                  ),
                                 ),
                                 child: Padding(
                                   padding: const EdgeInsets.all(24),
@@ -154,8 +158,8 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                         fieldBloc: formBloc.phoneNumber,
                                         label: 'Phone Number',
                                         icon: Icons.phone_outlined,
-                                        hint: 'Enter your phone number',
-                                        keyboardType: TextInputType.phone,
+                                        hint: 'Enter your phone or email',
+                                        keyboardType: TextInputType.text,
                                       ),
                                       components.SignupComponents
                                           .buildDropdownField<BusinessType>(
@@ -166,10 +170,6 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                             FieldItem(
                                           child: Text(
                                             value.typeName,
-                                            style: GoogleFonts.poppins(
-                                              fontSize: 16,
-                                              color: const Color(0xFF1A1F36),
-                                            ),
                                           ),
                                         ),
                                         onChanged: (value) {
@@ -195,10 +195,6 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                             FieldItem(
                                           child: Text(
                                             value,
-                                            style: GoogleFonts.poppins(
-                                              fontSize: 16,
-                                              color: const Color(0xFF1A1F36),
-                                            ),
                                           ),
                                         ),
                                       ),
@@ -215,11 +211,12 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                   locator<RouterService>()
                                       .navigateTo(PinLoginRoute());
                                 },
-                                child: Text(
+                                child: const Text(
                                   'Already have an account? Sign in',
-                                  style: GoogleFonts.poppins(
+                                  style: TextStyle(
                                     fontSize: 14,
-                                    color: const Color(0xFF006AFE),
+                                    color: Color(0xFF0078D4),
+                                    fontWeight: FontWeight.w600,
                                   ),
                                 ),
                               ),
