@@ -140,7 +140,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     }
     var headers = {'Authorization': token!, 'Content-Type': 'application/json'};
     var request = http.Request(
-        'POST', Uri.parse(ebm.taxServerUrl! + 'initializer/selectInitInfo'));
+        'POST', Uri.parse(ebm.taxServerUrl + 'initializer/selectInitInfo'));
     request.body =
         json.encode({"tin": tinNumber, "bhfId": bhfId, "dvcSrlNo": dvcSrlNo});
     request.headers.addAll(headers);
