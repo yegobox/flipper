@@ -1,74 +1,18 @@
+import 'dart:convert';
+
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart';
-import 'package:flipper_models/exceptions.dart';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_dashboard/utils/snack_bar_utils.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class TenantOperationsMixin {
   // Helper function to display error messages
   static void _showError(BuildContext context, String message) {
     showCustomSnackBarUtil(context, message, backgroundColor: Colors.red[600]);
-  }
-
-  static Future<void> savePermissionsStatic(
-    Tenant? newTenant,
-    Business? business,
-    Branch? branch,
-    String userType,
-    Map<String, String> tenantAllowedFeatures,
-    Map<String, bool> activeFeatures,
-    String? userId, {
-    required String phoneNumber,
-  }) async {
-    for (final entry in tenantAllowedFeatures.entries) {
-      final featureName = entry.key;
-      final accessLevel = entry.value;
-      List<Access> existingAccess = await ProxyService.strategy.access(
-        fetchRemote: false,
-        userId: newTenant?.userId ?? userId!,
-        featureName: featureName,
-      );
-      talker.warning(featureName);
-      if (existingAccess.isNotEmpty) {
-        ProxyService.strategy.updateAccess(
-          accessId: existingAccess.first.id,
-          userId: newTenant?.userId ?? userId!,
-          branchId: branch!.id,
-          businessId: business!.id,
-          featureName: featureName,
-          accessLevel: accessLevel.toLowerCase(),
-          status: activeFeatures[featureName] != null
-              ? activeFeatures[featureName]!
-                    ? 'active'
-                    : 'inactive'
-              : 'inactive',
-          userType: userType,
-        );
-      } else {
-        await ProxyService.strategy.addAccess(
-          branchId: branch!.id,
-          businessId: business!.id,
-          userId: newTenant?.userId ?? userId!,
-          featureName: featureName,
-          accessLevel: accessLevel.toLowerCase(),
-          status: activeFeatures[featureName] != null
-              ? activeFeatures[featureName]!
-                    ? 'active'
-                    : 'inactive'
-              : 'inactive',
-          userType: userType,
-        );
-      }
-    }
-    // save tenant
-    await ProxyService.strategy.updateTenant(
-      userId: newTenant?.userId ?? userId!,
-      type: userType,
-      phoneNumber: phoneNumber,
-    );
   }
 
   static Future<void> addUserStatic(
@@ -84,22 +28,11 @@ class TenantOperationsMixin {
     required Map<String, bool> activeFeatures,
   }) async {
     try {
-      Business? business = await ProxyService.strategy.defaultBusiness();
-
-      if (business == null) {
-        showCustomSnackBarUtil(
-          context,
-          'Business not found',
-          backgroundColor: Colors.red[600],
-        );
-        return;
-      }
-
       Branch? branch;
       if (userType == 'Agent') {
         // Create a new branch for the agent
         branch = await ProxyService.strategy.addBranch(
-          businessId: business.id,
+          businessId: ProxyService.box.getBusinessId()!,
           name: name,
           location: name, // Using name for location as well
           isDefault: false,
@@ -109,66 +42,98 @@ class TenantOperationsMixin {
       } else {
         // Use the selected or default branch for other user types
         branch =
-            ref.read(selectedBranchProvider) ??
-            await ProxyService.strategy.defaultBranch();
+            // ref.read(selectedBranchProvider) ??
+            await ProxyService.strategy.activeBranch(
+              businessId: ProxyService.box.getBusinessId()!,
+            );
       }
 
-      if (branch == null) {
-        showCustomSnackBarUtil(
-          context,
-          'Business or Branch not found',
-          backgroundColor: Colors.red[600],
-        );
-        return;
-      }
-
-      Tenant? newTenant;
-      if (!editMode) {
-        // Creating a new tenant
-        newTenant = await ProxyService.strategy.addNewTenant(
-          name: name,
-          // phone can also be email both use same as phone field
-          phoneNumber: phone,
-          branch: branch,
-          business: business,
-          userType: userType,
-          flipperHttpClient: ProxyService.http,
-        );
-        showCustomSnackBarUtil(context, 'Tenant Created Successfully');
-        // save this tenant to supabase
-        await ProxyService.strategy.updateTenant(
-          tenantId: newTenant!.id,
-          name: name,
-          phoneNumber: newTenant.phoneNumber,
-          email: '',
-          userId: newTenant.userId,
-          businessId: business.id,
-          type: userType,
-          pin: newTenant.pin,
-          sessionActive: true,
-        );
-      } else {
-        // Fetching an existing tenant for editing
-        newTenant = await ProxyService.strategy.getTenant(userId: userId);
-      }
-
-      if (newTenant == null) {
-        _showError(context, "Failed to create or fetch tenant.");
-        return;
-      }
-
-      // Save permissions with correct values
-      await savePermissionsStatic(
-        newTenant,
-        business,
-        branch,
-        userType,
-        tenantAllowedFeatures,
-        activeFeatures,
-        newTenant.userId,
-        phoneNumber: phone,
+      // Call the v2/api/user endpoint to get user information
+      final userResponse = await ProxyService.http.post(
+        Uri.parse('${AppSecrets.apihubProd}/v2/api/user'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'phone_number': phone, // phone can also be email
+        }),
       );
-      showCustomSnackBarUtil(context, 'Tenant Updated or Created Successfully');
+
+      if (userResponse.statusCode != 200) {
+        _showError(
+          context,
+          "Failed to find user with provided phone/email: ${userResponse.body}",
+        );
+        return;
+      }
+
+      final userJson = jsonDecode(userResponse.body);
+      final String userIdFromApi = userJson['id'];
+      final String phoneNumber = userJson['phone_number'];
+
+      // Call Supabase RPC function to create agent
+      final supabaseClient = Supabase.instance.client;
+
+      // Prepare access permissions from tenantAllowedFeatures
+      List<Map<String, String>> accessPermissions = [];
+      for (final entry in tenantAllowedFeatures.entries) {
+        accessPermissions.add({
+          'feature_name': entry.key,
+          'access_level': entry.value,
+          'status':
+              activeFeatures[entry.key] != null && activeFeatures[entry.key]!
+              ? 'active'
+              : 'inactive',
+        });
+      }
+
+      // Log the data being sent to create_agent
+      talker.info('Creating agent with data:');
+      talker.info('  User ID: $userIdFromApi');
+      talker.info('  Name: $name');
+      talker.info('  Email/Phone: $phoneNumber');
+      talker.info('  Business ID: ${branch.businessId}');
+      talker.info('  Branch ID: ${branch.id}');
+      talker.info('  Access Permissions: $accessPermissions');
+
+      // Call the create_agent RPC function
+      final data = await supabaseClient.rpc(
+        'create_agent',
+        params: {
+          'p_user_id': userIdFromApi,
+          'p_name': name,
+          'p_email': phoneNumber, // Using phone number as email for now
+          'p_business_id': branch.businessId,
+          'p_branch_id': branch.id, // Can be null for non-agent users
+          'p_accesses': accessPermissions,
+        },
+      );
+
+      // Get the tenant ID returned by the RPC function
+      final String tenantId = data;
+      // query the agent on local for display
+      await ProxyService.strategy.tenant(tenantId: tenantId, fetchRemote: true);
+
+      // Generate pin for the new tenant
+      final pinResponse = await ProxyService.http.post(
+        Uri.parse('${AppSecrets.apihubProd}/v2/api/pin'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'phoneNumber': phone,
+          'userId': userIdFromApi,
+          'branchId': branch.id,
+          'businessId': branch.businessId,
+          'defaultApp': 1,
+        }),
+      );
+
+      if (pinResponse.statusCode != 200 && pinResponse.statusCode != 201) {
+        _showError(
+          context,
+          "Failed to generate pin for the new tenant: ${pinResponse.body}",
+        );
+        return;
+      }
+
+      showCustomSnackBarUtil(context, 'Tenant Created Successfully via RPC');
 
       // Refresh the tenant list
       await model.loadTenants();

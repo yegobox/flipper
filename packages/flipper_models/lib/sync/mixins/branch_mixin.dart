@@ -35,6 +35,11 @@ mixin BranchMixin implements BranchInterface {
       DateTime? lastTouched,
       DateTime? deletedAt,
       int? id}) async {
+    // find a branch by name create the branch if only it does not exist
+    Branch? existingBranch = await branch(name: name);
+    if (existingBranch != null) {
+      return existingBranch;
+    }
     final response = await flipperHttpClient.post(
       Uri.parse(apihub + '/v2/api/branch/create'),
       body: jsonEncode(<String, dynamic>{
@@ -43,11 +48,6 @@ mixin BranchMixin implements BranchInterface {
         "location": location
       }),
     );
-    // find a branch by name create the branch if only it does not exist
-    Branch? existingBranch = await branch(name: name);
-    if (existingBranch != null) {
-      return existingBranch;
-    }
     if (response.statusCode == 201) {
       IBranch remoteBranch = IBranch.fromJson(json.decode(response.body));
       return await repository.upsert<Branch>(Branch(

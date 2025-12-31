@@ -38,27 +38,12 @@ mixin BusinessMixin implements BusinessInterface {
         policy: fetchOnline
             ? OfflineFirstGetPolicy.awaitRemoteWhenNoneExist
             : OfflineFirstGetPolicy.localOnly,
-        query: Query(where: [Where('pin').isExactly(userId)]));
+        query: Query(where: [Where('userId').isExactly(userId)]));
 
     if (tenants.isEmpty) {
       return [];
     }
-
-    final businessIds =
-        tenants.map((t) => t.businessId).where((id) => id != null).toList();
-
-    if (businessIds.isEmpty) {
-      return [];
-    }
-
-    return await repository.get<Business>(
-        policy: fetchOnline
-            ? OfflineFirstGetPolicy.awaitRemoteWhenNoneExist
-            : OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
-        query: Query(where: [
-          Where('serverId').isIn(businessIds),
-          if (active) Where('active').isExactly(active)
-        ]));
+    return [];
   }
 
   @override

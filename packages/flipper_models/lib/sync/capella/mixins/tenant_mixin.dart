@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flipper_models/flipper_http_client.dart';
-import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:flipper_models/sync/interfaces/tenant_interface.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:supabase_models/brick/models/user.model.dart' show User;
@@ -76,7 +75,7 @@ mixin CapellaTenantMixin implements TenantInterface {
   Future<Tenant?> tenant(
       {String? businessId,
       String? userId,
-      String? id,
+      String? tenantId,
       required bool fetchRemote}) {
     // TODO: implement tenant
     throw UnimplementedError();
@@ -87,14 +86,4 @@ mixin CapellaTenantMixin implements TenantInterface {
     // TODO: implement tenants
     throw UnimplementedError();
   }
-
-  @override
-  Future<List<ITenant>> tenantsFromOnline(
-      {required String businessId,
-      required HttpClientInterface flipperHttpClient}) {
-    // TODO: implement tenantsFromOnline
-    throw UnimplementedError();
-  }
-
-  
 }

@@ -565,52 +565,10 @@ mixin AuthMixin implements AuthInterface {
       {String? uid}) async {
     uid = uid ?? FirebaseAuth.instance.currentUser?.uid;
 
-    // Get the phone number associated with the current session
-    final existingPhoneNumber = ProxyService.box.getUserPhone();
     // get userId of the user that is trying to log in
     final savedLocalPinForThis = await ProxyService.strategy
         .getPinLocal(phoneNumber: phoneNumber, alwaysHydrate: false);
     uid ??= savedLocalPinForThis?.uid;
-    final tenant = await ProxyService.strategy
-        .getTenant(pin: savedLocalPinForThis?.pin ?? 0);
-
-    // Check if we have sufficient local data to skip the API call
-    if (savedLocalPinForThis != null &&
-        existingPhoneNumber == phoneNumber &&
-        tenant != null) {
-      final businesses = await ProxyService.strategy
-          .businesses(userId: savedLocalPinForThis.userId!);
-      final branches = await ProxyService.strategy
-          .branches(businessId: tenant.businessId ?? "");
-
-      if (businesses.isNotEmpty && branches.isNotEmpty) {
-        talker.debug(
-            "Using existing token and user ID, skipping duplicate sendLoginRequest");
-
-        // Build a proper response structure with the fetched data
-        Map<String, dynamic> responseData = {
-          'id': savedLocalPinForThis.userId,
-          'token': savedLocalPinForThis.tokenUid,
-          'uid': uid,
-          'phoneNumber': phoneNumber,
-          'channels': [savedLocalPinForThis.userId.toString()],
-          'pin': savedLocalPinForThis.userId,
-          'businesses': _convertBusinesses(businesses).map((b) {
-            final json = b.toJson();
-            json['branches'] = _convertBranches(branches).map((br) {
-              final brJson = br.toJson();
-              return brJson;
-            }).toList();
-            return json;
-          }).toList(),
-        };
-
-        return http.Response(
-          jsonEncode(responseData),
-          200,
-        );
-      }
-    }
 
     // If local data is not sufficient, proceed with the actual API call
     try {
@@ -754,29 +712,6 @@ mixin AuthMixin implements AuthInterface {
           'uid': FirebaseAuth.instance.currentUser!.uid,
       }),
     );
-  }
-
-  List<IBranch> _convertBranches(List<Branch> branches) {
-    return branches.map((e) {
-      // Store the string ID for reference if needed
-      // The id field is non-nullable, so we don't need to check for null
-      if (e.serverId != null) {
-        ProxyService.box
-            .writeString(key: 'branch_${e.serverId}_uuid', value: e.id);
-      }
-
-      return IBranch(
-          // For id, we need to use serverId for backward compatibility
-          // since IBranch.id expects an int
-          id: e.id,
-          name: e.name,
-          businessId: e.businessId,
-          longitude: e.longitude,
-          latitude: e.latitude,
-          location: e.location,
-          active: e.active,
-          isDefault: false);
-    }).toList();
   }
 
   List<IBusiness> _convertBusinesses(List<Business> businesses) {

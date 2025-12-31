@@ -2,26 +2,9 @@ import 'dart:async';
 
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/db_model_export.dart';
-import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:supabase_models/brick/models/user.model.dart';
 
 abstract class TenantInterface {
-  Future<Tenant?> addNewTenant({
-    required Business business,
-    required Branch branch,
-    String? phoneNumber,
-    String? name,
-    String? id,
-    String? email,
-    String? businessId,
-    bool? sessionActive,
-    String? branchId,
-    String? imageUrl,
-    int? pin,
-    bool? isDefault,
-    required HttpClientInterface flipperHttpClient,
-    required String userType,
-  });
   Future<void> createPin({
     required HttpClientInterface flipperHttpClient,
     required String phoneNumber,
@@ -41,12 +24,9 @@ abstract class TenantInterface {
   Future<Tenant?> tenant(
       {String? businessId,
       String? userId,
-      String? id,
+      String? tenantId,
       required bool fetchRemote});
   Future<List<Tenant>> tenants({String? businessId, int? excludeUserId});
-  Future<List<ITenant>> tenantsFromOnline(
-      {required String businessId,
-      required HttpClientInterface flipperHttpClient});
 
   /// Delete tenants that have a null `pin` value. If [businessId] is provided,
   /// only tenants for that business will be checked and deleted.

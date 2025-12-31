@@ -13,7 +13,6 @@ export 'helperModels/branch.dart';
 export 'helperModels/favorite.dart';
 export 'helperModels/voucher.dart';
 export 'helperModels/unit.dart';
-export 'helperModels/tenant.dart';
 export 'helperModels/itenant.dart';
 export 'helperModels/iuser.dart';
 export 'helperModels/counter.dart';

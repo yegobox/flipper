@@ -179,7 +179,7 @@ mixin DeleteMixin implements DeleteInterface {
       case 'tenant':
         final tenant = (await ProxyService.strategy.tenant(
           fetchRemote: false,
-          id: id,
+          tenantId: id,
         ));
         if (tenant != null) {
           await repository.delete<Tenant>(tenant);

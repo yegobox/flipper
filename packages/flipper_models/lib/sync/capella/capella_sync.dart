@@ -7,7 +7,6 @@ import 'dart:typed_data';
 import 'package:flipper_models/DatabaseSyncInterface.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/business_type.dart';
-import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:flipper_models/sync/capella/mixins/delegation_mixin.dart';
 import 'package:flipper_models/sync/mixins/category_mixin.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
@@ -115,7 +114,7 @@ class CapellaSync extends AiStrategyImpl
   Future<Tenant?> tenant(
       {String? businessId,
       String? userId,
-      String? id,
+      String? tenantId,
       required bool fetchRemote}) {
     // TODO: implement tenant
     throw UnimplementedError();
@@ -127,13 +126,7 @@ class CapellaSync extends AiStrategyImpl
     throw UnimplementedError();
   }
 
-  @override
-  Future<List<ITenant>> tenantsFromOnline(
-      {required String businessId,
-      required HttpClientInterface flipperHttpClient}) {
-    // TODO: implement tenantsFromOnline
-    throw UnimplementedError();
-  }
+
 
   @override
   Future<ITransaction?> manageTransaction(

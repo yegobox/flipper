@@ -139,23 +139,6 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
     );
   }
 
-  Future<void> savePermissions(
-    Tenant? newTenant,
-    Business? business,
-    Branch? branch,
-  ) async {
-    return TenantOperationsMixin.savePermissionsStatic(
-      newTenant,
-      business,
-      branch,
-      selectedUserType,
-      tenantAllowedFeatures,
-      activeFeatures,
-      userId,
-      phoneNumber: phoneController.text,
-    );
-  }
-
   void fillFormWithTenantData(Tenant tenant, List<Access> tenantAccesses) {
     TenantPermissionsMixin.fillFormWithTenantDataStatic(
       tenant,
