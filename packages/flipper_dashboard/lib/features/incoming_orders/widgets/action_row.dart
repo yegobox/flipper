@@ -277,11 +277,11 @@ class ActionRow extends ConsumerWidget
                   try {
                     final requesterConfig =
                         await SmsNotificationService.getBranchSmsConfig(
-                          request.branch!.serverId!,
+                          request.branch!.id,
                         );
                     if (requesterConfig?.smsPhoneNumber != null) {
                       await SmsNotificationService.sendOrderRequestNotification(
-                        receiverBranchId: request.branch!.serverId!,
+                        receiverBranchId: request.branch!.id,
                         orderDetails:
                             'Your stock request #${request.id.substring(0, 5)} has been declined.',
                         requesterPhone: requesterConfig!.smsPhoneNumber!,

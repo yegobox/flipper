@@ -9,9 +9,7 @@ class SupportSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -19,9 +17,9 @@ class SupportSection extends StatelessWidget {
           children: [
             Text(
               'Need Help?',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
@@ -31,14 +29,17 @@ class SupportSection extends StatelessWidget {
             const SizedBox(height: 16),
             ElevatedButton.icon(
               onPressed: () async {
-                int businessId = ProxyService.box.getBusinessId()!;
+                String businessId = ProxyService.box.getBusinessId()!;
                 final initialMessage =
                     "I am writing to request support to add EBM to flipper, my businessID is: $businessId";
                 final Uri whatsappUri = Uri.parse(
-                    'https://wa.me/250788360058?text=${Uri.encodeComponent(initialMessage)}');
+                  'https://wa.me/250788360058?text=${Uri.encodeComponent(initialMessage)}',
+                );
                 if (await canLaunchUrl(whatsappUri)) {
-                  await launchUrl(whatsappUri,
-                      mode: LaunchMode.externalApplication);
+                  await launchUrl(
+                    whatsappUri,
+                    mode: LaunchMode.externalApplication,
+                  );
                 } else {
                   throw 'Could not launch $whatsappUri';
                 }

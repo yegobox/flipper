@@ -29,9 +29,12 @@ mixin DiscountMixin<T extends ConsumerStatefulWidget>
   }
 
   Future<List<TransactionItem>> _getActiveTransactionItems(
-      ITransaction transaction) async {
+    ITransaction transaction,
+  ) async {
     return await ProxyService.getStrategy(Strategy.capella).transactionItems(
-      branchId: (await ProxyService.strategy.activeBranch()).id,
+      branchId: (await ProxyService.strategy.activeBranch(
+        businessId: ProxyService.box.getBusinessId()!,
+      )).id,
       transactionId: transaction.id,
       doneWithTransaction: false,
       active: true,
@@ -42,8 +45,12 @@ mixin DiscountMixin<T extends ConsumerStatefulWidget>
     return items.fold(0, (sum, item) => sum + (item.price * item.qty));
   }
 
-  Future<void> _processDiscount(List<TransactionItem> items,
-      double discountRate, double itemsTotal, ITransaction transaction) async {
+  Future<void> _processDiscount(
+    List<TransactionItem> items,
+    double discountRate,
+    double itemsTotal,
+    ITransaction transaction,
+  ) async {
     final discountAmount = (discountRate * itemsTotal) / 100;
     double remainingDiscount = discountAmount;
 

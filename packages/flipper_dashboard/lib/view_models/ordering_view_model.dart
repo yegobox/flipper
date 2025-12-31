@@ -137,7 +137,7 @@ class OrderingViewModel extends ProductViewModel
 
       // Send SMS to both requester and receiver
       await SmsNotificationService.sendOrderRequestNotification(
-        receiverBranchId: supplier.serverId!,
+        receiverBranchId: supplier.id,
         orderDetails: orderDetails,
         requesterPhone: requesterPhone,
       );
@@ -184,7 +184,9 @@ class OrderingViewModel extends ProductViewModel
 
       final items = await ProxyService.getStrategy(Strategy.capella)
           .transactionItems(
-            branchId: (await ProxyService.strategy.activeBranch()).id,
+            branchId: (await ProxyService.strategy.activeBranch(
+              businessId: ProxyService.box.getBusinessId()!,
+            )).id,
             transactionId: transaction.id,
             doneWithTransaction: false,
             active: true,
@@ -202,7 +204,7 @@ class OrderingViewModel extends ProductViewModel
       // ignore: unused_local_variable
       String orderId = await ProxyService.strategy.createStockRequest(
         items,
-        mainBranchId: supplier.serverId!,
+        mainBranchId: supplier.id,
         subBranchId: ProxyService.box.getBranchId()!,
         deliveryNote: deliveryNote,
         orderNote: null,

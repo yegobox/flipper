@@ -140,7 +140,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     }
     var headers = {'Authorization': token!, 'Content-Type': 'application/json'};
     var request = http.Request(
-        'POST', Uri.parse(ebm.taxServerUrl! + 'initializer/selectInitInfo'));
+        'POST', Uri.parse(ebm.taxServerUrl + 'initializer/selectInitInfo'));
     request.body =
         json.encode({"tin": tinNumber, "bhfId": bhfId, "dvcSrlNo": dvcSrlNo});
     request.headers.addAll(headers);
@@ -569,7 +569,9 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     // Get business details
     Business? business = await ProxyService.strategy
         .getBusiness(businessId: ProxyService.box.getBusinessId()!);
-    String branchId = (await ProxyService.strategy.activeBranch()).id;
+    String branchId = (await ProxyService.strategy
+            .activeBranch(businessId: ProxyService.box.getBusinessId()!))
+        .id;
     Ebm? ebm = await ProxyService.strategy
         .ebm(branchId: ProxyService.box.getBranchId()!);
     List<TransactionItem> items =
@@ -1460,7 +1462,8 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
   }
 
   @override
-  Future<List<odm.Configurations>> taxConfigs({required int branchId}) async {
+  Future<List<odm.Configurations>> taxConfigs(
+      {required String branchId}) async {
     final repository = Repository();
     List<Configurations> taxConfigs = await repository.get<Configurations>(
         policy: OfflineFirstGetPolicy.alwaysHydrate,

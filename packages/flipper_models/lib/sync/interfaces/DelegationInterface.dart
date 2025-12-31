@@ -3,7 +3,7 @@ import 'package:supabase_models/brick/models/all_models.dart';
 abstract class DelegationInterface {
   Future<void> createDelegation({
     required String transactionId,
-    required int branchId,
+    required String branchId,
     required String receiptType,
     String? customerName,
     String? customerTin,
@@ -17,13 +17,13 @@ abstract class DelegationInterface {
 
   /// Watch delegations stream with optional filtering
   Stream<List<TransactionDelegation>> delegationsStream({
-    int? branchId,
+    String? branchId,
     String? status,
     required String onDeviceId,
   });
 
   /// Get list of devices by branchId
   Future<List<Device>> getDevicesByBranch({
-    required int branchId,
+    required String branchId,
   });
 }

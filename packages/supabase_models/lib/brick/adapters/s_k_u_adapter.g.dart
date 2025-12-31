@@ -9,10 +9,10 @@ Future<SKU> _$SKUFromSupabase(
   return SKU(
     id: data['id'] as String?,
     sku: data['sku'] == null ? null : data['sku'] as int?,
-    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
     businessId: data['business_id'] == null
         ? null
-        : data['business_id'] as int?,
+        : data['business_id'] as String?,
     consumed: data['consumed'] == null ? null : data['consumed'] as bool?,
   );
 }
@@ -39,10 +39,10 @@ Future<SKU> _$SKUFromSqlite(
   return SKU(
     id: data['id'] as String,
     sku: data['sku'] == null ? null : data['sku'] as int?,
-    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
     businessId: data['business_id'] == null
         ? null
-        : data['business_id'] as int?,
+        : data['business_id'] as String?,
     consumed: data['consumed'] == null ? null : data['consumed'] == 1,
   )..primaryKey = data['_brick_id'] as int;
 }
@@ -120,13 +120,13 @@ class SKUAdapter extends OfflineFirstWithSupabaseAdapter<SKU> {
       association: false,
       columnName: 'branch_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'businessId': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'business_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'consumed': const RuntimeSqliteColumnDefinition(
       association: false,

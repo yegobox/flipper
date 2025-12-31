@@ -16,7 +16,7 @@ mixin ProductMixin implements ProductInterface {
   Repository get repository;
 
   @override
-  Future<List<Product>> products({required int branchId}) async {
+  Future<List<Product>> products({required String branchId}) async {
     return await repository.get<Product>(
       query: Query(where: [Where('branchId').isExactly(branchId)]),
     );
@@ -52,7 +52,7 @@ mixin ProductMixin implements ProductInterface {
   }
 
   @override
-  Stream<double> wholeStockValue({required int branchId}) async* {
+  Stream<double> wholeStockValue({required String branchId}) async* {
     final products = await repository.get<Product>(
       query: Query(where: [Where('branchId').isExactly(branchId)]),
     );
@@ -73,9 +73,9 @@ mixin ProductMixin implements ProductInterface {
   Future<Product?> getProduct(
       {String? id,
       String? barCode,
-      required int branchId,
+      required String branchId,
       String? name,
-      required int businessId}) async {
+      required String businessId}) async {
     return (await repository.get<Product>(
             policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
             query: Query(where: [
@@ -91,8 +91,8 @@ mixin ProductMixin implements ProductInterface {
   @override
   Future<Product?> createProduct(
       {required Product product,
-      required int businessId,
-      required int branchId,
+      required String businessId,
+      required String branchId,
       required int tinNumber,
       required String bhFId,
       required bool skipRRaCall,
@@ -303,7 +303,7 @@ mixin ProductMixin implements ProductInterface {
     }
   }
 
-  Future<Variant> _createRegularVariant(int branchId, int? tinNumber,
+  Future<Variant> _createRegularVariant(String branchId, int? tinNumber,
       {required double qty,
       required double supplierPrice,
       required double retailPrice,
@@ -467,7 +467,7 @@ mixin ProductMixin implements ProductInterface {
       {required String countryCode,
       required String productType,
       required packagingUnit,
-      required int branchId,
+      required String branchId,
       required String quantityUnit}) async {
     final repository = Repository();
     final query = Query(
@@ -512,7 +512,7 @@ mixin ProductMixin implements ProductInterface {
 //   required String countryCode,
 //   required String productType,
 //   required packagingUnit,
-//   required int branchId,
+//   required String branchId,
 //   required String quantityUnit,
 // }) async {
 //   final repository = Repository();
@@ -575,7 +575,8 @@ mixin ProductMixin implements ProductInterface {
 // }
 
   @override
-  FutureOr<SKU> getSku({required int branchId, required int businessId}) async {
+  FutureOr<SKU> getSku(
+      {required String branchId, required String businessId}) async {
     final query = Query(
       where: [
         Where('branchId').isExactly(branchId),
@@ -609,8 +610,8 @@ mixin ProductMixin implements ProductInterface {
       String? unit,
       String? color,
       String? imageUrl,
-      required int branchId,
-      required int businessId,
+      required String branchId,
+      required String businessId,
       String? categoryId,
       String? expiryDate}) async {
     final product = await getProduct(
@@ -628,7 +629,7 @@ mixin ProductMixin implements ProductInterface {
   }
 
   @override
-  Future<void> hydrateCodes({required int branchId}) async {
+  Future<void> hydrateCodes({required String branchId}) async {
     await repository.get<ItemCode>(
       policy: brick.OfflineFirstGetPolicy.alwaysHydrate,
       query: brick.Query(
@@ -638,7 +639,7 @@ mixin ProductMixin implements ProductInterface {
   }
 
   @override
-  Future<void> hydrateSars({required int branchId}) async {
+  Future<void> hydrateSars({required String branchId}) async {
     await repository.get<Sar>(
       policy: brick.OfflineFirstGetPolicy.alwaysHydrate,
       query: brick.Query(

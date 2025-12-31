@@ -22,7 +22,7 @@ class BranchPerformanceState extends ConsumerState<BranchPerformance>
     final branch = ref.watch(selectedBranchProvider);
     final items = ref.watch(
       variantsProvider((
-        branchId: branch?.serverId ?? ProxyService.box.getBranchId()!,
+        branchId: branch?.id ?? ProxyService.box.getBranchId()!,
       )),
     );
     final selectedItemId = ref.watch(selectedItemProvider);

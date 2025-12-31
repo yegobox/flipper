@@ -19,14 +19,14 @@ class ProductService with ListenableServiceMixin {
     notifyListeners();
   }
 
-  int? get userId => ProxyService.box.getUserId();
-  int? get branchId => ProxyService.box.getBranchId()!;
+  String? get userId => ProxyService.box.getUserId();
+  String? get branchId => ProxyService.box.getBranchId();
 
   setProductUnit({required String unit}) {
     _currentUnit = unit;
   }
 
-  Stream<List<Product>> productStream({required int branchId}) {
+  Stream<List<Product>> productStream({required String branchId}) {
     return Stream.fromFuture(ProxyService.strategy
             .getProducts(branchId: ProxyService.box.getBranchId()!))
         .asyncExpand((products) async* {

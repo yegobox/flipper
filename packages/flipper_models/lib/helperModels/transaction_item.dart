@@ -170,11 +170,12 @@ class TransactionItem extends IJsonSerializable {
         ? null
         : json['deletedAt'];
 
-    json['lastTouched'] =
-        json['lastTouched'].toString().isEmpty || json['lastTouched'] == null
-            ? DateTime.now()
-            : DateTime.parse(json['lastTouched'] ?? DateTime.now())
-                .toIso8601String();
+    json['lastTouched'] = (json['lastTouched'] == null ||
+            json['lastTouched'].toString().isEmpty)
+        ? DateTime.now().toIso8601String()
+        : (json['lastTouched'] is String
+            ? json['lastTouched']
+            : DateTime.parse(json['lastTouched'].toString()).toIso8601String());
 
     return _$TransactionItemFromJson(json);
   }

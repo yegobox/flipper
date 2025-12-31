@@ -25,8 +25,11 @@ class CheckoutScannerActions extends ScannerActions {
   @override
   void onBarcodeDetected(Barcode barcode) async {
     if (barcode.rawValue == null) {
-      showCustomSnackBarUtil(context, 'No barcode value detected.',
-          backgroundColor: Colors.red);
+      showCustomSnackBarUtil(
+        context,
+        'No barcode value detected.',
+        backgroundColor: Colors.red,
+      );
       return;
     }
 
@@ -39,8 +42,9 @@ class CheckoutScannerActions extends ScannerActions {
         await _soloud!.init();
         // Load the sound asset. Ensure 'assets/sound.mp3' exists in your project.
         // You might need to copy 'sound.mp3' to the 'assets' folder of flipper_dashboard package.
-        _soundSource = await _soloud!
-            .loadAsset('packages/flipper_dashboard/assets/sound.mp3');
+        _soundSource = await _soloud!.loadAsset(
+          'packages/flipper_dashboard/assets/sound.mp3',
+        );
       }
 
       // Find the variant by barcode
@@ -61,12 +65,17 @@ class CheckoutScannerActions extends ScannerActions {
         }
       } else {
         showCustomSnackBarUtil(
-            context, 'Product not found for barcode: ${barcode.rawValue}',
-            backgroundColor: Colors.red);
+          context,
+          'Product not found for barcode: ${barcode.rawValue}',
+          backgroundColor: Colors.red,
+        );
       }
     } catch (e) {
-      showCustomSnackBarUtil(context, 'Error adding product: ${e.toString()}',
-          backgroundColor: Colors.red);
+      showCustomSnackBarUtil(
+        context,
+        'Error adding product: ${e.toString()}',
+        backgroundColor: Colors.red,
+      );
     } finally {
       // Pop the scanner view after processing
       // Use the pop() method to ensure SoLoud resources are properly disposed
@@ -101,13 +110,13 @@ class CheckoutScannerActions extends ScannerActions {
   }
 
   @override
-  int getUserId() => ProxyService.box.getUserId()!;
+  String getUserId() => ProxyService.box.getUserId()!;
 
   @override
-  int getBusinessId() => ProxyService.box.getBusinessId()!;
+  String getBusinessId() => ProxyService.box.getBusinessId()!;
 
   @override
-  int getBranchId() => ProxyService.box.getBranchId()!;
+  String getBranchId() => ProxyService.box.getBranchId()!;
 
   @override
   String getUserPhone() => ProxyService.box.getUserPhone()!;
@@ -127,10 +136,13 @@ class CheckoutScannerActions extends ScannerActions {
   }
 
   @override
-  FutureOr<Pin?> getPinLocal(
-          {required int userId, required bool alwaysHydrate}) =>
-      ProxyService.strategy
-          .getPinLocal(userId: userId, alwaysHydrate: alwaysHydrate);
+  FutureOr<Pin?> getPinLocal({
+    required String userId,
+    required bool alwaysHydrate,
+  }) => ProxyService.strategy.getPinLocal(
+    userId: userId,
+    alwaysHydrate: alwaysHydrate,
+  );
 
   @override
   getStrategyService() {

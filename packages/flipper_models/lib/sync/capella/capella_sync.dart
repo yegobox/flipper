@@ -44,7 +44,7 @@ import 'package:flipper_models/sync/capella/mixins/shift_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/counter_mixin.dart';
 import 'package:flipper_services/ai_strategy_impl.dart';
 import 'package:flipper_models/sync/mixins/stock_recount_mixin.dart';
-import 'package:supabase_models/brick/models/all_models.dart';
+import 'package:supabase_models/brick/models/all_models.dart' hide BusinessType;
 import 'package:flipper_web/services/ditto_service.dart';
 
 class CapellaSync extends AiStrategyImpl
@@ -85,7 +85,7 @@ class CapellaSync extends AiStrategyImpl
 
   @override
   Future<Stream<double>> downloadAsset({
-    required int branchId,
+    required String branchId,
     required String assetName,
     required String subPath,
   }) async {
@@ -113,20 +113,23 @@ class CapellaSync extends AiStrategyImpl
 
   @override
   Future<Tenant?> tenant(
-      {int? businessId, int? userId, String? id, required bool fetchRemote}) {
+      {String? businessId,
+      String? userId,
+      String? id,
+      required bool fetchRemote}) {
     // TODO: implement tenant
     throw UnimplementedError();
   }
 
   @override
-  Future<List<Tenant>> tenants({int? businessId, int? excludeUserId}) {
+  Future<List<Tenant>> tenants({String? businessId, int? excludeUserId}) {
     // TODO: implement tenants
     throw UnimplementedError();
   }
 
   @override
   Future<List<ITenant>> tenantsFromOnline(
-      {required int businessId,
+      {required String businessId,
       required HttpClientInterface flipperHttpClient}) {
     // TODO: implement tenantsFromOnline
     throw UnimplementedError();
@@ -135,7 +138,7 @@ class CapellaSync extends AiStrategyImpl
   @override
   Future<ITransaction?> manageTransaction(
       {required String transactionType,
-      required int branchId,
+      required String branchId,
       String status = PENDING,
       required bool isExpense,
       bool includeSubTotalCheck = false,
@@ -146,7 +149,7 @@ class CapellaSync extends AiStrategyImpl
 
   @override
   Stream<ITransaction> pendingTransaction(
-      {int? branchId,
+      {String? branchId,
       required String transactionType,
       bool forceRealData = true,
       required bool isExpense}) {
@@ -169,20 +172,22 @@ class CapellaSync extends AiStrategyImpl
 
   @override
   Future<List<Access>> access(
-      {required int userId, String? featureName, required bool fetchRemote}) {
+      {required String userId,
+      String? featureName,
+      required bool fetchRemote}) {
     // TODO: implement access
     throw UnimplementedError();
   }
 
   @override
   FutureOr<void> addAccess(
-      {required int userId,
+      {required String userId,
       required String featureName,
       required String accessLevel,
       required String userType,
       required String status,
-      required int branchId,
-      required int businessId,
+      required String branchId,
+      required String businessId,
       DateTime? createdAt}) {
     // TODO: implement addAccess
     throw UnimplementedError();
@@ -192,8 +197,8 @@ class CapellaSync extends AiStrategyImpl
   FutureOr<void> addAsset(
       {required String productId,
       required assetName,
-      required int branchId,
-      required int businessId}) {
+      required String branchId,
+      required String businessId}) {
     // TODO: implement addAsset
     throw UnimplementedError();
   }
@@ -201,14 +206,14 @@ class CapellaSync extends AiStrategyImpl
   @override
   FutureOr<Branch> addBranch(
       {required String name,
-      required int businessId,
+      required String businessId,
       required String location,
       String? userOwnerPhoneNumber,
       HttpClientInterface? flipperHttpClient,
       int? serverId,
       String? description,
-      String? longitude,
-      String? latitude,
+      num? longitude,
+      num? latitude,
       required bool isDefault,
       required bool active,
       DateTime? lastTouched,
@@ -221,7 +226,7 @@ class CapellaSync extends AiStrategyImpl
   @override
   FutureOr<void> addCategory(
       {required String name,
-      required int branchId,
+      required String branchId,
       required bool active,
       required bool focused,
       required DateTime lastTouched,
@@ -233,13 +238,13 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  FutureOr<void> addColor({required String name, required int branchId}) {
+  FutureOr<void> addColor({required String name, required String branchId}) {
     // TODO: implement addColor
     throw UnimplementedError();
   }
 
   @override
-  Future<List<Access>> allAccess({required int userId}) {
+  Future<List<Access>> allAccess({required String userId}) {
     // TODO: implement allAccess
     throw UnimplementedError();
   }
@@ -251,7 +256,7 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  Future<List<BusinessAnalytic>> analytics({required int branchId}) async {
+  Future<List<BusinessAnalytic>> analytics({required String branchId}) async {
     try {
       final ditto = dittoService.dittoInstance;
       if (ditto == null) {
@@ -335,7 +340,7 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  Stream<Tenant?> authState({required int branchId}) {
+  Stream<Tenant?> authState({required String branchId}) {
     // TODO: implement authState
     throw UnimplementedError();
   }
@@ -354,7 +359,7 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  Future<int> clearOldLogs({required Duration olderThan, int? businessId}) {
+  Future<int> clearOldLogs({required Duration olderThan, String? businessId}) {
     // TODO: implement clearOldLogs
     throw UnimplementedError();
   }
@@ -365,7 +370,7 @@ class CapellaSync extends AiStrategyImpl
       ITransaction? transaction,
       required String paymentType,
       required double discount,
-      required int branchId,
+      required String branchId,
       required String bhfId,
       required bool isProformaMode,
       required bool isTrainingMode,
@@ -382,7 +387,7 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  Future<List<PColor>> colors({required int branchId}) {
+  Future<List<PColor>> colors({required String branchId}) {
     // TODO: implement colors
     throw UnimplementedError();
   }
@@ -415,7 +420,7 @@ class CapellaSync extends AiStrategyImpl
   Future<void> createNewStock(
       {required Variant variant,
       required TransactionItem item,
-      required int subBranchId}) {
+      required String subBranchId}) {
     // TODO: implement createNewStock
     throw UnimplementedError();
   }
@@ -429,8 +434,8 @@ class CapellaSync extends AiStrategyImpl
 
   @override
   Future<String> createStockRequest(List<TransactionItem> items,
-      {required int mainBranchId,
-      required int subBranchId,
+      {required String mainBranchId,
+      required String subBranchId,
       String? deliveryNote,
       String? orderNote,
       String? financingId}) {
@@ -443,7 +448,7 @@ class CapellaSync extends AiStrategyImpl
       {required String barCode,
       required int sku,
       required String productId,
-      required int branchId,
+      required String branchId,
       required double retailPrice,
       required double supplierPrice,
       required double qty,
@@ -467,7 +472,7 @@ class CapellaSync extends AiStrategyImpl
 
   @override
   Stream<List<Customer>> customersStream(
-      {required int branchId, String? key, String? id}) {
+      {required String branchId, String? key, String? id}) {
     // TODO: implement customersStream
     throw UnimplementedError();
   }
@@ -510,13 +515,13 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  Future<double> fetchCost(int branchId) {
+  Future<double> fetchCost(String branchId) {
     // TODO: implement fetchCost
     throw UnimplementedError();
   }
 
   @override
-  Future<double> fetchProfit(int branchId) {
+  Future<double> fetchProfit(String branchId) {
     // TODO: implement fetchProfit
     throw UnimplementedError();
   }
@@ -581,8 +586,8 @@ class CapellaSync extends AiStrategyImpl
 
   @override
   Future<Variant?> getCustomVariant(
-      {required int businessId,
-      required int branchId,
+      {required String businessId,
+      required String branchId,
       required int tinNumber,
       required String bhFId}) {
     // TODO: implement getCustomVariant
@@ -590,7 +595,8 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  Future<List<Log>> getLogs({String? type, int? businessId, int limit = 100}) {
+  Future<List<Log>> getLogs(
+      {String? type, String? businessId, int limit = 100}) {
     // TODO: implement getLogs
     throw UnimplementedError();
   }
@@ -608,7 +614,7 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  Future<Setting?> getSetting({required int businessId}) {
+  Future<Setting?> getSetting({required String businessId}) {
     // TODO: implement getSetting
     throw UnimplementedError();
   }
@@ -653,7 +659,7 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  FutureOr<bool> isAdmin({required int userId, required String appFeature}) {
+  FutureOr<bool> isAdmin({required String userId, required String appFeature}) {
     // TODO: implement isAdmin
     throw UnimplementedError();
   }
@@ -666,20 +672,24 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  bool isSubscribed({required String feature, required int businessId}) {
+  bool isSubscribed({required String feature, required String businessId}) {
     // TODO: implement isSubscribed
     throw UnimplementedError();
   }
 
   @override
-  Future<bool> isTaxEnabled({required int businessId, required int branchId}) {
+  Future<bool> isTaxEnabled(
+      {required String businessId, required String branchId}) {
     // TODO: implement isTaxEnabled
     throw UnimplementedError();
   }
 
   @override
   Future<void> loadConversations(
-      {required int businessId, int? pageSize = 10, String? pk, String? sk}) {
+      {required String businessId,
+      int? pageSize = 10,
+      String? pk,
+      String? sk}) {
     // TODO: implement loadConversations
     throw UnimplementedError();
   }
@@ -703,13 +713,13 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  FutureOr<LPermission?> permission({required int userId}) {
+  FutureOr<LPermission?> permission({required String userId}) {
     // TODO: implement permission
     throw UnimplementedError();
   }
 
   @override
-  FutureOr<List<LPermission>> permissions({required int userId}) {
+  FutureOr<List<LPermission>> permissions({required String userId}) {
     // TODO: implement permissions
     throw UnimplementedError();
   }
@@ -733,7 +743,7 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  Future<List<Product>> productsFuture({required int branchId}) {
+  Future<List<Product>> productsFuture({required String branchId}) {
     // TODO: implement productsFuture
     throw UnimplementedError();
   }
@@ -758,7 +768,8 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  Future<void> refreshSession({required int branchId, int? refreshRate = 5}) {
+  Future<void> refreshSession(
+      {required String branchId, int? refreshRate = 5}) {
     // TODO: implement refreshSession
     throw UnimplementedError();
   }
@@ -782,14 +793,14 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  Stream<List<Report>> reports({required int branchId}) {
+  Stream<List<Report>> reports({required String branchId}) {
     // TODO: implement reports
     throw UnimplementedError();
   }
 
   @override
   Stream<List<InventoryRequest>> requestsStream(
-      {required int branchId,
+      {required String branchId,
       String filter = RequestStatus.pending,
       String? search}) {
     // TODO: implement requestsStream
@@ -804,7 +815,7 @@ class CapellaSync extends AiStrategyImpl
 
   @override
   Future<void> saveDiscount(
-      {required int branchId, required name, double? amount}) {
+      {required String branchId, required name, double? amount}) {
     // TODO: implement saveDiscount
     throw UnimplementedError();
   }
@@ -813,8 +824,8 @@ class CapellaSync extends AiStrategyImpl
   Future<Assets> saveImageLocally(
       {required File imageFile,
       required String productId,
-      required int branchId,
-      required int businessId}) {
+      required String branchId,
+      required String businessId}) {
     // TODO: implement saveImageLocally
     throw UnimplementedError();
   }
@@ -898,7 +909,7 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  Stream<SKU?> sku({required int branchId, required int businessId}) {
+  Stream<SKU?> sku({required String branchId, required String businessId}) {
     // TODO: implement sku
     throw UnimplementedError();
   }
@@ -910,14 +921,14 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  FutureOr<List<Stock>> stocks({required int branchId}) {
+  FutureOr<List<Stock>> stocks({required String branchId}) {
     // TODO: implement stocks
     throw UnimplementedError();
   }
 
   @override
   Stream<List<BusinessAnalytic>> streamRemoteAnalytics(
-      {required int branchId}) {
+      {required String branchId}) {
     final ditto = dittoService.dittoInstance;
     if (ditto == null) {
       _talker.error('Ditto not initialized');
@@ -987,7 +998,7 @@ class CapellaSync extends AiStrategyImpl
 
   @override
   Future<({String customerCode, String url, int userId})> subscribe(
-      {required int businessId,
+      {required String businessId,
       required Business business,
       required int agentCode,
       required HttpClientInterface flipperHttpClient,
@@ -1009,13 +1020,14 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  Stream<double> totalSales({required int branchId}) {
+  Stream<double> totalSales({required String branchId}) {
     // TODO: implement totalSales
     throw UnimplementedError();
   }
 
   @override
-  Future<List<UnversalProduct>> universalProductNames({required int branchId}) {
+  Future<List<UnversalProduct>> universalProductNames(
+      {required String branchId}) {
     // TODO: implement universalProductNames
     throw UnimplementedError();
   }
@@ -1023,19 +1035,19 @@ class CapellaSync extends AiStrategyImpl
   @override
   void updateAccess(
       {required String accessId,
-      required int userId,
+      required String userId,
       required String featureName,
       required String accessLevel,
       required String status,
-      required int branchId,
-      required int businessId,
+      required String branchId,
+      required String businessId,
       required String userType}) {
     // TODO: implement updateAccess
   }
 
   @override
   FutureOr<void> updateAcess(
-      {required int userId,
+      {required String userId,
       String? featureName,
       String? status,
       String? accessLevel,
@@ -1047,17 +1059,6 @@ class CapellaSync extends AiStrategyImpl
   @override
   FutureOr<void> updateAsset({required String assetId, String? assetName}) {
     // TODO: implement updateAsset
-    throw UnimplementedError();
-  }
-
-  @override
-  FutureOr<void> updateCategory(
-      {required String categoryId,
-      String? name,
-      bool? active,
-      bool? focused,
-      int? branchId}) {
-    // TODO: implement updateCategory
     throw UnimplementedError();
   }
 
@@ -1083,7 +1084,7 @@ class CapellaSync extends AiStrategyImpl
 
   @override
   FutureOr<void> updatePin(
-      {required int userId, String? phoneNumber, String? tokenUid}) {
+      {required String userId, String? phoneNumber, String? tokenUid}) {
     // TODO: implement updatePin
     throw UnimplementedError();
   }
@@ -1114,7 +1115,7 @@ class CapellaSync extends AiStrategyImpl
 
   @override
   FutureOr<void> updateUnit(
-      {required String unitId, String? name, bool? active, int? branchId}) {
+      {required String unitId, String? name, bool? active, String? branchId}) {
     // TODO: implement updateUnit
     throw UnimplementedError();
   }
@@ -1182,8 +1183,36 @@ class CapellaSync extends AiStrategyImpl
 
   @override
   FutureOr<Pin?> getPinLocal(
-      {int? userId, String? phoneNumber, required bool alwaysHydrate}) {
+      {String? userId, String? phoneNumber, required bool alwaysHydrate}) {
     // TODO: implement getPinLocal
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<void> updateTenant(
+      {String? tenantId,
+      String? name,
+      String? phoneNumber,
+      String? email,
+      String? userId,
+      String? businessId,
+      String? type,
+      String? id,
+      int? pin,
+      bool? sessionActive,
+      String? branchId}) {
+    // TODO: implement updateTenant
+    throw UnimplementedError();
+  }
+
+  @override
+  FutureOr<void> updateCategory(
+      {required String categoryId,
+      String? name,
+      bool? active,
+      bool? focused,
+      String? branchId}) {
+    // TODO: implement updateCategory
     throw UnimplementedError();
   }
 }

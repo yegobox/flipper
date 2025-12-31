@@ -149,7 +149,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
           text: '',
           phoneNumber: '',
           delivered: false,
-          branchId: 0,
+          branchId: "0",
           messageSource: 'ai',
         ),
       );
@@ -302,7 +302,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
   Future<void> _handleWhatsAppReply(
     String text,
     Message lastMessage,
-    int branchId,
+    String branchId,
     String conversationId,
   ) async {
     try {

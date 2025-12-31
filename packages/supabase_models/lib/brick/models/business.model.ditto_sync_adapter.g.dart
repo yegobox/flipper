@@ -35,16 +35,16 @@ class BusinessDittoAdapter extends DittoSyncAdapter<Business> {
   dynamic _activeObserver;
   dynamic _activeSubscription;
 
-  static int? Function()? _branchIdProviderOverride;
-  static int? Function()? _businessIdProviderOverride;
+  static String? Function()? _branchIdProviderOverride;
+  static String? Function()? _businessIdProviderOverride;
 
   /// Allows tests to override how the current branch ID is resolved.
-  void overrideBranchIdProvider(int? Function()? provider) {
+  void overrideBranchIdProvider(String? Function()? provider) {
     _branchIdProviderOverride = provider;
   }
 
   /// Allows tests to override how the current business ID is resolved.
-  void overrideBusinessIdProvider(int? Function()? provider) {
+  void overrideBusinessIdProvider(String? Function()? provider) {
     _businessIdProviderOverride = provider;
   }
 
@@ -150,8 +150,7 @@ class BusinessDittoAdapter extends DittoSyncAdapter<Business> {
       "taxServerUrl": model.taxServerUrl,
       "isDefault": model.isDefault,
       "businessTypeId": model.businessTypeId,
-      "lastTouched": model.lastTouched?.toIso8601String(),
-      "deletedAt": model.deletedAt?.toIso8601String(),
+      "referredBy": model.referredBy,
       "encryptionKey": model.encryptionKey,
       "phoneNumber": model.phoneNumber,
       "messagingChannels": model.messagingChannels,
@@ -228,8 +227,7 @@ class BusinessDittoAdapter extends DittoSyncAdapter<Business> {
       taxServerUrl: document["taxServerUrl"],
       isDefault: document["isDefault"],
       businessTypeId: document["businessTypeId"],
-      lastTouched: DateTime.tryParse(document["lastTouched"]?.toString() ?? ""),
-      deletedAt: DateTime.tryParse(document["deletedAt"]?.toString() ?? ""),
+      referredBy: document["referredBy"],
       encryptionKey: document["encryptionKey"],
       phoneNumber: document["phoneNumber"],
       messagingChannels: document["messagingChannels"],

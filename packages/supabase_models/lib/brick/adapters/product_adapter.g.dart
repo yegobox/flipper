@@ -14,8 +14,8 @@ Future<Product> _$ProductFromSupabase(
         : data['description'] as String?,
     taxId: data['tax_id'] == null ? null : data['tax_id'] as String?,
     color: data['color'] as String,
-    businessId: data['business_id'] as int,
-    branchId: data['branch_id'] as int,
+    businessId: data['business_id'] as String,
+    branchId: data['branch_id'] as String,
     supplierId: data['supplier_id'] == null
         ? null
         : data['supplier_id'] as String?,
@@ -123,8 +123,8 @@ Future<Product> _$ProductFromSqlite(
         : data['description'] as String?,
     taxId: data['tax_id'] == null ? null : data['tax_id'] as String?,
     color: data['color'] as String,
-    businessId: data['business_id'] as int,
-    branchId: data['branch_id'] as int,
+    businessId: data['business_id'] as String,
+    branchId: data['branch_id'] as String,
     supplierId: data['supplier_id'] == null
         ? null
         : data['supplier_id'] as String?,
@@ -363,13 +363,13 @@ class ProductAdapter extends OfflineFirstWithSupabaseAdapter<Product> {
       association: false,
       columnName: 'business_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'branchId': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'branch_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'supplierId': const RuntimeSqliteColumnDefinition(
       association: false,

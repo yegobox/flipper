@@ -11,8 +11,8 @@ class UniversalProduct {
   String? mjrTgYn;
   String? useYn;
 
-  int? businessId;
-  int? branchId;
+  String? businessId;
+  String? branchId;
   UniversalProduct({
     required this.itemClsCd,
     required this.itemClsNm,

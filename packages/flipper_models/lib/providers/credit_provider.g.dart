@@ -16,7 +16,7 @@ final class CreditStreamProvider
     extends $FunctionalProvider<AsyncValue<Credit?>, Credit?, Stream<Credit?>>
     with $FutureModifier<Credit?>, $StreamProvider<Credit?> {
   const CreditStreamProvider._(
-      {required CreditStreamFamily super.from, required int super.argument})
+      {required CreditStreamFamily super.from, required String super.argument})
       : super(
           retry: null,
           name: r'creditStreamProvider',
@@ -42,7 +42,7 @@ final class CreditStreamProvider
 
   @override
   Stream<Credit?> create(Ref ref) {
-    final argument = this.argument as int;
+    final argument = this.argument as String;
     return creditStream(
       ref,
       argument,
@@ -60,10 +60,10 @@ final class CreditStreamProvider
   }
 }
 
-String _$creditStreamHash() => r'a63e851949fa9f076502f8937d417405ecd32e2b';
+String _$creditStreamHash() => r'f0ab6f8f1d50f8175daac68ce1562a17b4fa5277';
 
 final class CreditStreamFamily extends $Family
-    with $FunctionalFamilyOverride<Stream<Credit?>, int> {
+    with $FunctionalFamilyOverride<Stream<Credit?>, String> {
   const CreditStreamFamily._()
       : super(
           retry: null,
@@ -74,7 +74,7 @@ final class CreditStreamFamily extends $Family
         );
 
   CreditStreamProvider call(
-    int branchId,
+    String branchId,
   ) =>
       CreditStreamProvider._(argument: branchId, from: this);
 

@@ -21,8 +21,8 @@ class IPin {
   late String userId;
   late String phoneNumber;
   late int pin;
-  late int branchId;
-  late int businessId;
+  late String branchId;
+  late String businessId;
   String? ownerName;
   String? tokenUid;
 

@@ -302,23 +302,23 @@ class SharedPreferenceStorage implements LocalStorage {
   }
 
   @override
-  int? getBranchId() {
-    return _cache['branchId'] as int?;
+  String? getBranchId() {
+    return _cache['branchId'] as String?;
   }
 
   @override
-  int? getBusinessId() {
-    return _cache['businessId'] as int?;
+  String? getBusinessId() {
+    return _cache['businessId'] as String?;
   }
 
   @override
-  int? getUserId() {
-    final userId = _cache['userId'];
-    if (userId is String) {
-      final parsedUserId = int.tryParse(userId);
-      return parsedUserId;
-    } else if (userId is int) {
-      return userId;
+  String? getUserId() {
+    final value = _cache['userId'];
+    if (value is String) {
+      return value;
+    } else if (value is int) {
+      // Handle the case where an integer was mistakenly stored (e.g., due to LoginData bug)
+      return value.toString();
     }
     return null;
   }

@@ -8,12 +8,12 @@ part of 'business.dart';
 
 IBusiness _$IBusinessFromJson(Map<String, dynamic> json) => IBusiness(
       id: json['id'] as String,
-      serverId: (json['serverId'] as num).toInt(),
+      serverId: (json['serverId'] as num?)?.toInt(),
       name: json['name'] as String?,
       currency: json['currency'] as String?,
       categoryId: json['categoryId'],
-      latitude: json['latitude'] as String?,
-      longitude: json['longitude'] as String?,
+      latitude: json['latitude'] as num?,
+      longitude: json['longitude'] as num?,
       userId: json['userId'],
       timeZone: json['timeZone'],
       channels: json['channels'],
@@ -54,12 +54,16 @@ IBusiness _$IBusinessFromJson(Map<String, dynamic> json) => IBusiness(
       adrs: json['adrs'],
       taxEnabled: json['taxEnabled'] as bool?,
       isDefault: json['isDefault'] as bool?,
-      businessTypeId: (json['businessTypeId'] as num?)?.toInt(),
+      businessTypeId: json['businessTypeId'] as String?,
       encryptionKey: json['encryptionKey'] as String?,
       businessDefault: json['businessDefault'] as bool?,
       lastSubscriptionPaymentSucceeded:
           json['lastSubscriptionPaymentSucceeded'] as bool?,
       validCurrency: json['validCurrency'] as bool?,
+      branches: (json['branches'] as List<dynamic>?)
+          ?.map((e) => IBranch.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      isOwner: json['isOwner'] as bool?,
     )
       ..lastTouched = json['lastTouched'] == null
           ? null
@@ -124,4 +128,6 @@ Map<String, dynamic> _$IBusinessToJson(IBusiness instance) => <String, dynamic>{
       'lastSubscriptionPaymentSucceeded':
           instance.lastSubscriptionPaymentSucceeded,
       'validCurrency': instance.validCurrency,
+      'branches': instance.branches,
+      'isOwner': instance.isOwner,
     };

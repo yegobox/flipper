@@ -6,6 +6,6 @@ import 'package:supabase_models/brick/models/credit.model.dart';
 part 'credit_provider.g.dart';
 
 @riverpod
-Stream<Credit?> creditStream(Ref ref, int branchId) {
+Stream<Credit?> creditStream(Ref ref, String branchId) {
   return ProxyService.strategy.credit(branchId: branchId.toString());
 }

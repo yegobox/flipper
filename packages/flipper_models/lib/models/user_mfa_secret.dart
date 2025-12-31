@@ -6,7 +6,7 @@ part 'user_mfa_secret.mapper.dart';
 class UserMfaSecret with UserMfaSecretMappable {
   final String? id;
   @MappableField(key: 'user_id')
-  final int userId;
+  final String userId;
   final String secret;
   @MappableField(key: 'created_at')
   final DateTime? createdAt;

@@ -19,9 +19,9 @@ void main() {
       mockOnDelete = (ticket) => deletedTicket = ticket;
 
       mockTicket = ITransaction(
-        agentId: 1,
+        agentId: "1",
         id: 'ticket123',
-        branchId: 1,
+        branchId: "",
         transactionNumber: 'TKT001',
         ticketName: 'Test Ticket',
         subTotal: 150.75,
@@ -139,9 +139,9 @@ void main() {
 
     testWidgets('displays loan badge when ticket is loan', (tester) async {
       final loanTicket = ITransaction(
-        agentId: 1,
+        agentId: "1",
         id: 'loan123',
-        branchId: 1,
+        branchId: "",
         transactionNumber: 'LOAN001',
         ticketName: 'Loan Ticket',
         subTotal: 200.0,
@@ -174,9 +174,9 @@ void main() {
 
     testWidgets('displays due date when present', (tester) async {
       final ticketWithDueDate = ITransaction(
-        agentId: 1,
+        agentId: "1",
         id: 'due123',
-        branchId: 1,
+        branchId: "",
         transactionNumber: 'DUE001',
         ticketName: 'Due Ticket',
         subTotal: 100.0,
@@ -211,9 +211,9 @@ void main() {
 
     testWidgets('handles null ticket name', (tester) async {
       final ticketWithoutName = ITransaction(
-        agentId: 1,
+        agentId: "1",
         id: 'noname123',
-        branchId: 1,
+        branchId: "",
         transactionNumber: 'NONAME001',
         ticketName: null,
         subTotal: 50.0,
@@ -283,9 +283,9 @@ void main() {
 
     testWidgets('handles zero subtotal', (tester) async {
       final zeroSubtotalTicket = ITransaction(
-        agentId: 1,
+        agentId: "1",
         id: 'zero123',
-        branchId: 1,
+        branchId: "",
         transactionNumber: 'ZERO001',
         ticketName: 'Zero Ticket',
         subTotal: 0.0,

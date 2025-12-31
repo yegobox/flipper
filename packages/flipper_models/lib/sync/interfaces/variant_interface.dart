@@ -6,7 +6,7 @@ import 'package:flipper_models/sync/models/paged_variants.dart';
 /// Interface for variant operations
 abstract class VariantInterface {
   Future<PagedVariants> variants({
-    required int branchId,
+    required String branchId,
     String? productId,
     int? page,
     String? variantId,
@@ -27,10 +27,11 @@ abstract class VariantInterface {
 
   Future<int> addVariant({
     required List<Variant> variations,
-    required int branchId, required bool skipRRaCall,
+    required String branchId,
+    required bool skipRRaCall,
   });
 
-  Future<List<IUnit>> units({required int branchId});
+  Future<List<IUnit>> units({required String branchId});
 
   Future<int> addUnits<T>({required List<Map<String, dynamic>> units});
   // Future<void> updateIoFunc(
@@ -75,7 +76,7 @@ abstract class VariantInterface {
   /// [daysToExpiry] - Optional, include items expiring within this many days
   /// [limit] - Optional, limit the number of results returned
   Future<List<Variant>> getExpiredItems({
-    required int branchId,
+    required String branchId,
     int? daysToExpiry,
     int? limit,
   });

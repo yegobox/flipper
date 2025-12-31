@@ -28,7 +28,7 @@ class Message extends OfflineFirstWithSupabaseModel {
   final String text;
   final String phoneNumber;
   final bool delivered;
-  final int branchId;
+  final String branchId;
 
   @Sqlite(nullable: true)
   final String? role; // 'user' or 'assistant'

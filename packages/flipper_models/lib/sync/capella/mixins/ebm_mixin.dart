@@ -8,7 +8,7 @@ mixin CapellaEbmMixin implements EbmInterface {
   Talker get talker;
 
   @override
-  Future<Ebm?> ebm({required int branchId, bool fetchRemote = false}) async {
+  Future<Ebm?> ebm({required String branchId, bool fetchRemote = false}) async {
     throw UnimplementedError('ebm needs to be implemented for Capella');
   }
 
@@ -21,7 +21,7 @@ mixin CapellaEbmMixin implements EbmInterface {
   @override
   Future<void> saveEbm({
     required String mrc,
-    required int branchId,
+    required String branchId,
     required String severUrl,
     required String bhFId,
     bool vatEnabled = false,

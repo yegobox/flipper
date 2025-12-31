@@ -16,7 +16,7 @@ final class CountersProvider extends $FunctionalProvider<
         AsyncValue<List<Counter>>, List<Counter>, Stream<List<Counter>>>
     with $FutureModifier<List<Counter>>, $StreamProvider<List<Counter>> {
   const CountersProvider._(
-      {required CountersFamily super.from, required int super.argument})
+      {required CountersFamily super.from, required String super.argument})
       : super(
           retry: null,
           name: r'countersProvider',
@@ -43,7 +43,7 @@ final class CountersProvider extends $FunctionalProvider<
 
   @override
   Stream<List<Counter>> create(Ref ref) {
-    final argument = this.argument as int;
+    final argument = this.argument as String;
     return counters(
       ref,
       argument,
@@ -61,10 +61,10 @@ final class CountersProvider extends $FunctionalProvider<
   }
 }
 
-String _$countersHash() => r'dd59f67c7a77ff8f4056a21c14922d9fd8acf7e2';
+String _$countersHash() => r'26d951ec86bc6daa2bcede94bf201b3f39e90d9f';
 
 final class CountersFamily extends $Family
-    with $FunctionalFamilyOverride<Stream<List<Counter>>, int> {
+    with $FunctionalFamilyOverride<Stream<List<Counter>>, String> {
   const CountersFamily._()
       : super(
           retry: null,
@@ -75,7 +75,7 @@ final class CountersFamily extends $Family
         );
 
   CountersProvider call(
-    int branchId,
+    String branchId,
   ) =>
       CountersProvider._(argument: branchId, from: this);
 
@@ -89,7 +89,8 @@ const highestCounterProvider = HighestCounterFamily._();
 final class HighestCounterProvider extends $FunctionalProvider<int, int, int>
     with $Provider<int> {
   const HighestCounterProvider._(
-      {required HighestCounterFamily super.from, required int super.argument})
+      {required HighestCounterFamily super.from,
+      required String super.argument})
       : super(
           retry: null,
           name: r'highestCounterProvider',
@@ -115,7 +116,7 @@ final class HighestCounterProvider extends $FunctionalProvider<int, int, int>
 
   @override
   int create(Ref ref) {
-    final argument = this.argument as int;
+    final argument = this.argument as String;
     return highestCounter(
       ref,
       argument,
@@ -141,10 +142,10 @@ final class HighestCounterProvider extends $FunctionalProvider<int, int, int>
   }
 }
 
-String _$highestCounterHash() => r'ad3835014d4943737b95e35145ad9b927fc18ac0';
+String _$highestCounterHash() => r'6ce633bf4243d74650b3f11a48a9ef16c05fad03';
 
 final class HighestCounterFamily extends $Family
-    with $FunctionalFamilyOverride<int, int> {
+    with $FunctionalFamilyOverride<int, String> {
   const HighestCounterFamily._()
       : super(
           retry: null,
@@ -155,7 +156,7 @@ final class HighestCounterFamily extends $Family
         );
 
   HighestCounterProvider call(
-    int branchId,
+    String branchId,
   ) =>
       HighestCounterProvider._(argument: branchId, from: this);
 

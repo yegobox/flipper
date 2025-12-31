@@ -30,9 +30,9 @@ void main() {
       id: '1',
       name: 'Test',
       serverId: 1,
-      longitude: '0',
-      latitude: '0',
-      userId: 1,
+      longitude: 0,
+      latitude: 0,
+      userId: "1",
       tinNumber: 12345,
       encryptionKey: 'k',
     );

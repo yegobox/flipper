@@ -5,8 +5,8 @@ import 'package:uuid/uuid.dart';
 
 class InventoryRequest {
   final String id;
-  int? mainBranchId;
-  int? subBranchId;
+  String? mainBranchId;
+  String? subBranchId;
 
   DateTime? createdAt;
   // e.g., "pending", "approved", "partiallyApproved", "rejected", "fulfilled"

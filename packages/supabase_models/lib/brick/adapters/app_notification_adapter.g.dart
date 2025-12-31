@@ -10,7 +10,9 @@ Future<AppNotification> _$AppNotificationFromSupabase(
     id: data['id'] as String?,
     type: data['type'] == null ? null : data['type'] as String?,
     message: data['message'] == null ? null : data['message'] as String?,
-    identifier: data['identifier'] == null ? null : data['identifier'] as int?,
+    identifier: data['identifier'] == null
+        ? null
+        : data['identifier'] as String?,
     completed: data['completed'] == null ? null : data['completed'] as bool?,
   );
 }
@@ -38,7 +40,9 @@ Future<AppNotification> _$AppNotificationFromSqlite(
     id: data['id'] as String,
     type: data['type'] == null ? null : data['type'] as String?,
     message: data['message'] == null ? null : data['message'] as String?,
-    identifier: data['identifier'] == null ? null : data['identifier'] as int?,
+    identifier: data['identifier'] == null
+        ? null
+        : data['identifier'] as String?,
     completed: data['completed'] == null ? null : data['completed'] == 1,
   )..primaryKey = data['_brick_id'] as int;
 }
@@ -125,7 +129,7 @@ class AppNotificationAdapter
       association: false,
       columnName: 'identifier',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'completed': const RuntimeSqliteColumnDefinition(
       association: false,

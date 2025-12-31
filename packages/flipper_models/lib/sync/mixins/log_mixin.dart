@@ -26,7 +26,7 @@ mixin LogMixin implements LogInterface {
   @override
   Future<List<Log>> getLogs({
     String? type,
-    int? businessId,
+    String? businessId,
     int limit = 100,
   }) async {
     try {
@@ -57,7 +57,7 @@ mixin LogMixin implements LogInterface {
   @override
   Future<int> clearOldLogs({
     required Duration olderThan,
-    int? businessId,
+    String? businessId,
   }) async {
     try {
       // Since Log model doesn't have a timestamp field by default,

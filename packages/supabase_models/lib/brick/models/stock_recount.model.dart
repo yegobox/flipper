@@ -27,7 +27,7 @@ class StockRecount extends OfflineFirstWithSupabaseModel {
 
   /// Branch where the recount is being performed
   @Sqlite(index: true)
-  final int branchId;
+  final String branchId;
 
   /// Status: 'draft', 'submitted', 'synced'
   @Sqlite(defaultValue: "'draft'")
@@ -80,7 +80,7 @@ class StockRecount extends OfflineFirstWithSupabaseModel {
   /// Create a copy with updated fields
   StockRecount copyWith({
     String? id,
-    int? branchId,
+    String? branchId,
     String? status,
     String? userId,
     String? deviceId,

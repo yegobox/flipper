@@ -30,13 +30,16 @@ void main() {
       registerFallbackValue(MockPin());
       registerFallbackValue(StackTrace.current);
       registerFallbackValue(Uri.parse('http://localhost'));
-      registerFallbackValue(Pin(
+      registerFallbackValue(
+        Pin(
           id: "1",
-          userId: 1,
-          branchId: 1,
-          businessId: 1,
+          userId: "1",
+          branchId: "",
+          businessId: "1",
           ownerName: 'test',
-          phoneNumber: '1234567890'));
+          phoneNumber: '1234567890',
+        ),
+      );
       registerFallbackValue(MockUser());
       registerFallbackValue(FakeHttpClient());
     });
@@ -75,40 +78,43 @@ void main() {
       reset(mockRouterService);
 
       // Common mock setups for mockBox
-      when(() => mockBox.writeBool(
-            key: any(named: 'key'),
-            value: any(named: 'value'),
-          )).thenAnswer((_) async {});
+      when(
+        () => mockBox.writeBool(
+          key: any(named: 'key'),
+          value: any(named: 'value'),
+        ),
+      ).thenAnswer((_) async {});
       when(() => mockBox.readBool(key: any(named: 'key'))).thenReturn(false);
       when(() => mockBox.readString(key: any(named: 'key'))).thenReturn(null);
       when(() => mockBox.readInt(key: any(named: 'key'))).thenReturn(null);
-      when(() => mockBox.getBusinessId()).thenReturn(1);
-      when(() => mockBox.getUserId()).thenReturn(1);
+      when(() => mockBox.getBusinessId()).thenReturn("1");
+      when(() => mockBox.getUserId()).thenReturn("1");
       when(() => mockBox.getDefaultApp()).thenReturn('POS');
       when(() => mockBox.bhfId()).thenAnswer((_) async => '00');
-      when(() => mockBox.writeInt(
-            key: any(named: 'key'),
-            value: any(named: 'value'),
-          )).thenAnswer((_) async => 0);
-      when(() => mockBox.writeString(
-            key: any(named: 'key'),
-            value: any(named: 'value'),
-          )).thenAnswer((_) async {});
+      when(
+        () => mockBox.writeInt(
+          key: any(named: 'key'),
+          value: any(named: 'value'),
+        ),
+      ).thenAnswer((_) async => 0);
+      when(
+        () => mockBox.writeString(
+          key: any(named: 'key'),
+          value: any(named: 'value'),
+        ),
+      ).thenAnswer((_) async {});
 
       // Mock HTTP client
-      when(() => mockFlipperHttpClient.get(
-                any(that: isA<Uri>()),
-                headers: any(named: 'headers'),
-              ))
-          .thenAnswer((_) async => http.Response('{"status": "success"}', 200));
+      when(
+        () => mockFlipperHttpClient.get(
+          any(that: isA<Uri>()),
+          headers: any(named: 'headers'),
+        ),
+      ).thenAnswer((_) async => http.Response('{"status": "success"}', 200));
     });
 
     testWidgets('PinLogin renders correctly', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        TestApp(
-          child: PinLogin(),
-        ),
-      );
+      await tester.pumpWidget(TestApp(child: PinLogin()));
 
       expect(find.byKey(const Key('PinLogin')), findsOneWidget);
       expect(find.text('Welcome back!'), findsOneWidget);
@@ -116,19 +122,18 @@ void main() {
       expect(find.byKey(const Key('signInButtonText')), findsOneWidget);
     });
 
-    testWidgets('PIN input and visibility toggle works',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(
-        TestApp(
-          child: PinLogin(),
-        ),
-      );
+    testWidgets('PIN input and visibility toggle works', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(TestApp(child: PinLogin()));
 
       final pinField = find.byKey(const Key('pinField'));
       expect(pinField, findsOneWidget);
 
-      final textField =
-          find.descendant(of: pinField, matching: find.byType(TextField));
+      final textField = find.descendant(
+        of: pinField,
+        matching: find.byType(TextField),
+      );
       expect(textField, findsOneWidget);
 
       expect(tester.widget<TextField>(textField).obscureText, isTrue);
@@ -146,11 +151,7 @@ void main() {
     });
 
     testWidgets('Shows error for empty PIN', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        TestApp(
-          child: PinLogin(),
-        ),
-      );
+      await tester.pumpWidget(TestApp(child: PinLogin()));
 
       await tester.tap(find.byKey(const Key('signInButtonText')));
       await tester.pumpAndSettle();
@@ -159,13 +160,10 @@ void main() {
       expect(find.text('Invalid PIN or OTP. Please try again.'), findsNothing);
     });
 
-    testWidgets('Shows error for PIN less than 4 digits',
-        (WidgetTester tester) async {
-      await tester.pumpWidget(
-        TestApp(
-          child: PinLogin(),
-        ),
-      );
+    testWidgets('Shows error for PIN less than 4 digits', (
+      WidgetTester tester,
+    ) async {
+      await tester.pumpWidget(TestApp(child: PinLogin()));
 
       await tester.enterText(find.byKey(const Key('pinField')), '123');
       await tester.tap(find.byKey(const Key('signInButtonText')));

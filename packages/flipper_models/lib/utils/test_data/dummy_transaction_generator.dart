@@ -22,7 +22,7 @@ class DummyTransactionGenerator {
   /// [withItems] - Whether to generate transaction items for each transaction
   static List<ITransaction> generateDummyTransactions({
     int count = 10,
-    required int branchId,
+    required String branchId,
     bool withItems = true,
     String? status,
     String? transactionType,
@@ -69,7 +69,7 @@ class DummyTransactionGenerator {
 
   /// Generates a single dummy transaction
   static ITransaction _generateDummyTransaction({
-    required int branchId,
+    required String branchId,
     String? status,
     String? transactionType,
   }) {
@@ -87,7 +87,7 @@ class DummyTransactionGenerator {
         'TRX-${_formatDate(now)}-${_faker.randomGenerator.integer(99999).toString().padLeft(5, '0')}';
 
     return ITransaction(
-      agentId: 1,
+      agentId: "",
       id: transactionId,
       branchId: branchId,
       status: status ?? '01', // Default to '01' for completed status
@@ -126,7 +126,7 @@ class DummyTransactionGenerator {
   /// Generates dummy transaction items
   static List<TransactionItem> generateDummyTransactionItems({
     required String transactionId,
-    required int branchId,
+    required String branchId,
     int count = 1,
   }) {
     final items = <TransactionItem>[];

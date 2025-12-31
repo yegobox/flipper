@@ -6,7 +6,9 @@ part 'digital_payment_provider.g.dart';
 
 @riverpod
 Future<bool> isDigitalPaymentEnabled(Ref ref) async {
-  final String branchId = (await ProxyService.strategy.activeBranch()).id;
+  final String branchId = (await ProxyService.strategy
+          .activeBranch(businessId: ProxyService.box.getBusinessId()!))
+      .id;
   return await ProxyService.strategy
       .isBranchEnableForPayment(currentBranchId: branchId, fetchRemote: true);
 }

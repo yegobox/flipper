@@ -30,7 +30,7 @@ mixin CapellaStockMixin implements StockInterface {
       // For composite products (services), return a default stock with zero values
       // since they don't track physical inventory
       return Stock(
-        branchId: 1,
+        branchId: "",
         id: id,
         currentStock: 0,
         lowStock: 0,
@@ -57,7 +57,7 @@ mixin CapellaStockMixin implements StockInterface {
       talker.error('Error getting stock by ID: $e');
       // Return default stock for composite products that don't track inventory
       return Stock(
-        branchId: 1,
+        branchId: "",
         id: id,
         currentStock: 0,
         lowStock: 0,
@@ -269,7 +269,7 @@ mixin CapellaStockMixin implements StockInterface {
       required double rsdQty,
       required String productId,
       required String variantId,
-      required int branchId,
+      required String branchId,
       required double currentStock,
       required double value}) {
     throw UnimplementedError('saveStock needs to be implemented for Capella');

@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 part 'metric_provider.g.dart';
 
 @riverpod
-Future<List<Metric>> fetchMetrics(Ref ref, int branchId) async {
+Future<List<Metric>> fetchMetrics(Ref ref, String branchId) async {
   // Fetch analytics data - now everything is in one table
   final analytics = await ProxyService.getStrategy(Strategy.capella)
       .analytics(branchId: branchId);

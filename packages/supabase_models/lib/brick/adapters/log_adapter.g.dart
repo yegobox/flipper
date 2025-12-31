@@ -12,7 +12,7 @@ Future<Log> _$LogFromSupabase(
     type: data['type'] == null ? null : data['type'] as String?,
     businessId: data['business_id'] == null
         ? null
-        : data['business_id'] as int?,
+        : data['business_id'] as String?,
     createdAt: data['created_at'] == null
         ? null
         : data['created_at'] == null
@@ -62,7 +62,7 @@ Future<Log> _$LogFromSqlite(
     type: data['type'] == null ? null : data['type'] as String?,
     businessId: data['business_id'] == null
         ? null
-        : data['business_id'] as int?,
+        : data['business_id'] as String?,
     createdAt: data['created_at'] == null
         ? null
         : data['created_at'] == null
@@ -162,7 +162,7 @@ class LogAdapter extends OfflineFirstWithSupabaseAdapter<Log> {
       association: false,
       columnName: 'business_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'createdAt': const RuntimeSqliteColumnDefinition(
       association: false,

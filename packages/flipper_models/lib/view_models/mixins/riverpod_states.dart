@@ -40,16 +40,32 @@ final connectivityStreamProvider = StreamProvider<bool>((ref) {
 });
 
 final customersStreamProvider = StreamProvider.autoDispose
-    .family<List<Customer>, ({int? branchId, String? id})>((ref, params) {
+    .family<List<Customer>, ({String? branchId, String? id})>((ref, params) {
   final (:branchId, :id) = params;
-  return ProxyService.strategy.customersStream(branchId: branchId ?? 0, id: id);
+  return ProxyService.strategy
+      .customersStream(branchId: branchId ?? "", id: id);
 });
 
 final customerProvider = FutureProvider.autoDispose
     .family<Customer?, ({String? id})>((ref, params) async {
   final (:id) = params;
-  return (await ProxyService.strategy
+  return (await ProxyService.getStrategy(Strategy.capella)
           .customers(id: id, branchId: ProxyService.box.getBranchId()!))
+      .firstOrNull;
+});
+
+/// Provider specifically for fetching a single attached customer by ID.
+/// Returns null when no valid customerId is provided, preventing unnecessary
+/// queries that would return all customers for the branch.
+final attachedCustomerProvider = FutureProvider.autoDispose
+    .family<Customer?, String?>((ref, customerId) async {
+  // Return null immediately if customerId is null or empty
+  if (customerId == null || customerId.isEmpty) {
+    return null;
+  }
+
+  return (await ProxyService.getStrategy(Strategy.capella)
+          .customers(id: customerId, branchId: ProxyService.box.getBranchId()!))
       .firstOrNull;
 });
 
@@ -97,7 +113,7 @@ class SellingModeNotifier extends Notifier<SellingMode> {
 }
 
 final initialStockProvider =
-    StreamProvider.autoDispose.family<double, int>((ref, branchId) {
+    StreamProvider.autoDispose.family<double, String>((ref, branchId) {
   return ProxyService.strategy.totalSales(branchId: branchId);
 });
 
@@ -177,7 +193,7 @@ class PaginatedVariantsNotifier extends Notifier<AsyncValue<List<Variant>>> {
 
 final matchedProductProvider = Provider.autoDispose<Product?>((ref) {
   final productsState =
-      ref.watch(productsProvider(ProxyService.box.getBranchId() ?? 0));
+      ref.watch(productsProvider(ProxyService.box.getBranchId() ?? ""));
   return productsState.maybeWhen(
     data: (products) {
       try {
@@ -220,33 +236,23 @@ final customersProvider =
         CustomersNotifier.new);
 
 class CustomersNotifier extends Notifier<AsyncValue<List<Customer>>> {
-  late int branchId;
+  late String branchId;
 
   @override
   AsyncValue<List<Customer>> build() {
-    branchId = ProxyService.box.getBranchId() ?? 0;
-    final searchString = ref.watch(searchStringProvider);
+    branchId = ProxyService.box.getBranchId() ?? "";
     // We should not await here for build method synchronous return,
     // but we can start async load.
-    // However, if we want to reflect the search string change,
-    // we should validly load.
-    loadCustomers(searchString: searchString);
+    loadCustomers();
     return const AsyncValue.loading();
   }
 
-  Future<void> loadCustomers({required String searchString}) async {
+  Future<void> loadCustomers() async {
     try {
       // await any ongoing database persistance
       List<Customer> customers =
-          await ProxyService.strategy.customers(branchId: branchId);
-
-      if (searchString.isNotEmpty) {
-        customers = customers
-            .where((customer) => customer.custNm!
-                .toLowerCase()
-                .contains(searchString.toLowerCase()))
-            .toList();
-      }
+          await ProxyService.getStrategy(Strategy.capella)
+              .customers(branchId: branchId);
 
       state = AsyncData(customers);
     } catch (error) {
@@ -357,7 +363,7 @@ final selectImportItemsProvider = FutureProvider.autoDispose
 
 final ordersStreamProvider =
     StreamProvider.autoDispose<List<ITransaction>>((ref) {
-  int branchId = ProxyService.box.getBranchId() ?? 0;
+  String branchId = ProxyService.box.getBranchId() ?? "";
   return ProxyService.strategy.transactionsStream(
       branchId: branchId,
       skipOriginalTransactionCheck: true,
@@ -372,7 +378,7 @@ final universalProductsNames =
 
     // Check if units are already present in the database
     final existingUnits =
-        await ProxyService.strategy.universalProductNames(branchId: 1);
+        await ProxyService.strategy.universalProductNames(branchId: "1");
 
     return AsyncData(existingUnits);
   } catch (error) {
@@ -382,7 +388,7 @@ final universalProductsNames =
 });
 
 final skuProvider =
-    StreamProvider.autoDispose.family<SKU?, int>((ref, branchId) {
+    StreamProvider.autoDispose.family<SKU?, String>((ref, branchId) {
   return ProxyService.strategy
       .sku(branchId: branchId, businessId: ProxyService.box.getBusinessId()!);
 });
@@ -501,7 +507,7 @@ class CombinedNotifier {
 }
 
 final reportsProvider =
-    StreamProvider.autoDispose.family<List<Report>, int>((ref, branchId) {
+    StreamProvider.autoDispose.family<List<Report>, String>((ref, branchId) {
   return ProxyService.strategy.reports(branchId: branchId).map((reports) {
     talker.warning(reports);
     return reports;
@@ -559,8 +565,17 @@ final tenantProvider = FutureProvider<Tenant?>((ref) async {
 
 final businessesProvider = FutureProvider<List<Business>>((ref) async {
   try {
-    return await ProxyService.strategy
-        .businesses(userId: ProxyService.box.getUserId()!);
+    final userId = ProxyService.box.getUserId();
+    if (userId == null) return [];
+
+    final userAccess = await ProxyService.ditto.getUserAccess(userId);
+    if (userAccess != null && userAccess.containsKey('businesses')) {
+      final List<dynamic> businessesJson = userAccess['businesses'];
+      return businessesJson
+          .map((json) => Business.fromMap(Map<String, dynamic>.from(json)))
+          .toList();
+    }
+    return [];
   } catch (e, stack) {
     // Log the error to our error service
     if (ProxyService.box.getUserLoggingEnabled() ?? false) {
@@ -676,7 +691,7 @@ class BranchSelectionNotifier extends Notifier<BranchSelectionState> {
 }
 
 final variantsProvider = FutureProvider.autoDispose
-    .family<List<Variant>, ({int branchId})>((ref, params) async {
+    .family<List<Variant>, ({String branchId})>((ref, params) async {
   final (:branchId) = params;
   final paged = await ProxyService.strategy.variants(
       branchId: branchId,

@@ -8,8 +8,8 @@ void main() {
   group('TicketCard _formatDate Tests', () {
     testWidgets('formats date correctly', (tester) async {
       final ticket = ITransaction(
-        agentId: 1,
-        branchId: 1,
+        agentId: "1",
+        branchId: "",
         status: 'test',
         transactionType: 'test',
         paymentType: 'test',
@@ -40,8 +40,8 @@ void main() {
 
     testWidgets('pads minutes correctly', (tester) async {
       final ticket = ITransaction(
-        agentId: 1,
-        branchId: 1,
+        agentId: "1",
+        branchId: "",
         status: 'test',
         transactionType: 'test',
         paymentType: 'test',

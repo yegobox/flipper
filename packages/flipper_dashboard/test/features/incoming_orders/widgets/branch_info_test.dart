@@ -2,6 +2,7 @@ import 'package:flipper_dashboard/features/incoming_orders/widgets/branch_info.d
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+
 // flutter test test/features/incoming_orders/widgets/branch_info_test.dart --dart-define=FLUTTER_TEST_ENV=true
 void main() {
   group('BranchInfo Tests', () {
@@ -13,17 +14,17 @@ void main() {
       mockSourceBranch = Branch(
         id: '1',
         name: 'Main Branch',
-        businessId: 1,
-        longitude: '0.0',
-        latitude: '0.0',
+        businessId: "1",
+        longitude: 0.0,
+        latitude: 0.0,
         location: 'Downtown',
         isDefault: true,
       );
 
       mockRequest = InventoryRequest(
         id: '1',
-        mainBranchId: 1,
-        subBranchId: 2,
+        mainBranchId: "1",
+        subBranchId: "2",
         branchId: '1',
         deliveryDate: DateTime.now(),
         deliveryNote: 'Test delivery',
@@ -34,9 +35,9 @@ void main() {
       mockIncomingBranch = Branch(
         id: '2',
         name: 'Sub Branch',
-        businessId: 1,
-        longitude: '0.0',
-        latitude: '0.0',
+        businessId: "1",
+        longitude: 0.0,
+        latitude: 0.0,
         location: 'Uptown',
         isDefault: false,
       );
@@ -115,8 +116,8 @@ void main() {
     testWidgets('handles null branch name gracefully', (tester) async {
       final requestWithNullBranch = InventoryRequest(
         id: '1',
-        mainBranchId: 1,
-        subBranchId: 2,
+        mainBranchId: "1",
+        subBranchId: "2",
         branchId: '1',
         deliveryDate: DateTime.now(),
         deliveryNote: 'Test delivery',

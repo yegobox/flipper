@@ -50,7 +50,7 @@ Future<Purchase> _$PurchaseFromSupabase(
     totTaxblAmt: data['tot_taxbl_amt'] as num,
     totTaxAmt: data['tot_tax_amt'] as num,
     totAmt: data['tot_amt'] as num,
-    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
     remark: data['remark'] == null ? null : data['remark'] as String?,
     hasUnApprovedVariant: data['has_un_approved_variant'] == null
         ? null
@@ -170,7 +170,7 @@ Future<Purchase> _$PurchaseFromSqlite(
     totTaxblAmt: data['tot_taxbl_amt'] as num,
     totTaxAmt: data['tot_tax_amt'] as num,
     totAmt: data['tot_amt'] as num,
-    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
     remark: data['remark'] == null ? null : data['remark'] as String?,
     hasUnApprovedVariant: data['has_un_approved_variant'] == null
         ? null
@@ -553,7 +553,7 @@ class PurchaseAdapter extends OfflineFirstWithSupabaseAdapter<Purchase> {
       association: false,
       columnName: 'branch_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'remark': const RuntimeSqliteColumnDefinition(
       association: false,

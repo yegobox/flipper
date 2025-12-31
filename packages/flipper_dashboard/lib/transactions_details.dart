@@ -14,7 +14,7 @@ import 'package:intl/intl.dart';
 
 class TransactionDetail extends StatefulHookConsumerWidget {
   const TransactionDetail({Key? key, required this.transaction})
-      : super(key: key);
+    : super(key: key);
 
   final ITransaction transaction;
 
@@ -50,13 +50,13 @@ class _TransactionDetailState extends ConsumerState<TransactionDetail>
       curve: Curves.elasticOut,
     );
 
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.3),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _cardAnimationController,
-      curve: Curves.easeOutCubic,
-    ));
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _cardAnimationController,
+            curve: Curves.easeOutCubic,
+          ),
+        );
 
     // Start animations
     _heroAnimationController.forward();
@@ -77,13 +77,15 @@ class _TransactionDetailState extends ConsumerState<TransactionDetail>
     return ViewModelBuilder<CoreViewModel>.reactive(
       viewModelBuilder: () => CoreViewModel(),
       onViewModelReady: (model) async {
-        final activeBranch = await ProxyService.strategy.activeBranch();
+        final activeBranch = await ProxyService.strategy.activeBranch(
+          businessId: ProxyService.box.getBusinessId()!,
+        );
         List<TransactionItem> items =
             await ProxyService.getStrategy(Strategy.capella).transactionItems(
-          branchId: activeBranch.id,
-          transactionId: widget.transaction.id,
-          fetchRemote: true,
-        );
+              branchId: activeBranch.id,
+              transactionId: widget.transaction.id,
+              fetchRemote: true,
+            );
         model.completedTransactionItemsList = items;
       },
       builder: (context, model, child) {
@@ -92,8 +94,9 @@ class _TransactionDetailState extends ConsumerState<TransactionDetail>
             : 'Income';
 
         return Scaffold(
-          backgroundColor:
-              const Color(0xFFF8F9FA), // Microsoft-inspired light background
+          backgroundColor: const Color(
+            0xFFF8F9FA,
+          ), // Microsoft-inspired light background
           body: CustomScrollView(
             slivers: [
               // Modern App Bar with Fluent Design
@@ -129,8 +132,11 @@ class _TransactionDetailState extends ConsumerState<TransactionDetail>
                       borderRadius: BorderRadius.circular(12),
                       // backdropFilter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                     ),
-                    child: const Icon(Icons.arrow_back_ios_new,
-                        color: Colors.white, size: 18),
+                    child: const Icon(
+                      Icons.arrow_back_ios_new,
+                      color: Colors.white,
+                      size: 18,
+                    ),
                   ),
                   onPressed: () => locator<RouterService>().back(),
                 ),
@@ -142,8 +148,11 @@ class _TransactionDetailState extends ConsumerState<TransactionDetail>
                         color: Colors.white.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Icon(Icons.more_vert,
-                          color: Colors.white, size: 18),
+                      child: const Icon(
+                        Icons.more_vert,
+                        color: Colors.white,
+                        size: 18,
+                      ),
                     ),
                     onPressed: () {},
                   ),
@@ -189,7 +198,8 @@ class _TransactionDetailState extends ConsumerState<TransactionDetail>
                             child: Column(
                               children: [
                                 if (model
-                                    .completedTransactionItemsList.isNotEmpty)
+                                    .completedTransactionItemsList
+                                    .isNotEmpty)
                                   _ModernTransactionItemList(
                                     items: model.completedTransactionItemsList,
                                     onExpansionChanged: (expanded) {
@@ -202,7 +212,8 @@ class _TransactionDetailState extends ConsumerState<TransactionDetail>
                                   ),
                                 const SizedBox(height: 16),
                                 if (model
-                                    .completedTransactionItemsList.isNotEmpty)
+                                    .completedTransactionItemsList
+                                    .isNotEmpty)
                                   _ModernTransactionTimeline(
                                     transaction: widget.transaction,
                                     onExpansionChanged: (expanded) {
@@ -216,7 +227,8 @@ class _TransactionDetailState extends ConsumerState<TransactionDetail>
                                   ),
                                 const SizedBox(height: 24),
                                 if (model
-                                    .completedTransactionItemsList.isNotEmpty)
+                                    .completedTransactionItemsList
+                                    .isNotEmpty)
                                   _FluentActionButtons(
                                     transaction: widget.transaction,
                                     moreActionsIsPressed: _moreActionsIsPressed,
@@ -271,15 +283,9 @@ class _HeroAmountCard extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [
-                Colors.white,
-                Colors.grey.shade50,
-              ],
+              colors: [Colors.white, Colors.grey.shade50],
             ),
-            border: Border.all(
-              color: Colors.grey.shade200,
-              width: 1,
-            ),
+            border: Border.all(color: Colors.grey.shade200, width: 1),
           ),
           child: Padding(
             padding: const EdgeInsets.all(28),
@@ -287,8 +293,10 @@ class _HeroAmountCard extends StatelessWidget {
               children: [
                 // Status Badge
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   decoration: BoxDecoration(
                     color: _getStatusColor(status).withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(20),
@@ -427,8 +435,10 @@ class _ModernTransactionItemList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    double total =
-        items.fold(0.0, (sum, item) => sum + (item.price * item.qty));
+    double total = items.fold(
+      0.0,
+      (sum, item) => sum + (item.price * item.qty),
+    );
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20),
@@ -491,10 +501,7 @@ class _ModernTransactionItemList extends StatelessWidget {
                   AnimatedRotation(
                     turns: isExpanded ? 0.5 : 0,
                     duration: const Duration(milliseconds: 300),
-                    child: Icon(
-                      Icons.expand_more,
-                      color: Colors.grey.shade600,
-                    ),
+                    child: Icon(Icons.expand_more, color: Colors.grey.shade600),
                   ),
                 ],
               ),
@@ -705,10 +712,7 @@ class _ModernTransactionTimeline extends StatelessWidget {
                   AnimatedRotation(
                     turns: isExpanded ? 0.5 : 0,
                     duration: const Duration(milliseconds: 300),
-                    child: Icon(
-                      Icons.expand_more,
-                      color: Colors.grey.shade600,
-                    ),
+                    child: Icon(Icons.expand_more, color: Colors.grey.shade600),
                   ),
                 ],
               ),
@@ -733,19 +737,23 @@ class _ModernTransactionTimeline extends StatelessWidget {
   List<TransactionStatus> _getTransactionStatuses(ITransaction transaction) {
     List<TransactionStatus> statuses = [];
     if (transaction.createdAt != null) {
-      statuses.add(TransactionStatus(
-        status: PENDING.toUpperCase(),
-        dateTime: transaction.createdAt!,
-      ));
+      statuses.add(
+        TransactionStatus(
+          status: PENDING.toUpperCase(),
+          dateTime: transaction.createdAt!,
+        ),
+      );
     }
 
     String currentStatus = transaction.status ?? '';
     if (currentStatus != PENDING && transaction.updatedAt != null) {
-      statuses.add(TransactionStatus(
-        status:
-            "${currentStatus.toUpperCase()}${transaction.paymentType != null ? ': ${transaction.paymentType!.toUpperCase()}' : ''}",
-        dateTime: transaction.updatedAt!,
-      ));
+      statuses.add(
+        TransactionStatus(
+          status:
+              "${currentStatus.toUpperCase()}${transaction.paymentType != null ? ': ${transaction.paymentType!.toUpperCase()}' : ''}",
+          dateTime: transaction.updatedAt!,
+        ),
+      );
     }
     return statuses;
   }
@@ -957,11 +965,7 @@ class _ActionTile extends StatelessWidget {
                   ),
                 ),
               ),
-              Icon(
-                Icons.chevron_right,
-                color: Colors.grey.shade400,
-                size: 20,
-              ),
+              Icon(Icons.chevron_right, color: Colors.grey.shade400, size: 20),
             ],
           ),
         ),
@@ -996,9 +1000,7 @@ class _FluentButton extends StatelessWidget {
             ? const Color(0xFF66AAFF)
             : Colors.grey.shade200,
         padding: const EdgeInsets.symmetric(vertical: 12),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
     );
   }

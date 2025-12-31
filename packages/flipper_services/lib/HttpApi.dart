@@ -19,7 +19,7 @@ abstract class HttpApiInterface {
       required String businessId});
   Future<bool> hasAcessSaved(
       {required HttpClientInterface flipperHttpClient,
-      required int businessId});
+      required String businessId});
   Future<bool> makePayment(
       {required HttpClientInterface flipperHttpClient,
       String? businessId,
@@ -31,7 +31,7 @@ abstract class HttpApiInterface {
       required int amount});
   Future<bool> subscribe(
       {required HttpClientInterface flipperHttpClient,
-      required int businessId,
+      required String businessId,
       int? agentCode,
       int? timeInSeconds = 120,
       required int amount});
@@ -258,7 +258,7 @@ class HttpApi implements HttpApiInterface {
   @override
   Future<bool> hasAcessSaved(
       {required HttpClientInterface flipperHttpClient,
-      required int businessId}) async {
+      required String businessId}) async {
     var headers = {
       'api-key': AppSecrets.apikey,
       'Content-Type': 'application/json'
@@ -344,7 +344,7 @@ class HttpApi implements HttpApiInterface {
   @override
   Future<bool> subscribe(
       {required HttpClientInterface flipperHttpClient,
-      required int businessId,
+      required String businessId,
       int? agentCode,
       int? timeInSeconds = 120,
       required int amount}) async {
@@ -524,7 +524,7 @@ class RealmViaHttpServiceMock implements HttpApiInterface {
   @override
   Future<bool> hasAcessSaved(
       {required HttpClientInterface flipperHttpClient,
-      required int businessId}) {
+      required String businessId}) {
     // TODO: implement hasAcessSaved
     throw UnimplementedError();
   }
@@ -532,7 +532,7 @@ class RealmViaHttpServiceMock implements HttpApiInterface {
   @override
   Future<bool> subscribe(
       {required HttpClientInterface flipperHttpClient,
-      required int businessId,
+      required String businessId,
       int? timeInSeconds,
       int? agentCode,
       required int amount}) {

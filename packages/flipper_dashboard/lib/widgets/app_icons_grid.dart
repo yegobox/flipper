@@ -16,14 +16,15 @@ class AppIconsGrid extends ConsumerWidget {
   final bool isBigScreen;
   final Function(String)? onAppSelected;
 
-  const AppIconsGrid({
-    Key? key,
-    required this.isBigScreen,
-    this.onAppSelected,
-  }) : super(key: key);
+  const AppIconsGrid({Key? key, required this.isBigScreen, this.onAppSelected})
+    : super(key: key);
 
   Future<void> _navigateToPage(
-      String page, WidgetRef ref, String feature, BuildContext context) async {
+    String page,
+    WidgetRef ref,
+    String feature,
+    BuildContext context,
+  ) async {
     if (onAppSelected != null) {
       onAppSelected!(page);
       return;
@@ -32,16 +33,19 @@ class AppIconsGrid extends ConsumerWidget {
     final _routerService = locator<RouterService>();
     switch (page) {
       case "POS":
-        await _routerService
-            .navigateTo(CheckOutRoute(isBigScreen: isBigScreen));
+        await _routerService.navigateTo(
+          CheckOutRoute(isBigScreen: isBigScreen),
+        );
         break;
       case "Inventory":
-        await _routerService
-            .navigateTo(CheckOutRoute(isBigScreen: isBigScreen));
+        await _routerService.navigateTo(
+          CheckOutRoute(isBigScreen: isBigScreen),
+        );
         break;
       case "Cashbook":
-        await _routerService
-            .navigateTo(CashbookRoute(isBigScreen: isBigScreen));
+        await _routerService.navigateTo(
+          CashbookRoute(isBigScreen: isBigScreen),
+        );
         break;
       case "Settings":
         await _routerService.navigateTo(SettingPageRoute());
@@ -77,8 +81,9 @@ class AppIconsGrid extends ConsumerWidget {
         );
         break;
       default:
-        await _routerService
-            .navigateTo(CheckOutRoute(isBigScreen: isBigScreen));
+        await _routerService.navigateTo(
+          CheckOutRoute(isBigScreen: isBigScreen),
+        );
     }
   }
 
@@ -90,35 +95,35 @@ class AppIconsGrid extends ConsumerWidget {
         'color': const Color(0xff006AFE),
         'page': "POS",
         'label': "Point of Sale",
-        'feature': 'Sales'
+        'feature': 'Sales',
       },
       {
         'icon': FluentIcons.book_48_regular,
         'color': const Color(0xFF66AAFF),
         'page': "Cashbook",
         'label': "Cash Book",
-        'feature': 'Cashbook'
+        'feature': 'Cashbook',
       },
       {
         'icon': FluentIcons.arrow_swap_20_regular,
         'color': const Color(0xFFFF0331),
         'page': "Transactions",
         'label': "Transactions",
-        'feature': 'Transactions'
+        'feature': 'Transactions',
       },
       {
         'icon': FluentIcons.people_32_regular,
         'color': Colors.cyan,
         'page': "Contacts",
         'label': "Contacts",
-        'feature': 'Contacts'
+        'feature': 'Contacts',
       },
       {
         'icon': Icons.call,
         'color': Colors.lightBlue,
         'page': "Support",
         'label': "Support",
-        'feature': 'Support'
+        'feature': 'Support',
       },
       {
         'icon': Icons.credit_card,
@@ -126,22 +131,25 @@ class AppIconsGrid extends ConsumerWidget {
         'page': "Credits",
         'label': "Credits",
         'feature': 'Credits',
-        'isSpecial': true
+        'isSpecial': true,
       },
       {
         'icon': FluentIcons.chat_24_regular,
         'color': Colors.purple,
         'page': "Chat",
         'label': "AI Chat",
-        'feature': 'Chat'
-      }
+        'feature': 'Chat',
+      },
     ];
 
     // Filtering out apps the user does not have access to
     final filteredApps = rippleApps.where((app) {
-      final hasAccess = ref.watch(featureAccessProvider(
+      final hasAccess = ref.watch(
+        featureAccessProvider(
           featureName: app['feature'],
-          userId: ProxyService.box.getUserId() ?? 0));
+          userId: ProxyService.box.getUserId() ?? "",
+        ),
+      );
       return hasAccess;
     }).toList();
 
@@ -158,16 +166,22 @@ class AppIconsGrid extends ConsumerWidget {
       itemCount: filteredApps.length,
       itemBuilder: (context, index) {
         final app = filteredApps[index];
-        return _buildAppCard(app,
-            isBigScreen: isBigScreen, ref: ref, context: context);
+        return _buildAppCard(
+          app,
+          isBigScreen: isBigScreen,
+          ref: ref,
+          context: context,
+        );
       },
     );
   }
 
-  Widget _buildAppCard(Map<String, dynamic> app,
-      {required bool isBigScreen,
-      required WidgetRef ref,
-      required BuildContext context}) {
+  Widget _buildAppCard(
+    Map<String, dynamic> app, {
+    required bool isBigScreen,
+    required WidgetRef ref,
+    required BuildContext context,
+  }) {
     // Special handling for Credits app
     if (app['isSpecial'] == true && app['page'] == "Credits") {
       return _CreditsAppCard(
@@ -202,8 +216,11 @@ class AppIconsGrid extends ConsumerWidget {
                 color: app['color'].withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
-              child: Icon(app['icon'],
-                  color: app['color'], size: isBigScreen ? 18 : 28),
+              child: Icon(
+                app['icon'],
+                color: app['color'],
+                size: isBigScreen ? 18 : 28,
+              ),
             ),
             const SizedBox(height: 6),
             Padding(

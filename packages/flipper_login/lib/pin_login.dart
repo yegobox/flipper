@@ -188,7 +188,7 @@ class _PinLoginState extends State<PinLogin>
                   isInSignUpProgress: false,
                   skipDefaultAppSetup: false,
                   pin: Pin(
-                    userId: int.parse(pin.userId),
+                    userId: pin.userId,
                     pin: pin.pin,
                     businessId: pin.businessId,
                     branchId: pin.branchId,

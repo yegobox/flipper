@@ -8,7 +8,7 @@ abstract class GetterOperationsInterface {
   Future<Device?> getDevice(
       {required String phone, required String linkingCode});
   Future<Device?> getDeviceById({required int id});
-  Future<List<Device>> getDevices({required int businessId});
+  Future<List<Device>> getDevices({required String businessId});
   Future<Favorite?> getFavoriteById({required String favId});
   Future<Favorite?> getFavoriteByIndex({required String favIndex});
   Stream<Favorite?> getFavoriteByIndexStream({required String favIndex});
@@ -22,15 +22,15 @@ abstract class GetterOperationsInterface {
       {required String pinString,
       required HttpClientInterface flipperHttpClient});
   FutureOr<Pin?> getPinLocal({
-    int? userId,
+    String? userId,
     String? phoneNumber,
     required bool alwaysHydrate,
   });
   Future<String?> getPlatformDeviceId();
   Future<List<Product>> getProducts(
-      {String? key, int? prodIndex, required int branchId});
+      {String? key, int? prodIndex, required String branchId});
   Future<Receipt?> getReceipt({required String transactionId});
-  FutureOr<Tenant?> getTenant({int? userId, int? pin});
+  FutureOr<Tenant?> getTenant({String? userId, int? pin});
   Future<({double expense, double income})> getTransactionsAmountsSum(
       {required String period});
   Future<Plan?> getPaymentPlan({
@@ -39,8 +39,8 @@ abstract class GetterOperationsInterface {
   });
 
   // Required methods that should be provided by other mixins
-  FutureOr<Business?> getBusinessById({required int businessId});
-  FutureOr<Branch?> branch({required int serverId});
+  FutureOr<Business?> getBusinessById({required String businessId});
+  FutureOr<Branch?> branch({required String serverId});
   FutureOr<List<ITransaction>> transactions({
     DateTime? startDate,
     DateTime? endDate,
@@ -49,7 +49,7 @@ abstract class GetterOperationsInterface {
     bool isCashOut = false,
     String? id,
     FilterType? filterType,
-    int? branchId,
+    String? branchId,
     bool isExpense = false,
     bool includePending = false,
   });

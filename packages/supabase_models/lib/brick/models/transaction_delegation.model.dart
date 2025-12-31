@@ -37,7 +37,7 @@ class TransactionDelegation extends OfflineFirstWithSupabaseModel {
 
   /// Branch ID for multi-location filtering
   @Sqlite(index: true)
-  final int branchId;
+  final String branchId;
 
   /// Status of the delegation (e.g., 'delegated', 'completed', 'failed')
   @Sqlite(index: true)
@@ -110,7 +110,7 @@ class TransactionDelegation extends OfflineFirstWithSupabaseModel {
     return TransactionDelegation(
       id: json['_id'] as String? ?? json['id'] as String?,
       transactionId: json['transactionId'] as String,
-      branchId: json['branchId'] as int,
+      branchId: json['branchId'] as String,
       status: json['status'] as String,
       receiptType: json['receiptType'] as String,
       paymentType: json['paymentType'] as String,
@@ -157,7 +157,7 @@ class TransactionDelegation extends OfflineFirstWithSupabaseModel {
   TransactionDelegation copyWith({
     String? id,
     String? transactionId,
-    int? branchId,
+    String? branchId,
     String? status,
     String? receiptType,
     String? paymentType,

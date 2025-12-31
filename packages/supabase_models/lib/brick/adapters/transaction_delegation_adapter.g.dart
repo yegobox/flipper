@@ -9,7 +9,7 @@ Future<TransactionDelegation> _$TransactionDelegationFromSupabase(
   return TransactionDelegation(
     id: data['id'] as String?,
     transactionId: data['transaction_id'] as String,
-    branchId: data['branch_id'] as int,
+    branchId: data['branch_id'] as String,
     status: data['status'] as String,
     receiptType: data['receipt_type'] as String,
     paymentType: data['payment_type'] as String,
@@ -73,7 +73,7 @@ Future<TransactionDelegation> _$TransactionDelegationFromSqlite(
   return TransactionDelegation(
     id: data['id'] as String,
     transactionId: data['transaction_id'] as String,
-    branchId: data['branch_id'] as int,
+    branchId: data['branch_id'] as String,
     status: data['status'] as String,
     receiptType: data['receipt_type'] as String,
     paymentType: data['payment_type'] as String,
@@ -225,7 +225,7 @@ class TransactionDelegationAdapter
       association: false,
       columnName: 'branch_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'status': const RuntimeSqliteColumnDefinition(
       association: false,

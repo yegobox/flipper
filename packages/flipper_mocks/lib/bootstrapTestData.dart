@@ -13,7 +13,7 @@ class CreateMockdata {
     for (var i = 0; i < 1000; i++) {
       await ProxyService.strategy.create<ITransaction>(
         data: ITransaction(
-          agentId: 1,
+          agentId: "1",
           lastTouched: DateTime(2023, 10, 28),
           supplierId: 1,
           reference: "2333",
@@ -25,7 +25,7 @@ class CreateMockdata {
           updatedAt: DateTime(2023, 10, 28),
           customerChangeDue: 0.0,
           paymentType: "Cash",
-          branchId: 1,
+          branchId: "",
           createdAt: DateTime(2023, 10, 28),
           receiptType: "Standard",
           customerId: "101",
@@ -46,15 +46,15 @@ class CreateMockdata {
         createItemCode: true,
         bhFId: "00",
         tinNumber: 111,
-        branchId: 1,
+        branchId: "",
         skipRRaCall: false,
-        businessId: 1,
+        businessId: "1",
         qty: 100,
         product: Product(
             name: "Test Product",
             color: "#ccc",
-            businessId: 1,
-            branchId: 1,
+            businessId: "1",
+            branchId: "",
             isComposite: true,
             nfcEnabled: false));
 
@@ -62,7 +62,7 @@ class CreateMockdata {
       // Query for the variant
       final paged = await ProxyService.strategy.variants(
         productId: product.id,
-        branchId: 1,
+        branchId: "",
         taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D'],
       );
 
@@ -73,8 +73,8 @@ class CreateMockdata {
         InventoryRequest(
           branchId: "",
           financingId: "",
-          mainBranchId: 1,
-          subBranchId: 2,
+          mainBranchId: "1",
+          subBranchId: "2",
           status: 'pending',
           transactionItems: [
             TransactionItem(
@@ -99,8 +99,8 @@ class CreateMockdata {
         InventoryRequest(
           branchId: "",
           financingId: "",
-          mainBranchId: 1,
-          subBranchId: 2,
+          mainBranchId: "1",
+          subBranchId: "2",
           status: 'pending',
           transactionItems: [
             TransactionItem(

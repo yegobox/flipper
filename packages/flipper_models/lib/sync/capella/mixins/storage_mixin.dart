@@ -8,7 +8,7 @@ mixin CapellaStorageMixin implements StorageInterface {
 
   @override
   Future<Stream<double>> downloadAsset({
-    required int branchId,
+    required String branchId,
     required String assetName,
     required String subPath,
   }) async {

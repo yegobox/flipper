@@ -15,9 +15,9 @@ mixin GetterOperationsMixin implements GetterOperationsInterface {
 
   @override
   FutureOr<Business?> getBusinessById(
-      {required int businessId, bool fetchOnline = false});
+      {required String businessId, bool fetchOnline = false});
   @override
-  FutureOr<Branch?> branch({required int serverId});
+  FutureOr<Branch?> branch({String? name, String? serverId});
   @override
   Future<List<ITransaction>> transactions({
     DateTime? startDate,
@@ -29,7 +29,7 @@ mixin GetterOperationsMixin implements GetterOperationsInterface {
     String? id,
     FilterType? filterType,
     bool includeZeroSubTotal = false,
-    int? branchId,
+    String? branchId,
     bool isExpense = false,
     bool includePending = false,
     bool forceRealData = true,
@@ -61,7 +61,7 @@ mixin GetterOperationsMixin implements GetterOperationsInterface {
   }
 
   @override
-  Future<List<Device>> getDevices({required int businessId}) async {
+  Future<List<Device>> getDevices({required String businessId}) async {
     final query = Query(where: [Where('businessId').isExactly(businessId)]);
     return await repository.get<Device>(
       query: query,
@@ -173,7 +173,7 @@ mixin GetterOperationsMixin implements GetterOperationsInterface {
 
   @override
   Future<List<Product>> getProducts(
-      {String? key, int? prodIndex, required int branchId}) async {
+      {String? key, int? prodIndex, required String branchId}) async {
     if (key != null) {
       return await repository.get<Product>(
         query: Query(where: [Where('name').isExactly(key)]),
@@ -198,7 +198,7 @@ mixin GetterOperationsMixin implements GetterOperationsInterface {
   }
 
   @override
-  FutureOr<Tenant?> getTenant({int? userId, int? pin}) async {
+  FutureOr<Tenant?> getTenant({String? userId, int? pin}) async {
     if (userId != null) {
       return (await repository.get<Tenant>(
         query: Query(where: [Where('userId').isExactly(userId)]),

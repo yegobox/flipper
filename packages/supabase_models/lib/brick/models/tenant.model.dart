@@ -15,24 +15,22 @@ class Tenant extends OfflineFirstWithSupabaseModel {
   String? phoneNumber;
   String? email;
   bool nfcEnabled = false;
-  int? businessId;
-  int? userId;
+  String? businessId;
+  String? userId;
   String? imageUrl;
 
   DateTime? lastTouched;
   DateTime? deletedAt;
 
   int? pin;
+  bool? isDefault;
 
   /// [sessionActive] is not comming from server, this is to check which
   /// tenant is currently have active session but the main session will be still active
   bool? sessionActive;
 
-
-
   ///helper property, these are property that are not peristed
   ///but used in ui to achieve some functionality
-
 
   String? type;
   Tenant({
@@ -47,6 +45,7 @@ class Tenant extends OfflineFirstWithSupabaseModel {
     this.lastTouched,
     this.deletedAt,
     this.pin,
+    this.isDefault,
     this.sessionActive,
     this.type = "Agent",
   }) : id = id ?? const Uuid().v4();

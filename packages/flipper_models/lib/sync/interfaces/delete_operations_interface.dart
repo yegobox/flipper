@@ -3,7 +3,7 @@ import 'package:flipper_models/db_model_export.dart';
 
 abstract class DeleteOperationsInterface {
   Future<void> deleteBranch({
-    required int branchId,
+    required String branchId,
     required HttpClientInterface flipperHttpClient,
   });
 

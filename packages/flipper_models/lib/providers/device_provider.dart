@@ -9,7 +9,7 @@ part 'device_provider.g.dart';
 @riverpod
 Future<List<Device>> devicesForBranch(
   Ref ref, {
-  required int branchId,
+  required String branchId,
 }) async {
   final devices = await ProxyService.getStrategy(Strategy.capella)
       .getDevicesByBranch(branchId: branchId);

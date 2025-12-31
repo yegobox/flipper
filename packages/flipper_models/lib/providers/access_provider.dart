@@ -2,37 +2,37 @@ import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:flutter/foundation.dart';
 part 'access_provider.g.dart';
 
 @riverpod
-Future<bool> isAdmin(Ref ref, int userId, {required String featureName}) async {
+Future<bool> isAdmin(Ref ref, String userId,
+    {required String featureName}) async {
   return await ProxyService.strategy
       .isAdmin(userId: userId, appFeature: featureName);
 }
 
 @riverpod
-Future<List<Access>> userAccesses(Ref ref, int userId,
+Future<List<Access>> userAccesses(Ref ref, String userId,
     {required String featureName}) async {
   return await ProxyService.strategy
       .access(userId: userId, featureName: featureName, fetchRemote: false);
 }
 
 @riverpod
-Future<List<Access>> allAccesses(Ref ref, int userId) async {
+Future<List<Access>> allAccesses(Ref ref, String userId) async {
   return await ProxyService.strategy.allAccess(userId: userId);
 }
 
 @riverpod
-Future<Tenant?> tenant(Ref ref, int userId) async {
+Future<Tenant?> tenant(Ref ref, String userId) async {
   return await ProxyService.strategy.tenant(userId: userId, fetchRemote: false);
 }
 
 @riverpod
 bool featureAccess(Ref ref,
-    {required int userId, required String featureName}) {
+    {required String userId, required String featureName}) {
   try {
     final accesses = ref
             .watch(userAccessesProvider(userId, featureName: featureName))
@@ -77,19 +77,18 @@ bool featureAccess(Ref ref,
 /// to whatever he is trying to access
 @riverpod
 bool featureAccessLevel(Ref ref,
-    {required int userId, required String accessLevel}) {
+    {required String userId, required String accessLevel}) {
   try {
-    Tenant? accesses = ref.watch(tenantProvider(userId)).value;
-    final granted = accesses?.type?.toLowerCase() == accessLevel.toLowerCase();
+    final accesses = ref.watch(allAccessesProvider(userId)).value ?? [];
+    final granted = accesses.any((access) =>
+        access.userType?.toLowerCase() == accessLevel.toLowerCase());
 
     if (granted) {
       talker.info(
-          "AccessLevel GRANTED for userId: $userId, accessLevel: $accessLevel | Accesses: ${accesses?.type}");
+          "AccessLevel GRANTED for userId: $userId, accessLevel: $accessLevel | User types found: ${accesses.map((a) => a.userType).toList()}");
     } else {
-      talker.info(accesses?.type);
-      talker.info(accessLevel);
       talker.info(
-          "AccessLevel DENIED for userId: $userId, accessLevel: $accessLevel | Accesses: ${accesses?.type}");
+          "AccessLevel DENIED for userId: $userId, accessLevel: $accessLevel | User types found: ${accesses.map((a) => a.userType).toList()}");
     }
 
     return granted;

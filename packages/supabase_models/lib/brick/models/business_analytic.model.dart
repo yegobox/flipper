@@ -33,7 +33,7 @@ class BusinessAnalytic extends OfflineFirstWithSupabaseModel {
   final num? stockRemainedAtTheTimeOfSale;
   final num? taxRate;
   final int? trafficCount;
-  int? branchId;
+  String? branchId;
   String? categoryName;
   String? categoryId;
   String? transactionId;

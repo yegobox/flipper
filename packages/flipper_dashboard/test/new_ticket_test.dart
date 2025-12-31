@@ -8,9 +8,9 @@ void main() {
 
     setUp(() {
       mockTransaction = ITransaction(
-        agentId: 1,
+        agentId: "1",
         id: 'test123',
-        branchId: 1,
+        branchId: "",
         transactionNumber: 'TXN001',
         ticketName: 'Test Ticket',
         subTotal: 100.0,

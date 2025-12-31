@@ -28,7 +28,7 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
   String? categoryId;
   String? transactionNumber;
 
-  int? branchId;
+  String? branchId;
 
   String? status;
 
@@ -139,7 +139,7 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
   List<TransactionItem>? items;
 
   String? customerPhone;
-  int? agentId;
+  String? agentId;
 
   ITransaction({
     this.ticketName,
@@ -233,7 +233,7 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
     String? reference,
     String? categoryId,
     String? transactionNumber,
-    int? branchId,
+    String? branchId,
     String? status,
     String? transactionType,
     double? subTotal,

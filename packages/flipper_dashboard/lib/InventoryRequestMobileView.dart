@@ -2,7 +2,6 @@ import 'package:flipper_dashboard/NoOrderPlaceholder.dart';
 import 'package:flipper_dashboard/stockApprovalMixin.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/orders_provider.dart';
-import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -24,8 +23,9 @@ class _InventoryRequestMobileViewState
 
   @override
   Widget build(BuildContext context) {
-    final stockRequests =
-        ref.watch(stockRequestsProvider(status: _selectedStatus, search: null));
+    final stockRequests = ref.watch(
+      stockRequestsProvider(status: _selectedStatus, search: null),
+    );
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
@@ -35,10 +35,7 @@ class _InventoryRequestMobileViewState
           children: [
             Text(
               'Stock Requests',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             Text(
               'Track request status',
@@ -56,8 +53,10 @@ class _InventoryRequestMobileViewState
         children: [
           Container(
             color: Colors.white,
-            padding:
-                const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 8.0,
+            ),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
@@ -67,7 +66,9 @@ class _InventoryRequestMobileViewState
                   _buildFilterChip(RequestStatus.approved, 'Approved'),
                   const SizedBox(width: 8),
                   _buildFilterChip(
-                      RequestStatus.partiallyApproved, 'Partially Approved'),
+                    RequestStatus.partiallyApproved,
+                    'Partially Approved',
+                  ),
                   const SizedBox(width: 8),
                   _buildFilterChip(RequestStatus.rejected, 'Rejected'),
                   const SizedBox(width: 8),
@@ -99,8 +100,10 @@ class _InventoryRequestMobileViewState
                     const SizedBox(height: 16),
                     const Text(
                       'Error loading requests',
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                     Text(
                       err.toString(),
@@ -176,8 +179,11 @@ class _InventoryRequestMobileViewState
                     const SizedBox(width: 8),
                     Expanded(
                       child: FutureBuilder<Branch?>(
-                        future: Future.value(ProxyService.strategy
-                            .branch(serverId: request.mainBranchId!)),
+                        future: Future.value(
+                          ProxyService.strategy.branch(
+                            serverId: request.subBranchId!,
+                          ),
+                        ),
                         builder: (context, snapshot) {
                           final mainBranchName =
                               snapshot.data?.name ?? 'Loading...';
@@ -197,8 +203,11 @@ class _InventoryRequestMobileViewState
                     const SizedBox(width: 8),
                     Expanded(
                       child: FutureBuilder<Branch?>(
-                        future: Future.value(ProxyService.strategy
-                            .branch(serverId: request.subBranchId!)),
+                        future: Future.value(
+                          ProxyService.strategy.branch(
+                            serverId: request.subBranchId!,
+                          ),
+                        ),
                         builder: (context, snapshot) {
                           final subBranchName =
                               snapshot.data?.name ?? 'Loading...';
@@ -215,8 +224,11 @@ class _InventoryRequestMobileViewState
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    Icon(Icons.calendar_today,
-                        size: 16, color: Colors.grey[600]),
+                    Icon(
+                      Icons.calendar_today,
+                      size: 16,
+                      color: Colors.grey[600],
+                    ),
                     const SizedBox(width: 8),
                     Text(
                       'Created: ${DateFormat('MMM dd, yyyy').format(request.createdAt ?? DateTime.now())}',
@@ -229,8 +241,11 @@ class _InventoryRequestMobileViewState
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      Icon(Icons.local_shipping,
-                          size: 16, color: Colors.grey[600]),
+                      Icon(
+                        Icons.local_shipping,
+                        size: 16,
+                        color: Colors.grey[600],
+                      ),
                       const SizedBox(width: 8),
                       Text(
                         'Delivery: ${DateFormat('MMM dd, yyyy').format(request.deliveryDate!)}',
@@ -243,14 +258,20 @@ class _InventoryRequestMobileViewState
                 // Items count
                 const SizedBox(height: 8),
                 FutureBuilder<List<TransactionItem>>(
-                  future: Future.value(ProxyService.strategy
-                      .transactionItems(requestId: request.id)),
+                  future: Future.value(
+                    ProxyService.strategy.transactionItems(
+                      requestId: request.id,
+                    ),
+                  ),
                   builder: (context, snapshot) {
                     final itemCount = snapshot.data?.length ?? 0;
                     return Row(
                       children: [
-                        Icon(Icons.inventory_2,
-                            size: 16, color: Colors.grey[600]),
+                        Icon(
+                          Icons.inventory_2,
+                          size: 16,
+                          color: Colors.grey[600],
+                        ),
                         const SizedBox(width: 8),
                         Text(
                           'Items: $itemCount',
@@ -280,7 +301,9 @@ class _InventoryRequestMobileViewState
                           child: Text(
                             request.orderNote!,
                             style: TextStyle(
-                                color: Colors.grey[700], fontSize: 13),
+                              color: Colors.grey[700],
+                              fontSize: 13,
+                            ),
                           ),
                         ),
                       ],
@@ -352,11 +375,9 @@ class _InventoryRequestMobileViewState
           isDelivered
               ? 'Delivered'
               : isConfirmationRequested
-                  ? 'Awaiting Confirmation'
-                  : 'Pending Delivery',
-          style: TextStyle(
-            color: isDelivered ? Colors.green : Colors.orange,
-          ),
+              ? 'Awaiting Confirmation'
+              : 'Pending Delivery',
+          style: TextStyle(color: isDelivered ? Colors.green : Colors.orange),
         ),
       ],
     );

@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/features/incoming_orders/widgets/items_list.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -24,11 +25,12 @@ void main() {
       env.injectMocks();
       env.stubCommonMethods();
 
-      mockBranch = Branch(
-        id: '1',
-        name: 'Main Branch',
-        businessId: 1,
-      );
+      // Mock the getStrategy method to return the mockDbSync
+      when(
+        () => env.mockSyncStrategy.getStrategy(Strategy.capella),
+      ).thenReturn(env.mockDbSync);
+
+      mockBranch = Branch(id: '1', name: 'Main Branch', businessId: "1");
 
       mockRequest = InventoryRequest(
         id: '1',
@@ -66,8 +68,9 @@ void main() {
         ),
       ];
 
-      when(() => env.mockDbSync.transactionItems(requestId: '1'))
-          .thenAnswer((_) async => mockItems);
+      when(
+        () => env.mockDbSync.transactionItems(requestId: '1'),
+      ).thenAnswer((_) async => mockItems);
     });
 
     tearDown(() {
@@ -78,9 +81,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
-            home: Scaffold(
-              body: ItemsList(request: mockRequest),
-            ),
+            home: Scaffold(body: ItemsList(request: mockRequest)),
           ),
         ),
       );
@@ -91,12 +92,14 @@ void main() {
     });
 
     testWidgets('shows loading indicator initially', (tester) async {
+      when(
+        () => env.mockSyncStrategy.getStrategy(Strategy.capella),
+      ).thenReturn(env.mockDbSync);
+
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
-            home: Scaffold(
-              body: ItemsList(request: mockRequest),
-            ),
+            home: Scaffold(body: ItemsList(request: mockRequest)),
           ),
         ),
       );
@@ -108,9 +111,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
-            home: Scaffold(
-              body: ItemsList(request: mockRequest),
-            ),
+            home: Scaffold(body: ItemsList(request: mockRequest)),
           ),
         ),
       );
@@ -125,9 +126,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
-            home: Scaffold(
-              body: ItemsList(request: mockRequest),
-            ),
+            home: Scaffold(body: ItemsList(request: mockRequest)),
           ),
         ),
       );
@@ -138,14 +137,13 @@ void main() {
       expect(find.text('8/8'), findsOneWidget); // Item 2: approved/requested
     });
 
-    testWidgets('shows pending quantity for partially approved items',
-        (tester) async {
+    testWidgets('shows pending quantity for partially approved items', (
+      tester,
+    ) async {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
-            home: Scaffold(
-              body: ItemsList(request: mockRequest),
-            ),
+            home: Scaffold(body: ItemsList(request: mockRequest)),
           ),
         ),
       );
@@ -159,17 +157,17 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
-            home: Scaffold(
-              body: ItemsList(request: mockRequest),
-            ),
+            home: Scaffold(body: ItemsList(request: mockRequest)),
           ),
         ),
       );
 
       await tester.pump();
 
-      expect(find.text('Approve'),
-          findsOneWidget); // Only Item 1 should have approve button
+      expect(
+        find.text('Approve'),
+        findsOneWidget,
+      ); // Only Item 1 should have approve button
       expect(find.byIcon(Icons.check_circle_outline), findsOneWidget);
     });
 
@@ -177,30 +175,32 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
-            home: Scaffold(
-              body: ItemsList(request: mockRequest),
-            ),
+            home: Scaffold(body: ItemsList(request: mockRequest)),
           ),
         ),
       );
 
       await tester.pump();
 
-      expect(find.byType(Column),
-          findsNWidgets(4)); // Main column + 2 item columns + 1 data column
+      expect(
+        find.byType(Column),
+        findsNWidgets(4),
+      ); // Main column + 2 item columns + 1 data column
       expect(find.byType(Card), findsNWidgets(2)); // 2 item cards
     });
 
     testWidgets('handles empty items list', (tester) async {
-      when(() => env.mockDbSync.transactionItems(requestId: '1'))
-          .thenAnswer((_) async => []);
+      when(
+        () => env.mockSyncStrategy.getStrategy(Strategy.capella),
+      ).thenReturn(env.mockDbSync);
+      when(
+        () => env.mockDbSync.transactionItems(requestId: '1'),
+      ).thenAnswer((_) async => []);
 
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
-            home: Scaffold(
-              body: ItemsList(request: mockRequest),
-            ),
+            home: Scaffold(body: ItemsList(request: mockRequest)),
           ),
         ),
       );
@@ -212,6 +212,9 @@ void main() {
     });
 
     testWidgets('handles approved request status', (tester) async {
+      when(
+        () => env.mockSyncStrategy.getStrategy(Strategy.capella),
+      ).thenReturn(env.mockDbSync);
       final approvedRequest = InventoryRequest(
         id: '1',
         branchId: '1',
@@ -219,12 +222,14 @@ void main() {
         branch: mockBranch,
       );
 
+      when(
+        () => env.mockDbSync.transactionItems(requestId: '1'),
+      ).thenAnswer((_) async => mockItems);
+
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
-            home: Scaffold(
-              body: ItemsList(request: approvedRequest),
-            ),
+            home: Scaffold(body: ItemsList(request: approvedRequest)),
           ),
         ),
       );

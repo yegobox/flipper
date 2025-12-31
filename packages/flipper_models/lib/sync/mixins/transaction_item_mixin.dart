@@ -226,7 +226,9 @@ mixin TransactionItemMixin implements TransactionItemInterface {
 
           modrId: variation.modrId,
           modrNm: variation.modrNm,
-          branchId: (await ProxyService.strategy.activeBranch()).id,
+          branchId: (await ProxyService.strategy
+                  .activeBranch(businessId: ProxyService.box.getBusinessId()!))
+              .id,
           ebmSynced: false, // Assuming default value
           partOfComposite: partOfComposite,
           compositePrice: compositePrice,
@@ -395,7 +397,7 @@ mixin TransactionItemMixin implements TransactionItemInterface {
         return Stream.value(
             DummyTransactionGenerator.generateDummyTransactionItems(
           transactionId: transactionId ?? "",
-          branchId: int.tryParse(branchIdValue.toString()) ?? 0,
+          branchId: branchIdValue.toString(),
         ));
       }
       final query = Query(
@@ -443,7 +445,7 @@ mixin TransactionItemMixin implements TransactionItemInterface {
     if ((ProxyService.box.enableDebug() ?? false) && !forceRealData) {
       return DummyTransactionGenerator.generateDummyTransactionItems(
         transactionId: transactionId ?? "",
-        branchId: int.parse(branchId ?? "0"),
+        branchId: branchId ?? "",
         count: 10,
       );
     }

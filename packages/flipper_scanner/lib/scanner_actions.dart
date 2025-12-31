@@ -11,13 +11,13 @@ abstract class ScannerActions {
   void pop();
   void navigateToSellRoute(dynamic product);
   void showSimpleNotification(String message);
-  int getUserId();
-  int getBusinessId();
-  int getBranchId();
+  String getUserId();
+  String getBusinessId();
+  String getBranchId();
   String getUserPhone();
   String getDefaultApp();
   FutureOr<Pin?> getPinLocal(
-      {required int userId, required bool alwaysHydrate});
+      {required String userId, required bool alwaysHydrate});
   EventService getEventService();
   dynamic getBoxService();
   dynamic getStrategyService();

@@ -27,7 +27,7 @@ class IConversation extends IJsonSerializable {
 
   /// properties that are here only useful when replying
   String? businessPhoneNumber;
-  int? businessId;
+  String? businessId;
 
   DateTime? scheduledAt;
 

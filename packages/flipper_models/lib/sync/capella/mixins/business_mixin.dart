@@ -11,38 +11,32 @@ mixin CapellaBusinessMixin implements BusinessInterface {
   Talker get talker;
 
   @override
-  Future<Branch> activeBranch() async {
-    throw UnimplementedError(
-        'activeBranch needs to be implemented for Capella');
-  }
-
-  @override
   Future<Business?> activeBusiness({int? userId}) async {
     throw UnimplementedError(
         'activeBusiness needs to be implemented for Capella');
   }
 
   @override
-  Future<Category?> activeCategory({required int branchId}) async {
+  Future<Category?> activeCategory({required String branchId}) async {
     throw UnimplementedError(
         'activeCategory needs to be implemented for Capella');
   }
 
   @override
   FutureOr<Business?> getBusinessById(
-      {required int businessId, bool fetchOnline = false}) async {
+      {required String businessId, bool fetchOnline = false}) async {
     throw UnimplementedError(
         'getBusinessById needs to be implemented for Capella');
   }
 
   @override
   Future<List<Business>> businesses(
-      {int? userId, bool fetchOnline = false, bool active = false}) async {
+      {String? userId, bool fetchOnline = false, bool active = false}) async {
     throw UnimplementedError('businesses needs to be implemented for Capella');
   }
 
   @override
-  FutureOr<Business?> getBusiness({int? businessId}) async {
+  FutureOr<Business?> getBusiness({String? businessId}) async {
     throw UnimplementedError('getBusiness needs to be implemented for Capella');
   }
 
@@ -56,14 +50,14 @@ mixin CapellaBusinessMixin implements BusinessInterface {
   @override
   Future<void> addBusiness(
       {required String id,
-      required String phoneNumber,
-      required int userId,
+      required String userId,
       required int serverId,
+      required String businessId,
       String? name,
       String? currency,
       String? categoryId,
-      String? latitude,
-      String? longitude,
+      num? latitude,
+      num? longitude,
       String? timeZone,
       String? country,
       String? businessUrl,
@@ -95,8 +89,9 @@ mixin CapellaBusinessMixin implements BusinessInterface {
       bool? taxEnabled,
       String? taxServerUrl,
       bool? isDefault,
-      int? businessTypeId,
+      String? businessTypeId,
       DateTime? lastTouched,
+      required String phoneNumber,
       DateTime? deletedAt,
       required String encryptionKey}) async {
     throw UnimplementedError('addBusiness needs to be implemented for Capella');
@@ -104,7 +99,7 @@ mixin CapellaBusinessMixin implements BusinessInterface {
 
   @override
   Future<void> updateBusiness(
-      {required int businessId,
+      {required String businessId,
       String? name,
       bool? active,
       bool? isDefault,

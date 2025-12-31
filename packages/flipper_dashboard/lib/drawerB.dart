@@ -2,9 +2,10 @@ import 'package:flipper_models/providers/branch_business_provider.dart';
 import 'package:flipper_models/providers/ebm_provider.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_models/secrets.dart';
+import 'package:flipper_models/db_model_export.dart';
+
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
-import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'dart:async';
@@ -51,7 +52,11 @@ class _MyDrawerState extends ConsumerState<MyDrawer> {
     final userId = ProxyService.box.getUserId();
     if (userId != null && appID.isNotEmpty) {
       await DittoSingleton.instance.initialize(appId: appID, userId: userId);
-      DittoSyncCoordinator.instance.setDitto(DittoSingleton.instance.ditto);
+      DittoSyncCoordinator.instance.setDitto(
+        DittoSingleton.instance.ditto,
+        skipInitialFetch:
+            true, // Skip initial fetch to prevent upserting all models on startup
+      );
     }
   }
 
@@ -226,7 +231,16 @@ class _MyDrawerState extends ConsumerState<MyDrawer> {
     }
 
     return FutureBuilder<List<Business>>(
-      future: ProxyService.strategy.businesses(userId: userId),
+      future: () async {
+        final userAccess = await ProxyService.ditto.getUserAccess(userId);
+        if (userAccess != null && userAccess.containsKey('businesses')) {
+          final List<dynamic> businessesJson = userAccess['businesses'];
+          return businessesJson
+              .map((json) => Business.fromMap(Map<String, dynamic>.from(json)))
+              .toList();
+        }
+        return <Business>[];
+      }(),
       builder: (context, businessSnapshot) {
         if (businessSnapshot.connectionState == ConnectionState.waiting) {
           return _buildLoadingState('Loading businesses...');
@@ -439,6 +453,8 @@ class _MyDrawerState extends ConsumerState<MyDrawer> {
                   );
                   DittoSyncCoordinator.instance.setDitto(
                     DittoSingleton.instance.ditto,
+                    skipInitialFetch:
+                        true, // Skip initial fetch to prevent upserting all models on startup
                   );
                   await ProxyService.notification.sendLocalNotification(
                     body:
@@ -681,7 +697,7 @@ class _MyDrawerState extends ConsumerState<MyDrawer> {
     }
 
     setState(() {
-      _switchingBranchId = branch.serverId.toString();
+      _switchingBranchId = branch.id.toString();
     });
 
     final appService = locator<AppService>();
@@ -691,38 +707,16 @@ class _MyDrawerState extends ConsumerState<MyDrawer> {
 
       final currentBranchId = ProxyService.box.readInt(key: 'branchId');
 
-      if (currentBranchId != branch.serverId) {
-        await ProxyService.box.writeInt(
-          key: 'branchId',
-          value: branch.serverId!,
-        );
-        await ProxyService.box.writeString(
-          key: 'branchIdString',
-          value: branch.id,
-        );
-        await ProxyService.box.writeInt(
-          key: 'currentBusinessId',
-          value: business.serverId,
-        );
-        await ProxyService.box.writeInt(
-          key: 'currentBranchId',
-          value: branch.serverId!,
-        );
+      if (currentBranchId != branch.id) {
+        await appService.setDefaultBusiness(business);
+        await appService.setDefaultBranch(branch);
 
-        await appService.updateAllBranchesInactive();
-        await ProxyService.strategy.updateBranch(
-          branchId: branch.serverId!,
-          active: true,
-          isDefault: true,
-        );
-
-        ref.invalidate(branchesProvider(businessId: business.serverId));
+        ref.invalidate(branchesProvider(businessId: business.id));
         ref.read(searchStringProvider.notifier).emitString(value: "search");
         ref.read(searchStringProvider.notifier).emitString(value: "");
       }
 
       Navigator.pop(context);
-      // locator<RouterService>().navigateTo(DashboardViewRoute());
     } finally {
       setState(() {
         _switchingBranchId = null;
@@ -925,10 +919,10 @@ class _ModernShiftTileState extends State<ModernShiftTile> {
         variant: DialogType.startShift,
         title: 'Start New Shift',
       );
-      if (response?.confirmed == true) {
+      if (response != null && response.confirmed) {
         final openingBalance =
-            response?.data['openingBalance'] as double? ?? 0.0;
-        final notes = response?.data['notes'] as String?;
+            response.data['openingBalance'] as double? ?? 0.0;
+        final notes = response.data['notes'] as String?;
         await ProxyService.strategy.startShift(
           userId: userId,
           openingBalance: openingBalance,
@@ -1015,7 +1009,7 @@ class _ModernBusinessCard extends StatelessWidget {
         ],
       ),
       child: FutureBuilder<List<Branch>>(
-        future: ProxyService.strategy.branches(businessId: business.serverId),
+        future: ProxyService.strategy.branches(businessId: business.id),
         builder: (context, branchSnapshot) {
           if (branchSnapshot.connectionState == ConnectionState.waiting) {
             return _buildLoadingCard();
@@ -1162,14 +1156,14 @@ class _ModernBusinessCard extends StatelessWidget {
                   branch: Branch(
                     id: 'main',
                     name: 'Main Branch',
-                    businessId: business.serverId,
+                    businessId: business.id,
                   ),
                   switchingBranchId: switchingBranchId,
                   onTap: () => onBranchSelected(
                     Branch(
                       id: 'main',
                       name: 'Main Branch',
-                      businessId: business.serverId,
+                      businessId: business.id,
                     ),
                   ),
                 ),
@@ -1201,8 +1195,8 @@ class _BranchItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bool isActive = ProxyService.box.getBranchId() == branch.serverId;
-    final bool isLoading = switchingBranchId == branch.serverId.toString();
+    final bool isActive = ProxyService.box.getBranchId() == branch.id;
+    final bool isLoading = switchingBranchId == branch.id.toString();
 
     return Material(
       color: Colors.transparent,

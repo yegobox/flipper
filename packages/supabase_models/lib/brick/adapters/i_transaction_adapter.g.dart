@@ -15,7 +15,7 @@ Future<ITransaction> _$ITransactionFromSupabase(
     transactionNumber: data['transaction_number'] == null
         ? null
         : data['transaction_number'] as String?,
-    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
     status: data['status'] == null ? null : data['status'] as String?,
     transactionType: data['transaction_type'] == null
         ? null
@@ -172,7 +172,7 @@ Future<ITransaction> _$ITransactionFromSupabase(
     customerPhone: data['customer_phone'] == null
         ? null
         : data['customer_phone'] as String?,
-    agentId: data['agent_id'] == null ? null : data['agent_id'] as int?,
+    agentId: data['agent_id'] == null ? null : data['agent_id'] as String?,
   );
 }
 
@@ -259,7 +259,7 @@ Future<ITransaction> _$ITransactionFromSqlite(
     transactionNumber: data['transaction_number'] == null
         ? null
         : data['transaction_number'] as String?,
-    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
     status: data['status'] == null ? null : data['status'] as String?,
     transactionType: data['transaction_type'] == null
         ? null
@@ -428,7 +428,7 @@ Future<ITransaction> _$ITransactionFromSqlite(
     customerPhone: data['customer_phone'] == null
         ? null
         : data['customer_phone'] as String?,
-    agentId: data['agent_id'] == null ? null : data['agent_id'] as int?,
+    agentId: data['agent_id'] == null ? null : data['agent_id'] as String?,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -805,7 +805,7 @@ class ITransactionAdapter
       association: false,
       columnName: 'branch_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'status': const RuntimeSqliteColumnDefinition(
       association: false,
@@ -1135,7 +1135,7 @@ class ITransactionAdapter
       association: false,
       columnName: 'agent_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
   };
   @override

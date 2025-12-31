@@ -26,7 +26,7 @@ class VariantConverter
     variant.productName = json['productName'] as String?;
     variant.categoryId = json['categoryId'] as String?;
     variant.categoryName = json['categoryName'] as String?;
-    variant.branchId = json['branchId'] as int?;
+    variant.branchId = json['branchId'] as String?;
     variant.taxName = json['taxName'] as String?;
 
     // Set RRA and import fields

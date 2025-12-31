@@ -46,7 +46,7 @@ class Setting extends IJsonSerializable {
   String? token;
 
   // @JsonKey(fromJson: _toInt)
-  int? businessId;
+  String? businessId;
   String? createdAt;
 
   @JsonKey(includeIfNull: true)

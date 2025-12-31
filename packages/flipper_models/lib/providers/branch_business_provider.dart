@@ -8,9 +8,28 @@ part 'branch_business_provider.g.dart';
 @riverpod
 Future<List<Branch>> branches(
   Ref ref, {
-  int? businessId,
+  String? businessId,
 }) async {
-  final branches = await ProxyService.strategy.branches(
-      businessId: businessId, excludeId: ProxyService.box.getBranchId());
-  return branches;
+  if (businessId == null) return [];
+
+  final userId = ProxyService.box.getUserId();
+  if (userId == null) return [];
+
+  final userAccess = await ProxyService.ditto.getUserAccess(userId);
+  if (userAccess != null && userAccess.containsKey('businesses')) {
+    final List<dynamic> businessesJson = userAccess['businesses'];
+    final businessJson = businessesJson.firstWhere(
+      (b) => b['id'] == businessId,
+      orElse: () => null,
+    );
+
+    if (businessJson != null && businessJson.containsKey('branches')) {
+      final List<dynamic> branchesJson = businessJson['branches'];
+      return branchesJson
+          .map((json) => Branch.fromMap(Map<String, dynamic>.from(json)))
+          .toList();
+    }
+  }
+
+  return [];
 }

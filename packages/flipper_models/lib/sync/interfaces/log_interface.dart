@@ -11,13 +11,13 @@ abstract class LogInterface {
   /// Retrieves logs filtered by type and/or business ID
   Future<List<Log>> getLogs({
     String? type,
-    int? businessId,
+    String? businessId,
     int limit = 100,
   });
 
   /// Clears logs older than the specified duration
   Future<int> clearOldLogs({
     required Duration olderThan,
-    int? businessId,
+    String? businessId,
   });
 }

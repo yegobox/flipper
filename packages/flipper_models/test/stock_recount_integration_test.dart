@@ -15,7 +15,7 @@ void main() {
 
       // 1. Start a new recount session
       // final recount = await ProxyService.strategy.startRecountSession(
-      //   branchId: 1,
+      //   branchId: "",
       //   userId: 'user123',
       //   deviceId: 'device456',
       //   deviceName: 'iPad 1',
@@ -42,7 +42,7 @@ void main() {
 
       // 5. Stream recounts for real-time UI updates
       // ProxyService.strategy.recountsStream(
-      //   branchId: 1,
+      //   branchId: "",
       //   status: 'draft',
       // ).listen((recounts) {
       //   // Update UI with recount list
@@ -70,7 +70,7 @@ void main() {
       // 1. Draft: Initial creation via startRecountSession()
       final draft = StockRecount(
         id: '1',
-        branchId: 1,
+        branchId: "",
         status: 'draft',
         userId: 'user123',
         deviceId: 'device456',

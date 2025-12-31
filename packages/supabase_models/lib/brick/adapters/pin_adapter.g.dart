@@ -8,15 +8,15 @@ Future<Pin> _$PinFromSupabase(
 }) async {
   return Pin(
     id: data['id'] as String?,
-    userId: data['user_id'] == null ? null : data['user_id'] as int?,
+    userId: data['user_id'] == null ? null : data['user_id'] as String?,
     phoneNumber: data['phone_number'] == null
         ? null
         : data['phone_number'] as String?,
     pin: data['pin'] == null ? null : data['pin'] as int?,
-    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
     businessId: data['business_id'] == null
         ? null
-        : data['business_id'] as int?,
+        : data['business_id'] as String?,
     ownerName: data['owner_name'] == null
         ? null
         : data['owner_name'] as String?,
@@ -50,15 +50,15 @@ Future<Pin> _$PinFromSqlite(
 }) async {
   return Pin(
     id: data['id'] as String,
-    userId: data['user_id'] == null ? null : data['user_id'] as int?,
+    userId: data['user_id'] == null ? null : data['user_id'] as String?,
     phoneNumber: data['phone_number'] == null
         ? null
         : data['phone_number'] as String?,
     pin: data['pin'] == null ? null : data['pin'] as int?,
-    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
     businessId: data['business_id'] == null
         ? null
-        : data['business_id'] as int?,
+        : data['business_id'] as String?,
     ownerName: data['owner_name'] == null
         ? null
         : data['owner_name'] as String?,
@@ -154,7 +154,7 @@ class PinAdapter extends OfflineFirstWithSupabaseAdapter<Pin> {
       association: false,
       columnName: 'user_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'phoneNumber': const RuntimeSqliteColumnDefinition(
       association: false,
@@ -172,13 +172,13 @@ class PinAdapter extends OfflineFirstWithSupabaseAdapter<Pin> {
       association: false,
       columnName: 'branch_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'businessId': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'business_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'ownerName': const RuntimeSqliteColumnDefinition(
       association: false,

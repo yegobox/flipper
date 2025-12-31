@@ -6,7 +6,7 @@ class UserMfaSecretRepository {
 
   UserMfaSecretRepository(this._supabase);
 
-  Future<UserMfaSecret?> getSecretByUserId(int userId) async {
+  Future<UserMfaSecret?> getSecretByUserId(String userId) async {
     try {
       final response = await _supabase
           .from('user_mfa_secrets')

@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mocktail/mocktail.dart';
 import '../../../test_helpers/setup.dart';
+
 // flutter test test/features/incoming_orders/widgets/action_row_mock_test.dart --dart-define=FLUTTER_TEST_ENV=true
 void main() {
   late TestEnvironment env;
@@ -22,11 +23,7 @@ void main() {
       env.injectMocks();
       env.stubCommonMethods();
 
-      mockBranch = Branch(
-        id: '1',
-        name: 'Main Branch',
-        businessId: 1,
-      );
+      mockBranch = Branch(id: '1', name: 'Main Branch', businessId: "1");
 
       mockRequest = InventoryRequest(
         id: '1',
@@ -36,8 +33,9 @@ void main() {
       );
 
       // Mock the transactionItemsProvider
-      when(() => env.mockDbSync.transactionItems(requestId: '1'))
-          .thenAnswer((_) async => []);
+      when(
+        () => env.mockDbSync.transactionItems(requestId: '1'),
+      ).thenAnswer((_) async => []);
     });
 
     tearDown(() {
@@ -48,9 +46,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
-            home: Scaffold(
-              body: ActionRow(request: mockRequest),
-            ),
+            home: Scaffold(body: ActionRow(request: mockRequest)),
           ),
         ),
       );
@@ -67,9 +63,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
-            home: Scaffold(
-              body: ActionRow(request: mockRequest),
-            ),
+            home: Scaffold(body: ActionRow(request: mockRequest)),
           ),
         ),
       );
@@ -85,9 +79,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
-            home: Scaffold(
-              body: ActionRow(request: mockRequest),
-            ),
+            home: Scaffold(body: ActionRow(request: mockRequest)),
           ),
         ),
       );
@@ -106,15 +98,14 @@ void main() {
         branch: mockBranch,
       );
 
-      when(() => env.mockDbSync.transactionItems(requestId: '1'))
-          .thenAnswer((_) async => []);
+      when(
+        () => env.mockDbSync.transactionItems(requestId: '1'),
+      ).thenAnswer((_) async => []);
 
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
-            home: Scaffold(
-              body: ActionRow(request: approvedRequest),
-            ),
+            home: Scaffold(body: ActionRow(request: approvedRequest)),
           ),
         ),
       );
@@ -129,9 +120,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
-            home: Scaffold(
-              body: ActionRow(request: mockRequest),
-            ),
+            home: Scaffold(body: ActionRow(request: mockRequest)),
           ),
         ),
       );

@@ -1,5 +1,4 @@
 import 'package:flipper_services/proxy.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'shift_data_provider.g.dart';

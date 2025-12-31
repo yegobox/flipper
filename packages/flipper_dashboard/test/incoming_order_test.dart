@@ -21,8 +21,9 @@ void main() {
       // ProxyService.strategy.deleteAll<SKU>(tableName: skusTable);
     });
 
-    testWidgets('Widget displays stock requests correctly',
-        (WidgetTester tester) async {
+    testWidgets('Widget displays stock requests correctly', (
+      WidgetTester tester,
+    ) async {
       // Build the widget with a stream provider for requests
       // await tester.pumpWidget(
       //   ProviderScope(
@@ -47,7 +48,7 @@ void main() {
 
       // // Check that the correct request ID text is displayed
       // final firstRequestId = await ProxyService.strategy
-      //     .requestsStream(branchId: 1, filter: RequestStatus.pending)
+      //     .requestsStream(branchId: "", filter: RequestStatus.pending)
       //     .first
       //     .then((request) => request.first.id);
       // expect(find.text('Request #$firstRequestId'), findsNWidgets(1));
@@ -67,8 +68,9 @@ void main() {
       expect(1, 1);
     });
 
-    testWidgets('Approve button calls approveRequest when pressed',
-        (WidgetTester tester) async {
+    testWidgets('Approve button calls approveRequest when pressed', (
+      WidgetTester tester,
+    ) async {
       // await tester.pumpWidget(
       //   ProviderScope(
       //     overrides: [],
@@ -93,8 +95,9 @@ void main() {
       expect(1, 1);
     });
 
-    testWidgets('Partial approval updates correct quantities',
-        (WidgetTester tester) async {
+    testWidgets('Partial approval updates correct quantities', (
+      WidgetTester tester,
+    ) async {
       // Setup test data
       // final variant = await ProxyService.strategy.saveVariant(
       //   name: 'Test Product',
@@ -108,7 +111,7 @@ void main() {
       //   value: 500.0,
       //   productId: '123',
       //   variantId: variant.id,
-      //   branchId: 1,
+      //   branchId: "",
       // );
 
       // final request = await ProxyService.strategy.saveStockRequest(
@@ -124,7 +127,7 @@ void main() {
       //   variantId: variant.id,
       //   name: 'Test Product',
       //   quantityRequested: 10, // Request more than available
-      //   branchId: 1,
+      //   branchId: "",
       //   subBranchId: 2,
       // );
 

@@ -6,7 +6,7 @@ import 'package:flipper_models/helperModels/business_type.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_models/sync/interfaces/business_interface.dart';
-import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/db_model_export.dart' hide BusinessType;
 import 'package:supabase_models/brick/repository.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:http/http.dart' as http;
@@ -29,13 +29,34 @@ mixin BusinessMixin implements BusinessInterface {
 
   @override
   Future<List<Business>> businesses(
-      {int? userId, bool fetchOnline = false, bool active = false}) async {
+      {String? userId, bool fetchOnline = false, bool active = false}) async {
+    if (userId == null) {
+      return [];
+    }
+
+    final tenants = await repository.get<Tenant>(
+        policy: fetchOnline
+            ? OfflineFirstGetPolicy.awaitRemoteWhenNoneExist
+            : OfflineFirstGetPolicy.localOnly,
+        query: Query(where: [Where('pin').isExactly(userId)]));
+
+    if (tenants.isEmpty) {
+      return [];
+    }
+
+    final businessIds =
+        tenants.map((t) => t.businessId).where((id) => id != null).toList();
+
+    if (businessIds.isEmpty) {
+      return [];
+    }
+
     return await repository.get<Business>(
         policy: fetchOnline
-            ? OfflineFirstGetPolicy.alwaysHydrate
+            ? OfflineFirstGetPolicy.awaitRemoteWhenNoneExist
             : OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
         query: Query(where: [
-          if (userId != null) Where('userId').isExactly(userId),
+          Where('serverId').isIn(businessIds),
           if (active) Where('active').isExactly(active)
         ]));
   }
@@ -55,7 +76,7 @@ mixin BusinessMixin implements BusinessInterface {
   }
 
   @override
-  Future<Category?> activeCategory({required int branchId}) async {
+  Future<Category?> activeCategory({required String branchId}) async {
     return (await repository.get<Category>(
             query: Query(where: [
               Where('focused').isExactly(true),
@@ -68,23 +89,23 @@ mixin BusinessMixin implements BusinessInterface {
 
   @override
   FutureOr<Business?> getBusinessById(
-      {required int businessId, bool fetchOnline = false}) async {
+      {required String businessId, bool fetchOnline = false}) async {
     final repository = Repository();
-    final query = Query(where: [Where('serverId').isExactly(businessId)]);
+    final query = Query(where: [Where('id').isExactly(businessId)]);
     final result = await repository.get<Business>(
         query: query,
         policy: fetchOnline
             ? OfflineFirstGetPolicy.awaitRemoteWhenNoneExist
-            : OfflineFirstGetPolicy.localOnly);
+            : OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
     return result.firstOrNull;
   }
 
   @override
-  FutureOr<Business?> getBusiness({int? businessId}) async {
+  FutureOr<Business?> getBusiness({String? businessId}) async {
     final repository = Repository();
     final query = Query(
         where: businessId != null
-            ? [Where('serverId').isExactly(businessId)]
+            ? [Where('id').isExactly(businessId)]
             : [Where('isDefault').isExactly(true)]);
     final result = await repository.get<Business>(
         query: query, policy: OfflineFirstGetPolicy.localOnly);
@@ -97,7 +118,7 @@ mixin BusinessMixin implements BusinessInterface {
   Future<Business?> getBusinessFromOnlineGivenId(
       {required int id, required HttpClientInterface flipperHttpClient}) async {
     final repository = Repository();
-    final query = Query(where: [Where('serverId').isExactly(id)]);
+    final query = Query(where: [Where('id').isExactly(id)]);
     final result = await repository.get<Business>(
         query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
     Business? business = result.firstOrNull;
@@ -106,16 +127,15 @@ mixin BusinessMixin implements BusinessInterface {
     final http.Response response =
         await flipperHttpClient.get(Uri.parse("$apihub/v2/api/business/$id"));
     if (response.statusCode == 200) {
-      int id = randomNumber();
       IBusiness iBusiness = IBusiness.fromJson(json.decode(response.body));
       Business business = Business(
-          serverId: iBusiness.serverId,
+          serverId: iBusiness.serverId!,
           name: iBusiness.name,
           phoneNumber: iBusiness.phoneNumber!,
-          userId: int.parse(iBusiness.userId),
+          userId: iBusiness.userId,
           createdAt: DateTime.now());
 
-      business.serverId = id;
+      // business.id = id;
       await repository.upsert<Business>(business);
       return business;
     }
@@ -125,13 +145,14 @@ mixin BusinessMixin implements BusinessInterface {
   @override
   Future<void> addBusiness(
       {required String id,
-      required int userId,
+      required String userId,
       required int serverId,
+      required String businessId,
       String? name,
       String? currency,
       String? categoryId,
-      String? latitude,
-      String? longitude,
+      num? latitude,
+      num? longitude,
       String? timeZone,
       String? country,
       String? businessUrl,
@@ -163,12 +184,12 @@ mixin BusinessMixin implements BusinessInterface {
       bool? taxEnabled,
       String? taxServerUrl,
       bool? isDefault,
-      int? businessTypeId,
+      String? businessTypeId,
       DateTime? lastTouched,
-      DateTime? deletedAt,
       required String phoneNumber,
+      DateTime? deletedAt,
       required String encryptionKey}) async {
-    Business? exist = await getBusiness(businessId: serverId);
+    Business? exist = await getBusiness(businessId: businessId);
 
     if (exist != null) {
       // Only update tinNumber if the new value is not null
@@ -219,8 +240,6 @@ mixin BusinessMixin implements BusinessInterface {
         taxServerUrl: taxServerUrl,
         isDefault: isDefault,
         businessTypeId: businessTypeId,
-        lastTouched: lastTouched,
-        deletedAt: deletedAt,
         encryptionKey: encryptionKey,
       ));
     }
@@ -234,16 +253,13 @@ mixin BusinessMixin implements BusinessInterface {
   /// 3. Using efficient database operations
   @override
   Future<void> updateBusiness({
-    required int businessId,
+    required String businessId,
     String? name,
     bool? active,
     bool? isDefault,
     String? backupFileId,
     bool forceUpdateDefault = false,
   }) async {
-    if (businessId <= 0) {
-      throw ArgumentError('businessId must be a positive integer');
-    }
     Business? business = await getBusinessById(businessId: businessId);
     if (business == null) {
       throw ArgumentError('businessId $businessId not found');

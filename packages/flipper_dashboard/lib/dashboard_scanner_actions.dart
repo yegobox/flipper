@@ -29,8 +29,9 @@ class DashboardScannerActions implements ScannerActions {
       if (platform.isMobile && _soloud == null) {
         _soloud = SoLoud.instance;
         await _soloud!.init();
-        _soundSource = await _soloud!
-            .loadAsset('packages/flipper_dashboard/assets/sound.mp3');
+        _soundSource = await _soloud!.loadAsset(
+          'packages/flipper_dashboard/assets/sound.mp3',
+        );
       }
 
       ProxyService.productService.setBarcode(barcode.rawValue);
@@ -51,8 +52,9 @@ class DashboardScannerActions implements ScannerActions {
 
   @override
   Future<void> handleSellingScan(String? code) async {
-    Product? product =
-        await ProxyService.productService.getProductByBarCode(code: code);
+    Product? product = await ProxyService.productService.getProductByBarCode(
+      code: code,
+    );
     if (product != null) {
       navigateToSellRoute(product);
       return;
@@ -116,20 +118,23 @@ class DashboardScannerActions implements ScannerActions {
   }
 
   @override
-  int getUserId() => ProxyService.box.getUserId()!;
+  String getUserId() => ProxyService.box.getUserId()!;
   @override
-  int getBusinessId() => ProxyService.box.getBusinessId()!;
+  String getBusinessId() => ProxyService.box.getBusinessId()!;
   @override
-  int getBranchId() => ProxyService.box.getBranchId()!;
+  String getBranchId() => ProxyService.box.getBranchId()!;
   @override
   String getUserPhone() => ProxyService.box.getUserPhone()!;
   @override
   String getDefaultApp() => ProxyService.box.getDefaultApp() ?? "POS";
   @override
-  FutureOr<Pin?> getPinLocal(
-          {required int userId, required bool alwaysHydrate}) =>
-      ProxyService.strategy
-          .getPinLocal(userId: userId, alwaysHydrate: alwaysHydrate);
+  FutureOr<Pin?> getPinLocal({
+    required String userId,
+    required bool alwaysHydrate,
+  }) => ProxyService.strategy.getPinLocal(
+    userId: userId,
+    alwaysHydrate: alwaysHydrate,
+  );
   @override
   EventService getEventService() =>
       EventService(userId: getUserId().toString());

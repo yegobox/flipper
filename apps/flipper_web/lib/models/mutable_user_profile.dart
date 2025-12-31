@@ -89,7 +89,7 @@ class MutableTenant {
   final List<dynamic> permissions;
   final List<MutableBranch> branches;
   final List<MutableBusiness> businesses;
-  final int businessId;
+  final String businessId;
   final bool nfcEnabled;
   final int userId;
   final int pin;
@@ -127,7 +127,7 @@ class MutableTenant {
       businesses: tenant.businesses
           .map((e) => MutableBusiness.fromBusiness(e))
           .toList(),
-      businessId: tenant.businessId ?? 0,
+      businessId: tenant.businessId ?? "",
       nfcEnabled: tenant.nfcEnabled,
       userId: tenant.userId,
       pin: tenant.pin,
@@ -181,7 +181,7 @@ class MutableBranch {
   final String name;
   final String longitude;
   final String latitude;
-  final int businessId;
+  final String businessId;
   final int serverId;
   bool active; // Added mutable field
   bool isDefault; // Added mutable field

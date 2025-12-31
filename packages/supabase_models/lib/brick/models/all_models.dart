@@ -10,6 +10,7 @@ export 'composite.model.dart';
 export 'access.model.dart';
 export 'asset.model.dart';
 export 'business.model.dart';
+export 'business_type.model.dart';
 export 'category.model.dart';
 export 'color.model.dart';
 export 'configuration.model.dart';

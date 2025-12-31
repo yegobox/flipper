@@ -135,7 +135,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   double _lastAutoSetAmount = 0.0;
 
   // Track current branch ID to detect branch changes
-  int? _currentBranchId;
+  String? _currentBranchId;
 
   bool _isPlainEnter(KeyEvent event) {
     if (event is! KeyDownEvent) {

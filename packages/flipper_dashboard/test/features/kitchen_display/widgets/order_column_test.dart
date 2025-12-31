@@ -25,9 +25,9 @@ void main() {
 
       mockOrders = [
         ITransaction(
-          agentId: 1,
+          agentId: "1",
           id: '1',
-          branchId: 1,
+          branchId: "",
           transactionNumber: 'ORD001',
           customerName: 'John Doe',
           subTotal: 25.50,
@@ -42,9 +42,9 @@ void main() {
           createdAt: DateTime.now(),
         ),
         ITransaction(
-          agentId: 1,
+          agentId: "1",
           id: '2',
-          branchId: 1,
+          branchId: "",
           transactionNumber: 'ORD002',
           customerName: 'Jane Smith',
           subTotal: 15.75,

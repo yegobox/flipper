@@ -34,7 +34,6 @@ final dashboardTransactionsProvider = StreamProvider<List<ITransaction>>((ref) {
   );
 });
 
-
 @riverpod
 Stream<List<ITransaction>> transactionList(
   Ref ref, {
@@ -160,7 +159,7 @@ Stream<List<TransactionItem>> transactionItemList(Ref ref) {
 @riverpod
 Stream<ITransaction> pendingTransactionStream(Ref ref,
     {required bool isExpense, bool forceRealData = true}) async* {
-  int? branchId = ProxyService.box.getBranchId();
+  String? branchId = ProxyService.box.getBranchId();
 
   // If branch ID is null, wait a bit and retry
   if (branchId == null) {
@@ -187,7 +186,7 @@ Stream<List<ITransaction>> expensesStream(
   Ref ref, {
   required DateTime startDate,
   required DateTime endDate,
-  int? branchId,
+  String? branchId,
   bool forceRealData = true,
 }) {
   branchId ??= ProxyService.box.getBranchId();
@@ -222,7 +221,7 @@ Stream<double> netProfitStream(
   Ref ref, {
   required DateTime startDate,
   required DateTime endDate,
-  int? branchId,
+  String? branchId,
   bool forceRealData = true,
 }) async* {
   branchId ??= ProxyService.box.getBranchId();
@@ -333,7 +332,7 @@ Stream<double> grossProfitStream(
   Ref ref, {
   required DateTime startDate,
   required DateTime endDate,
-  int? branchId,
+  String? branchId,
   bool forceRealData = true,
 }) async* {
   branchId ??= ProxyService.box.getBranchId();
@@ -373,7 +372,7 @@ Stream<double> totalIncomeStream(
   Ref ref, {
   required DateTime startDate,
   required DateTime endDate,
-  int? branchId,
+  String? branchId,
   bool forceRealData = true,
 }) async* {
   branchId ??= ProxyService.box.getBranchId();

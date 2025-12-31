@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 import 'package:flipper_services/proxy.dart';
@@ -8,5 +7,6 @@ part 'active_branch_provider.g.dart';
 
 @riverpod
 Stream<Branch> activeBranch(Ref ref) {
-  return ProxyService.strategy.activeBranchStream();
+  return ProxyService.strategy
+      .activeBranchStream(businessId: ProxyService.box.getBusinessId()!);
 }

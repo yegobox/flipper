@@ -11,7 +11,7 @@ class BranchSmsConfig extends OfflineFirstWithSupabaseModel {
   @Sqlite(index: true, unique: true)
   final String id;
 
-  final int branchId;
+  final String branchId;
   String? smsPhoneNumber;
   bool enableOrderNotification;
 

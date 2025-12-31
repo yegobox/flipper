@@ -7,7 +7,7 @@ class BillingService {
   //   return await ProxyService.isar.addPoint(userId: userId!, point: points!);
   // }
 
-  void monitorSubscription({required int userId}) async {
+  void monitorSubscription({required String userId}) async {
     /// monitor the subscription of the user
     /// the logic to check if it is a time to take a payment
     /// use points when the subscription is expired

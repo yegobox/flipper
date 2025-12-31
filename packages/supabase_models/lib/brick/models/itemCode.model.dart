@@ -27,7 +27,7 @@ class ItemCode extends OfflineFirstWithSupabaseModel {
   final String code;
 
   final DateTime createdAt;
-  final int branchId;
+  final String branchId;
 
   ItemCode({
     String? id,

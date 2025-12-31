@@ -13,7 +13,7 @@ mixin CapellaCounterMixin implements CounterInterface {
 
   @override
   Future<Counter?> getCounter(
-      {required int branchId,
+      {required String branchId,
       required String receiptType,
       required bool fetchRemote}) async {
     final ditto = DittoService.instance.dittoInstance;
@@ -46,7 +46,7 @@ mixin CapellaCounterMixin implements CounterInterface {
 
   @override
   Future<List<Counter>> getCounters(
-      {required int branchId, bool fetchRemote = false}) async {
+      {required String branchId, bool fetchRemote = false}) async {
     final ditto = DittoService.instance.dittoInstance;
     if (ditto == null) return [];
 
@@ -83,7 +83,7 @@ mixin CapellaCounterMixin implements CounterInterface {
     throw UnimplementedError();
   }
 
-  Stream<List<Counter>> listenCounters({required int branchId}) {
+  Stream<List<Counter>> listenCounters({required String branchId}) {
     try {
       final ditto = DittoService.instance.dittoInstance;
       if (ditto == null) {
@@ -93,6 +93,15 @@ mixin CapellaCounterMixin implements CounterInterface {
 
       final controller = StreamController<List<Counter>>.broadcast();
       dynamic observer;
+
+      ditto.sync.registerSubscription(
+        "SELECT * FROM counters WHERE branchId = :branchId",
+        arguments: {'branchId': branchId},
+      );
+      ditto.store.registerObserver(
+        "SELECT * FROM counters WHERE branchId = :branchId",
+        arguments: {'branchId': branchId},
+      );
 
       observer = ditto.store.registerObserver(
         'SELECT * FROM counters WHERE branchId = :branchId',

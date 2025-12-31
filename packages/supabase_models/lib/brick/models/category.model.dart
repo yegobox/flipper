@@ -15,7 +15,7 @@ class Category extends OfflineFirstWithSupabaseModel {
   bool focused = false;
   String? name;
 
-  int? branchId;
+  String? branchId;
   DateTime? deletedAt;
   DateTime? lastTouched;
   Category({

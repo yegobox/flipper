@@ -11,9 +11,10 @@ class Access extends OfflineFirstWithSupabaseModel {
   @Sqlite(index: true, unique: true)
   final String id;
 
-  int? branchId;
-  int? businessId;
-  int? userId;
+  String? branchId;
+  String? businessId;
+  String? userId;
+  String? tenantId;
   String? featureName;
   String? userType;
   String? accessLevel;
@@ -25,6 +26,7 @@ class Access extends OfflineFirstWithSupabaseModel {
     this.branchId,
     this.businessId,
     this.userId,
+    this.tenantId,
     this.featureName,
     this.userType,
     this.accessLevel,

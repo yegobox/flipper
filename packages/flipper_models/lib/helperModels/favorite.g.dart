@@ -9,7 +9,7 @@ part of 'favorite.dart';
 Favorite _$FavoriteFromJson(Map<String, dynamic> json) => Favorite(
       favIndex: (json['favIndex'] as num?)?.toInt(),
       productId: (json['productId'] as num?)?.toInt(),
-      branchId: (json['branchId'] as num?)?.toInt(),
+      branchId: json['branchId'] as String?,
       action: json['action'] as String,
     )
       ..id = (json['id'] as num?)?.toInt()

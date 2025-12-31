@@ -6,7 +6,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'stock_value_provider.g.dart';
 
 @riverpod
-Future<double> StockValue(Ref ref, {required int branchId}) async {
+Future<double> StockValue(Ref ref, {required String branchId}) async {
   try {
     final capella = await ProxyService.getStrategy(Strategy.capella);
     final analytics = await capella.analytics(branchId: branchId);

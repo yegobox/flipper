@@ -199,7 +199,7 @@ mixin StockRequestApprovalLogic {
 
   Future<bool> _processItemApproval({
     required TransactionItem item,
-    required int subBranchId,
+    required String subBranchId,
     required String sourceBranchId,
     required InventoryRequest request,
   }) async {
@@ -222,7 +222,7 @@ mixin StockRequestApprovalLogic {
 
   Future<void> _approveItem({
     required TransactionItem item,
-    required int subBranchId,
+    required String subBranchId,
     required String sourceBranchId,
     required InventoryRequest request,
   }) async {
@@ -254,7 +254,7 @@ mixin StockRequestApprovalLogic {
   Future<Stock> _createNewStockForSharedVariant({
     required TransactionItem item,
     required Variant variant,
-    required int destinationBranchId,
+    required String destinationBranchId,
   }) async {
     try {
       return await ProxyService.strategy.saveStock(
@@ -316,11 +316,11 @@ mixin StockRequestApprovalLogic {
       try {
         // Get requester's branch SMS config
         final requesterConfig = await SmsNotificationService.getBranchSmsConfig(
-          request.branch!.serverId!,
+          request.branch!.id,
         );
         if (requesterConfig?.smsPhoneNumber != null) {
           await SmsNotificationService.sendOrderRequestNotification(
-            receiverBranchId: request.branch!.serverId!,
+            receiverBranchId: request.branch!.id,
             orderDetails:
                 'Your stock request #${request.id.substring(0, 5)} has been ${isFullyApproved ? 'approved' : 'partially approved'}.',
             requesterPhone: requesterConfig!.smsPhoneNumber!,
@@ -742,7 +742,7 @@ mixin StockRequestApprovalLogic {
           final stock = await _createNewStockForSharedVariant(
             item: item,
             variant: existingVariant,
-            destinationBranchId: request.branch!.serverId!,
+            destinationBranchId: request.branch!.id,
           );
           existingVariant.stock = stock;
           existingVariant.stockId = stock.id;
@@ -776,7 +776,7 @@ mixin StockRequestApprovalLogic {
     final stock = await _createNewStockForSharedVariant(
       item: item,
       variant: newVariant,
-      destinationBranchId: request.branch!.serverId!,
+      destinationBranchId: request.branch!.id,
     );
 
     // Update the variant with the new stock

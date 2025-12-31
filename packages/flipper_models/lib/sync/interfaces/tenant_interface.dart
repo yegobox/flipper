@@ -13,9 +13,9 @@ abstract class TenantInterface {
     String? name,
     String? id,
     String? email,
-    int? businessId,
+    String? businessId,
     bool? sessionActive,
-    int? branchId,
+    String? branchId,
     String? imageUrl,
     int? pin,
     bool? isDefault,
@@ -31,7 +31,7 @@ abstract class TenantInterface {
     required int defaultApp,
   });
 
-  Stream<Tenant?> getDefaultTenant({required int businessId});
+  Stream<Tenant?> getDefaultTenant({required String businessId});
 
   Future<User?> authUser({required String uuid});
   // save user
@@ -39,25 +39,28 @@ abstract class TenantInterface {
 
   Future<Business?> activeBusiness({int? userId});
   Future<Tenant?> tenant(
-      {int? businessId, int? userId, String? id, required bool fetchRemote});
-  Future<List<Tenant>> tenants({int? businessId, int? excludeUserId});
+      {String? businessId,
+      String? userId,
+      String? id,
+      required bool fetchRemote});
+  Future<List<Tenant>> tenants({String? businessId, int? excludeUserId});
   Future<List<ITenant>> tenantsFromOnline(
-      {required int businessId,
+      {required String businessId,
       required HttpClientInterface flipperHttpClient});
 
   /// Delete tenants that have a null `pin` value. If [businessId] is provided,
   /// only tenants for that business will be checked and deleted.
-  Future<void> deleteTenantsWithNullPin({int? businessId});
+  Future<void> deleteTenantsWithNullPin({String? businessId});
   Future<void> updateTenant(
       {String? tenantId,
       String? name,
       String? phoneNumber,
       String? email,
-      int? userId,
-      int? businessId,
+      String? userId,
+      String? businessId,
       String? type,
-      int? id,
+      String? id,
       int? pin,
       bool? sessionActive,
-      int? branchId});
+      String? branchId});
 }

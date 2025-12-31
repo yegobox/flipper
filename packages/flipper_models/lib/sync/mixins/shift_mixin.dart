@@ -8,12 +8,12 @@ import 'package:flipper_services/proxy.dart';
 
 abstract class ShiftApi {
   Future<models.Shift> startShift(
-      {required int userId, required double openingBalance, String? note});
+      {required String userId, required double openingBalance, String? note});
   Future<models.Shift> endShift(
       {required String shiftId, required double closingBalance, String? note});
-  Future<models.Shift?> getCurrentShift({required int userId});
+  Future<models.Shift?> getCurrentShift({required String userId});
   Stream<List<models.Shift>> getShifts(
-      {required int businessId, DateTimeRange? dateRange});
+      {required String businessId, DateTimeRange? dateRange});
   Future<models.Shift> updateShiftTotals(
       {required double transactionAmount, required bool isRefund});
 }
@@ -23,11 +23,11 @@ mixin ShiftMixin implements ShiftApi {
 
   @override
   Future<models.Shift> startShift(
-      {required int userId,
+      {required String userId,
       required double openingBalance,
       String? note}) async {
     final String shiftId = const Uuid().v4();
-    final int businessId =
+    final String businessId =
         ProxyService.box.getBusinessId()!; // Assuming businessId is available
 
     final shift = models.Shift(
@@ -67,11 +67,12 @@ mixin ShiftMixin implements ShiftApi {
   @override
   Future<models.Shift> updateShiftTotals(
       {required double transactionAmount, required bool isRefund}) async {
-    final int userId = ProxyService.box.getUserId()!;
+    final String userId = ProxyService.box.getUserId()!;
     models.Shift? currentShift = await getCurrentShift(userId: userId);
 
     if (currentShift == null) {
-      talker.warning('No open shift found for user $userId. Cannot update shift totals.');
+      talker.warning(
+          'No open shift found for user $userId. Cannot update shift totals.');
       throw Exception('No open shift found. Please start a shift first.');
     }
 
@@ -96,9 +97,9 @@ mixin ShiftMixin implements ShiftApi {
   }
 
   @override
-  Future<models.Shift?> getCurrentShift({required int userId}) async {
+  Future<models.Shift?> getCurrentShift({required String userId}) async {
     talker.debug('getCurrentShift: userId: $userId');
-    final int businessId = ProxyService.box.getBusinessId()!;
+    final String businessId = ProxyService.box.getBusinessId()!;
     talker.debug('getCurrentShift: businessId: $businessId');
     final shifts = await repository.get<models.Shift>(
       query: brick.Query(where: [
@@ -113,7 +114,7 @@ mixin ShiftMixin implements ShiftApi {
 
   @override
   Stream<List<models.Shift>> getShifts(
-      {required int businessId, DateTimeRange? dateRange}) {
+      {required String businessId, DateTimeRange? dateRange}) {
     final whereConditions = <brick.Where>[
       brick.Where('businessId').isExactly(businessId),
     ];

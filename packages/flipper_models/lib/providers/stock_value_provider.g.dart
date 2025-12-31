@@ -16,7 +16,7 @@ final class StockValueProvider
     extends $FunctionalProvider<AsyncValue<double>, double, FutureOr<double>>
     with $FutureModifier<double>, $FutureProvider<double> {
   const StockValueProvider._(
-      {required StockValueFamily super.from, required int super.argument})
+      {required StockValueFamily super.from, required String super.argument})
       : super(
           retry: null,
           name: r'stockValueProvider',
@@ -42,7 +42,7 @@ final class StockValueProvider
 
   @override
   FutureOr<double> create(Ref ref) {
-    final argument = this.argument as int;
+    final argument = this.argument as String;
     return StockValue(
       ref,
       branchId: argument,
@@ -60,10 +60,10 @@ final class StockValueProvider
   }
 }
 
-String _$stockValueHash() => r'473e96005c3d3f03947db0434fbfa13bb60778a1';
+String _$stockValueHash() => r'0abf0dde6b1eb11f79faa1efc61b1bfc98599676';
 
 final class StockValueFamily extends $Family
-    with $FunctionalFamilyOverride<FutureOr<double>, int> {
+    with $FunctionalFamilyOverride<FutureOr<double>, String> {
   const StockValueFamily._()
       : super(
           retry: null,
@@ -74,7 +74,7 @@ final class StockValueFamily extends $Family
         );
 
   StockValueProvider call({
-    required int branchId,
+    required String branchId,
   }) =>
       StockValueProvider._(argument: branchId, from: this);
 

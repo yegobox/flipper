@@ -9,7 +9,7 @@ class IStock {
   int? tin;
   String? bhfId;
 
-  int? branchId;
+  String? branchId;
   int? variantId;
   double lowStock = 0;
   double currentStock = 0.0;

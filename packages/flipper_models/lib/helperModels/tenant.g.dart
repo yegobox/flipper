@@ -19,9 +19,9 @@ ITenant _$ITenantFromJson(Map<String, dynamic> json) => ITenant(
       businesses: (json['businesses'] as List<dynamic>?)
           ?.map((e) => IBusiness.fromJson(e as Map<String, dynamic>))
           .toList(),
-      businessId: (json['businessId'] as num?)?.toInt(),
+      businessId: json['businessId'] as String?,
       nfcEnabled: json['nfcEnabled'] as bool?,
-      userId: (json['userId'] as num?)?.toInt(),
+      userId: json['userId'] as String?,
       pin: (json['pin'] as num?)?.toInt(),
     );
 

@@ -10,7 +10,7 @@ IStock _$IStockFromJson(Map<String, dynamic> json) => IStock(
       id: (json['id'] as num?)?.toInt(),
       tin: (json['tin'] as num?)?.toInt(),
       bhfId: json['bhfId'] as String?,
-      branchId: (json['branchId'] as num?)?.toInt(),
+      branchId: json['branchId'] as String?,
       variantId: (json['variantId'] as num?)?.toInt(),
       lowStock: (json['lowStock'] as num?)?.toDouble() ?? 0,
       currentStock: (json['currentStock'] as num?)?.toDouble() ?? 0.0,

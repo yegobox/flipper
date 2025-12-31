@@ -273,7 +273,7 @@ class _BusinessBranchSelectorState
     try {
       // Load branches for the selected business from tenant data (already in memory)
       _businessBranches = tenant.branches
-          .where((branch) => branch.businessId == business.serverId)
+          .where((branch) => branch.businessId == business.id)
           .toList();
 
       if (mounted) {

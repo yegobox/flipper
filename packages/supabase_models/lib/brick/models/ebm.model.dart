@@ -31,12 +31,12 @@ class Ebm extends OfflineFirstWithSupabaseModel {
   @Supabase(name: "dvc_srl_no")
   final String dvcSrlNo;
   @Supabase(name: "user_id")
-  final int userId;
+  final String userId;
   @Supabase(name: "tax_server_url")
   String taxServerUrl;
-  final int businessId;
+  final String businessId;
   @Supabase(name: "branch_id")
-  final int branchId;
+  final String branchId;
   @Supabase(name: "vat_enabled")
   bool? vatEnabled;
   @Supabase(name: "mrc")

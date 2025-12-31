@@ -17,7 +17,7 @@ mixin StockRecountMixin implements StockRecountInterface, VariantInterface {
 
   @override
   Future<StockRecount> startRecountSession({
-    required int branchId,
+    required String branchId,
     String? userId,
     String? deviceId,
     String? deviceName,
@@ -38,7 +38,7 @@ mixin StockRecountMixin implements StockRecountInterface, VariantInterface {
 
   @override
   Future<List<StockRecount>> getRecounts({
-    required int branchId,
+    required String branchId,
     String? status,
   }) async {
     final query = Query(
@@ -353,7 +353,7 @@ mixin StockRecountMixin implements StockRecountInterface, VariantInterface {
 
   @override
   Stream<List<StockRecount>> recountsStream({
-    required int branchId,
+    required String branchId,
     String? status,
   }) {
     final query = Query(
@@ -368,7 +368,7 @@ mixin StockRecountMixin implements StockRecountInterface, VariantInterface {
 
   @override
   Future<Map<String, double>> getStockSummary({
-    required int branchId,
+    required String branchId,
     List<String>? variantIds,
   }) async {
     final query = Query(

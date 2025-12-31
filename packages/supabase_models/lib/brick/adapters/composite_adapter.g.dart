@@ -15,10 +15,10 @@ Future<Composite> _$CompositeFromSupabase(
         ? null
         : data['variant_id'] as String?,
     qty: data['qty'] == null ? null : data['qty'] as double?,
-    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
     businessId: data['business_id'] == null
         ? null
-        : data['business_id'] as int?,
+        : data['business_id'] as String?,
     actualPrice: data['actual_price'] == null
         ? null
         : data['actual_price'] as double?,
@@ -55,10 +55,10 @@ Future<Composite> _$CompositeFromSqlite(
         ? null
         : data['variant_id'] as String?,
     qty: data['qty'] == null ? null : data['qty'] as double?,
-    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
     businessId: data['business_id'] == null
         ? null
-        : data['business_id'] as int?,
+        : data['business_id'] as String?,
     actualPrice: data['actual_price'] == null
         ? null
         : data['actual_price'] as double?,
@@ -160,13 +160,13 @@ class CompositeAdapter extends OfflineFirstWithSupabaseAdapter<Composite> {
       association: false,
       columnName: 'branch_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'businessId': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'business_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'actualPrice': const RuntimeSqliteColumnDefinition(
       association: false,

@@ -117,7 +117,7 @@ class MfaService {
   /// Verify a TOTP code for the current user from stored secret in Supabase
   /// Returns true if user has a secret and the code is valid, false otherwise
   Future<bool> verifyTotpForUser(
-      {required int userId, required String code}) async {
+      {required String userId, required String code}) async {
     try {
       final repo = UserMfaSecretRepository(Supabase.instance.client);
       final UserMfaSecret? record = await repo.getSecretByUserId(userId);

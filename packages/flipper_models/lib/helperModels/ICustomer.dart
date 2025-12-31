@@ -13,7 +13,7 @@ class ICustomer {
 
   /// address
   String? adrs;
-  int? branchId;
+  String? branchId;
   // Customer Number
   String? custNo;
   //customer tin number

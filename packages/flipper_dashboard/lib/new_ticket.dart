@@ -1,4 +1,5 @@
 import 'package:dropdown_search/dropdown_search.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -7,7 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 class NewTicket extends StatefulWidget {
   const NewTicket({Key? key, required this.transaction, required this.onClose})
-      : super(key: key);
+    : super(key: key);
   final ITransaction transaction;
   final VoidCallback onClose;
 
@@ -55,16 +56,18 @@ class NewTicketState extends State<NewTicket> {
 
   Future<void> _loadCustomers() async {
     try {
-      final customers = await ProxyService.strategy
-          .customers(branchId: ProxyService.box.getBranchId());
+      final customers = await ProxyService.getStrategy(
+        Strategy.capella,
+      ).customers(branchId: ProxyService.box.getBranchId());
       if (mounted) {
         setState(() {
           _customers = customers;
           // Pre-select customer if already on transaction
           if (widget.transaction.customerId != null) {
             try {
-              _selectedCustomer = _customers
-                  .firstWhere((c) => c.id == widget.transaction.customerId);
+              _selectedCustomer = _customers.firstWhere(
+                (c) => c.id == widget.transaction.customerId,
+              );
             } catch (e) {
               _selectedCustomer = null;
             }
@@ -96,8 +99,9 @@ class NewTicketState extends State<NewTicket> {
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
         return Dialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           elevation: 0,
           backgroundColor: Colors.transparent,
           child: Container(
@@ -122,8 +126,10 @@ class NewTicketState extends State<NewTicket> {
               children: [
                 // Header
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 16,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFF01B8E4).withValues(alpha: 0.05),
                     borderRadius: const BorderRadius.only(
@@ -199,11 +205,13 @@ class NewTicketState extends State<NewTicket> {
                             DropdownSearch<Customer>(
                               items: (filter, loadProps) {
                                 return _customers
-                                    .where((c) =>
-                                        c.custNm
-                                            ?.toLowerCase()
-                                            .contains(filter.toLowerCase()) ??
-                                        false)
+                                    .where(
+                                      (c) =>
+                                          c.custNm?.toLowerCase().contains(
+                                            filter.toLowerCase(),
+                                          ) ??
+                                          false,
+                                    )
                                     .toList();
                               },
                               compareFn: (Customer i, Customer s) =>
@@ -224,13 +232,14 @@ class NewTicketState extends State<NewTicket> {
                                 showSearchBox: true,
                                 itemBuilder:
                                     (context, item, isDisabled, isSelected) {
-                                  return ListTile(
-                                    selected: isSelected,
-                                    title:
-                                        Text(item.custNm ?? 'Unknown Customer'),
-                                    subtitle: Text(item.telNo ?? ''),
-                                  );
-                                },
+                                      return ListTile(
+                                        selected: isSelected,
+                                        title: Text(
+                                          item.custNm ?? 'Unknown Customer',
+                                        ),
+                                        subtitle: Text(item.telNo ?? ''),
+                                      );
+                                    },
                               ),
                               itemAsString: (Customer c) =>
                                   c.custNm ?? 'Unknown Customer',
@@ -246,9 +255,9 @@ class NewTicketState extends State<NewTicket> {
                                       _isLoan = val ?? false;
                                       // If checked, set default due date if not already set
                                       if (_isLoan && _dueDate == null) {
-                                        _dueDate = DateTime.now()
-                                            .toUtc()
-                                            .add(const Duration(days: 7));
+                                        _dueDate = DateTime.now().toUtc().add(
+                                          const Duration(days: 7),
+                                        );
                                       }
                                       // If unchecked, clear due date
                                       if (!_isLoan) {
@@ -270,20 +279,23 @@ class NewTicketState extends State<NewTicket> {
                             // Due Date Picker (separate row to prevent overflow)
                             if (_isLoan)
                               Padding(
-                                padding:
-                                    const EdgeInsets.only(left: 40, top: 8),
+                                padding: const EdgeInsets.only(
+                                  left: 40,
+                                  top: 8,
+                                ),
                                 child: InkWell(
                                   onTap: () async {
                                     DateTime? picked = await showDatePicker(
                                       context: context,
-                                      initialDate: _dueDate ??
-                                          DateTime.now()
-                                              .toUtc()
-                                              .add(const Duration(days: 7)),
+                                      initialDate:
+                                          _dueDate ??
+                                          DateTime.now().toUtc().add(
+                                            const Duration(days: 7),
+                                          ),
                                       firstDate: DateTime.now().toUtc(),
-                                      lastDate: DateTime.now()
-                                          .toUtc()
-                                          .add(const Duration(days: 365)),
+                                      lastDate: DateTime.now().toUtc().add(
+                                        const Duration(days: 365),
+                                      ),
                                     );
                                     if (picked != null) {
                                       setState(() {
@@ -294,8 +306,11 @@ class NewTicketState extends State<NewTicket> {
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Icon(Icons.event,
-                                          color: Colors.blue, size: 20),
+                                      Icon(
+                                        Icons.event,
+                                        color: Colors.blue,
+                                        size: 20,
+                                      ),
                                       const SizedBox(width: 4),
                                       Text(
                                         _dueDate != null
@@ -320,8 +335,10 @@ class NewTicketState extends State<NewTicket> {
 
                 // Footer with Save button
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 16,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: const BorderRadius.only(
@@ -363,8 +380,9 @@ class NewTicketState extends State<NewTicket> {
                                   try {
                                     // Set loan value and due date on transaction before saving
                                     widget.transaction.isLoan = _isLoan;
-                                    widget.transaction.dueDate =
-                                        _isLoan ? _dueDate?.toUtc() : null;
+                                    widget.transaction.dueDate = _isLoan
+                                        ? _dueDate?.toUtc()
+                                        : null;
                                     await model.saveTicket(
                                       ticketName: _swipeController.text,
                                       transaction: widget.transaction,
@@ -390,7 +408,9 @@ class NewTicketState extends State<NewTicket> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 20, vertical: 12),
+                            horizontal: 20,
+                            vertical: 12,
+                          ),
                         ),
                         child: _isSaving
                             ? Row(
@@ -402,7 +422,8 @@ class NewTicketState extends State<NewTicket> {
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
                                       valueColor: AlwaysStoppedAnimation<Color>(
-                                          Colors.white),
+                                        Colors.white,
+                                      ),
                                     ),
                                   ),
                                   const SizedBox(width: 8),

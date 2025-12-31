@@ -21,7 +21,7 @@ final class FetchStockPerformanceProvider extends $FunctionalProvider<
         $FutureProvider<List<BusinessAnalytic>> {
   const FetchStockPerformanceProvider._(
       {required FetchStockPerformanceFamily super.from,
-      required int super.argument})
+      required String super.argument})
       : super(
           retry: null,
           name: r'fetchStockPerformanceProvider',
@@ -48,7 +48,7 @@ final class FetchStockPerformanceProvider extends $FunctionalProvider<
 
   @override
   FutureOr<List<BusinessAnalytic>> create(Ref ref) {
-    final argument = this.argument as int;
+    final argument = this.argument as String;
     return fetchStockPerformance(
       ref,
       argument,
@@ -67,10 +67,10 @@ final class FetchStockPerformanceProvider extends $FunctionalProvider<
 }
 
 String _$fetchStockPerformanceHash() =>
-    r'dec5a38c965aacf12cac0dc65f02e57f5b70e971';
+    r'7c28c8a8dc616c1804dab629d47cfa4035c73030';
 
 final class FetchStockPerformanceFamily extends $Family
-    with $FunctionalFamilyOverride<FutureOr<List<BusinessAnalytic>>, int> {
+    with $FunctionalFamilyOverride<FutureOr<List<BusinessAnalytic>>, String> {
   const FetchStockPerformanceFamily._()
       : super(
           retry: null,
@@ -81,7 +81,7 @@ final class FetchStockPerformanceFamily extends $Family
         );
 
   FetchStockPerformanceProvider call(
-    int branchId,
+    String branchId,
   ) =>
       FetchStockPerformanceProvider._(argument: branchId, from: this);
 

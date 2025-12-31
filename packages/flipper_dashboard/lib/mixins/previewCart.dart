@@ -39,7 +39,9 @@ Future<List<TransactionItem>> _getTransactionItems({
 }) async {
   final items = await ProxyService.getStrategy(Strategy.capella)
       .transactionItems(
-        branchId: (await ProxyService.strategy.activeBranch()).id,
+        branchId: (await ProxyService.strategy.activeBranch(
+          businessId: ProxyService.box.getBusinessId()!,
+        )).id,
         transactionId: transaction.id,
         doneWithTransaction: false,
         active: true,
@@ -88,7 +90,9 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
       final items = await ProxyService.getStrategy(Strategy.capella)
           .transactionItems(
-            branchId: (await ProxyService.strategy.activeBranch()).id,
+            branchId: (await ProxyService.strategy.activeBranch(
+              businessId: ProxyService.box.getBusinessId()!,
+            )).id,
             transactionId: transaction.id,
             doneWithTransaction: false,
             active: true,
@@ -108,7 +112,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       // ignore: unused_local_variable
       String orderId = await ProxyService.strategy.createStockRequest(
         items,
-        mainBranchId: supplier.serverId!,
+        mainBranchId: supplier.id,
         subBranchId: ProxyService.box.getBranchId()!,
         deliveryNote: deliveryNote,
         orderNote: null,
@@ -160,7 +164,9 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     // get items on cart
     final items = await ProxyService.getStrategy(Strategy.capella)
         .transactionItems(
-          branchId: (await ProxyService.strategy.activeBranch()).id,
+          branchId: (await ProxyService.strategy.activeBranch(
+            businessId: ProxyService.box.getBusinessId()!,
+          )).id,
           transactionId: transaction.id,
           doneWithTransaction: false,
           active: true,
@@ -226,7 +232,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
     try {
       // Fetch the latest transaction from the database to ensure subTotal is up-to-date
-      int branchIdInt = ProxyService.box.getBranchId()!;
+      String branchIdInt = ProxyService.box.getBranchId()!;
       final transaction = await ProxyService.strategy.getTransaction(
         id: transactionId,
         branchId: branchIdInt,
@@ -298,7 +304,9 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       final amount = double.tryParse(receivedAmountController.text) ?? 0;
       final discount = double.tryParse(discountController.text) ?? 0;
 
-      final String branchId = (await ProxyService.strategy.activeBranch()).id;
+      final String branchId = (await ProxyService.strategy.activeBranch(
+        businessId: ProxyService.box.getBusinessId()!,
+      )).id;
       final paymentType = ProxyService.box.paymentType() ?? "Cash";
 
       // Get customer if exists
@@ -427,10 +435,9 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
   Future<Customer?> _getCustomer(String? customerId) async {
     if (customerId == null) return null;
 
-    final customers = await ProxyService.strategy.customers(
-      id: customerId,
-      branchId: ProxyService.box.getBranchId()!,
-    );
+    final customers = await ProxyService.getStrategy(
+      Strategy.capella,
+    ).customers(id: customerId, branchId: ProxyService.box.getBranchId()!);
     return customers.firstOrNull;
   }
 
@@ -474,7 +481,9 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         phoneNumber = customer!.telNo!.replaceAll("+", "");
       } else {
         // Get country code dynamically from business country
-        final branch = await ProxyService.strategy.activeBranch();
+        final branch = await ProxyService.strategy.activeBranch(
+          businessId: ProxyService.box.getBusinessId()!,
+        );
         final business = await ProxyService.strategy.getBusiness(
           businessId: branch.businessId!,
         );

@@ -99,7 +99,7 @@ class CoreSync extends CoreSyncBase
 
   @override
   Future<Stream<double>> downloadAsset({
-    required int branchId,
+    required String branchId,
     required String assetName,
     required String subPath,
   }) async {
@@ -146,7 +146,7 @@ class CoreSync extends CoreSyncBase
 
   @override
   FutureOr<Pin?> getPinLocal(
-      {int? userId, String? phoneNumber, required bool alwaysHydrate}) {
+      {String? userId, String? phoneNumber, required bool alwaysHydrate}) {
     // TODO: implement getPinLocal
     throw UnimplementedError();
   }

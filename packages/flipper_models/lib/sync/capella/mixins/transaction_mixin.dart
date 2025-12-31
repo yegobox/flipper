@@ -19,7 +19,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
   Stream<List<ITransaction>> transactionsStream({
     String? status,
     String? transactionType,
-    int? branchId,
+    String? branchId,
     bool isCashOut = false,
     String? id,
     required bool removeAdjustmentTransactions,
@@ -33,7 +33,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     if (!forceRealData) {
       return Stream.value(DummyTransactionGenerator.generateDummyTransactions(
         count: 100,
-        branchId: branchId ?? 1,
+        branchId: branchId ?? "1",
         status: status,
         transactionType: transactionType,
       ));
@@ -222,7 +222,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       reference: data['reference'],
       categoryId: data['categoryId'],
       transactionNumber: data['transactionNumber'],
-      branchId: parseInt(data['branchId']),
+      branchId: data['branchId'],
       status: data['status'],
       transactionType: data['transactionType'],
       subTotal: parseDouble(data['subTotal']),
@@ -289,7 +289,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     String? id,
     bool fetchRemote = false,
     FilterType? filterType,
-    int? branchId,
+    String? branchId,
     bool isExpense = false,
     bool forceRealData = true,
     bool includeZeroSubTotal = false,
@@ -301,7 +301,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     if (!forceRealData) {
       return DummyTransactionGenerator.generateDummyTransactions(
         count: 100,
-        branchId: branchId ?? 1,
+        branchId: branchId ?? "1",
         status: status,
         transactionType: transactionType,
       );
@@ -471,7 +471,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
   }
 
   @override
-  Future<List<Configurations>> taxes({required int branchId}) async {
+  Future<List<Configurations>> taxes({required String branchId}) async {
     throw UnimplementedError('taxes needs to be implemented for Capella');
   }
 
@@ -493,7 +493,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
   Future<ITransaction?> manageTransaction({
     required String transactionType,
     required bool isExpense,
-    required int branchId,
+    required String branchId,
     String? shiftId,
     String status = PENDING,
     bool includeSubTotalCheck = false,
@@ -506,7 +506,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
   Stream<ITransaction> manageTransactionStream({
     required String transactionType,
     required bool isExpense,
-    required int branchId,
+    required String branchId,
     bool includeSubTotalCheck = false,
   }) {
     throw UnimplementedError(
@@ -621,7 +621,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
   @override
   Future<ITransaction?> getTransaction(
       {String? sarNo,
-      required int branchId,
+      required String branchId,
       String? id,
       bool awaitRemote = false}) {
     throw UnimplementedError(
@@ -635,14 +635,14 @@ mixin CapellaTransactionMixin implements TransactionInterface {
   }
 
   @override
-  Future<bool> migrateToNewDateTime({required int branchId}) async {
+  Future<bool> migrateToNewDateTime({required String branchId}) async {
     // TODO: implement migrateToNewDateTime
     throw UnimplementedError();
   }
 
   @override
   Future<ITransaction?> pendingTransactionFuture(
-      {int? branchId,
+      {String? branchId,
       required String transactionType,
       bool forceRealData = true,
       required bool isExpense}) {
@@ -656,7 +656,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     DateTime? endDate,
     String? status,
     String? transactionType,
-    int? branchId,
+    String? branchId,
     bool isCashOut = false,
     bool fetchRemote = false,
     String? id,
@@ -671,7 +671,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
   }
 
   @override
-  Future<Sar> getSar({required int branchId}) async {
+  Future<Sar> getSar({required String branchId}) async {
     throw UnimplementedError('getSar needs to be implemented for Capella');
   }
 }

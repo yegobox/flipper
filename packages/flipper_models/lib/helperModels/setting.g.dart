@@ -23,7 +23,7 @@ Setting _$SettingFromJson(Map<String, dynamic> json) => Setting(
       deviceToken: json['deviceToken'] as String?,
       businessPhoneNumber: json['businessPhoneNumber'] as String?,
       autoRespond: json['autoRespond'] as bool?,
-      businessId: (json['businessId'] as num?)?.toInt(),
+      businessId: json['businessId'] as String?,
       createdAt: json['createdAt'] as String?,
       token: json['token'] as String?,
       deletedAt: json['deletedAt'] == null

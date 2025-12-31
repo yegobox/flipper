@@ -916,14 +916,14 @@ final variationMock = Variant(
     itemCd: "",
     unit: 'Per Item',
     productName: 'Custom Amount',
-    branchId: 11,
+    branchId: "11",
     supplyPrice: 0.0,
     retailPrice: 0.0)
   ..sku = 'sku'
   ..productId = "2"
   ..unit = 'Per Item'
   ..productName = 'Custom Amount'
-  ..branchId = 11
+  ..branchId = "11"
   ..taxName = 'N/A'
   ..taxPercentage = 0.0
   ..retailPrice = 0.0
@@ -933,11 +933,11 @@ final variationMock = Variant(
 final stockMock = Stock(
   lastTouched: DateTime.now().toUtc(),
   // variant: variationMock,
-  branchId: 11,
+  branchId: "11",
 
   currentStock: 0.0,
 )
-  ..branchId = 11
+  ..branchId = "11"
   ..currentStock = 0.0
   ..canTrackingStock = false
   ..showLowStockAlert = false
@@ -979,9 +979,9 @@ final branchMock = Branch(
   serverId: randomNumber(),
   active: false,
   description: 'desc',
-  businessId: 10,
-  latitude: '0',
-  longitude: '2',
+  businessId: "10",
+  latitude: 0,
+  longitude: 0,
   name: 'name',
   isDefault: false,
 );
@@ -989,8 +989,8 @@ final branchMock = Branch(
 final businessMock = Business(
   serverId: randomNumber(),
   active: true,
-  latitude: '0',
-  longitude: '2',
+  latitude: 0,
+  longitude: 0,
   name: 'name',
   isDefault: true,
   phoneNumber: '+250783054871',

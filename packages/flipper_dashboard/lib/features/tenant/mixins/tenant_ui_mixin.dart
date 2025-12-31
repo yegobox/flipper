@@ -44,16 +44,20 @@ class TenantUIMixin {
     Tenant tenant,
     FlipperBaseModel model,
     bool editMode,
-    int? userId,
+    String? userId,
     void Function(void Function()) setState,
     void Function(List<Access>) updateTenantPermissions,
     void Function(Tenant, List<Access>) fillFormWithTenantData,
     void Function(BuildContext, Tenant, FlipperBaseModel)
-        showDeleteConfirmation,
+    showDeleteConfirmation,
   ) {
     return FutureBuilder<List<Access>>(
-      future: Future.value(ProxyService.strategy
-          .access(userId: tenant.userId ?? 0, fetchRemote: false)),
+      future: Future.value(
+        ProxyService.strategy.access(
+          userId: tenant.userId ?? "",
+          fetchRemote: false,
+        ),
+      ),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return buildLoadingTenantTileStatic(context, tenant);
@@ -78,7 +82,9 @@ class TenantUIMixin {
   }
 
   static Widget buildLoadingTenantTileStatic(
-      BuildContext context, Tenant tenant) {
+    BuildContext context,
+    Tenant tenant,
+  ) {
     return ListTile(
       leading: buildTenantAvatarStatic(context, tenant),
       title: Text(tenant.name!, style: TextStyle(fontWeight: FontWeight.bold)),
@@ -87,7 +93,9 @@ class TenantUIMixin {
   }
 
   static Widget buildErrorTenantTileStatic(
-      BuildContext context, Tenant tenant) {
+    BuildContext context,
+    Tenant tenant,
+  ) {
     return ListTile(
       leading: buildTenantAvatarStatic(context, tenant),
       title: Text(tenant.name!, style: TextStyle(fontWeight: FontWeight.bold)),
@@ -100,16 +108,17 @@ class TenantUIMixin {
     Tenant tenant,
     FlipperBaseModel model,
     bool editMode,
-    int? userId,
+    String? userId,
     void Function(void Function()) setState,
     List<Access> tenantAccesses,
     void Function(List<Access>) updateTenantPermissions,
     void Function(Tenant, List<Access>) fillFormWithTenantData,
     void Function(BuildContext, Tenant, FlipperBaseModel)
-        showDeleteConfirmation,
+    showDeleteConfirmation,
   ) {
-    final bool currentUser = tenantAccesses
-        .any((access) => (access.userId == ProxyService.box.getUserId()));
+    final bool currentUser = tenantAccesses.any(
+      (access) => (access.userId == ProxyService.box.getUserId()),
+    );
 
     return ExpansionTile(
       onExpansionChanged: (expanded) {
@@ -135,12 +144,14 @@ class TenantUIMixin {
           buildNfcButtonStatic(context, tenant),
           if (!currentUser)
             buildDeleteButtonStatic(
-                context, tenant, model, showDeleteConfirmation),
+              context,
+              tenant,
+              model,
+              showDeleteConfirmation,
+            ),
         ],
       ),
-      children: [
-        buildPermissionsViewStatic(tenantAccesses),
-      ],
+      children: [buildPermissionsViewStatic(tenantAccesses)],
     );
   }
 
@@ -171,7 +182,7 @@ class TenantUIMixin {
     Tenant tenant,
     FlipperBaseModel model,
     void Function(BuildContext, Tenant, FlipperBaseModel)
-        showDeleteConfirmation,
+    showDeleteConfirmation,
   ) {
     return IconButton(
       icon: Icon(Icons.delete, color: Colors.red),
@@ -229,8 +240,9 @@ class TenantUIMixin {
   }
 
   static Widget buildBranchDropdownStatic(BuildContext context, WidgetRef ref) {
-    final asyncBranches = ref
-        .watch(branchesProvider(businessId: ProxyService.box.getBusinessId()));
+    final asyncBranches = ref.watch(
+      branchesProvider(businessId: ProxyService.box.getBusinessId()),
+    );
     final selectedBranch = ref.watch(selectedBranchProvider);
 
     return asyncBranches.when(
@@ -252,11 +264,11 @@ class TenantUIMixin {
           }).toList(),
           decoration: InputDecoration(
             labelText: "Select Branch",
-            prefixIcon:
-                Icon(Icons.business, color: Theme.of(context).primaryColor),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(8),
+            prefixIcon: Icon(
+              Icons.business,
+              color: Theme.of(context).primaryColor,
             ),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
             filled: true,
             fillColor: Colors.grey[100],
           ),

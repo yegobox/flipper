@@ -14,7 +14,7 @@ mixin CounterMixin implements CounterInterface {
 
   @override
   Future<Counter?> getCounter(
-      {required int branchId,
+      {required String branchId,
       required String receiptType,
       required bool fetchRemote}) async {
     final query = brick.Query(where: [
@@ -24,21 +24,21 @@ mixin CounterMixin implements CounterInterface {
     final counter = await repository.get<Counter>(
         query: query,
         policy: fetchRemote == true
-            ? brick.OfflineFirstGetPolicy.alwaysHydrate
-            : brick.OfflineFirstGetPolicy.localOnly);
+            ? brick.OfflineFirstGetPolicy.awaitRemoteWhenNoneExist
+            : brick.OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
     return counter.firstOrNull;
   }
 
   @override
   Future<List<Counter>> getCounters(
-      {required int branchId, bool fetchRemote = false}) async {
+      {required String branchId, bool fetchRemote = false}) async {
     final query =
         brick.Query(where: [brick.Where('branchId').isExactly(branchId)]);
     final counters = await repository.get<Counter>(
         query: query,
         policy: fetchRemote == true
-            ? brick.OfflineFirstGetPolicy.alwaysHydrate
-            : brick.OfflineFirstGetPolicy.localOnly);
+            ? brick.OfflineFirstGetPolicy.awaitRemoteWhenNoneExist
+            : brick.OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
 
     return counters;
   }
@@ -63,7 +63,7 @@ mixin CounterMixin implements CounterInterface {
         counters.map((c) => c.invcNo ?? 0).reduce((a, b) => a > b ? a : b);
     final newInvcNo = highestInvcNo + 1;
 
-    final Set<int> uniqueBranchIds = {};
+    final Set<String> uniqueBranchIds = {};
 
     // Update all counters to the same values
     for (Counter counter in counters) {
@@ -97,7 +97,7 @@ mixin CounterMixin implements CounterInterface {
     }
   }
 
-  Future<Sar?> getSar({required int branchId}) async {
+  Future<Sar?> getSar({required String branchId}) async {
     return (await repository.get<Sar>(
             query: brick.Query(where: [
       brick.Where('branchId').isExactly(branchId),
@@ -105,7 +105,7 @@ mixin CounterMixin implements CounterInterface {
         .firstOrNull;
   }
 
-  Stream<List<Counter>> listenCounters({required int branchId}) {
+  Stream<List<Counter>> listenCounters({required String branchId}) {
     // TODO: implement a safe repository-backed stream/polling observer
     throw UnsupportedError(
         'Streaming is not supported by this strategy. Please use a repository-backed stream or polling observer.');

@@ -5,7 +5,6 @@ import 'package:flipper_models/helperModels/business.dart';
 import 'package:flipper_models/helperModels/flipperWatch.dart';
 import 'package:flipper_models/helperModels/pin.dart';
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:flipper_models/helperModels/tenant.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/sync/interfaces/auth_interface.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
@@ -153,11 +152,11 @@ mixin AuthMixin implements AuthInterface {
   // Required methods that should be provided by other mixins
   @override
   Future<List<Business>> businesses(
-      {int? userId, bool fetchOnline = false, bool active = false});
+      {String? userId, bool fetchOnline = false, bool active = false});
 
   @override
   Future<bool> firebaseLogin({String? token}) async {
-    int? userId = ProxyService.box.getUserId();
+    String? userId = ProxyService.box.getUserId();
     if (userId == null) return false;
 
     // Get the existing PIN for this user ID
@@ -201,7 +200,7 @@ mixin AuthMixin implements AuthInterface {
 
             // Update the existing PIN with the new token
             ProxyService.strategy.updatePin(
-                userId: user.id!,
+                userId: user.id,
                 phoneNumber: pinLocal.phoneNumber,
                 tokenUid: user.uid);
           }
@@ -260,8 +259,25 @@ mixin AuthMixin implements AuthInterface {
       {bool forceOffline = false,
       bool freshUser = false,
       required bool isInSignUpProgress}) async {
-    List<Business> businessesE = await businesses(userId: pin.userId!);
-    List<Branch> branchesE = await branches(businessId: pin.businessId!);
+    final userId = pin.userId ?? ProxyService.box.getUserId();
+    final userAccess = await ProxyService.ditto.getUserAccess(userId!);
+    List<Business> businessesE = [];
+    List<Branch> branchesE = [];
+
+    if (userAccess != null && userAccess.containsKey('businesses')) {
+      final List<dynamic> businessesJson = userAccess['businesses'];
+      businessesE = businessesJson.map((j) => Business.fromMap(j)).toList();
+
+      final businessJson = businessesJson.firstWhere(
+        (b) => b['id'] == pin.businessId,
+        orElse: () => null,
+      );
+
+      if (businessJson != null && businessJson.containsKey('branches')) {
+        final List<dynamic> branchesJson = businessJson['branches'];
+        branchesE = branchesJson.map((j) => Branch.fromMap(j)).toList();
+      }
+    }
 
     final bool shouldEnableOfflineLogin = forceOffline ||
         (businessesE.isNotEmpty &&
@@ -281,10 +297,7 @@ mixin AuthMixin implements AuthInterface {
       offlineLogin = true;
       final offlineUser =
           _createOfflineUser(phoneNumber, pin, businessesE, branchesE);
-      if (offlineUser.id == null) {
-        talker.error('Created offline user has null ID');
-        throw Exception('Failed to create offline user: User ID is null');
-      }
+
       return offlineUser;
     }
 
@@ -308,7 +321,6 @@ mixin AuthMixin implements AuthInterface {
         id: existingUserId,
         uid: currentUser.uid,
         phoneNumber: phoneNumber,
-        tenants: [ITenant(name: pin.ownerName ?? 'Default Tenant')],
       );
 
       return user;
@@ -325,15 +337,16 @@ mixin AuthMixin implements AuthInterface {
 
       // Make PIN patching non-blocking for the login flow
       try {
-        unawaited(_patchPin(user.id!, flipperHttpClient, apihub,
-            ownerName: user.tenants.first.name!));
+        final ownerName = 'Default Tenant';
+        unawaited(_patchPin(user.pin!, flipperHttpClient, apihub,
+            ownerName: ownerName));
       } catch (e) {
         // Log the error but don't block login
         talker.warning("Failed to patch PIN, but continuing login: $e");
         // This ensures offline login still works even if PIN patching fails
       }
 
-      ProxyService.box.writeInt(key: 'userId', value: user.id!);
+      ProxyService.box.writeString(key: 'userId', value: user.id);
 
       // Initialize Ditto with the authenticated user ID
       final appID =
@@ -342,9 +355,13 @@ mixin AuthMixin implements AuthInterface {
       try {
         await DittoSingleton.instance.initialize(
           appId: appID,
-          userId: user.id!,
+          userId: user.id,
         );
-        DittoSyncCoordinator.instance.setDitto(DittoSingleton.instance.ditto);
+        DittoSyncCoordinator.instance.setDitto(
+          DittoSingleton.instance.ditto,
+          skipInitialFetch:
+              true, // Skip initial fetch to prevent upserting all models on startup
+        );
       } catch (e) {
         talker.error("Failed to initialize Ditto: $e");
       }
@@ -396,7 +413,7 @@ mixin AuthMixin implements AuthInterface {
       if (pin.businessId != null) {
         talker.debug("Setting businessId to ${pin.businessId}");
         await ProxyService.box
-            .writeInt(key: 'businessId', value: pin.businessId!);
+            .writeString(key: 'businessId', value: pin.businessId!);
 
         // Also set business preferences
         try {
@@ -406,7 +423,7 @@ mixin AuthMixin implements AuthInterface {
           // Find the matching business or use the first one if none matches
           for (final business in businesses) {
             // Compare serverId with pin.businessId, handling both string and int types
-            if (business.serverId.toString() == pin.businessId.toString()) {
+            if (business.id.toString() == pin.businessId.toString()) {
               selectedBusiness = business;
               break;
             }
@@ -464,17 +481,19 @@ mixin AuthMixin implements AuthInterface {
       // Handle the case where pin already has a branchId (for backward compatibility)
       if (pin.branchId != null && pin.businessId != null) {
         talker.debug("Setting branchId to ${pin.branchId}");
-        await ProxyService.box.writeInt(key: 'branchId', value: pin.branchId!);
+        await ProxyService.box
+            .writeString(key: 'branchId', value: pin.branchId!);
 
         try {
           // Get the branch ID string if available
-          final branches = await this.branches(businessId: pin.businessId!);
+          final branches =
+              await ProxyService.strategy.branches(businessId: pin.businessId!);
           Branch? selectedBranch;
 
           // Find the matching branch or use the first one if none matches
           for (final branch in branches) {
             // Compare serverId with pin.branchId, handling both string and int types
-            if (branch.serverId.toString() == pin.branchId.toString()) {
+            if (branch.id.toString() == pin.branchId.toString()) {
               selectedBranch = branch;
               break;
             }
@@ -552,17 +571,17 @@ mixin AuthMixin implements AuthInterface {
     final savedLocalPinForThis = await ProxyService.strategy
         .getPinLocal(phoneNumber: phoneNumber, alwaysHydrate: false);
     uid ??= savedLocalPinForThis?.uid;
-    final tenants = await ProxyService.strategy
-        .getTenant(pin: savedLocalPinForThis?.userId ?? 0);
+    final tenant = await ProxyService.strategy
+        .getTenant(pin: savedLocalPinForThis?.pin ?? 0);
 
     // Check if we have sufficient local data to skip the API call
     if (savedLocalPinForThis != null &&
         existingPhoneNumber == phoneNumber &&
-        tenants != null) {
+        tenant != null) {
       final businesses = await ProxyService.strategy
           .businesses(userId: savedLocalPinForThis.userId!);
       final branches = await ProxyService.strategy
-          .branches(businessId: tenants.businessId ?? 0);
+          .branches(businessId: tenant.businessId ?? "");
 
       if (businesses.isNotEmpty && branches.isNotEmpty) {
         talker.debug(
@@ -576,26 +595,15 @@ mixin AuthMixin implements AuthInterface {
           'phoneNumber': phoneNumber,
           'channels': [savedLocalPinForThis.userId.toString()],
           'pin': savedLocalPinForThis.userId,
-          'tenants': []
+          'businesses': _convertBusinesses(businesses).map((b) {
+            final json = b.toJson();
+            json['branches'] = _convertBranches(branches).map((br) {
+              final brJson = br.toJson();
+              return brJson;
+            }).toList();
+            return json;
+          }).toList(),
         };
-
-        Map<String, dynamic> tenantData = {
-          'id': tenants.id,
-          'name': tenants.name,
-          'phoneNumber': phoneNumber,
-          'businessId': tenants.businessId,
-          'userId': savedLocalPinForThis.userId,
-          'pin': savedLocalPinForThis.userId,
-          'type': tenants.type,
-          'businesses': _convertBusinesses(businesses)
-              .map((e) => e.toJson())
-              .toList(), // Convert IBusiness to map
-          'branches': _convertBranches(branches)
-              .map((e) => e.toJson())
-              .toList(), // Convert IBranch to map
-        };
-
-        responseData['tenants'] = [tenantData];
 
         return http.Response(
           jsonEncode(responseData),
@@ -615,8 +623,6 @@ mixin AuthMixin implements AuthInterface {
         Uri.parse(apihub + '/v2/api/user'),
         body: jsonEncode(<String, String?>{
           'phoneNumber': phoneNumber,
-          // TODO: fix this on api level so it works, currently not accepting uuid.
-          // if (uid != null && uid.isNotEmpty) 'uid': uid
         }),
       );
 
@@ -662,75 +668,58 @@ mixin AuthMixin implements AuthInterface {
         ProxyService.box
             .writeString(key: 'userIdString', value: responseBody['id']);
         // Convert string ID to integer for backward compatibility
-        final int userId = int.tryParse(responseBody['id']) ?? 0;
-        ProxyService.box.writeInt(key: 'userId', value: userId);
+        final String userId = responseBody['id'];
+        ProxyService.box.writeString(key: 'userId', value: userId);
       } else if (responseBody['id'] != null) {
-        ProxyService.box.writeInt(key: 'userId', value: responseBody['id']);
+        ProxyService.box.writeString(key: 'userId', value: responseBody['id']);
       } else {
         talker.error("Missing ID in response: ${responseBody}");
         throw Exception("Missing user ID in server response");
       }
 
-      // Process businesses and branches if they're in the response
-      if (responseBody['tenants'] != null &&
-          responseBody['tenants'] is List &&
-          responseBody['tenants'].isNotEmpty) {
-        final tenant = responseBody['tenants'][0];
+      // Process businesses and branches
+      final List<dynamic> businessesData = responseBody['businesses'] ?? [];
 
-        // Store the businessId if available
-        if (tenant['businessId'] != null) {
-          final businessId = tenant['businessId'];
-          talker.debug("Setting businessId from API response: $businessId");
-          ProxyService.box.writeString(
-              key: 'businessIdString', value: businessId.toString());
-        }
+      // Save businesses and branches locally
+      for (var businessData in businessesData) {
+        final iBusiness = IBusiness.fromJson(businessData);
+        // Save business locally
+        await ProxyService.strategy
+            .getBusinessById(businessId: iBusiness.id, fetchOnline: true);
 
-        // Save businesses locally
-        if (tenant['businesses'] != null && tenant['businesses'] is List) {
-          for (var businessData in tenant['businesses']) {
-            final iBusiness = IBusiness.fromJson(businessData);
-            // Convert IBusiness to Business (from supabase_models)
-            /// get this business locally.
-            await ProxyService.strategy.getBusinessById(
-                businessId: iBusiness.serverId, fetchOnline: true);
+        // Process branches if they are nested in the business (new structure)
+        final List<dynamic> branchesData = businessData['branches'] ?? [];
+
+        for (var branchData in branchesData) {
+          final iBranch = IBranch.fromJson(branchData);
+          // Only set the last branch ID if there's only one branch total (legacy behavior)
+          if (branchesData.length == 1 && businessesData.length == 1) {
+            ProxyService.box.writeString(key: 'branchId', value: iBranch.id!);
           }
-        }
 
-        // Save branches locally
-        if (tenant['branches'] != null && tenant['branches'] is List) {
-          for (var branchData in tenant['branches']) {
-            final iBranch = IBranch.fromJson(branchData);
-            // Only set the last branch ID (will be overridden if multiple branches)
-            // The actual branchId selection should happen in login choices
-            if (tenant['branches'].length == 1) {
-              ProxyService.box
-                  .writeInt(key: 'branchId', value: iBranch.serverId!);
-            }
-            // Convert IBranch to Branch (from supabase_models)
-            // Preserve the active and isDefault values from the API response
-            // Don't force all branches to be active:true and isDefault:true
-            final branch = Branch(
-              id: iBranch.id,
-              serverId: iBranch.serverId,
-              active: iBranch.active ?? false,
-              description: iBranch.description,
-              name: iBranch.name,
-              businessId: iBranch.businessId,
-              longitude: iBranch.longitude,
-              latitude: iBranch.latitude,
-              location: iBranch.location,
-              isDefault: iBranch.isDefault ?? false,
-            );
-            await repository.upsert<Branch>(branch);
-            talker.debug(
-                "Saved branch locally: ${branch.name} (active: ${branch.active}, isDefault: ${branch.isDefault})");
-          }
+          final branch = Branch(
+            id: iBranch.id!,
+            serverId: iBranch.serverId,
+            active: iBranch.active ?? false,
+            description: iBranch.description,
+            name: iBranch.name,
+            businessId: iBranch.businessId,
+            longitude: iBranch.longitude,
+            latitude: iBranch.latitude,
+            location: iBranch.location,
+            isDefault: iBranch.isDefault ?? false,
+          );
+          await repository.upsert<Branch>(branch);
+          talker.debug(
+              "Saved branch locally: ${branch.name} (active: ${branch.active}, isDefault: ${branch.isDefault})");
         }
       }
 
       ProxyService.box.writeString(key: 'userPhone', value: phoneNumber);
-      await ProxyService.box
-          .writeString(key: 'bearerToken', value: responseBody['token']);
+
+      // Save user access to Ditto for cross-device synchronization
+      await ProxyService.ditto.saveUserAccess(responseBody);
+
       return response;
     } catch (e, s) {
       // If it's already a SessionException, rethrow it
@@ -805,8 +794,8 @@ mixin AuthMixin implements AuthInterface {
         userId: e.userId?.toString() ?? '',
         currency: e.currency ?? 'RWF',
         categoryId: e.categoryId ?? 0,
-        latitude: e.latitude ?? '0', // string
-        longitude: e.longitude ?? '0', // string
+        latitude: e.latitude ?? 0, // string
+        longitude: e.longitude ?? 0, // string
         timeZone: e.timeZone ?? '',
         email: e.email ?? '',
         fullName: e.fullName ?? '',
@@ -816,7 +805,7 @@ mixin AuthMixin implements AuthInterface {
         adrs: e.adrs ?? '',
         taxEnabled: e.taxEnabled ?? false,
         isDefault: e.isDefault ?? false,
-        businessTypeId: e.businessTypeId ?? 0,
+        businessTypeId: e.businessTypeId ?? "",
         encryptionKey: e.encryptionKey ?? '',
       );
     }).toList();
@@ -831,17 +820,7 @@ mixin AuthMixin implements AuthInterface {
       uid: pin.uid,
       phoneNumber: pin.phoneNumber!,
       id: pin.userId!,
-      tenants: [
-        ITenant(
-            name: pin.ownerName == null ? "DEFAULT" : pin.ownerName!,
-            phoneNumber: phoneNumber,
-            permissions: [],
-            branches: _convertBranches(branches),
-            businesses: _convertBusinesses(businesses),
-            businessId: pin.businessId,
-            nfcEnabled: false,
-            userId: pin.userId)
-      ],
+      businesses: _convertBusinesses(businesses),
     );
   }
 
@@ -879,28 +858,35 @@ mixin AuthMixin implements AuthInterface {
 
     if (response.statusCode == 200) {
       final responseData = jsonDecode(response.body);
-      final token = responseData['token'];
-      final serverId = responseData['serverId'];
-      final phoneNumber = responseData['phoneNumber'];
-
-      // final business = ProxyService.strategy.getBusinessById(businessId: businessId);
-      final userId = responseData['userId'];
+      final String token = responseData['token'];
+      final int serverId = responseData['serverId'] ?? 0;
+      final String? businessId = responseData['businessId'];
+      final String phoneNumber = responseData['phoneNumber'];
+      final String userId = responseData['userId'];
 
       // Save the token and other details
-      await ProxyService.box.writeString(key: 'bearerToken', value: token);
-      await ProxyService.box.writeInt(key: 'userId', value: int.parse(userId));
+      String cleanToken = token;
+      if (token.startsWith('Bearer ')) {
+        cleanToken = token.substring(7);
+      }
 
+      await ProxyService.box.writeString(key: 'bearerToken', value: cleanToken);
+      await ProxyService.box.writeString(key: 'userId', value: userId);
+
+      if (businessId != null) {
+        await ProxyService.box
+            .writeString(key: 'businessIdString', value: businessId);
+      }
       // Fetch the user details using the new token
       final user = await login(
-        userPhone:
-            pin!.phoneNumber, // Use the phone number from the OTP request
+        userPhone: phoneNumber,
         skipDefaultAppSetup: false,
         pin: Pin(
-            userId: int.parse(userId),
-            pin: pin.pin,
-            businessId: serverId,
-            branchId: 0, // Will be determined in the login flow
-            ownerName: '', // Will be updated in the login flow
+            userId: userId,
+            pin: pin!.pin,
+            businessId: businessId ?? serverId.toString(),
+            branchId: "", // Will be determined in the login flow
+            ownerName: responseData['businessName'] ?? '',
             phoneNumber: phoneNumber),
         isInSignUpProgress: false,
         flipperHttpClient: ProxyService.http,

@@ -73,7 +73,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
   void _loadMoreVariants() {
     ref
         .read(
-          outerVariantsProvider(ProxyService.box.getBranchId() ?? 0).notifier,
+          outerVariantsProvider(ProxyService.box.getBranchId() ?? "").notifier,
         )
         .loadMore();
   }
@@ -94,7 +94,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     final lastSwitchTimestamp =
         ProxyService.box.readInt(key: 'last_branch_switch_timestamp') ?? 0;
     final activeBranchId =
-        ProxyService.box.readInt(key: 'active_branch_id') ?? 0;
+        ProxyService.box.readString(key: 'active_branch_id') ?? "";
 
     // Only refresh if the branch was switched and we haven't processed this switch yet
     if (branchSwitched &&
@@ -109,50 +109,47 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     }
   }
 
-  void _refreshVariantsForCurrentBranch([int? specificBranchId]) {
-    final branchId = specificBranchId ?? ProxyService.box.getBranchId() ?? 0;
-    if (branchId > 0) {
-      print('Refreshing variants for branch ID: $branchId');
+  void _refreshVariantsForCurrentBranch([String? specificBranchId]) {
+    final branchId = specificBranchId ?? ProxyService.box.getBranchId() ?? "";
 
-      // Instead of invalidating providers, just refresh the data
-      try {
-        // Use the provider's refresh method instead of invalidation
-        ref.read(outerVariantsProvider(branchId).notifier).refresh();
+    // Instead of invalidating providers, just refresh the data
+    try {
+      // Use the provider's refresh method instead of invalidation
+      ref.read(outerVariantsProvider(branchId).notifier).refresh();
 
-        // Force reload initial products
-        _loadInitialProducts();
+      // Force reload initial products
+      _loadInitialProducts();
 
-        // Explicitly refresh the UI
-        if (mounted) {
-          setState(() {
-            print('Rebuilding ProductView with new branch data');
-            // Show a snackbar to notify the user
-            if (context.mounted) {
-              ScaffoldMessenger.of(context).clearSnackBars();
-              showCustomSnackBarUtil(
-                context,
-                'Products refreshed for new branch',
-                duration: const Duration(seconds: 2),
-              );
-            }
-          });
-        }
-      } catch (e) {
-        print('Error refreshing providers: $e');
+      // Explicitly refresh the UI
+      if (mounted) {
+        setState(() {
+          print('Rebuilding ProductView with new branch data');
+          // Show a snackbar to notify the user
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).clearSnackBars();
+            showCustomSnackBarUtil(
+              context,
+              'Products refreshed for new branch',
+              duration: const Duration(seconds: 2),
+            );
+          }
+        });
       }
+    } catch (e) {
+      print('Error refreshing providers: $e');
     }
   }
 
   void _loadInitialProducts() {
     ref
         .read(
-          outerVariantsProvider(ProxyService.box.getBranchId() ?? 0).notifier,
+          outerVariantsProvider(ProxyService.box.getBranchId() ?? "").notifier,
         )
         .refresh();
   }
 
   void _goToPage(int page) async {
-    final branchId = ProxyService.box.getBranchId() ?? 0;
+    final branchId = ProxyService.box.getBranchId() ?? "";
     final notifier = ref.read(outerVariantsProvider(branchId).notifier);
     setState(() {
       _currentPage = page;
@@ -185,7 +182,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
   Widget _buildVariantList(BuildContext context, ProductViewModel model) {
     return Consumer(
       builder: (context, ref, _) {
-        final branchId = ProxyService.box.getBranchId() ?? 0;
+        final branchId = ProxyService.box.getBranchId() ?? "";
         // If the search string changed, reset our local page to the first page
         // so that search results always start from page 0.
         final currentSearch = ref.watch(searchStringProvider);
@@ -264,7 +261,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                       FilledButton.icon(
                         onPressed: () => ref.refresh(
                           outerVariantsProvider(
-                            ProxyService.box.getBranchId() ?? 0,
+                            ProxyService.box.getBranchId() ?? "",
                           ),
                         ),
                         icon: const Icon(FluentIcons.arrow_sync_20_filled),
@@ -298,7 +295,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     final endDate = dateRange.endDate;
 
     // Pagination helpers from provider
-    final branchId = ProxyService.box.getBranchId() ?? 0;
+    final branchId = ProxyService.box.getBranchId() ?? "";
     final notifier = ref.read(outerVariantsProvider(branchId).notifier);
     final ipp = notifier.itemsPerPage;
 

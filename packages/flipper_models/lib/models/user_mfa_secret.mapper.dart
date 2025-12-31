@@ -27,8 +27,8 @@ class UserMfaSecretMapper extends ClassMapperBase<UserMfaSecret> {
     _$id,
     opt: true,
   );
-  static int _$userId(UserMfaSecret v) => v.userId;
-  static const Field<UserMfaSecret, int> _f$userId = Field(
+  static String _$userId(UserMfaSecret v) => v.userId;
+  static const Field<UserMfaSecret, String> _f$userId = Field(
     'userId',
     _$userId,
     key: r'user_id',
@@ -144,7 +144,7 @@ abstract class UserMfaSecretCopyWith<$R, $In extends UserMfaSecret, $Out>
     implements ClassCopyWith<$R, $In, $Out> {
   $R call({
     String? id,
-    int? userId,
+    String? userId,
     String? secret,
     DateTime? createdAt,
     String? issuer,
@@ -164,7 +164,7 @@ class _UserMfaSecretCopyWithImpl<$R, $Out>
   @override
   $R call({
     Object? id = $none,
-    int? userId,
+    String? userId,
     String? secret,
     Object? createdAt = $none,
     Object? issuer = $none,

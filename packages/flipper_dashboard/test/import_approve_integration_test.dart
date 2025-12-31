@@ -23,77 +23,87 @@ void main() {
   });
 
   test(
-      'approving multiple imports mapped to one existing variant aggregates stocks',
-      () async {
-    final core = CoreViewModel();
+    'approving multiple imports mapped to one existing variant aggregates stocks',
+    () async {
+      final core = CoreViewModel();
 
-    // Prepare variants
-    final existing = model.Variant(
-      id: 'existing',
-      name: 'Existing',
-      stock: model.Stock(branchId: 1, currentStock: 10.0),
-      ebmSynced: true,
-    );
+      // Prepare variants
+      final existing = model.Variant(
+        id: 'existing',
+        name: 'Existing',
+        stock: model.Stock(branchId: "", currentStock: 10.0),
+        ebmSynced: true,
+      );
 
-    final imp1 = model.Variant(
-      id: 'imp1',
-      name: 'Imp1',
-      stock: model.Stock(branchId: 1, currentStock: 5.0),
-      imptItemSttsCd: '2',
-      assigned: false,
-    );
+      final imp1 = model.Variant(
+        id: 'imp1',
+        name: 'Imp1',
+        stock: model.Stock(branchId: "", currentStock: 5.0),
+        imptItemSttsCd: '2',
+        assigned: false,
+      );
 
-    final imp2 = model.Variant(
-      id: 'imp2',
-      name: 'Imp2',
-      stock: model.Stock(branchId: 1, currentStock: 3.0),
-      imptItemSttsCd: '2',
-      assigned: false,
-    );
+      final imp2 = model.Variant(
+        id: 'imp2',
+        name: 'Imp2',
+        stock: model.Stock(branchId: "", currentStock: 3.0),
+        imptItemSttsCd: '2',
+        assigned: false,
+      );
 
-    // Stub strategy.getVariant to return existing
-    when(() => env.mockDbSync.getVariant(id: 'existing'))
-        .thenAnswer((_) async => existing);
+      // Stub strategy.getVariant to return existing
+      when(
+        () => env.mockDbSync.getVariant(id: 'existing'),
+      ).thenAnswer((_) async => existing);
 
-    // Stub updateVariant to capture updates
-    when(() => env.mockDbSync.updateVariant(
-        updatables: any(named: 'updatables'),
-        approvedQty: any(named: 'approvedQty'),
-        )).thenAnswer((inv) async {
-      // emulate persisting by doing nothing
-      return Future.value();
-    });
+      // Stub updateVariant to capture updates
+      when(
+        () => env.mockDbSync.updateVariant(
+          updatables: any(named: 'updatables'),
+          approvedQty: any(named: 'approvedQty'),
+        ),
+      ).thenAnswer((inv) async {
+        // emulate persisting by doing nothing
+        return Future.value();
+      });
 
-    when(() => env.mockTaxApi.updateImportItems(
-            item: any(named: 'item'), URI: any(named: 'URI')))
-        .thenAnswer(
-            (_) async => RwApiResponse(resultCd: "000", resultMsg: "Success"));
+      when(
+        () => env.mockTaxApi.updateImportItems(
+          item: any(named: 'item'),
+          URI: any(named: 'URI'),
+        ),
+      ).thenAnswer(
+        (_) async => RwApiResponse(resultCd: "000", resultMsg: "Success"),
+      );
 
-    // Build map and call method
-    final variantMap = {
-      'existing': [imp1, imp2]
-    };
+      // Build map and call method
+      final variantMap = {
+        'existing': [imp1, imp2],
+      };
 
-    await core.approveAllImportItems([imp1, imp2], variantMap: variantMap);
+      await core.approveAllImportItems([imp1, imp2], variantMap: variantMap);
 
-    // Verify imports updated locally
-    expect(imp1.imptItemSttsCd, '3');
-    expect(imp2.imptItemSttsCd, '3');
-    expect(imp1.assigned, true);
-    expect(imp2.assigned, true);
+      // Verify imports updated locally
+      expect(imp1.imptItemSttsCd, '3');
+      expect(imp2.imptItemSttsCd, '3');
+      expect(imp1.assigned, true);
+      expect(imp2.assigned, true);
 
-    // existing stock should be increased by 8.0
-    // Because updateVariant is stubbed, we check the computed value as set on existing object
-    expect(existing.stock?.currentStock, closeTo(18.0, 0.0001));
+      // existing stock should be increased by 8.0
+      // Because updateVariant is stubbed, we check the computed value as set on existing object
+      expect(existing.stock?.currentStock, closeTo(18.0, 0.0001));
 
-    // Verify updateVariant calls
-    verify(() => env.mockDbSync
-        .updateVariant(updatables: [imp1])).called(1);
-    verify(() => env.mockDbSync
-        .updateVariant(updatables: [imp2])).called(1);
-    verify(() => env.mockDbSync.updateVariant(
-        updatables: [existing], approvedQty: 8.0)).called(1);
-  });
+      // Verify updateVariant calls
+      verify(() => env.mockDbSync.updateVariant(updatables: [imp1])).called(1);
+      verify(() => env.mockDbSync.updateVariant(updatables: [imp2])).called(1);
+      verify(
+        () => env.mockDbSync.updateVariant(
+          updatables: [existing],
+          approvedQty: 8.0,
+        ),
+      ).called(1);
+    },
+  );
 
   test('approving unmapped imports creates new variants', () async {
     final core = CoreViewModel();
@@ -102,14 +112,14 @@ void main() {
     final existing = model.Variant(
       id: 'existing',
       name: 'Existing',
-      stock: model.Stock(branchId: 1, currentStock: 10.0),
+      stock: model.Stock(branchId: "", currentStock: 10.0),
       ebmSynced: true,
     );
 
     final imp1 = model.Variant(
       id: 'imp1',
       name: 'Imp1',
-      stock: model.Stock(branchId: 1, currentStock: 5.0),
+      stock: model.Stock(branchId: "", currentStock: 5.0),
       imptItemSttsCd: '2',
       assigned: false,
     );
@@ -117,33 +127,41 @@ void main() {
     final unmapped = model.Variant(
       id: 'unmapped',
       name: 'Unmapped',
-      stock: model.Stock(branchId: 1, currentStock: 7.0),
+      stock: model.Stock(branchId: "", currentStock: 7.0),
       imptItemSttsCd: '2',
       assigned: false,
     );
 
     // Stub strategy.getVariant to return existing
-    when(() => env.mockDbSync.getVariant(id: 'existing'))
-        .thenAnswer((_) async => existing);
+    when(
+      () => env.mockDbSync.getVariant(id: 'existing'),
+    ).thenAnswer((_) async => existing);
 
     // Stub updateVariant to capture updates
-    when(() => env.mockDbSync.updateVariant(
+    when(
+      () => env.mockDbSync.updateVariant(
         updatables: any(named: 'updatables'),
         approvedQty: any(named: 'approvedQty'),
-       
-        updateIo: any(named: 'updateIo'))).thenAnswer((inv) async {
+
+        updateIo: any(named: 'updateIo'),
+      ),
+    ).thenAnswer((inv) async {
       // emulate persisting by doing nothing
       return Future.value();
     });
 
-    when(() => env.mockTaxApi.updateImportItems(
-            item: any(named: 'item'), URI: any(named: 'URI')))
-        .thenAnswer(
-            (_) async => RwApiResponse(resultCd: "000", resultMsg: "Success"));
+    when(
+      () => env.mockTaxApi.updateImportItems(
+        item: any(named: 'item'),
+        URI: any(named: 'URI'),
+      ),
+    ).thenAnswer(
+      (_) async => RwApiResponse(resultCd: "000", resultMsg: "Success"),
+    );
 
     // Build map and call method - only imp1 is mapped, unmapped is not
     final variantMap = {
-      'existing': [imp1]
+      'existing': [imp1],
     };
 
     await core.approveAllImportItems([imp1, unmapped], variantMap: variantMap);
@@ -161,8 +179,13 @@ void main() {
     expect(existing.stock?.currentStock, closeTo(15.0, 0.0001));
 
     // Verify updateVariant was called with updateIo: true for unmapped variant
-    verify(() => env.mockDbSync.updateVariant(
-        updatables: [unmapped], approvedQty: 7.0, updateIo: true)).called(1);
+    verify(
+      () => env.mockDbSync.updateVariant(
+        updatables: [unmapped],
+        approvedQty: 7.0,
+        updateIo: true,
+      ),
+    ).called(1);
   });
 
   test('approving multiple unmapped imports creates new variants', () async {
@@ -171,7 +194,7 @@ void main() {
     final unmapped1 = model.Variant(
       id: 'unmapped1',
       name: 'Unmapped1',
-      stock: model.Stock(branchId: 1, currentStock: 4.0),
+      stock: model.Stock(branchId: "", currentStock: 4.0),
       imptItemSttsCd: '2',
       assigned: false,
     );
@@ -179,30 +202,39 @@ void main() {
     final unmapped2 = model.Variant(
       id: 'unmapped2',
       name: 'Unmapped2',
-      stock: model.Stock(branchId: 1, currentStock: 6.0),
+      stock: model.Stock(branchId: "", currentStock: 6.0),
       imptItemSttsCd: '2',
       assigned: false,
     );
 
     // Stub updateVariant to capture updates
-    when(() => env.mockDbSync.updateVariant(
+    when(
+      () => env.mockDbSync.updateVariant(
         updatables: any(named: 'updatables'),
         approvedQty: any(named: 'approvedQty'),
-        updateIo: any(named: 'updateIo'))).thenAnswer((inv) async {
+        updateIo: any(named: 'updateIo'),
+      ),
+    ).thenAnswer((inv) async {
       // emulate persisting by doing nothing
       return Future.value();
     });
 
-    when(() => env.mockTaxApi.updateImportItems(
-            item: any(named: 'item'), URI: any(named: 'URI')))
-        .thenAnswer(
-            (_) async => RwApiResponse(resultCd: "000", resultMsg: "Success"));
+    when(
+      () => env.mockTaxApi.updateImportItems(
+        item: any(named: 'item'),
+        URI: any(named: 'URI'),
+      ),
+    ).thenAnswer(
+      (_) async => RwApiResponse(resultCd: "000", resultMsg: "Success"),
+    );
 
     // Build map and call method - no mappings, all unmapped
     final variantMap = <String, List<model.Variant>>{};
 
-    await core
-        .approveAllImportItems([unmapped1, unmapped2], variantMap: variantMap);
+    await core.approveAllImportItems([
+      unmapped1,
+      unmapped2,
+    ], variantMap: variantMap);
 
     // Verify both unmapped imports updated as new variants
     expect(unmapped1.imptItemSttsCd, '3');
@@ -214,9 +246,19 @@ void main() {
     expect(unmapped2.itemCd, 'ITEM123');
 
     // Verify updateVariant was called with updateIo: true for both
-    verify(() => env.mockDbSync.updateVariant(
-        updatables: [unmapped1], approvedQty: 4.0, updateIo: true)).called(1);
-    verify(() => env.mockDbSync.updateVariant(
-        updatables: [unmapped2], approvedQty: 6.0, updateIo: true)).called(1);
+    verify(
+      () => env.mockDbSync.updateVariant(
+        updatables: [unmapped1],
+        approvedQty: 4.0,
+        updateIo: true,
+      ),
+    ).called(1);
+    verify(
+      () => env.mockDbSync.updateVariant(
+        updatables: [unmapped2],
+        approvedQty: 6.0,
+        updateIo: true,
+      ),
+    ).called(1);
   });
 }

@@ -1,8 +1,9 @@
 library flipper_models;
+
 // import 'package:firebase_auth/firebase_auth.dart' as firebase;
 import 'package:flipper_models/helperModels/business_type.dart';
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/db_model_export.dart' hide BusinessType;
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/locator.dart' as loc;
 import 'package:flutter/cupertino.dart';
@@ -110,7 +111,7 @@ class SignupViewModel extends ReactiveViewModel {
 
   Future<Business?> registerTenant(String? referralCode) async {
     try {
-      int userId = ProxyService.box.getUserId()!;
+      String userId = ProxyService.box.getUserId()!;
       String phoneNumber = ProxyService.box.getUserPhone()!;
       final business = {
         'name': kName,
@@ -141,7 +142,7 @@ class SignupViewModel extends ReactiveViewModel {
 
   Future<void> postRegistrationTasks(Business busine) async {
     await saveBusinessId(busine);
-    Business? business = await getBusiness(busine.serverId);
+    Business? business = await getBusiness(busine.id);
     List<Branch> branches = await getBranches(business!);
     await saveBranchId(branches);
 
@@ -159,23 +160,23 @@ class SignupViewModel extends ReactiveViewModel {
   }
 
   Future<void> saveBusinessId(Business business) {
-    return ProxyService.box.writeInt(
+    return ProxyService.box.writeString(
       key: 'businessId',
-      value: business.serverId,
+      value: business.id,
     );
   }
 
-  Future<Business?> getBusiness(int businessId) async {
+  Future<Business?> getBusiness(String businessId) async {
     return await ProxyService.strategy.getBusiness(businessId: businessId);
   }
 
   Future<List<Branch>> getBranches(Business business) async {
-    return ProxyService.strategy.branches(businessId: business.serverId);
+    return ProxyService.strategy.branches(businessId: business.id);
   }
 
   Future<void> saveBranchId(List<Branch> branches) {
     return ProxyService.box
-        .writeInt(key: 'branchId', value: branches[0].serverId!);
+        .writeString(key: 'branchId', value: branches[0].id!);
   }
 
   Future<void> createDefaultCategory(List<Branch> branches) async {
@@ -183,7 +184,7 @@ class SignupViewModel extends ReactiveViewModel {
       active: true,
       focused: true,
       name: "NONE",
-      branchId: branches[0].serverId!,
+      branchId: branches[0].id!,
     );
     ProxyService.strategy.create<Category>(data: category);
   }
@@ -202,7 +203,7 @@ class SignupViewModel extends ReactiveViewModel {
       ],
       active: false,
       lastTouched: DateTime.now().toUtc(),
-      branchId: branches[0].serverId,
+      branchId: branches[0].id,
       name: 'color',
     );
     ProxyService.strategy.create<PColor>(data: color);

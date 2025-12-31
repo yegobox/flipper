@@ -142,7 +142,7 @@ class WhatsAppMessageSyncService {
   /// Transform Ditto WhatsApp message to Message model and save
   Future<void> _transformAndSaveMessage(
     Map<String, dynamic> doc,
-    int branchId,
+    String branchId,
   ) async {
     try {
       // Extract fields from Ditto document
@@ -226,7 +226,7 @@ class WhatsAppMessageSyncService {
   Future<String> _getOrCreateConversation({
     required String waId,
     required String contactName,
-    required int branchId,
+    required String branchId,
   }) async {
     final repository = Repository();
 

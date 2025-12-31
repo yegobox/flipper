@@ -32,9 +32,9 @@ class Business extends OfflineFirstWithSupabaseModel {
   String? name;
   String? currency;
   String? categoryId;
-  String? latitude;
-  String? longitude;
-  int? userId;
+  num? latitude;
+  num? longitude;
+  String? userId;
   String? timeZone;
   String? country;
   String? businessUrl;
@@ -67,11 +67,8 @@ class Business extends OfflineFirstWithSupabaseModel {
   bool? taxEnabled;
   String? taxServerUrl;
   bool? isDefault;
-  int? businessTypeId;
-
-  DateTime? lastTouched;
-
-  DateTime? deletedAt;
+  String? businessTypeId;
+  String? referredBy;
 
   String? encryptionKey;
   String? phoneNumber;
@@ -129,8 +126,7 @@ class Business extends OfflineFirstWithSupabaseModel {
     this.taxServerUrl,
     this.isDefault,
     this.businessTypeId,
-    this.lastTouched,
-    this.deletedAt,
+    this.referredBy,
     this.encryptionKey,
     this.phoneNumber,
     this.messagingChannels,
@@ -143,9 +139,9 @@ class Business extends OfflineFirstWithSupabaseModel {
     int? serverId,
     String? currency,
     String? categoryId,
-    String? latitude,
-    String? longitude,
-    int? userId,
+    num? latitude,
+    num? longitude,
+    String? userId,
     String? timeZone,
     String? country,
     String? businessUrl,
@@ -177,7 +173,8 @@ class Business extends OfflineFirstWithSupabaseModel {
     bool? taxEnabled,
     String? taxServerUrl,
     bool? isDefault,
-    int? businessTypeId,
+    String? businessTypeId,
+    String? referredBy,
     DateTime? lastTouched,
     DateTime? deletedAt,
     String? encryptionKey,
@@ -217,6 +214,7 @@ class Business extends OfflineFirstWithSupabaseModel {
       backupFileId: backupFileId ?? this.backupFileId,
       phoneNumber: phoneNumber ?? this.phoneNumber,
       messagingChannels: messagingChannels ?? this.messagingChannels,
+      referredBy: referredBy ?? this.referredBy,
     );
   }
 
@@ -224,15 +222,15 @@ class Business extends OfflineFirstWithSupabaseModel {
   factory Business.fromMap(Map<String, dynamic> map) {
     return Business(
       id: map['id'] as String,
-      serverId: map['server_id'] as int,
+      serverId: (map['server_id'] ?? map['serverId'] ?? 0) as int,
       name: map['name'] as String?,
       currency: map['currency'] as String?,
       categoryId: map['category_id'] as String?,
-      latitude: map['latitude'] as String?,
-      longitude: map['longitude'] as String?,
-      userId: map['user_id'] is String
-          ? int.parse(map['user_id'])
-          : map['user_id'] as int,
+      latitude: map['latitude'] as num?,
+      longitude: map['longitude'] as num?,
+      userId: map['user_id'] is int
+          ? map['user_id'].toString()
+          : map['user_id'] as String?,
       timeZone: map['time_zone'] as String?,
       country: map['country'] as String?,
       businessUrl: map['business_url'] as String?,
@@ -264,13 +262,10 @@ class Business extends OfflineFirstWithSupabaseModel {
       taxEnabled: map['tax_enabled'] as bool?,
       taxServerUrl: map['tax_server_url'] as String?,
       isDefault: map['is_default'] as bool?,
-      businessTypeId: map['business_type_id'] as int?,
-      lastTouched: map['last_touched'] == null
-          ? null
-          : DateTime.tryParse(map['last_touched'].toString()),
-      deletedAt: map['deleted_at'] == null
-          ? null
-          : DateTime.tryParse(map['deleted_at'].toString()),
+      businessTypeId: map['business_type_id'] is int
+          ? map['business_type_id'].toString()
+          : map['business_type_id'] as String?,
+      referredBy: map['referred_by'] as String?,
       encryptionKey: map['encryption_key'] as String?,
       phoneNumber: map['phone_number'] as String?,
       messagingChannels: map['messaging_channels'] as String?,
@@ -318,8 +313,7 @@ class Business extends OfflineFirstWithSupabaseModel {
       'taxServerUrl': taxServerUrl,
       'isDefault': isDefault,
       'businessTypeId': businessTypeId,
-      'lastTouched': lastTouched,
-      'deletedAt': deletedAt,
+      'referredBy': referredBy,
       'encryptionKey': encryptionKey,
       'phoneNumber': phoneNumber,
       'messaging_channels': messagingChannels,

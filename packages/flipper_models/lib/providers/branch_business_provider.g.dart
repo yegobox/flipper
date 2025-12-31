@@ -16,7 +16,7 @@ final class BranchesProvider extends $FunctionalProvider<
         AsyncValue<List<Branch>>, List<Branch>, FutureOr<List<Branch>>>
     with $FutureModifier<List<Branch>>, $FutureProvider<List<Branch>> {
   const BranchesProvider._(
-      {required BranchesFamily super.from, required int? super.argument})
+      {required BranchesFamily super.from, required String? super.argument})
       : super(
           retry: null,
           name: r'branchesProvider',
@@ -43,7 +43,7 @@ final class BranchesProvider extends $FunctionalProvider<
 
   @override
   FutureOr<List<Branch>> create(Ref ref) {
-    final argument = this.argument as int?;
+    final argument = this.argument as String?;
     return branches(
       ref,
       businessId: argument,
@@ -61,10 +61,10 @@ final class BranchesProvider extends $FunctionalProvider<
   }
 }
 
-String _$branchesHash() => r'2bd73883d70da52709ec3d54946e89664fd7aafe';
+String _$branchesHash() => r'344c0eb98151642c1129b80d0d360ade06580716';
 
 final class BranchesFamily extends $Family
-    with $FunctionalFamilyOverride<FutureOr<List<Branch>>, int?> {
+    with $FunctionalFamilyOverride<FutureOr<List<Branch>>, String?> {
   const BranchesFamily._()
       : super(
           retry: null,
@@ -75,7 +75,7 @@ final class BranchesFamily extends $Family
         );
 
   BranchesProvider call({
-    int? businessId,
+    String? businessId,
   }) =>
       BranchesProvider._(argument: businessId, from: this);
 

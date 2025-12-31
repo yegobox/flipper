@@ -9,7 +9,7 @@ Future<Setting> _$SettingFromSupabase(
   return Setting(
     id: data['id'] as String?,
     email: data['email'] == null ? null : data['email'] as String?,
-    userId: data['user_id'] == null ? null : data['user_id'] as int?,
+    userId: data['user_id'] == null ? null : data['user_id'] as String?,
     openReceiptFileOSaleComplete:
         data['open_receipt_file_o_sale_complete'] == null
         ? null
@@ -44,7 +44,7 @@ Future<Setting> _$SettingFromSupabase(
     hasPin: data['has_pin'] == null ? null : data['has_pin'] as bool?,
     businessId: data['business_id'] == null
         ? null
-        : data['business_id'] as int?,
+        : data['business_id'] as String?,
     createdAt: data['created_at'] == null
         ? null
         : data['created_at'] as String?,
@@ -98,7 +98,7 @@ Future<Setting> _$SettingFromSqlite(
   return Setting(
     id: data['id'] as String,
     email: data['email'] == null ? null : data['email'] as String?,
-    userId: data['user_id'] == null ? null : data['user_id'] as int?,
+    userId: data['user_id'] == null ? null : data['user_id'] as String?,
     openReceiptFileOSaleComplete:
         data['open_receipt_file_o_sale_complete'] == null
         ? null
@@ -133,7 +133,7 @@ Future<Setting> _$SettingFromSqlite(
     hasPin: data['has_pin'] == null ? null : data['has_pin'] == 1,
     businessId: data['business_id'] == null
         ? null
-        : data['business_id'] as int?,
+        : data['business_id'] as String?,
     createdAt: data['created_at'] == null
         ? null
         : data['created_at'] as String?,
@@ -313,7 +313,7 @@ class SettingAdapter extends OfflineFirstWithSupabaseAdapter<Setting> {
       association: false,
       columnName: 'user_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'openReceiptFileOSaleComplete': const RuntimeSqliteColumnDefinition(
       association: false,
@@ -397,7 +397,7 @@ class SettingAdapter extends OfflineFirstWithSupabaseAdapter<Setting> {
       association: false,
       columnName: 'business_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'createdAt': const RuntimeSqliteColumnDefinition(
       association: false,

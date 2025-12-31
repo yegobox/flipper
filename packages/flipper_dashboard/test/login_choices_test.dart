@@ -80,9 +80,9 @@ void main() {
         id: "1",
         name: 'Business with Multiple Branches',
         serverId: 1,
-        longitude: '0',
-        latitude: '0',
-        userId: 1,
+        longitude: 0,
+        latitude: 0,
+        userId: "1",
         tinNumber: 12345,
         encryptionKey: 'test-key',
       );
@@ -90,26 +90,45 @@ void main() {
         id: "2",
         name: 'Business with Single Branch',
         serverId: 2,
-        longitude: '0',
-        latitude: '0',
-        userId: 1,
+        longitude: 0,
+        latitude: 0,
+        userId: "1",
         tinNumber: 54321,
         encryptionKey: 'another-key',
       );
-      branch1 = Branch(id: "1", name: 'Branch 1', serverId: 10, businessId: 1);
-      branch2 = Branch(id: "2", name: 'Branch 2', serverId: 20, businessId: 1);
+      branch1 = Branch(
+        id: "1",
+        name: 'Branch 1',
+        serverId: 10,
+        businessId: "1",
+      );
+      branch2 = Branch(
+        id: "2",
+        name: 'Branch 2',
+        serverId: 20,
+        businessId: "1",
+      );
 
-      when(() => mockBox.getBusinessId()).thenReturn(1);
-      when(() => mockBox.getUserId()).thenReturn(1);
-      when(() => mockBox.writeInt(
+      when(() => mockBox.getBusinessId()).thenReturn("1");
+      when(() => mockBox.getUserId()).thenReturn("1");
+      when(
+        () => mockBox.writeInt(
           key: any(named: 'key'),
-          value: any(named: 'value'))).thenAnswer((_) async => 0);
-      when(() => mockBox.writeString(
+          value: any(named: 'value'),
+        ),
+      ).thenAnswer((_) async => 0);
+      when(
+        () => mockBox.writeString(
           key: any(named: 'key'),
-          value: any(named: 'value'))).thenAnswer((_) async {});
-      when(() => mockBox.writeBool(
+          value: any(named: 'value'),
+        ),
+      ).thenAnswer((_) async {});
+      when(
+        () => mockBox.writeBool(
           key: any(named: 'key'),
-          value: any(named: 'value'))).thenAnswer((_) async {});
+          value: any(named: 'value'),
+        ),
+      ).thenAnswer((_) async {});
       when(() => mockBox.readInt(key: 'tin')).thenReturn(null);
       when(() => mockBox.bhfId()).thenAnswer((_) async => "00");
       when(() => mockBox.getDefaultApp()).thenReturn(null);
@@ -120,24 +139,24 @@ void main() {
       reset(mockDialogService);
     });
 
-    testWidgets('renders correctly and shows business choices',
-        (WidgetTester tester) async {
-      when(() => mockDbSync.businesses(userId: 1))
-          .thenAnswer((_) async => [businessWithSingleBranch]);
+    testWidgets('renders correctly and shows business choices', (
+      WidgetTester tester,
+    ) async {
+      when(
+        () => mockDbSync.businesses(userId: "1"),
+      ).thenAnswer((_) async => [businessWithSingleBranch]);
 
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
             businessesProvider.overrideWith(
-                (ref) => Future.value([businessWithSingleBranch])),
-            branchesProvider(businessId: 1)
-                .overrideWith((ref) => Future.value([])),
-          ],
-          child: const TestApp(
-            child: Scaffold(
-              body: LoginChoices(),
+              (ref) => Future.value([businessWithSingleBranch]),
             ),
-          ),
+            branchesProvider(
+              businessId: "1",
+            ).overrideWith((ref) => Future.value([])),
+          ],
+          child: const TestApp(child: Scaffold(body: LoginChoices())),
         ),
       );
 
@@ -149,229 +168,296 @@ void main() {
     });
 
     testWidgets(
-        'navigates to branch selection when a business with multiple branches is tapped',
-        (WidgetTester tester) async {
-      // Mock data setup
-      final business = businessWithMultipleBranches;
-      final branches = [branch1, branch2];
+      'navigates to branch selection when a business with multiple branches is tapped',
+      (WidgetTester tester) async {
+        // Mock data setup
+        final business = businessWithMultipleBranches;
+        final branches = [branch1, branch2];
 
-      // Mock initial businesses fetch
-      when(() => mockDbSync.businesses(userId: 1))
-          .thenAnswer((_) async => [business]);
+        // Mock initial businesses fetch
+        when(
+          () => mockDbSync.businesses(userId: "1"),
+        ).thenAnswer((_) async => [business]);
 
-      // Mock branches fetch
-      when(() =>
-              mockDbSync.branches(businessId: business.serverId, active: false))
-          .thenAnswer((_) async => branches);
-      when(() =>
-              mockDbSync.branches(businessId: business.serverId, active: true))
-          .thenAnswer((_) async => []);
+        // Mock branches fetch
+        when(
+          () => mockDbSync.branches(businessId: business.id, active: false),
+        ).thenAnswer((_) async => branches);
+        when(
+          () => mockDbSync.branches(businessId: business.id, active: true),
+        ).thenAnswer((_) async => []);
 
-      // Mock business updates
-      when(() => mockDbSync.updateBusiness(
+        // Mock business updates
+        when(
+          () => mockDbSync.updateBusiness(
             businessId: any(named: 'businessId'),
             active: false,
             isDefault: false,
-          )).thenAnswer((_) async {});
-      when(() => mockDbSync.updateBusiness(
-            businessId: business.serverId,
+          ),
+        ).thenAnswer((_) async {});
+        when(
+          () => mockDbSync.updateBusiness(
+            businessId: business.id,
             active: true,
             isDefault: true,
-          )).thenAnswer((_) async {});
+          ),
+        ).thenAnswer((_) async {});
 
-      when(() => mockDbSync.getPaymentPlan(
+        when(
+          () => mockDbSync.getPaymentPlan(
             businessId: business.id,
             fetchOnline: true,
-          )).thenAnswer((_) async => null);
-
-      // Mock storage writes
-      when(() => mockBox.writeInt(key: 'businessId', value: business.serverId))
-          .thenAnswer((_) async => 0);
-      when(() => mockBox.writeInt(key: 'tin', value: business.tinNumber!))
-          .thenAnswer((_) async => 0);
-      when(() => mockBox.writeString(
-          key: 'encryptionKey',
-          value: business.encryptionKey!)).thenAnswer((_) async {});
-
-      // Initial business ID
-      when(() => mockBox.getBusinessId()).thenReturn(1);
-
-      final container = ProviderContainer(
-        overrides: [
-          businessesProvider.overrideWith((ref) => Future.value([business])),
-          branchesProvider(businessId: null)
-              .overrideWith((ref) => Future.value([])),
-          branchesProvider(businessId: business.serverId)
-              .overrideWith((ref) => Future.value(branches)),
-        ],
-      );
-
-      await tester.pumpWidget(
-        UncontrolledProviderScope(
-          container: container,
-          child: const TestApp(
-            child: Scaffold(
-              body: LoginChoices(),
-            ),
           ),
-        ),
-      );
+        ).thenAnswer((_) async => null);
 
-      // Wait for initial load
-      await tester.pumpAndSettle();
+        // Mock storage writes
+        when(
+          () => mockBox.writeString(key: 'businessId', value: business.id),
+        ).thenAnswer((_) async => 0);
+        when(
+          () => mockBox.writeInt(key: 'tin', value: business.tinNumber!),
+        ).thenAnswer((_) async => 0);
+        when(
+          () => mockBox.writeString(
+            key: 'encryptionKey',
+            value: business.encryptionKey!,
+          ),
+        ).thenAnswer((_) async {});
 
-      // Verify initial UI - business list is shown
-      expect(find.text(business.name!), findsOneWidget);
+        // Initial business ID
+        when(() => mockBox.getBusinessId()).thenReturn("1");
 
-      // Tap the business
-      await tester.tap(find.text(business.name!));
+        final container = ProviderContainer(
+          overrides: [
+            businessesProvider.overrideWith((ref) => Future.value([business])),
+            branchesProvider(
+              businessId: null,
+            ).overrideWith((ref) => Future.value([])),
+            branchesProvider(
+              businessId: business.id,
+            ).overrideWith((ref) => Future.value(branches)),
+          ],
+        );
 
-      // Wait for all animations and async operations to complete
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(
+          UncontrolledProviderScope(
+            container: container,
+            child: const TestApp(child: Scaffold(body: LoginChoices())),
+          ),
+        );
 
-      // Verify branch selection UI
-      expect(find.text('Choose a Branch'), findsOneWidget);
-      expect(find.text('Branch 1'), findsOneWidget);
-      expect(find.text('Branch 2'), findsOneWidget);
-    });
+        // Wait for initial load
+        await tester.pumpAndSettle();
+
+        // Verify initial UI - business list is shown
+        expect(find.text(business.name!), findsOneWidget);
+
+        // Tap the business
+        await tester.tap(find.text(business.name!));
+
+        // Wait for all animations and async operations to complete
+        await tester.pumpAndSettle();
+
+        // Verify branch selection UI
+        expect(find.text('Choose a Branch'), findsOneWidget);
+        expect(find.text('Branch 1'), findsOneWidget);
+        expect(find.text('Branch 2'), findsOneWidget);
+      },
+    );
 
     testWidgets(
-        'completes login flow when a business with a single branch is tapped',
-        (WidgetTester tester) async {
-      // Arrange
-      when(() => mockDbSync.businesses(userId: 1))
-          .thenAnswer((_) async => [businessWithSingleBranch]);
+      'completes login flow when a business with a single branch is tapped',
+      (WidgetTester tester) async {
+        // Arrange
+        when(
+          () => mockDbSync.businesses(userId: "1"),
+        ).thenAnswer((_) async => [businessWithSingleBranch]);
 
-      when(() => mockDbSync.branches(
-          businessId: businessWithSingleBranch.serverId,
-          active: false)).thenAnswer((_) async => [branch1]);
-      when(() => mockDbSync.branches(
-          businessId: businessWithSingleBranch.serverId,
-          active: true)).thenAnswer((_) async => []);
+        when(
+          () => mockDbSync.branches(
+            businessId: businessWithSingleBranch.id,
+            active: false,
+          ),
+        ).thenAnswer((_) async => [branch1]);
+        when(
+          () => mockDbSync.branches(
+            businessId: businessWithSingleBranch.id,
+            active: true,
+          ),
+        ).thenAnswer((_) async => []);
 
-      when(() => mockDbSync.updateBusiness(
+        when(
+          () => mockDbSync.updateBusiness(
             businessId: any(named: 'businessId'),
             active: false,
             isDefault: false,
-          )).thenAnswer((_) async {});
-      when(() => mockDbSync.updateBusiness(
-            businessId: businessWithSingleBranch.serverId,
+          ),
+        ).thenAnswer((_) async {});
+        when(
+          () => mockDbSync.updateBusiness(
+            businessId: businessWithSingleBranch.id,
             active: true,
             isDefault: true,
-          )).thenAnswer((_) async {});
+          ),
+        ).thenAnswer((_) async {});
 
-      when(() => mockDbSync.getPaymentPlan(
+        when(
+          () => mockDbSync.getPaymentPlan(
             businessId: businessWithSingleBranch.id,
             fetchOnline: true,
-          )).thenAnswer((_) async => null);
+          ),
+        ).thenAnswer((_) async => null);
 
-      when(() => mockDbSync.updateBranch(
+        when(
+          () => mockDbSync.updateBranch(
             branchId: any(named: 'branchId'),
             active: false,
             isDefault: false,
-          )).thenAnswer((_) async {});
-      when(() => mockDbSync.updateBranch(
-            branchId: branch1.serverId!,
+          ),
+        ).thenAnswer((_) async {});
+        when(
+          () => mockDbSync.updateBranch(
+            branchId: branch1.id,
             active: true,
             isDefault: true,
-          )).thenAnswer((_) async {});
+          ),
+        ).thenAnswer((_) async {});
 
-      when(() =>
-              mockBox.writeInt(key: 'businessId', value: any(named: 'value')))
-          .thenAnswer((_) async => 0);
-      when(() => mockBox.writeInt(key: 'tin', value: any(named: 'value')))
-          .thenAnswer((_) async => 0);
-      when(() => mockBox.writeString(
-          key: 'encryptionKey',
-          value: any(named: 'value'))).thenAnswer((_) async {});
+        when(
+          () => mockBox.writeInt(
+            key: 'businessId',
+            value: any(named: 'value'),
+          ),
+        ).thenAnswer((_) async => 0);
+        when(
+          () => mockBox.writeInt(
+            key: 'tin',
+            value: any(named: 'value'),
+          ),
+        ).thenAnswer((_) async => 0);
+        when(
+          () => mockBox.writeString(
+            key: 'encryptionKey',
+            value: any(named: 'value'),
+          ),
+        ).thenAnswer((_) async {});
 
-      when(() => mockBox.writeInt(key: 'branchId', value: any(named: 'value')))
-          .thenAnswer((_) async => 0);
-      when(() => mockBox.writeString(
-          key: 'branchIdString',
-          value: any(named: 'value'))).thenAnswer((_) async {});
-      when(() => mockBox.writeBool(key: 'branch_switched', value: true))
-          .thenAnswer((_) async {});
-      when(() => mockBox.writeInt(
-          key: 'last_branch_switch_timestamp',
-          value: any(named: 'value'))).thenAnswer((_) async => 0);
-      when(() => mockBox.writeInt(
-          key: 'active_branch_id',
-          value: any(named: 'value'))).thenAnswer((_) async => 0);
-      when(() => mockBox.writeBool(
-          key: 'branch_navigation_in_progress',
-          value: any(named: 'value'))).thenAnswer((_) async {});
+        when(
+          () => mockBox.writeInt(
+            key: 'branchId',
+            value: any(named: 'value'),
+          ),
+        ).thenAnswer((_) async => 0);
+        when(
+          () => mockBox.writeString(
+            key: 'branchIdString',
+            value: any(named: 'value'),
+          ),
+        ).thenAnswer((_) async {});
+        when(
+          () => mockBox.writeBool(key: 'branch_switched', value: true),
+        ).thenAnswer((_) async {});
+        when(
+          () => mockBox.writeInt(
+            key: 'last_branch_switch_timestamp',
+            value: any(named: 'value'),
+          ),
+        ).thenAnswer((_) async => 0);
+        when(
+          () => mockBox.writeInt(
+            key: 'active_branch_id',
+            value: any(named: 'value'),
+          ),
+        ).thenAnswer((_) async => 0);
+        when(
+          () => mockBox.writeBool(
+            key: 'branch_navigation_in_progress',
+            value: any(named: 'value'),
+          ),
+        ).thenAnswer((_) async {});
 
-      when(() => mockBox.getBusinessId())
-          .thenReturn(businessWithSingleBranch.serverId);
-      when(() => mockBox.getUserId()).thenReturn(1);
+        when(
+          () => mockBox.getBusinessId(),
+        ).thenReturn(businessWithSingleBranch.id);
+        when(() => mockBox.getUserId()).thenReturn("1");
 
-      when(() => mockRouterService.navigateTo(any()))
-          .thenAnswer((invocation) async {
-        final route = invocation.positionalArguments[0] as PageRouteInfo;
-        expect(route, isA<FlipperAppRoute>());
-        return null;
-      });
+        when(() => mockRouterService.navigateTo(any())).thenAnswer((
+          invocation,
+        ) async {
+          final route = invocation.positionalArguments[0] as PageRouteInfo;
+          expect(route, isA<FlipperAppRoute>());
+          return null;
+        });
 
-      when(() => mockBox.getDefaultApp()).thenReturn('POS');
-      when(() => mockDbSync.getCurrentShift(userId: 1))
-          .thenAnswer((_) async => null);
-      when(() => mockDialogService.showCustomDialog(
+        when(() => mockBox.getDefaultApp()).thenReturn('POS');
+        when(
+          () => mockDbSync.getCurrentShift(userId: "1"),
+        ).thenAnswer((_) async => null);
+        when(
+          () => mockDialogService.showCustomDialog(
             variant: DialogType.startShift,
             title: 'Start New Shift',
             description: any(named: 'description'),
             mainButtonTitle: any(named: 'mainButtonTitle'),
             secondaryButtonTitle: any(named: 'secondaryButtonTitle'),
             data: any(named: 'data'),
-          )).thenAnswer((_) async => DialogResponse(
+          ),
+        ).thenAnswer(
+          (_) async => DialogResponse(
             confirmed: true,
             data: {'openingBalance': 100.0, 'notes': 'Test shift'},
-          ));
-      when(() => mockDbSync.startShift(
-            userId: 1,
+          ),
+        );
+        when(
+          () => mockDbSync.startShift(
+            userId: "1",
             openingBalance: 100.0,
             note: 'Test shift',
-          )).thenAnswer((_) async => Shift(
-            id: 'shift1',
-            userId: 1,
-            openingBalance: 100.0,
-            businessId: businessWithSingleBranch.serverId,
-            startAt: DateTime.now(),
-          ));
-
-      await tester.pumpWidget(
-        ProviderScope(
-          overrides: [
-            businessesProvider.overrideWith(
-                (ref) => Future.value([businessWithSingleBranch])),
-            branchesProvider(businessId: 1)
-                .overrideWith((ref) => Future.value([branch1])),
-          ],
-          child: const TestApp(
-            child: Scaffold(
-              body: LoginChoices(),
-            ),
           ),
-        ),
-      );
+        ).thenAnswer(
+          (_) async => Shift(
+            id: 'shift1',
+            userId: "1",
+            openingBalance: 100.0,
+            businessId: businessWithSingleBranch.id,
+            startAt: DateTime.now(),
+          ),
+        );
 
-      await tester.pumpAndSettle();
+        await tester.pumpWidget(
+          ProviderScope(
+            overrides: [
+              businessesProvider.overrideWith(
+                (ref) => Future.value([businessWithSingleBranch]),
+              ),
+              branchesProvider(
+                businessId: "1",
+              ).overrideWith((ref) => Future.value([branch1])),
+            ],
+            child: const TestApp(child: Scaffold(body: LoginChoices())),
+          ),
+        );
 
-      expect(find.text('Business with Single Branch'), findsOneWidget);
+        await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Business with Single Branch'));
+        expect(find.text('Business with Single Branch'), findsOneWidget);
 
-      await tester.pumpAndSettle();
+        await tester.tap(find.text('Business with Single Branch'));
 
-      verify(() => mockDbSync.getPaymentPlan(
+        await tester.pumpAndSettle();
+
+        verify(
+          () => mockDbSync.getPaymentPlan(
             businessId: businessWithSingleBranch.id,
             fetchOnline: true,
-          )).called(1);
+          ),
+        ).called(1);
 
-      verify(() =>
-              mockRouterService.navigateTo(any(that: isA<FlipperAppRoute>())))
-          .called(1);
-      expect(find.text('Choose a Branch'), findsNothing);
-    });
+        verify(
+          () => mockRouterService.navigateTo(any(that: isA<FlipperAppRoute>())),
+        ).called(1);
+        expect(find.text('Choose a Branch'), findsNothing);
+      },
+    );
   });
 }

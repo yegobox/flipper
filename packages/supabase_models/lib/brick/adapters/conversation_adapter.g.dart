@@ -9,7 +9,7 @@ Future<Conversation> _$ConversationFromSupabase(
   return Conversation(
     id: data['id'] as String?,
     title: data['title'] as String,
-    branchId: data['branch_id'] as int,
+    branchId: data['branch_id'] as String,
     createdAt: data['created_at'] == null
         ? null
         : data['created_at'] == null
@@ -47,7 +47,7 @@ Future<Conversation> _$ConversationFromSqlite(
   return Conversation(
     id: data['id'] as String,
     title: data['title'] as String,
-    branchId: data['branch_id'] as int,
+    branchId: data['branch_id'] as String,
     createdAt: data['created_at'] == null
         ? null
         : data['created_at'] == null
@@ -159,7 +159,7 @@ class ConversationAdapter
       association: false,
       columnName: 'branch_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'createdAt': const RuntimeSqliteColumnDefinition(
       association: false,

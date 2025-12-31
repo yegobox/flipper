@@ -15,7 +15,7 @@ class Favorite extends OfflineFirstWithSupabaseModel {
 
   // @Sqlite(unique: true)
   String? productId;
-  int? branchId;
+  String? branchId;
 
   DateTime? lastTouched;
 

@@ -43,7 +43,7 @@ mixin CoreMiscellaneous implements CoreMiscellaneousInterface {
   /// Returns true if userId exists and is valid, false otherwise
   bool isUserIdSet() {
     final userId = ProxyService.box.getUserId();
-    return userId != null && userId > 0;
+    return userId != null && userId.isNotEmpty;
   }
 
   /// Validates if userId is set and calls the onInvalid callback if not
@@ -205,9 +205,9 @@ mixin CoreMiscellaneous implements CoreMiscellaneousInterface {
             List<Business> businesses =
                 await ProxyService.strategy.businesses(userId: userId);
             for (Business business in businesses) {
-              if (business.serverId != businessId) {
+              if (business.id != businessId) {
                 await ProxyService.strategy.updateBusiness(
-                  businessId: business.serverId,
+                  businessId: business.id,
                   active: false,
                   isDefault: false,
                 );
@@ -216,9 +216,9 @@ mixin CoreMiscellaneous implements CoreMiscellaneousInterface {
             List<Branch> branches =
                 await ProxyService.strategy.branches(businessId: businessId);
             for (Branch branch in branches) {
-              if (branch.serverId != branchId) {
+              if (branch.id != branchId) {
                 await ProxyService.strategy.updateBranch(
-                  branchId: branch.serverId!,
+                  branchId: branch.id!,
                   active: false,
                   isDefault: false,
                 );

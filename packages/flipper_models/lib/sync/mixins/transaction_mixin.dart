@@ -21,7 +21,7 @@ mixin TransactionMixin implements TransactionInterface {
 
   @override
   Stream<ITransaction> pendingTransaction({
-    int? branchId,
+    String? branchId,
     required bool isExpense,
     required String transactionType,
     bool forceRealData = true,
@@ -29,7 +29,7 @@ mixin TransactionMixin implements TransactionInterface {
     if (!forceRealData) {
       return Stream.value(DummyTransactionGenerator.generateDummyTransactions(
         count: 1,
-        branchId: branchId ?? 1,
+        branchId: branchId ?? "",
         status: PENDING,
         transactionType: transactionType,
         withItems: false,
@@ -53,7 +53,7 @@ mixin TransactionMixin implements TransactionInterface {
     DateTime? endDate,
     String? status,
     String? transactionType,
-    int? branchId,
+    String? branchId,
     bool isCashOut = false,
     bool fetchRemote = false,
     String? id,
@@ -69,7 +69,7 @@ mixin TransactionMixin implements TransactionInterface {
     if (!forceRealData) {
       return DummyTransactionGenerator.generateDummyTransactions(
         count: 10,
-        branchId: branchId ?? 1,
+        branchId: branchId ?? "",
         status: status,
         transactionType: transactionType,
       );
@@ -150,7 +150,7 @@ mixin TransactionMixin implements TransactionInterface {
       return DummyTransactionGenerator.generateDummyTransactions(
         count: 100,
         branchId:
-            branchId ?? 0, // Provide a default or handle null appropriately
+            branchId ?? "", // Provide a default or handle null appropriately
         status: status,
         transactionType: transactionType,
       );
@@ -171,7 +171,7 @@ mixin TransactionMixin implements TransactionInterface {
     DateTime? endDate,
     String? status,
     String? transactionType,
-    int? branchId,
+    String? branchId,
     bool isCashOut = false,
     bool fetchRemote = false,
     String? id,
@@ -262,7 +262,7 @@ mixin TransactionMixin implements TransactionInterface {
   }
 
   @override
-  Future<List<Configurations>> taxes({required int branchId}) async {
+  Future<List<Configurations>> taxes({required String branchId}) async {
     return await repository.get<Configurations>(
       query: Query(where: [
         Where('branchId').isExactly(branchId),
@@ -294,7 +294,7 @@ mixin TransactionMixin implements TransactionInterface {
   }
 
   Future<ITransaction?> _pendingTransaction({
-    required int branchId,
+    required String branchId,
     required String transactionType,
     required bool isExpense,
     bool includeSubTotalCheck = true,
@@ -355,13 +355,13 @@ mixin TransactionMixin implements TransactionInterface {
   bool _isProcessingTransaction = false;
   final Lock _transactionLock = Lock();
 
-  final Map<int, bool> _isProcessingTransactionMap = {};
+  final Map<String, bool> _isProcessingTransactionMap = {};
 
   @override
   Future<ITransaction?> manageTransaction({
     required String transactionType,
     required bool isExpense,
-    required int branchId,
+    required String branchId,
     String status = PENDING,
     bool includeSubTotalCheck = false,
     String? shiftId,
@@ -432,7 +432,7 @@ mixin TransactionMixin implements TransactionInterface {
   Stream<ITransaction> manageTransactionStream({
     required String transactionType,
     required bool isExpense,
-    required int branchId,
+    required String branchId,
     bool includeSubTotalCheck = false,
   }) async* {
     _isProcessingTransactionMap[branchId] ??= false;
@@ -473,7 +473,7 @@ mixin TransactionMixin implements TransactionInterface {
 
 // Extracted helper method to reduce duplication
   Future<ITransaction> _getOrCreateTransaction({
-    required int branchId,
+    required String branchId,
     required bool isExpense,
     required String transactionType,
   }) async {
@@ -940,7 +940,7 @@ mixin TransactionMixin implements TransactionInterface {
   @override
   Future<ITransaction?> getTransaction(
       {String? sarNo,
-      required int branchId,
+      required String branchId,
       String? id,
       bool awaitRemote = false}) async {
     try {
@@ -970,7 +970,7 @@ mixin TransactionMixin implements TransactionInterface {
   Stream<List<ITransaction>> transactionsStream({
     String? status,
     String? transactionType,
-    int? branchId,
+    String? branchId,
     bool isCashOut = false,
     String? id,
     required bool removeAdjustmentTransactions,
@@ -984,7 +984,7 @@ mixin TransactionMixin implements TransactionInterface {
     if (!forceRealData) {
       return Stream.value(DummyTransactionGenerator.generateDummyTransactions(
         count: 100,
-        branchId: branchId ?? 1,
+        branchId: branchId ?? "",
         status: status,
         transactionType: transactionType,
       ));
@@ -1056,7 +1056,7 @@ mixin TransactionMixin implements TransactionInterface {
     if (ProxyService.box.enableDebug() ?? false) {
       return Stream.value(DummyTransactionGenerator.generateDummyTransactions(
         count: 100,
-        branchId: branchId ?? 0,
+        branchId: branchId ?? "",
         status: status,
         transactionType: transactionType,
       ));
@@ -1077,20 +1077,20 @@ mixin TransactionMixin implements TransactionInterface {
   }
 
   @override
-  Future<bool> migrateToNewDateTime({required int branchId}) async {
+  Future<bool> migrateToNewDateTime({required String branchId}) async {
     return true;
   }
 
   @override
   Future<ITransaction?> pendingTransactionFuture(
-      {int? branchId,
+      {String? branchId,
       required String transactionType,
       bool forceRealData = true,
       required bool isExpense}) async {
     if (!forceRealData) {
       return DummyTransactionGenerator.generateDummyTransactions(
         count: 1,
-        branchId: branchId ?? 1,
+        branchId: branchId ?? "",
         status: PENDING,
         transactionType: transactionType,
       ).firstOrNull;
@@ -1110,7 +1110,7 @@ mixin TransactionMixin implements TransactionInterface {
 // Stock In/Out
 
   @override
-  Future<Sar?> getSar({required int branchId}) async {
+  Future<Sar?> getSar({required String branchId}) async {
     return (await repository.get<Sar>(
       query: Query(orderBy: [
         const OrderBy('createdAt', ascending: false)

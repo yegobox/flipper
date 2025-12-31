@@ -11,7 +11,7 @@ class MfaProvider {
     required IPin pin,
     required String code,
   }) async {
-    final int? userId = int.tryParse(pin.userId);
+    final String? userId = pin.userId;
     if (userId == null) {
       return false;
     }

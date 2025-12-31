@@ -27,13 +27,15 @@ import 'package:supabase_models/brick/repository.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:supabase_models/brick/models/message.model.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
+import 'package:supabase_models/brick/models/stock.model.dart';
+// ignore: unused_import, unused_shown_name, unnecessary_import
+import 'package:supabase_models/brick/models/transactionItem.model.dart';
+// ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:supabase_models/brick/models/finance_provider.model.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:supabase_models/brick/models/branch.model.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:supabase_models/brick/models/financing.model.dart';
-// ignore: unused_import, unused_shown_name, unnecessary_import
-import 'package:supabase_models/brick/models/transactionItem.model.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:supabase_models/brick/models/plan_addon.model.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
@@ -41,9 +43,7 @@ import 'package:flipper_models/helperModels/random.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:supabase_models/brick/models/composite.model.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
-import 'package:supabase_models/brick/models/variant.model.dart';
-// ignore: unused_import, unused_shown_name, unnecessary_import
-import 'package:supabase_models/brick/models/stock.model.dart';// GENERATED CODE DO NOT EDIT
+import 'package:supabase_models/brick/models/variant.model.dart';// GENERATED CODE DO NOT EDIT
 // ignore: unused_import
 import 'dart:convert';
 import 'package:brick_sqlite/brick_sqlite.dart' show SqliteModel, SqliteAdapter, SqliteModelDictionary, RuntimeSqliteColumnDefinition, SqliteProvider;
@@ -61,6 +61,7 @@ import '../brick/models/branch.model.dart';
 import '../brick/models/branch_sms_config.model.dart';
 import '../brick/models/business.model.dart';
 import '../brick/models/business_analytic.model.dart';
+import '../brick/models/business_type.model.dart';
 import '../brick/models/category.model.dart';
 import '../brick/models/color.model.dart';
 import '../brick/models/composite.model.dart';
@@ -119,6 +120,7 @@ part 'adapters/branch_adapter.g.dart';
 part 'adapters/branch_sms_config_adapter.g.dart';
 part 'adapters/business_adapter.g.dart';
 part 'adapters/business_analytic_adapter.g.dart';
+part 'adapters/business_type_adapter.g.dart';
 part 'adapters/category_adapter.g.dart';
 part 'adapters/p_color_adapter.g.dart';
 part 'adapters/composite_adapter.g.dart';
@@ -179,6 +181,7 @@ final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
   BranchSmsConfig: BranchSmsConfigAdapter(),
   Business: BusinessAdapter(),
   BusinessAnalytic: BusinessAnalyticAdapter(),
+  BusinessType: BusinessTypeAdapter(),
   Category: CategoryAdapter(),
   PColor: PColorAdapter(),
   Composite: CompositeAdapter(),
@@ -241,6 +244,7 @@ final Map<Type, SqliteAdapter<SqliteModel>> sqliteMappings = {
   BranchSmsConfig: BranchSmsConfigAdapter(),
   Business: BusinessAdapter(),
   BusinessAnalytic: BusinessAnalyticAdapter(),
+  BusinessType: BusinessTypeAdapter(),
   Category: CategoryAdapter(),
   PColor: PColorAdapter(),
   Composite: CompositeAdapter(),

@@ -1,10 +1,24 @@
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:uuid/uuid.dart';
+import 'package:supabase_models/sync/ditto_sync_adapter.dart';
+import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
+import 'package:supabase_models/sync/ditto_sync_generated.dart';
+import 'package:brick_offline_first/brick_offline_first.dart';
+import 'package:supabase_models/brick/repository.dart';
+import 'package:brick_ditto_generators/ditto_sync_adapter.dart';
+import 'package:flutter/foundation.dart' hide Category;
+
+part 'customer.model.ditto_sync_adapter.g.dart';
 
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'customers'),
+)
+@DittoAdapter(
+  'customers',
+  syncDirection: SyncDirection.bidirectional,
 )
 class Customer extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
@@ -19,7 +33,7 @@ class Customer extends OfflineFirstWithSupabaseModel {
 
   /// address
   String? adrs;
-  int? branchId;
+  String? branchId;
   DateTime? updatedAt;
   // Customer Number
   String? custNo;
@@ -100,7 +114,7 @@ class Customer extends OfflineFirstWithSupabaseModel {
     String? email,
     String? telNo,
     String? adrs,
-    int? branchId,
+    String? branchId,
     DateTime? updatedAt,
     String? custNo,
     String? custTin,

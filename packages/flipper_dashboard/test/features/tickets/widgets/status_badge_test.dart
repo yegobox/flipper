@@ -9,8 +9,8 @@ void main() {
   group('TicketCard Status Badge Tests', () {
     testWidgets('displays status badge with PARKED status', (tester) async {
       final ticket = ITransaction(
-        agentId: 1,
-        branchId: 1,
+        agentId: "1",
+        branchId: "",
         status: PARKED,
         transactionType: 'test',
         paymentType: 'test',
@@ -40,8 +40,8 @@ void main() {
 
     testWidgets('displays status badge with WAITING status', (tester) async {
       final ticket = ITransaction(
-        agentId: 1,
-        branchId: 1,
+        agentId: "1",
+        branchId: "",
         status: WAITING,
         transactionType: 'test',
         paymentType: 'test',
@@ -73,8 +73,8 @@ void main() {
       tester,
     ) async {
       final ticket = ITransaction(
-        agentId: 1,
-        branchId: 1,
+        agentId: "1",
+        branchId: "",
         status: IN_PROGRESS,
         transactionType: 'test',
         paymentType: 'test',

@@ -39,7 +39,7 @@ class Purchase extends OfflineFirstWithSupabaseModel {
   final num totTaxblAmt;
   final num totTaxAmt;
   final num totAmt;
-  int? branchId;
+  String? branchId;
   final String? remark;
   bool? hasUnApprovedVariant;
   int? approved;

@@ -60,7 +60,7 @@ Future<TotalItemsData> pendingOrders(Ref ref) async {
 
 /// Parameters for expired items provider
 class ExpiredItemsParams extends Equatable {
-  final int? branchId;
+  final String? branchId;
   final int? daysToExpiry;
   final int? limit;
 
@@ -76,7 +76,7 @@ class ExpiredItemsParams extends Equatable {
 
 /// Parameters for near expiry items provider
 class NearExpiryItemsParams extends Equatable {
-  final int? branchId;
+  final String? branchId;
   final int daysToExpiry;
   final int? limit;
 

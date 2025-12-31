@@ -17,14 +17,24 @@ Future<Branch> _$BranchFromSupabase(
     active: data['active'] == null ? null : data['active'] as bool?,
     businessId: data['business_id'] == null
         ? null
-        : data['business_id'] as int?,
-    latitude: data['latitude'] == null ? null : data['latitude'] as String?,
-    longitude: data['longitude'] == null ? null : data['longitude'] as String?,
+        : data['business_id'] as String?,
+    latitude: data['latitude'] == null ? null : data['latitude'] as num?,
+    longitude: data['longitude'] == null ? null : data['longitude'] as num?,
     isDefault: data['is_default'] == null ? null : data['is_default'] as bool?,
     isOnline: data['is_online'] == null ? null : data['is_online'] as bool?,
     tinNumber: data['tin_number'] == null
         ? null
         : data['tin_number'] as String?,
+    deletedAt: data['deleted_at'] == null
+        ? null
+        : data['deleted_at'] == null
+        ? null
+        : DateTime.tryParse(data['deleted_at'] as String),
+    updatedAt: data['updated_at'] == null
+        ? null
+        : data['updated_at'] == null
+        ? null
+        : DateTime.tryParse(data['updated_at'] as String),
   );
 }
 
@@ -46,6 +56,8 @@ Future<Map<String, dynamic>> _$BranchToSupabase(
     'is_default': instance.isDefault,
     'is_online': instance.isOnline,
     'tin_number': instance.tinNumber,
+    'deleted_at': instance.deletedAt?.toIso8601String(),
+    'updated_at': instance.updatedAt?.toIso8601String(),
   };
 }
 
@@ -65,14 +77,24 @@ Future<Branch> _$BranchFromSqlite(
     active: data['active'] == null ? null : data['active'] == 1,
     businessId: data['business_id'] == null
         ? null
-        : data['business_id'] as int?,
-    latitude: data['latitude'] == null ? null : data['latitude'] as String?,
-    longitude: data['longitude'] == null ? null : data['longitude'] as String?,
+        : data['business_id'] as String?,
+    latitude: data['latitude'] == null ? null : data['latitude'] as num?,
+    longitude: data['longitude'] == null ? null : data['longitude'] as num?,
     isDefault: data['is_default'] == null ? null : data['is_default'] == 1,
     isOnline: data['is_online'] == null ? null : data['is_online'] == 1,
     tinNumber: data['tin_number'] == null
         ? null
         : data['tin_number'] as String?,
+    deletedAt: data['deleted_at'] == null
+        ? null
+        : data['deleted_at'] == null
+        ? null
+        : DateTime.tryParse(data['deleted_at'] as String),
+    updatedAt: data['updated_at'] == null
+        ? null
+        : data['updated_at'] == null
+        ? null
+        : DateTime.tryParse(data['updated_at'] as String),
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -98,6 +120,8 @@ Future<Map<String, dynamic>> _$BranchToSqlite(
         ? null
         : (instance.isOnline! ? 1 : 0),
     'tin_number': instance.tinNumber,
+    'deleted_at': instance.deletedAt?.toIso8601String(),
+    'updated_at': instance.updatedAt?.toIso8601String(),
   };
 }
 
@@ -159,6 +183,14 @@ class BranchAdapter extends OfflineFirstWithSupabaseAdapter<Branch> {
       association: false,
       columnName: 'tin_number',
     ),
+    'deletedAt': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'deleted_at',
+    ),
+    'updatedAt': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'updated_at',
+    ),
   };
   @override
   final ignoreDuplicates = false;
@@ -212,19 +244,19 @@ class BranchAdapter extends OfflineFirstWithSupabaseAdapter<Branch> {
       association: false,
       columnName: 'business_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'latitude': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'latitude',
       iterable: false,
-      type: String,
+      type: num,
     ),
     'longitude': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'longitude',
       iterable: false,
-      type: String,
+      type: num,
     ),
     'isDefault': const RuntimeSqliteColumnDefinition(
       association: false,
@@ -243,6 +275,18 @@ class BranchAdapter extends OfflineFirstWithSupabaseAdapter<Branch> {
       columnName: 'tin_number',
       iterable: false,
       type: String,
+    ),
+    'deletedAt': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'deleted_at',
+      iterable: false,
+      type: DateTime,
+    ),
+    'updatedAt': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'updated_at',
+      iterable: false,
+      type: DateTime,
     ),
   };
   @override

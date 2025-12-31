@@ -13,7 +13,7 @@ class Discount extends OfflineFirstWithSupabaseModel {
 
   final String? name;
   double? amount;
-  int? branchId;
+  String? branchId;
 
   Discount({
     String? id,

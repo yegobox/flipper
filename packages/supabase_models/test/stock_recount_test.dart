@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_models/brick/models/stock_recount.model.dart';
+//flutter test test/stock_recount_test.dart  --no-test-assets --dart-define=FLUTTER_TEST_ENV=true
 
 void main() {
   group('StockRecount Model Tests', () {
@@ -7,7 +8,7 @@ void main() {
 
     setUp(() {
       recount = StockRecount(
-        branchId: 1,
+        branchId: "1",
         userId: 'user123',
         deviceId: 'device456',
         deviceName: 'Device B',
@@ -18,7 +19,7 @@ void main() {
     test('should create a StockRecount with default values', () {
       expect(recount.id, isNotNull);
       expect(recount.id.length, equals(36)); // UUID v4 format
-      expect(recount.branchId, equals(1));
+      expect(recount.branchId, equals("1"));
       expect(recount.status, equals('draft'));
       expect(recount.userId, equals('user123'));
       expect(recount.deviceId, equals('device456'));
@@ -33,10 +34,10 @@ void main() {
     test('should create a StockRecount with custom id', () {
       final customRecount = StockRecount(
         id: 'custom-id-123',
-        branchId: 2,
+        branchId: "1",
       );
       expect(customRecount.id, equals('custom-id-123'));
-      expect(customRecount.branchId, equals(2));
+      expect(customRecount.branchId, equals("1"));
     });
 
     test('should have correct status states', () {
@@ -123,7 +124,7 @@ void main() {
 
     test('should handle null values in copyWith', () {
       final recountWithNotes = StockRecount(
-        branchId: 1,
+        branchId: "",
         notes: 'Original notes',
       );
 
@@ -153,7 +154,7 @@ void main() {
     });
     test('should handle totalItemsCounted correctly', () {
       final recountWithItems = StockRecount(
-        branchId: 1,
+        branchId: "1",
         totalItemsCounted: 25,
       );
 

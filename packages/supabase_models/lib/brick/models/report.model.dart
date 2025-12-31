@@ -11,8 +11,8 @@ class Report extends OfflineFirstWithSupabaseModel {
   @Sqlite(index: true, unique: true)
   final String id;
 
-  int? branchId;
-  int? businessId;
+  String? branchId;
+  String? businessId;
   String? filename;
   String? s3Url;
   bool? downloaded = false;

@@ -194,7 +194,7 @@ mixin TransactionMixinOld {
         await ProxyService.strategy.getBusiness(businessId: businessId);
 
     final bool isEbmEnabled = await ProxyService.strategy
-        .isTaxEnabled(businessId: business!.serverId, branchId: branchId);
+        .isTaxEnabled(businessId: business!.id, branchId: branchId);
     if (isEbmEnabled) {
       try {
         ProxyService.strategy.updateTransaction(
@@ -236,7 +236,7 @@ mixin TransactionMixinOld {
       // Only fetch customer from DB if transaction has a valid customerId
       if (transaction.customerId != null &&
           transaction.customerId!.isNotEmpty) {
-        customer = (await ProxyService.strategy.customers(
+        customer = (await ProxyService.getStrategy(Strategy.capella).customers(
           id: transaction.customerId,
         ))
             .firstOrNull;

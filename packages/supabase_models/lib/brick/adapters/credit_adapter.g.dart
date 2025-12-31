@@ -15,7 +15,7 @@ Future<Credit> _$CreditFromSupabase(
     credits: data['credits'] as double,
     createdAt: DateTime.parse(data['created_at'] as String),
     updatedAt: DateTime.parse(data['updated_at'] as String),
-    branchServerId: data['branch_server_id'] as int,
+    branchServerId: data['branch_server_id'] as String,
   );
 }
 
@@ -49,7 +49,7 @@ Future<Credit> _$CreditFromSqlite(
     credits: data['credits'] as double,
     createdAt: DateTime.parse(data['created_at'] as String),
     updatedAt: DateTime.parse(data['updated_at'] as String),
-    branchServerId: data['branch_server_id'] as int,
+    branchServerId: data['branch_server_id'] as String,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -160,7 +160,7 @@ class CreditAdapter extends OfflineFirstWithSupabaseAdapter<Credit> {
       association: false,
       columnName: 'branch_server_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
   };
   @override

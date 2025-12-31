@@ -283,7 +283,7 @@ extension AccessInnerController on Widget {
       builder: (context, ref, child) {
         for (final level in accessLevels) {
           final hasAccess = ref.watch(featureAccessLevelProvider(
-              accessLevel: level, userId: ProxyService.box.getUserId() ?? 0));
+              accessLevel: level, userId: ProxyService.box.getUserId() ?? ""));
           if (hasAccess) return this;
         }
         return const SizedBox.shrink();
@@ -298,7 +298,7 @@ extension AccessControlWidget on Widget {
       builder: (context, ref, child) {
         final hasAccess = ref.watch(featureAccessProvider(
             featureName: featureName,
-            userId: ProxyService.box.getUserId() ?? 0));
+            userId: ProxyService.box.getUserId() ?? ""));
         return hasAccess ? this : SizedBox.shrink();
       },
     );

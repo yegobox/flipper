@@ -8,8 +8,8 @@ Future<Shift> _$ShiftFromSupabase(
 }) async {
   return Shift(
     id: data['id'] as String,
-    businessId: data['business_id'] as int,
-    userId: data['user_id'] as int,
+    businessId: data['business_id'] as String,
+    userId: data['user_id'] as String,
     startAt: DateTime.parse(data['start_at'] as String),
     endAt: data['end_at'] == null
         ? null
@@ -62,8 +62,8 @@ Future<Shift> _$ShiftFromSqlite(
 }) async {
   return Shift(
     id: data['id'] as String,
-    businessId: data['business_id'] as int,
-    userId: data['user_id'] as int,
+    businessId: data['business_id'] as String,
+    userId: data['user_id'] as String,
     startAt: DateTime.parse(data['start_at'] as String),
     endAt: data['end_at'] == null
         ? null
@@ -194,13 +194,13 @@ class ShiftAdapter extends OfflineFirstWithSupabaseAdapter<Shift> {
       association: false,
       columnName: 'business_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'userId': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'user_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'startAt': const RuntimeSqliteColumnDefinition(
       association: false,

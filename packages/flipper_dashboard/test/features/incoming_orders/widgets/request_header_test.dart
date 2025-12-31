@@ -24,11 +24,7 @@ void main() {
       env.injectMocks();
       env.stubCommonMethods();
 
-      mockBranch = Branch(
-        id: '1',
-        name: 'Main Branch',
-        businessId: 1,
-      );
+      mockBranch = Branch(id: '1', name: 'Main Branch', businessId: "1");
 
       mockItems = [
         TransactionItem(
@@ -68,8 +64,9 @@ void main() {
         transactionItems: mockItems,
       );
 
-      when(() => env.mockDbSync.transactionItems(requestId: '1'))
-          .thenAnswer((_) async => mockItems);
+      when(
+        () => env.mockDbSync.transactionItems(requestId: '1'),
+      ).thenAnswer((_) async => mockItems);
     });
 
     tearDown(() {
@@ -80,9 +77,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
-            home: Scaffold(
-              body: RequestHeader(request: mockRequest),
-            ),
+            home: Scaffold(body: RequestHeader(request: mockRequest)),
           ),
         ),
       );
@@ -96,9 +91,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
-            home: Scaffold(
-              body: RequestHeader(request: mockRequest),
-            ),
+            home: Scaffold(body: RequestHeader(request: mockRequest)),
           ),
         ),
       );
@@ -112,9 +105,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
-            home: Scaffold(
-              body: RequestHeader(request: mockRequest),
-            ),
+            home: Scaffold(body: RequestHeader(request: mockRequest)),
           ),
         ),
       );
@@ -128,26 +119,24 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
-            home: Scaffold(
-              body: RequestHeader(request: mockRequest),
-            ),
+            home: Scaffold(body: RequestHeader(request: mockRequest)),
           ),
         ),
       );
 
       await tester.pump();
 
-      expect(find.textContaining('13/18'),
-          findsOneWidget); // 5+8 approved / 10+8 requested
+      expect(
+        find.textContaining('13/18'),
+        findsOneWidget,
+      ); // 5+8 approved / 10+8 requested
     });
 
     testWidgets('shows loading state initially', (tester) async {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
-            home: Scaffold(
-              body: RequestHeader(request: mockRequest),
-            ),
+            home: Scaffold(body: RequestHeader(request: mockRequest)),
           ),
         ),
       );
@@ -168,9 +157,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
-            home: Scaffold(
-              body: RequestHeader(request: singleItemRequest),
-            ),
+            home: Scaffold(body: RequestHeader(request: singleItemRequest)),
           ),
         ),
       );
@@ -178,17 +165,17 @@ void main() {
       await tester.pump();
 
       expect(find.textContaining('(1 items)'), findsOneWidget);
-      expect(find.textContaining('Item'),
-          findsOneWidget); // Should show "Item" not "Items"
+      expect(
+        find.textContaining('Item'),
+        findsOneWidget,
+      ); // Should show "Item" not "Items"
     });
 
     testWidgets('has correct structure', (tester) async {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
-            home: Scaffold(
-              body: RequestHeader(request: mockRequest),
-            ),
+            home: Scaffold(body: RequestHeader(request: mockRequest)),
           ),
         ),
       );
@@ -196,8 +183,10 @@ void main() {
       await tester.pump();
 
       expect(find.byType(Row), findsNWidgets(2)); // Main row + inner row
-      expect(find.byType(Material),
-          findsNWidgets(2)); // Scaffold material + Copy button material
+      expect(
+        find.byType(Material),
+        findsNWidgets(2),
+      ); // Scaffold material + Copy button material
       expect(find.byType(InkWell), findsOneWidget); // Copy button inkwell
       expect(find.byType(Container), findsOneWidget); // Item count container
     });
@@ -213,9 +202,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
-            home: Scaffold(
-              body: RequestHeader(request: requestWithoutBranch),
-            ),
+            home: Scaffold(body: RequestHeader(request: requestWithoutBranch)),
           ),
         ),
       );
@@ -229,9 +216,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
-            home: Scaffold(
-              body: RequestHeader(request: mockRequest),
-            ),
+            home: Scaffold(body: RequestHeader(request: mockRequest)),
           ),
         ),
       );

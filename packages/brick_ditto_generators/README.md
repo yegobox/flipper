@@ -97,8 +97,8 @@ class Counter extends OfflineFirstWithSupabaseModel {
   @Sqlite(index: true, unique: true)
   String id;
   
-  int? businessId;
-  int? branchId;
+  String? businessId;
+  String? branchId;
   String? receiptType;
   
   Counter({

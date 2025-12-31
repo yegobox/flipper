@@ -9,7 +9,7 @@ Future<Sar> _$SarFromSupabase(
   return Sar(
     id: data['id'] as String?,
     sarNo: data['sar_no'] as int,
-    branchId: data['branch_id'] as int,
+    branchId: data['branch_id'] as String,
     createdAt: data['created_at'] == null
         ? null
         : DateTime.tryParse(data['created_at'] as String),
@@ -37,7 +37,7 @@ Future<Sar> _$SarFromSqlite(
   return Sar(
     id: data['id'] as String,
     sarNo: data['sar_no'] as int,
-    branchId: data['branch_id'] as int,
+    branchId: data['branch_id'] as String,
     createdAt: DateTime.parse(data['created_at'] as String),
   )..primaryKey = data['_brick_id'] as int;
 }
@@ -110,7 +110,7 @@ class SarAdapter extends OfflineFirstWithSupabaseAdapter<Sar> {
       association: false,
       columnName: 'branch_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'createdAt': const RuntimeSqliteColumnDefinition(
       association: false,

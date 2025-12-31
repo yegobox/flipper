@@ -47,19 +47,24 @@ class TestApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return ProviderScope(
       overrides: [
-        pendingTransactionStreamProvider(isExpense: false)
-            .overrideWith((ref) => Stream.value(mockTransaction)),
+        pendingTransactionStreamProvider(
+          isExpense: false,
+        ).overrideWith((ref) => Stream.value(mockTransaction)),
         // Mock the transactionItemsStreamProvider
-        transactionItemsStreamProvider(transactionId: "test_transaction_id")
-            .overrideWith((ref) => Stream.value(mockTransactionItems)),
+        transactionItemsStreamProvider(
+          transactionId: "test_transaction_id",
+        ).overrideWith((ref) => Stream.value(mockTransactionItems)),
         activeBranchProvider.overrideWith((ref) => Stream.value(mockBranch)),
-        featureAccessProvider(userId: 0, featureName: "Tickets")
-            .overrideWith((ref) => true),
-        isAdminProvider(0, featureName: "Tickets").overrideWith((ref) => true),
+        featureAccessProvider(
+          userId: "0",
+          featureName: "Tickets",
+        ).overrideWith((ref) => true),
+        isAdminProvider(
+          "0",
+          featureName: "Tickets",
+        ).overrideWith((ref) => true),
       ],
-      child: MaterialApp(
-        home: Scaffold(body: child),
-      ),
+      child: MaterialApp(home: Scaffold(body: child)),
     );
   }
 }
@@ -110,38 +115,60 @@ void main() {
     // Common mocks
     when(() => mockBoxService.isOrdering()).thenReturn(false);
     when(() => mockBoxService.defaultCurrency()).thenReturn("RWF");
-    when(() => mockBoxService.getBusinessId()).thenReturn(1);
-    when(() => mockBoxService.getBranchId()).thenReturn(1);
+    when(() => mockBoxService.getBusinessId()).thenReturn("1");
+    when(() => mockBoxService.getBranchId()).thenReturn("1");
     when(() => mockBoxService.customerTin()).thenReturn(null);
-    when(() => mockBoxService.writeString(
+    when(
+      () => mockBoxService.writeString(
         key: any(named: 'key'),
-        value: any(named: 'value'))).thenAnswer((_) async {});
-    when(() => mockBoxService.writeDouble(
+        value: any(named: 'value'),
+      ),
+    ).thenAnswer((_) async {});
+    when(
+      () => mockBoxService.writeDouble(
         key: any(named: 'key'),
-        value: any(named: 'value'))).thenAnswer((_) async {});
-    when(() => mockBoxService.writeBool(
+        value: any(named: 'value'),
+      ),
+    ).thenAnswer((_) async {});
+    when(
+      () => mockBoxService.writeBool(
         key: any(named: 'key'),
-        value: any(named: 'value'))).thenAnswer((_) async {});
+        value: any(named: 'value'),
+      ),
+    ).thenAnswer((_) async {});
     when(() => mockBoxService.paymentMethodCode(any())).thenReturn("01");
-    when(() => mockDbSync.isBranchEnableForPayment(
-            currentBranchId: any(named: 'currentBranchId')))
-        .thenAnswer((_) async => true);
-    when(() => mockBoxService.getBranchId()).thenReturn(1);
-    when(() => mockBoxService.getBusinessId()).thenReturn(1);
+    when(
+      () => mockDbSync.isBranchEnableForPayment(
+        currentBranchId: any(named: 'currentBranchId'),
+      ),
+    ).thenAnswer((_) async => true);
+    when(() => mockBoxService.getBranchId()).thenReturn("1");
+    when(() => mockBoxService.getBusinessId()).thenReturn("1");
     when(() => mockBoxService.customerTin()).thenReturn(null);
-    when(() => mockBoxService.writeString(
+    when(
+      () => mockBoxService.writeString(
         key: any(named: 'key'),
-        value: any(named: 'value'))).thenAnswer((_) async {});
-    when(() => mockBoxService.writeDouble(
+        value: any(named: 'value'),
+      ),
+    ).thenAnswer((_) async {});
+    when(
+      () => mockBoxService.writeDouble(
         key: any(named: 'key'),
-        value: any(named: 'value'))).thenAnswer((_) async {});
-    when(() => mockBoxService.writeBool(
+        value: any(named: 'value'),
+      ),
+    ).thenAnswer((_) async {});
+    when(
+      () => mockBoxService.writeBool(
         key: any(named: 'key'),
-        value: any(named: 'value'))).thenAnswer((_) async {});
+        value: any(named: 'value'),
+      ),
+    ).thenAnswer((_) async {});
     when(() => mockBoxService.paymentMethodCode(any())).thenReturn("01");
-    when(() => mockDbSync.isBranchEnableForPayment(
-            currentBranchId: any(named: 'currentBranchId')))
-        .thenAnswer((_) async => true);
+    when(
+      () => mockDbSync.isBranchEnableForPayment(
+        currentBranchId: any(named: 'currentBranchId'),
+      ),
+    ).thenAnswer((_) async => true);
 
     ProxyService.box = mockBoxService;
   });
@@ -196,8 +223,10 @@ void main() {
           .pumpAndSettle(); // Wait for the UI to rebuild after stream emission
 
       // Verify key elements are displayed
-      expect(find.byKey(const Key('items-section')),
-          findsOneWidget); // Check for a known element in the small device layout
+      expect(
+        find.byKey(const Key('items-section')),
+        findsOneWidget,
+      ); // Check for a known element in the small device layout
       expect(find.text('Total Amount'), findsOneWidget);
     });
 
@@ -276,11 +305,14 @@ void main() {
       when(() => mockItem.name).thenReturn("Test Item");
       when(() => mockItem.price).thenReturn(100.0);
       when(() => mockItem.qty).thenReturn(1.0);
-      when(() => mockDbSync.updateTransactionItem(
+      when(
+        () => mockDbSync.updateTransactionItem(
           transactionItemId: any(named: 'transactionItemId'),
           ignoreForReport: any(named: 'ignoreForReport'),
           qty: any(named: 'qty'),
-          active: any(named: 'active'))).thenAnswer((_) async => true);
+          active: any(named: 'active'),
+        ),
+      ).thenAnswer((_) async => true);
 
       await tester.pumpWidget(
         MediaQuery.fromView(
@@ -315,25 +347,30 @@ void main() {
       // Verify confirmation dialog
       expect(find.text('Remove Item'), findsOneWidget);
       expect(
-          find.textContaining('Are you sure you want to remove "Test Item" '),
-          findsOneWidget);
+        find.textContaining('Are you sure you want to remove "Test Item" '),
+        findsOneWidget,
+      );
 
       // Confirm deletion
       await tester.tap(find.text('Remove'));
 
       // Wait for the updateTransactionItem to be called once
-      await untilCalled(() => ProxyService.strategy.updateTransactionItem(
-            transactionItemId: "1",
-            active: false,
-            ignoreForReport: false,
-          ));
+      await untilCalled(
+        () => ProxyService.strategy.updateTransactionItem(
+          transactionItemId: "1",
+          active: false,
+          ignoreForReport: false,
+        ),
+      );
 
       // Verify it was called exactly once
-      verify(() => ProxyService.strategy.updateTransactionItem(
-            transactionItemId: "1",
-            active: false,
-            ignoreForReport: false,
-          )).called(17);
+      verify(
+        () => ProxyService.strategy.updateTransactionItem(
+          transactionItemId: "1",
+          active: false,
+          ignoreForReport: false,
+        ),
+      ).called(17);
 
       // Now, pump and settle to allow the async operation to complete and the dialog to dismiss.
       await tester.pumpAndSettle();

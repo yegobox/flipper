@@ -30,8 +30,8 @@ class CircleAvatarWidget extends StatelessWidget {
     String displayText = text.isEmpty
         ? 'NA'
         : text.length >= 2
-            ? text.substring(0, 2).toUpperCase()
-            : text;
+        ? text.substring(0, 2).toUpperCase()
+        : text;
 
     return Container(
       width: size,
@@ -55,7 +55,7 @@ class CircleAvatarWidget extends StatelessWidget {
 }
 
 final _adminStatusProvider = FutureProvider.autoDispose((ref) async {
-  final userId = ProxyService.box.getUserId() ?? 0;
+  final userId = ProxyService.box.getUserId() ?? "";
   return ProxyService.strategy.isAdmin(
     userId: userId,
     appFeature: AppFeature.Settings,
@@ -115,8 +115,10 @@ class _AdminButton extends ConsumerWidget {
       data: (isAdmin) {
         if (!isAdmin) return const SizedBox.shrink();
 
-        final backgroundColor =
-            _getStatusColor(connectivityStatus, Theme.of(context));
+        final backgroundColor = _getStatusColor(
+          connectivityStatus,
+          Theme.of(context),
+        );
 
         return Padding(
           padding: EdgeInsets.symmetric(horizontal: isCompact ? 4.0 : 12.0),
@@ -179,8 +181,9 @@ class _BranchContent extends ConsumerWidget {
                   preferBelow: false,
                   verticalOffset: 20,
                   decoration: BoxDecoration(
-                    color:
-                        Theme.of(context).colorScheme.surfaceContainerHighest,
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.surfaceContainerHighest,
                     borderRadius: BorderRadius.circular(8),
                     boxShadow: [
                       BoxShadow(
@@ -198,8 +201,10 @@ class _BranchContent extends ConsumerWidget {
                   child: CircleAvatarWidget(
                     text: branchData?.name ?? "N/A",
                     size: isCompact ? 32 : 40,
-                    backgroundColor:
-                        _getStatusColor(connectivityStatus, Theme.of(context)),
+                    backgroundColor: _getStatusColor(
+                      connectivityStatus,
+                      Theme.of(context),
+                    ),
                   ),
                 ),
               ),

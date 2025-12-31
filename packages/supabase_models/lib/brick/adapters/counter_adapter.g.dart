@@ -10,8 +10,8 @@ Future<Counter> _$CounterFromSupabase(
     id: data['id'] as String?,
     businessId: data['business_id'] == null
         ? null
-        : data['business_id'] as int?,
-    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+        : data['business_id'] as String?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
     receiptType: data['receipt_type'] == null
         ? null
         : data['receipt_type'] as String?,
@@ -60,8 +60,8 @@ Future<Counter> _$CounterFromSqlite(
     id: data['id'] as String,
     businessId: data['business_id'] == null
         ? null
-        : data['business_id'] as int?,
-    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+        : data['business_id'] as String?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
     receiptType: data['receipt_type'] == null
         ? null
         : data['receipt_type'] as String?,
@@ -174,13 +174,13 @@ class CounterAdapter extends OfflineFirstWithSupabaseAdapter<Counter> {
       association: false,
       columnName: 'business_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'branchId': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'branch_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'receiptType': const RuntimeSqliteColumnDefinition(
       association: false,

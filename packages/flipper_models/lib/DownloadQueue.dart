@@ -98,7 +98,7 @@ Future<void> downloadAssetTask(DownloadParams params) async {
 }
 
 class DownloadParams {
-  final int branchId;
+  final String branchId;
   final String assetName;
   final String subPath;
 

@@ -11,7 +11,7 @@ mixin DeleteOperationsMixin implements DeleteOperationsInterface {
 
   @override
   Future<void> deleteBranch({
-    required int branchId,
+    required String branchId,
     required HttpClientInterface flipperHttpClient,
   }) async {
     try {

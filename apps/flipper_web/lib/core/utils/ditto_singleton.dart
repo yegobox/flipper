@@ -15,7 +15,7 @@ class DittoSingleton {
   static Ditto? _ditto;
   static bool _isInitializing = false;
   static Completer<Ditto?>? _initCompleter;
-  static int? _userId;
+  static String? _userId;
 
   DittoSingleton._();
 
@@ -44,7 +44,7 @@ class DittoSingleton {
   /// Initialize Ditto with proper singleton handling
   Future<Ditto?> initialize({
     required String appId,
-    required int userId,
+    required String userId,
   }) async {
     print('Initializing Ditto...');
     if (appId.isEmpty) {

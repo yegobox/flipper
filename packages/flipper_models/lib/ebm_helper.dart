@@ -7,7 +7,7 @@ import 'package:flipper_services/proxy.dart';
 /// 3. ProxyService.box.tin() (local fallback)
 /// `business` may be either a `Business` model or a lightweight `IBusiness`/map
 /// coming from other app packages; we accept `dynamic` and read `tinNumber`.
-Future<int?> effectiveTin({dynamic business, int? branchId}) async {
+Future<int?> effectiveTin({dynamic business, String? branchId}) async {
   try {
     final resolvedBranchId = branchId ?? ProxyService.box.getBranchId();
     if (resolvedBranchId != null) {

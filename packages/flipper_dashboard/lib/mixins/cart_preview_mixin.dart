@@ -17,10 +17,11 @@ import 'package:stacked_services/stacked_services.dart';
 
 mixin CartPreviewMixin<T extends ConsumerStatefulWidget>
     on ConsumerState<T>, BaseCartMixin<T> {
-  Future<void> previewOrOrder(
-      {bool isShopingFromWareHouse = true,
-      required FinanceProvider financeOption,
-      required ITransaction transaction}) async {
+  Future<void> previewOrOrder({
+    bool isShopingFromWareHouse = true,
+    required FinanceProvider financeOption,
+    required ITransaction transaction,
+  }) async {
     ref.read(previewingCart.notifier).state = !ref.read(previewingCart);
 
     if (!isShopingFromWareHouse) return;
@@ -35,7 +36,9 @@ mixin CartPreviewMixin<T extends ConsumerStatefulWidget>
   }
 
   Future<void> _processWarehouseOrder(
-      ITransaction transaction, FinanceProvider financeOption) async {
+    ITransaction transaction,
+    FinanceProvider financeOption,
+  ) async {
     final items = await _getActiveTransactionItems(transaction);
     if (items.isEmpty || ref.read(previewingCart)) return;
 
@@ -64,7 +67,7 @@ mixin CartPreviewMixin<T extends ConsumerStatefulWidget>
     }
     await ProxyService.strategy.createStockRequest(
       items,
-      mainBranchId: supplier.serverId!,
+      mainBranchId: supplier.id,
       subBranchId: ProxyService.box.getBranchId()!,
       deliveryNote: deliveryNote,
       financingId: financeOption.id,
@@ -74,16 +77,21 @@ mixin CartPreviewMixin<T extends ConsumerStatefulWidget>
   }
 
   Future<void> _finalizeOrder(
-      List<TransactionItem> items, ITransaction transaction) async {
+    List<TransactionItem> items,
+    ITransaction transaction,
+  ) async {
     await _markItemsAsDone(items, transaction);
     await _changeTransactionStatus(transaction: transaction);
     await refreshTransactionItems(transactionId: transaction.id);
   }
 
   Future<List<TransactionItem>> _getActiveTransactionItems(
-      ITransaction transaction) async {
+    ITransaction transaction,
+  ) async {
     return await ProxyService.getStrategy(Strategy.capella).transactionItems(
-      branchId: (await ProxyService.strategy.activeBranch()).id,
+      branchId: (await ProxyService.strategy.activeBranch(
+        businessId: ProxyService.box.getBusinessId()!,
+      )).id,
       transactionId: transaction.id,
       doneWithTransaction: false,
       active: true,
@@ -91,7 +99,9 @@ mixin CartPreviewMixin<T extends ConsumerStatefulWidget>
   }
 
   Future<void> _markItemsAsDone(
-      List<TransactionItem> items, dynamic pendingTransaction) async {
+    List<TransactionItem> items,
+    dynamic pendingTransaction,
+  ) async {
     ProxyService.strategy.markItemAsDoneWithTransaction(
       isDoneWithTransaction: true,
       inactiveItems: items,
@@ -100,9 +110,12 @@ mixin CartPreviewMixin<T extends ConsumerStatefulWidget>
     );
   }
 
-  Future<void> _changeTransactionStatus(
-      {required ITransaction transaction}) async {
-    await ProxyService.strategy
-        .updateTransaction(transaction: transaction, status: ORDERING);
+  Future<void> _changeTransactionStatus({
+    required ITransaction transaction,
+  }) async {
+    await ProxyService.strategy.updateTransaction(
+      transaction: transaction,
+      status: ORDERING,
+    );
   }
 }

@@ -21,8 +21,9 @@ class _AddBranchState extends ConsumerState<AddBranch> {
 
   @override
   Widget build(BuildContext context) {
-    final branches = ref
-        .watch(branchesProvider(businessId: ProxyService.box.getBusinessId()));
+    final branches = ref.watch(
+      branchesProvider(businessId: ProxyService.box.getBusinessId()),
+    );
     final isProcessing = ref.watch(isProcessingProvider);
     final theme = Theme.of(context);
 
@@ -32,10 +33,7 @@ class _AddBranchState extends ConsumerState<AddBranch> {
         backgroundColor: theme.primaryColor,
         title: Text(
           'Branch Manager',
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
-          ),
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
         ),
       ),
       body: Container(
@@ -43,10 +41,7 @@ class _AddBranchState extends ConsumerState<AddBranch> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              theme.primaryColor.withValues(alpha: 0.05),
-              Colors.white,
-            ],
+            colors: [theme.primaryColor.withValues(alpha: 0.05), Colors.white],
           ),
         ),
         child: Padding(
@@ -113,7 +108,8 @@ class _AddBranchState extends ConsumerState<AddBranch> {
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
                                       valueColor: AlwaysStoppedAnimation<Color>(
-                                          Colors.white),
+                                        Colors.white,
+                                      ),
                                     ),
                                   )
                                 : Text(
@@ -139,8 +135,9 @@ class _AddBranchState extends ConsumerState<AddBranch> {
                   loading: () => Center(
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      valueColor:
-                          AlwaysStoppedAnimation<Color>(theme.primaryColor),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        theme.primaryColor,
+                      ),
                     ),
                   ),
                   error: (error, stackTrace) => Center(
@@ -151,8 +148,9 @@ class _AddBranchState extends ConsumerState<AddBranch> {
                         SizedBox(height: 16),
                         Text(
                           'Error loading branches',
-                          style: theme.textTheme.titleMedium
-                              ?.copyWith(color: Colors.red),
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: Colors.red,
+                          ),
                         ),
                       ],
                     ),
@@ -222,8 +220,9 @@ class _AddBranchState extends ConsumerState<AddBranch> {
                 Container(
                   padding: EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color:
-                        Theme.of(context).primaryColor.withValues(alpha: 0.1),
+                    color: Theme.of(
+                      context,
+                    ).primaryColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
@@ -247,8 +246,11 @@ class _AddBranchState extends ConsumerState<AddBranch> {
                       SizedBox(height: 8),
                       Row(
                         children: [
-                          Icon(Icons.location_on,
-                              size: 16, color: Colors.grey.shade600),
+                          Icon(
+                            Icons.location_on,
+                            size: 16,
+                            color: Colors.grey.shade600,
+                          ),
                           SizedBox(width: 4),
                           Text(
                             branch.location ?? "",
@@ -310,11 +312,7 @@ class _AddBranchState extends ConsumerState<AddBranch> {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            icon,
-            size: 16,
-            color: isActive ? activeColor : Colors.grey,
-          ),
+          Icon(icon, size: 16, color: isActive ? activeColor : Colors.grey),
           SizedBox(width: 4),
           Text(
             label,
@@ -352,10 +350,7 @@ class _AddBranchState extends ConsumerState<AddBranch> {
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              child: Text(
-                'Delete',
-                style: TextStyle(color: Colors.white),
-              ),
+              child: Text('Delete', style: TextStyle(color: Colors.white)),
             ),
           ],
         );
@@ -363,12 +358,12 @@ class _AddBranchState extends ConsumerState<AddBranch> {
     ).then((confirmed) async {
       if (confirmed ?? false) {
         await ProxyService.strategy.deleteBranch(
-          branchId: branch.serverId!,
+          branchId: branch.id!,
           flipperHttpClient: ProxyService.http,
         );
-        ref.refresh(branchesProvider(
-          businessId: ProxyService.box.getBusinessId(),
-        ));
+        ref.refresh(
+          branchesProvider(businessId: ProxyService.box.getBusinessId()),
+        );
       }
     });
   }
@@ -387,7 +382,8 @@ class _AddBranchState extends ConsumerState<AddBranch> {
           flipperHttpClient: ProxyService.http,
         );
         ref.refresh(
-            branchesProvider(businessId: ProxyService.box.getBusinessId()));
+          branchesProvider(businessId: ProxyService.box.getBusinessId()),
+        );
         _nameController.clear();
         _locationController.clear();
         setState(() {
@@ -419,10 +415,12 @@ class _AddBranchState extends ConsumerState<AddBranch> {
 
   bool validateForm() {
     setState(() {
-      _nameError =
-          _nameController.text.isEmpty ? "Branch name is required" : null;
-      _locationError =
-          _locationController.text.isEmpty ? "Location is required" : null;
+      _nameError = _nameController.text.isEmpty
+          ? "Branch name is required"
+          : null;
+      _locationError = _locationController.text.isEmpty
+          ? "Location is required"
+          : null;
     });
     return _nameError == null && _locationError == null;
   }

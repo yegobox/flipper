@@ -86,9 +86,9 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            variantProvider(branchId: 1).overrideWith(
-              (ref) async => <Variant>[],
-            ),
+            variantProvider(
+              branchId: "1",
+            ).overrideWith((ref) async => <Variant>[]),
           ],
           child: MaterialApp(
             home: Scaffold(
@@ -112,14 +112,15 @@ void main() {
       expect(find.byType(PurchaseTable), findsOneWidget);
     });
 
-    testWidgets('should pass correct properties to PurchaseTable',
-        (WidgetTester tester) async {
+    testWidgets('should pass correct properties to PurchaseTable', (
+      WidgetTester tester,
+    ) async {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            variantProvider(branchId: 1).overrideWith(
-              (ref) async => <Variant>[],
-            ),
+            variantProvider(
+              branchId: "1",
+            ).overrideWith((ref) async => <Variant>[]),
           ],
           child: MaterialApp(
             home: Scaffold(

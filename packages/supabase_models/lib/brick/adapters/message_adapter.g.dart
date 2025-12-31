@@ -11,7 +11,7 @@ Future<Message> _$MessageFromSupabase(
     text: data['text'] as String,
     phoneNumber: data['phone_number'] as String,
     delivered: data['delivered'] as bool,
-    branchId: data['branch_id'] as int,
+    branchId: data['branch_id'] as String,
     role: data['role'] == null ? null : data['role'] as String?,
     timestamp: data['timestamp'] == null
         ? null
@@ -85,7 +85,7 @@ Future<Message> _$MessageFromSqlite(
     text: data['text'] as String,
     phoneNumber: data['phone_number'] as String,
     delivered: data['delivered'] == 1,
-    branchId: data['branch_id'] as int,
+    branchId: data['branch_id'] as String,
     role: data['role'] == null ? null : data['role'] as String?,
     timestamp: data['timestamp'] == null
         ? null
@@ -268,7 +268,7 @@ class MessageAdapter extends OfflineFirstWithSupabaseAdapter<Message> {
       association: false,
       columnName: 'branch_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'role': const RuntimeSqliteColumnDefinition(
       association: false,

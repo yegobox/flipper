@@ -12,7 +12,7 @@ Future<Customer> _$CustomerFromSupabase(
     email: data['email'] == null ? null : data['email'] as String?,
     telNo: data['tel_no'] == null ? null : data['tel_no'] as String?,
     adrs: data['adrs'] == null ? null : data['adrs'] as String?,
-    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
     updatedAt: data['updated_at'] == null
         ? null
         : data['updated_at'] == null
@@ -70,7 +70,7 @@ Future<Customer> _$CustomerFromSqlite(
     email: data['email'] == null ? null : data['email'] as String?,
     telNo: data['tel_no'] == null ? null : data['tel_no'] as String?,
     adrs: data['adrs'] == null ? null : data['adrs'] as String?,
-    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
     updatedAt: data['updated_at'] == null
         ? null
         : data['updated_at'] == null
@@ -244,7 +244,7 @@ class CustomerAdapter extends OfflineFirstWithSupabaseAdapter<Customer> {
       association: false,
       columnName: 'branch_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'updatedAt': const RuntimeSqliteColumnDefinition(
       association: false,

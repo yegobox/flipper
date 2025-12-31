@@ -63,9 +63,8 @@ class LoginViewModel extends FlipperBaseModel
         '[completeLoginProcess] Starting with pin: ${userPin.userId}, user: ${user?.uid}');
     try {
       await ProxyService.box
-          .writeInt(key: "userId", value: int.parse(userPin.userId.toString()));
+          .writeString(key: "userId", value: userPin.userId.toString());
       talker.info('[completeLoginProcess] userId written to box');
-
 
       await ProxyService.strategy.login(
         userPhone: userPin.phoneNumber!,
@@ -230,7 +229,7 @@ class LoginViewModel extends FlipperBaseModel
       talker.info('[processUserLogin] Returning final result');
       final result = {
         'pin': Pin(
-            userId: int.parse(pin.userId),
+            userId: pin.userId,
             pin: pin.pin,
             branchId: pin.branchId,
             businessId: pin.businessId,

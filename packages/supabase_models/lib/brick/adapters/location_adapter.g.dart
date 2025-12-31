@@ -16,7 +16,7 @@ Future<Location> _$LocationFromSupabase(
     name: data['name'] == null ? null : data['name'] as String?,
     businessId: data['business_id'] == null
         ? null
-        : data['business_id'] as int?,
+        : data['business_id'] as String?,
     longitude: data['longitude'] == null ? null : data['longitude'] as String?,
     latitude: data['latitude'] == null ? null : data['latitude'] as String?,
     location: data['location'] == null ? null : data['location'] as String?,
@@ -72,7 +72,7 @@ Future<Location> _$LocationFromSqlite(
     name: data['name'] == null ? null : data['name'] as String?,
     businessId: data['business_id'] == null
         ? null
-        : data['business_id'] as int?,
+        : data['business_id'] as String?,
     longitude: data['longitude'] == null ? null : data['longitude'] as String?,
     latitude: data['latitude'] == null ? null : data['latitude'] as String?,
     location: data['location'] == null ? null : data['location'] as String?,
@@ -224,7 +224,7 @@ class LocationAdapter extends OfflineFirstWithSupabaseAdapter<Location> {
       association: false,
       columnName: 'business_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'longitude': const RuntimeSqliteColumnDefinition(
       association: false,

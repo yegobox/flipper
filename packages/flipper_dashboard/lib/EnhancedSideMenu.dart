@@ -23,7 +23,7 @@ class EnhancedSideMenu extends ConsumerWidget {
     final _routerService = locator<RouterService>();
     final isAdminAsyncValue = ref.watch(
       isAdminProvider(
-        ProxyService.box.getUserId() ?? 0,
+        ProxyService.box.getUserId() ?? "",
         featureName: AppFeature.ShiftHistory,
       ),
     );

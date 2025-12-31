@@ -37,8 +37,12 @@ class MockFlipperHttpClient extends Mock implements FlipperHttpClient {}
 class GeminiBusinessAnalyticsMock extends Mock
     implements GeminiBusinessAnalytics {
   @override
-  Future<String> build(int branchId, String userPrompt,
-      {String? filePath, List<Content>? history}) async {
+  Future<String> build(
+    String branchId,
+    String userPrompt, {
+    String? filePath,
+    List<Content>? history,
+  }) async {
     return 'Mocked response';
   }
 }
@@ -71,18 +75,19 @@ class MockUser extends Mock implements IUser {}
 class MockAudioRecorder extends Mock implements AudioRecorder {}
 
 void setupPathProviderMock() {
-  const MethodChannel channel =
-      MethodChannel('plugins.flutter.io/path_provider');
+  const MethodChannel channel = MethodChannel(
+    'plugins.flutter.io/path_provider',
+  );
 
   TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
       .setMockMethodCallHandler(channel, (MethodCall methodCall) async {
-    switch (methodCall.method) {
-      case 'getTemporaryDirectory':
-        return '/tmp';
-      case 'getApplicationDocumentsDirectory':
-        return '/tmp/documents';
-      default:
-        return null;
-    }
-  });
+        switch (methodCall.method) {
+          case 'getTemporaryDirectory':
+            return '/tmp';
+          case 'getApplicationDocumentsDirectory':
+            return '/tmp/documents';
+          default:
+            return null;
+        }
+      });
 }

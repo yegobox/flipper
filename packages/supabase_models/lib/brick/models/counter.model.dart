@@ -1,4 +1,3 @@
-import 'package:brick_core/query.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
@@ -23,8 +22,8 @@ class Counter extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
   @Sqlite(index: true, unique: true)
   String id;
-  int? businessId;
-  int? branchId;
+  String? businessId;
+  String? branchId;
   String? receiptType;
   int? totRcptNo;
   int? curRcptNo;

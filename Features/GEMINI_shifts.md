@@ -39,7 +39,7 @@ class Shift extends OfflineFirstWithSupabaseModel {
   final String id;
 
   @Sqlite(index: true)
-  final int businessId;
+  final String businessId;
 
   @Sqlite(index: true)
   final int userId;

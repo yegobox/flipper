@@ -28,7 +28,7 @@ Future<Receipt> _$ReceiptFromSupabase(
     receiptType: data['receipt_type'] == null
         ? null
         : data['receipt_type'] as String?,
-    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
     transactionId: data['transaction_id'] == null
         ? null
         : data['transaction_id'] as String?,
@@ -111,7 +111,7 @@ Future<Receipt> _$ReceiptFromSqlite(
     receiptType: data['receipt_type'] == null
         ? null
         : data['receipt_type'] as String?,
-    branchId: data['branch_id'] == null ? null : data['branch_id'] as int?,
+    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
     transactionId: data['transaction_id'] == null
         ? null
         : data['transaction_id'] as String?,
@@ -352,7 +352,7 @@ class ReceiptAdapter extends OfflineFirstWithSupabaseAdapter<Receipt> {
       association: false,
       columnName: 'branch_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'transactionId': const RuntimeSqliteColumnDefinition(
       association: false,

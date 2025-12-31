@@ -8,7 +8,7 @@ Future<StockRecount> _$StockRecountFromSupabase(
 }) async {
   return StockRecount(
     id: data['id'] as String?,
-    branchId: data['branch_id'] as int,
+    branchId: data['branch_id'] as String,
     status: data['status'] as String? ?? 'draft',
     userId: data['user_id'] == null ? null : data['user_id'] as String?,
     deviceId: data['device_id'] == null ? null : data['device_id'] as String?,
@@ -60,7 +60,7 @@ Future<StockRecount> _$StockRecountFromSqlite(
 }) async {
   return StockRecount(
     id: data['id'] as String,
-    branchId: data['branch_id'] as int,
+    branchId: data['branch_id'] as String,
     status: data['status'] as String ?? 'draft',
     userId: data['user_id'] == null ? null : data['user_id'] as String?,
     deviceId: data['device_id'] == null ? null : data['device_id'] as String?,
@@ -181,7 +181,7 @@ class StockRecountAdapter
       association: false,
       columnName: 'branch_id',
       iterable: false,
-      type: int,
+      type: String,
     ),
     'status': const RuntimeSqliteColumnDefinition(
       association: false,

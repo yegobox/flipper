@@ -1,7 +1,7 @@
 import 'dart:developer';
 import 'dart:convert';
 import 'package:flipper_models/helperModels/business_type.dart';
-import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/db_model_export.dart' hide BusinessType;
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';

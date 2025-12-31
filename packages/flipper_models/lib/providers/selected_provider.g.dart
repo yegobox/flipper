@@ -41,7 +41,7 @@ final class SelectedSupplierProvider
   }
 }
 
-String _$selectedSupplierHash() => r'78431bb988a113756773cb294bb9c5444d7ba59f';
+String _$selectedSupplierHash() => r'eb6a47127ad2d91992150b6372b4e58edbb67895';
 
 abstract class _$SelectedSupplier extends $Notifier<Branch?> {
   Branch? build();

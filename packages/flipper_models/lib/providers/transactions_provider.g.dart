@@ -267,7 +267,7 @@ final class PendingTransactionStreamProvider extends $FunctionalProvider<
 }
 
 String _$pendingTransactionStreamHash() =>
-    r'd998ee70ad56ca1e6b875cf6df9aed00e39b03ce';
+    r'361ae491b2d035f279b89e9dd076f815273218cc';
 
 final class PendingTransactionStreamFamily extends $Family
     with
@@ -314,7 +314,7 @@ final class ExpensesStreamProvider extends $FunctionalProvider<
       required ({
         DateTime startDate,
         DateTime endDate,
-        int? branchId,
+        String? branchId,
         bool forceRealData,
       })
           super.argument})
@@ -347,7 +347,7 @@ final class ExpensesStreamProvider extends $FunctionalProvider<
     final argument = this.argument as ({
       DateTime startDate,
       DateTime endDate,
-      int? branchId,
+      String? branchId,
       bool forceRealData,
     });
     return expensesStream(
@@ -370,7 +370,7 @@ final class ExpensesStreamProvider extends $FunctionalProvider<
   }
 }
 
-String _$expensesStreamHash() => r'6e456a143bd5930c3166a11627c9bfb504ce9628';
+String _$expensesStreamHash() => r'3b6f5b5b81b8ac303aa35ddfe290e8ac18e14f71';
 
 final class ExpensesStreamFamily extends $Family
     with
@@ -379,7 +379,7 @@ final class ExpensesStreamFamily extends $Family
             ({
               DateTime startDate,
               DateTime endDate,
-              int? branchId,
+              String? branchId,
               bool forceRealData,
             })> {
   const ExpensesStreamFamily._()
@@ -394,7 +394,7 @@ final class ExpensesStreamFamily extends $Family
   ExpensesStreamProvider call({
     required DateTime startDate,
     required DateTime endDate,
-    int? branchId,
+    String? branchId,
     bool forceRealData = true,
   }) =>
       ExpensesStreamProvider._(argument: (
@@ -419,7 +419,7 @@ final class NetProfitStreamProvider
       required ({
         DateTime startDate,
         DateTime endDate,
-        int? branchId,
+        String? branchId,
         bool forceRealData,
       })
           super.argument})
@@ -451,7 +451,7 @@ final class NetProfitStreamProvider
     final argument = this.argument as ({
       DateTime startDate,
       DateTime endDate,
-      int? branchId,
+      String? branchId,
       bool forceRealData,
     });
     return netProfitStream(
@@ -474,7 +474,7 @@ final class NetProfitStreamProvider
   }
 }
 
-String _$netProfitStreamHash() => r'90b0c1cfdbdc92926d082ca89bcc21b0be196141';
+String _$netProfitStreamHash() => r'52a02baa42b1221bb59497f06c9a8c7d82c87085';
 
 final class NetProfitStreamFamily extends $Family
     with
@@ -483,7 +483,7 @@ final class NetProfitStreamFamily extends $Family
             ({
               DateTime startDate,
               DateTime endDate,
-              int? branchId,
+              String? branchId,
               bool forceRealData,
             })> {
   const NetProfitStreamFamily._()
@@ -498,7 +498,7 @@ final class NetProfitStreamFamily extends $Family
   NetProfitStreamProvider call({
     required DateTime startDate,
     required DateTime endDate,
-    int? branchId,
+    String? branchId,
     bool forceRealData = true,
   }) =>
       NetProfitStreamProvider._(argument: (
@@ -523,7 +523,7 @@ final class GrossProfitStreamProvider
       required ({
         DateTime startDate,
         DateTime endDate,
-        int? branchId,
+        String? branchId,
         bool forceRealData,
       })
           super.argument})
@@ -555,7 +555,7 @@ final class GrossProfitStreamProvider
     final argument = this.argument as ({
       DateTime startDate,
       DateTime endDate,
-      int? branchId,
+      String? branchId,
       bool forceRealData,
     });
     return grossProfitStream(
@@ -578,7 +578,7 @@ final class GrossProfitStreamProvider
   }
 }
 
-String _$grossProfitStreamHash() => r'661e381bc07be31b89088498df89baac2c9c40df';
+String _$grossProfitStreamHash() => r'7a75cb980b1197e176be77825df1c854f2937076';
 
 final class GrossProfitStreamFamily extends $Family
     with
@@ -587,7 +587,7 @@ final class GrossProfitStreamFamily extends $Family
             ({
               DateTime startDate,
               DateTime endDate,
-              int? branchId,
+              String? branchId,
               bool forceRealData,
             })> {
   const GrossProfitStreamFamily._()
@@ -602,7 +602,7 @@ final class GrossProfitStreamFamily extends $Family
   GrossProfitStreamProvider call({
     required DateTime startDate,
     required DateTime endDate,
-    int? branchId,
+    String? branchId,
     bool forceRealData = true,
   }) =>
       GrossProfitStreamProvider._(argument: (
@@ -627,7 +627,7 @@ final class TotalIncomeStreamProvider
       required ({
         DateTime startDate,
         DateTime endDate,
-        int? branchId,
+        String? branchId,
         bool forceRealData,
       })
           super.argument})
@@ -659,7 +659,7 @@ final class TotalIncomeStreamProvider
     final argument = this.argument as ({
       DateTime startDate,
       DateTime endDate,
-      int? branchId,
+      String? branchId,
       bool forceRealData,
     });
     return totalIncomeStream(
@@ -682,7 +682,7 @@ final class TotalIncomeStreamProvider
   }
 }
 
-String _$totalIncomeStreamHash() => r'08fe8070393d807259bdb74e5882bffd752ffa2e';
+String _$totalIncomeStreamHash() => r'0474739c23c0d1451a22b880a256179e76ee1aef';
 
 final class TotalIncomeStreamFamily extends $Family
     with
@@ -691,7 +691,7 @@ final class TotalIncomeStreamFamily extends $Family
             ({
               DateTime startDate,
               DateTime endDate,
-              int? branchId,
+              String? branchId,
               bool forceRealData,
             })> {
   const TotalIncomeStreamFamily._()
@@ -706,7 +706,7 @@ final class TotalIncomeStreamFamily extends $Family
   TotalIncomeStreamProvider call({
     required DateTime startDate,
     required DateTime endDate,
-    int? branchId,
+    String? branchId,
     bool forceRealData = true,
   }) =>
       TotalIncomeStreamProvider._(argument: (

@@ -52,7 +52,7 @@ class Tenant {
   final List<dynamic> permissions;
   final List<Branch> branches;
   final List<Business> businesses;
-  final int? businessId;
+  final String? businessId;
   final bool nfcEnabled;
   final int userId;
   final int pin;
@@ -90,7 +90,7 @@ class Tenant {
       businesses: (json['businesses'] as List? ?? [])
           .map((e) => Business.fromJson(e))
           .toList(),
-      businessId: json['businessId'] as int?,
+      businessId: json['businessId'] as String?,
       nfcEnabled: json['nfcEnabled'] ?? false,
       userId: json['userId'] as int,
       pin: json['pin'] as int,
@@ -125,7 +125,7 @@ class Branch {
   final String name;
   final String longitude;
   final String latitude;
-  final int businessId;
+  final String businessId;
   final int serverId;
   final bool active;
   final bool isDefault;
@@ -149,7 +149,7 @@ class Branch {
       name: json['name'] ?? '',
       longitude: json['longitude'] ?? '',
       latitude: json['latitude'] ?? '',
-      businessId: json['businessId'] as int? ?? 0,
+      businessId: json['businessId'] as String? ?? "",
       serverId: json['serverId'] as int? ?? 0,
       active: json['active'] ?? false,
       isDefault: json['is_default'] ?? false,

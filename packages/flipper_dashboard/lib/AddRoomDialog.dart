@@ -305,7 +305,7 @@ class _AddRoomDialogState extends ConsumerState<AddRoomDialog> {
             lastTouched: DateTime.now().toUtc(),
             rsdQty: 0.0,
             initialStock: 0.0,
-            branchId: ProxyService.box.getBranchId(),
+            branchId: ProxyService.box.getBranchId()!,
             currentStock: 0.0,
           );
 

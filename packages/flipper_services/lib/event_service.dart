@@ -16,7 +16,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'login_event.dart';
 import 'dart:io';
 import 'package:flipper_services/desktop_login_status.dart';
-import 'package:device_info_plus/device_info_plus.dart';
 
 LoginData loginDataFromMap(String str) => LoginData.fromMap(json.decode(str));
 
@@ -271,9 +270,10 @@ class EventService
       responseChannel = loginData.responseChannel;
 
       // Store basic login data
-      ProxyService.box.writeInt(key: 'businessId', value: loginData.businessId);
-      ProxyService.box.writeInt(key: 'branchId', value: loginData.branchId);
-      ProxyService.box.writeInt(key: 'userId', value: loginData.userId);
+      ProxyService.box
+          .writeString(key: 'businessId', value: loginData.businessId);
+      ProxyService.box.writeString(key: 'branchId', value: loginData.branchId);
+      ProxyService.box.writeString(key: 'userId', value: loginData.userId);
       ProxyService.box.writeString(key: 'userPhone', value: loginData.phone);
       ProxyService.box
           .writeString(key: 'defaultApp', value: loginData.defaultApp);
@@ -322,7 +322,7 @@ class EventService
       } else {
         thePin = Pin(
             userId: loginData.userId,
-            pin: loginData.userId,
+            pin: loginData.pin,
             branchId: loginData.branchId,
             businessId: loginData.businessId,
             phoneNumber: loginData.phone,

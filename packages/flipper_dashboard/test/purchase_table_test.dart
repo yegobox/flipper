@@ -125,7 +125,7 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           overrides: [
-            variantProvider(branchId: 1).overrideWith(
+            variantProvider(branchId: "1").overrideWith(
               (ref) async => mockVariants, // Provide mock variants
             ),
           ],
@@ -177,7 +177,7 @@ void main() {
         ProviderScope(
           overrides: [
             variantProvider(
-              branchId: 1,
+              branchId: "",
             ).overrideWith((ref) async => mockVariants),
           ],
           child: MaterialApp(

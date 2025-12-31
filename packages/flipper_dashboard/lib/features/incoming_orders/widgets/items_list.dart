@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
+import '../../../features/incoming_orders/providers/incoming_orders_provider.dart';
 
 class ItemsList extends ConsumerWidget
     with StockRequestApprovalLogic, SnackBarMixin {
@@ -17,7 +18,7 @@ class ItemsList extends ConsumerWidget
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final items = request.transactionItems ?? [];
+    final itemsAsync = ref.watch(transactionItemsProvider(request.id));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -31,12 +32,23 @@ class ItemsList extends ConsumerWidget
           ),
         ),
         SizedBox(height: 12),
-        items.isEmpty
-            ? Padding(
-                padding: EdgeInsets.symmetric(vertical: 20),
-                child: Center(child: Text('No items in this request')),
-              )
-            : Column(children: _buildItemList(items, context, ref)),
+        itemsAsync.when(
+          data: (items) => items.isEmpty
+              ? Padding(
+                  padding: EdgeInsets.symmetric(vertical: 20),
+                  child: Center(child: Text('No items in this request')),
+                )
+              : Column(children: _buildItemList(items, context, ref)),
+          loading: () => Center(
+            child: CircularProgressIndicator(),
+          ),
+          error: (error, stack) => Padding(
+            padding: EdgeInsets.symmetric(vertical: 20),
+            child: Center(
+              child: Text('Error loading items: $error'),
+            ),
+          ),
+        ),
       ],
     );
   }

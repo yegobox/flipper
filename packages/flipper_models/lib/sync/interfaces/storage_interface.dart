@@ -2,7 +2,7 @@ import 'dart:async';
 
 abstract class StorageInterface {
   Future<Stream<double>> downloadAsset({
-    required int branchId,
+    required String branchId,
     required String assetName,
     required String subPath,
   });

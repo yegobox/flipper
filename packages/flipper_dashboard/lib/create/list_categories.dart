@@ -9,10 +9,11 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_models/providers/all_providers.dart';
 
 class ListCategories extends StatefulHookConsumerWidget {
   const ListCategories({Key? key, required this.modeOfOperation})
-      : super(key: key);
+    : super(key: key);
   final String? modeOfOperation;
 
   @override
@@ -113,37 +114,40 @@ class ListCategoriesState extends ConsumerState<ListCategories> {
             multi: 3,
             bottomSpacer: 80,
           ),
-          body: FutureBuilder<List<Category>>(
-            future: ProxyService.strategy
-                .categories(branchId: ProxyService.box.getBranchId()!),
-            builder: (context, snapshot) {
-              if (!snapshot.hasData) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              return SingleChildScrollView(
-                child: Column(
-                  children: <Widget>[
-                    Card(
-                      margin: const EdgeInsets.all(8),
-                      child: ListTile(
-                        onTap: () =>
-                            _routerService.navigateTo(AddCategoryRoute()),
-                        title: const Text('Create Category',
-                            style: TextStyle(fontWeight: FontWeight.bold)),
-                        trailing: const Icon(FluentIcons.add_24_regular),
-                      ),
+          body: ref
+              .watch(
+                categoriesProvider(branchId: ProxyService.box.getBranchId()!),
+              )
+              .when(
+                data: (categories) {
+                  return SingleChildScrollView(
+                    child: Column(
+                      children: <Widget>[
+                        Card(
+                          margin: const EdgeInsets.all(8),
+                          child: ListTile(
+                            onTap: () =>
+                                _routerService.navigateTo(AddCategoryRoute()),
+                            title: const Text(
+                              'Create Category',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            trailing: const Icon(FluentIcons.add_24_regular),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        buildCategoryList(
+                          categories: categories,
+                          model: model,
+                          groupValue: _selectedCategoryId ?? '',
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 16),
-                    buildCategoryList(
-                      categories: snapshot.data ?? [],
-                      model: model,
-                      groupValue: _selectedCategoryId ?? '',
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
+                  );
+                },
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (error, _) => Center(child: Text('Error: $error')),
+              ),
         );
       },
     );

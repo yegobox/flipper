@@ -123,7 +123,7 @@ class LBusiness {
         // fcategoryId = json["fcategoryId"],
         latitude = json["latitude"] ?? '1',
         longitude = json["longitude"] ?? '1',
-        userId = json["userId"].toString(),
+        userId = json["userId"],
         typeId = json["typeId"],
         timeZone = json["timeZone"],
         table = json["table"],

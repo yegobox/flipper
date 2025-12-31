@@ -16,7 +16,7 @@ class Token extends OfflineFirstWithSupabaseModel {
   String? token;
   DateTime? validFrom;
   DateTime? validUntil;
-  int? businessId;
+  String? businessId;
   DateTime? lastTouched;
 
   Token({

@@ -32,8 +32,8 @@ void main() {
     registerFallbackValue(DateTime.now());
     registerFallbackValue(
       ITransaction(
-        agentId: 1,
-        branchId: 1,
+        agentId: "1",
+        branchId: "",
         status: 'test',
         transactionType: 'test',
         paymentType: 'test',
@@ -55,9 +55,9 @@ void main() {
   group('TicketsListMixin Tests', () {
     testWidgets('TicketCard shows correct information', (tester) async {
       final ticket = ITransaction(
-        agentId: 1,
+        agentId: "1",
         id: 'test123',
-        branchId: 1,
+        branchId: "",
         status: PARKED,
         transactionType: 'sale',
         paymentType: 'cash',

@@ -11,8 +11,8 @@ IPin _$IPinFromJson(Map<String, dynamic> json) => IPin(
       userId: json['user_id'] as String,
       phoneNumber: json['phone_number'] as String,
       pin: (json['pin'] as num).toInt(),
-      branchId: (json['branch_id'] as num).toInt(),
-      businessId: (json['business_id'] as num).toInt(),
+      branchId: json['branch_id'] as String,
+      businessId: json['business_id'] as String,
       ownerName: json['owner_name'] as String?,
       tokenUid: json['token_uid'] as String?,
     );

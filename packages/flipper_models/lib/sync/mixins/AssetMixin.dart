@@ -9,7 +9,7 @@ mixin AssetMixin implements AssetInterface {
 
   @override
   Future<Stream<double>> downloadAsset(
-      {required int branchId,
+      {required String branchId,
       required String assetName,
       required String subPath}) {
     throw UnimplementedError();

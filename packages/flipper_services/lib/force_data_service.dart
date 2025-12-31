@@ -19,8 +19,8 @@ class ForceDataEntryService {
     /// for the case where user switch the laptop and the database would be empty yet on our cloud we do have some data
     /// hence we sync first.
 
-    int? branchId = ProxyService.box.getBranchId();
-    int? businessId = ProxyService.box.getBusinessId();
+    String? branchId = ProxyService.box.getBranchId();
+    String? businessId = ProxyService.box.getBusinessId();
 
     if (branchId == null || businessId == null) {
       return;
@@ -37,9 +37,8 @@ class ForceDataEntryService {
       '#a29bfe'
     ];
 
-    int branchid = ProxyService.box.getBranchId()!;
     List<PColor> kColors =
-        await ProxyService.strategy.colors(branchId: branchid);
+        await ProxyService.strategy.colors(branchId: branchId);
     if (kColors.isEmpty) {
       for (String colorName in colors) {
         await ProxyService.strategy
@@ -49,11 +48,11 @@ class ForceDataEntryService {
 
     /// bootstrap app permission for admin
     List<Access> permissions = await ProxyService.strategy
-        .access(userId: ProxyService.box.getUserId() ?? 0, fetchRemote: true);
+        .access(userId: ProxyService.box.getUserId() ?? "", fetchRemote: true);
     if (permissions.isEmpty) {
-      int? branchId = ProxyService.box.getBranchId();
-      int? businessId = ProxyService.box.getBusinessId();
-      int userId = ProxyService.box.getUserId() ?? 0;
+      String? branchId = ProxyService.box.getBranchId();
+      String? businessId = ProxyService.box.getBusinessId();
+      String userId = ProxyService.box.getUserId() ?? "";
 
       /// it is empty but we might have them on cloud so check on cloud
       final doesBusinessHavePermission = await ProxyService.httpApi
@@ -78,7 +77,7 @@ class ForceDataEntryService {
       TransactionType.transport,
       TransactionType.salary
     ]) {
-      createCategory(name: name, branchId: branchid);
+      createCategory(name: name, branchId: branchId);
     }
 
     ProxyService.strategy.addUnits(units: mockUnits);
@@ -90,7 +89,7 @@ class ForceDataEntryService {
   }
 
   Future<void> addAccess(
-      String feature, int userId, int businessId, int branchId) async {
+      String feature, String userId, String businessId, String branchId) async {
     final accessConfig = {
       AppFeature.Tickets: (AccessLevel.WRITE, 'inactive'),
       AppFeature.Settings: (AccessLevel.ADMIN, 'active'),
@@ -113,7 +112,7 @@ class ForceDataEntryService {
 
   final talker = TalkerFlutter.init();
 
-  createCategory({required String name, required int branchId}) async {
+  createCategory({required String name, required String branchId}) async {
     List<Category> category =
         await ProxyService.strategy.categories(branchId: branchId);
     if (category.map((e) => e.name).contains(name)) {

@@ -13,7 +13,7 @@ class Setting extends OfflineFirstWithSupabaseModel {
 
   String? email;
 
-  int? userId;
+  String? userId;
   bool? openReceiptFileOSaleComplete;
   bool? autoPrint;
   bool? sendDailyReport;
@@ -27,7 +27,7 @@ class Setting extends OfflineFirstWithSupabaseModel {
   bool? autoRespond;
   String? token;
   bool? hasPin = false;
-  int? businessId;
+  String? businessId;
   String? createdAt;
 
   DateTime? lastTouched;

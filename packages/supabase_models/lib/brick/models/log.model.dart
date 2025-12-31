@@ -14,7 +14,7 @@ class Log extends OfflineFirstWithSupabaseModel {
 
   String? message;
   String? type;
-  int? businessId;
+  String? businessId;
   DateTime? createdAt;
 
   /// Tags stored as JSON string for compatibility with SQLite and Supabase

@@ -9,18 +9,18 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
 import 'proxy.dart';
-// import 'package:flipper_nfc/flipper_nfc.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flipper_web/core/secrets.dart';
+import 'package:flipper_models/ebm_helper.dart';
 
 const socialApp = "socials";
 
 class AppService with ListenableServiceMixin {
   // required constants
-  int? get userid => ProxyService.box.getUserId();
-  int? get businessId => ProxyService.box.getBusinessId();
-  int? get branchId => ProxyService.box.getBranchId();
+  String? get userid => ProxyService.box.getUserId();
+  String? get businessId => ProxyService.box.getBusinessId();
+  String? get branchId => ProxyService.box.getBranchId();
 
   final _business = ReactiveValue<Business>(Business(
     serverId: randomNumber(),
@@ -51,14 +51,18 @@ class AppService with ListenableServiceMixin {
       ReactiveValue<List<Category>>(List<Category>.empty(growable: true));
   List<Category> get categories => _categories.value;
 
-  void loadCategories() async {
-    int? branchId = ProxyService.box.getBranchId();
+  StreamSubscription<List<Category>>? _categorySubscription;
+  void loadCategories() {
+    String? branchId = ProxyService.box.getBranchId();
+    if (branchId == null) return;
 
-    final List<Category> result =
-        await ProxyService.strategy.categories(branchId: branchId ?? 0);
-
-    _categories.value = result;
-    notifyListeners();
+    _categorySubscription?.cancel();
+    _categorySubscription = ProxyService.strategy
+        .categoryStream(branchId: branchId)
+        .listen((result) {
+      _categories.value = result;
+      notifyListeners();
+    });
   }
 
   /// we fist log in to the business portal
@@ -104,14 +108,111 @@ class AppService with ListenableServiceMixin {
   }
 
   Future<void> updateAllBranchesInactive() async {
-    final branches = await ProxyService.strategy.branches(
-      businessId: ProxyService.box.getBusinessId()!,
-      active: true,
-    );
-    for (final branch in branches) {
-      await ProxyService.strategy.updateBranch(
-          branchId: branch.serverId!, active: false, isDefault: false);
+    final businessId = ProxyService.box.getBusinessId();
+    if (businessId == null) return;
+
+    final userId = ProxyService.box.getUserId();
+    final userAccess = await ProxyService.ditto.getUserAccess(userId!);
+
+    if (userAccess != null && userAccess.containsKey('businesses')) {
+      final List<dynamic> businessesJson = userAccess['businesses'];
+      final businessJson = businessesJson.firstWhere(
+        (b) => b['id'] == businessId,
+        orElse: () => null,
+      );
+
+      if (businessJson != null && businessJson.containsKey('branches')) {
+        final List<dynamic> branchesJson = businessJson['branches'];
+        for (var branchJson in branchesJson) {
+          await ProxyService.strategy.updateBranch(
+            branchId: branchJson['id'],
+            active: false,
+            isDefault: false,
+          );
+        }
+      }
     }
+  }
+
+  Future<void> updateAllBusinessesInactive() async {
+    final userId = ProxyService.box.getUserId();
+    if (userId == null) return;
+
+    final userAccess = await ProxyService.ditto.getUserAccess(userId);
+
+    if (userAccess != null && userAccess.containsKey('businesses')) {
+      final List<dynamic> businessesJson = userAccess['businesses'];
+      for (var businessJson in businessesJson) {
+        await ProxyService.strategy.updateBusiness(
+          businessId: businessJson['id'],
+          active: false,
+          isDefault: false,
+        );
+      }
+    }
+  }
+
+  Future<void> setDefaultBusiness(Business business) async {
+    await updateAllBusinessesInactive();
+    await ProxyService.strategy.updateBusiness(
+      businessId: business.id,
+      active: true,
+      isDefault: true,
+    );
+    await _updateBusinessPreferences(business);
+  }
+
+  Future<void> setDefaultBranch(Branch branch) async {
+    await updateAllBranchesInactive();
+    await ProxyService.strategy.updateBranch(
+      branchId: branch.id,
+      active: true,
+      isDefault: true,
+    );
+    await ProxyService.box.writeString(key: 'branchId', value: branch.id);
+    await ProxyService.box.writeString(key: 'branchIdString', value: branch.id);
+    await ProxyService.box.writeBool(key: 'branch_switched', value: true);
+    await ProxyService.box.writeInt(
+      key: 'last_branch_switch_timestamp',
+      value: DateTime.now().millisecondsSinceEpoch,
+    );
+    await ProxyService.box
+        .writeString(key: 'active_branch_id', value: branch.id);
+    await ProxyService.box.writeString(
+      key: 'currentBusinessId',
+      value: branch.businessId ?? ProxyService.box.getBusinessId()!,
+    );
+    await ProxyService.box.writeString(
+      key: 'currentBranchId',
+      value: branch.id,
+    );
+  }
+
+  Future<void> _updateBusinessPreferences(Business business) async {
+    final existingTin = ProxyService.box.readInt(key: 'tin');
+    final futures = <Future>[];
+
+    futures.add(
+        ProxyService.box.writeString(key: 'businessId', value: business.id));
+    futures.add(ProxyService.box.writeString(
+      key: 'bhfId',
+      value: (await ProxyService.box.bhfId()) ?? "00",
+    ));
+
+    final resolvedTin = await effectiveTin(business: business);
+    if (existingTin == null || (resolvedTin ?? -1) > 0) {
+      futures.add(ProxyService.box.writeInt(
+        key: 'tin',
+        value: resolvedTin ?? existingTin ?? 0,
+      ));
+    }
+
+    futures.add(ProxyService.box.writeString(
+      key: 'encryptionKey',
+      value: business.encryptionKey ?? "",
+    ));
+
+    await Future.wait(futures);
   }
 
   /// check the default business/branch
@@ -126,27 +227,49 @@ class AppService with ListenableServiceMixin {
       throw LoginChoicesException(term: "Choose default business");
     }
 
-    List<Business> businesses = await ProxyService.strategy
-        .businesses(userId: ProxyService.box.getUserId()!, active: true);
-
-    List<Branch> branches = await ProxyService.strategy.branches(
-      businessId: ProxyService.box.getBusinessId()!,
-      active: true,
-    );
     final userId = ProxyService.box.getUserId();
-    print("User id is $userId");
-    if (userId != null) {
-      print("Setting user id to $userId");
+    if (userId == null) {
+      throw Exception('User not logged in. Cannot initialize app.');
+    }
 
-      // Initialize Ditto with the authenticated user ID
-      final appID = kDebugMode ? AppSecrets.appIdDebug : AppSecrets.appId;
+    // Initialize Ditto with the authenticated user ID
+    final appID = kDebugMode ? AppSecrets.appIdDebug : AppSecrets.appId;
 
-      await DittoSingleton.instance.initialize(
-        appId: appID,
-        userId: userId,
-      );
-      DittoSyncCoordinator.instance.setDitto(DittoSingleton.instance.ditto);
-      print("User id set to ${userId} and Ditto initialized");
+    await DittoSingleton.instance.initialize(
+      appId: appID,
+      userId: userId,
+    );
+    DittoSyncCoordinator.instance.setDitto(
+      DittoSingleton.instance.ditto,
+      skipInitialFetch:
+          true, // Skip initial fetch to prevent upserting all models on startup
+    );
+    print("User id set to ${userId} and Ditto initialized");
+
+    final userAccess = await ProxyService.ditto.getUserAccess(userId);
+    List<Business> businesses = [];
+    List<Branch> branches = [];
+
+    if (userAccess != null && userAccess.containsKey('businesses')) {
+      final List<dynamic> businessesJson = userAccess['businesses'];
+      businesses = businessesJson
+          .map((json) => Business.fromMap(Map<String, dynamic>.from(json)))
+          .toList();
+
+      final businessId = ProxyService.box.getBusinessId();
+      if (businessId != null) {
+        final businessJson = businessesJson.firstWhere(
+          (b) => b['id'] == businessId,
+          orElse: () => null,
+        );
+
+        if (businessJson != null && businessJson.containsKey('branches')) {
+          final List<dynamic> branchesJson = businessJson['branches'];
+          branches = branchesJson
+              .map((json) => Branch.fromMap(Map<String, dynamic>.from(json)))
+              .toList();
+        }
+      }
     }
 
     bool hasMultipleBusinesses = businesses.length > 1;
@@ -155,7 +278,7 @@ class AppService with ListenableServiceMixin {
     if (businesses.length == 1) {
       // set it as default
       await ProxyService.strategy.updateBusiness(
-        businessId: businesses.first.serverId,
+        businessId: businesses.first.id,
         active: true,
         isDefault: true,
       );
@@ -163,7 +286,7 @@ class AppService with ListenableServiceMixin {
     if (branches.length == 1) {
       // set it as default directly
       await ProxyService.strategy.updateBranch(
-          branchId: branches.first.serverId!, active: true, isDefault: true);
+          branchId: branches.first.id, active: true, isDefault: true);
     }
 
     if ((hasMultipleBusinesses || hasMultipleBranches)) {
@@ -180,7 +303,7 @@ class AppService with ListenableServiceMixin {
     }
   }
 
-  Future<void> checkAndStartShift({required int userId}) async {
+  Future<void> checkAndStartShift({required String userId}) async {
     final currentShift =
         await ProxyService.strategy.getCurrentShift(userId: userId);
     if (currentShift == null) {
@@ -190,14 +313,14 @@ class AppService with ListenableServiceMixin {
         variant: DialogType.startShift,
         title: 'Start New Shift',
       );
-      if (response?.confirmed != true) {
+      if (response == null || !response.confirmed) {
         // User cancelled starting shift, prevent proceeding
         throw Exception('Shift not started. Please start a shift to proceed.');
       } else {
         // Start the shift now that we have confirmation and data
         final openingBalance =
-            response?.data['openingBalance'] as double? ?? 0.0;
-        final notes = response?.data['notes'] as String?;
+            response.data['openingBalance'] as double? ?? 0.0;
+        final notes = response.data['notes'] as String?;
         await ProxyService.strategy.startShift(
           userId: userId,
           openingBalance: openingBalance,
@@ -228,7 +351,7 @@ class AppService with ListenableServiceMixin {
 
   Future<bool> isSocialLoggedin() async {
     if (ProxyService.box.getDefaultApp() == "2") {
-      // int businessId = ProxyService.box.getBusinessId()!;
+      // String businessId = ProxyService.box.getBusinessId()!;
       // return await ProxyService.strategy
       //     .isTokenValid(businessId: businessId, tokenType: socialApp);
     }

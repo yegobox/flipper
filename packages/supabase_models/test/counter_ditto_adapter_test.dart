@@ -1,12 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:supabase_models/brick/models/counter.model.dart';
 
+// flutter test test/counter_ditto_adapter_test.dart --no-test-assets --dart-define=FLUTTER_TEST_ENV=true
 void main() {
   final adapter = CounterDittoAdapter.instance;
 
   setUp(() {
-    adapter.overrideBranchIdProvider(() => 1);
-    adapter.overrideBusinessIdProvider(() => 10);
+    adapter.overrideBranchIdProvider(() => "1");
+    adapter.overrideBusinessIdProvider(() => "10");
   });
 
   tearDown(() {
@@ -20,8 +21,8 @@ void main() {
 
       final counter = Counter(
         id: 'counter-1',
-        branchId: 1,
-        businessId: 10,
+        branchId: "1",
+        businessId: "10",
         receiptType: 'SALES',
         totRcptNo: 100,
         curRcptNo: 50,
@@ -34,8 +35,8 @@ void main() {
       final document = await adapter.toDittoDocument(counter);
 
       expect(document['id'], equals('counter-1'));
-      expect(document['branchId'], equals(1));
-      expect(document['businessId'], equals(10));
+      expect(document['branchId'], equals("1"));
+      expect(document['businessId'], equals("10"));
       expect(document['receiptType'], equals('SALES'));
       expect(document['totRcptNo'], equals(100));
       expect(document['curRcptNo'], equals(50));
@@ -48,8 +49,8 @@ void main() {
     test('fromDittoDocument returns counter when branch matches', () async {
       final result = await adapter.fromDittoDocument({
         '_id': 'counter-remote',
-        'branchId': 1,
-        'businessId': 10,
+        'branchId': "1",
+        'businessId': "10",
         'receiptType': 'SALES',
         'totRcptNo': 120,
         'curRcptNo': 60,
@@ -61,8 +62,8 @@ void main() {
 
       expect(result, isNotNull);
       expect(result!.id, equals('counter-remote'));
-      expect(result.branchId, equals(1));
-      expect(result.businessId, equals(10));
+      expect(result.branchId, equals("1"));
+      expect(result.businessId, equals("10"));
       expect(result.receiptType, equals('SALES'));
       expect(result.totRcptNo, equals(120));
       expect(result.curRcptNo, equals(60));
@@ -73,8 +74,8 @@ void main() {
     test('fromDittoDocument returns null when branch differs', () async {
       final result = await adapter.fromDittoDocument({
         '_id': 'counter-remote',
-        'branchId': 2,
-        'businessId': 10,
+        'branchId': "2",
+        'businessId': "10",
         'receiptType': 'SALES',
         'totRcptNo': 120,
         'curRcptNo': 60,
@@ -86,8 +87,8 @@ void main() {
     });
 
     test('shouldApplyRemote respects branch filter', () async {
-      expect(await adapter.shouldApplyRemote({'branchId': 1}), isTrue);
-      expect(await adapter.shouldApplyRemote({'branchId': 2}), isFalse);
+      expect(await adapter.shouldApplyRemote({'branchId': "1"}), isTrue);
+      expect(await adapter.shouldApplyRemote({'branchId': "2"}), isFalse);
     });
   });
 }

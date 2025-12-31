@@ -6,7 +6,7 @@ part 'profit_provider.g.dart';
 @riverpod
 class Profit extends _$Profit {
   @override
-  Future<double> build(int branchId) async {
+  Future<double> build(String branchId) async {
     final analytics =
         await ref.watch(fetchStockPerformanceProvider(branchId).future);
     return analytics.fold<double>(
