@@ -39,7 +39,7 @@ mixin BranchMixin implements BranchInterface {
     Branch? existingBranch = await branch(name: name);
     if (existingBranch != null) {
       existingBranch.active = true;
-      repository.upsert<Branch>(existingBranch);
+      await repository.upsert<Branch>(existingBranch);
       return existingBranch;
     }
     final response = await flipperHttpClient.post(
@@ -53,6 +53,7 @@ mixin BranchMixin implements BranchInterface {
     if (response.statusCode == 201) {
       IBranch remoteBranch = IBranch.fromJson(json.decode(response.body));
       return await repository.upsert<Branch>(Branch(
+        id: remoteBranch.id,
         serverId: remoteBranch.serverId,
         location: location,
         description: description,

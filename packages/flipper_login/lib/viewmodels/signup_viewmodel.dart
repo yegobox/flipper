@@ -129,12 +129,34 @@ class SignupViewModel extends BaseViewModel {
       // After successfully creating the business, re-fetch the user data
       // to get the updated list of businesses and save it to Ditto.
       if (phoneNumber != null && phoneNumber.isNotEmpty) {
-        await ProxyService.strategy.sendLoginRequest(
+        final response = await ProxyService.strategy.sendLoginRequest(
           phoneNumber,
           ProxyService.http,
           AppSecrets.apihubProdDomain,
         );
+        if (response.statusCode == 200 && response.body.isNotEmpty) {
+          final responseData = json.decode(response.body);
+          if (responseData['id'] != null) {
+            userId = responseData['id'] is String
+                ? responseData['id']
+                : responseData['id'] as int;
+            // Store the userId for future use
+            ProxyService.box.writeString(key: 'userId', value: userId!);
+            await ProxyService.http.post(
+              Uri.parse('${AppSecrets.apihubProd}/v2/api/pin'),
+              headers: {'Content-Type': 'application/json'},
+              body: jsonEncode({
+                'phoneNumber': phoneNumber,
+                'userId': userId,
+                'branchId': responseData['businesses'][0]['branches'][0]['id'],
+                'businessId': responseData['businesses'][0]['id'],
+                'defaultApp': 1,
+              }),
+            );
+          }
+        }
       }
+      // send pin for this user
     } catch (e) {
       showSimpleNotification(
         const Text("Error while signing up try again later"),

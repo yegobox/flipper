@@ -36,7 +36,7 @@ class TenantOperationsMixin {
           name: name,
           location: name, // Using name for location as well
           isDefault: false,
-          active: false,
+          active: true,
           flipperHttpClient: ProxyService.http,
         );
       } else {

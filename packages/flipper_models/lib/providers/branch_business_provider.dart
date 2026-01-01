@@ -1,5 +1,5 @@
+import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_models/brick/models/branch.model.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -14,6 +14,13 @@ Future<List<Branch>> branches(
 
   final userId = ProxyService.box.getUserId();
   if (userId == null) return [];
+  // this refresh the user access from time to time to have fresh business and branches a user
+  // is allowed to access
+  ProxyService.strategy.sendLoginRequest(
+    ProxyService.box.getUserPhone()!.replaceAll("+", ""),
+    ProxyService.http,
+    AppSecrets.apihubProdDomain,
+  );
 
   final userAccess = await ProxyService.ditto.getUserAccess(userId);
   if (userAccess != null && userAccess.containsKey('businesses')) {
