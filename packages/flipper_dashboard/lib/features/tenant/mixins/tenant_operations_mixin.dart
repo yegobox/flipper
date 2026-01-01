@@ -133,7 +133,7 @@ class TenantOperationsMixin {
         return;
       }
 
-      showCustomSnackBarUtil(context, 'Tenant Created Successfully via RPC');
+      showCustomSnackBarUtil(context, 'Tenant Created Successfully');
 
       // Refresh the tenant list
       await model.loadTenants();
@@ -162,6 +162,13 @@ class TenantOperationsMixin {
     BuildContext context,
   ) async {
     try {
+      // Call Supabase RPC function to remove tenant access
+      final supabaseClient = Supabase.instance.client;
+      await supabaseClient.rpc(
+        'remove_tenant_access',
+        params: {'p_tenant_id': tenant.id, 'p_business_id': tenant.businessId},
+      );
+
       // Delete the tenant
       await ProxyService.strategy.flipperDelete(
         id: tenant.id,
@@ -169,36 +176,19 @@ class TenantOperationsMixin {
         flipperHttpClient: ProxyService.http,
       );
 
-      // Delete associated permissions
-      //TODO: Resume this later since we are migrating to common db, in future deleting this local will do the same to the backend.
-      // List<LPermission> permissions =
-      //     await ProxyService.strategy.permissions(userId: tenant.userId!);
-      // for (LPermission permission in permissions) {
-      //   await ProxyService.strategy.delete(
-      //     id: permission.id,
-      //     endPoint: 'permission',
-      //     flipperHttpClient: ProxyService.http,
-      //   );
-      // }
-
-      // Delete associated accesses
-      // List<Access> accesses = await ProxyService.strategy
-      //     .access(userId: tenant.userId!, fetchRemote: false);
-      // for (Access access in accesses) {
-      //   await ProxyService.strategy.delete(
-      //     id: access.id,
-      //     endPoint: 'access',
-      //     flipperHttpClient: ProxyService.http,
-      //   );
-      // }
-
       model.deleteTenant(tenant); // Update local state
       model.rebuildUi(); // Rebuild the UI
 
-      showCustomSnackBarUtil(context, 'Tenant deleted successfully');
+      // Check if context is still valid before showing snackbar
+      if (context.mounted) {
+        showCustomSnackBarUtil(context, 'Tenant deleted successfully');
+      }
     } catch (e) {
       talker.error("Error deleting tenant: $e"); // Log the error
-      _showError(context, 'Error deleting tenant. Please try again.');
+      // Check if context is still valid before showing error
+      if (context.mounted) {
+        _showError(context, 'Error deleting tenant. Please try again.');
+      }
     }
   }
 

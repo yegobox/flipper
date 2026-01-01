@@ -120,7 +120,6 @@ class BranchDittoAdapter extends DittoSyncAdapter<Branch> {
       "longitude": model.longitude,
       "isDefault": model.isDefault,
       "isOnline": model.isOnline,
-      "tinNumber": model.tinNumber,
       "deletedAt": model.deletedAt?.toIso8601String(),
       "updatedAt": model.updatedAt?.toIso8601String(),
     };
@@ -166,7 +165,6 @@ class BranchDittoAdapter extends DittoSyncAdapter<Branch> {
       longitude: document["longitude"],
       isDefault: document["isDefault"],
       isOnline: document["isOnline"],
-      tinNumber: document["tinNumber"],
       deletedAt: DateTime.tryParse(document["deletedAt"]?.toString() ?? ""),
       updatedAt: DateTime.tryParse(document["updatedAt"]?.toString() ?? ""),
     );

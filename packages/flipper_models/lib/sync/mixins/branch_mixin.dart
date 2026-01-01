@@ -38,6 +38,8 @@ mixin BranchMixin implements BranchInterface {
     // find a branch by name create the branch if only it does not exist
     Branch? existingBranch = await branch(name: name);
     if (existingBranch != null) {
+      existingBranch.active = true;
+      repository.upsert<Branch>(existingBranch);
       return existingBranch;
     }
     final response = await flipperHttpClient.post(

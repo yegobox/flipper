@@ -34,7 +34,6 @@ class Branch extends OfflineFirstWithSupabaseModel {
   num? longitude;
   bool? isDefault;
   bool? isOnline;
-  String? tinNumber;
   DateTime? deletedAt;
   DateTime? updatedAt;
 
@@ -48,7 +47,6 @@ class Branch extends OfflineFirstWithSupabaseModel {
     this.businessId,
     this.latitude,
     this.longitude,
-    this.tinNumber,
     this.isDefault = false,
     this.isOnline = false,
     this.deletedAt,
@@ -83,7 +81,6 @@ class Branch extends OfflineFirstWithSupabaseModel {
         longitude: longitude ?? this.longitude,
         isDefault: isDefault ?? this.isDefault,
         isOnline: isOnline ?? this.isOnline,
-        tinNumber: tinNumber ?? this.tinNumber,
         deletedAt: deletedAt ?? this.deletedAt,
         updatedAt: updatedAt ?? this.updatedAt);
   }
@@ -101,7 +98,6 @@ class Branch extends OfflineFirstWithSupabaseModel {
       'longitude': longitude,
       'isDefault': isDefault,
       'isOnline': isOnline,
-      'tinNumber': tinNumber,
       'deletedAt': deletedAt,
       'updatedAt': updatedAt
     };
@@ -120,7 +116,6 @@ class Branch extends OfflineFirstWithSupabaseModel {
       longitude: map['longitude'],
       isDefault: map['isDefault'] as bool? ?? false,
       isOnline: map['isOnline'] as bool? ?? false,
-      tinNumber: map['tinNumber'] as String?,
       deletedAt: map['deletedAt'] != null
           ? DateTime.tryParse(map['deletedAt'] as String)
           : null,

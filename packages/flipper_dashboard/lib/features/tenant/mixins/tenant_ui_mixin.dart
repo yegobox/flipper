@@ -137,7 +137,7 @@ class TenantUIMixin {
       },
       leading: buildTenantAvatarStatic(context, tenant),
       title: Text(tenant.name!, style: TextStyle(fontWeight: FontWeight.bold)),
-      subtitle: Text(tenant.phoneNumber ?? "No phone number"),
+      subtitle: Text(tenant.phoneNumber ?? tenant.email ?? "No phone number"),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [

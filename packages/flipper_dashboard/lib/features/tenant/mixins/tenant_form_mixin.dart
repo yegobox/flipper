@@ -20,22 +20,28 @@ class TenantFormMixin {
       return "Enter valid number or email address";
     }
 
+    // Check if it's a valid email
     if (EmailValidatorFlutter().validateEmail(value)) {
       return null;
     }
 
+    // If not an email, check if it's a valid phone number
     if (!value.startsWith("+")) {
       return "Phone number should contain country code with + sign";
     }
 
-    final phone = PhoneNumber.parse(value);
-    if (!phone.isValid(type: PhoneNumberType.mobile)) {
-      return "Invalid Phone";
-    }
+    try {
+      final phone = PhoneNumber.parse(value);
+      if (!phone.isValid(type: PhoneNumberType.mobile)) {
+        return "Invalid Phone";
+      }
 
-    final phoneExp = RegExp(r'^\+\d{1,3}\d{7,15}$');
-    if (!phoneExp.hasMatch(value)) {
-      return "Invalid phone number";
+      final phoneExp = RegExp(r'^\+\d{1,3}\d{7,15}$');
+      if (!phoneExp.hasMatch(value)) {
+        return "Invalid phone number";
+      }
+    } catch (e) {
+      return "Invalid phone number format";
     }
 
     return null;
@@ -56,9 +62,7 @@ class TenantFormMixin {
       decoration: InputDecoration(
         labelText: labelText,
         prefixIcon: Icon(icon, color: Theme.of(context).primaryColor),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
         filled: true,
         fillColor: Colors.grey[100],
       ),

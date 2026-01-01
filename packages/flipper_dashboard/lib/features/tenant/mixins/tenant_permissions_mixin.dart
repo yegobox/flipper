@@ -46,17 +46,13 @@ class TenantPermissionsMixin {
     nameController.text = tenant.name ?? '';
     phoneController.text = tenant.phoneNumber ?? '';
 
-    if (formKey.currentContext != null) {
-      Form.of(formKey.currentContext!).reset();
+    // Reset the form using the form key directly instead of Form.of()
+    if (formKey.currentState != null) {
+      formKey.currentState!.reset();
     }
 
-    if (formKey.currentContext != null) {
-      Scrollable.ensureVisible(
-        formKey.currentContext!,
-        duration: Duration(milliseconds: 300),
-        curve: Curves.easeInOut,
-      );
-    }
+    // Note: Removed Scrollable.ensureVisible to avoid context issues when called from expansion tile
+    // The form reset functionality works without scrolling in this context
   }
 
   static void updateTenantPermissionsStatic(
