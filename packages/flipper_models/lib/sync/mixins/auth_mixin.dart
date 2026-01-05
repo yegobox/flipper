@@ -856,4 +856,9 @@ mixin AuthMixin implements AuthInterface {
   void resetDittoInitialization() {
     _isDittoInitialized = false;
   }
+
+  /// Static method to reset Ditto initialization state, can be called from anywhere
+  static void resetDittoInitializationStatic() {
+    _isDittoInitialized = false;
+  }
 }

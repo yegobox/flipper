@@ -5,6 +5,7 @@ import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flipper_web/core/utils/ditto_singleton.dart';
+import 'package:flipper_models/sync/mixins/auth_mixin.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart';
@@ -156,6 +157,8 @@ mixin CoreMiscellaneous implements CoreMiscellaneousInterface {
               arguments: {"userId": ProxyService.box.getUserId()},
             );
             await DittoSingleton.instance.logout();
+            // Reset Ditto initialization state so it can be reinitialized for the next user
+            AuthMixin.resetDittoInitializationStatic();
             print(
                 '✅ Marked Ditto events as logged out for user ${ProxyService.box.getUserId()}');
           } catch (e) {
