@@ -1675,10 +1675,6 @@ class CoreSync extends AiStrategyImpl
         throw e;
       }
 
-      /// deactivate any other branch/or business already set, this is the case for a user
-      /// who can signup on a device that had account
-      await resetForNewDevice();
-
       // Step 2.5: Branches are now created by the server during tenant creation
       // and synced via tenantsFromOnline method, so no need for local creation
 
@@ -1739,23 +1735,6 @@ class CoreSync extends AiStrategyImpl
     } catch (e, s) {
       talker.error('Signup: Unhandled error: $e', s);
       rethrow;
-    }
-  }
-
-  Future<void> resetForNewDevice() async {
-    final businesses = await ProxyService.strategy
-        .businesses(fetchOnline: false, active: false);
-    for (final business in businesses) {
-      await ProxyService.strategy.updateBusiness(
-        businessId: business.id,
-        active: false,
-        isDefault: false,
-      );
-    }
-    final branches = await ProxyService.strategy.branches(active: false);
-    for (final branch in branches) {
-      await ProxyService.strategy
-          .updateBranch(branchId: branch.id, active: false, isDefault: false);
     }
   }
 

@@ -250,7 +250,6 @@ mixin BusinessMixin implements BusinessInterface {
       throw ArgumentError('businessId $businessId not found');
     }
     business.name = name ?? business.name;
-    business.active = active ?? business.active;
     business.isDefault = isDefault ?? business.isDefault;
     business.backupFileId = backupFileId ?? business.backupFileId;
     await repository.upsert(business,
