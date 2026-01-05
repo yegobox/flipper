@@ -658,7 +658,7 @@ mixin AuthMixin implements AuthInterface {
       }
 
       ProxyService.box.writeString(key: 'userPhone', value: phoneNumber);
-      _initializeDitto(responseBody['id']);
+      await _initializeDitto(responseBody['id']);
       // Save user access to Ditto for cross-device synchronization
       await ProxyService.ditto.saveUserAccess(responseBody);
 
