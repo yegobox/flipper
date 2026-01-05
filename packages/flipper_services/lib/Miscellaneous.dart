@@ -187,7 +187,6 @@ mixin CoreMiscellaneous implements CoreMiscellaneousInterface {
           // Set current active business to inactive and not default
           await ProxyService.strategy.updateBusiness(
             businessId: businessId,
-            active: false,
             isDefault: false,
           );
 
@@ -195,7 +194,6 @@ mixin CoreMiscellaneous implements CoreMiscellaneousInterface {
           if (branchId != null) {
             await ProxyService.strategy.updateBranch(
               branchId: branchId,
-              active: false,
               isDefault: false,
             );
           }
@@ -208,7 +206,6 @@ mixin CoreMiscellaneous implements CoreMiscellaneousInterface {
               if (business.id != businessId) {
                 await ProxyService.strategy.updateBusiness(
                   businessId: business.id,
-                  active: false,
                   isDefault: false,
                 );
               }
@@ -218,8 +215,7 @@ mixin CoreMiscellaneous implements CoreMiscellaneousInterface {
             for (Branch branch in branches) {
               if (branch.id != branchId) {
                 await ProxyService.strategy.updateBranch(
-                  branchId: branch.id!,
-                  active: false,
+                  branchId: branch.id,
                   isDefault: false,
                 );
               }

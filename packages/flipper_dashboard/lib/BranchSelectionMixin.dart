@@ -741,7 +741,7 @@ class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
     final searchController = TextEditingController();
     final searchNotifier = ValueNotifier<String>('');
     // Get the current branch ID for comparison
-    final currentBranchId = ProxyService.box.readInt(key: 'branchId');
+    final currentBranchId = ProxyService.box.getBranchId();
 
     Timer? _debounce;
 

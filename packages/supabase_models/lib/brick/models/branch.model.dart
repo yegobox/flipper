@@ -43,7 +43,7 @@ class Branch extends OfflineFirstWithSupabaseModel {
     this.serverId,
     this.location,
     this.description,
-    this.active,
+    this.active = true,
     this.businessId,
     this.latitude,
     this.longitude,

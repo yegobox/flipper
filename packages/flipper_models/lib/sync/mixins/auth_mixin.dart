@@ -658,7 +658,7 @@ mixin AuthMixin implements AuthInterface {
           final branch = Branch(
             id: iBranch.id!,
             serverId: iBranch.serverId,
-            active: iBranch.active ?? false,
+            active: true,
             description: iBranch.description,
             name: iBranch.name,
             businessId: iBranch.businessId,
@@ -674,6 +674,25 @@ mixin AuthMixin implements AuthInterface {
       }
 
       ProxyService.box.writeString(key: 'userPhone', value: phoneNumber);
+
+      // Initialize Ditto with the authenticated user ID
+      final appID =
+          foundation.kDebugMode ? AppSecrets.appIdDebug : AppSecrets.appId;
+      print("User id set to ${responseBody['id']} and Ditto initializing now");
+      try {
+        await DittoSingleton.instance.initialize(
+          appId: appID,
+          userId: responseBody['id'],
+        );
+        DittoSyncCoordinator.instance.setDitto(
+          DittoSingleton.instance.ditto,
+          skipInitialFetch:
+              true, // Skip initial fetch to prevent upserting all models on startup
+        );
+      } catch (e) {
+        talker.error("Failed to initialize Ditto: $e");
+      }
+      print("Ditto initialized");
 
       // Save user access to Ditto for cross-device synchronization
       await ProxyService.ditto.saveUserAccess(responseBody);

@@ -138,7 +138,7 @@ class Branch {
     required this.latitude,
     required this.businessId,
     required this.serverId,
-    this.active = false,
+    this.active = true,
     this.isDefault = false,
   });
 

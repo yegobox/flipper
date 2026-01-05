@@ -33,7 +33,7 @@ class LBusiness {
       this.hexColor,
       this.imageUrl,
       required this.type,
-      this.active = false,
+      this.active = true,
       this.metadata,
       this.lastSeen,
       this.firstName,
