@@ -348,24 +348,8 @@ mixin AuthMixin implements AuthInterface {
 
       ProxyService.box.writeString(key: 'userId', value: user.id);
 
-      // Initialize Ditto with the authenticated user ID
-      final appID =
-          foundation.kDebugMode ? AppSecrets.appIdDebug : AppSecrets.appId;
-      print("User id set to ${user.id} and Ditto initializing now");
-      try {
-        await DittoSingleton.instance.initialize(
-          appId: appID,
-          userId: user.id,
-        );
-        DittoSyncCoordinator.instance.setDitto(
-          DittoSingleton.instance.ditto,
-          skipInitialFetch:
-              true, // Skip initial fetch to prevent upserting all models on startup
-        );
-      } catch (e) {
-        talker.error("Failed to initialize Ditto: $e");
-      }
-      print("Ditto initialized");
+      // Initialize Ditto with the authenticated user ID using shared helper
+      await _initializeDitto(user.id);
 
       // Only perform Firebase login if not already logged in
       if (currentUser == null || currentUser.uid != user.uid) {
@@ -674,26 +658,7 @@ mixin AuthMixin implements AuthInterface {
       }
 
       ProxyService.box.writeString(key: 'userPhone', value: phoneNumber);
-
-      // Initialize Ditto with the authenticated user ID
-      final appID =
-          foundation.kDebugMode ? AppSecrets.appIdDebug : AppSecrets.appId;
-      print("User id set to ${responseBody['id']} and Ditto initializing now");
-      try {
-        await DittoSingleton.instance.initialize(
-          appId: appID,
-          userId: responseBody['id'],
-        );
-        DittoSyncCoordinator.instance.setDitto(
-          DittoSingleton.instance.ditto,
-          skipInitialFetch:
-              true, // Skip initial fetch to prevent upserting all models on startup
-        );
-      } catch (e) {
-        talker.error("Failed to initialize Ditto: $e");
-      }
-      print("Ditto initialized");
-
+      _initializeDitto(responseBody['id']);
       // Save user access to Ditto for cross-device synchronization
       await ProxyService.ditto.saveUserAccess(responseBody);
 
@@ -851,5 +816,44 @@ mixin AuthMixin implements AuthInterface {
       final errorBody = jsonDecode(response.body);
       throw Exception(errorBody['error'] ?? 'Failed to verify OTP');
     }
+  }
+
+  /// Helper function to initialize Ditto with proper guards against repeated initialization
+  /// This prevents double initialization while preserving skipInitialFetch and error logging behavior
+  Future<void> _initializeDitto(String userId) async {
+    // Check if Ditto is already initialized to prevent repeated initialization
+    // Using a static flag to track initialization state since DittoSingleton doesn't have isInitialized
+    if (_isDittoInitialized) {
+      talker.debug("Ditto already initialized, skipping re-initialization");
+      return;
+    }
+
+    final appID =
+        foundation.kDebugMode ? AppSecrets.appIdDebug : AppSecrets.appId;
+    print("User id set to $userId and Ditto initializing now");
+    try {
+      await DittoSingleton.instance.initialize(
+        appId: appID,
+        userId: userId,
+      );
+      DittoSyncCoordinator.instance.setDitto(
+        DittoSingleton.instance.ditto,
+        skipInitialFetch:
+            true, // Skip initial fetch to prevent upserting all models on startup
+      );
+      _isDittoInitialized = true; // Mark as initialized after successful setup
+    } catch (e) {
+      talker.error("Failed to initialize Ditto: $e");
+      rethrow;
+    }
+    print("Ditto initialized");
+  }
+
+  // Static flag to track Ditto initialization status
+  static bool _isDittoInitialized = false;
+
+  /// Method to reset Ditto initialization state, typically called during logout
+  void resetDittoInitialization() {
+    _isDittoInitialized = false;
   }
 }
