@@ -761,5 +761,167 @@ void main() {
 
       testController.dispose();
     });
+
+    testWidgets('creates new conversation and saves AI response when no conversation exists', (
+      WidgetTester tester,
+    ) async {
+      // Mock empty conversations initially to trigger new conversation creation
+      when(
+        () => mockDbSync.getConversations(
+          branchId: any(named: 'branchId'),
+          limit: any(named: 'limit'),
+        ),
+      ).thenAnswer((_) async => []);
+
+      // Create a StreamController to control message updates
+      final messageStreamController = StreamController<List<models.Message>>.broadcast();
+
+      // Mock the subscription to return the stream controller
+      when(
+        () => mockDbSync.subscribeToMessages('new_conversation_id'),
+      ).thenAnswer((_) => messageStreamController.stream);
+
+      // Mock saveMessage for user message
+      when(
+        () => mockDbSync.saveMessage(
+          messageSource: 'ai',
+          text: 'Hello AI',
+          phoneNumber: any(named: 'phoneNumber'),
+          branchId: any(named: 'branchId'),
+          role: 'user',
+          conversationId: 'new_conversation_id',
+          aiResponse: null,
+          aiContext: null,
+        ),
+      ).thenAnswer(
+        (_) async => models.Message(
+          id: 'user_message_id',
+          text: 'Hello AI',
+          role: 'user',
+          conversationId: 'new_conversation_id',
+          branchId: "1",
+          phoneNumber: '123456789',
+          delivered: false,
+        ),
+      );
+
+      // Mock saveMessage for AI response
+      when(
+        () => mockDbSync.saveMessage(
+          messageSource: 'ai',
+          text: 'I don\'t have enough data to analyze at the moment. Please make sure you have some sales or inventory data in your system.',
+          phoneNumber: any(named: 'phoneNumber'),
+          branchId: any(named: 'branchId'),
+          role: 'assistant',
+          conversationId: 'new_conversation_id',
+          aiResponse: 'I don\'t have enough data to analyze at the moment. Please make sure you have some sales or inventory data in your system.',
+          aiContext: 'Hello AI',
+        ),
+      ).thenAnswer(
+        (_) async => models.Message(
+          id: 'ai_message_id',
+          text: 'I don\'t have enough data to analyze at the moment. Please make sure you have some sales or inventory data in your system.',
+          role: 'assistant',
+          conversationId: 'new_conversation_id',
+          branchId: "1",
+          phoneNumber: '123456789',
+          delivered: false,
+          aiResponse: 'I don\'t have enough data to analyze at the moment. Please make sure you have some sales or inventory data in your system.',
+          aiContext: 'Hello AI',
+        ),
+      );
+
+      // Mock the AI provider to return the "no data" response
+      final mockAnalytics = GeminiBusinessAnalyticsMock();
+      when(
+        () => mockAnalytics.build(
+          "1",
+          'Hello AI',
+          filePath: any(named: 'filePath'),
+          history: any(named: 'history'),
+        ),
+      ).thenAnswer(
+        (_) async => 'I don\'t have enough data to analyze at the moment. Please make sure you have some sales or inventory data in your system.',
+      );
+
+      // Pump the widget with the mocked provider
+      await tester.pumpWidget(
+        _wrapWithMaterialApp(
+          const AiScreen(),
+          overrides: [
+            geminiBusinessAnalyticsProvider(
+              "1",
+              'Hello AI',
+              filePath: null,
+              history: [],
+            ).overrideWith(() => mockAnalytics),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      // Verify AiInputField is present
+      expect(find.byType(AiInputField), findsOneWidget);
+
+      // Enter text into the input field
+      await tester.enterText(find.byType(AiInputField), 'Hello AI');
+      await tester.pumpAndSettle();
+
+      // Tap the send button
+      await tester.tap(find.byIcon(Icons.send));
+      await tester.pump(Duration(milliseconds: 50)); // Trigger loading state
+
+      // Verify CircularProgressIndicator is present
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+      // Wait for async operations to complete
+      await tester.pump(Duration(seconds: 2)); // Extended to cover all delays
+      await tester.pumpAndSettle(); // Complete UI updates
+
+      // Verify that a new conversation was created
+      verify(
+        () => mockDbSync.createConversation(
+          title: 'Hello AI',
+          branchId: "1",
+        ),
+      ).called(1);
+
+      // Verify that the user message was saved with the new conversation ID
+      verify(
+        () => mockDbSync.saveMessage(
+          messageSource: 'ai',
+          text: 'Hello AI',
+          phoneNumber: '123456789',
+          branchId: "1",
+          role: 'user',
+          conversationId: 'new_conversation_id',
+          aiResponse: null,
+          aiContext: null,
+        ),
+      ).called(1);
+
+      // Verify that the AI response was saved with the new conversation ID
+      verify(
+        () => mockDbSync.saveMessage(
+          messageSource: 'ai',
+          text: 'I don\'t have enough data to analyze at the moment. Please make sure you have some sales or inventory data in your system.',
+          phoneNumber: '123456789',
+          branchId: "1",
+          role: 'assistant',
+          conversationId: 'new_conversation_id',
+          aiResponse: 'I don\'t have enough data to analyze at the moment. Please make sure you have some sales or inventory data in your system.',
+          aiContext: 'Hello AI',
+        ),
+      ).called(1);
+
+      // Verify that the AI response text is displayed in the UI
+      expect(
+        find.text('I don\'t have enough data to analyze at the moment. Please make sure you have some sales or inventory data in your system.'),
+        findsOneWidget,
+      );
+
+      // Clean up
+      await messageStreamController.close();
+    });
   });
 }
