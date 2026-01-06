@@ -5,6 +5,9 @@ import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:flipper_dashboard/customappbar.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 class AddBranch extends StatefulHookConsumerWidget {
   @override
@@ -15,6 +18,7 @@ class _AddBranchState extends ConsumerState<AddBranch> {
   final _nameController = TextEditingController();
   final _locationController = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+  final _routerService = locator<RouterService>();
 
   String? _nameError;
   String? _locationError;
@@ -25,140 +29,138 @@ class _AddBranchState extends ConsumerState<AddBranch> {
       branchesProvider(businessId: ProxyService.box.getBusinessId()),
     );
     final isProcessing = ref.watch(isProcessingProvider);
-    final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        backgroundColor: theme.primaryColor,
-        title: Text(
-          'Branch Manager',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
-        ),
+      backgroundColor: Colors.white,
+      appBar: CustomAppBar(
+        onPop: () {
+          _routerService.pop();
+        },
+        title: 'Branches',
+        showActionButton: false,
+        icon: Icons.close,
+        multi: 3,
+        bottomSpacer: 90,
       ),
-      body: Container(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [theme.primaryColor.withValues(alpha: 0.05), Colors.white],
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Form Section
-              Card(
-                elevation: 4,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Container(
-                  width: 350,
-                  padding: EdgeInsets.all(24),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Add New Branch',
-                          style: theme.textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: theme.primaryColor,
-                          ),
-                        ),
-                        SizedBox(height: 24),
-                        _buildTextField(
-                          controller: _nameController,
-                          label: 'Branch Name',
-                          hint: 'Enter branch name',
-                          errorText: _nameError,
-                          prefixIcon: Icons.business,
-                          onChanged: (_) => setState(() => _nameError = null),
-                        ),
-                        SizedBox(height: 20),
-                        _buildTextField(
-                          controller: _locationController,
-                          label: 'Location',
-                          hint: 'Enter branch location',
-                          errorText: _locationError,
-                          prefixIcon: Icons.location_on,
-                          onChanged: (_) =>
-                              setState(() => _locationError = null),
-                        ),
-                        SizedBox(height: 32),
-                        SizedBox(
-                          width: double.infinity,
-                          height: 50,
-                          child: ElevatedButton(
-                            onPressed: isProcessing ? null : _handleAddBranch,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: theme.primaryColor,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            child: isProcessing
-                                ? SizedBox(
-                                    width: 24,
-                                    height: 24,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(
-                                        Colors.white,
-                                      ),
-                                    ),
-                                  )
-                                : Text(
-                                    'Add Branch',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Form Section
+            Container(
+              width: 350,
+              decoration: BoxDecoration(
+                border: Border(right: BorderSide(color: Colors.grey.shade200)),
               ),
-              SizedBox(width: 24),
-              // Branches List
-              Expanded(
-                child: branches.when(
-                  data: (branchesList) => _buildBranchesList(branchesList),
-                  loading: () => Center(
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        theme.primaryColor,
+              padding: const EdgeInsets.only(right: 24.0),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Add New Branch',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black,
                       ),
                     ),
-                  ),
-                  error: (error, stackTrace) => Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.error_outline, size: 48, color: Colors.red),
-                        SizedBox(height: 16),
-                        Text(
-                          'Error loading branches',
-                          style: theme.textTheme.titleMedium?.copyWith(
-                            color: Colors.red,
+                    SizedBox(height: 24),
+                    _buildTextField(
+                      controller: _nameController,
+                      label: 'Branch Name',
+                      hint: 'Enter branch name',
+                      errorText: _nameError,
+                      onChanged: (_) => setState(() => _nameError = null),
+                    ),
+                    SizedBox(height: 16),
+                    _buildTextField(
+                      controller: _locationController,
+                      label: 'Location',
+                      hint: 'Enter branch location',
+                      errorText: _locationError,
+                      onChanged: (_) => setState(() => _locationError = null),
+                    ),
+                    SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 48,
+                      child: ElevatedButton(
+                        onPressed: isProcessing ? null : _handleAddBranch,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(4),
                           ),
                         ),
-                      ],
+                        child: isProcessing
+                            ? SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white,
+                                  ),
+                                ),
+                              )
+                            : Text(
+                                'Create Branch',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+            // Branches List
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(left: 24.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'All Branches',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black,
+                      ),
+                    ),
+                    SizedBox(height: 24),
+                    Expanded(
+                      child: branches.when(
+                        data: (branchesList) =>
+                            _buildBranchesList(branchesList),
+                        loading: () => Center(
+                          child: SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          ),
+                        ),
+                        error: (error, stackTrace) => Center(
+                          child: Text(
+                            'Could not load branches',
+                            style: TextStyle(color: Colors.red),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -168,162 +170,155 @@ class _AddBranchState extends ConsumerState<AddBranch> {
     required TextEditingController controller,
     required String label,
     required String hint,
-    required IconData prefixIcon,
     String? errorText,
     Function(String)? onChanged,
   }) {
-    return TextFormField(
-      controller: controller,
-      decoration: InputDecoration(
-        labelText: label,
-        hintText: hint,
-        prefixIcon: Icon(prefixIcon, color: Theme.of(context).primaryColor),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade300),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: Colors.grey.shade700,
+          ),
         ),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey.shade300),
+        SizedBox(height: 8),
+        TextFormField(
+          controller: controller,
+          style: TextStyle(fontSize: 14),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 13),
+            contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(4),
+              borderSide: BorderSide(color: Colors.grey.shade300),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(4),
+              borderSide: BorderSide(color: Colors.grey.shade300),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(4),
+              borderSide: BorderSide(color: Colors.blue),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(4),
+              borderSide: BorderSide(color: Colors.red.shade300),
+            ),
+            errorText: errorText,
+          ),
+          onChanged: onChanged,
         ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Theme.of(context).primaryColor),
-        ),
-        errorBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.red),
-        ),
-        filled: true,
-        fillColor: Colors.grey.shade50,
-        errorText: errorText,
-      ),
-      onChanged: onChanged,
+      ],
     );
   }
 
   Widget _buildBranchesList(List<dynamic> branches) {
-    return ListView.builder(
+    if (branches.isEmpty) {
+      return Center(
+        child: Text('No branches found', style: TextStyle(color: Colors.grey)),
+      );
+    }
+    return ListView.separated(
       itemCount: branches.length,
+      separatorBuilder: (context, index) => Divider(height: 1),
       itemBuilder: (context, index) {
         final branch = branches[index];
-        return Card(
-          margin: EdgeInsets.only(bottom: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          elevation: 2,
-          child: Container(
-            padding: EdgeInsets.all(20),
-            child: Row(
-              children: [
-                Container(
-                  padding: EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Theme.of(
-                      context,
-                    ).primaryColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    Icons.business,
-                    color: Theme.of(context).primaryColor,
-                    size: 28,
-                  ),
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12.0),
+          child: Row(
+            children: [
+              Container(
+                width: 40,
+                height: 40,
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(4),
                 ),
-                SizedBox(width: 20),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        branch.name ?? "-",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                child: Icon(
+                  Icons.business,
+                  color: Colors.grey.shade600,
+                  size: 20,
+                ),
+              ),
+              SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      branch.name ?? "Unknown",
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.black87,
+                      ),
+                    ),
+                    if (branch.location != null && branch.location!.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4.0),
+                        child: Text(
+                          branch.location!,
+                          style: TextStyle(
+                            color: Colors.grey.shade500,
+                            fontSize: 12,
+                          ),
                         ),
                       ),
-                      SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.location_on,
-                            size: 16,
-                            color: Colors.grey.shade600,
-                          ),
-                          SizedBox(width: 4),
-                          Text(
-                            branch.location ?? "",
-                            style: TextStyle(
-                              color: Colors.grey.shade600,
-                              fontSize: 14,
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 12),
-                      Row(
-                        children: [
-                          _buildStatusChip(
-                            icon: Icons.star,
-                            label: 'Default',
-                            isActive: branch.isDefault!,
-                            activeColor: Colors.amber,
-                          ),
-                          SizedBox(width: 12),
-                          _buildStatusChip(
-                            icon: Icons.check_circle,
-                            label: 'Active',
-                            isActive: branch.active!,
-                            activeColor: Colors.green,
-                          ),
-                        ],
-                      ),
-                    ],
+                  ],
+                ),
+              ),
+              if (branch.isDefault == true)
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Text(
+                    'Default',
+                    style: TextStyle(
+                      color: Colors.blue,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
                 ),
-                if (!branch.isDefault!)
-                  IconButton(
-                    onPressed: () => _showDeleteDialog(branch),
-                    icon: Icon(Icons.delete_outline, color: Colors.red),
+              if (branch.active == true && branch.isDefault != true)
+                Container(
+                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
                   ),
-              ],
-            ),
+                  child: Text(
+                    'Active',
+                    style: TextStyle(
+                      color: Colors.green,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+              SizedBox(width: 8),
+              if (branch.isDefault != true)
+                IconButton(
+                  icon: Icon(
+                    Icons.delete_outline,
+                    color: Colors.red.shade400,
+                    size: 20,
+                  ),
+                  onPressed: () => _showDeleteDialog(branch),
+                  splashRadius: 20,
+                  tooltip: 'Delete Branch',
+                ),
+            ],
           ),
         );
       },
-    );
-  }
-
-  Widget _buildStatusChip({
-    required IconData icon,
-    required String label,
-    required bool isActive,
-    required Color activeColor,
-  }) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: isActive
-            ? activeColor.withValues(alpha: 0.1)
-            : Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16, color: isActive ? activeColor : Colors.grey),
-          SizedBox(width: 4),
-          Text(
-            label,
-            style: TextStyle(
-              color: isActive ? activeColor : Colors.grey,
-              fontSize: 12,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -332,9 +327,6 @@ class _AddBranchState extends ConsumerState<AddBranch> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
           title: Text('Delete Branch'),
           content: Text('Are you sure you want to delete ${branch.name}?'),
           actions: <Widget>[
@@ -342,15 +334,9 @@ class _AddBranchState extends ConsumerState<AddBranch> {
               onPressed: () => Navigator.of(context).pop(false),
               child: Text('Cancel'),
             ),
-            ElevatedButton(
+            TextButton(
               onPressed: () => Navigator.of(context).pop(true),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: Text('Delete', style: TextStyle(color: Colors.white)),
+              child: Text('Delete', style: TextStyle(color: Colors.red)),
             ),
           ],
         );
@@ -393,17 +379,7 @@ class _AddBranchState extends ConsumerState<AddBranch> {
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            content: Row(
-              children: [
-                Icon(Icons.error_outline, color: Colors.white),
-                SizedBox(width: 8),
-                Text('Error adding branch'),
-              ],
-            ),
+            content: Text('Error adding branch'),
             backgroundColor: Colors.red,
           ),
         );

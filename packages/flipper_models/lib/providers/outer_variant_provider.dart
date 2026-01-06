@@ -37,15 +37,17 @@ class OuterVariants extends _$OuterVariants {
 
     // Watch for search string changes and react accordingly.
     final searchString = ref.watch(searchStringProvider);
-    if (searchString != _currentSearch || state.value == null) {
+
+    // Always update current search and page when they change
+    if (searchString != _currentSearch) {
       _currentSearch = searchString;
       _currentPage = 0;
-      final paged = await _fetchVariants(branchId, 0, searchString);
-      _totalCount = paged.totalCount;
-      state = AsyncValue.data(List<Variant>.from(paged.variants));
     }
 
-    return state.value ?? [];
+    final paged = await _fetchVariants(branchId, _currentPage, _currentSearch);
+    _totalCount = paged.totalCount;
+
+    return List<Variant>.from(paged.variants);
   }
 
   Future<PagedVariants> _fetchVariants(

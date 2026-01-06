@@ -51,7 +51,6 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
   void initState() {
     super.initState();
     _scrollController.addListener(_scrollListener);
-    _loadInitialProducts();
 
     // Set up a timer to periodically check for branch switches (less frequent)
     _branchSwitchTimer = Timer.periodic(const Duration(seconds: 5), (timer) {
@@ -115,10 +114,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     // Instead of invalidating providers, just refresh the data
     try {
       // Use the provider's refresh method instead of invalidation
-      ref.read(outerVariantsProvider(branchId).notifier).refresh();
-
-      // Force reload initial products
-      _loadInitialProducts();
+      ref.invalidate(outerVariantsProvider(branchId));
 
       // Explicitly refresh the UI
       if (mounted) {
@@ -140,14 +136,6 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     }
   }
 
-  void _loadInitialProducts() {
-    ref
-        .read(
-          outerVariantsProvider(ProxyService.box.getBranchId() ?? "").notifier,
-        )
-        .refresh();
-  }
-
   void _goToPage(int page) async {
     final branchId = ProxyService.box.getBranchId() ?? "";
     final notifier = ref.read(outerVariantsProvider(branchId).notifier);
@@ -163,7 +151,6 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     return ViewModelBuilder<ProductViewModel>.nonReactive(
       onViewModelReady: (model) async {
         await model.loadTenants();
-        _loadInitialProducts();
       },
       viewModelBuilder: () => ProductViewModel(),
       builder: (context, model, child) {

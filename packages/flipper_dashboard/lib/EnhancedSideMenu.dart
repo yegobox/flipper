@@ -4,7 +4,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_side_menu/flutter_side_menu.dart';
+
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -28,11 +28,158 @@ class EnhancedSideMenu extends ConsumerWidget {
       ),
     );
 
-    return SideMenu(
-      mode: SideMenuMode.compact,
-      builder: (data) {
-        return SideMenuData(
-          header: Container(
+    final menuItems = [
+      _SideMenuItem(
+        icon: Icons.dashboard_outlined,
+        isSelected: selectedItem == 0,
+        onTap: () {
+          ref.read(selectedMenuItemProvider.notifier).state = 0;
+          ref.read(selectedPageProvider.notifier).state =
+              DashboardPage.inventory;
+        },
+        tooltip: 'Overview',
+      ),
+      _SideMenuItem(
+        icon: Icons.chat_bubble,
+        isSelected: selectedItem == 1,
+        onTap: () {
+          ref.read(selectedMenuItemProvider.notifier).state = 1;
+          ref.read(selectedPageProvider.notifier).state = DashboardPage.ai;
+        },
+        tooltip: 'Chat',
+      ),
+      _SideMenuItem(
+        icon: FluentIcons.box_24_regular,
+        isSelected: selectedItem == 2,
+        onTap: () {
+          ref.read(selectedMenuItemProvider.notifier).state = 2;
+          ref.read(selectedPageProvider.notifier).state = DashboardPage.reports;
+        },
+        tooltip: 'Items',
+      ),
+      _SideMenuItem(
+        icon: Icons.restaurant_menu,
+        isSelected: selectedItem == 3,
+        onTap: () {
+          ref.read(selectedMenuItemProvider.notifier).state = 3;
+          ref.read(selectedPageProvider.notifier).state = DashboardPage.kitchen;
+        },
+        tooltip: 'Kitchen Display',
+      ),
+      _SideMenuItem(
+        icon: Icons.inventory_2_outlined,
+        isSelected: selectedItem == 6,
+        onTap: () {
+          ref.read(selectedMenuItemProvider.notifier).state = 6;
+          ref.read(selectedPageProvider.notifier).state =
+              DashboardPage.stockRecount;
+        },
+        tooltip: 'Stock Recount',
+      ),
+      _SideMenuItem(
+        icon: Icons.print_outlined,
+        isSelected: selectedItem == 7,
+        onTap: () {
+          ref.read(selectedMenuItemProvider.notifier).state = 7;
+          ref.read(selectedPageProvider.notifier).state =
+              DashboardPage.delegations;
+        },
+        tooltip: 'Delegations',
+      ),
+      _SideMenuItem(
+        icon: Icons.move_to_inbox,
+        isSelected: selectedItem == 8,
+        onTap: () {
+          ref.read(selectedMenuItemProvider.notifier).state = 8;
+          ref.read(selectedPageProvider.notifier).state =
+              DashboardPage.incomingOrders;
+        },
+        tooltip: 'Incoming Orders',
+      ),
+      if (isAdminAsyncValue.value == true)
+        _SideMenuItem(
+          icon: Icons.history,
+          isSelected: selectedItem == 5,
+          onTap: () {
+            ref.read(selectedMenuItemProvider.notifier).state = 5;
+            _routerService.navigateTo(ShiftHistoryViewRoute());
+          },
+          tooltip: 'Shift History',
+        ),
+      _SideMenuItem(
+        icon: Icons.logout,
+        isSelected: selectedItem == 4,
+        onTap: () async {
+          final userId = ProxyService.box.getUserId();
+          if (userId != null) {
+            try {
+              final currentShift = await ProxyService.strategy.getCurrentShift(
+                userId: userId,
+              );
+              if (currentShift != null) {
+                final dialogResponse = await _dialogService.showCustomDialog(
+                  variant: DialogType.closeShift,
+                  title: 'Close Shift',
+                  data: {
+                    'openingBalance': currentShift.openingBalance,
+                    'cashSales': currentShift.cashSales,
+                    'expectedCash': currentShift.expectedCash,
+                  },
+                );
+
+                if (dialogResponse?.confirmed == true &&
+                    dialogResponse?.data != null) {
+                  final closingBalance =
+                      (dialogResponse?.data
+                              as Map<dynamic, dynamic>)['closingBalance']
+                          as double? ??
+                      0.0;
+                  final notes =
+                      (dialogResponse?.data as Map<dynamic, dynamic>)['notes']
+                          as String?;
+                  await ProxyService.strategy.endShift(
+                    shiftId: currentShift.id,
+                    closingBalance: closingBalance,
+                    note: notes,
+                  );
+                  _routerService.replaceWith(const LoginRoute());
+                } else {
+                  // If dialog is cancelled or no data, still redirect to login
+                  _routerService.replaceWith(const LoginRoute());
+                }
+              } else {
+                _routerService.replaceWith(const LoginRoute());
+              }
+            } catch (e) {
+              // Log the error
+              print('Error during logout flow: $e');
+
+              // Show error dialog to user
+              await _dialogService.showCustomDialog(
+                variant: DialogType.info,
+                title: 'Error',
+                description: 'An error occurred during logout: $e',
+              );
+
+              // Ensure user is redirected to login in case of error
+              _routerService.replaceWith(const LoginRoute());
+            }
+          } else {
+            _routerService.replaceWith(const LoginRoute());
+          }
+        },
+        tooltip: 'Log Out Shift',
+        isLogout: true,
+      ),
+    ];
+
+    return Container(
+      width: 80,
+      color: Colors.white,
+      child: Column(
+        children: [
+          // Header
+          Container(
             padding: const EdgeInsets.all(16),
             child: Image.asset(
               'assets/logo.png',
@@ -41,236 +188,17 @@ class EnhancedSideMenu extends ConsumerWidget {
               height: 40,
             ),
           ),
-          items: [
-            SideMenuItemDataTile(
-              hasSelectedLine: true,
-              highlightSelectedColor: Colors.blue.withValues(alpha: 0.1),
-              selectedTitleStyle: const TextStyle(
-                color: Colors.blue,
-                fontWeight: FontWeight.w600,
-              ),
-              borderRadius: BorderRadius.circular(8),
-              title: 'Overview',
-              isSelected: selectedItem == 0,
-              icon: Icon(
-                Icons.dashboard_outlined,
-                color: selectedItem == 0 ? Colors.blue : Colors.grey.shade600,
-                size: 20,
-              ),
-              onTap: () {
-                ref.read(selectedMenuItemProvider.notifier).state = 0;
-                ref.read(selectedPageProvider.notifier).state =
-                    DashboardPage.inventory;
-              },
-            ),
-            SideMenuItemDataTile(
-              hasSelectedLine: true,
-              highlightSelectedColor: Colors.blue.withValues(alpha: 0.1),
-              selectedTitleStyle: const TextStyle(
-                color: Colors.blue,
-                fontWeight: FontWeight.w600,
-              ),
-              borderRadius: BorderRadius.circular(8),
-              title: 'Chat',
-              isSelected: selectedItem == 1,
-              icon: Icon(
-                Icons.chat_bubble,
-                color: selectedItem == 1 ? Colors.blue : Colors.grey.shade600,
-                size: 20,
-              ),
-              onTap: () {
-                ref.read(selectedMenuItemProvider.notifier).state = 1;
-                ref.read(selectedPageProvider.notifier).state =
-                    DashboardPage.ai;
-              },
-            ),
-            SideMenuItemDataTile(
-              hasSelectedLine: true,
-              highlightSelectedColor: Colors.blue.withValues(alpha: 0.1),
-              selectedTitleStyle: const TextStyle(
-                color: Colors.blue,
-                fontWeight: FontWeight.w600,
-              ),
-              borderRadius: BorderRadius.circular(8),
-              title: 'Items',
-              isSelected: selectedItem == 2,
-              icon: Icon(
-                FluentIcons.box_24_regular,
-                color: selectedItem == 2 ? Colors.blue : Colors.grey.shade600,
-                size: 20,
-              ),
-              onTap: () {
-                ref.read(selectedMenuItemProvider.notifier).state = 2;
-                ref.read(selectedPageProvider.notifier).state =
-                    DashboardPage.reports;
-              },
-            ),
-            SideMenuItemDataTile(
-              hasSelectedLine: true,
-              highlightSelectedColor: Colors.blue.withValues(alpha: 0.1),
-              selectedTitleStyle: const TextStyle(
-                color: Colors.blue,
-                fontWeight: FontWeight.w600,
-              ),
-              borderRadius: BorderRadius.circular(8),
-              title: 'Kitchen Display',
-              isSelected: selectedItem == 3,
-              icon: Icon(
-                Icons.restaurant_menu,
-                color: selectedItem == 3 ? Colors.blue : Colors.grey.shade600,
-                size: 20,
-              ),
-              onTap: () {
-                ref.read(selectedMenuItemProvider.notifier).state = 3;
-                ref.read(selectedPageProvider.notifier).state =
-                    DashboardPage.kitchen;
-              },
-            ),
-            SideMenuItemDataTile(
-              hasSelectedLine: true,
-              highlightSelectedColor: Colors.blue.withValues(alpha: 0.1),
-              selectedTitleStyle: const TextStyle(
-                color: Colors.blue,
-                fontWeight: FontWeight.w600,
-              ),
-              borderRadius: BorderRadius.circular(8),
-              title: 'Stock Recount',
-              isSelected: selectedItem == 6,
-              icon: Icon(
-                Icons.inventory_2_outlined,
-                color: selectedItem == 6 ? Colors.blue : Colors.grey.shade600,
-                size: 20,
-              ),
-              onTap: () {
-                ref.read(selectedMenuItemProvider.notifier).state = 6;
-                ref.read(selectedPageProvider.notifier).state =
-                    DashboardPage.stockRecount;
-              },
-            ),
-            SideMenuItemDataTile(
-              hasSelectedLine: true,
-              highlightSelectedColor: Colors.blue.withValues(alpha: 0.1),
-              selectedTitleStyle: const TextStyle(
-                color: Colors.blue,
-                fontWeight: FontWeight.w600,
-              ),
-              borderRadius: BorderRadius.circular(8),
-              title: 'Delegations',
-              isSelected: selectedItem == 7,
-              icon: Icon(
-                Icons.print_outlined,
-                color: selectedItem == 7 ? Colors.blue : Colors.grey.shade600,
-                size: 20,
-              ),
-              onTap: () {
-                ref.read(selectedMenuItemProvider.notifier).state = 7;
-                ref.read(selectedPageProvider.notifier).state =
-                    DashboardPage.delegations;
-              },
-            ),
-            SideMenuItemDataTile(
-              hasSelectedLine: true,
-              highlightSelectedColor: Colors.blue.withValues(alpha: 0.1),
-              selectedTitleStyle: const TextStyle(
-                color: Colors.blue,
-                fontWeight: FontWeight.w600,
-              ),
-              borderRadius: BorderRadius.circular(8),
-              title: 'Incoming Orders',
-              isSelected: selectedItem == 8,
-              icon: Icon(
-                Icons.move_to_inbox,
-                color: selectedItem == 8 ? Colors.blue : Colors.grey.shade600,
-                size: 20,
-              ),
-              onTap: () {
-                ref.read(selectedMenuItemProvider.notifier).state = 8;
-                ref.read(selectedPageProvider.notifier).state =
-                    DashboardPage.incomingOrders;
-              },
-            ),
-            if (isAdminAsyncValue.value ==
-                true) // Conditionally add Shift History
-              SideMenuItemDataTile(
-                hasSelectedLine: true,
-                highlightSelectedColor: Colors.blue.withValues(alpha: 0.1),
-                selectedTitleStyle: const TextStyle(
-                  color: Colors.blue,
-                  fontWeight: FontWeight.w600,
-                ),
-                borderRadius: BorderRadius.circular(8),
-                title: 'Shift History',
-                isSelected: selectedItem == 5,
-                icon: Icon(
-                  Icons.history,
-                  color: selectedItem == 5 ? Colors.blue : Colors.grey.shade600,
-                  size: 20,
-                ),
-                onTap: () {
-                  ref.read(selectedMenuItemProvider.notifier).state = 5;
-                  _routerService.navigateTo(ShiftHistoryViewRoute());
-                },
-              ),
-            SideMenuItemDataTile(
-              hasSelectedLine: true,
-              isSelected: selectedItem == 4,
-              highlightSelectedColor: Colors.red.withValues(alpha: 0.1),
-              selectedTitleStyle: const TextStyle(
-                color: Colors.red,
-                fontWeight: FontWeight.w600,
-              ),
-              borderRadius: BorderRadius.circular(8),
-              title: 'Log Out Shift',
-              icon: Icon(Icons.logout, color: Colors.grey.shade600, size: 20),
-              onTap: () async {
-                final userId = ProxyService.box.getUserId();
-                if (userId != null) {
-                  final currentShift = await ProxyService.strategy
-                      .getCurrentShift(userId: userId);
-                  if (currentShift != null) {
-                    final dialogResponse = await _dialogService
-                        .showCustomDialog(
-                          variant: DialogType.closeShift,
-                          title: 'Close Shift',
-                          data: {
-                            'openingBalance': currentShift.openingBalance,
-                            'cashSales': currentShift.cashSales,
-                            'expectedCash': currentShift.expectedCash,
-                          },
-                        );
 
-                    if (dialogResponse?.confirmed == true &&
-                        dialogResponse?.data != null) {
-                      final closingBalance =
-                          (dialogResponse?.data
-                                  as Map<dynamic, dynamic>)['closingBalance']
-                              as double? ??
-                          0.0;
-                      final notes =
-                          (dialogResponse?.data
-                                  as Map<dynamic, dynamic>)['notes']
-                              as String?;
-                      await ProxyService.strategy.endShift(
-                        shiftId: currentShift.id,
-                        closingBalance: closingBalance,
-                        note: notes,
-                      );
-                      _routerService.replaceWith(const LoginRoute());
-                    }
-                  } else {
-                    // If no active shift, just navigate to login
-                    _routerService.replaceWith(const LoginRoute());
-                  }
-                } else {
-                  // If no user ID, just navigate to login
-                  _routerService.replaceWith(const LoginRoute());
-                }
-              },
+          // Menu Items
+          Expanded(
+            child: Column(
+              children: menuItems.map((item) => Expanded(child: item)).toList(),
             ),
-          ],
-          footer: Column(
+          ),
+
+          // Footer
+          Column(
             children: [
-              // add icon button
               IconButton(
                 icon: const Icon(Icons.apps),
                 onPressed: () {
@@ -286,8 +214,79 @@ class EnhancedSideMenu extends ConsumerWidget {
               ),
             ],
           ),
-        );
-      },
+        ],
+      ),
+    );
+  }
+}
+
+class _SideMenuItem extends StatelessWidget {
+  final IconData icon;
+  final bool isSelected;
+  final VoidCallback onTap;
+  final String tooltip;
+  final bool isLogout;
+
+  const _SideMenuItem({
+    required this.icon,
+    required this.isSelected,
+    required this.onTap,
+    required this.tooltip,
+    this.isLogout = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = isLogout
+        ? Colors.red
+        : (isSelected ? Colors.blue : Colors.grey.shade600);
+
+    final content = Center(
+      child: Container(
+        margin: const EdgeInsets.symmetric(horizontal: 12),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? (isLogout
+                    ? Colors.red.withValues(alpha: 0.1)
+                    : Colors.blue.withValues(alpha: 0.1))
+              : null,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Icon(
+            icon,
+            color: color,
+            size: 24, // Slightly larger for better visibility
+          ),
+        ),
+      ),
+    );
+
+    return Tooltip(
+      message: tooltip,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: isSelected
+            ? Row(
+                children: [
+                  Container(
+                    width: 4,
+                    height: 32, // Height of the selection indicator
+                    decoration: BoxDecoration(
+                      color: isLogout ? Colors.red : Colors.blue,
+                      borderRadius: const BorderRadius.only(
+                        topRight: Radius.circular(4),
+                        bottomRight: Radius.circular(4),
+                      ),
+                    ),
+                  ),
+                  Expanded(child: content),
+                ],
+              )
+            : content,
+      ),
     );
   }
 }
