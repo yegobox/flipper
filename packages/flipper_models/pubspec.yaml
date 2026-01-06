@@ -55,7 +55,7 @@ dependencies:
   mime: ^2.0.0
   firebase_core: ^4.2.1
   # sqlite3_flutter_libs: ^0.5.40
-  sqlite3: ^3.1.1
+  sqlite3: ^3.1.2
   permission_handler: ^12.0.1
   json_annotation: ^4.9.0
   supabase_flutter: ^2.10.0
@@ -78,7 +78,7 @@ dependency_overrides:
   jni: ^0.14.2
   web: ^1.0.0
   json_annotation: ^4.9.0
-  sqlite3: ^3.1.1
+  sqlite3: ^3.1.2
   stacked_services: ^1.6.0
   device_info_plus: ^12.3.0
   archive: ^3.6.1

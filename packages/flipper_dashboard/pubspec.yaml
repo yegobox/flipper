@@ -118,7 +118,7 @@ dependencies:
   email_validator: ^2.1.17
   pasteboard: ^0.4.0
   brick_offline_first: ^4.0.0
-  sqlite3: ^3.1.1
+  sqlite3: ^3.1.2
   record: ^6.1.2
   markdown_widget: ^2.3.2
   flipper_auth: any
@@ -132,7 +132,7 @@ dependency_overrides:
   meta: ^1.16.0
   web: ^1.0.0
   json_annotation: ^4.9.0
-  sqlite3: ^3.1.1
+  sqlite3: ^3.1.2
   device_info_plus: ^12.3.0
   archive: ^3.6.1
   excel: ^4.0.6
