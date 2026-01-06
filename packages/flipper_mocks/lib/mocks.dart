@@ -977,7 +977,6 @@ final productMock = Product(
 
 final branchMock = Branch(
   serverId: randomNumber(),
-  active: false,
   description: 'desc',
   businessId: "10",
   latitude: 0,

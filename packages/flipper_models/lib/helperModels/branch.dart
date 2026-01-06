@@ -12,7 +12,6 @@ class IBranch extends IJsonSerializable {
   IBranch({
     this.id,
     this.serverId,
-    this.active,
     this.description,
     this.name,
     this.businessId,
@@ -30,7 +29,6 @@ class IBranch extends IJsonSerializable {
         name = name ?? other.name,
         id = other.id,
         location = other.location,
-        active = active ?? other.active,
         branchDefault = other.branchDefault,
         accesses = other.accesses,
         businessId = other.businessId,
@@ -41,7 +39,6 @@ class IBranch extends IJsonSerializable {
         updatedAt = other.updatedAt;
   String? id;
   int? serverId;
-  bool? active;
   String? description;
   String? name;
   String? businessId;

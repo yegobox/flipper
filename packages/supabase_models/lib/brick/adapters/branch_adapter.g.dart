@@ -14,7 +14,6 @@ Future<Branch> _$BranchFromSupabase(
     description: data['description'] == null
         ? null
         : data['description'] as String?,
-    active: data['active'] == null ? null : data['active'] as bool?,
     businessId: data['business_id'] == null
         ? null
         : data['business_id'] as String?,
@@ -46,7 +45,6 @@ Future<Map<String, dynamic>> _$BranchToSupabase(
     'server_id': instance.serverId,
     'location': instance.location,
     'description': instance.description,
-    'active': instance.active,
     'business_id': instance.businessId,
     'latitude': instance.latitude,
     'longitude': instance.longitude,
@@ -70,7 +68,6 @@ Future<Branch> _$BranchFromSqlite(
     description: data['description'] == null
         ? null
         : data['description'] as String?,
-    active: data['active'] == null ? null : data['active'] == 1,
     businessId: data['business_id'] == null
         ? null
         : data['business_id'] as String?,
@@ -102,7 +99,6 @@ Future<Map<String, dynamic>> _$BranchToSqlite(
     'server_id': instance.serverId,
     'location': instance.location,
     'description': instance.description,
-    'active': instance.active == null ? null : (instance.active! ? 1 : 0),
     'business_id': instance.businessId,
     'latitude': instance.latitude,
     'longitude': instance.longitude,
@@ -146,10 +142,6 @@ class BranchAdapter extends OfflineFirstWithSupabaseAdapter<Branch> {
     'description': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'description',
-    ),
-    'active': const RuntimeSupabaseColumnDefinition(
-      association: false,
-      columnName: 'active',
     ),
     'businessId': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -221,12 +213,6 @@ class BranchAdapter extends OfflineFirstWithSupabaseAdapter<Branch> {
       columnName: 'description',
       iterable: false,
       type: String,
-    ),
-    'active': const RuntimeSqliteColumnDefinition(
-      association: false,
-      columnName: 'active',
-      iterable: false,
-      type: bool,
     ),
     'businessId': const RuntimeSqliteColumnDefinition(
       association: false,

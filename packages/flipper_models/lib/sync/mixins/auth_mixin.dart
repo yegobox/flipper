@@ -642,7 +642,6 @@ mixin AuthMixin implements AuthInterface {
           final branch = Branch(
             id: iBranch.id!,
             serverId: iBranch.serverId,
-            active: true,
             description: iBranch.description,
             name: iBranch.name,
             businessId: iBranch.businessId,
@@ -653,7 +652,7 @@ mixin AuthMixin implements AuthInterface {
           );
           await repository.upsert<Branch>(branch);
           talker.debug(
-              "Saved branch locally: ${branch.name} (active: ${branch.active}, isDefault: ${branch.isDefault})");
+              "Saved branch locally: ${branch.name} (isDefault: ${branch.isDefault})");
         }
       }
 

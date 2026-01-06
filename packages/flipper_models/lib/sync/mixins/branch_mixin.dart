@@ -38,7 +38,6 @@ mixin BranchMixin implements BranchInterface {
     // find a branch by name create the branch if only it does not exist
     Branch? existingBranch = await branch(name: name);
     if (existingBranch != null) {
-      existingBranch.active = true;
       await repository.upsert<Branch>(existingBranch);
       return existingBranch;
     }
@@ -62,7 +61,6 @@ mixin BranchMixin implements BranchInterface {
         longitude: longitude,
         latitude: latitude,
         isDefault: isDefault,
-        active: active,
       ));
     }
     throw Exception('Failed to create branch');
@@ -100,7 +98,6 @@ mixin BranchMixin implements BranchInterface {
     if (branchs == null) {
       throw Exception('Branch not found');
     }
-    branchs.active = active ?? branchs.active;
     branchs.isDefault = isDefault ?? branchs.isDefault;
 
     await saveBranch(branchs);
