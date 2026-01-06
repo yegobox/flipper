@@ -69,11 +69,10 @@ class IncomingOrdersScreen extends HookConsumerWidget {
                 selectedStatus: ref.watch(orderStatusProvider),
                 onStatusChanged: (newStatus) {
                   ref.read(orderStatusProvider.notifier).state = newStatus;
-                  ref
-                      .read(requestStatusProvider.notifier)
-                      .state = newStatus == OrderStatus.approved
-                      ? RequestStatus.approved
-                      : RequestStatus.pending;
+                  ref.read(requestStatusProvider.notifier).state =
+                      newStatus == OrderStatus.approved
+                          ? RequestStatus.approved
+                          : RequestStatus.pending;
                 },
               ),
             ],
@@ -131,20 +130,23 @@ class IncomingOrdersScreen extends HookConsumerWidget {
                       ),
                     );
                   },
-                  loading: () => _buildLoadingState(),
+                  loading: _buildLoadingState,
                   error: (err, stack) => _buildErrorState(
                     'Error loading branch',
                     err.toString(),
                     Icons.business_center_outlined,
+                    () => ref.refresh(activeBranchProvider),
                   ),
                 );
               },
-              loading: () => _buildLoadingState(),
+              loading: _buildLoadingState,
               error: (err, stack) => _buildErrorState(
-                'Error loading requests',
-                err.toString(),
-                Icons.error_outline,
-              ),
+                  'Error loading requests', err.toString(), Icons.error_outline,
+                  () {
+                ref.refresh(
+                  stockRequestsProvider(status: status, search: search),
+                );
+              }),
             ),
           ),
         ],
@@ -296,62 +298,62 @@ class IncomingOrdersScreen extends HookConsumerWidget {
       ),
     );
   }
-}
 
-Widget _buildLoadingState() {
-  return const Center(child: CircularProgressIndicator());
-}
+  Widget _buildLoadingState() {
+    return const Center(child: CircularProgressIndicator());
+  }
 
-Widget _buildErrorState(String title, String message, IconData icon) {
-  return Center(
-    child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: const Color(0xFFE74C3C).withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
+  Widget _buildErrorState(
+      String title, String message, IconData icon, VoidCallback onRetry) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFE74C3C).withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, size: 32, color: const Color(0xFFE74C3C)),
           ),
-          child: Icon(icon, size: 32, color: const Color(0xFFE74C3C)),
-        ),
-        const SizedBox(height: 16),
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF1A1A1A),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          message,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            fontSize: 12,
-            color: Colors.grey.withOpacity(0.6),
-            height: 1.4,
-          ),
-        ),
-        const SizedBox(height: 16),
-        ElevatedButton.icon(
-          onPressed: () {
-            // Add retry functionality, maybe ref.refresh like above
-          },
-          icon: const Icon(Icons.refresh, size: 18),
-          label: const Text('Try Again'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: const Color(0xFF0078D4),
-            foregroundColor: Colors.white,
-            elevation: 0,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
+          const SizedBox(height: 16),
+          Text(
+            title,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF1A1A1A),
             ),
           ),
-        ),
-      ],
-    ),
-  );
+          const SizedBox(height: 8),
+          Text(
+            message,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey.withOpacity(0.6),
+              height: 1.4,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ElevatedButton.icon(
+            onPressed: onRetry,
+            icon: const Icon(Icons.refresh, size: 18),
+            label: const Text('Try Again'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF0078D4),
+              foregroundColor: Colors.white,
+              elevation: 0,
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

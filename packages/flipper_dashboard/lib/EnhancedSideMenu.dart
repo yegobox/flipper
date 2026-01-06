@@ -112,38 +112,56 @@ class EnhancedSideMenu extends ConsumerWidget {
         onTap: () async {
           final userId = ProxyService.box.getUserId();
           if (userId != null) {
-            final currentShift = await ProxyService.strategy.getCurrentShift(
-              userId: userId,
-            );
-            if (currentShift != null) {
-              final dialogResponse = await _dialogService.showCustomDialog(
-                variant: DialogType.closeShift,
-                title: 'Close Shift',
-                data: {
-                  'openingBalance': currentShift.openingBalance,
-                  'cashSales': currentShift.cashSales,
-                  'expectedCash': currentShift.expectedCash,
-                },
+            try {
+              final currentShift = await ProxyService.strategy.getCurrentShift(
+                userId: userId,
               );
-
-              if (dialogResponse?.confirmed == true &&
-                  dialogResponse?.data != null) {
-                final closingBalance =
-                    (dialogResponse?.data
-                            as Map<dynamic, dynamic>)['closingBalance']
-                        as double? ??
-                    0.0;
-                final notes =
-                    (dialogResponse?.data as Map<dynamic, dynamic>)['notes']
-                        as String?;
-                await ProxyService.strategy.endShift(
-                  shiftId: currentShift.id,
-                  closingBalance: closingBalance,
-                  note: notes,
+              if (currentShift != null) {
+                final dialogResponse = await _dialogService.showCustomDialog(
+                  variant: DialogType.closeShift,
+                  title: 'Close Shift',
+                  data: {
+                    'openingBalance': currentShift.openingBalance,
+                    'cashSales': currentShift.cashSales,
+                    'expectedCash': currentShift.expectedCash,
+                  },
                 );
+
+                if (dialogResponse?.confirmed == true &&
+                    dialogResponse?.data != null) {
+                  final closingBalance =
+                      (dialogResponse?.data
+                              as Map<dynamic, dynamic>)['closingBalance']
+                          as double? ??
+                      0.0;
+                  final notes =
+                      (dialogResponse?.data as Map<dynamic, dynamic>)['notes']
+                          as String?;
+                  await ProxyService.strategy.endShift(
+                    shiftId: currentShift.id,
+                    closingBalance: closingBalance,
+                    note: notes,
+                  );
+                  _routerService.replaceWith(const LoginRoute());
+                } else {
+                  // If dialog is cancelled or no data, still redirect to login
+                  _routerService.replaceWith(const LoginRoute());
+                }
+              } else {
                 _routerService.replaceWith(const LoginRoute());
               }
-            } else {
+            } catch (e) {
+              // Log the error
+              print('Error during logout flow: $e');
+
+              // Show error dialog to user
+              await _dialogService.showCustomDialog(
+                variant: DialogType.info,
+                title: 'Error',
+                description: 'An error occurred during logout: $e',
+              );
+
+              // Ensure user is redirected to login in case of error
               _routerService.replaceWith(const LoginRoute());
             }
           } else {
