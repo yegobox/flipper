@@ -664,8 +664,8 @@ class _AiScreenState extends ConsumerState<AiScreen> {
         final isUser = message.role == 'user';
 
         if (message.text.startsWith('[voice](')) {
-          final path = message.text.substring(8, message.text.length - 1);
           //TODO: resume this when just_audio is updated to support 16 page size
+          // final path = message.text.substring(8, message.text.length - 1);
           // return Align(
           //   alignment: isUser ? Alignment.centerRight : Alignment.centerLeft,
           //   child: Padding(
