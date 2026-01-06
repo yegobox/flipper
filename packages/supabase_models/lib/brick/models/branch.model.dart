@@ -28,7 +28,6 @@ class Branch extends OfflineFirstWithSupabaseModel {
   int? serverId;
   String? location;
   String? description;
-  bool? active;
   String? businessId;
   num? latitude;
   num? longitude;
@@ -43,7 +42,6 @@ class Branch extends OfflineFirstWithSupabaseModel {
     this.serverId,
     this.location,
     this.description,
-    this.active = true,
     this.businessId,
     this.latitude,
     this.longitude,
@@ -75,7 +73,6 @@ class Branch extends OfflineFirstWithSupabaseModel {
         serverId: serverId ?? this.serverId,
         location: location ?? this.location,
         description: description ?? this.description,
-        active: active ?? this.active,
         businessId: businessId ?? this.businessId,
         latitude: latitude ?? this.latitude,
         longitude: longitude ?? this.longitude,
@@ -92,7 +89,6 @@ class Branch extends OfflineFirstWithSupabaseModel {
       'serverId': serverId,
       'location': location,
       'description': description,
-      'active': active,
       'businessId': businessId,
       'latitude': latitude,
       'longitude': longitude,
@@ -110,7 +106,6 @@ class Branch extends OfflineFirstWithSupabaseModel {
       serverId: (map['serverId'] ?? map['server_id']) as int?,
       location: map['location'] as String?,
       description: map['description'] as String?,
-      active: map['active'] as bool?,
       businessId: map['businessId'] as String?,
       latitude: map['latitude'],
       longitude: map['longitude'],
