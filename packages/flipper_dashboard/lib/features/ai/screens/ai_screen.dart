@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flipper_dashboard/data_view_reports/DynamicDataSource.dart';
-import 'package:flipper_dashboard/features/ai/widgets/audio_player_widget.dart';
+// import 'package:flipper_dashboard/features/ai/widgets/audio_player_widget.dart';
 import 'package:flipper_models/providers/ai_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -122,7 +122,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
   }
 
   Future<void> _sendMessage(String text, {String? conversationId}) async {
-    final targetConversationId = conversationId ?? _currentConversationId;
+    String targetConversationId = conversationId ?? _currentConversationId;
     if (text.isEmpty) return;
 
     setState(() => _isLoading = true);
@@ -130,6 +130,24 @@ class _AiScreenState extends ConsumerState<AiScreen> {
     try {
       final branchId = ProxyService.box.getBranchId();
       if (branchId == null) throw Exception('Branch ID is required');
+
+      // If no conversation exists, create a new one
+      if (targetConversationId.isEmpty) {
+        final conversation = await ProxyService.strategy.createConversation(
+          title: text.length > 30 ? '${text.substring(0, 30)}...' : text,
+          branchId: branchId,
+        );
+        targetConversationId = conversation.id;
+
+        if (mounted) {
+          setState(() {
+            _currentConversationId = targetConversationId;
+            _messages = [];
+            _conversationHistory = []; // Clear history on new conversation
+          });
+          _subscribeToCurrentConversation();
+        }
+      }
 
       // Check context: Is this a reply to a WhatsApp message?
       // We look at the last message in the conversation history (that isn't from the user)

@@ -85,7 +85,7 @@ class DashboardLayout extends HookConsumerWidget {
               }
               return Scaffold(
                 body: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     if (ProxyService.remoteConfig.isMultiUserEnabled())
                       const EnhancedSideMenu(),

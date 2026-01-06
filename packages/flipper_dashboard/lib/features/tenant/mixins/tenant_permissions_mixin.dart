@@ -14,6 +14,11 @@ class TenantPermissionsMixin {
     TextEditingController phoneController,
     GlobalKey<FormState> formKey,
   ) {
+    // Reset the form using the form key directly instead of Form.of()
+    if (formKey.currentState != null) {
+      formKey.currentState!.reset();
+    }
+
     setState(() {
       tenantAllowedFeatures.clear();
       activeFeatures.clear();
@@ -44,12 +49,7 @@ class TenantPermissionsMixin {
     });
 
     nameController.text = tenant.name ?? '';
-    phoneController.text = tenant.phoneNumber ?? '';
-
-    // Reset the form using the form key directly instead of Form.of()
-    if (formKey.currentState != null) {
-      formKey.currentState!.reset();
-    }
+    phoneController.text = tenant.phoneNumber ?? tenant.email ?? '';
 
     // Note: Removed Scrollable.ensureVisible to avoid context issues when called from expansion tile
     // The form reset functionality works without scrolling in this context
@@ -123,8 +123,10 @@ class TenantPermissionsMixin {
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8),
                 ),
-                contentPadding:
-                    EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                contentPadding: EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 5,
+                ),
               ),
             ),
           ),
