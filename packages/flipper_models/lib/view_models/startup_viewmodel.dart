@@ -83,7 +83,7 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       _paymentVerificationService
           .setPaymentStatusChangeCallback(_handlePaymentStatusChange);
       _paymentVerificationService.startPeriodicVerification(
-          intervalMinutes: kDebugMode ? 20 : 15);
+          intervalMinutes: kDebugMode ? 5 : 15);
 
       // Start periodic internet connection check (check every 6 hours)
       _internetConnectionService.startPeriodicConnectionCheck();
@@ -294,8 +294,8 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       for (String feature in featureNames) {
         talker.warning(
             "Checking permission for userId: $userId, feature: $feature");
-        List<Access> hasAccess = await ProxyService.strategy.access(
-            userId: userId, featureName: feature, fetchRemote: true);
+        List<Access> hasAccess = await ProxyService.strategy
+            .access(userId: userId, featureName: feature, fetchRemote: true);
         if (hasAccess.isEmpty) {
           await ProxyService.strategy.addAccess(
             branchId: branchId,

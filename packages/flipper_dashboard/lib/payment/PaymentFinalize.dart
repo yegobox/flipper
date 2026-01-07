@@ -6,10 +6,11 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as models;
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
-import 'package:overlay_support/overlay_support.dart';
 import 'package:flutter/services.dart';
 import 'package:flipper_services/PaymentHandler.dart';
 import 'package:supabase_models/brick/repository.dart';
+import 'package:flipper_ui/flipper_ui.dart';
+import 'package:flipper_models/helperModels/extensions.dart';
 
 class PaymentFinalize extends StatefulWidget {
   @override
@@ -17,8 +18,6 @@ class PaymentFinalize extends StatefulWidget {
 }
 
 class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
-  String selectedCountry = 'Other';
-  String selectedPaymentMethod = 'Card';
   bool isLoading = false;
   bool useCustomPhoneNumber = false;
   TextEditingController phoneNumberController = TextEditingController();
@@ -26,10 +25,13 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
   StreamSubscription<List<models.Plan>>? _subscription;
   bool _mounted = true;
 
-  // Define theme colors
-  final Color primaryBlue = const Color(0xFF2196F3);
-  final Color lightBlue = const Color(0xFFE3F2FD);
-  final Color darkBlue = const Color(0xFF1565C0);
+  // Discount code state
+  String? _discountCode;
+  double _discountAmount = 0;
+  double _originalPrice = 0;
+  bool _isValidatingCode = false;
+  String? _discountError;
+  models.Plan? _plan;
 
   @override
   void initState() {
@@ -47,33 +49,146 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
 
   Future<void> _setupPlanSubscription() async {
     try {
-      final businessId = (await ProxyService.strategy.activeBusiness())?.id;
+      final businessId = ProxyService.box.getBusinessId();
       if (businessId == null) throw Exception('No active business');
+
+      // Fetch initial plan
+      final fetchedPlan = await ProxyService.strategy.getPaymentPlan(
+        businessId: businessId,
+      );
+
+      if (_mounted) {
+        setState(() {
+          _plan = fetchedPlan;
+        });
+      }
 
       // Set up real-time subscription
       _subscription = Repository()
           .subscribeToRealtime<models.Plan>(
-        query: Query(
-          where: [const Where('businessId').isExactly(businessId)],
-        ),
-      )
+            query: Query(
+              where: [const Where('businessId').isExactly(businessId)],
+            ),
+          )
           .listen((updatedPlans) {
-        if (updatedPlans.isNotEmpty) {
-          final updatedPlan = updatedPlans.first;
-          if (!_mounted) return;
+            if (updatedPlans.isNotEmpty) {
+              final updatedPlan = updatedPlans.first;
+              if (!_mounted) return;
 
-          // Check if payment was completed
-          if (updatedPlan.paymentCompletedByUser == true) {
-            locator<RouterService>().navigateTo(FlipperAppRoute());
-          }
-        }
-      });
+              setState(() {
+                _plan = updatedPlan;
+              });
+
+              // Check if payment was completed
+              if (updatedPlan.paymentCompletedByUser == true) {
+                locator<RouterService>().navigateTo(FlipperAppRoute());
+              }
+            }
+          });
     } catch (e) {
       if (!_mounted || !context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error setting up listener: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error setting up listener: $e')));
     }
+  }
+
+  /// Validates and applies a discount code
+  Future<void> _validateDiscountCode(String code) async {
+    if (code.trim().isEmpty) {
+      setState(() {
+        _discountError = null;
+        _discountAmount = 0;
+        _discountCode = null;
+        _originalPrice = 0; // Reset original price when clearing discount
+      });
+      return;
+    }
+
+    setState(() {
+      _isValidatingCode = true;
+      _discountError = null;
+    });
+
+    try {
+      final planPrice = _plan?.totalPrice?.toDouble() ?? 0;
+      // Set _originalPrice to planPrice before making API calls to ensure we use current price
+      _originalPrice = planPrice;
+
+      final result = await ProxyService.strategy.validateDiscountCode(
+        code: code.trim().toUpperCase(),
+        planName: _plan?.selectedPlan ?? '',
+        amount: _originalPrice,
+      );
+
+      if (mounted) {
+        if (result['is_valid'] == true) {
+          final discountType = result['discount_type'] as String;
+          final discountValue = (result['discount_value'] as num).toDouble();
+
+          final calculatedDiscount = ProxyService.strategy.calculateDiscount(
+            originalPrice: _originalPrice,
+            discountType: discountType,
+            discountValue: discountValue,
+          );
+
+          setState(() {
+            _discountCode = code.trim().toUpperCase();
+            _discountAmount = calculatedDiscount;
+            _discountError = null;
+            _isValidatingCode = false;
+          });
+
+          talker.info(
+            'Discount code applied: $code - ${discountType == 'percentage' ? '${discountValue}%' : 'RWF $discountValue'}',
+          );
+        } else {
+          setState(() {
+            _discountError = result['error_message'] as String?;
+            _discountAmount = 0;
+            _discountCode = null;
+            _isValidatingCode = false;
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _discountError = 'Failed to validate code';
+          _discountAmount = 0;
+          _discountCode = null;
+          _isValidatingCode = false;
+        });
+      }
+      talker.error('Error validating discount code: $e');
+    }
+  }
+
+  Widget _buildDetailRow(String label, String value, {bool isTotal = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontWeight: isTotal ? FontWeight.bold : FontWeight.w500,
+              fontSize: isTotal ? 16.0 : 14.0,
+              color: isTotal ? Colors.black : Colors.grey[700],
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              fontWeight: isTotal ? FontWeight.bold : FontWeight.w600,
+              fontSize: isTotal ? 16.0 : 14.0,
+              color: isTotal ? Theme.of(context).primaryColor : Colors.black,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   String? _getPhoneNumberError(String value) {
@@ -92,61 +207,14 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
 
   Widget _buildSectionTitle(BuildContext context, String title) {
     return Padding(
-      padding: const EdgeInsets.only(left: 4),
+      padding: const EdgeInsets.only(left: 4, bottom: 12),
       child: Text(
         title,
         style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              color: darkBlue,
-              fontWeight: FontWeight.w600,
-              fontSize: 16,
-            ),
-        textAlign: TextAlign.left,
-      ),
-    );
-  }
-
-  Widget _buildSegmentedButton({
-    required List<ButtonSegment<String>> segments,
-    required String selected,
-    required Function(Set<String>) onSelectionChanged,
-  }) {
-    return Container(
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: primaryBlue.withValues(alpha: 0.2)),
-        color: Colors.white,
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(4),
-        child: SegmentedButton<String>(
-          segments: segments,
-          selected: {selected},
-          onSelectionChanged: onSelectionChanged,
-          style: ButtonStyle(
-            backgroundColor: WidgetStateProperty.resolveWith<Color>(
-              (Set<WidgetState> states) {
-                if (states.contains(WidgetState.selected)) {
-                  return primaryBlue;
-                }
-                return Colors.transparent;
-              },
-            ),
-            foregroundColor: WidgetStateProperty.resolveWith<Color>(
-              (Set<WidgetState> states) {
-                if (states.contains(WidgetState.selected)) {
-                  return Colors.white;
-                }
-                return primaryBlue;
-              },
-            ),
-            side: WidgetStateProperty.all(BorderSide.none),
-            shape: WidgetStateProperty.all(
-              RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          ),
+          fontWeight: FontWeight.w600,
+          fontSize: 18,
         ),
+        textAlign: TextAlign.left,
       ),
     );
   }
@@ -154,278 +222,302 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: lightBlue,
+      backgroundColor: Colors.grey[50],
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: const Text(
-          'Finalize Payment',
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
-          ),
+          'Complete Payment',
+          style: TextStyle(fontWeight: FontWeight.w600),
         ),
         centerTitle: true,
         elevation: 0,
-        backgroundColor: primaryBlue,
       ),
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
-            return Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [primaryBlue.withValues(alpha: .1), Colors.white],
-                  stops: const [0.0, 0.3],
+            return SingleChildScrollView(
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: constraints.maxWidth > 600 ? 200 : 20,
+                  vertical: 24,
                 ),
-              ),
-              child: SingleChildScrollView(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: constraints.maxWidth > 600 ? 200 : 20,
-                    vertical: 20,
+                child: Card(
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
                   ),
-                  child: Card(
-                    elevation: 4,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          _buildSectionTitle(context, 'Select Country'),
-                          const SizedBox(height: 16),
-                          _buildSegmentedButton(
-                            segments: const [
-                              ButtonSegment(
-                                value: 'Rwanda',
-                                label: Text('Rwanda'),
-                                icon: Icon(Icons.flag, size: 20),
-                              ),
-                              ButtonSegment(
-                                value: 'Other',
-                                label: Text('Other'),
-                                icon: Icon(Icons.public, size: 20),
-                              ),
-                            ],
-                            selected: selectedCountry,
-                            onSelectionChanged: (Set<String> newSelection) {
-                              setState(() {
-                                selectedCountry = newSelection.first;
-                                if (selectedCountry == 'Other') {
-                                  selectedPaymentMethod = 'Card';
-                                }
-                              });
-                            },
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _buildSectionTitle(context, 'MTN Mobile Money Payment'),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Payment will be processed using MTN Mobile Money',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[600],
                           ),
-                          const SizedBox(height: 32),
-                          _buildSectionTitle(context, 'Payment Method'),
-                          const SizedBox(height: 16),
-                          _buildSegmentedButton(
-                            segments: selectedCountry == 'Rwanda'
-                                ? const [
-                                    ButtonSegment(
-                                      value: 'Mobile Money',
-                                      label: Text('Mobile Money'),
-                                      icon: Icon(Icons.phone_android, size: 20),
-                                    ),
-                                    ButtonSegment(
-                                      value: 'Card',
-                                      label: Text('Card'),
-                                      icon: Icon(Icons.credit_card, size: 20),
-                                    ),
-                                  ]
-                                : const [
-                                    ButtonSegment(
-                                      value: 'Card',
-                                      label: Text('Card'),
-                                      icon: Icon(Icons.credit_card, size: 20),
-                                    ),
-                                  ],
-                            selected: selectedPaymentMethod,
-                            onSelectionChanged: (Set<String> newSelection) {
-                              setState(() {
-                                selectedPaymentMethod = newSelection.first;
-                              });
-                            },
-                          ),
-                          if (selectedPaymentMethod == 'Mobile Money') ...[
-                            const SizedBox(height: 32),
-                            _buildSectionTitle(context, 'MTN Mobile Money'),
-                            const SizedBox(height: 16),
-                            Container(
-                              decoration: BoxDecoration(
-                                color: lightBlue.withValues(alpha: 0.3),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: SwitchListTile(
-                                title: Text(
-                                  'Use different phone number',
-                                  style: TextStyle(
-                                    color: darkBlue,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                                subtitle: Text(
-                                  'Toggle to specify a different number for payment',
-                                  style: TextStyle(
-                                      color: darkBlue.withValues(alpha: 0.7)),
-                                ),
-                                value: useCustomPhoneNumber,
-                                onChanged: (bool value) {
-                                  setState(() {
-                                    useCustomPhoneNumber = value;
-                                  });
-                                },
-                                activeColor: primaryBlue,
-                              ),
-                            ),
-                            if (useCustomPhoneNumber) ...[
-                              const SizedBox(height: 16),
-                              TextField(
-                                onChanged: (value) {
-                                  String digitsOnly =
-                                      value.replaceAll(RegExp(r'\D'), '');
-                                  if (digitsOnly.length >= 1 &&
-                                      !digitsOnly.startsWith('250')) {
-                                    if (digitsOnly.startsWith('0')) {
-                                      digitsOnly = '25$digitsOnly';
-                                    } else {
-                                      digitsOnly = '250$digitsOnly';
-                                    }
-                                  }
-
-                                  String formattedNumber = '';
-                                  for (int i = 0; i < digitsOnly.length; i++) {
-                                    if (i == 3 || i == 6 || i == 9) {
-                                      formattedNumber += ' ';
-                                    }
-                                    formattedNumber += digitsOnly[i];
-                                  }
-
-                                  phoneNumberController.value =
-                                      TextEditingValue(
-                                    text: formattedNumber,
-                                    selection: TextSelection.collapsed(
-                                      offset: formattedNumber.length,
-                                    ),
-                                  );
-
-                                  ProxyService.box.writeString(
-                                    key: "customPhoneNumberForPayment",
-                                    value: digitsOnly,
-                                  );
-                                },
-                                controller: phoneNumberController,
-                                decoration: InputDecoration(
-                                  labelText: 'Phone Number',
-                                  labelStyle: TextStyle(color: darkBlue),
-                                  hintText: '250 781 468 740',
-                                  prefixIcon:
-                                      Icon(Icons.phone, color: primaryBlue),
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide(color: primaryBlue),
-                                  ),
-                                  enabledBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide(
-                                        color:
-                                            primaryBlue.withValues(alpha: 0.3)),
-                                  ),
-                                  focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                    borderSide: BorderSide(
-                                        color: primaryBlue, width: 2),
-                                  ),
-                                  filled: true,
-                                  fillColor: lightBlue.withValues(alpha: 0.1),
-                                  errorText: _getPhoneNumberError(
-                                      phoneNumberController.text),
-                                  helperText: 'Rwanda phone number (12 digits)',
-                                  helperStyle: TextStyle(
-                                      color: darkBlue.withValues(alpha: 0.7)),
-                                  suffixIcon:
-                                      phoneNumberController.text.isNotEmpty
-                                          ? IconButton(
-                                              icon: Icon(Icons.clear,
-                                                  color: primaryBlue),
-                                              onPressed: () {
-                                                phoneNumberController.clear();
-                                                ProxyService.box.writeString(
-                                                  key:
-                                                      "customPhoneNumberForPayment",
-                                                  value: '',
-                                                );
-                                              },
-                                            )
-                                          : null,
-                                ),
-                                keyboardType: TextInputType.phone,
-                                maxLength: 15,
-                                buildCounter: (context,
-                                    {required currentLength,
-                                    required isFocused,
-                                    maxLength}) {
-                                  return null;
-                                },
-                                inputFormatters: [
-                                  FilteringTextInputFormatter.allow(
-                                      RegExp(r'[\d ]')),
-                                ],
-                              ),
-                            ],
-                          ],
-                          const SizedBox(height: 40),
+                        ),
+                        if (_plan != null) ...[
+                          const SizedBox(height: 24),
                           Container(
-                            height: 54,
+                            padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
+                              color: Colors.grey[100],
                               borderRadius: BorderRadius.circular(12),
-                              gradient: LinearGradient(
-                                colors: [primaryBlue, darkBlue],
-                                begin: Alignment.centerLeft,
-                                end: Alignment.centerRight,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: primaryBlue.withValues(alpha: 0.3),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 4),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Plan Summary',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.grey[800],
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                _buildDetailRow(
+                                  'Plan',
+                                  _plan!.selectedPlan ?? 'N/A',
+                                ),
+                                if (_discountAmount > 0) ...[
+                                  _buildDetailRow(
+                                    'Subtotal',
+                                    _originalPrice.toCurrencyFormatted(
+                                      symbol: ProxyService.box
+                                          .defaultCurrency(),
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 8.0,
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Row(
+                                          children: [
+                                            const Text(
+                                              'Discount',
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 14.0,
+                                                color: Colors.green,
+                                              ),
+                                            ),
+                                            if (_discountCode != null) ...[
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                '($_discountCode)',
+                                                style: TextStyle(
+                                                  fontSize: 12,
+                                                  color: Colors.grey[600],
+                                                ),
+                                              ),
+                                            ],
+                                          ],
+                                        ),
+                                        Text(
+                                          '-${_discountAmount.toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())}',
+                                          style: const TextStyle(
+                                            fontSize: 14.0,
+                                            color: Colors.green,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                                _buildDetailRow(
+                                  _discountAmount > 0 ? 'Total' : 'Price',
+                                  (_discountAmount > 0
+                                              ? (_originalPrice -
+                                                    _discountAmount)
+                                              : _plan!.totalPrice)
+                                          ?.toCurrencyFormatted(
+                                            symbol: ProxyService.box
+                                                .defaultCurrency(),
+                                          ) ??
+                                      'N/A',
+                                  isTotal: _discountAmount > 0,
                                 ),
                               ],
                             ),
+                          ),
+                          const SizedBox(height: 16),
+                          CouponToggle(
+                            onCodeChanged: _validateDiscountCode,
+                            errorMessage: _discountError,
+                            isValidating: _isValidatingCode,
+                          ),
+                        ],
+                        const SizedBox(height: 24),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.grey[100],
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: SwitchListTile(
+                            title: const Text(
+                              'Use different phone number',
+                              style: TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            subtitle: Text(
+                              'Specify a different number for payment',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                            value: useCustomPhoneNumber,
+                            onChanged: (bool value) {
+                              setState(() {
+                                useCustomPhoneNumber = value;
+                                if (!value) {
+                                  phoneNumberController.clear();
+                                  ProxyService.box.writeString(
+                                    key: "customPhoneNumberForPayment",
+                                    value: '',
+                                  );
+                                }
+                              });
+                            },
+                            activeColor: Theme.of(context).colorScheme.primary,
+                          ),
+                        ),
+                        if (useCustomPhoneNumber) ...[
+                          const SizedBox(height: 20),
+                          TextField(
+                            onChanged: (value) {
+                              String digitsOnly = value.replaceAll(
+                                RegExp(r'\\D'),
+                                '',
+                              );
+                              if (digitsOnly.length >= 1 &&
+                                  !digitsOnly.startsWith('250')) {
+                                if (digitsOnly.startsWith('0')) {
+                                  digitsOnly = '25$digitsOnly';
+                                } else {
+                                  digitsOnly = '250$digitsOnly';
+                                }
+                              }
+
+                              String formattedNumber = '';
+                              for (int i = 0; i < digitsOnly.length; i++) {
+                                if (i == 3 || i == 6 || i == 9) {
+                                  formattedNumber += ' ';
+                                }
+                                formattedNumber += digitsOnly[i];
+                              }
+
+                              phoneNumberController.value = TextEditingValue(
+                                text: formattedNumber,
+                                selection: TextSelection.collapsed(
+                                  offset: formattedNumber.length,
+                                ),
+                              );
+
+                              ProxyService.box.writeString(
+                                key: "customPhoneNumberForPayment",
+                                value: digitsOnly,
+                              );
+                            },
+                            controller: phoneNumberController,
+                            decoration: InputDecoration(
+                              labelText: 'MTN Phone Number',
+                              hintText: '250 78 123 4567',
+                              prefixIcon: const Icon(Icons.phone_android),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                                borderSide: BorderSide(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  width: 2,
+                                ),
+                              ),
+                              errorText: _getPhoneNumberError(
+                                phoneNumberController.text,
+                              ),
+                              helperText: 'Must start with 250 78 or 250 79',
+                              suffixIcon: phoneNumberController.text.isNotEmpty
+                                  ? IconButton(
+                                      icon: const Icon(Icons.clear),
+                                      onPressed: () {
+                                        phoneNumberController.clear();
+                                        ProxyService.box.writeString(
+                                          key: "customPhoneNumberForPayment",
+                                          value: '',
+                                        );
+                                        setState(() {});
+                                      },
+                                    )
+                                  : null,
+                            ),
+                            keyboardType: TextInputType.phone,
+                            maxLength: 15,
+                            buildCounter:
+                                (
+                                  context, {
+                                  required currentLength,
+                                  required isFocused,
+                                  maxLength,
+                                }) {
+                                  return null;
+                                },
+                            inputFormatters: [
+                              FilteringTextInputFormatter.allow(
+                                RegExp(r'[\d ]'),
+                              ),
+                            ],
+                          ),
+                        ],
+                        const SizedBox(height: 32),
+                        SizedBox(
+                          height: 54,
+                          child: ElevatedButton(
+                            onPressed: isLoading ? null : _handlePayment,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Theme.of(
+                                context,
+                              ).colorScheme.primary,
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
                             child: isLoading
-                                ? const Center(
+                                ? const SizedBox(
+                                    width: 24,
+                                    height: 24,
                                     child: CircularProgressIndicator(
                                       valueColor: AlwaysStoppedAnimation<Color>(
-                                          Colors.white),
+                                        Colors.white,
+                                      ),
                                       strokeWidth: 3,
                                     ),
                                   )
-                                : ElevatedButton(
-                                    onPressed: _handlePayment,
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.transparent,
-                                      foregroundColor: Colors.white,
-                                      shadowColor: Colors.transparent,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(12),
-                                      ),
-                                    ),
-                                    child: const Text(
-                                      'Complete Payment',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                      ),
+                                : const Text(
+                                    'Complete Payment',
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
                                     ),
                                   ),
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -443,31 +535,28 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
     });
     try {
       models.Plan? paymentPlan = await ProxyService.strategy.getPaymentPlan(
-          businessId: (await ProxyService.strategy.activeBusiness())!.id);
+        businessId: (await ProxyService.strategy.activeBusiness())!.id,
+      );
 
       talker.warning("CurrentPaymentPlan: $paymentPlan");
 
       int finalPrice = 0;
-      if (ProxyService.box.couponCode() != null) {
-        finalPrice = (paymentPlan!.totalPrice! -
-                ((paymentPlan.totalPrice! * ProxyService.box.discountRate()!) /
-                    100))
-            .toInt();
+      if (_discountAmount > 0) {
+        finalPrice = (_originalPrice - _discountAmount).toInt();
+      } else if (ProxyService.box.couponCode() != null) {
+        // Fallback to legacy check if legacy coupon is present
+        final planPrice = paymentPlan?.totalPrice?.toDouble() ?? 0.0;
+        final discountRate = ProxyService.box.discountRate() ?? 0.0;
+        finalPrice = (planPrice - ((planPrice * discountRate) / 100)).toInt();
       } else {
-        finalPrice = paymentPlan!.totalPrice?.toInt() ?? 0;
+        finalPrice = paymentPlan?.totalPrice?.toInt() ?? 0;
       }
 
-      if (selectedPaymentMethod == "Card") {
-        toast("Card Payment is temporarily unavailable");
-        if (_mounted) {
-          setState(() {
-            isLoading = false;
-          });
-        }
-        await cardPayment(finalPrice, paymentPlan, selectedPaymentMethod,
-            plan: paymentPlan);
+      // Handle mobile money payment only
+      if (paymentPlan != null) {
+        await handleMomoPayment(finalPrice, plan: paymentPlan);
       } else {
-        handleMomoPayment(finalPrice, plan: paymentPlan);
+        throw Exception("Payment plan is null");
       }
     } catch (e, s) {
       talker.warning(e.toString());
@@ -477,7 +566,8 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
           isLoading = false;
         });
         ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Failed to initiate payment: $e')));
+          SnackBar(content: Text('Failed to initiate payment: $e')),
+        );
       }
     }
   }

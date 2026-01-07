@@ -26,13 +26,4 @@ final class StateObserver extends ProviderObserver {
   ) {
     // debugPrint('Provider ${context.provider} disposed');
   }
-
-  @override
-  void didFailProvider(
-    ProviderObserverContext context,
-    Object error,
-    StackTrace stackTrace,
-  ) {
-    // debugPrint('Provider ${context.provider} failed with $error');
-  }
 }

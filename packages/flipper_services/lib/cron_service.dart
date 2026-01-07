@@ -563,12 +563,6 @@ class CronService {
       // Clear any custom phone number for payment
       ProxyService.box.remove(key: "customPhoneNumberForPayment");
 
-      // Configure Capella
-      await ProxyService.strategy.configureCapella(
-        useInMemory: false,
-        box: ProxyService.box,
-      );
-
       // Start replicator
       ProxyService.strategy.startReplicator();
 
@@ -579,8 +573,7 @@ class CronService {
       // Get payment plan
       final businessId = ProxyService.box.getBusinessId();
       if (businessId != null) {
-        await ProxyService.strategy.getPaymentPlan(
-            businessId: (await ProxyService.strategy.activeBusiness())!.id);
+        await ProxyService.strategy.getPaymentPlan(businessId: businessId);
       } else {
         talker.warning("Skipping payment plan fetch: Business ID is null");
       }

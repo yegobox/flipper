@@ -40,7 +40,7 @@ class NumberOfPaymentsToggle extends HookConsumerWidget {
             Switch(
               value: isToggled.value,
               onChanged: _toggleSwitch,
-              activeColor: Colors.blue,
+              activeThumbColor: Colors.blue,
               inactiveThumbColor: Colors.grey,
               inactiveTrackColor: Colors.grey.shade300,
               trackOutlineColor: WidgetStateProperty.resolveWith<Color?>(
@@ -69,6 +69,17 @@ class NumberOfPaymentsToggle extends HookConsumerWidget {
 }
 
 class CouponToggle extends HookConsumerWidget {
+  final Function(String)? onCodeChanged;
+  final String? errorMessage;
+  final bool? isValidating;
+
+  const CouponToggle({
+    Key? key,
+    this.onCodeChanged,
+    this.errorMessage,
+    this.isValidating,
+  }) : super(key: key);
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isToggled = useState(false);
@@ -79,12 +90,14 @@ class CouponToggle extends HookConsumerWidget {
       isToggled.value = value;
       if (!isToggled.value) {
         couponController.clear();
+        onCodeChanged?.call('');
         ref.read(couponValidationProvider.notifier).state =
             const AsyncValue.data(null);
       }
     }
 
     void _onCouponChanged(String value) {
+      onCodeChanged?.call(value);
       ref.read(couponValidationProvider.notifier).validateCoupon(value);
     }
 
@@ -94,11 +107,11 @@ class CouponToggle extends HookConsumerWidget {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            const Text('Apply Coupon'),
+            const Text('Apply Discount Code'),
             Switch(
               value: isToggled.value,
               onChanged: _toggleSwitch,
-              activeColor: Colors.blue,
+              activeThumbColor: Colors.blue,
               inactiveThumbColor: Colors.grey,
               inactiveTrackColor: Colors.grey.shade300,
               trackOutlineColor: WidgetStateProperty.resolveWith<Color?>(
@@ -114,10 +127,43 @@ class CouponToggle extends HookConsumerWidget {
         if (isToggled.value)
           Padding(
             padding: const EdgeInsets.only(top: 8.0),
-            child: CustomizableTextField(
-              controller: couponController,
-              validateState: couponValidationState,
-              onCouponChanged: _onCouponChanged,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                CustomizableTextField(
+                  controller: couponController,
+                  validateState: couponValidationState,
+                  onCouponChanged: _onCouponChanged,
+                  wording: 'Discount Code',
+                ),
+                if (isValidating == true)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4.0),
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          width: 12,
+                          height: 12,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        ),
+                        SizedBox(width: 8),
+                        Text(
+                          'Validating code...',
+                          style:
+                              TextStyle(fontSize: 12, color: Colors.grey[600]),
+                        ),
+                      ],
+                    ),
+                  ),
+                if (errorMessage != null && errorMessage!.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4.0),
+                    child: Text(
+                      errorMessage!,
+                      style: TextStyle(fontSize: 12, color: Colors.red),
+                    ),
+                  ),
+              ],
             ),
           ),
       ],

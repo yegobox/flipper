@@ -15,7 +15,6 @@ import 'package:flipper_models/whatsapp.dart';
 import 'package:flipper_services/HttpApi.dart';
 import 'package:flipper_services/PayStackService.dart';
 
-import 'package:flutter/foundation.dart';
 // import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:http/http.dart' as httP;
 import 'package:flipper_services/FirebaseCrashlyticService.dart';
@@ -74,16 +73,7 @@ abstract class ServicesModule {
   @LazySingleton()
   @Named('coresync')
   Future<DatabaseSyncInterface> provideSyncInterface(LocalStorage box) async {
-    if (kIsWeb) {
-      return await CapellaSync().configureLocal(
-        box: box,
-        useInMemory: const bool.fromEnvironment('FLUTTER_TEST_ENV') == true,
-      );
-    }
-    return await CoreSync().configureLocal(
-        useInMemory:
-            const bool.fromEnvironment('FLUTTER_TEST_ENV', defaultValue: false),
-        box: box);
+    return await CoreSync();
   }
 
   @preResolve
@@ -92,10 +82,7 @@ abstract class ServicesModule {
   Future<DatabaseSyncInterface> capella(
     LocalStorage box,
   ) async {
-    return await CapellaSync().configureLocal(
-      box: box,
-      useInMemory: const bool.fromEnvironment('FLUTTER_TEST_ENV') == true,
-    );
+    return await CapellaSync();
   }
 
   // Add strategy registration
@@ -121,16 +108,7 @@ abstract class ServicesModule {
   Future<DatabaseSyncInterface> localRealm(
     LocalStorage box,
   ) async {
-    if (!kIsWeb) {
-      return await CoreSync().configureLocal(
-        box: box,
-        useInMemory: const bool.fromEnvironment('FLUTTER_TEST_ENV') == true,
-      );
-    }
-    return await CapellaSync().configureLocal(
-      box: box,
-      useInMemory: true,
-    );
+    return await CoreSync();
   }
 
   // @singleton
