@@ -49,7 +49,7 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
 
   Future<void> _setupPlanSubscription() async {
     try {
-      final businessId = (await ProxyService.strategy.activeBusiness())?.id;
+      final businessId = ProxyService.box.getBusinessId();
       if (businessId == null) throw Exception('No active business');
 
       // Fetch initial plan
