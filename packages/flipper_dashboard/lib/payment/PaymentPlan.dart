@@ -199,7 +199,7 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
         _buildPlanCard(
           'Mobile + Desktop',
           'Mobile + Desktop',
-          _isYearlyPlan ? '1,152000 RWF/year' : '120,000 RWF/month',
+          _isYearlyPlan ? '1,152,000 RWF/year' : '120,000 RWF/month',
           Icons.devices,
         ),
         SizedBox(height: 8),

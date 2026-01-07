@@ -237,14 +237,22 @@ mixin AuthMixin implements AuthInterface {
 
     final isPaymentCompletedLocally = plan.paymentCompletedByUser ?? false;
 
-    // Avoid unnecessary sync if payment is already marked as complete
-    if (!isPaymentCompletedLocally) {
+    // Always check online if fetchRemote is true, or if local is false
+    if (fetchRemote || !isPaymentCompletedLocally) {
       final isPaymentComplete = await ProxyService.httpApi.isPaymentComplete(
         flipperHttpClient: flipperHttpClient,
         businessId: businessId,
       );
 
-      // Update the plan's state or handle syncing logic here if necessary
+      // If the online status differs from local, update local to ensure sync
+      if (isPaymentComplete != isPaymentCompletedLocally) {
+        plan.paymentCompletedByUser = isPaymentComplete;
+        await ProxyService.strategy.upsertPlan(
+          businessId: businessId,
+          selectedPlan: plan,
+        );
+      }
+
       if (!isPaymentComplete) {
         throw FailedPaymentException(PAYMENT_REACTIVATION_REQUIRED);
       }

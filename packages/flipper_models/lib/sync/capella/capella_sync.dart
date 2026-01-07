@@ -45,7 +45,6 @@ import 'package:flipper_services/ai_strategy_impl.dart';
 import 'package:flipper_models/sync/mixins/stock_recount_mixin.dart';
 import 'package:supabase_models/brick/models/all_models.dart' hide BusinessType;
 import 'package:flipper_web/services/ditto_service.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
 class CapellaSync extends AiStrategyImpl
     with

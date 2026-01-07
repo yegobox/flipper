@@ -8,7 +8,6 @@ import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_mocks/mocks.dart';
-import 'package:flipper_models/services/internet_connection_service.dart';
 import 'package:flipper_models/sync/mixins/asset_mixin.dart';
 import 'package:flipper_models/sync/mixins/auth_mixin.dart';
 import 'package:flipper_models/sync/mixins/branch_mixin.dart';
@@ -1076,28 +1075,32 @@ class CoreSync extends AiStrategyImpl
     return const bool.fromEnvironment('FLUTTER_TEST_ENV') == true;
   }
 
-  final _internetConnectionService = InternetConnectionService();
-
   @override
   Future<models.Plan?> getPaymentPlan({
     required String businessId,
     bool? fetchOnline,
   }) async {
     try {
-      final isOnline =
-          await _internetConnectionService.isOnline(deepCheck: true);
-
       final query = brick.Query(where: [
         brick.Where('businessId').isExactly(businessId),
       ]);
+
+      // Use awaitRemote when explicitly requesting online data to ensure
+      // remote fetch happens even if local data exists (important for new devices)
+      final policy = (fetchOnline == true)
+          ? OfflineFirstGetPolicy.awaitRemote
+          : OfflineFirstGetPolicy.alwaysHydrate;
+
+      talker.info(
+          'getPaymentPlan: businessId=$businessId, fetchOnline=$fetchOnline, policy=$policy');
+
       final result = await repository.get<models.Plan>(
-          query: query,
-          policy: (fetchOnline == true && isOnline)
-              ? OfflineFirstGetPolicy.alwaysHydrate
-              : OfflineFirstGetPolicy.alwaysHydrate);
+        query: query,
+        policy: policy,
+      );
       return result.firstOrNull;
     } catch (e) {
-      talker.error(e);
+      talker.error('getPaymentPlan error: $e');
       rethrow;
     }
   }
@@ -1106,23 +1109,10 @@ class CoreSync extends AiStrategyImpl
   Future<void> upsertPlan(
       {required String businessId, required Plan selectedPlan}) async {
     try {
-      final isOnline =
-          await _internetConnectionService.isOnline(deepCheck: true);
-
-      final query = brick.Query(where: [
-        brick.Where('businessId').isExactly(businessId),
-      ]);
-      final plan = await repository.get<models.Plan>(
-          query: query,
-          policy: (isOnline)
-              ? OfflineFirstGetPolicy.alwaysHydrate
-              : OfflineFirstGetPolicy.alwaysHydrate);
-      if (plan.isNotEmpty) {
-        selectedPlan.updatedAt = DateTime.now();
-        await repository.upsert(selectedPlan);
-      }
+      selectedPlan.updatedAt = DateTime.now();
+      await repository.upsert(selectedPlan);
     } catch (e) {
-      talker.error(e);
+      talker.error('upsertPlan error: $e');
       rethrow;
     }
   }
@@ -2513,7 +2503,6 @@ class CoreSync extends AiStrategyImpl
     }
     return accesses;
   }
-
 
   @override
   FutureOr<SKU> getSku(

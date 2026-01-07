@@ -474,7 +474,7 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
                                 },
                             inputFormatters: [
                               FilteringTextInputFormatter.allow(
-                                RegExp(r'[\\d ]'),
+                                RegExp(r'[\d ]'),
                               ),
                             ],
                           ),
@@ -542,18 +542,19 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
         finalPrice = (_originalPrice - _discountAmount).toInt();
       } else if (ProxyService.box.couponCode() != null) {
         // Fallback to legacy check if legacy coupon is present
-        finalPrice =
-            (paymentPlan!.totalPrice! -
-                    ((paymentPlan.totalPrice! *
-                            ProxyService.box.discountRate()!) /
-                        100))
-                .toInt();
+        final planPrice = paymentPlan?.totalPrice?.toDouble() ?? 0.0;
+        final discountRate = ProxyService.box.discountRate() ?? 0.0;
+        finalPrice = (planPrice - ((planPrice * discountRate) / 100)).toInt();
       } else {
-        finalPrice = paymentPlan!.totalPrice?.toInt() ?? 0;
+        finalPrice = paymentPlan?.totalPrice?.toInt() ?? 0;
       }
 
       // Handle mobile money payment only
-      await handleMomoPayment(finalPrice, plan: paymentPlan!);
+      if (paymentPlan != null) {
+        await handleMomoPayment(finalPrice, plan: paymentPlan);
+      } else {
+        throw Exception("Payment plan is null");
+      }
     } catch (e, s) {
       talker.warning(e.toString());
       talker.error(s.toString());

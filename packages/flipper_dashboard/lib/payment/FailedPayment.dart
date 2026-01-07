@@ -208,10 +208,13 @@ class _FailedPaymentState extends State<FailedPayment>
 
     try {
       final planPrice = _plan?.totalPrice?.toDouble() ?? 0;
+      // Initialize _originalPrice to planPrice if it's unset (<= 0) before validation
+      final effectiveOriginalPrice = _originalPrice <= 0 ? planPrice : _originalPrice;
+
       final result = await ProxyService.strategy.validateDiscountCode(
         code: code.trim().toUpperCase(),
         planName: _plan?.selectedPlan ?? '',
-        amount: _originalPrice > 0 ? _originalPrice : planPrice,
+        amount: effectiveOriginalPrice,
       );
 
       if (mounted) {
@@ -220,7 +223,7 @@ class _FailedPaymentState extends State<FailedPayment>
           final discountValue = (result['discount_value'] as num).toDouble();
 
           final calculatedDiscount = ProxyService.strategy.calculateDiscount(
-            originalPrice: _originalPrice > 0 ? _originalPrice : planPrice,
+            originalPrice: effectiveOriginalPrice,
             discountType: discountType,
             discountValue: discountValue,
           );
@@ -230,7 +233,10 @@ class _FailedPaymentState extends State<FailedPayment>
             _discountAmount = calculatedDiscount;
             _discountError = null;
             _isValidatingCode = false;
-            _originalPrice = planPrice;
+            // Only update _originalPrice if it was previously unset or different
+            if (_originalPrice <= 0) {
+              _originalPrice = planPrice;
+            }
           });
 
           talker.info(
@@ -974,7 +980,12 @@ class _FailedPaymentState extends State<FailedPayment>
       }
     }
 
-    // Handle mobile money payment
-    await handleMomoPayment(plan.totalPrice!.toInt(), plan: plan);
+    // Calculate the discounted price for payment
+    final planPrice = plan.totalPrice?.toDouble() ?? 0.0;
+    final finalPrice = planPrice - _discountAmount;
+    final finalPriceInt = finalPrice > 0 ? finalPrice.toInt() : 0;
+
+    // Handle mobile money payment with the discounted price
+    await handleMomoPayment(finalPriceInt, plan: plan);
   }
 }
