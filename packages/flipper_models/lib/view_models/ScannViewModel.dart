@@ -286,7 +286,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       branchId: branchId,
       initialStock: 0,
       rsdQty: 0,
-      tin: ebm!.tinNumber,
+      tin: ebm?.tinNumber ?? -1,
       value: 0 * retailPrice,
       ebmSynced: false,
       active: false,
@@ -308,14 +308,15 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
     String businessId = ProxyService.box.getBusinessId()!;
     String branchId = ProxyService.box.getBranchId()!;
     String bhfid = (await ProxyService.box.bhfId()) ?? "00";
+    final ebm = await ProxyService.strategy.ebm(branchId: branchId);
+    final tin = ebm?.tinNumber;
     return await ProxyService.strategy.createProduct(
       skipRRaCall: false,
       createItemCode: false,
-      tinNumber:
-          (await ProxyService.strategy.ebm(branchId: branchId))!.tinNumber,
+      tinNumber: tin ?? -1,
       bhFId: bhfid,
-      businessId: ProxyService.box.getBusinessId()!,
-      branchId: ProxyService.box.getBranchId()!,
+      businessId: businessId,
+      branchId: branchId,
       product: Product(
         name: name,
         color: COLOR,

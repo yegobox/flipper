@@ -77,8 +77,8 @@ mixin Booting {
 
     if (branchId == null) {
       // get any local saved branch
-      Branch branch =
-          await ProxyService.strategy.activeBranch(businessId: businessId!);
+      Branch branch = await ProxyService.strategy
+          .activeBranch(branchId: ProxyService.box.getBranchId()!);
       branchId = branch.id;
     }
 

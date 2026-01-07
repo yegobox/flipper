@@ -62,13 +62,13 @@ mixin CapellaBranchMixin implements BranchInterface {
   }
 
   @override
-  Future<Branch> activeBranch({String? businessId}) async {
+  Future<Branch> activeBranch({String? branchId}) async {
     throw UnimplementedError(
         'activeBranch needs to be implemented for Capella');
   }
 
   @override
-  Stream<Branch> activeBranchStream({required String businessId}) {
+  Stream<Branch> activeBranchStream({required String branchId}) {
     throw UnimplementedError(
         'activeBranchStream needs to be implemented for Capella');
   }

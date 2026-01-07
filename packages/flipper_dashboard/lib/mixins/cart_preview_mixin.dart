@@ -90,7 +90,7 @@ mixin CartPreviewMixin<T extends ConsumerStatefulWidget>
   ) async {
     return await ProxyService.getStrategy(Strategy.capella).transactionItems(
       branchId: (await ProxyService.strategy.activeBranch(
-        businessId: ProxyService.box.getBusinessId()!,
+        branchId: ProxyService.box.getBranchId()!,
       )).id,
       transactionId: transaction.id,
       doneWithTransaction: false,

@@ -234,6 +234,18 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
       query += ' WHERE ' + conditions.join(' AND ');
     }
 
+    /// a work around to first register to whole data instead of subset
+    /// this is because after test on new device, it can't pull data using complex query
+    /// there is open issue on ditto https://support.ditto.live/hc/en-us/requests/2648?page=1
+    ///
+    ditto.sync.registerSubscription(
+      "SELECT * FROM transaction_items WHERE branchId = :branchId",
+      arguments: {'branchId': branchId},
+    );
+    ditto.store.registerObserver(
+      "SELECT * FROM transaction_items WHERE branchId = :branchId",
+      arguments: {'branchId': branchId},
+    );
     // Register subscription to sync data
     ditto.sync.registerSubscription(query, arguments: arguments);
 

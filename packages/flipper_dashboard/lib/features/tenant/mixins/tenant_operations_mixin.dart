@@ -44,7 +44,7 @@ class TenantOperationsMixin {
         branch =
             // ref.read(selectedBranchProvider) ??
             await ProxyService.strategy.activeBranch(
-              businessId: ProxyService.box.getBusinessId()!,
+              branchId: ProxyService.box.getBranchId()!,
             );
       }
 

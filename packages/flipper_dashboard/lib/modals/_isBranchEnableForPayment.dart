@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 void showPaymentSettingsModal(BuildContext context) async {
   final String branchId = (await ProxyService.strategy.activeBranch(
-    businessId: ProxyService.box.getBusinessId()!,
+    branchId: ProxyService.box.getBranchId()!,
   )).id;
   final ValueNotifier<bool> isEnabledNotifier = ValueNotifier<bool>(false);
 

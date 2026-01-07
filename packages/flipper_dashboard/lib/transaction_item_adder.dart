@@ -157,7 +157,7 @@ class TransactionItemAdder {
         transactionItemsStreamProvider(
           transactionId: pendingTransaction.id,
           branchId: (await ProxyService.strategy.activeBranch(
-            businessId: ProxyService.box.getBusinessId()!,
+            branchId: ProxyService.box.getBranchId()!,
           )).id,
         ),
       );

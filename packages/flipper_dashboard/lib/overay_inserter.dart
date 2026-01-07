@@ -38,7 +38,7 @@ OverlayEntry insertOverlay({
                       children: [
                         FutureBuilder<Branch?>(
                           future: ProxyService.strategy.activeBranch(
-                            businessId: ProxyService.box.getBusinessId()!,
+                            branchId: ProxyService.box.getBranchId()!,
                           ),
                           builder: (context, snapshot) {
                             if (snapshot.connectionState ==
