@@ -563,12 +563,6 @@ class CronService {
       // Clear any custom phone number for payment
       ProxyService.box.remove(key: "customPhoneNumberForPayment");
 
-      // Configure Capella
-      await ProxyService.strategy.configureCapella(
-        useInMemory: false,
-        box: ProxyService.box,
-      );
-
       // Start replicator
       ProxyService.strategy.startReplicator();
 

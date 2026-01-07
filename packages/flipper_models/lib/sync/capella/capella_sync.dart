@@ -15,9 +15,9 @@ import 'package:flipper_services/Miscellaneous.dart';
 import 'package:http/src/base_request.dart';
 import 'package:http/src/response.dart';
 import 'package:http/src/streamed_response.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:supabase_models/brick/models/credit.model.dart';
 import 'package:supabase_models/brick/models/log.model.dart';
-import 'package:supabase_models/brick/repository/storage.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:talker/talker.dart';
 import 'package:flipper_models/sync/capella/mixins/auth_mixin.dart';
@@ -45,6 +45,7 @@ import 'package:flipper_services/ai_strategy_impl.dart';
 import 'package:flipper_models/sync/mixins/stock_recount_mixin.dart';
 import 'package:supabase_models/brick/models/all_models.dart' hide BusinessType;
 import 'package:flipper_web/services/ditto_service.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class CapellaSync extends AiStrategyImpl
     with
@@ -95,6 +96,90 @@ class CapellaSync extends AiStrategyImpl
   Future<void> upsertPlan(
       {required String businessId, required Plan selectedPlan}) async {
     throw UnimplementedError('upsertPlan needs to be implemented');
+  }
+
+  @override
+  Future<Map<String, dynamic>> validateDiscountCode({
+    required String code,
+    required String planName,
+    required double amount,
+  }) async {
+    try {
+      final response =
+          await Supabase.instance.client.rpc('validate_discount_code', params: {
+        'p_code': code,
+        'p_plan_name': planName,
+        'p_amount': amount,
+      }).single();
+
+      return response;
+    } catch (e) {
+      talker.error('Failed to validate discount code: $e');
+      return {
+        'is_valid': false,
+        'error_message': 'Failed to validate code: $e',
+      };
+    }
+  }
+
+  @override
+  Future<String?> applyDiscountToPlan({
+    required String planId,
+    required String discountCodeId,
+    required double originalPrice,
+    required double discountAmount,
+    required double finalPrice,
+    required String businessId,
+  }) async {
+    try {
+      final response =
+          await Supabase.instance.client.rpc('apply_discount_to_plan', params: {
+        'p_plan_id': planId,
+        'p_discount_code_id': discountCodeId,
+        'p_original_price': originalPrice,
+        'p_discount_amount': discountAmount,
+        'p_final_price': finalPrice,
+        'p_business_id': businessId,
+      });
+
+      talker.info('Discount applied successfully to plan $planId');
+      return response as String?;
+    } catch (e) {
+      talker.error('Failed to apply discount: $e');
+      throw Exception('Failed to apply discount: $e');
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>?> getPlanDiscount({
+    required String planId,
+  }) async {
+    try {
+      final response = await Supabase.instance.client
+          .from('plan_discounts')
+          .select('*, discount_codes(*)')
+          .eq('plan_id', planId)
+          .maybeSingle();
+
+      return response;
+    } catch (e) {
+      talker.error('Failed to get plan discount: $e');
+      return null;
+    }
+  }
+
+  @override
+  double calculateDiscount({
+    required double originalPrice,
+    required String discountType,
+    required double discountValue,
+  }) {
+    if (discountType == 'percentage') {
+      return originalPrice * (discountValue / 100);
+    } else {
+      // Fixed amount
+      return discountValue;
+    }
   }
 
   @override
@@ -1153,18 +1238,18 @@ class CapellaSync extends AiStrategyImpl
   // TODO: implement apihub
   String get apihub => throw UnimplementedError();
 
-  @override
-  Future<DatabaseSyncInterface> configureCapella(
-      {required bool useInMemory, required LocalStorage box}) {
-    // TODO: implement configureCapella
-    throw UnimplementedError();
-  }
+  // @override
+  // Future<DatabaseSyncInterface> configureCapella(
+  //     {required bool useInMemory, required LocalStorage box}) {
+  //   // TODO: implement configureCapella
+  //   throw UnimplementedError();
+  // }
 
-  @override
-  Future<DatabaseSyncInterface> configureLocal(
-      {required bool useInMemory, required LocalStorage box}) async {
-    return this;
-  }
+  // @override
+  // Future<DatabaseSyncInterface> configureLocal(
+  //     {required bool useInMemory, required LocalStorage box}) async {
+  //   return this;
+  // }
 
   final Talker _talker = Talker();
 

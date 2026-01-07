@@ -33,7 +33,6 @@ import 'package:flipper_models/sync/interfaces/variant_interface.dart';
 import 'package:flipper_models/sync/mixins/asset_mixin.dart';
 import 'package:flipper_models/sync/interfaces/log_interface.dart';
 import 'package:supabase_models/brick/models/credit.model.dart';
-import 'package:supabase_models/brick/repository/storage.dart';
 import 'package:flipper_services/ai_strategy.dart';
 // import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
@@ -90,12 +89,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
   // AsyncCollection? permissionCollection;
   Future<List<Product>> products({required String branchId});
   Future<void> startReplicator();
-
-  Future<DatabaseSyncInterface> configureLocal(
-      {required bool useInMemory, required LocalStorage box});
-
-  Future<DatabaseSyncInterface> configureCapella(
-      {required bool useInMemory, required LocalStorage box});
 
   Future<void> initCollections();
 
@@ -355,7 +348,35 @@ abstract class DatabaseSyncInterface extends AiStrategy
   });
   Future<models.Plan?> getPaymentPlan(
       {required String businessId, bool? fetchOnline});
-  Future<void> upsertPlan({required String businessId, required Plan selectedPlan});
+  Future<void> upsertPlan(
+      {required String businessId, required Plan selectedPlan});
+
+  // Discount code methods
+  Future<Map<String, dynamic>> validateDiscountCode({
+    required String code,
+    required String planName,
+    required double amount,
+  });
+
+  Future<String?> applyDiscountToPlan({
+    required String planId,
+    required String discountCodeId,
+    required double originalPrice,
+    required double discountAmount,
+    required double finalPrice,
+    required String businessId,
+  });
+
+  Future<Map<String, dynamic>?> getPlanDiscount({
+    required String planId,
+  });
+
+  double calculateDiscount({
+    required double originalPrice,
+    required String discountType,
+    required double discountValue,
+  });
+
   Future<void> cleanDuplicatePlans();
   FutureOr<FlipperSaleCompaign?> getLatestCompaign();
 

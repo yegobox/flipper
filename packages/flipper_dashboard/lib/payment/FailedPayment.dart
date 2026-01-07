@@ -12,6 +12,7 @@ import 'package:supabase_models/brick/models/all_models.dart' as models;
 import 'package:supabase_models/brick/repository.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
+import 'package:flipper_ui/flipper_ui.dart';
 
 class FailedPayment extends StatefulWidget {
   const FailedPayment({Key? key}) : super(key: key);
@@ -43,6 +44,13 @@ class _FailedPaymentState extends State<FailedPayment>
   Timer? _paymentTimeoutTimer;
   StreamSubscription<List<models.Plan>>? _subscription;
 
+  // Discount code state
+  String? _discountCode;
+  double _discountAmount = 0;
+  double _originalPrice = 0;
+  bool _isValidatingCode = false;
+  String? _discountError;
+
   @override
   void initState() {
     super.initState();
@@ -58,21 +66,13 @@ class _FailedPaymentState extends State<FailedPayment>
       vsync: this,
     );
 
-    _shakeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _shakeController,
-      curve: Curves.elasticOut,
-    ));
+    _shakeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _shakeController, curve: Curves.elasticOut),
+    );
 
-    _fadeAnimation = Tween<double>(
-      begin: 0.0,
-      end: 1.0,
-    ).animate(CurvedAnimation(
-      parent: _fadeController,
-      curve: Curves.easeInOut,
-    ));
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut),
+    );
 
     // Keep original setup logic intact
     _setupPlanSubscription();
@@ -138,36 +138,36 @@ class _FailedPaymentState extends State<FailedPayment>
       // Set up real-time subscription
       _subscription = Repository()
           .subscribeToRealtime<models.Plan>(
-        policy: OfflineFirstGetPolicy.alwaysHydrate,
-        query: Query(
-          where: [const Where('businessId').isExactly(businessId)],
-        ),
-      )
+            policy: OfflineFirstGetPolicy.alwaysHydrate,
+            query: Query(
+              where: [const Where('businessId').isExactly(businessId)],
+            ),
+          )
           .listen((updatedPlans) {
-        if (updatedPlans.isNotEmpty) {
-          final updatedPlan = updatedPlans.first;
-          if (!_mounted) return;
+            if (updatedPlans.isNotEmpty) {
+              final updatedPlan = updatedPlans.first;
+              if (!_mounted) return;
 
-          setState(() {
-            _plan = updatedPlan;
-          });
-
-          if (updatedPlan.paymentCompletedByUser == true) {
-            _paymentTimeoutTimer?.cancel();
-            if (_mounted) {
               setState(() {
-                _waitingForPaymentCompletion = false;
+                _plan = updatedPlan;
               });
+
+              if (updatedPlan.paymentCompletedByUser == true) {
+                _paymentTimeoutTimer?.cancel();
+                if (_mounted) {
+                  setState(() {
+                    _waitingForPaymentCompletion = false;
+                  });
+                }
+                showCustomSnackBarUtil(
+                  context,
+                  'Payment Successful',
+                  backgroundColor: Colors.green,
+                  showCloseButton: true,
+                );
+              }
             }
-            showCustomSnackBarUtil(
-              context,
-              'Payment Successful',
-              backgroundColor: Colors.green,
-              showCloseButton: true,
-            );
-          }
-        }
-      });
+          });
     } catch (e) {
       if (!_mounted || !context.mounted) return;
 
@@ -187,6 +187,74 @@ class _FailedPaymentState extends State<FailedPayment>
           );
         }
       });
+    }
+  }
+
+  /// Validates and applies a discount code
+  Future<void> _validateDiscountCode(String code) async {
+    if (code.trim().isEmpty) {
+      setState(() {
+        _discountError = null;
+        _discountAmount = 0;
+        _discountCode = null;
+      });
+      return;
+    }
+
+    setState(() {
+      _isValidatingCode = true;
+      _discountError = null;
+    });
+
+    try {
+      final planPrice = _plan?.totalPrice?.toDouble() ?? 0;
+      final result = await ProxyService.strategy.validateDiscountCode(
+        code: code.trim().toUpperCase(),
+        planName: _plan?.selectedPlan ?? '',
+        amount: _originalPrice > 0 ? _originalPrice : planPrice,
+      );
+
+      if (mounted) {
+        if (result['is_valid'] == true) {
+          final discountType = result['discount_type'] as String;
+          final discountValue = (result['discount_value'] as num).toDouble();
+
+          final calculatedDiscount = ProxyService.strategy.calculateDiscount(
+            originalPrice: _originalPrice > 0 ? _originalPrice : planPrice,
+            discountType: discountType,
+            discountValue: discountValue,
+          );
+
+          setState(() {
+            _discountCode = code.trim().toUpperCase();
+            _discountAmount = calculatedDiscount;
+            _discountError = null;
+            _isValidatingCode = false;
+            _originalPrice = planPrice;
+          });
+
+          talker.info(
+            'Discount code applied: $code - ${discountType == 'percentage' ? '${discountValue}%' : 'RWF $discountValue'}',
+          );
+        } else {
+          setState(() {
+            _discountError = result['error_message'] as String?;
+            _discountAmount = 0;
+            _discountCode = null;
+            _isValidatingCode = false;
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _discountError = 'Failed to validate code';
+          _discountAmount = 0;
+          _discountCode = null;
+          _isValidatingCode = false;
+        });
+      }
+      talker.error('Error validating discount code: $e');
     }
   }
 
@@ -213,27 +281,34 @@ class _FailedPaymentState extends State<FailedPayment>
       body: _isLoading
           ? _buildLoadingState()
           : _waitingForPaymentCompletion
-              ? _buildPaymentWaitingState()
-              : FadeTransition(
-                  opacity: _fadeAnimation,
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(24.0),
-                    child: Column(
-                      children: [
-                        _buildHeaderSection(),
-                        const SizedBox(height: 32),
-                        if (_plan != null) _buildPlanDetails(_plan!),
-                        if (_errorMessage != null) _buildErrorMessage(),
-                        const SizedBox(height: 24),
-                        if (_plan != null) _buildPhoneNumberSection(),
-                        const SizedBox(height: 32),
-                        _buildRetryButton(context),
-                        const SizedBox(height: 24),
-                        _buildHelpSection(),
-                      ],
-                    ),
-                  ),
+          ? _buildPaymentWaitingState()
+          : FadeTransition(
+              opacity: _fadeAnimation,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  children: [
+                    _buildHeaderSection(),
+                    const SizedBox(height: 32),
+                    if (_plan != null) _buildPlanDetails(_plan!),
+                    if (_errorMessage != null) _buildErrorMessage(),
+                    const SizedBox(height: 16),
+                    if (_plan != null)
+                      CouponToggle(
+                        onCodeChanged: _validateDiscountCode,
+                        errorMessage: _discountError,
+                        isValidating: _isValidatingCode,
+                      ),
+                    const SizedBox(height: 24),
+                    if (_plan != null) _buildPhoneNumberSection(),
+                    const SizedBox(height: 32),
+                    _buildRetryButton(context),
+                    const SizedBox(height: 24),
+                    _buildHelpSection(),
+                  ],
                 ),
+              ),
+            ),
     );
   }
 
@@ -250,10 +325,9 @@ class _FailedPaymentState extends State<FailedPayment>
           Text(
             'Loading payment details...',
             style: TextStyle(
-              color: Theme.of(context)
-                  .colorScheme
-                  .onSurface
-                  .withValues(alpha: 0.7),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.7),
               fontSize: 16,
             ),
           ),
@@ -273,10 +347,7 @@ class _FailedPaymentState extends State<FailedPayment>
             decoration: BoxDecoration(
               color: Colors.blue.shade50,
               borderRadius: BorderRadius.circular(40),
-              border: Border.all(
-                color: Colors.blue.shade200,
-                width: 2,
-              ),
+              border: Border.all(color: Colors.blue.shade200, width: 2),
             ),
             child: const Icon(
               Icons.hourglass_top,
@@ -299,10 +370,9 @@ class _FailedPaymentState extends State<FailedPayment>
             'Please complete the payment in your\npayment app or browser.',
             style: TextStyle(
               fontSize: 16,
-              color: Theme.of(context)
-                  .colorScheme
-                  .onSurface
-                  .withValues(alpha: 0.7),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.7),
               height: 1.4,
             ),
             textAlign: TextAlign.center,
@@ -317,10 +387,9 @@ class _FailedPaymentState extends State<FailedPayment>
             'This may take a few moments...',
             style: TextStyle(
               fontSize: 14,
-              color: Theme.of(context)
-                  .colorScheme
-                  .onSurface
-                  .withValues(alpha: 0.6),
+              color: Theme.of(
+                context,
+              ).colorScheme.onSurface.withValues(alpha: 0.6),
             ),
           ),
         ],
@@ -413,20 +482,7 @@ class _FailedPaymentState extends State<FailedPayment>
   }
 
   Widget _buildPhoneNumberSection() {
-    // Show phone number section unless explicitly a card payment
-    // If paymentMethod is null, empty, or anything other than 'card', show mobile money options
-    final paymentMethod = _plan?.paymentMethod?.toLowerCase();
-    final isCardPayment = paymentMethod == 'card' ||
-        paymentMethod == 'credit_card' ||
-        paymentMethod == 'debit_card';
-
-    talker.debug(
-        'Payment method detected: $paymentMethod, isCardPayment: $isCardPayment');
-
-    if (isCardPayment) {
-      return const SizedBox.shrink();
-    }
-
+    // Mobile money payment section
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -465,10 +521,7 @@ class _FailedPaymentState extends State<FailedPayment>
           const SizedBox(height: 8),
           Text(
             'Payment will be processed using MTN Mobile Money',
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[600],
-            ),
+            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
           ),
           const SizedBox(height: 16),
           SwitchListTile(
@@ -542,7 +595,8 @@ class _FailedPaymentState extends State<FailedPayment>
                       '${value.substring(0, 3)} ${value.substring(3, 5)} ${value.substring(5, 8)} ${value.substring(8)}';
                 }
                 _phoneNumberController.selection = TextSelection.collapsed(
-                    offset: _phoneNumberController.text.length);
+                  offset: _phoneNumberController.text.length,
+                );
                 setState(() {});
               },
             ),
@@ -561,74 +615,76 @@ class _FailedPaymentState extends State<FailedPayment>
           child: ElevatedButton(
             onPressed:
                 _isLoading || _plan == null || _waitingForPaymentCompletion
-                    ? null
-                    : () async {
+                ? null
+                : () async {
+                    setState(() {
+                      _isLoading = true;
+                      _errorMessage = null;
+                    });
+
+                    try {
+                      await _retryPayment(
+                        context,
+                        plan: _plan!,
+                        isLoading: _isLoading,
+                        phoneNumber: _usePhoneNumber
+                            ? _phoneNumberController.text
+                            : null,
+                      );
+                      // If payment initiation succeeds, show waiting state
+                      if (_mounted) {
                         setState(() {
-                          _isLoading = true;
-                          _errorMessage = null;
+                          _waitingForPaymentCompletion = true;
+                          _isLoading = false;
                         });
+                        // Start timeout timer (5 minutes)
+                        _paymentTimeoutTimer?.cancel();
+                        _paymentTimeoutTimer = Timer(
+                          const Duration(minutes: 5),
+                          () {
+                            if (_mounted) {
+                              setState(() {
+                                _waitingForPaymentCompletion = false;
+                                _errorMessage =
+                                    'Payment timeout. Please try again.';
+                              });
+                              showCustomSnackBarUtil(
+                                context,
+                                'Payment timeout. Please try again.',
+                                backgroundColor: Colors.red,
+                                showCloseButton: true,
+                              );
+                            }
+                          },
+                        );
+                      }
+                    } catch (e) {
+                      _paymentTimeoutTimer?.cancel();
+                      if (!_mounted) return;
+                      setState(() {
+                        _errorMessage = 'Payment failed: $e';
+                        _waitingForPaymentCompletion = false;
+                      });
 
-                        try {
-                          await _retryPayment(
-                            context,
-                            plan: _plan!,
-                            isLoading: _isLoading,
-                            phoneNumber: _usePhoneNumber
-                                ? _phoneNumberController.text
-                                : null,
-                          );
-                          // If payment initiation succeeds, show waiting state
-                          if (_mounted) {
-                            setState(() {
-                              _waitingForPaymentCompletion = true;
-                              _isLoading = false;
-                            });
-                            // Start timeout timer (5 minutes)
-                            _paymentTimeoutTimer?.cancel();
-                            _paymentTimeoutTimer =
-                                Timer(const Duration(minutes: 5), () {
-                              if (_mounted) {
-                                setState(() {
-                                  _waitingForPaymentCompletion = false;
-                                  _errorMessage =
-                                      'Payment timeout. Please try again.';
-                                });
-                                showCustomSnackBarUtil(
-                                  context,
-                                  'Payment timeout. Please try again.',
-                                  backgroundColor: Colors.red,
-                                  showCloseButton: true,
-                                );
-                              }
-                            });
-                          }
-                        } catch (e) {
-                          _paymentTimeoutTimer?.cancel();
-                          if (!_mounted) return;
-                          setState(() {
-                            _errorMessage = 'Payment failed: $e';
-                            _waitingForPaymentCompletion = false;
-                          });
+                      // Add shake animation on error
+                      _shakeController.forward().then((_) {
+                        _shakeController.reset();
+                      });
 
-                          // Add shake animation on error
-                          _shakeController.forward().then((_) {
-                            _shakeController.reset();
-                          });
-
-                          showCustomSnackBarUtil(
-                            context,
-                            'Payment failed try again',
-                            backgroundColor: Colors.red,
-                            showCloseButton: true,
-                          );
-                        } finally {
-                          if (_mounted && !_waitingForPaymentCompletion) {
-                            setState(() {
-                              _isLoading = false;
-                            });
-                          }
-                        }
-                      },
+                      showCustomSnackBarUtil(
+                        context,
+                        'Payment failed try again',
+                        backgroundColor: Colors.red,
+                        showCloseButton: true,
+                      );
+                    } finally {
+                      if (_mounted && !_waitingForPaymentCompletion) {
+                        setState(() {
+                          _isLoading = false;
+                        });
+                      }
+                    }
+                  },
             style: ElevatedButton.styleFrom(
               backgroundColor: Theme.of(context).colorScheme.primary,
               foregroundColor: Colors.white,
@@ -647,7 +703,8 @@ class _FailedPaymentState extends State<FailedPayment>
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
                           valueColor: AlwaysStoppedAnimation<Color>(
-                              Theme.of(context).colorScheme.onPrimary),
+                            Theme.of(context).colorScheme.onPrimary,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -744,11 +801,62 @@ class _FailedPaymentState extends State<FailedPayment>
           ),
           const SizedBox(height: 16),
           _buildDetailRow('Plan', plan.selectedPlan ?? 'N/A'),
+          if (_discountAmount > 0) ...[
+            _buildDetailRow(
+              'Subtotal',
+              _originalPrice.toCurrencyFormatted(
+                symbol: ProxyService.box.defaultCurrency(),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      const Text(
+                        'Discount',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 16.0,
+                          color: Colors.green,
+                        ),
+                      ),
+                      if (_discountCode != null) ...[
+                        const SizedBox(width: 4),
+                        Text(
+                          '($_discountCode)',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                  Text(
+                    '-${_discountAmount.toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())}',
+                    style: const TextStyle(
+                      fontSize: 16.0,
+                      color: Colors.green,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
           _buildDetailRow(
-            'Price',
-            plan.totalPrice?.toCurrencyFormatted(
-                    symbol: ProxyService.box.defaultCurrency()) ??
+            _discountAmount > 0 ? 'Total' : 'Price',
+            (_discountAmount > 0
+                        ? (_originalPrice - _discountAmount)
+                        : plan.totalPrice)
+                    ?.toCurrencyFormatted(
+                      symbol: ProxyService.box.defaultCurrency(),
+                    ) ??
                 'N/A',
+            isTotal: _discountAmount > 0,
           ),
           _buildDetailRow(
             'Billing',
@@ -764,7 +872,7 @@ class _FailedPaymentState extends State<FailedPayment>
     );
   }
 
-  Widget _buildDetailRow(String label, String value) {
+  Widget _buildDetailRow(String label, String value, {bool isTotal = false}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10.0),
       child: Row(
@@ -772,17 +880,18 @@ class _FailedPaymentState extends State<FailedPayment>
         children: [
           Text(
             label,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 16.0,
-              color: Colors.black54,
+            style: TextStyle(
+              fontWeight: isTotal ? FontWeight.w900 : FontWeight.bold,
+              fontSize: isTotal ? 18.0 : 16.0,
+              color: isTotal ? Colors.green : Colors.black54,
             ),
           ),
           Text(
             value,
-            style: const TextStyle(
-              fontSize: 16.0,
-              color: Colors.black87,
+            style: TextStyle(
+              fontSize: isTotal ? 18.0 : 16.0,
+              color: isTotal ? Colors.green : Colors.black87,
+              fontWeight: isTotal ? FontWeight.w900 : FontWeight.normal,
             ),
           ),
         ],
@@ -842,15 +951,15 @@ class _FailedPaymentState extends State<FailedPayment>
     );
   }
 
-  // Keep original retry payment logic exactly as is
+  // Retry payment with mobile money
   Future<void> _retryPayment(
     BuildContext context, {
     required models.Plan plan,
     required bool isLoading,
     String? phoneNumber,
   }) async {
-    // Validate phone number if it's a mobile payment
-    if ((plan.paymentMethod?.toLowerCase() != 'card') && _usePhoneNumber) {
+    // Validate phone number if using custom number
+    if (_usePhoneNumber) {
       final phoneError = _getPhoneNumberError(phoneNumber ?? '');
       if (phoneError != null) {
         throw Exception(phoneError);
@@ -865,16 +974,7 @@ class _FailedPaymentState extends State<FailedPayment>
       }
     }
 
-    if (plan.paymentMethod?.toLowerCase() == 'card') {
-      await cardPayment(
-        plan.totalPrice!.toInt(),
-        plan,
-        plan.paymentMethod!,
-        plan: plan,
-      );
-    } else {
-      // Handle mobile payment
-      await handleMomoPayment(plan.totalPrice!.toInt(), plan: plan);
-    }
+    // Handle mobile money payment
+    await handleMomoPayment(plan.totalPrice!.toInt(), plan: plan);
   }
 }

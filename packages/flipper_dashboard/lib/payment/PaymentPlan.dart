@@ -69,7 +69,8 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
           } catch (subscriptionError) {
             // Plan exists but is not active, go to FailedPayment
             talker.warning(
-                'Payment plan exists but is not active: $subscriptionError');
+              'Payment plan exists but is not active: $subscriptionError',
+            );
             locator<RouterService>().navigateTo(FailedPaymentRoute());
             return;
           }
@@ -189,28 +190,35 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
     return Column(
       children: [
         _buildPlanCard(
-            'Mobile',
-            'Mobile only',
-            _isYearlyPlan ? '48,000 RWF/year' : '5,000 RWF/month',
-            Icons.phone_iphone),
+          'Mobile',
+          'Mobile only',
+          _isYearlyPlan ? '48,000 RWF/year' : '5,000 RWF/month',
+          Icons.phone_iphone,
+        ),
         SizedBox(height: 8),
         _buildPlanCard(
-            'Mobile + Desktop',
-            'Mobile + Desktop',
-            _isYearlyPlan ? '1,152000 RWF/year' : '120,000 RWF/month',
-            Icons.devices),
+          'Mobile + Desktop',
+          'Mobile + Desktop',
+          _isYearlyPlan ? '1,152000 RWF/year' : '120,000 RWF/month',
+          Icons.devices,
+        ),
         SizedBox(height: 8),
         _buildPlanCard(
-            'Entreprise',
-            'Entreprise',
-            _isYearlyPlan ? '14,400,000+ RWF/year' : '1,500,000+ RWF/month',
-            Icons.devices),
+          'Entreprise',
+          'Entreprise',
+          _isYearlyPlan ? '14,400,000+ RWF/year' : '1,500,000+ RWF/month',
+          Icons.devices,
+        ),
       ],
     );
   }
 
   Widget _buildPlanCard(
-      String value, String title, String price, IconData icon) {
+    String value,
+    String title,
+    String price,
+    IconData icon,
+  ) {
     bool isSelected = _selectedPlan == value;
     return GestureDetector(
       onTap: () {
@@ -229,29 +237,39 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
           color: isSelected ? Colors.blue : Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-              color: isSelected ? Colors.transparent : Colors.grey.shade300),
+            color: isSelected ? Colors.transparent : Colors.grey.shade300,
+          ),
         ),
         child: Padding(
           padding: EdgeInsets.all(16),
           child: Row(
             children: [
-              Icon(icon,
-                  size: 24, color: isSelected ? Colors.white : Colors.blue),
+              Icon(
+                icon,
+                size: 24,
+                color: isSelected ? Colors.white : Colors.blue,
+              ),
               SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title,
-                        style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
-                            color: isSelected ? Colors.white : Colors.black)),
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        color: isSelected ? Colors.white : Colors.black,
+                      ),
+                    ),
                     SizedBox(height: 4),
-                    Text(price,
-                        style: TextStyle(
-                            fontSize: 14,
-                            color: isSelected ? Colors.white70 : Colors.black)),
+                    Text(
+                      price,
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: isSelected ? Colors.white70 : Colors.black,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -272,23 +290,28 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text('Additional devices',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+          Text(
+            'Additional devices',
+            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+          ),
           Row(
             children: [
               _buildCircularButton(
-                  Icons.remove,
-                  _additionalDevices > 0
-                      ? () {
-                          setState(() {
-                            _additionalDevices--;
-                            _calculatePrice();
-                          });
-                        }
-                      : null),
+                Icons.remove,
+                _additionalDevices > 0
+                    ? () {
+                        setState(() {
+                          _additionalDevices--;
+                          _calculatePrice();
+                        });
+                      }
+                    : null,
+              ),
               SizedBox(width: 16),
-              Text(_additionalDevices.toString(),
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              Text(
+                _additionalDevices.toString(),
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
               SizedBox(width: 16),
               _buildCircularButton(Icons.add, () {
                 setState(() {
@@ -349,8 +372,9 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
             _taxReporting,
             (value) {
               if (value &&
-                  !_additionalServices
-                      .contains("Premium Tax Reporting Consulting")) {
+                  !_additionalServices.contains(
+                    "Premium Tax Reporting Consulting",
+                  )) {
                 _additionalServices.add("Premium Tax Reporting Consulting");
               }
               setState(() {
@@ -366,8 +390,9 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
             _unlimitedBranches,
             (value) {
               if (value &&
-                  !_additionalServices
-                      .contains("Unlimited Branches & Agents")) {
+                  !_additionalServices.contains(
+                    "Unlimited Branches & Agents",
+                  )) {
                 _additionalServices.add("Unlimited Branches & Agents");
               }
               setState(() {
@@ -404,7 +429,11 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
   }
 
   Widget _buildServiceToggle(
-      String title, String price, bool value, Function(bool) onChanged) {
+    String title,
+    String price,
+    bool value,
+    Function(bool) onChanged,
+  ) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.grey.shade100,
@@ -420,17 +449,11 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
               children: [
                 Text(
                   title,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                 ),
                 Text(
                   price,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey.shade700,
-                  ),
+                  style: TextStyle(fontSize: 12, color: Colors.grey.shade700),
                 ),
               ],
             ),
@@ -438,11 +461,12 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
           Switch(
             value: value,
             onChanged: onChanged,
-            activeColor: Colors.blue,
+            activeThumbColor: Colors.blue,
             inactiveThumbColor: Colors.grey,
             inactiveTrackColor: Colors.grey.shade300,
-            trackOutlineColor: WidgetStateProperty.resolveWith<Color?>(
-                (Set<WidgetState> states) {
+            trackOutlineColor: WidgetStateProperty.resolveWith<Color?>((
+              Set<WidgetState> states,
+            ) {
               if (states.contains(WidgetState.selected)) {
                 return Colors.blue;
               }
@@ -461,22 +485,23 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
         color: Colors.grey.shade100,
         borderRadius: BorderRadius.circular(12),
       ),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          return Row(
+      child: Column(
+        children: [
+          Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 'Total',
                 style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
+                  color: Colors.black,
                 ),
               ),
               Flexible(
                 child: Text(
                   '${_totalPrice.toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())} ${_isYearlyPlan ? '/year' : '/month'}',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
                     color: Colors.black,
@@ -487,8 +512,8 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
                 ),
               ),
             ],
-          );
-        },
+          ),
+        ],
       ),
     );
   }
@@ -497,21 +522,13 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
     return ElevatedButton(
       onPressed: () async {
         String selectedPlan = _selectedPlan;
-        int additionalDevices =
-            _selectedPlan == 'More than 3 Devices' ? _additionalDevices : 0;
+        int additionalDevices = _selectedPlan == 'More than 3 Devices'
+            ? _additionalDevices
+            : 0;
         bool isYearlyPlan = _isYearlyPlan;
         double totalPrice = _totalPrice;
 
         try {
-          // String userIdentifier = ProxyService.box.getUserPhone()!;
-
-          // PayStackCustomer customer = await ProxyService.payStack
-          //     .getPayStackCustomer(
-          //         business: (await ProxyService.strategy.getBusiness(
-          //             businessId: ProxyService.box.getBusinessId()!))!,
-          //         userIdentifier.toFlipperEmail(),
-          //         ProxyService.http);
-
           await ProxyService.strategy.saveOrUpdatePaymentPlan(
             businessId: (await ProxyService.strategy.activeBusiness())!.id,
             selectedPlan: selectedPlan,
@@ -556,8 +573,10 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
           }
         }
       },
-      child: Text('Proceed to Payment',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+      child: Text(
+        'Proceed to Payment',
+        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+      ),
       style: ElevatedButton.styleFrom(
         splashFactory: InkSparkle.splashFactory,
         backgroundColor: Colors.blue,
@@ -572,11 +591,7 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
   @override
   Widget build(BuildContext context) {
     if (_isCheckingPayment) {
-      return const Scaffold(
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     return Scaffold(
@@ -608,11 +623,7 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
               _buildAdditionalServices(),
               SizedBox(height: 16),
               _buildPriceSummary(),
-              SizedBox(height: 16),
-              CouponToggle(),
-              NumberOfPaymentsToggle(
-                paymentController: paymentController,
-              ),
+              NumberOfPaymentsToggle(paymentController: paymentController),
               SizedBox(height: 16),
               _buildProceedButton(),
             ],
