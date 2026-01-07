@@ -85,9 +85,9 @@ class _SearchableCategoryDropdownState
           RichText(
             text: TextSpan(
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: widget.textColor ?? Colors.black,
-                    fontWeight: FontWeight.w600,
-                  ),
+                color: widget.textColor ?? Colors.black,
+                fontWeight: FontWeight.w600,
+              ),
               children: [
                 TextSpan(text: "Category"),
                 TextSpan(
@@ -118,6 +118,7 @@ class _SearchableCategoryDropdownState
                     error: (_, __) => <Category>[],
                   );
                 },
+                hideOnUnfocus: false,
                 builder: (context, controller, focusNode) {
                   if (_controller != controller) {
                     _controller = controller;
@@ -137,12 +138,14 @@ class _SearchableCategoryDropdownState
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                         borderSide: BorderSide(
-                            color: widget.borderColor ?? Colors.grey),
+                          color: widget.borderColor ?? Colors.grey,
+                        ),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
                         borderSide: BorderSide(
-                            color: widget.borderColor ?? Colors.grey),
+                          color: widget.borderColor ?? Colors.grey,
+                        ),
                       ),
                       disabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(8),
