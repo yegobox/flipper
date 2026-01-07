@@ -570,7 +570,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     Business? business = await ProxyService.strategy
         .getBusiness(businessId: ProxyService.box.getBusinessId()!);
     String branchId = (await ProxyService.strategy
-            .activeBranch(businessId: ProxyService.box.getBusinessId()!))
+            .activeBranch(branchId: ProxyService.box.getBranchId()!))
         .id;
     Ebm? ebm = await ProxyService.strategy
         .ebm(branchId: ProxyService.box.getBranchId()!);

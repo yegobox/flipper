@@ -78,7 +78,7 @@ class _TransactionDetailState extends ConsumerState<TransactionDetail>
       viewModelBuilder: () => CoreViewModel(),
       onViewModelReady: (model) async {
         final activeBranch = await ProxyService.strategy.activeBranch(
-          businessId: ProxyService.box.getBusinessId()!,
+          branchId: ProxyService.box.getBranchId()!,
         );
         List<TransactionItem> items =
             await ProxyService.getStrategy(Strategy.capella).transactionItems(

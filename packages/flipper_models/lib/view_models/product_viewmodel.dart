@@ -453,7 +453,8 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
           await ProxyService.getStrategy(Strategy.capella).transactionItems(
               transactionId: transaction.id,
               branchId: (await ProxyService.strategy.activeBranch(
-                      businessId: ProxyService.box.getBusinessId()!))
+                branchId: ProxyService.box.getBranchId()!,
+              ))
                   .id);
 
       for (TransactionItem item in transactionItems) {

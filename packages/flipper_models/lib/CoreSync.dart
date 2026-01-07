@@ -604,7 +604,8 @@ class CoreSync extends AiStrategyImpl
             id: transactionItemId.id,
             transactionId: transactionId,
             branchId: (await ProxyService.strategy.activeBranch(
-                    businessId: ProxyService.box.getBusinessId()!))
+              branchId: ProxyService.box.getBranchId()!,
+            ))
                 .id))
         .first;
     await repository.delete(item);
@@ -2766,7 +2767,7 @@ class CoreSync extends AiStrategyImpl
         bhfId: bhfId,
         tinNumber: tin!.toString(),
         branchId: (await ProxyService.strategy
-                .activeBranch(businessId: ProxyService.box.getBusinessId()!))
+                .activeBranch(branchId: ProxyService.box.getBranchId()!))
             .id,
         financingId: financingId,
         itemCounts: items.length,

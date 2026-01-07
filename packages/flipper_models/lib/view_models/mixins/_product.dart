@@ -189,7 +189,7 @@ mixin ProductMixin {
   Future<double> setTaxPercentage(Variant variant) async {
     newMod.Configurations? configurations =
         await ProxyService.strategy.getByTaxType(taxtype: variant.taxTyCd!);
-    return configurations!.taxPercentage!;
+    return configurations?.taxPercentage ?? 0;
   }
 
   Future<Product?> saveProduct(

@@ -112,8 +112,11 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
   }
 
   Future<void> _saveProductAndVariants(
-      ScannViewModel model, BuildContext context, Product productRef,
-      {required String selectedProductType}) async {
+    ScannViewModel model,
+    BuildContext context,
+    Product productRef, {
+    required String selectedProductType,
+  }) async {
     if (!mounted) return; // Moved to the top
     try {
       ref.read(loadingProvider.notifier).startLoading();
@@ -134,51 +137,56 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
           !ref.watch(isCompositeProvider)) {
         if (widget.productId != null) {
           if (!mounted) return;
-          await model.bulkUpdateVariants(true,
-              color: pickerColor.toHex(),
-              categoryId: selectedCategoryId,
-              productName: productNameController.text,
-              selectedProductType: selectedProductType,
-              newRetailPrice: double.tryParse(retailPriceController.text) ?? 0,
-              rates: _rates,
-              dates: _dates,
-              onCompleteCallback: (List<Variant> variants) async {
-            _addVariantsToProvider(variants);
-            if (!mounted) return;
-            final invoiceNumber = await showInvoiceNumberModal(context);
-            if (invoiceNumber == null) return;
+          await model.bulkUpdateVariants(
+            true,
+            color: pickerColor.toHex(),
+            categoryId: selectedCategoryId,
+            productName: productNameController.text,
+            selectedProductType: selectedProductType,
+            newRetailPrice: double.tryParse(retailPriceController.text) ?? 0,
+            rates: _rates,
+            dates: _dates,
+            onCompleteCallback: (List<Variant> variants) async {
+              _addVariantsToProvider(variants);
+              if (!mounted) return;
+              final invoiceNumber = await showInvoiceNumberModal(context);
+              if (invoiceNumber == null) return;
 
-            if (!mounted) return;
-            final pendingTransaction =
-                await ProxyService.strategy.manageTransaction(
-              transactionType: TransactionType.adjustment,
-              isExpense: true,
-              branchId: ProxyService.box.getBranchId()!,
-            );
-            Business? business = await ProxyService.strategy
-                .getBusiness(businessId: ProxyService.box.getBusinessId()!);
-            if (!mounted) return;
-
-            for (Variant variant in variants) {
-              // Handle the transaction for stock adjustment
-              await ProxyService.strategy.assignTransaction(
-                variant: variant,
-                doneWithTransaction: true,
-                invoiceNumber: invoiceNumber,
-                pendingTransaction: pendingTransaction!,
-                business: business!,
-                randomNumber: randomNumber(),
-                // 06 is incoming adjustment.
-                sarTyCd: "06",
+              if (!mounted) return;
+              final pendingTransaction = await ProxyService.strategy
+                  .manageTransaction(
+                    transactionType: TransactionType.adjustment,
+                    isExpense: true,
+                    branchId: ProxyService.box.getBranchId()!,
+                  );
+              Business? business = await ProxyService.strategy.getBusiness(
+                businessId: ProxyService.box.getBusinessId()!,
               );
-            }
-
-            if (pendingTransaction != null) {
               if (!mounted) return;
 
-              await completeTransaction(pendingTransaction: pendingTransaction);
-            }
-          });
+              for (Variant variant in variants) {
+                // Handle the transaction for stock adjustment
+                await ProxyService.strategy.assignTransaction(
+                  variant: variant,
+                  doneWithTransaction: true,
+                  invoiceNumber: invoiceNumber,
+                  pendingTransaction: pendingTransaction!,
+                  business: business!,
+                  randomNumber: randomNumber(),
+                  // 06 is incoming adjustment.
+                  sarTyCd: "06",
+                );
+              }
+
+              if (pendingTransaction != null) {
+                if (!mounted) return;
+
+                await completeTransaction(
+                  pendingTransaction: pendingTransaction,
+                );
+              }
+            },
+          );
         } else {
           if (!mounted) return;
           await model.addVariant(
@@ -204,14 +212,15 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
               if (invoiceNumber == null) return;
 
               if (!mounted) return;
-              final pendingTransaction =
-                  await ProxyService.strategy.manageTransaction(
-                transactionType: TransactionType.adjustment,
-                isExpense: true,
-                branchId: ProxyService.box.getBranchId()!,
+              final pendingTransaction = await ProxyService.strategy
+                  .manageTransaction(
+                    transactionType: TransactionType.adjustment,
+                    isExpense: true,
+                    branchId: ProxyService.box.getBranchId()!,
+                  );
+              Business? business = await ProxyService.strategy.getBusiness(
+                businessId: ProxyService.box.getBusinessId()!,
               );
-              Business? business = await ProxyService.strategy
-                  .getBusiness(businessId: ProxyService.box.getBusinessId()!);
               if (!mounted) return;
 
               for (Variant variant in variants) {
@@ -232,7 +241,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                 if (!mounted) return;
 
                 await completeTransaction(
-                    pendingTransaction: pendingTransaction);
+                  pendingTransaction: pendingTransaction,
+                );
               }
             },
           );
@@ -241,10 +251,11 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
         model.currentColor = pickerColor.toHex();
 
         await model.saveProduct(
-            mproduct: productRef,
-            color: model.currentColor,
-            inUpdateProcess: widget.productId != null,
-            productName: model.kProductName!);
+          mproduct: productRef,
+          color: model.currentColor,
+          inUpdateProcess: widget.productId != null,
+          productName: model.kProductName!,
+        );
 
         if (!mounted) return;
 
@@ -282,8 +293,10 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
       );
       ref.read(loadingProvider.notifier).stopLoading();
       if (mounted) {
-        toast("We did not close normally, check if your product is saved",
-            duration: Toast.LENGTH_LONG);
+        toast(
+          "We did not close normally, check if your product is saved",
+          duration: Toast.LENGTH_LONG,
+        );
         Navigator.pop(context); // Always close the modal, even on error
       }
       rethrow;
@@ -314,7 +327,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
         ref.read(loadingProvider.notifier).stopLoading();
         if (mounted) {
           toast(
-              "Branch ID not found. Please ensure you're logged in properly.");
+            "Branch ID not found. Please ensure you're logged in properly.",
+          );
           talker.error("Error: getBranchId() returned null");
         }
         return;
@@ -324,14 +338,16 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
         ref.read(loadingProvider.notifier).stopLoading();
         if (mounted) {
           toast(
-              "Business ID not found. Please ensure you're logged in properly.");
+            "Business ID not found. Please ensure you're logged in properly.",
+          );
           talker.error("Error: getBusinessId() returned null");
         }
         return;
       }
 
-      List<VariantState> partOfComposite =
-          ref.read(selectedVariantsLocalProvider);
+      List<VariantState> partOfComposite = ref.read(
+        selectedVariantsLocalProvider,
+      );
 
       // Validate that there are components to save
       if (partOfComposite.isEmpty) {
@@ -344,7 +360,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
       }
 
       talker.info(
-          "Saving composite product with ${partOfComposite.length} components");
+        "Saving composite product with ${partOfComposite.length} components",
+      );
 
       // Save each composite component
       for (var component in partOfComposite) {
@@ -372,8 +389,9 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
         isComposite: true,
       );
 
-      talker
-          .info("Product updated as composite: ${productNameController.text}");
+      talker.info(
+        "Product updated as composite: ${productNameController.text}",
+      );
 
       if (!mounted) return;
 
@@ -413,7 +431,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
               taxTyCd: ref.watch(ebmVatEnabledProvider).value == true
                   ? "B"
                   : "D", // VAT or non-VAT
-            )
+            ),
           ],
           product: product,
           selectedProductType:
@@ -428,14 +446,16 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
             _addVariantsToProvider(variants);
 
             talker.info(
-                "Composite variant created (service type - no stock): ${productNameController.text}");
+              "Composite variant created (service type - no stock): ${productNameController.text}",
+            );
           },
         );
       } catch (e) {
         // Silently handle "No items to save" error for composite products
         if (e.toString().contains("No items to save")) {
           talker.info(
-              "Composite product created successfully (no stock reporting needed)");
+            "Composite product created successfully (no stock reporting needed)",
+          );
         } else {
           rethrow;
         }
@@ -471,15 +491,19 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
       if (mounted) {
         toast("Failed to save composite product: ${e.toString()}");
         talker.error(
-            "Error saving composite product: $e\nStack trace: $stackTrace");
+          "Error saving composite product: $e\nStack trace: $stackTrace",
+        );
       }
       // Don't close the dialog automatically on error
     }
   }
 
   void _onSaveButtonPressed(
-      ScannViewModel model, BuildContext context, Product product,
-      {required String selectedProductType}) async {
+    ScannViewModel model,
+    BuildContext context,
+    Product product, {
+    required String selectedProductType,
+  }) async {
     if (!mounted) return;
     try {
       if (model.scannedVariants.isEmpty && widget.productId == null) {
@@ -487,8 +511,12 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
         return;
       }
       //
-      await _saveProductAndVariants(model, context, product,
-          selectedProductType: selectedProductType);
+      await _saveProductAndVariants(
+        model,
+        context,
+        product,
+        selectedProductType: selectedProductType,
+      );
     } catch (e) {
       if (mounted) {
         toast("Error saving product: ${e.toString()}");
@@ -518,8 +546,9 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
               if (widget.productId != null) {
                 // Load existing product if productId is given
 
-                Product product =
-                    await model.getProduct(productId: widget.productId!);
+                Product product = await model.getProduct(
+                  productId: widget.productId!,
+                );
                 if (!mounted) return;
                 if (mounted) {
                   ref
@@ -533,11 +562,12 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                 final isVatEnabled = ref.watch(ebmVatEnabledProvider);
                 // Populate variants related to the product
                 final paged = await ProxyService.strategy.variants(
-                    taxTyCds: isVatEnabled.value == true
-                        ? ['A', 'B', 'C', 'TT']
-                        : ['D', 'TT'],
-                    productId: widget.productId!,
-                    branchId: ProxyService.box.getBranchId()!);
+                  taxTyCds: isVatEnabled.value == true
+                      ? ['A', 'B', 'C', 'TT']
+                      : ['D', 'TT'],
+                  productId: widget.productId!,
+                  branchId: ProxyService.box.getBranchId()!,
+                );
                 List<Variant> variants = List<Variant>.from(paged.variants);
                 if (!mounted) return;
 
@@ -550,10 +580,10 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                 /// this in assumption that all variants added has same supply and retail price
                 /// but this will change in future when we support for variant to have different
                 /// prices
-                supplyPriceController.text =
-                    variants.first.supplyPrice.toString();
-                retailPriceController.text =
-                    variants.first.retailPrice.toString();
+                supplyPriceController.text = variants.first.supplyPrice
+                    .toString();
+                retailPriceController.text = variants.first.retailPrice
+                    .toString();
 
                 // Set the selectedCategoryId from the first variant's categoryId
                 if (variants.isNotEmpty && variants.first.categoryId != null) {
@@ -601,77 +631,52 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
               return Form(
                 // Wrap the entire content with a Form widget
                 key: _formKey,
-                child: Padding(
-                  padding: const EdgeInsets.only(left: 18, right: 18),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        topButtons(context, model, productRef),
+                child: SingleChildScrollView(
+                  child: Padding(
+                    padding: EdgeInsets.only(
+                      left: 18,
+                      right: 18,
+                      bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+                    ),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          topButtons(context, model, productRef),
 
-                        /// toggle between is composite vs non-composite product
-                        ToggleButtonWidget(),
+                          /// toggle between is composite vs non-composite product
+                          ToggleButtonWidget(),
 
-                        /// End of toggle
-                        productNameField(model),
-                        retailPrice(model),
-                        supplyPrice(model),
-                        // Add the product type dropdown here
+                          /// End of toggle
+                          productNameField(model),
+                          retailPrice(model),
+                          supplyPrice(model),
 
-                        !ref.watch(isCompositeProvider)
-                            ? scanField(model, productRef: productRef)
-                            : SizedBox.shrink(),
+                          // Add the product type dropdown here
+                          !ref.watch(isCompositeProvider)
+                              ? scanField(model, productRef: productRef)
+                              : SizedBox.shrink(),
 
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8.0),
-                          child: ResponsiveLayout(
-                            mobile: Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                DropdownButtonWithLabel(
-                                  label: "Packaging Unit",
-                                  selectedValue: selectedPackageUnitValue,
-                                  options: model.pkgUnits,
-                                  // Create a map of full values to display names (extract the description part after the second colon)
-                                  displayNames: Map.fromEntries(model.pkgUnits
-                                      .map((unit) => MapEntry(
-                                          unit,
-                                          unit
-                                              .split(':')
-                                              .sublist(2)
-                                              .join(':')))),
-                                  onChanged: (String? newValue) {
-                                    if (mounted && newValue != null) {
-                                      setState(() {
-                                        selectedPackageUnitValue = newValue;
-                                      });
-                                    }
-                                  },
-                                ),
-                                const SizedBox(height: 16),
-                                SearchableCategoryDropdown(
-                                  selectedValue: selectedCategoryId,
-                                  onChanged: (String? newValue) {
-                                    if (mounted && newValue != null) {
-                                      setState(() {
-                                        selectedCategoryId = newValue;
-                                      });
-                                    }
-                                  },
-                                  onAdd: () {
-                                    showAddCategoryModal(context);
-                                  },
-                                ),
-                              ],
-                            ),
-                            tablet: Row(
-                              children: [
-                                Expanded(
-                                  child: DropdownButtonWithLabel(
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: ResponsiveLayout(
+                              mobile: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  DropdownButtonWithLabel(
                                     label: "Packaging Unit",
                                     selectedValue: selectedPackageUnitValue,
                                     options: model.pkgUnits,
+                                    // Create a map of full values to display names (extract the description part after the second colon)
+                                    displayNames: Map.fromEntries(
+                                      model.pkgUnits.map(
+                                        (unit) => MapEntry(
+                                          unit,
+                                          unit.split(':').sublist(2).join(':'),
+                                        ),
+                                      ),
+                                    ),
                                     onChanged: (String? newValue) {
                                       if (mounted && newValue != null) {
                                         setState(() {
@@ -680,10 +685,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                                       }
                                     },
                                   ),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: SearchableCategoryDropdown(
+                                  const SizedBox(height: 16),
+                                  SearchableCategoryDropdown(
                                     selectedValue: selectedCategoryId,
                                     onChanged: (String? newValue) {
                                       if (mounted && newValue != null) {
@@ -696,101 +699,140 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                                       showAddCategoryModal(context);
                                     },
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
+                              tablet: Row(
+                                children: [
+                                  Expanded(
+                                    child: DropdownButtonWithLabel(
+                                      label: "Packaging Unit",
+                                      selectedValue: selectedPackageUnitValue,
+                                      options: model.pkgUnits,
+                                      onChanged: (String? newValue) {
+                                        if (mounted && newValue != null) {
+                                          setState(() {
+                                            selectedPackageUnitValue = newValue;
+                                          });
+                                        }
+                                      },
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: SearchableCategoryDropdown(
+                                      selectedValue: selectedCategoryId,
+                                      onChanged: (String? newValue) {
+                                        if (mounted && newValue != null) {
+                                          setState(() {
+                                            selectedCategoryId = newValue;
+                                          });
+                                        }
+                                      },
+                                      onAdd: () {
+                                        showAddCategoryModal(context);
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                        ProductTypeDropdown(
-                          selectedValue: selectedProductType,
-                          onChanged: (String? newValue) {
-                            if (mounted && newValue != null) {
-                              setState(() {
-                                selectedProductType = newValue;
-                              });
-                            }
-                          },
-                          isEditMode: widget.productId != null,
-                        ),
-                        CountryOfOriginSelector(
-                          controller: countryOfOriginController,
-                          onCountrySelected: (Country country) {
-                            print("Selected country: ${country.name}");
-                          },
-                        ),
+                          ProductTypeDropdown(
+                            selectedValue: selectedProductType,
+                            onChanged: (String? newValue) {
+                              if (mounted && newValue != null) {
+                                setState(() {
+                                  selectedProductType = newValue;
+                                });
+                              }
+                            },
+                            isEditMode: widget.productId != null,
+                          ),
+                          CountryOfOriginSelector(
+                            controller: countryOfOriginController,
+                            onCountrySelected: (Country country) {
+                              print("Selected country: ${country.name}");
+                            },
+                          ),
 
-                        !ref.watch(isCompositeProvider)
-                            ? TableVariants(
-                                isEbmEnabled:
-                                    ref.watch(ebmVatEnabledProvider).value ??
-                                        false,
-                                isEditMode: widget.productId != null,
-                                onDateChanged:
-                                    (String variantId, DateTime date) {
-                                  _dates[variantId] = TextEditingController(
-                                      text: date.toIso8601String());
-                                },
-                                unversalProducts:
-                                    ref.watch(universalProductsNames).value,
-                                units:
-                                    ref.watch(unitsProvider).value?.value ?? [],
-                                scannedInputFocusNode: _scannedInputFocusNode,
-                                unitOfMeasures: [],
-                                model: model,
-                                onUnitOfMeasureChanged: (unitCode, variantId) {
-                                  // Get the units list from the provider
-                                  final units =
-                                      ref.read(unitsProvider).value?.value ??
-                                          [];
-                                  // Find the unit with the matching code
-                                  final unit = units.firstWhere(
-                                    (u) => u.code == unitCode,
-                                    orElse: () => units.firstWhere(
-                                      (u) => u.name == unitCode,
+                          !ref.watch(isCompositeProvider)
+                              ? TableVariants(
+                                  isEbmEnabled:
+                                      ref.watch(ebmVatEnabledProvider).value ??
+                                      false,
+                                  isEditMode: widget.productId != null,
+                                  onDateChanged:
+                                      (String variantId, DateTime date) {
+                                        _dates[variantId] =
+                                            TextEditingController(
+                                              text: date.toIso8601String(),
+                                            );
+                                      },
+                                  unversalProducts: ref
+                                      .watch(universalProductsNames)
+                                      .value,
+                                  units:
+                                      ref.watch(unitsProvider).value?.value ??
+                                      [],
+                                  scannedInputFocusNode: _scannedInputFocusNode,
+                                  unitOfMeasures: [],
+                                  model: model,
+                                  onUnitOfMeasureChanged: (unitCode, variantId) {
+                                    // Get the units list from the provider
+                                    final units =
+                                        ref.read(unitsProvider).value?.value ??
+                                        [];
+                                    // Find the unit with the matching code
+                                    final unit = units.firstWhere(
+                                      (u) => u.code == unitCode,
                                       orElse: () => units.firstWhere(
-                                        (u) =>
-                                            u.name ==
-                                            model.scannedVariants.first.unit,
-                                        orElse: () => units.first,
+                                        (u) => u.name == unitCode,
+                                        orElse: () => units.firstWhere(
+                                          (u) =>
+                                              u.name ==
+                                              model.scannedVariants.first.unit,
+                                          orElse: () => units.first,
+                                        ),
                                       ),
-                                    ),
-                                  );
+                                    );
 
-                                  // Find and update only the specific variant
-                                  final variantIndex = model.scannedVariants
-                                      .indexWhere((v) => v.id == variantId);
-                                  if (variantIndex != -1) {
-                                    final variant =
-                                        model.scannedVariants[variantIndex];
-                                    // Update the unit code fields
-                                    variant.qtyUnitCd = unitCode;
-                                    // Update the display name
-                                    variant.unit = unit.name ?? unitCode;
-                                  }
-                                },
-                              )
-                            : SizedBox.shrink(),
-                        ref.watch(isCompositeProvider)
-                            ? Fieldcompositeactivated(
-                                formKey: _fieldComposite,
-                                skuController: skuController,
-                                barCodeController: barCodeController,
-                              )
-                            : SizedBox.shrink(),
-                        ref.watch(isCompositeProvider)
-                            ? SearchProduct()
-                            : SizedBox.shrink(),
-                        ref.watch(isCompositeProvider)
-                            ? Padding(
-                                padding: EdgeInsets.all(16),
-                                child: Text("Components"),
-                              )
-                            : SizedBox.shrink(),
-                        ref.watch(isCompositeProvider)
-                            ? CompositeVariation(
-                                supplyPriceController: supplyPriceController)
-                            : SizedBox.shrink(),
-                      ],
+                                    // Find and update only the specific variant
+                                    final variantIndex = model.scannedVariants
+                                        .indexWhere((v) => v.id == variantId);
+                                    if (variantIndex != -1) {
+                                      final variant =
+                                          model.scannedVariants[variantIndex];
+                                      // Update the unit code fields
+                                      variant.qtyUnitCd = unitCode;
+                                      // Update the display name
+                                      variant.unit = unit.name ?? unitCode;
+                                    }
+                                  },
+                                )
+                              : SizedBox.shrink(),
+                          ref.watch(isCompositeProvider)
+                              ? Fieldcompositeactivated(
+                                  formKey: _fieldComposite,
+                                  skuController: skuController,
+                                  barCodeController: barCodeController,
+                                )
+                              : SizedBox.shrink(),
+                          ref.watch(isCompositeProvider)
+                              ? SearchProduct()
+                              : SizedBox.shrink(),
+                          ref.watch(isCompositeProvider)
+                              ? Padding(
+                                  padding: EdgeInsets.all(16),
+                                  child: Text("Components"),
+                                )
+                              : SizedBox.shrink(),
+                          ref.watch(isCompositeProvider)
+                              ? CompositeVariation(
+                                  supplyPriceController: supplyPriceController,
+                                )
+                              : SizedBox.shrink(),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -803,9 +845,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
             child: Container(
               color: Colors.black.withValues(alpha: 0.3),
               child: const SafeArea(
-                child: Center(
-                  child: CircularProgressIndicator(),
-                ),
+                child: Center(child: CircularProgressIndicator()),
               ),
             ),
           ),
@@ -827,75 +867,79 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
   }
 
   Widget topButtons(
-      BuildContext context, ScannViewModel productModel, Product? productRef) {
+    BuildContext context,
+    ScannViewModel productModel,
+    Product? productRef,
+  ) {
     return ViewModelBuilder.nonReactive(
-        viewModelBuilder: () => UploadViewModel(),
-        builder: (context, model, child) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    ElevatedButton(
-                      onPressed: () async {
-                        if (!mounted) return;
-                        try {
-                          if (_formKey.currentState!.validate() &&
-                              !ref.watch(isCompositeProvider)) {
-                            if (productRef == null) {
-                              toast("Invalid product reference");
-                              return;
-                            }
-                            if (!mounted) return;
-                            _onSaveButtonPressed(
-                              selectedProductType: selectedProductType,
-                              productModel,
-                              context,
-                              productRef,
-                            );
-                          } else if (_fieldComposite.currentState?.validate() ??
-                              false) {
-                            await _handleCompositeProductSave(productModel);
+      viewModelBuilder: () => UploadViewModel(),
+      builder: (context, model, child) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  ElevatedButton(
+                    onPressed: () async {
+                      if (!mounted) return;
+                      try {
+                        if (_formKey.currentState!.validate() &&
+                            !ref.watch(isCompositeProvider)) {
+                          if (productRef == null) {
+                            toast("Invalid product reference");
+                            return;
                           }
-                        } catch (e) {
-                          toast("An unexpected error occurred");
-                          talker.error("Error in save button: $e");
+                          if (!mounted) return;
+                          _onSaveButtonPressed(
+                            selectedProductType: selectedProductType,
+                            productModel,
+                            context,
+                            productRef,
+                          );
+                        } else if (_fieldComposite.currentState?.validate() ??
+                            false) {
+                          await _handleCompositeProductSave(productModel);
                         }
-                      },
-                      child: const Text('Save'),
+                      } catch (e) {
+                        toast("An unexpected error occurred");
+                        talker.error("Error in save button: $e");
+                      }
+                    },
+                    child: const Text('Save'),
+                  ),
+                  SizedBox(width: 10),
+                  ElevatedButton(
+                    onPressed: () async {
+                      /// close the dialog
+                      Navigator.maybePop(context);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red, // Background color
+                      foregroundColor: Colors.white, // Text color
                     ),
-                    SizedBox(width: 10),
-                    ElevatedButton(
-                      onPressed: () async {
-                        /// close the dialog
-                        Navigator.maybePop(context);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red, // Background color
-                        foregroundColor: Colors.white, // Text color
-                      ),
-                      child: const Text('Close'),
-                    )
-                  ],
-                ),
+                    child: const Text('Close'),
+                  ),
+                ],
               ),
-              // Always use Browsephotos with the current product's imageUrl
-              // The Browsephotos widget will handle displaying the image correctly using its internal state
-              Browsephotos(
-                imageUrl: ref.watch(unsavedProductProvider)?.imageUrl,
-                currentColor: pickerColor,
-                onColorSelected: (color) {
-                  setState(() {
-                    pickerColor = color;
-                  });
-                },
-              ),
-            ],
-          );
-        });
+            ),
+            // Always use Browsephotos with the current product's imageUrl
+            // The Browsephotos widget will handle displaying the image correctly using its internal state
+            Browsephotos(
+              imageUrl: ref.watch(unsavedProductProvider)?.imageUrl,
+              currentColor: pickerColor,
+              onColorSelected: (color) {
+                setState(() {
+                  pickerColor = color;
+                });
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Padding scanField(ScannViewModel model, {Product? productRef}) {
@@ -905,9 +949,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
         controller: scannedInputController,
         decoration: InputDecoration(
           labelText: 'Scan or Type',
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8.0),
-          ),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
           contentPadding: const EdgeInsets.symmetric(horizontal: 16.0),
           suffixIcon: (Platform.isAndroid || Platform.isIOS)
               ? IconButton(
@@ -918,31 +960,36 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                       context,
                       MaterialPageRoute(
                         builder: (context) => ScannView(
-                            intent: BARCODE,
-                            scannerActions:
-                                DashboardScannerActions(context, ref)),
+                          intent: BARCODE,
+                          scannerActions: DashboardScannerActions(context, ref),
+                        ),
                       ),
                     );
                     String barcode = ProxyService.productService.barCode;
                     if (barcode.trim().isNotEmpty && barcode != "") {
                       scannedInputController.text = barcode.trim();
                       // Trigger the same logic as manual submit
-                      FocusScope.of(context)
-                          .requestFocus(_scannedInputFocusNode);
+                      FocusScope.of(
+                        context,
+                      ).requestFocus(_scannedInputFocusNode);
                       // Manually call onFieldSubmitted
                       if (_formKey.currentState!.validate()) {
                         _inputTimer?.cancel();
                         talker.warning(
-                            "Starting timer for barcode: " + barcode.trim());
+                          "Starting timer for barcode: " + barcode.trim(),
+                        );
                         _inputTimer = Timer(const Duration(seconds: 1), () {
                           talker.warning(
-                              "Timer completed for barcode: " + barcode.trim());
+                            "Timer completed for barcode: " + barcode.trim(),
+                          );
 
                           if (productRef == null) {
                             toast(
-                                "Invalid product reference. Please select or create a product first.");
+                              "Invalid product reference. Please select or create a product first.",
+                            );
                             talker.error(
-                                "Attempted to scan barcode with null productRef. Skipping scan.");
+                              "Attempted to scan barcode with null productRef. Skipping scan.",
+                            );
                             return;
                           }
                           if (!mounted) return;
@@ -953,10 +1000,10 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                               barCode: scannedInputController.text,
                               retailPrice:
                                   double.tryParse(retailPriceController.text) ??
-                                      0,
+                                  0,
                               supplyPrice:
                                   double.tryParse(supplyPriceController.text) ??
-                                      0,
+                                  0,
                               isTaxExempted: false,
                               product: productRef,
                             );
@@ -964,7 +1011,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                           } catch (e, s) {
                             talker.error("Error in onAddVariant: $e", s);
                             toast(
-                                "We faced unexpected error, close this window and open again");
+                              "We faced unexpected error, close this window and open again",
+                            );
                           }
                           scannedInputController.clear();
                           _scannedInputFocusNode.requestFocus();
@@ -993,19 +1041,23 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
           if (_formKey.currentState!.validate()) {
             // Ensure the form is valid before proceeding
             _inputTimer?.cancel();
-            talker
-                .warning("Starting timer for barcode: " + barCodeInput.trim());
+            talker.warning(
+              "Starting timer for barcode: " + barCodeInput.trim(),
+            );
 
             _inputTimer = Timer(const Duration(seconds: 1), () {
               talker.warning(
-                  "Timer completed for barcode: " + barCodeInput.trim());
+                "Timer completed for barcode: " + barCodeInput.trim(),
+              );
 
               if (barCodeInput.trim().isNotEmpty) {
                 if (productRef == null) {
                   toast(
-                      "Invalid product reference. Please select or create a product first.");
+                    "Invalid product reference. Please select or create a product first.",
+                  );
                   talker.error(
-                      "Attempted to scan barcode with null productRef. Skipping scan.");
+                    "Attempted to scan barcode with null productRef. Skipping scan.",
+                  );
                   return;
                 }
                 if (!mounted) return;
@@ -1025,7 +1077,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                 } catch (e, s) {
                   talker.error("Error in onAddVariant: $e", s);
                   toast(
-                      "We faced unexpected error, close this window and open again");
+                    "We faced unexpected error, close this window and open again",
+                  );
                 }
 
                 scannedInputController.clear();
@@ -1062,9 +1115,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
             // Add labelStyle
             color: Colors.black,
           ),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8.0),
-          ),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
           contentPadding: const EdgeInsets.symmetric(horizontal: 16.0),
           // When in error state
           errorBorder: OutlineInputBorder(
@@ -1087,10 +1138,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
       alignment: Alignment.center,
       child: Text(
         'Product Name: ${model.kProductName}',
-        style: const TextStyle(
-          fontSize: 18,
-          fontWeight: FontWeight.bold,
-        ),
+        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
       ),
     );
   }
@@ -1107,17 +1155,17 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
         onChanged: (value) => model.setSupplyPrice(price: value),
         decoration: InputDecoration(
           labelText: 'Cost',
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8.0),
-          ),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
           contentPadding: const EdgeInsets.symmetric(horizontal: 16.0),
           filled: isComposite, // Fill the background color when read-only
           fillColor: isComposite
               ? Colors.grey[200]
               : null, // Light grey background when read-only
           suffixIcon: isComposite
-              ? Icon(Icons.lock,
-                  color: Colors.grey) // Lock icon to indicate read-only
+              ? Icon(
+                  Icons.lock,
+                  color: Colors.grey,
+                ) // Lock icon to indicate read-only
               : null,
         ),
         keyboardType: TextInputType.number,
@@ -1151,9 +1199,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
         },
         decoration: InputDecoration(
           labelText: 'Price',
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8.0),
-          ),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
           contentPadding: const EdgeInsets.symmetric(horizontal: 16.0),
         ),
         keyboardType: TextInputType.number,
@@ -1166,11 +1212,8 @@ class ResponsiveLayout extends StatelessWidget {
   final Widget mobile;
   final Widget tablet;
 
-  const ResponsiveLayout({
-    Key? key,
-    required this.mobile,
-    required this.tablet,
-  }) : super(key: key);
+  const ResponsiveLayout({Key? key, required this.mobile, required this.tablet})
+    : super(key: key);
 
   @override
   Widget build(BuildContext context) {

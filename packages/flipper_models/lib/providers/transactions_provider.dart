@@ -139,7 +139,7 @@ Stream<List<TransactionItem>> transactionItemList(Ref ref) {
   talker.debug(
       'Fetching transactions from $startDate to $endDate for branch $branchId');
 
-  return ProxyService.strategy
+  return ProxyService.getStrategy(Strategy.capella)
       .transactionItemsStreams(
           startDate: startDate,
           endDate: endDate,

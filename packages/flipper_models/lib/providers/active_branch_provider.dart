@@ -8,5 +8,5 @@ part 'active_branch_provider.g.dart';
 @riverpod
 Stream<Branch> activeBranch(Ref ref) {
   return ProxyService.strategy
-      .activeBranchStream(businessId: ProxyService.box.getBusinessId()!);
+      .activeBranchStream(branchId: ProxyService.box.getBranchId()!);
 }

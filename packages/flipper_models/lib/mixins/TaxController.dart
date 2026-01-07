@@ -247,7 +247,7 @@ class TaxController<OBJ> {
             await ProxyService.getStrategy(Strategy.capella).transactionItems(
           transactionId: transaction.id,
           branchId: (await ProxyService.strategy
-                  .activeBranch(businessId: ProxyService.box.getBusinessId()!))
+                  .activeBranch(branchId: ProxyService.box.getBranchId()!))
               .id,
         );
       } catch (e) {
@@ -583,7 +583,8 @@ class TaxController<OBJ> {
           final List<TransactionItem> items =
               await ProxyService.getStrategy(Strategy.capella).transactionItems(
             branchId: (await ProxyService.strategy.activeBranch(
-                    businessId: ProxyService.box.getBusinessId()!))
+              branchId: ProxyService.box.getBranchId()!,
+            ))
                 .id,
             transactionId: transaction.id,
           );

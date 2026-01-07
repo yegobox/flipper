@@ -40,7 +40,7 @@ Future<List<TransactionItem>> _getTransactionItems({
   final items = await ProxyService.getStrategy(Strategy.capella)
       .transactionItems(
         branchId: (await ProxyService.strategy.activeBranch(
-          businessId: ProxyService.box.getBusinessId()!,
+          branchId: ProxyService.box.getBranchId()!,
         )).id,
         transactionId: transaction.id,
         doneWithTransaction: false,
@@ -91,7 +91,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       final items = await ProxyService.getStrategy(Strategy.capella)
           .transactionItems(
             branchId: (await ProxyService.strategy.activeBranch(
-              businessId: ProxyService.box.getBusinessId()!,
+              branchId: ProxyService.box.getBranchId()!,
             )).id,
             transactionId: transaction.id,
             doneWithTransaction: false,
@@ -165,7 +165,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     final items = await ProxyService.getStrategy(Strategy.capella)
         .transactionItems(
           branchId: (await ProxyService.strategy.activeBranch(
-            businessId: ProxyService.box.getBusinessId()!,
+            branchId: ProxyService.box.getBranchId()!,
           )).id,
           transactionId: transaction.id,
           doneWithTransaction: false,
@@ -305,7 +305,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       final discount = double.tryParse(discountController.text) ?? 0;
 
       final String branchId = (await ProxyService.strategy.activeBranch(
-        businessId: ProxyService.box.getBusinessId()!,
+        branchId: ProxyService.box.getBranchId()!,
       )).id;
       final paymentType = ProxyService.box.paymentType() ?? "Cash";
 
@@ -482,7 +482,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       } else {
         // Get country code dynamically from business country
         final branch = await ProxyService.strategy.activeBranch(
-          businessId: ProxyService.box.getBusinessId()!,
+          branchId: ProxyService.box.getBranchId()!,
         );
         final business = await ProxyService.strategy.getBusiness(
           businessId: branch.businessId!,

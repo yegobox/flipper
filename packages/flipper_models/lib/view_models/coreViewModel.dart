@@ -170,7 +170,8 @@ class CoreViewModel extends FlipperBaseModel
     List<TransactionItem> items =
         await ProxyService.getStrategy(Strategy.capella).transactionItems(
             branchId: (await ProxyService.strategy.activeBranch(
-                    businessId: ProxyService.box.getBusinessId()!))
+              branchId: ProxyService.box.getBranchId()!,
+            ))
                 .id,
             transactionId: pendingTransaction?.id,
             doneWithTransaction: false,
@@ -230,10 +231,11 @@ class CoreViewModel extends FlipperBaseModel
           endPoint: 'transactionItem',
           flipperHttpClient: ProxyService.http);
 
-      List<TransactionItem> updatedItems = await ProxyService.strategy
-          .transactionItems(
+      List<TransactionItem> updatedItems =
+          await ProxyService.strategy.transactionItems(
               branchId: (await ProxyService.strategy.activeBranch(
-                      businessId: ProxyService.box.getBusinessId()!))
+                branchId: ProxyService.box.getBranchId()!,
+              ))
                   .id,
               transactionId: pendingTransaction?.id,
               doneWithTransaction: false,
@@ -313,7 +315,8 @@ class CoreViewModel extends FlipperBaseModel
       List<TransactionItem> items =
           await ProxyService.getStrategy(Strategy.capella).transactionItems(
               branchId: (await ProxyService.strategy.activeBranch(
-                      businessId: ProxyService.box.getBusinessId()!))
+                branchId: ProxyService.box.getBranchId()!,
+              ))
                   .id,
               transactionId: pendingTransaction?.id,
               doneWithTransaction: false,
@@ -335,7 +338,8 @@ class CoreViewModel extends FlipperBaseModel
         List<TransactionItem> items =
             await ProxyService.getStrategy(Strategy.capella).transactionItems(
                 branchId: (await ProxyService.strategy.activeBranch(
-                        businessId: ProxyService.box.getBusinessId()!))
+                  branchId: ProxyService.box.getBranchId()!,
+                ))
                     .id,
                 transactionId: pendingTransaction?.id,
                 doneWithTransaction: false,
@@ -693,7 +697,7 @@ class CoreViewModel extends FlipperBaseModel
 
     List<TransactionItem> items = await ProxyService.strategy.transactionItems(
         branchId: (await ProxyService.strategy
-                .activeBranch(businessId: ProxyService.box.getBusinessId()!))
+                .activeBranch(branchId: ProxyService.box.getBranchId()!))
             .id,
         transactionId: keypad.transaction!.id,
         doneWithTransaction: false,
@@ -767,7 +771,8 @@ class CoreViewModel extends FlipperBaseModel
       List<TransactionItem> transactionItems =
           await ProxyService.getStrategy(Strategy.capella).transactionItems(
               branchId: (await ProxyService.strategy.activeBranch(
-                      businessId: ProxyService.box.getBusinessId()!))
+                branchId: ProxyService.box.getBranchId()!,
+              ))
                   .id,
               transactionId: completedTransaction.id);
       allItems.addAll(transactionItems.toSet());
@@ -836,7 +841,7 @@ class CoreViewModel extends FlipperBaseModel
 
   void defaultBranch() async {
     final branch = await ProxyService.strategy
-        .activeBranch(businessId: ProxyService.box.getBusinessId()!);
+        .activeBranch(branchId: ProxyService.box.getBranchId()!);
 
     app.setActiveBranch(branch: branch);
   }

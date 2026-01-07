@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION public.deduct_credits(branch_id INTEGER, amount INTEGER)
+CREATE OR REPLACE FUNCTION public.deduct_credits(branch_id UUID, amount INTEGER)
 RETURNS VOID
 LANGUAGE plpgsql
 AS $$
@@ -46,9 +46,9 @@ END;
 $$ LANGUAGE plpgsql;
 -- Scripts useful
 
-SELECT *
-FROM business_analytics
-WHERE date::date = CURRENT_DATE and branch_id = 1;
+-- SELECT *
+-- FROM business_analytics
+-- WHERE date::date = CURRENT_DATE and branch_id = 1;
 
 -- end of useful scripts
 

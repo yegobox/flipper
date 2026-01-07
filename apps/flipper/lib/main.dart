@@ -1,4 +1,5 @@
 import 'dart:async';
+// import 'package:logging/logging.dart';
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_rw/dependency_initializer.dart';
@@ -75,6 +76,12 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final widgetsBinding = SentryWidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
+
+  // Configure logging
+  // Logger.root.level = Level.ALL;
+  // Logger.root.onRecord.listen((record) {
+  //   debugPrint('${record.level.name}: ${record.time}: ${record.message}');
+  // });
 
   // Centralized initialization function
   Future<void> initializeApp() async {

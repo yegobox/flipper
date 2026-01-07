@@ -197,13 +197,13 @@ mixin BranchMixin implements BranchInterface {
   }
 
   @override
-  Future<Branch> activeBranch({required String businessId}) async {
+  Future<Branch> activeBranch({required String branchId}) async {
     try {
       // Use a direct query to filter for the default branch at the database level
       // Query for branches where isDefault is either true or 1
       final branches = await repository.get<Branch>(
         policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
-        query: Query(where: [Where('businessId').isExactly(businessId)]),
+        query: Query(where: [Where('id').isExactly(branchId)]),
       );
 
       // If we found a default branch, return it
@@ -223,17 +223,14 @@ mixin BranchMixin implements BranchInterface {
   }
 
   @override
-  Stream<Branch> activeBranchStream({required String businessId}) {
+  Stream<Branch> activeBranchStream({required String branchId}) {
     return repository
         .subscribe<Branch>(
-      policy: OfflineFirstGetPolicy.localOnly,
-      query: Query(where: [Where('businessId').isExactly(businessId)]),
+      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+      query: Query(where: [Where('id').isExactly(branchId)]),
     )
         .map((branches) {
-      final branch = branches.firstWhere(
-        (branch) => branch.isDefault == true || branch.isDefault == 1,
-        orElse: () => throw Exception("No default branch found"),
-      );
+      final branch = branches.first;
       return branch;
     });
   }

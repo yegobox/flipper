@@ -339,7 +339,8 @@ class CronService {
       ProxyService.strategy
           .hydrateDate(
               branchId: (await ProxyService.strategy.activeBranch(
-                      businessId: ProxyService.box.getBusinessId()!))
+            branchId: ProxyService.box.getBranchId()!,
+          ))
                   .id)
           .then((_) {});
       ProxyService.strategy
