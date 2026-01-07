@@ -113,6 +113,8 @@ class OuterVariants extends _$OuterVariants {
   /// Add newly created variants to the provider without full reload.
   void addVariants(List<Variant> newVariants) {
     if (newVariants.isEmpty || state.value == null) return;
+    final newList = [...newVariants, ...state.value!];
+    state = AsyncValue.data(newList);
   }
 
   /// Removes a variant from the state.

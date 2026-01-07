@@ -276,6 +276,10 @@ mixin VariantMixin implements VariantInterface {
           if (skipRRaCall) {
             return;
           }
+          if (ebm?.taxServerUrl.isEmpty ?? true) {
+            return;
+          }
+
           // save items
           await ProxyService.tax
               .saveItem(variation: variant, URI: ebm!.taxServerUrl);
