@@ -100,6 +100,7 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
         _discountError = null;
         _discountAmount = 0;
         _discountCode = null;
+        _originalPrice = 0; // Reset original price when clearing discount
       });
       return;
     }
@@ -111,10 +112,13 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
 
     try {
       final planPrice = _plan?.totalPrice?.toDouble() ?? 0;
+      // Set _originalPrice to planPrice before making API calls to ensure we use current price
+      _originalPrice = planPrice;
+
       final result = await ProxyService.strategy.validateDiscountCode(
         code: code.trim().toUpperCase(),
         planName: _plan?.selectedPlan ?? '',
-        amount: _originalPrice > 0 ? _originalPrice : planPrice,
+        amount: _originalPrice,
       );
 
       if (mounted) {
@@ -123,7 +127,7 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
           final discountValue = (result['discount_value'] as num).toDouble();
 
           final calculatedDiscount = ProxyService.strategy.calculateDiscount(
-            originalPrice: _originalPrice > 0 ? _originalPrice : planPrice,
+            originalPrice: _originalPrice,
             discountType: discountType,
             discountValue: discountValue,
           );
@@ -133,7 +137,6 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
             _discountAmount = calculatedDiscount;
             _discountError = null;
             _isValidatingCode = false;
-            _originalPrice = planPrice;
           });
 
           talker.info(
