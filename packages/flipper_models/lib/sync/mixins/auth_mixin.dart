@@ -223,10 +223,17 @@ mixin AuthMixin implements AuthInterface {
     final Plan? plan = await ProxyService.strategy
         .getPaymentPlan(businessId: businessId, fetchOnline: true);
 
+    // there might be cases where plan is not in supabase
+    // so we need to check if plan is null
+
     if (plan == null) {
       throw NoPaymentPlanFound(
           "No payment plan found for businessId: $businessId");
     }
+    ProxyService.strategy.upsertPlan(
+      businessId: businessId,
+      selectedPlan: plan,
+    );
 
     final isPaymentCompletedLocally = plan.paymentCompletedByUser ?? false;
 

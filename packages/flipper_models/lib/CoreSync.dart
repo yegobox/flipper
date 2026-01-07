@@ -62,6 +62,7 @@ import 'package:flipper_services/ai_strategy_impl.dart';
 
 import 'package:uuid/uuid.dart';
 import 'package:flipper_web/services/ditto_service.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// A cloud sync that uses different sync provider such as powersync+ superbase, firesore and can easy add
 /// anotherone to acheive sync for flipper app
@@ -1091,8 +1092,33 @@ class CoreSync extends AiStrategyImpl
           query: query,
           policy: (fetchOnline == true && isOnline)
               ? OfflineFirstGetPolicy.alwaysHydrate
-              : OfflineFirstGetPolicy.localOnly);
+              : OfflineFirstGetPolicy.alwaysHydrate);
       return result.firstOrNull;
+    } catch (e) {
+      talker.error(e);
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> upsertPlan(
+      {required String businessId, required Plan selectedPlan}) async {
+    try {
+      final isOnline =
+          await _internetConnectionService.isOnline(deepCheck: true);
+
+      final query = brick.Query(where: [
+        brick.Where('businessId').isExactly(businessId),
+      ]);
+      final plan = await repository.get<models.Plan>(
+          query: query,
+          policy: (isOnline)
+              ? OfflineFirstGetPolicy.alwaysHydrate
+              : OfflineFirstGetPolicy.alwaysHydrate);
+      if (plan.isNotEmpty) {
+        selectedPlan.updatedAt = DateTime.now();
+        await repository.upsert(selectedPlan);
+      }
     } catch (e) {
       talker.error(e);
       rethrow;
@@ -1402,20 +1428,31 @@ class CoreSync extends AiStrategyImpl
     String businessId,
   ) async {
     try {
-      final query = brick.Query.where(
-        'addons',
-        brick.Where('planId').isExactly(businessId),
-      );
+      final response = await Supabase.instance.client
+          .from('plans')
+          .select('*, addons(*)')
+          .eq('business_id', businessId)
+          .maybeSingle();
 
-      final planWithAddons = await repository.get<models.Plan>(
-        query: query,
-        policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
-      );
+      if (response == null) {
+        return [];
+      }
 
-      return planWithAddons
-          .expand((plan) => plan.addons ?? [])
-          .cast<models.PlanAddon>()
-          .toList();
+      final addonsData = response['addons'] as List<dynamic>?;
+      if (addonsData == null || addonsData.isEmpty) {
+        return [];
+      }
+
+      return addonsData.map((addonJson) {
+        return models.PlanAddon(
+          id: addonJson['id'] as String,
+          planId: addonJson['plan_id'] as String?,
+          addonName: addonJson['addon_name'] as String?,
+          createdAt: addonJson['created_at'] != null
+              ? DateTime.parse(addonJson['created_at'] as String)
+              : null,
+        );
+      }).toList();
     } catch (e) {
       talker.error('Failed to fetch existing addons: $e');
       rethrow;
@@ -1428,10 +1465,12 @@ class CoreSync extends AiStrategyImpl
     required List<String>? newAddonNames,
     required bool isYearlyPlan,
   }) async {
-    if (newAddonNames == null) return existingAddons;
+    if (newAddonNames == null || newAddonNames.isEmpty) return existingAddons;
 
     final updatedAddons = List<models.PlanAddon>.from(existingAddons);
     final existingAddonNames = existingAddons.map((e) => e.addonName).toSet();
+
+    final newAddonsToInsert = <Map<String, dynamic>>[];
 
     for (final addonName in newAddonNames) {
       if (existingAddonNames.contains(addonName)) continue;
@@ -1442,37 +1481,25 @@ class CoreSync extends AiStrategyImpl
         planId: businessId,
       );
 
-      // Create temporary plan for foreign key relationship
-      await _createTemporaryPlan(
-        businessId: businessId,
-        isYearlyPlan: isYearlyPlan,
-        addons: updatedAddons,
-      );
+      newAddonsToInsert.add({
+        'id': newAddon.id,
+        'plan_id': newAddon.planId,
+        'addon_name': newAddon.addonName,
+        'created_at': newAddon.createdAt?.toIso8601String(),
+      });
 
-      await repository.upsert(newAddon);
       updatedAddons.add(newAddon);
+    }
+
+    // Insert all new addons in a single batch operation
+    if (newAddonsToInsert.isNotEmpty) {
+      await Supabase.instance.client.from('addons').insert(newAddonsToInsert);
     }
 
     return updatedAddons;
   }
 
-  Future<void> _createTemporaryPlan({
-    required String businessId,
-    required bool isYearlyPlan,
-    required List<models.PlanAddon> addons,
-  }) async {
-    await repository.upsert(
-      models.Plan(
-        rule: isYearlyPlan ? 'yearly' : 'monthly',
-        addons: addons,
-      ),
-      query: brick.Query(
-        where: [brick.Where('businessId').isExactly(businessId)],
-      ),
-    );
-  }
-
-  Future<Plan> _upsertPlan({
+  Future<models.Plan> _upsertPlan({
     required String businessId,
     required String selectedPlan,
     required int additionalDevices,
@@ -1484,35 +1511,43 @@ class CoreSync extends AiStrategyImpl
     required int numberOfPayments,
     models.Plan? plan,
   }) async {
-    final fPlan = plan ??
-        models.Plan(
-          businessId: (await ProxyService.strategy.activeBusiness())?.id,
-          selectedPlan: selectedPlan,
-          additionalDevices: additionalDevices,
-          isYearlyPlan: isYearlyPlan,
-          rule: isYearlyPlan ? 'yearly' : 'monthly',
-          totalPrice: totalPrice.toInt(),
-          createdAt: DateTime.now().toUtc(),
-          numberOfPayments: numberOfPayments,
-          nextBillingDate: nextBillingDate,
-          paymentMethod: paymentMethod,
-          addons: addons,
-        );
-    fPlan.paymentMethod = paymentMethod;
-    fPlan.paymentCompletedByUser = false;
-    fPlan.nextBillingDate = nextBillingDate;
-    fPlan.numberOfPayments = numberOfPayments;
-    fPlan.isYearlyPlan = isYearlyPlan;
-    fPlan.isYearlyPlan = isYearlyPlan;
-    fPlan.rule = isYearlyPlan ? 'yearly' : 'monthly';
-    fPlan.totalPrice = totalPrice.toInt();
-    await repository.upsert(
-      fPlan,
-      query: brick.Query(
-        where: [brick.Where('businessId').isExactly(businessId)],
-      ),
+    final planId = plan?.id ?? const Uuid().v4();
+    final now = DateTime.now().toUtc();
+
+    final planData = {
+      'id': planId,
+      'business_id': businessId,
+      'selected_plan': selectedPlan,
+      'additional_devices': additionalDevices,
+      'is_yearly_plan': isYearlyPlan,
+      'rule': isYearlyPlan ? 'yearly' : 'monthly',
+      'total_price': totalPrice.toInt(),
+      'payment_method': paymentMethod,
+      'payment_completed_by_user': false,
+      'next_billing_date': nextBillingDate.toIso8601String(),
+      'number_of_payments': numberOfPayments,
+      'created_at': plan?.createdAt?.toIso8601String() ?? now.toIso8601String(),
+      'updated_at': now.toIso8601String(),
+    };
+
+    await Supabase.instance.client.from('plans').upsert(planData);
+
+    return models.Plan(
+      id: planId,
+      businessId: businessId,
+      selectedPlan: selectedPlan,
+      additionalDevices: additionalDevices,
+      isYearlyPlan: isYearlyPlan,
+      rule: isYearlyPlan ? 'yearly' : 'monthly',
+      totalPrice: totalPrice.toInt(),
+      createdAt: plan?.createdAt ?? now,
+      numberOfPayments: numberOfPayments,
+      nextBillingDate: nextBillingDate,
+      paymentMethod: paymentMethod,
+      addons: addons,
+      paymentCompletedByUser: false,
+      updatedAt: now,
     );
-    return fPlan;
   }
 
   @override

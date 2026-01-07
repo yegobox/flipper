@@ -92,6 +92,12 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
+  Future<void> upsertPlan(
+      {required String businessId, required Plan selectedPlan}) async {
+    throw UnimplementedError('upsertPlan needs to be implemented');
+  }
+
+  @override
   Future<Stream<double>> downloadAssetSave({
     String? assetName,
     String? subPath = "branch",
@@ -125,8 +131,6 @@ class CapellaSync extends AiStrategyImpl
     // TODO: implement tenants
     throw UnimplementedError();
   }
-
-
 
   @override
   Future<ITransaction?> manageTransaction(

@@ -355,6 +355,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
   });
   Future<models.Plan?> getPaymentPlan(
       {required String businessId, bool? fetchOnline});
+  Future<void> upsertPlan({required String businessId, required Plan selectedPlan});
   Future<void> cleanDuplicatePlans();
   FutureOr<FlipperSaleCompaign?> getLatestCompaign();
 
