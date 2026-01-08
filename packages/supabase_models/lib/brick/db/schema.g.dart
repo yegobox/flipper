@@ -1,7 +1,7 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20260106104847.migration.dart';
+part '20260107143027.migration.dart';
 part '20251206093643.migration.dart';
 part '20251212042542.migration.dart';
 part '20251212052427.migration.dart';
@@ -21,10 +21,11 @@ part '20251228185846.migration.dart';
 part '20251231090733.migration.dart';
 part '20251231094858.migration.dart';
 part '20260101131413.migration.dart';
+part '20260106104847.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20260106104847(),
+  const Migration20260107143027(),
   const Migration20251206093643(),
   const Migration20251212042542(),
   const Migration20251212052427(),
@@ -44,11 +45,12 @@ final migrations = <Migration>{
   const Migration20251231090733(),
   const Migration20251231094858(),
   const Migration20260101131413(),
+  const Migration20260106104847(),
 };
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
-  20260101131413,
+  20260106104847,
   generatorVersion: 1,
   tables: <SchemaTable>{
     SchemaTable(
@@ -604,6 +606,34 @@ final schema = Schema(
       },
     ),
     SchemaTable(
+      'DiscountCode',
+      columns: <SchemaColumn>{
+        SchemaColumn(
+          '_brick_id',
+          Column.integer,
+          autoincrement: true,
+          nullable: false,
+          isPrimaryKey: true,
+        ),
+        SchemaColumn('id', Column.varchar, unique: true),
+        SchemaColumn('code', Column.varchar),
+        SchemaColumn('discount_type', Column.varchar),
+        SchemaColumn('discount_value', Column.Double),
+        SchemaColumn('max_uses', Column.integer),
+        SchemaColumn('current_uses', Column.integer),
+        SchemaColumn('valid_from', Column.datetime),
+        SchemaColumn('valid_until', Column.datetime),
+        SchemaColumn('applicable_plans', Column.varchar),
+        SchemaColumn('minimum_amount', Column.Double),
+        SchemaColumn('is_active', Column.boolean),
+        SchemaColumn('created_at', Column.datetime),
+        SchemaColumn('description', Column.varchar),
+      },
+      indices: <SchemaIndex>{
+        SchemaIndex(columns: ['id'], unique: true),
+      },
+    ),
+    SchemaTable(
       'Ebm',
       columns: <SchemaColumn>{
         SchemaColumn(
@@ -904,6 +934,30 @@ final schema = Schema(
       },
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['id'], unique: true),
+      },
+    ),
+    SchemaTable(
+      'PlanDiscount',
+      columns: <SchemaColumn>{
+        SchemaColumn(
+          '_brick_id',
+          Column.integer,
+          autoincrement: true,
+          nullable: false,
+          isPrimaryKey: true,
+        ),
+        SchemaColumn('id', Column.varchar, unique: true),
+        SchemaColumn('plan_id', Column.varchar),
+        SchemaColumn('discount_code_id', Column.varchar),
+        SchemaColumn('original_price', Column.Double),
+        SchemaColumn('discount_amount', Column.Double),
+        SchemaColumn('final_price', Column.Double),
+        SchemaColumn('applied_at', Column.datetime),
+        SchemaColumn('business_id', Column.varchar),
+      },
+      indices: <SchemaIndex>{
+        SchemaIndex(columns: ['id'], unique: true),
+        SchemaIndex(columns: ['plan_id'], unique: false),
       },
     ),
     SchemaTable(

@@ -31,7 +31,7 @@ class CustomersState extends ConsumerState<Customers> {
   final Color accentColor = const Color(0xFF0078D4);
   final Color deleteColor = const Color(0xFFD83B01); // Microsoft red
   final Color successColor = const Color(0xFF107C10);
-  final double maxHeight = 680;
+  final double maxHeight = 800;
 
   @override
   void initState() {
@@ -320,7 +320,6 @@ class CustomersState extends ConsumerState<Customers> {
                     onPressed: () {
                       showModalBottomSheet(
                         constraints: BoxConstraints(maxHeight: maxHeight),
-                        showDragHandle: true,
                         context: context,
                         shape: const RoundedRectangleBorder(
                           borderRadius: BorderRadius.vertical(
@@ -356,8 +355,8 @@ class CustomersState extends ConsumerState<Customers> {
                 : ElevatedButton.icon(
                     onPressed: () {
                       showModalBottomSheet(
+                        useSafeArea: true,
                         constraints: BoxConstraints(maxHeight: maxHeight),
-                        showDragHandle: true,
                         context: context,
                         shape: const RoundedRectangleBorder(
                           borderRadius: BorderRadius.vertical(
@@ -366,16 +365,11 @@ class CustomersState extends ConsumerState<Customers> {
                         ),
                         isScrollControlled: true,
                         builder: (BuildContext context) {
-                          return SingleChildScrollView(
+                          return Padding(
                             padding: MediaQuery.of(context).viewInsets,
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                AddCustomer(
-                                  transactionId: transaction.id,
-                                  searchedKey: '',
-                                ),
-                              ],
+                            child: AddCustomer(
+                              transactionId: transaction.id,
+                              searchedKey: '',
                             ),
                           );
                         },
@@ -459,8 +453,8 @@ class CustomersState extends ConsumerState<Customers> {
             SlidableAction(
               onPressed: (_) {
                 showModalBottomSheet(
+                  useSafeArea: true,
                   constraints: BoxConstraints(maxHeight: maxHeight),
-                  showDragHandle: true,
                   context: context,
                   shape: const RoundedRectangleBorder(
                     borderRadius: BorderRadius.vertical(
@@ -720,8 +714,8 @@ class CustomersState extends ConsumerState<Customers> {
 
     if (filteredCustomers.isEmpty || searchKeyword.isEmpty) {
       showModalBottomSheet(
+        useSafeArea: true,
         constraints: BoxConstraints(maxHeight: maxHeight),
-        showDragHandle: true,
         context: context,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(16.0)),

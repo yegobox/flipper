@@ -241,6 +241,33 @@ class TaxController<OBJ> {
   }) async {
     // Use provided items or fetch transaction items
     List<TransactionItem> transactionItems = items ?? [];
+
+    final businessId = ProxyService.box.getBusinessId();
+    final branchId = ProxyService.box.getBranchId();
+
+    if (businessId == null || branchId == null) {
+      return (
+        response: RwApiResponse(
+            resultCd: "001", resultMsg: "Missing business or branch ID"),
+        bytes: null
+      );
+    }
+
+    final isEbmEnabled = await ProxyService.strategy
+        .isTaxEnabled(businessId: businessId, branchId: branchId);
+    final enableTransactionDelegation =
+        ProxyService.box.readBool(key: 'enableTransactionDelegation') ?? false;
+
+    if (!isEbmEnabled && !enableTransactionDelegation) {
+      talker.info(
+          "EBM and Delegation not configured, skipping receipt generation signature");
+      return (
+        response: RwApiResponse(
+            resultCd: "001", resultMsg: "EBM and Delegation not configured"),
+        bytes: null
+      );
+    }
+
     if (transactionItems.isEmpty) {
       try {
         transactionItems =

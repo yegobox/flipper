@@ -880,3 +880,6 @@ class App {}
 // flutter build apk --release
 // adb install build/app/outputs/flutter-apk/app-release.apk
 
+// adb shell settings put global package_verifier_enable 0
+// adb shell settings put global verifier_verify_adb_installs 0
+

@@ -2347,6 +2347,20 @@ class CoreSync extends AiStrategyImpl
       if (items.isNotEmpty) {
         final ebmData = items.first.value as Map<String, dynamic>;
         final vatEnabled = ebmData['vatEnabled'] as bool?;
+        final taxServerUrl = ebmData['taxServerUrl'] as String?;
+
+        final isMobile =
+            foundation.defaultTargetPlatform == foundation.TargetPlatform.iOS ||
+                foundation.defaultTargetPlatform ==
+                    foundation.TargetPlatform.android;
+
+        if (isMobile &&
+            taxServerUrl != null &&
+            taxServerUrl.contains('localhost')) {
+          talker.info('Tax disabled on mobile with localhost tax server');
+          return false;
+        }
+
         return vatEnabled ==
             true; // Return true if vatEnabled is true, false otherwise
       }
