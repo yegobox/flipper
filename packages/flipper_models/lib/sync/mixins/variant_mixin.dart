@@ -53,7 +53,9 @@ mixin VariantMixin implements VariantInterface {
         Where('stockId').isExactly(stockId),
       ]
     ]);
-    return (await repository.get<Variant>(query: query)).firstOrNull;
+    return (await repository.get<Variant>(
+            query: query, policy: OfflineFirstGetPolicy.localOnly))
+        .firstOrNull;
   }
 
   @override

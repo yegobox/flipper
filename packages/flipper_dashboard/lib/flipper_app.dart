@@ -12,7 +12,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart' as permission;
 import 'package:stacked/stacked.dart';
@@ -137,7 +136,7 @@ class StatusAppBar extends ConsumerWidget implements PreferredSizeWidget {
     );
   }
 
-  TextStyle _appBarTextStyle() => GoogleFonts.poppins(
+  TextStyle _appBarTextStyle() => const TextStyle(
     fontSize: 16.0,
     fontWeight: FontWeight.w300,
     color: Colors.white,

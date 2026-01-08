@@ -2027,6 +2027,8 @@ class CoreSync extends AiStrategyImpl
         transaction.customerTin = customerTin;
 
         if (isIncome) {
+          talker.info(
+              "Processing income items for transaction ${transaction.id}");
           // Update transaction details
           transaction.items
               ?.fold(0, (num a, b) => a + (b.price * (b.qty).toDouble()));
@@ -2034,6 +2036,8 @@ class CoreSync extends AiStrategyImpl
         // Touch variants' lastTouched asynchronously to aid reporting without blocking the flow.
         Future.microtask(() async {
           final items = transaction.items ?? const <TransactionItem>[];
+          talker.info(
+              "Touching ${items.length} items for transaction ${transaction.id}");
 
           final variantIds =
               items.map((i) => i.variantId).whereType<String>().toSet();

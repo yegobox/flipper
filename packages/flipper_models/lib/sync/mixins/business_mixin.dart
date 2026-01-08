@@ -68,7 +68,7 @@ mixin BusinessMixin implements BusinessInterface {
               Where('active').isExactly(true),
               Where('branchId').isExactly(branchId),
             ], limit: 1),
-            policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist))
+            policy: OfflineFirstGetPolicy.localOnly))
         .firstOrNull;
   }
 

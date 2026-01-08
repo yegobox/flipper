@@ -6,14 +6,10 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.router.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:flipper_models/providers/category_provider.dart';
 
 class CategorySelector extends ConsumerWidget {
-  const CategorySelector({
-    super.key,
-    this.modeOfOperation = 'product',
-  });
+  const CategorySelector({super.key, this.modeOfOperation = 'product'});
 
   const CategorySelector.transactionMode({
     super.key,
@@ -27,19 +23,24 @@ class CategorySelector extends ConsumerWidget {
     final categories = ref.watch(categoryProvider);
 
     return GestureDetector(
-      onTap: () => _navigateToCategories(context, modeOfOperation),
+      onTap: () => _navigateToCategories(context, ref, modeOfOperation),
       child: modeOfOperation == 'product'
           ? _buildProductMode(context, categories)
           : _buildTransactionMode(context, categories),
     );
   }
 
-  void _navigateToCategories(BuildContext context, String mode) {
+  Future<void> _navigateToCategories(
+    BuildContext context,
+    WidgetRef ref,
+    String mode,
+  ) async {
     // Assuming you're using go_router or similar
     final _routerService = locator<RouterService>();
-    _routerService.navigateTo(
+    await _routerService.navigateTo(
       ListCategoriesRoute(modeOfOperation: modeOfOperation),
     );
+    ref.refresh(categoryProvider);
   }
 
   Widget _buildProductMode(
@@ -50,10 +51,7 @@ class CategorySelector extends ConsumerWidget {
       padding: const EdgeInsets.symmetric(horizontal: 18),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 0.3),
-        leading: Text(
-          'Category',
-          style: _getDefaultTextStyle(),
-        ),
+        leading: Text('Category', style: _getDefaultTextStyle()),
         trailing: _buildTrailing(categories, context),
       ),
     );
@@ -103,15 +101,13 @@ class CategorySelector extends ConsumerWidget {
     return Text(
       focusedCategory.name!,
       style: focusedCategory.id.isNotEmpty
-          ? Theme.of(context).textTheme.bodyLarge?.copyWith(
-                color: Colors.black,
-              )
+          ? Theme.of(context).textTheme.bodyLarge?.copyWith(color: Colors.black)
           : _getDefaultTextStyle(),
     );
   }
 
   TextStyle _getDefaultTextStyle() {
-    return GoogleFonts.poppins(
+    return const TextStyle(
       color: Colors.black,
       fontSize: 17,
       fontWeight: FontWeight.w400,
