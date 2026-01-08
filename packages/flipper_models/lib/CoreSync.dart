@@ -2289,6 +2289,14 @@ class CoreSync extends AiStrategyImpl
   Future<bool> isTaxEnabled(
       {required String businessId, required String branchId}) async {
     try {
+      final enableTransactionDelegation = ProxyService.box.readBool(
+            key: 'enableTransactionDelegation',
+          ) ??
+          false;
+
+      if (enableTransactionDelegation) {
+        return true;
+      }
       final ditto = dittoService.dittoInstance;
       if (ditto == null) {
         talker.error('Ditto not initialized:001');
