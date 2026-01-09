@@ -6,6 +6,7 @@ import 'package:flipper_models/sync/models/paged_variants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flipper_services/log_service.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:talker/talker.dart';
 
 mixin CapellaVariantMixin implements VariantInterface {
@@ -116,6 +117,7 @@ mixin CapellaVariantMixin implements VariantInterface {
 
       // Base query
       String query = 'SELECT * FROM variants WHERE branchId = :branchId';
+      query += " AND name NOT IN ('Cash In', 'Cash Out', '$CUSTOM_PRODUCT')";
       final arguments = <String, dynamic>{'branchId': branchId};
 
       // Assigned filter for specific screens
@@ -338,6 +340,8 @@ mixin CapellaVariantMixin implements VariantInterface {
         try {
           String countQuery =
               'SELECT COUNT(*) as cnt FROM variants WHERE branchId = :branchId';
+          countQuery +=
+              " AND name NOT IN ('Cash In', 'Cash Out', '$CUSTOM_PRODUCT')";
           final countArgs = Map<String, dynamic>.from(arguments)
             ..remove('limit')
             ..remove('offset');
@@ -868,6 +872,7 @@ mixin CapellaVariantMixin implements VariantInterface {
       }
 
       String query = 'SELECT * FROM variants WHERE stockId = :stockId';
+      query += " AND name NOT IN ('Cash In', 'Cash Out', '$CUSTOM_PRODUCT')";
       final arguments = <String, dynamic>{'stockId': stockId};
 
       if (ProxyService.box.getUserLoggingEnabled() ?? false) {

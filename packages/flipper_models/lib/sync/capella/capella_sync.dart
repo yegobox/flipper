@@ -676,6 +676,15 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
+  Future<Variant?> getUtilityVariant({
+    required String name,
+    required String branchId,
+  }) {
+    // TODO: implement getUtilityVariant
+    throw UnimplementedError();
+  }
+
+  @override
   Future<List<Log>> getLogs(
       {String? type, String? businessId, int limit = 100}) {
     // TODO: implement getLogs

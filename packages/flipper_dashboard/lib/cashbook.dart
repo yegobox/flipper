@@ -257,13 +257,24 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
                 const SizedBox(width: 16),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () => _handleSaveTransaction(model, "N/A"),
+                    onPressed: model.isBusy
+                        ? null
+                        : () => _handleSaveTransaction(model, "N/A"),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: colorScheme.primary,
                       foregroundColor: colorScheme.onPrimary,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
-                    child: const Text('Save'),
+                    child: model.isBusy
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Text('Save'),
                   ),
                 ),
               ],
@@ -308,6 +319,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
     }
 
     try {
+      model.setBusy(true);
       // Make sure the keypad provider is updated with the current amount
       ref.read(keypadProvider.notifier).reset();
       ref.read(keypadProvider.notifier).addKey(_amountController.text);
@@ -346,6 +358,8 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
           backgroundColor: Colors.red,
         ),
       );
+    } finally {
+      model.setBusy(false);
     }
   }
 
@@ -385,6 +399,24 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
           "Created pending transaction with ID: ${pendingTransaction.id}",
         );
 
+        // Ensure we have a TransactionItem for this cashbook transaction
+        Variant? utilityVariant = await ProxyService.strategy.getUtilityVariant(
+          name: transactionType,
+          branchId: branchId,
+        );
+        if (utilityVariant != null) {
+          await ProxyService.strategy.saveTransactionItem(
+            variation: utilityVariant,
+            amountTotal: cashReceived,
+            customItem: true,
+            pendingTransaction: pendingTransaction,
+            currentStock: 0,
+            partOfComposite: false,
+            doneWithTransaction: true,
+            ignoreForReport: false,
+          );
+        }
+
         // Now that we have a valid transaction, we can proceed
         // CRITICAL DIFFERENCE: In the original implementation, the transactionType parameter is not passed
         // This is equivalent to the keyboardKeyPressed call in the original implementation
@@ -403,16 +435,6 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
 
         // For cashbook transactions, the subtotal should be the cash received amount
         double subTotal = cashReceived;
-
-        talker.info("Processing transaction with subtotal: $subTotal");
-
-        // First update the transaction with the correct subtotal
-        await ProxyService.strategy.updateTransaction(
-          transaction: pendingTransaction,
-          subTotal: subTotal,
-        );
-
-        talker.info("Updated transaction with subtotal: $subTotal");
 
         // Ensure the transaction is properly updated with the subtotal and marked as complete
         ITransaction updatedTransaction = await ProxyService.strategy
@@ -436,16 +458,10 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
           "Called collectPayment, got updated transaction with ID: ${updatedTransaction.id}",
         );
 
-        // Always explicitly update the transaction status to ensure it's marked as complete
-        updatedTransaction.status = COMPLETE;
-        updatedTransaction.subTotal = subTotal;
-
-        // Use updateTransaction method to ensure the transaction is properly saved
-        // Call it twice to ensure the transaction is properly saved
+        // Explicitly update the transaction status to ensure it's marked as complete
         await ProxyService.strategy.updateTransaction(
           transaction: updatedTransaction,
           status: COMPLETE,
-          subTotal: subTotal,
         );
 
         // Wait a short time to ensure the first update completes

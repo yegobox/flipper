@@ -397,6 +397,24 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
           return;
         }
 
+        // Ensure we have a TransactionItem for this cashbook transaction
+        Variant? utilityVariant = await ProxyService.strategy.getUtilityVariant(
+          name: transactionType,
+          branchId: ProxyService.box.getBranchId()!,
+        );
+        if (utilityVariant != null) {
+          await ProxyService.strategy.saveTransactionItem(
+            variation: utilityVariant,
+            amountTotal: cashReceived,
+            customItem: true,
+            pendingTransaction: pendingTransaction,
+            currentStock: 0,
+            partOfComposite: false,
+            doneWithTransaction: true,
+            ignoreForReport: false,
+          );
+        }
+
         // Now that we have a valid transaction, we can proceed
         widget.model.keyboardKeyPressed(
           isExpense: !isIncome,

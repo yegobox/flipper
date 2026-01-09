@@ -365,9 +365,15 @@ class CronService {
         /// end of work around
         // Hydrate essential data
         try {
-          await Future.wait<void>([
-            ProxyService.tax.fetchNotices(URI: uri!).then((_) {}),
-          ]);
+          // Skip fetchNotices if on mobile device and URI is localhost
+          if (isMobileDevice && (uri?.contains('localhost') ?? false)) {
+            talker.info(
+                "Skipping fetchNotices on mobile device with localhost URI");
+          } else {
+            await Future.wait<void>([
+              ProxyService.tax.fetchNotices(URI: uri!).then((_) {}),
+            ]);
+          }
         } catch (e) {
           talker.error("Error hydrating initial data: $e");
         }

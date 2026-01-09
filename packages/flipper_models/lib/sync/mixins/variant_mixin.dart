@@ -278,7 +278,13 @@ mixin VariantMixin implements VariantInterface {
           if (skipRRaCall) {
             return;
           }
-          if (ebm?.taxServerUrl.isEmpty ?? true) {
+
+          final isTaxEnabled = await ProxyService.strategy.isTaxEnabled(
+            businessId: ProxyService.box.getBusinessId()!,
+            branchId: ProxyService.box.getBranchId()!,
+          );
+
+          if (!isTaxEnabled) {
             return;
           }
 

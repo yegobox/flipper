@@ -164,6 +164,11 @@ abstract class DatabaseSyncInterface extends AiStrategy
     required String bhFId,
   });
 
+  Future<Variant?> getUtilityVariant({
+    required String name,
+    required String branchId,
+  });
+
   Future<ITransaction> collectPayment({
     required double cashReceived,
     ITransaction? transaction,
