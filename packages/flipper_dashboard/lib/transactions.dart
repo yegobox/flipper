@@ -2,7 +2,6 @@ import 'package:flipper_dashboard/DateCoreWidget.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
-import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -97,9 +96,7 @@ class TransactionsState extends ConsumerState<Transactions>
           body: Column(
             children: [
               _buildTransactionFilterButtons(),
-              Expanded(
-                child: _buildTransactionContent(context),
-              ),
+              Expanded(child: _buildTransactionContent(context)),
             ],
           ),
         );
@@ -136,20 +133,22 @@ class TransactionsState extends ConsumerState<Transactions>
 
         List<ITransaction> finalFilteredTransactions =
             filteredByDateTransactions.where((transaction) {
-          if (displayedTransactionType == 1 &&
-              transaction.transactionType == TransactionType.cashOut) {
-            return false; // Filter out cashOut for "Sales"
-          }
-          if (displayedTransactionType == 2 &&
-              transaction.transactionType != TransactionType.cashOut) {
-            return false; // Filter out non-cashOut for "Purchases"
-          }
-          return true; // Include all for "All" or matching filter
-        }).toList();
+              if (displayedTransactionType == 1 &&
+                  transaction.isIncome == false) {
+                return false; // Filter out expenses for "Sales"
+              }
+              if (displayedTransactionType == 2 &&
+                  transaction.isIncome == true) {
+                return false; // Filter out income for "Purchases"
+              }
+              return true; // Include all for "All" or matching filter
+            }).toList();
 
         if (finalFilteredTransactions.isEmpty) {
           return _buildEmptyStateWithPeriod(
-              context, transactionTypeOptions[displayedTransactionType]);
+            context,
+            transactionTypeOptions[displayedTransactionType],
+          );
         }
 
         return RefreshIndicator(
@@ -213,10 +212,10 @@ Widget _buildModernTransactionItem({
   required RouterService routerService,
   required bool isLastItem,
 }) {
-  final isIncome = transaction.transactionType != TransactionType.cashOut;
-  final amount = NumberFormat('#,###').format(
-    double.parse(transaction.subTotal.toString()),
-  );
+  final isIncome = transaction.isIncome ?? true;
+  final amount = NumberFormat(
+    '#,###',
+  ).format(double.parse(transaction.subTotal.toString()));
 
   return InkWell(
     onTap: () => routerService.navigateTo(
@@ -227,9 +226,7 @@ Widget _buildModernTransactionItem({
       decoration: BoxDecoration(
         border: isLastItem
             ? null
-            : Border(
-                bottom: BorderSide(color: Colors.grey.shade100),
-              ),
+            : Border(bottom: BorderSide(color: Colors.grey.shade100)),
       ),
       child: Row(
         children: [
@@ -248,10 +245,11 @@ Widget _buildModernTransactionItem({
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: (isIncome
-                          ? const Color(0xFF10B981)
-                          : const Color(0xFFEF4444))
-                      .withValues(alpha: 0.2),
+                  color:
+                      (isIncome
+                              ? const Color(0xFF10B981)
+                              : const Color(0xFFEF4444))
+                          .withValues(alpha: 0.2),
                   blurRadius: 8,
                   offset: const Offset(0, 4),
                 ),
@@ -309,8 +307,9 @@ Widget _buildModernTransactionItem({
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      DateFormat('MMM dd, yyyy')
-                          .format(transaction.lastTouched!),
+                      DateFormat(
+                        'MMM dd, yyyy',
+                      ).format(transaction.lastTouched!),
                       style: GoogleFonts.inter(
                         fontSize: 13,
                         fontWeight: FontWeight.w400,
