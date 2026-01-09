@@ -1,6 +1,5 @@
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
-import 'package:flipper_services/constants.dart';
 import 'package:riverpod/riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flutter/material.dart';
@@ -65,16 +64,10 @@ Widget BuildGaugeOrList({
         switch (widgetType) {
           case 'gauge':
             final sumCashIn = filteredTransactions
-                .where(
-                  (transaction) =>
-                      transaction.transactionType == TransactionType.cashIn,
-                )
+                .where((transaction) => transaction.isIncome == true)
                 .fold(0.0, (sum, transaction) => sum + transaction.subTotal!);
             final sumCashOut = filteredTransactions
-                .where(
-                  (transaction) =>
-                      transaction.transactionType == TransactionType.cashOut,
-                )
+                .where((transaction) => transaction.isIncome == false)
                 .fold(0.0, (sum, transaction) => sum + transaction.subTotal!);
 
             return _buildModernGauge(
@@ -373,7 +366,7 @@ Widget _buildModernTransactionItem({
   required RouterService routerService,
   required bool isLastItem,
 }) {
-  final isIncome = transaction.transactionType != TransactionType.cashOut;
+  final isIncome = transaction.isIncome ?? true;
   final amount = NumberFormat(
     '#,###',
   ).format(double.parse(transaction.subTotal.toString()));
