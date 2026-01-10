@@ -117,7 +117,8 @@ mixin CapellaVariantMixin implements VariantInterface {
 
       // Base query
       String query = 'SELECT * FROM variants WHERE branchId = :branchId';
-      query += " AND name NOT IN ('Cash In', 'Cash Out', '$CUSTOM_PRODUCT')";
+      query +=
+          " AND name NOT IN ('Cash In', 'Cash Out', 'Utility', '$CUSTOM_PRODUCT')";
       final arguments = <String, dynamic>{'branchId': branchId};
 
       // Assigned filter for specific screens
@@ -341,7 +342,7 @@ mixin CapellaVariantMixin implements VariantInterface {
           String countQuery =
               'SELECT COUNT(*) as cnt FROM variants WHERE branchId = :branchId';
           countQuery +=
-              " AND name NOT IN ('Cash In', 'Cash Out', '$CUSTOM_PRODUCT')";
+              " AND name NOT IN ('Cash In', 'Cash Out','Utility', '$CUSTOM_PRODUCT')";
           final countArgs = Map<String, dynamic>.from(arguments)
             ..remove('limit')
             ..remove('offset');
@@ -872,7 +873,8 @@ mixin CapellaVariantMixin implements VariantInterface {
       }
 
       String query = 'SELECT * FROM variants WHERE stockId = :stockId';
-      query += " AND name NOT IN ('Cash In', 'Cash Out', '$CUSTOM_PRODUCT')";
+      query +=
+          " AND name NOT IN ('Cash In', 'Cash Out', 'Utility', '$CUSTOM_PRODUCT')";
       final arguments = <String, dynamic>{'stockId': stockId};
 
       if (ProxyService.box.getUserLoggingEnabled() ?? false) {

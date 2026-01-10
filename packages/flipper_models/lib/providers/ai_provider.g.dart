@@ -8,6 +8,41 @@ part of 'ai_provider.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
+
+@ProviderFor(availableModels)
+const availableModelsProvider = AvailableModelsProvider._();
+
+final class AvailableModelsProvider extends $FunctionalProvider<
+        AsyncValue<List<AIModel>>, List<AIModel>, FutureOr<List<AIModel>>>
+    with $FutureModifier<List<AIModel>>, $FutureProvider<List<AIModel>> {
+  const AvailableModelsProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'availableModelsProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$availableModelsHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<List<AIModel>> $createElement(
+          $ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<AIModel>> create(Ref ref) {
+    return availableModels(ref);
+  }
+}
+
+String _$availableModelsHash() => r'b0bcf36e9f71093151ad6446448c7a88a2206c5a';
+
 /// Providers
 
 @ProviderFor(GeminiResponse)
@@ -139,6 +174,7 @@ final class GeminiBusinessAnalyticsProvider
         String, {
         String? filePath,
         List<Content>? history,
+        AIModel? aiModel,
       })
           super.argument})
       : super(
@@ -176,7 +212,7 @@ final class GeminiBusinessAnalyticsProvider
 }
 
 String _$geminiBusinessAnalyticsHash() =>
-    r'1405b809a8b835683e8a1d8a2ab86aa1418204e4';
+    r'ef0e8b4d99442c624fb6ec4632083175077d3652';
 
 final class GeminiBusinessAnalyticsFamily extends $Family
     with
@@ -190,6 +226,7 @@ final class GeminiBusinessAnalyticsFamily extends $Family
               String, {
               String? filePath,
               List<Content>? history,
+              AIModel? aiModel,
             })> {
   const GeminiBusinessAnalyticsFamily._()
       : super(
@@ -205,12 +242,14 @@ final class GeminiBusinessAnalyticsFamily extends $Family
     String userPrompt, {
     String? filePath,
     List<Content>? history,
+    AIModel? aiModel,
   }) =>
       GeminiBusinessAnalyticsProvider._(argument: (
         branchId,
         userPrompt,
         filePath: filePath,
         history: history,
+        aiModel: aiModel,
       ), from: this);
 
   @override
@@ -223,17 +262,20 @@ abstract class _$GeminiBusinessAnalytics extends $AsyncNotifier<String> {
     String, {
     String? filePath,
     List<Content>? history,
+    AIModel? aiModel,
   });
   String get branchId => _$args.$1;
   String get userPrompt => _$args.$2;
   String? get filePath => _$args.filePath;
   List<Content>? get history => _$args.history;
+  AIModel? get aiModel => _$args.aiModel;
 
   FutureOr<String> build(
     String branchId,
     String userPrompt, {
     String? filePath,
     List<Content>? history,
+    AIModel? aiModel,
   });
   @$mustCallSuper
   @override
@@ -243,6 +285,7 @@ abstract class _$GeminiBusinessAnalytics extends $AsyncNotifier<String> {
       _$args.$2,
       filePath: _$args.filePath,
       history: _$args.history,
+      aiModel: _$args.aiModel,
     );
     final ref = this.ref as $Ref<AsyncValue<String>, String>;
     final element = ref.element as $ClassProviderElement<

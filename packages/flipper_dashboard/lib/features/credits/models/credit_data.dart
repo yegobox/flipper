@@ -1,12 +1,13 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:supabase_models/brick/models/credit.model.dart';
 
 class CreditData extends ChangeNotifier {
   int _availableCredits = 0;
   final int _maxCredits = 1000000; // Maximum credit limit
-  StreamSubscription<Credit?>? _creditSubscription;
+  StreamSubscription<List<Map<String, dynamic>>>? _creditSubscription;
   Credit? _creditModel;
 
   CreditData() {
@@ -16,19 +17,28 @@ class CreditData extends ChangeNotifier {
   void _initCreditStream() async {
     final branchId = ProxyService.box.getBranchId();
     if (branchId != null) {
-      _creditSubscription = ProxyService.strategy
-          .credit(
-              branchId: (await ProxyService.strategy
-                      .branch(serverId: ProxyService.box.getBranchId()!))!
-                  .id)
+      _creditSubscription = Supabase.instance.client
+          .from('credits')
+          .stream(primaryKey: ['id'])
+          .eq('branch_id', branchId)
+          .limit(1)
           .listen(_updateCreditData);
     }
   }
 
-  void _updateCreditData(Credit? credit) {
-    if (credit != null) {
-      _creditModel = credit;
-      _availableCredits = credit.credits.toInt();
+  void _updateCreditData(List<Map<String, dynamic>> data) {
+    if (data.isNotEmpty) {
+      final creditMap = data.first;
+      _creditModel = Credit(
+        id: creditMap['id'] as String,
+        branchId: creditMap['branch_id'] as String?,
+        businessId: creditMap['business_id'] as String?,
+        credits: (creditMap['credits'] as num).toDouble(),
+        createdAt: DateTime.parse(creditMap['created_at'] as String),
+        updatedAt: DateTime.parse(creditMap['updated_at'] as String),
+        branchServerId: creditMap['branch_server_id']?.toString() ?? '',
+      );
+      _availableCredits = _creditModel!.credits.toInt();
       notifyListeners();
     }
   }
@@ -57,7 +67,7 @@ class CreditData extends ChangeNotifier {
       // If we have the credit model, update it through the API
       if (_creditModel != null) {
         // final updatedCredit = _creditModel!.copyWith(credits: _availableCredits);
-        // await ProxyService.strategy.updateCredit(updatedCredit);
+        await ProxyService.strategy.updateCredit(_creditModel!);
       }
     }
   }

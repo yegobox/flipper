@@ -11,6 +11,7 @@ import 'package:markdown_widget/markdown_widget.dart';
 
 import '../theme/ai_theme.dart';
 import 'data_visualization.dart';
+import 'package:flipper_dashboard/features/credits/dialogs/credit_purchase_dialog.dart';
 
 /// A chat message bubble with a modern and clean design.
 class MessageBubble extends StatefulWidget {
@@ -134,31 +135,70 @@ class _MessageBubbleState extends State<MessageBubble> {
                               ),
                             ],
                           ),
-                          child: hasVisualization
-                              ? DataVisualization(
-                                  data: widget.message.text,
-                                  currency: ProxyService.box.defaultCurrency(),
-                                  cardKey: _visualizationKey,
-                                  onCopyGraph: _copyToClipboard,
-                                )
-                              : MarkdownWidget(
-                                  data: widget.message.text,
-                                  shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  config: MarkdownConfig(
-                                    configs: [
-                                      PConfig(
-                                        textStyle: TextStyle(
-                                          color: widget.isUser
-                                              ? AiTheme.onPrimaryColor
-                                              : AiTheme.onAssistantMessageColor,
-                                          fontSize: 16,
-                                          height: 1.4,
-                                        ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              hasVisualization
+                                  ? DataVisualization(
+                                      data: widget.message.text,
+                                      currency: ProxyService.box
+                                          .defaultCurrency(),
+                                      cardKey: _visualizationKey,
+                                      onCopyGraph: _copyToClipboard,
+                                    )
+                                  : MarkdownWidget(
+                                      data: widget.message.text,
+                                      shrinkWrap: true,
+                                      physics:
+                                          const NeverScrollableScrollPhysics(),
+                                      config: MarkdownConfig(
+                                        configs: [
+                                          PConfig(
+                                            textStyle: TextStyle(
+                                              color: widget.isUser
+                                                  ? AiTheme.onPrimaryColor
+                                                  : AiTheme
+                                                        .onAssistantMessageColor,
+                                              fontSize: 16,
+                                              height: 1.4,
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                    ],
+                                    ),
+                              if (widget.message.text.contains(
+                                "purchase credits",
+                              ))
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 12.0),
+                                  child: ElevatedButton(
+                                    onPressed: () {
+                                      showDialog(
+                                        context: context,
+                                        builder: (context) => CreditPurchaseDialog(
+                                          onPaymentSuccess: () {
+                                            Navigator.pop(
+                                              context,
+                                            ); // Close dialog
+                                            _showSnackBar(
+                                              "Payment successful! You can now retry your request.",
+                                            );
+                                          },
+                                        ),
+                                      );
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AiTheme.primaryColor,
+                                      foregroundColor: Colors.white,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                    child: const Text("Purchase Credits"),
                                   ),
                                 ),
+                            ],
+                          ),
                         ),
                         if (_isHovering && !hasVisualization)
                           Positioned(

@@ -346,15 +346,21 @@ class CapellaSync extends AiStrategyImpl
       }
 
       // Subscribe to the collection first
-      await ditto.sync.registerSubscription(
-        'SELECT * FROM business_analytics WHERE branchId = :branchId',
+      ditto.sync.registerSubscription(
+        "SELECT * FROM business_analytics WHERE branchId = :branchId",
+        arguments: {'branchId': branchId},
+      );
+      ditto.store.registerObserver(
+        "SELECT * FROM business_analytics WHERE branchId = :branchId",
         arguments: {'branchId': branchId},
       );
 
       final result = await ditto.store.execute(
-        'SELECT * FROM business_analytics WHERE branchId = :branchId ORDER BY date DESC',
+        'SELECT * FROM business_analytics WHERE branchId = :branchId',
         arguments: {'branchId': branchId},
       );
+
+      talker.info("Queries result: ${result.items.length}");
 
       return result.items.map((item) {
         final data = Map<String, dynamic>.from(item.value);
@@ -660,9 +666,45 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  Future<Credit?> getCredit({required String branchId}) {
-    // TODO: implement getCredit
-    throw UnimplementedError();
+  Future<Credit?> getCredit({required String branchId}) async {
+    try {
+      final response = await Supabase.instance.client
+          .from('credits')
+          .select()
+          .eq('branch_id', branchId)
+          .maybeSingle();
+
+      if (response == null) return null;
+
+      return Credit(
+        id: response['id'] as String,
+        branchId: response['branch_id'] as String?,
+        businessId: response['business_id'] as String?,
+        credits: (response['credits'] as num).toDouble(),
+        createdAt: DateTime.parse(response['created_at'] as String),
+        updatedAt: DateTime.parse(response['updated_at'] as String),
+        branchServerId: response['branch_server_id']?.toString() ?? '',
+      );
+    } catch (e) {
+      talker.error('CapellaSync: Failed to get credit: $e');
+      rethrow;
+    }
+  }
+
+  @override
+  Future<void> updateCredit(Credit credit) async {
+    try {
+      await Supabase.instance.client.from('credits').update({
+        'branch_id': credit.branchId,
+        'business_id': credit.businessId,
+        'credits': credit.credits,
+        'updated_at': credit.updatedAt.toIso8601String(),
+        'branch_server_id': credit.branchServerId,
+      }).eq('id', credit.id);
+    } catch (e) {
+      talker.error('CapellaSync: Failed to update credit: $e');
+      rethrow;
+    }
   }
 
   @override
@@ -1156,12 +1198,6 @@ class CapellaSync extends AiStrategyImpl
   FutureOr<void> updateColor(
       {required String colorId, String? name, bool? active}) {
     // TODO: implement updateColor
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> updateCredit(Credit credit) {
-    // TODO: implement updateCredit
     throw UnimplementedError();
   }
 

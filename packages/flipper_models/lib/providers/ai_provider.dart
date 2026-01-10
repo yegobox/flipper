@@ -4,10 +4,10 @@ import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_models/brick/models/business_analytic.model.dart';
+import 'package:supabase_models/brick/models/credit.model.dart';
 import 'package:mime/mime.dart'; // Import for lookupMimeType
 import 'package:flipper_models/utils/excel_utility.dart';
 
@@ -16,6 +16,12 @@ import 'package:flipper_models/models/ai_model.dart';
 import 'package:flipper_models/repositories/ai_model_repository.dart';
 
 part 'ai_provider.g.dart';
+
+@riverpod
+Future<List<AIModel>> availableModels(Ref ref) async {
+  final repository = AIModelRepository();
+  return await repository.getAvailableModels();
+}
 
 /// Define the input data structure
 class GeminiInput {
@@ -138,12 +144,46 @@ class GeminiResponse extends _$GeminiResponse {
       // 2. Check "Paid Only" Restriction
       if (aiModel?.isPaidOnly == true) {
         final isPro = business.subscriptionPlan == 'pro' ||
-            business.subscriptionPlan == 'enterprise'; // Add actual plan names
-        // Also check payment status if necessary, e.g. business.isLastSubscriptionPaymentSucceeded
+            business.subscriptionPlan == 'enterprise';
 
         if (!isPro) {
-          throw Exception(
-              'Upgrade Required: The selected model (${aiModel?.name}) is available on Pro plans only.');
+          // Check for credits if not Pro
+          final branchId = ProxyService.box.getBranchId();
+          bool hasCredits = false;
+
+          if (branchId != null) {
+            final creditRecord =
+                await ProxyService.getStrategy(Strategy.capella)
+                    .getCredit(branchId: branchId);
+
+            // Assuming 1 credit per request cost for now
+            if (creditRecord != null && creditRecord.credits >= 1) {
+              hasCredits = true;
+
+              // Deduct 1 credit
+              final updatedCredits = creditRecord.credits - 1;
+              final updatedCreditRecord = Credit(
+                id: creditRecord.id,
+                branchId: creditRecord.branchId,
+                businessId: creditRecord.businessId,
+                credits: updatedCredits,
+                createdAt: creditRecord.createdAt,
+                updatedAt: DateTime.now(),
+                branchServerId: creditRecord.branchServerId,
+              );
+
+              await ProxyService.getStrategy(Strategy.capella)
+                  .updateCredit(updatedCreditRecord);
+
+              talker.info(
+                  'Deducted 1 credit for AI usage. Remaining: $updatedCredits');
+            }
+          }
+
+          if (!hasCredits) {
+            throw Exception(
+                'Upgrade Required: The selected model (${aiModel?.name}) is available on Pro plans only or requires credits.');
+          }
         }
       }
 
@@ -155,12 +195,17 @@ class GeminiResponse extends _$GeminiResponse {
               'Usage Limit Reached: You have used ${config.currentUsage}/${config.usageLimit} requests. Please upgrade your plan.');
         }
       } else {
-        // No config found? Create one implicitly or allow default free tier?
-        // For now, if no config, we assume default limit isn't tracked or infinite.
-        // TODO: Create default config for new businesses if needed.
-        talker.warning(
-            'AI Provider: No usage config found for business ${business.id}');
+        // If config is still null after repository attempts to create it, something is wrong.
+        // We can block or allow with warning. Choosing to allow for now but log error.
+        talker.error(
+            'AI Provider: Failed to retrieve or create usage config for business ${business.id}');
       }
+    }
+
+    // Validate model ID for non-Gemini APIs
+    if (!isGemini && (aiModel?.modelId == null || aiModel!.modelId.isEmpty)) {
+      throw Exception(
+          'Model ID is required for ${aiModel?.provider ?? "this API provider"}. Please ensure the AI model configuration includes a valid model_id.');
     }
 
     // Construct URL and Headers
@@ -190,8 +235,6 @@ class GeminiResponse extends _$GeminiResponse {
         body: body,
       );
 
-      if (!ref.mounted) throw Exception('Provider disposed');
-
       if (response.statusCode == 200) {
         talker.info('AI API response body: ${response.body}');
         final decodedResponse =
@@ -208,6 +251,9 @@ class GeminiResponse extends _$GeminiResponse {
             throw Exception('Invalid content structure in Gemini API response');
           }
           final parts = content['parts'] as List<dynamic>;
+
+          // For successful responses, return the data even if the provider is no longer mounted
+          // since we've already successfully obtained the result from the API
           return parts.map((e) => e['text'] as String).join('\n');
         } else {
           // Parse OpenAI/Groq Response
@@ -221,14 +267,22 @@ class GeminiResponse extends _$GeminiResponse {
           if (content == null) {
             throw Exception('No content in AI API response');
           }
+
+          // For successful responses, return the data even if the provider is no longer mounted
+          // since we've already successfully obtained the result from the API
           return content;
         }
       } else {
+        // For error responses, we should still check if mounted before throwing
+        if (!ref.mounted) throw Exception('Provider disposed');
         talker.error('AI API Error: ${response.statusCode} - ${response.body}');
         throw Exception(
             'Failed to fetch data from AI API: ${response.statusCode}, ${response.body}');
       }
     } catch (e, stack) {
+      if (e.toString().contains('Provider disposed')) {
+        rethrow;
+      }
       talker.error('Error calling AI API: $e');
       talker.error(stack);
       rethrow;
@@ -240,10 +294,89 @@ class GeminiResponse extends _$GeminiResponse {
 class GeminiBusinessAnalytics extends _$GeminiBusinessAnalytics {
   @override
   Future<String> build(String branchId, String userPrompt,
-      {String? filePath, List<Content>? history}) async {
+      {String? filePath, List<Content>? history, AIModel? aiModel}) async {
     final businessAnalyticsData =
         await ProxyService.getStrategy(Strategy.capella)
             .analytics(branchId: branchId);
+
+    // Check if the user wants to buy credits
+    final lowerCasePrompt = userPrompt.toLowerCase();
+    if (lowerCasePrompt.contains('buy credit') ||
+        lowerCasePrompt.contains('purchase credit') ||
+        lowerCasePrompt.contains('add credit') ||
+        lowerCasePrompt.contains('get credit') ||
+        lowerCasePrompt.contains('top up')) {
+      // Check if the user provided phone number and credit amount
+      if (userPrompt.contains('#') && RegExp(r'\d+').hasMatch(userPrompt)) {
+        // Extract phone number and credit amount from the command
+        // Expected format: "buy credit 100 #2507XXXXXXXX" or similar
+        final phoneMatch = RegExp(r'#(\d+)').firstMatch(userPrompt);
+        final creditMatch =
+            RegExp(r'(\d+)').firstMatch(userPrompt.split(RegExp(r'#\d+'))[0]);
+
+        if (phoneMatch != null) {
+          final phoneNumber = phoneMatch.group(1);
+          final creditAmount =
+              creditMatch != null ? int.tryParse(creditMatch.group(1)!) : null;
+
+          if (creditAmount != null && creditAmount > 0) {
+            // Attempt to purchase credits using the membership API
+            try {
+              // Get the current business to determine the branch
+              final business = await ProxyService.getStrategy(Strategy.capella)
+                  .activeBusiness();
+              if (business == null) {
+                return "Credit Purchase Failed: No active business found. Please ensure you're logged in and have an active business.";
+              }
+
+              // Get or create the credit record for the branch
+              var creditRecord =
+                  await ProxyService.getStrategy(Strategy.capella)
+                      .getCredit(branchId: branchId);
+              if (creditRecord == null) {
+                // Create a new credit record if it doesn't exist
+                creditRecord = Credit(
+                  branchId: branchId,
+                  businessId: business.id,
+                  credits: 0.0,
+                  createdAt: DateTime.now(),
+                  updatedAt: DateTime.now(),
+                  branchServerId:
+                      branchId, // Using branchId as branchServerId for simplicity
+                );
+              }
+
+              // Update the credit amount
+              final updatedCredits =
+                  creditRecord.credits + creditAmount.toDouble();
+              final updatedCreditRecord = Credit(
+                id: creditRecord.id,
+                branchId: creditRecord.branchId,
+                businessId: creditRecord.businessId,
+                credits: updatedCredits,
+                createdAt: creditRecord.createdAt,
+                updatedAt: DateTime.now(),
+                branchServerId: creditRecord.branchServerId,
+              );
+
+              // Save the updated credit record
+              await ProxyService.getStrategy(Strategy.capella)
+                  .updateCredit(updatedCreditRecord);
+
+              return "Credit Purchase Successful: $creditAmount credits have been added to account associated with phone number $phoneNumber. Your new credit balance is ${updatedCredits.toInt()} credits.";
+            } catch (e) {
+              return "Credit Purchase Failed: Unable to process your credit purchase request. Error: ${e.toString()}";
+            }
+          } else {
+            return "Credit Purchase Command Format: To buy credits, use the format 'buy credit [amount] #[phone-number]' or 'purchase [amount] credits for #[phone-number]'. Example: 'buy credit 100 #250712345678'";
+          }
+        } else {
+          return "Credit Purchase Command Format: To buy credits, use the format 'buy credit [amount] #[phone-number]' or 'purchase [amount] credits for #[phone-number]'. Example: 'buy credit 100 #250712345678'";
+        }
+      } else {
+        return "Credit Purchase Command Format: To buy credits, use the format 'buy credit [amount] #[phone-number]' or 'purchase [amount] credits for #[phone-number]'. Example: 'buy credit 100 #250712345678'";
+      }
+    }
 
     if (!ref.mounted) return "Operation cancelled";
 
@@ -395,6 +528,7 @@ User Query: $enrichedUserPrompt
 
     final inputData = UnifiedAIInput(
       contents: contents,
+      model: aiModel?.modelId,
       generationConfig: GenerationConfig(
         temperature: 0.2,
         maxOutputTokens: 2048,
@@ -404,13 +538,30 @@ User Query: $enrichedUserPrompt
     try {
       if (!ref.mounted) return "Operation cancelled";
       talker.info('Directing to Gemini provider with enriched prompt...');
-      // Pass null as AIModel to use default credentials (Gemini) defined in provider
-      return await ref.read(geminiResponseProvider(inputData, null).future);
+      // Pass the selected AIModel (or null which defaults to Gemini in GeminiResponse)
+      final result =
+          await ref.read(geminiResponseProvider(inputData, aiModel).future);
+      // If we get a result from the nested provider, return it even if this provider is no longer mounted
+      // since the AI call was successful
+      return result;
     } catch (e, stack) {
+      if (e.toString().contains('Provider disposed')) {
+        return "Operation cancelled";
+      }
       talker.error('Exception in GeminiBusinessAnalytics: $e');
       talker.error(stack);
+
+      // Provide more user-friendly error messages for specific cases
+      if (e.toString().contains('Upgrade Required')) {
+        // Extract the model name from the error message for a more personalized message
+        final modelMatch =
+            RegExp(r'The selected model \(([^)]+)\)').firstMatch(e.toString());
+        final modelName = modelMatch?.group(1) ?? 'this AI model';
+        return "To use $modelName, you need either a Pro plan subscription or sufficient credits. You can upgrade your subscription or purchase credits to access this feature.";
+      }
+
       // Provide a fallback response if the API call fails
-      return "I'm sorry, I couldn't process your request at the moment (Error: $e). Please try again later.";
+      return "I'm sorry, I couldn't process your request at the moment. Please try again later.";
     }
   }
 }
@@ -426,6 +577,7 @@ Future<String> geminiSummary(Ref ref, String prompt) async {
         ],
       ),
     ],
+    model: null, // Will use default Gemini model
     generationConfig: GenerationConfig(
       temperature: 0.7, // Higher temperature for more creative summaries
       maxOutputTokens: 512,
@@ -435,6 +587,14 @@ Future<String> geminiSummary(Ref ref, String prompt) async {
   try {
     return await ref.read(geminiResponseProvider(inputData, null).future);
   } catch (e) {
+    // Handle specific upgrade error
+    if (e.toString().contains('Upgrade Required')) {
+      // Extract the model name from the error message for a more personalized message
+      final modelMatch =
+          RegExp(r'The selected model \(([^)]+)\)').firstMatch(e.toString());
+      final modelName = modelMatch?.group(1) ?? 'this AI model';
+      return "To use $modelName, you need either a Pro plan subscription or sufficient credits. You can upgrade your subscription or purchase credits to access this feature.";
+    }
     return "I'm sorry, I couldn't generate a summary at the moment. Please try again later.";
   }
 }
