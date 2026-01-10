@@ -13,6 +13,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
+import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:synchronized/synchronized.dart';
 
 class KeyPadView extends StatefulHookConsumerWidget {
@@ -311,12 +312,9 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                 Category? activeCat = await ProxyService.strategy
                     .activeCategory(branchId: ProxyService.box.getBranchId()!);
                 if (activeCat == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('A category must be selected'),
-                      duration: Duration(seconds: 3),
-                      action: SnackBarAction(label: 'OK', onPressed: () {}),
-                    ),
+                  showWarningNotification(
+                    context,
+                    'A category must be selected',
                   );
                   return;
                 }

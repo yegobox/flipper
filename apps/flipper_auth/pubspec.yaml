@@ -3,7 +3,7 @@ description: "A new Flutter project."
 publish_to: 'none'  # Remove this line if you wish to publish to pub.dev
 
 
-version: 1.0.1+817
+version: 1.0.1+818
 
 environment:
   sdk: ">=3.0.0 <4.0.0"
@@ -34,6 +34,7 @@ dependencies:
   flipper_web: any
   connectivity_plus: ^7.0.0
   riverpod_annotation: ^3.0.3
+  flipper_ui: any
 
 #  NOTE: Review and remove obsolete dependency overrides quarterly
 dependency_overrides:

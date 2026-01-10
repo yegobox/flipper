@@ -1,6 +1,6 @@
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_dashboard/new_ticket.dart';
-import 'package:flipper_dashboard/utils/snack_bar_utils.dart';
+import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/providers/ticket_selection_provider.dart';

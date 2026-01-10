@@ -61,13 +61,14 @@ class AddProductViewState extends ConsumerState<AddProductView> {
               title: Text("Create Product"),
               actions: [
                 FlipperButton(
-                    text: "Save",
-                    onPressed: () {
-                      if (!model.lock &&
-                          (_formKey.currentState?.validate() ?? false)) {
-                        _saveProduct(model);
-                      }
-                    })
+                  text: "Save",
+                  onPressed: () {
+                    if (!model.lock &&
+                        (_formKey.currentState?.validate() ?? false)) {
+                      _saveProduct(model);
+                    }
+                  },
+                ),
               ],
             ),
             body: _buildBody(model),
@@ -118,18 +119,25 @@ class AddProductViewState extends ConsumerState<AddProductView> {
     );
     List<Variant> variants = List<Variant>.from(paged.variants);
 
-    Variant? regularVariant =
-        variants.firstWhereOrNull((variant) => variant.name == 'Regular');
+    Variant? regularVariant = variants.firstWhereOrNull(
+      (variant) => variant.name == 'Regular',
+    );
     if (regularVariant == null) return;
 
     productForm.productNameController.text = model.kProductName!;
     _setPrice(
-        regularVariant.retailPrice!, productForm.retailPriceController, model);
+      regularVariant.retailPrice!,
+      productForm.retailPriceController,
+      model,
+    );
     _setPrice(regularVariant.supplyPrice!, productForm.supplyPriceController);
   }
 
-  void _setPrice(double price, TextEditingController controller,
-      [ProductViewModel? model]) {
+  void _setPrice(
+    double price,
+    TextEditingController controller, [
+    ProductViewModel? model,
+  ]) {
     if (price != 0.0) {
       controller.text = price.toString();
       model?.lockButton(false);
@@ -238,8 +246,11 @@ class AddProductViewState extends ConsumerState<AddProductView> {
     );
   }
 
-  Future<void> _updatePrice(String value, ProductViewModel model,
-      {bool isPriceUpdate = false}) async {
+  Future<void> _updatePrice(
+    String value,
+    ProductViewModel model, {
+    bool isPriceUpdate = false,
+  }) async {
     String trimmed = value.trim();
     if (trimmed.isEmpty) {
       if (isPriceUpdate) model.lockButton(true);
@@ -300,16 +311,14 @@ class AddProductViewState extends ConsumerState<AddProductView> {
   Widget _buildVariationList(ProductViewModel model) {
     String? id = ref.read(unsavedProductProvider)?.id;
     return StreamBuilder<List<Variant>>(
-      stream: ProxyService.strategy.geVariantStreamByProductId(
-        productId: id!,
-      ),
+      stream: ProxyService.strategy.geVariantStreamByProductId(productId: id!),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Column(
             children: List.generate(
-                3,
-                (index) =>
-                    const VariantShimmerPlaceholder()), // Display 3 shimmer placeholders
+              3,
+              (index) => const VariantShimmerPlaceholder(),
+            ), // Display 3 shimmer placeholders
           );
         }
         final List<Variant> variations = snapshot.data ?? [];
@@ -375,7 +384,7 @@ class AddProductViewState extends ConsumerState<AddProductView> {
 
   Future<void> _saveProduct(ProductViewModel model) async {
     if (model.kProductName == " ") {
-      showToast(context, 'Provide name for the product');
+      showErrorNotification(context, 'Provide name for the product');
       return;
     }
 

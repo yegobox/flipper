@@ -202,7 +202,7 @@ final class TransactionItemListProvider extends $FunctionalProvider<
 }
 
 String _$transactionItemListHash() =>
-    r'ec1b3cabdc58cf23b937071ddcfb60abb93df1d3';
+    r'5558a8643d77d7e7a09937f6fef6a058ea001aa5';
 
 @ProviderFor(pendingTransactionStream)
 const pendingTransactionStreamProvider = PendingTransactionStreamFamily._();

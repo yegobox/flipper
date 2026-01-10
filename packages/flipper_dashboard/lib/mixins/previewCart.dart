@@ -7,7 +7,7 @@ import 'package:flipper_dashboard/PurchaseCodeForm.dart';
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
 import 'package:flipper_dashboard/providers/customer_provider.dart';
 // ignore: unused_import
-import 'package:flipper_dashboard/utils/snack_bar_utils.dart';
+import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/providers/pay_button_provider.dart';
 import 'package:flipper_models/providers/selected_provider.dart';

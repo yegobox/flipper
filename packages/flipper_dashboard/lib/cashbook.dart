@@ -309,12 +309,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
     );
 
     if (category == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please select a category first'),
-          backgroundColor: Colors.orange,
-        ),
-      );
+      showWarningNotification(context, 'Please select a category first');
       return;
     }
 
@@ -342,22 +337,13 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
       model.notifyListeners();
 
       // Show success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            '${isIncome ? 'Cash in' : 'Cash out'} transaction saved successfully',
-          ),
-          backgroundColor: Colors.green,
-        ),
+      showSuccessNotification(
+        context,
+        '${isIncome ? 'Cash in' : 'Cash out'} transaction saved successfully',
       );
     } catch (e) {
       talker.error('Error saving transaction: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      showErrorNotification(context, 'Error: ${e.toString()}');
     } finally {
       model.setBusy(false);
     }

@@ -41,4 +41,4 @@ final class IsDigitalPaymentEnabledProvider
 }
 
 String _$isDigitalPaymentEnabledHash() =>
-    r'6ac5510d58b041582ac1965ef2abe98188650bac';
+    r'2d0d9d1a56b5e5f072ac0134e6206d49f50398d3';

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flipper_socials/ui/common/ui_helpers.dart';
+import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 
@@ -62,13 +63,8 @@ class NoticeSheet extends StackedView<NoticeSheetModel> {
                       if (_formKey.currentState!.validate()) {
                         await viewModel.expressInterest();
                         // show a snackbar using built flutter
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Thank you for your interest'),
-                            backgroundColor: Colors.green,
-                            padding: EdgeInsets.all(10),
-                          ),
-                        );
+                        showSuccessNotification(
+                            context, 'Thank you for your interest');
 
                         completer!(SheetResponse(
                           confirmed: true,

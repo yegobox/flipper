@@ -7,6 +7,9 @@ import 'package:supabase_models/brick/models/user.model.dart' show User;
 import 'package:supabase_models/brick/repository.dart';
 import 'package:talker/talker.dart';
 
+import 'package:flipper_services/proxy.dart';
+import 'package:brick_offline_first/brick_offline_first.dart';
+
 mixin CapellaTenantMixin implements TenantInterface {
   Repository get repository;
   Talker get talker;
@@ -16,34 +19,21 @@ mixin CapellaTenantMixin implements TenantInterface {
   }
 
   @override
-  Future<Business?> activeBusiness({int? userId}) {
-    // TODO: implement activeBusiness
-    throw UnimplementedError();
+  Future<Business?> activeBusiness({int? userId}) async {
+    return (await repository.get<Business>(
+      policy: OfflineFirstGetPolicy.localOnly,
+      query: Query(
+        where: [
+          Where('id').isExactly(ProxyService.box.getBusinessId()),
+        ],
+      ),
+    ))
+        .firstOrNull;
   }
 
   @override
   Stream<Tenant?> getDefaultTenant({required String businessId}) {
     // TODO: implement getDefaultTenant
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Tenant?> addNewTenant(
-      {required Business business,
-      required Branch branch,
-      String? phoneNumber,
-      String? name,
-      String? id,
-      String? email,
-      String? businessId,
-      bool? sessionActive,
-      String? branchId,
-      String? imageUrl,
-      int? pin,
-      bool? isDefault,
-      required HttpClientInterface flipperHttpClient,
-      required String userType}) {
-    // TODO: implement saveTenant
     throw UnimplementedError();
   }
 
