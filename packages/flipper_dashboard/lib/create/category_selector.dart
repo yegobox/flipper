@@ -40,7 +40,9 @@ class CategorySelector extends ConsumerWidget {
     await _routerService.navigateTo(
       ListCategoriesRoute(modeOfOperation: modeOfOperation),
     );
-    ref.refresh(categoryProvider);
+    if (context.mounted) {
+      ref.refresh(categoryProvider);
+    }
   }
 
   Widget _buildProductMode(

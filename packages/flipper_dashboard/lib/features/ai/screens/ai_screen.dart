@@ -18,6 +18,7 @@ import '../widgets/welcome_view.dart';
 import '../providers/whatsapp_message_provider.dart';
 import '../providers/conversation_provider.dart';
 import 'package:flipper_services/whatsapp_service.dart';
+import '../widgets/excel_analysis_modal.dart';
 
 /// Main screen for the AI feature with a modern, polished UI.
 class AiScreen extends ConsumerStatefulWidget {
@@ -41,11 +42,19 @@ class _AiScreenState extends ConsumerState<AiScreen> {
       []; // To store conversation history for AI
 
   void _handleAttachedFile(String filePath) {
+    // Check if it's an Excel file
+    if (filePath.endsWith('.xlsx') || filePath.endsWith('.xls')) {
+      // Launch the dedicated Excel analysis modal
+      ExcelAnalysisModal.show(context, filePath);
+      return;
+    }
+
+    // For other files, use the standard attachment flow
     setState(() {
       _attachedFilePath = filePath;
     });
     // Send a placeholder message to display the file in the chat bubble
-    _sendMessage('[file](' + filePath + ')');
+    _sendMessage('[file]($filePath)');
   }
 
   @override

@@ -33,6 +33,7 @@ dependencies:
   flipper_models: ^0.0.1-dev.7
   ditto: ^0.0.1
   riverpod_annotation: ^3.0.3
+  flipper_ui: any
 
 dependency_overrides:
   flipper_models:

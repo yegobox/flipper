@@ -9,6 +9,11 @@ import 'package:http/http.dart' as http;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_models/brick/models/business_analytic.model.dart';
 import 'package:mime/mime.dart'; // Import for lookupMimeType
+import 'package:flipper_models/utils/excel_utility.dart';
+
+import 'package:flipper_models/providers/unified_ai_input.dart';
+import 'package:flipper_models/models/ai_model.dart';
+import 'package:flipper_models/repositories/ai_model_repository.dart';
 
 part 'ai_provider.g.dart';
 
@@ -27,7 +32,8 @@ class GeminiInput {
   Map<String, dynamic> toJson() => {
         'contents': contents.map((e) => e.toJson()).toList(),
         if (safetySettings != null) 'safetySettings': safetySettings,
-        if (generationConfig != null) 'generationConfig': generationConfig,
+        if (generationConfig != null)
+          'generationConfig': generationConfig!.toJson(),
       };
 }
 
@@ -62,13 +68,12 @@ class Content {
 
 /// Part of the content
 class Part {
-  final String? _text;
+  final String? text; // Changed _text to text to be public
   final Map<String, dynamic>? _inlineData;
 
   // Private constructor
-  Part._({String? text, Map<String, dynamic>? inlineData})
-      : _text = text,
-        _inlineData = inlineData,
+  Part._({this.text, Map<String, dynamic>? inlineData})
+      : _inlineData = inlineData,
         assert(
             (text != null && inlineData == null) ||
                 (text == null && inlineData != null),
@@ -82,8 +87,8 @@ class Part {
       Part._(inlineData: {'mime_type': mimeType, 'data': data});
 
   Map<String, dynamic> toJson() {
-    if (_text != null) {
-      return {'text': _text};
+    if (text != null) {
+      return {'text': text};
     } else if (_inlineData != null) {
       return {'inline_data': _inlineData!};
     }
@@ -113,32 +118,120 @@ Future<Map<String, dynamic>> fileToBase64(String filePath) async {
 @riverpod
 class GeminiResponse extends _$GeminiResponse {
   @override
-  Future<String> build(GeminiInput input) async {
-    final url = Uri.parse(AppSecrets.googleAiUrl + AppSecrets.googleKey);
-    talker.info('Gemini API request: ${input.toJson()}');
+  Future<String> build(UnifiedAIInput input, AIModel? aiModel) async {
+    // Determine configuration
+    final isGemini = aiModel?.isGeminiStandard ?? true;
+    final apiUrl = aiModel?.apiUrl ?? AppSecrets.googleAiUrl;
+    final apiKey = aiModel?.apiKey ?? AppSecrets.googleKey;
+
+    // USAGE TRACKING & ACCESS CONTROL
+    // -------------------------------
+    // 1. Get current business
+    final business =
+        await ProxyService.getStrategy(Strategy.capella).activeBusiness();
+
+    if (business != null) {
+      talker.info(
+          'AI Provider: Checking constraints for business ${business.id}');
+      final repository = AIModelRepository();
+
+      // 2. Check "Paid Only" Restriction
+      if (aiModel?.isPaidOnly == true) {
+        final isPro = business.subscriptionPlan == 'pro' ||
+            business.subscriptionPlan == 'enterprise'; // Add actual plan names
+        // Also check payment status if necessary, e.g. business.isLastSubscriptionPaymentSucceeded
+
+        if (!isPro) {
+          throw Exception(
+              'Upgrade Required: The selected model (${aiModel?.name}) is available on Pro plans only.');
+        }
+      }
+
+      // 3. Check Usage Limits
+      final config = await repository.getBusinessConfig(business.id);
+      if (config != null) {
+        if (config.isQuotaExceeded) {
+          throw Exception(
+              'Usage Limit Reached: You have used ${config.currentUsage}/${config.usageLimit} requests. Please upgrade your plan.');
+        }
+      } else {
+        // No config found? Create one implicitly or allow default free tier?
+        // For now, if no config, we assume default limit isn't tracked or infinite.
+        // TODO: Create default config for new businesses if needed.
+        talker.warning(
+            'AI Provider: No usage config found for business ${business.id}');
+      }
+    }
+
+    // Construct URL and Headers
+    Uri url;
+    Map<String, String> headers = {'Content-Type': 'application/json'};
+    String body;
+
+    if (isGemini) {
+      // Gemini Standard: Key in URL
+      url = Uri.parse('$apiUrl$apiKey');
+      body = jsonEncode(input.toGeminiJson());
+      talker.info('AI Request (Gemini Standard): $url');
+    } else {
+      // OpenAI/Groq Standard: Key in Header
+      url = Uri.parse(apiUrl);
+      headers['Authorization'] = 'Bearer $apiKey';
+      body = jsonEncode(input.toOpenAIJson());
+      talker.info('AI Request (OpenAI Standard): $url');
+    }
+
+    // talker.info('Request Body: $body');
 
     try {
       final response = await http.post(
         url,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode(input.toJson()),
+        headers: headers,
+        body: body,
       );
 
+      if (!ref.mounted) throw Exception('Provider disposed');
+
       if (response.statusCode == 200) {
-        talker.info('Gemini API response: ${response.body}');
+        talker.info('AI API response body: ${response.body}');
         final decodedResponse =
             jsonDecode(response.body) as Map<String, dynamic>;
-        final content = decodedResponse['candidates'][0]['content'];
-        final parts = content['parts'] as List<dynamic>;
-        final text = parts.map((e) => e['text'] as String).join('\n');
-        talker.info('Gemini API response: $text');
-        return text;
+
+        if (isGemini) {
+          // Parse Gemini Response
+          final candidates = decodedResponse['candidates'] as List<dynamic>?;
+          if (candidates == null || candidates.isEmpty) {
+            throw Exception('No response candidates from Gemini API');
+          }
+          final content = candidates[0]['content'];
+          if (content == null || content['parts'] == null) {
+            throw Exception('Invalid content structure in Gemini API response');
+          }
+          final parts = content['parts'] as List<dynamic>;
+          return parts.map((e) => e['text'] as String).join('\n');
+        } else {
+          // Parse OpenAI/Groq Response
+          final choices = decodedResponse['choices'] as List<dynamic>?;
+          if (choices == null || choices.isEmpty) {
+            throw Exception('No choices from AI API');
+          }
+          final message = choices[0]['message'];
+          final content = message['content'] as String?;
+
+          if (content == null) {
+            throw Exception('No content in AI API response');
+          }
+          return content;
+        }
       } else {
+        talker.error('AI API Error: ${response.statusCode} - ${response.body}');
         throw Exception(
-            'Failed to fetch data from Gemini API: ${response.statusCode}, ${response.body}');
+            'Failed to fetch data from AI API: ${response.statusCode}, ${response.body}');
       }
-    } catch (e) {
-      throw Exception('Error calling Gemini API: $e');
+    } catch (e, stack) {
+      talker.error('Error calling AI API: $e');
+      talker.error(stack);
+      rethrow;
     }
   }
 }
@@ -151,6 +244,23 @@ class GeminiBusinessAnalytics extends _$GeminiBusinessAnalytics {
     final businessAnalyticsData =
         await ProxyService.getStrategy(Strategy.capella)
             .analytics(branchId: branchId);
+
+    if (!ref.mounted) return "Operation cancelled";
+
+    String enrichedUserPrompt = userPrompt;
+
+    // Handle Excel file parsing within the provider for smaller provider keys and better stability.
+    if (filePath != null &&
+        (filePath.endsWith('.xlsx') || filePath.endsWith('.xls'))) {
+      talker.info('Parsing Excel data in AI provider: $filePath');
+      try {
+        final excelMarkdown = await ExcelUtility.excelToMarkdown(filePath);
+        enrichedUserPrompt =
+            "$enrichedUserPrompt\n\nAttached Excel Data:\n$excelMarkdown";
+      } catch (e) {
+        talker.error('Excel parsing failed in provider: $e');
+      }
+    }
 
     // Get current time for temporal context
     final now = DateTime.now();
@@ -213,18 +323,36 @@ Analyze the provided business data following these guidelines:
        {"name": "Product Name", "taxAmount": 123.45},
        // Add more items as needed
      ]
-     
-     // For business_analytics visualization include:
-     "revenue": 1234.56,
-     "profit": 567.89,
-     "unitsSold": 42,
-     "currencyCode": "RWF"
-     
-     // For inventory visualization include appropriate fields
+          // For business_analytics visualization include:
+      "revenue": 1234.56,
+      "profit": 567.89,
+      "unitsSold": 42,
+      "currencyCode": "RWF",
+      
+      // For financial_report visualization include (Multi-series line chart):
+      "type": "financial_report",
+      "title": "Monthly Performance",
+      "xAxisLabel": "Month",
+      "yAxisLabel": "Amount (RWF)",
+      "labels": ["Jan", "Feb", "Mar"], // Months or time periods
+      "datasets": [
+        {
+          "label": "Revenue",
+          "data": [4500000, 4800000, 5200000],
+          "color": "#0078D4"
+        },
+        {
+          "label": "Net Profit",
+          "data": [900000, 950000, 1200000],
+          "color": "#107C10"
+        }
+      ]
+      
+      // For inventory visualization include appropriate fields
    }
    {{/VISUALIZATION_DATA}}
 
-User Query: $userPrompt
+User Query: $enrichedUserPrompt
 """;
 
     // Format CSV with all available fields
@@ -240,6 +368,7 @@ User Query: $userPrompt
     // Add file data if present
     if (filePath != null) {
       final fileData = await fileToBase64(filePath);
+      if (!ref.mounted) return "Operation cancelled";
       currentTurnParts
           .add(Part.inlineData(fileData['mime_type'], fileData['data']));
       currentTurnParts.add(Part.text(
@@ -260,7 +389,11 @@ User Query: $userPrompt
       return "I don't have enough data to analyze at the moment. Please make sure you have some sales or inventory data in your system.";
     }
 
-    final inputData = GeminiInput(
+    // For now we assume Gemini for Business Analytics unless specialized model logic is added
+    // If we want to support Groq here, we'd need to pass an AIModel.
+    // For now, let's assume default Gemini configuration (null model acts as default or fallback)
+
+    final inputData = UnifiedAIInput(
       contents: contents,
       generationConfig: GenerationConfig(
         temperature: 0.2,
@@ -269,19 +402,22 @@ User Query: $userPrompt
     );
 
     try {
-      talker
-          .info('Gemini API request: ${inputData.toJson()}'); // Log the request
-      return await ref.read(geminiResponseProvider(inputData).future);
-    } catch (e) {
+      if (!ref.mounted) return "Operation cancelled";
+      talker.info('Directing to Gemini provider with enriched prompt...');
+      // Pass null as AIModel to use default credentials (Gemini) defined in provider
+      return await ref.read(geminiResponseProvider(inputData, null).future);
+    } catch (e, stack) {
+      talker.error('Exception in GeminiBusinessAnalytics: $e');
+      talker.error(stack);
       // Provide a fallback response if the API call fails
-      return "I'm sorry, I couldn't process your request at the moment. Please try again later.";
+      return "I'm sorry, I couldn't process your request at the moment (Error: $e). Please try again later.";
     }
   }
 }
 
 @riverpod
 Future<String> geminiSummary(Ref ref, String prompt) async {
-  final inputData = GeminiInput(
+  final inputData = UnifiedAIInput(
     contents: [
       Content(
         role: "user",
@@ -297,7 +433,7 @@ Future<String> geminiSummary(Ref ref, String prompt) async {
   );
 
   try {
-    return await ref.read(geminiResponseProvider(inputData).future);
+    return await ref.read(geminiResponseProvider(inputData, null).future);
   } catch (e) {
     return "I'm sorry, I couldn't generate a summary at the moment. Please try again later.";
   }

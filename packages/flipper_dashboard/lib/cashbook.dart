@@ -330,6 +330,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
         discount: 0,
         isIncome: isIncome,
         transactionType: transactionType,
+        category: category!,
       );
 
       // Reset the form and return to the transaction list
@@ -357,6 +358,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
     required bool isIncome,
     required String transactionType,
     required String countryCode,
+    required Category category,
   }) async {
     // This implementation exactly matches HandleTransactionFromCashBook in KeyPadView
     try {
@@ -410,14 +412,6 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
         talker.info("Called keyboardKeyPressed with '+' key");
         HapticFeedback.lightImpact();
 
-        Category? category = await ProxyService.strategy.activeCategory(
-          branchId: branchId,
-        );
-
-        if (category == null) {
-          talker.error("No active category found");
-          return;
-        }
 
         // For cashbook transactions, the subtotal should be the cash received amount
         double subTotal = cashReceived;

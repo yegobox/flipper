@@ -471,6 +471,33 @@ class StructuredDataVisualization implements VisualizationInterface {
     );
   }
 
+  /// Safely parse hex color string with fallback
+  Color _safeParseHexColor(String colorStr, Color fallbackColor) {
+    try {
+      // Remove '#' if present and validate format
+      String cleanColorStr = colorStr.trim();
+      if (cleanColorStr.startsWith('#')) {
+        cleanColorStr = cleanColorStr.substring(1);
+      }
+
+      // Validate hex format (should be 6 or 8 hex digits)
+      if (!RegExp(r'^[0-9A-Fa-f]{6}$|^[0-9A-Fa-f]{8}$').hasMatch(cleanColorStr)) {
+        return fallbackColor;
+      }
+
+      // Add alpha prefix if needed
+      if (cleanColorStr.length == 6) {
+        cleanColorStr = 'FF$cleanColorStr';
+      }
+
+      int parsedColor = int.parse(cleanColorStr, radix: 16);
+      return Color(parsedColor);
+    } catch (e) {
+      // Return fallback color if parsing fails
+      return fallbackColor;
+    }
+  }
+
   /// Build enhanced business analytics visualization
   Widget _buildBusinessAnalyticsVisualization(
     BuildContext context,
@@ -938,8 +965,8 @@ class StructuredDataVisualization implements VisualizationInterface {
       final dataset = datasets[i];
       final List<dynamic> data = dataset['data'] ?? [];
       final colorStr = dataset['color'];
-      final Color color = colorStr != null
-          ? Color(int.parse(colorStr.replaceFirst('#', '0xFF')))
+      final Color color = colorStr != null && colorStr.isNotEmpty
+          ? _safeParseHexColor(colorStr, colors[i % colors.length])
           : colors[i % colors.length];
 
       final List<FlSpot> spots = [];

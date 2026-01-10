@@ -141,6 +141,10 @@ class TransactionsState extends ConsumerState<Transactions>
                   transaction.isIncome == true) {
                 return false; // Filter out income for "Purchases"
               }
+              // Also filter out unclassified (null) transactions for "Sales" and "Purchases"
+              if (displayedTransactionType != 0 && transaction.isIncome == null) {
+                return false; // Filter out unclassified for "Sales" and "Purchases"
+              }
               return true; // Include all for "All" or matching filter
             }).toList();
 
@@ -212,7 +216,7 @@ Widget _buildModernTransactionItem({
   required RouterService routerService,
   required bool isLastItem,
 }) {
-  final isIncome = transaction.isIncome ?? true;
+  final isIncome = transaction.isIncome;
   final amount = NumberFormat(
     '#,###',
   ).format(double.parse(transaction.subTotal.toString()));
@@ -238,17 +242,21 @@ Widget _buildModernTransactionItem({
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: isIncome
+                colors: isIncome == true
                     ? [const Color(0xFF10B981), const Color(0xFF34D399)]
-                    : [const Color(0xFFEF4444), const Color(0xFFF87171)],
+                    : isIncome == false
+                        ? [const Color(0xFFEF4444), const Color(0xFFF87171)]
+                        : [const Color(0xFF6B7280), const Color(0xFF9CA3AF)], // Grey for unclassified
               ),
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
                   color:
-                      (isIncome
+                      (isIncome == true
                               ? const Color(0xFF10B981)
-                              : const Color(0xFFEF4444))
+                              : isIncome == false
+                                  ? const Color(0xFFEF4444)
+                                  : const Color(0xFF6B7280))
                           .withValues(alpha: 0.2),
                   blurRadius: 8,
                   offset: const Offset(0, 4),
@@ -256,9 +264,11 @@ Widget _buildModernTransactionItem({
               ],
             ),
             child: Icon(
-              isIncome
+              isIncome == true
                   ? Icons.trending_up_rounded
-                  : Icons.trending_down_rounded,
+                  : isIncome == false
+                      ? Icons.trending_down_rounded
+                      : Icons.question_mark_rounded, // Icon for unclassified
               color: Colors.white,
               size: 24,
             ),
@@ -286,13 +296,19 @@ Widget _buildModernTransactionItem({
                       ),
                     ),
                     Text(
-                      '${isIncome ? '+' : '-'}$amount RWF',
+                      isIncome == true
+                          ? '+$amount RWF'
+                          : isIncome == false
+                              ? '-$amount RWF'
+                              : '$amount RWF', // No prefix for unclassified
                       style: GoogleFonts.inter(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
-                        color: isIncome
+                        color: isIncome == true
                             ? const Color(0xFF059669)
-                            : const Color(0xFFDC2626),
+                            : isIncome == false
+                                ? const Color(0xFFDC2626)
+                                : const Color(0xFF6B7280), // Grey for unclassified
                       ),
                     ),
                   ],

@@ -138,7 +138,13 @@ mixin DeleteMixin implements DeleteInterface {
           await repository.delete<Customer>(
             customer,
             query: Query(
-                action: QueryAction.delete, where: [Where('id').isExactly(id)]),
+              action: QueryAction.delete,
+              where: [
+                Where('id').isExactly(id),
+                Where('branchId').isExactly(branchId),
+                Where('businessId').isExactly(ProxyService.box.getBusinessId()!),
+              ],
+            ),
           );
         }
         return true;

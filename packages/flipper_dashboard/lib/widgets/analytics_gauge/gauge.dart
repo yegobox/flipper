@@ -83,18 +83,18 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge>
     int numberLength = profitOrLossStr.length;
     double fontSize = 28; // Default font size
 
-    if (numberLength > 7) {
+    if (numberLength > 13) {
       fontSize = widget.areValueColumnsVisible
-          ? 22
-          : 18; // Adjust for visibility
+          ? 14
+          : 12; // Minimum font size cap
     } else if (numberLength > 10) {
       fontSize = widget.areValueColumnsVisible
           ? 18
           : 14; // Further reduction for very large numbers
-    } else if (numberLength > 13) {
+    } else if (numberLength > 7) {
       fontSize = widget.areValueColumnsVisible
-          ? 14
-          : 12; // Minimum font size cap
+          ? 22
+          : 18; // Adjust for visibility
     }
 
     return Card(

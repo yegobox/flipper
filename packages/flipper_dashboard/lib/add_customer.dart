@@ -161,10 +161,11 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
                                       child: DropdownButton<String>(
                                         value: selectedCustomerTypeValue,
                                         onChanged: (String? newValue) {
-                                          setState(() {
-                                            selectedCustomerTypeValue =
-                                                newValue!;
-                                          });
+                                          if (newValue != null) {
+                                            setState(() {
+                                              selectedCustomerTypeValue = newValue;
+                                            });
+                                          }
                                         },
                                         items:
                                             <String>[
@@ -273,12 +274,14 @@ class AddCustomerState extends ConsumerState<AddCustomer> {
                                     // keyboardType: TextInputType.number,
                                     validatorFunc: (value) {
                                       // TIN is now optional, only validate if provided
-                                      if (value != null &&
-                                          value.trim().isNotEmpty) {
-                                        if (!isNumeric(value)) {
-                                          return 'TIN should be a number';
+                                      if (value != null && value.trim().isNotEmpty) {
+                                        final trimmedValue = value.trim();
+                                        // Check if the value contains only digits
+                                        if (!RegExp(r'^\d+$').hasMatch(trimmedValue)) {
+                                          return 'TIN should contain only digits';
                                         }
-                                        if (value.length != 9) {
+                                        // Check if the length is exactly 9 digits
+                                        if (trimmedValue.length != 9) {
                                           return 'TIN must be 9 digits';
                                         }
                                       }
