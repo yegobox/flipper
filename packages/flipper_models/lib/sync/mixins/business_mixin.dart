@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/business.dart';
 import 'package:flipper_models/helperModels/business_type.dart';
-import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_models/sync/interfaces/business_interface.dart';
 import 'package:flipper_models/db_model_export.dart' hide BusinessType;
@@ -47,12 +46,11 @@ mixin BusinessMixin implements BusinessInterface {
   }
 
   @override
-  Future<Business?> activeBusiness({int? userId}) async {
+  Future<Business?> activeBusiness() async {
     return (await repository.get<Business>(
       policy: OfflineFirstGetPolicy.localOnly,
       query: Query(
         where: [
-          if (userId != null) Where('userId').isExactly(userId),
           Where('isDefault').isExactly(true),
         ],
       ),
@@ -68,7 +66,7 @@ mixin BusinessMixin implements BusinessInterface {
               Where('active').isExactly(true),
               Where('branchId').isExactly(branchId),
             ], limit: 1),
-            policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist))
+            policy: OfflineFirstGetPolicy.localOnly))
         .firstOrNull;
   }
 

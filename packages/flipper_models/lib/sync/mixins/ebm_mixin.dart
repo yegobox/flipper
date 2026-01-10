@@ -75,11 +75,11 @@ mixin EbmMixin implements EbmInterface {
 
       List<Ebm> fetchedEbms = await repository.get<Ebm>(
         query: query,
-        policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+        policy: OfflineFirstGetPolicy.localOnly,
       );
 
       // If no data found locally and fetchRemote is true, try Ditto direct query
-      if (fetchedEbms.isEmpty && fetchRemote) {
+      if (fetchedEbms.isEmpty) {
         final ditto = dittoService.dittoInstance;
         if (ditto != null) {
           const dittoQuery = 'SELECT * FROM ebms WHERE branchId = :branchId';

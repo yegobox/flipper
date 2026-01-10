@@ -20,7 +20,7 @@ abstract class TenantInterface {
   // save user
   Future<User> saveUser({required User user});
 
-  Future<Business?> activeBusiness({int? userId});
+  Future<Business?> activeBusiness();
   Future<Tenant?> tenant(
       {String? businessId,
       String? userId,

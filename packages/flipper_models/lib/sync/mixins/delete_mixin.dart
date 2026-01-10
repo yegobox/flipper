@@ -130,17 +130,24 @@ mixin DeleteMixin implements DeleteInterface {
         await deleteTransactionItemAndResequence(id: id);
         break;
       case 'customer':
+        String? branchId = ProxyService.box.getBranchId();
+        if (branchId == null || branchId.isEmpty) return false;
         final customer =
-            (await customers(id: id, branchId: ProxyService.box.getBranchId()!))
-                .firstOrNull;
+            (await customers(id: id, branchId: branchId)).firstOrNull;
         if (customer != null) {
           await repository.delete<Customer>(
             customer,
             query: Query(
-                action: QueryAction.delete, where: [Where('id').isExactly(id)]),
+              action: QueryAction.delete,
+              where: [
+                Where('id').isExactly(id),
+                Where('branchId').isExactly(branchId),
+                Where('businessId').isExactly(ProxyService.box.getBusinessId()!),
+              ],
+            ),
           );
         }
-        break;
+        return true;
       case 'stockRequest':
         final request = (await ProxyService.strategy.requests(
           requestId: id,

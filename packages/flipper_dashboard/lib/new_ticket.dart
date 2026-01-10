@@ -56,9 +56,13 @@ class NewTicketState extends State<NewTicket> {
 
   Future<void> _loadCustomers() async {
     try {
-      final customers = await ProxyService.getStrategy(
-        Strategy.capella,
-      ).customers(branchId: ProxyService.box.getBranchId());
+      List<Customer> customers = [];
+      String? branchId = ProxyService.box.getBranchId();
+      if (branchId != null && branchId.isNotEmpty) {
+        customers = await ProxyService.getStrategy(
+          Strategy.capella,
+        ).customers(branchId: branchId);
+      }
       if (mounted) {
         setState(() {
           _customers = customers;

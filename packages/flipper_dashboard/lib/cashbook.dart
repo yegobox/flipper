@@ -67,9 +67,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
   Widget _buildBody(CoreViewModel model) {
     return Column(
       children: [
-        Expanded(
-          child: _buildMainContent(model),
-        ),
+        Expanded(child: _buildMainContent(model)),
         const SizedBox(height: 16),
       ],
     );
@@ -133,11 +131,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
     return Expanded(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 4.0),
-        child: FlipperButton(
-          text: text,
-          color: color,
-          onPressed: onPressed,
-        ),
+        child: FlipperButton(text: text, color: color, onPressed: onPressed),
       ),
     );
   }
@@ -170,9 +164,9 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
             Text(
               isIncome ? 'Cash In' : 'Cash Out',
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: isIncome ? Colors.green : const Color(0xFFFF0331),
-                    fontWeight: FontWeight.bold,
-                  ),
+                color: isIncome ? Colors.green : const Color(0xFFFF0331),
+                fontWeight: FontWeight.bold,
+              ),
             ),
             const SizedBox(height: 24),
 
@@ -186,8 +180,9 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
               ),
-              keyboardType:
-                  const TextInputType.numberWithOptions(decimal: true),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
               inputFormatters: [
                 FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
               ],
@@ -262,13 +257,24 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
                 const SizedBox(width: 16),
                 Expanded(
                   child: ElevatedButton(
-                    onPressed: () => _handleSaveTransaction(model, "N/A"),
+                    onPressed: model.isBusy
+                        ? null
+                        : () => _handleSaveTransaction(model, "N/A"),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: colorScheme.primary,
                       foregroundColor: colorScheme.onPrimary,
                       padding: const EdgeInsets.symmetric(vertical: 16),
                     ),
-                    child: const Text('Save'),
+                    child: model.isBusy
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Text('Save'),
                   ),
                 ),
               ],
@@ -285,7 +291,9 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
   }
 
   Future<void> _handleSaveTransaction(
-      CoreViewModel model, String countryCode) async {
+    CoreViewModel model,
+    String countryCode,
+  ) async {
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -294,7 +302,19 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
     final isIncome = model.newTransactionType == TransactionType.cashIn;
     final transactionType = model.newTransactionType;
 
+    // Validate category selection
+    final String branchId = ProxyService.box.getBranchId()!;
+    final Category? category = await ProxyService.strategy.activeCategory(
+      branchId: branchId,
+    );
+
+    if (category == null) {
+      showWarningNotification(context, 'Please select a category first');
+      return;
+    }
+
     try {
+      model.setBusy(true);
       // Make sure the keypad provider is updated with the current amount
       ref.read(keypadProvider.notifier).reset();
       ref.read(keypadProvider.notifier).addKey(_amountController.text);
@@ -310,6 +330,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
         discount: 0,
         isIncome: isIncome,
         transactionType: transactionType,
+        category: category!,
       );
 
       // Reset the form and return to the transaction list
@@ -317,21 +338,15 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
       model.notifyListeners();
 
       // Show success message
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-              '${isIncome ? 'Cash in' : 'Cash out'} transaction saved successfully'),
-          backgroundColor: Colors.green,
-        ),
+      showSuccessNotification(
+        context,
+        '${isIncome ? 'Cash in' : 'Cash out'} transaction saved successfully',
       );
     } catch (e) {
       talker.error('Error saving transaction: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      showErrorNotification(context, 'Error: ${e.toString()}');
+    } finally {
+      model.setBusy(false);
     }
   }
 
@@ -343,6 +358,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
     required bool isIncome,
     required String transactionType,
     required String countryCode,
+    required Category category,
   }) async {
     // This implementation exactly matches HandleTransactionFromCashBook in KeyPadView
     try {
@@ -351,12 +367,16 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
         talker.info("Inside _lock.synchronized");
 
         // First, ensure we have a transaction by calling manageTransaction directly
-        ITransaction? pendingTransaction =
-            await ProxyService.strategy.manageTransaction(
-          branchId: ProxyService.box.getBranchId()!,
-          transactionType: transactionType,
-          isExpense: !isIncome,
-        );
+        String? branchId = ProxyService.box.getBranchId();
+        if (branchId == null || branchId.isEmpty) {
+          throw Exception('Branch ID is null or empty');
+        }
+        ITransaction? pendingTransaction = await ProxyService.strategy
+            .manageTransaction(
+              branchId: branchId,
+              transactionType: transactionType,
+              isExpense: !isIncome,
+            );
 
         if (pendingTransaction == null) {
           talker.error("Failed to create or get a pending transaction");
@@ -364,7 +384,26 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
         }
 
         talker.info(
-            "Created pending transaction with ID: ${pendingTransaction.id}");
+          "Created pending transaction with ID: ${pendingTransaction.id}",
+        );
+
+        // Ensure we have a TransactionItem for this cashbook transaction
+        Variant? utilityVariant = await ProxyService.strategy.getUtilityVariant(
+          name: transactionType,
+          branchId: branchId,
+        );
+        if (utilityVariant != null) {
+          await ProxyService.strategy.saveTransactionItem(
+            variation: utilityVariant,
+            amountTotal: cashReceived,
+            customItem: true,
+            pendingTransaction: pendingTransaction,
+            currentStock: 0,
+            partOfComposite: false,
+            doneWithTransaction: true,
+            ignoreForReport: false,
+          );
+        }
 
         // Now that we have a valid transaction, we can proceed
         // CRITICAL DIFFERENCE: In the original implementation, the transactionType parameter is not passed
@@ -373,56 +412,36 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
         talker.info("Called keyboardKeyPressed with '+' key");
         HapticFeedback.lightImpact();
 
-        Category? category = await ProxyService.strategy
-            .activeCategory(branchId: ProxyService.box.getBranchId()!);
-        var shortestSide = MediaQuery.of(context).size.shortestSide;
-        var useMobileLayout = shortestSide < 600;
 
         // For cashbook transactions, the subtotal should be the cash received amount
         double subTotal = cashReceived;
 
-        talker.info("Processing transaction with subtotal: $subTotal");
-
-        // First update the transaction with the correct subtotal
-        await ProxyService.strategy.updateTransaction(
-          transaction: pendingTransaction,
-          subTotal: subTotal,
-        );
-
-        talker.info("Updated transaction with subtotal: $subTotal");
-
         // Ensure the transaction is properly updated with the subtotal and marked as complete
-        ITransaction updatedTransaction =
-            await ProxyService.strategy.collectPayment(
-          cashReceived: cashReceived,
-          countryCode: countryCode,
-          branchId: ProxyService.box.getBranchId()!,
-          bhfId: (await ProxyService.box.bhfId()) ?? "00",
-          isProformaMode: ProxyService.box.isProformaMode(),
-          isTrainingMode: ProxyService.box.isTrainingMode(),
-          transaction: pendingTransaction,
-          paymentType: paymentType,
-          discount: discount.toDouble(),
-          transactionType:
-              useMobileLayout ? category?.name ?? "" : TransactionType.sale,
-          directlyHandleReceipt: false,
-          isIncome: isIncome,
-          categoryId: category?.id.toString(),
-        );
+        ITransaction updatedTransaction = await ProxyService.strategy
+            .collectPayment(
+              cashReceived: cashReceived,
+              countryCode: countryCode,
+              branchId: branchId,
+              bhfId: (await ProxyService.box.bhfId()) ?? "00",
+              isProformaMode: ProxyService.box.isProformaMode(),
+              isTrainingMode: ProxyService.box.isTrainingMode(),
+              transaction: pendingTransaction,
+              paymentType: paymentType,
+              discount: discount.toDouble(),
+              transactionType: category.name ?? TransactionType.sale,
+              directlyHandleReceipt: false,
+              isIncome: isIncome,
+              categoryId: category.id.toString(),
+            );
 
         talker.info(
-            "Called collectPayment, got updated transaction with ID: ${updatedTransaction.id}");
+          "Called collectPayment, got updated transaction with ID: ${updatedTransaction.id}",
+        );
 
-        // Always explicitly update the transaction status to ensure it's marked as complete
-        updatedTransaction.status = COMPLETE;
-        updatedTransaction.subTotal = subTotal;
-
-        // Use updateTransaction method to ensure the transaction is properly saved
-        // Call it twice to ensure the transaction is properly saved
+        // Explicitly update the transaction status to ensure it's marked as complete
         await ProxyService.strategy.updateTransaction(
           transaction: updatedTransaction,
           status: COMPLETE,
-          subTotal: subTotal,
         );
 
         // Wait a short time to ensure the first update completes
@@ -436,11 +455,13 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
         );
 
         talker.info(
-            "Transaction explicitly marked as complete with subtotal: $subTotal");
+          "Transaction explicitly marked as complete with subtotal: $subTotal",
+        );
 
         // Refresh providers to update UI
         ref.refresh(
-            transactionItemsProvider(transactionId: pendingTransaction.id));
+          transactionItemsProvider(transactionId: pendingTransaction.id),
+        );
         ref.refresh(pendingTransactionStreamProvider(isExpense: !isIncome));
         ref.refresh(dashboardTransactionsProvider);
 

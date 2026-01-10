@@ -132,14 +132,14 @@ class CoreViewModel extends FlipperBaseModel
         branchId: branchId,
       );
       for (var cat in allCategories) {
-        ProxyService.strategy.updateCategory(
+        await ProxyService.strategy.updateCategory(
             categoryId: cat.id,
             focused: false,
             active: false,
             branchId: branchId);
       }
 
-      ProxyService.strategy.updateCategory(
+      await ProxyService.strategy.updateCategory(
           categoryId: category.id,
           focused: true,
           active: true,

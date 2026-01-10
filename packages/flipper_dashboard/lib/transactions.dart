@@ -2,7 +2,6 @@ import 'package:flipper_dashboard/DateCoreWidget.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
-import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -97,9 +96,7 @@ class TransactionsState extends ConsumerState<Transactions>
           body: Column(
             children: [
               _buildTransactionFilterButtons(),
-              Expanded(
-                child: _buildTransactionContent(context),
-              ),
+              Expanded(child: _buildTransactionContent(context)),
             ],
           ),
         );
@@ -136,20 +133,26 @@ class TransactionsState extends ConsumerState<Transactions>
 
         List<ITransaction> finalFilteredTransactions =
             filteredByDateTransactions.where((transaction) {
-          if (displayedTransactionType == 1 &&
-              transaction.transactionType == TransactionType.cashOut) {
-            return false; // Filter out cashOut for "Sales"
-          }
-          if (displayedTransactionType == 2 &&
-              transaction.transactionType != TransactionType.cashOut) {
-            return false; // Filter out non-cashOut for "Purchases"
-          }
-          return true; // Include all for "All" or matching filter
-        }).toList();
+              if (displayedTransactionType == 1 &&
+                  transaction.isIncome == false) {
+                return false; // Filter out expenses for "Sales"
+              }
+              if (displayedTransactionType == 2 &&
+                  transaction.isIncome == true) {
+                return false; // Filter out income for "Purchases"
+              }
+              // Also filter out unclassified (null) transactions for "Sales" and "Purchases"
+              if (displayedTransactionType != 0 && transaction.isIncome == null) {
+                return false; // Filter out unclassified for "Sales" and "Purchases"
+              }
+              return true; // Include all for "All" or matching filter
+            }).toList();
 
         if (finalFilteredTransactions.isEmpty) {
           return _buildEmptyStateWithPeriod(
-              context, transactionTypeOptions[displayedTransactionType]);
+            context,
+            transactionTypeOptions[displayedTransactionType],
+          );
         }
 
         return RefreshIndicator(
@@ -213,10 +216,10 @@ Widget _buildModernTransactionItem({
   required RouterService routerService,
   required bool isLastItem,
 }) {
-  final isIncome = transaction.transactionType != TransactionType.cashOut;
-  final amount = NumberFormat('#,###').format(
-    double.parse(transaction.subTotal.toString()),
-  );
+  final isIncome = transaction.isIncome;
+  final amount = NumberFormat(
+    '#,###',
+  ).format(double.parse(transaction.subTotal.toString()));
 
   return InkWell(
     onTap: () => routerService.navigateTo(
@@ -227,9 +230,7 @@ Widget _buildModernTransactionItem({
       decoration: BoxDecoration(
         border: isLastItem
             ? null
-            : Border(
-                bottom: BorderSide(color: Colors.grey.shade100),
-              ),
+            : Border(bottom: BorderSide(color: Colors.grey.shade100)),
       ),
       child: Row(
         children: [
@@ -241,26 +242,33 @@ Widget _buildModernTransactionItem({
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: isIncome
+                colors: isIncome == true
                     ? [const Color(0xFF10B981), const Color(0xFF34D399)]
-                    : [const Color(0xFFEF4444), const Color(0xFFF87171)],
+                    : isIncome == false
+                        ? [const Color(0xFFEF4444), const Color(0xFFF87171)]
+                        : [const Color(0xFF6B7280), const Color(0xFF9CA3AF)], // Grey for unclassified
               ),
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: (isIncome
-                          ? const Color(0xFF10B981)
-                          : const Color(0xFFEF4444))
-                      .withValues(alpha: 0.2),
+                  color:
+                      (isIncome == true
+                              ? const Color(0xFF10B981)
+                              : isIncome == false
+                                  ? const Color(0xFFEF4444)
+                                  : const Color(0xFF6B7280))
+                          .withValues(alpha: 0.2),
                   blurRadius: 8,
                   offset: const Offset(0, 4),
                 ),
               ],
             ),
             child: Icon(
-              isIncome
+              isIncome == true
                   ? Icons.trending_up_rounded
-                  : Icons.trending_down_rounded,
+                  : isIncome == false
+                      ? Icons.trending_down_rounded
+                      : Icons.question_mark_rounded, // Icon for unclassified
               color: Colors.white,
               size: 24,
             ),
@@ -288,13 +296,19 @@ Widget _buildModernTransactionItem({
                       ),
                     ),
                     Text(
-                      '${isIncome ? '+' : '-'}$amount RWF',
+                      isIncome == true
+                          ? '+$amount RWF'
+                          : isIncome == false
+                              ? '-$amount RWF'
+                              : '$amount RWF', // No prefix for unclassified
                       style: GoogleFonts.inter(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
-                        color: isIncome
+                        color: isIncome == true
                             ? const Color(0xFF059669)
-                            : const Color(0xFFDC2626),
+                            : isIncome == false
+                                ? const Color(0xFFDC2626)
+                                : const Color(0xFF6B7280), // Grey for unclassified
                       ),
                     ),
                   ],
@@ -309,8 +323,9 @@ Widget _buildModernTransactionItem({
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      DateFormat('MMM dd, yyyy')
-                          .format(transaction.lastTouched!),
+                      DateFormat(
+                        'MMM dd, yyyy',
+                      ).format(transaction.lastTouched!),
                       style: GoogleFonts.inter(
                         fontSize: 13,
                         fontWeight: FontWeight.w400,

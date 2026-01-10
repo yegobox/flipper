@@ -16,9 +16,7 @@ import 'package:supabase_models/brick/brick.g.dart';
 import 'package:supabase_models/brick/databasePath.dart';
 import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
 import 'package:sqflite_common/sqlite_api.dart';
-import 'package:supabase_models/brick/models/configuration.model.dart';
-import 'package:supabase_models/brick/models/customer.model.dart';
-import 'package:supabase_models/brick/models/stock.model.dart';
+import 'package:supabase_models/supabase_models.dart';
 import 'db/schema.g.dart';
 import 'package:path/path.dart';
 // ignore: depend_on_referenced_packages
@@ -532,6 +530,9 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     }
     try {
       try {
+        if (instance is ITransaction) {
+          instance.items ??= [];
+        }
         instance = await super.upsert(instance, policy: policy, query: query);
         // Notify Ditto for all models
         if (instance is Stock) {
@@ -543,13 +544,14 @@ class Repository extends OfflineFirstWithSupabaseRepository {
         if (instance is Customer) {
           EventBus().fire(CustomerUpserted(instance));
         }
-      } catch (e) {
-        _logger.warning('Error notifying Ditto of local change: $e');
+      } catch (e, stackTrace) {
+        _logger.warning(
+            'Error notifying Ditto of local change: $e', stackTrace);
       }
 
       return instance;
-    } catch (e) {
-      _logger.severe('Error during upsert: $e');
+    } catch (e, stackTrace) {
+      _logger.severe('Error during upsert: $e', stackTrace);
       rethrow;
     }
   }

@@ -2,7 +2,7 @@
 
 import 'package:flipper_dashboard/SnackBarMixin.dart';
 import 'package:flipper_dashboard/stockApprovalMixin.dart';
-import 'package:flipper_dashboard/utils/snack_bar_utils.dart';
+import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/orders_provider.dart';

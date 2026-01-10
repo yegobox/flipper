@@ -236,9 +236,13 @@ class _SearchInputWithDropdownState
       }
 
       try {
-        final customers = await ProxyService.getStrategy(
-          Strategy.capella,
-        ).customers(key: searchKey, branchId: ProxyService.box.getBranchId()!);
+        List<Customer> customers = [];
+        String? branchId = ProxyService.box.getBranchId();
+        if (branchId != null && branchId.isNotEmpty) {
+          customers = await ProxyService.getStrategy(
+            Strategy.capella,
+          ).customers(key: searchKey, branchId: branchId);
+        }
 
         setState(() {
           _searchResults = customers;

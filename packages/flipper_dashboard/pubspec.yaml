@@ -56,7 +56,7 @@ dependencies:
   permission_handler: ^12.0.1
   flutter_svg: ^2.0.0
   modal_bottom_sheet: ^3.0.0-pre
-  flipper_ui: ^1.0.3
+  flipper_ui: any
   fluentui_system_icons: ^1.1.273
   flipper_socials: 1.0.0+1
   flipper_localize: ^1.0.0-dev

@@ -17,7 +17,7 @@ import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_services/app_service.dart';
 import 'package:flipper_dashboard/mfa_setup_view.dart';
-import 'package:flipper_dashboard/utils/snack_bar_utils.dart';
+import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flipper_models/providers/device_provider.dart';
 import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
 

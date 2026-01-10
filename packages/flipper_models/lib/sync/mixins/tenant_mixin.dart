@@ -4,6 +4,7 @@ import 'dart:convert';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/sync/interfaces/tenant_interface.dart';
 import 'package:flipper_models/flipper_http_client.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/models/user.model.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
@@ -15,13 +16,12 @@ mixin TenantMixin implements TenantInterface {
   Repository repository = Repository();
 
   @override
-  Future<Business?> activeBusiness({int? userId}) async {
+  Future<Business?> activeBusiness() async {
     return (await repository.get<Business>(
       policy: OfflineFirstGetPolicy.localOnly,
       query: Query(
         where: [
-          if (userId != null) Where('userId').isExactly(userId),
-          Where('isDefault').isExactly(true),
+          Where('id').isExactly(ProxyService.box.getBusinessId()),
         ],
       ),
     ))

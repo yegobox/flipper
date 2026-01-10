@@ -37,11 +37,11 @@ import 'package:supabase_models/brick/models/transactionItem.model.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:supabase_models/brick/models/plan_addon.model.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
-import 'package:flipper_models/helperModels/random.dart';
-// ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:supabase_models/brick/models/composite.model.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:supabase_models/brick/models/variant.model.dart';
+// ignore: unused_import, unused_shown_name, unnecessary_import
+import 'package:flipper_models/helperModels/random.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:supabase_models/brick/models/stock.model.dart';// GENERATED CODE DO NOT EDIT
 // ignore: unused_import
@@ -74,6 +74,7 @@ import '../brick/models/customer.model.dart';
 import '../brick/models/customer_payments.model.dart';
 import '../brick/models/device.model.dart';
 import '../brick/models/discount.model.dart';
+import '../brick/models/discount_code.model.dart';
 import '../brick/models/ebm.model.dart';
 import '../brick/models/favorite.model.dart';
 import '../brick/models/finance_provider.model.dart';
@@ -87,6 +88,7 @@ import '../brick/models/notice.model.dart';
 import '../brick/models/permission.model.dart';
 import '../brick/models/pin.model.dart';
 import '../brick/models/plan_addon.model.dart';
+import '../brick/models/plan_discount.model.dart';
 import '../brick/models/plans.model.dart';
 import '../brick/models/product.model.dart';
 import '../brick/models/purchase.model.dart';
@@ -133,6 +135,7 @@ part 'adapters/customer_adapter.g.dart';
 part 'adapters/customer_payments_adapter.g.dart';
 part 'adapters/device_adapter.g.dart';
 part 'adapters/discount_adapter.g.dart';
+part 'adapters/discount_code_adapter.g.dart';
 part 'adapters/ebm_adapter.g.dart';
 part 'adapters/favorite_adapter.g.dart';
 part 'adapters/finance_provider_adapter.g.dart';
@@ -146,6 +149,7 @@ part 'adapters/notice_adapter.g.dart';
 part 'adapters/l_permission_adapter.g.dart';
 part 'adapters/pin_adapter.g.dart';
 part 'adapters/plan_addon_adapter.g.dart';
+part 'adapters/plan_discount_adapter.g.dart';
 part 'adapters/plan_adapter.g.dart';
 part 'adapters/product_adapter.g.dart';
 part 'adapters/purchase_adapter.g.dart';
@@ -194,6 +198,7 @@ final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
   CustomerPayments: CustomerPaymentsAdapter(),
   Device: DeviceAdapter(),
   Discount: DiscountAdapter(),
+  DiscountCode: DiscountCodeAdapter(),
   Ebm: EbmAdapter(),
   Favorite: FavoriteAdapter(),
   FinanceProvider: FinanceProviderAdapter(),
@@ -207,6 +212,7 @@ final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
   LPermission: LPermissionAdapter(),
   Pin: PinAdapter(),
   PlanAddon: PlanAddonAdapter(),
+  PlanDiscount: PlanDiscountAdapter(),
   Plan: PlanAdapter(),
   Product: ProductAdapter(),
   Purchase: PurchaseAdapter(),
@@ -257,6 +263,7 @@ final Map<Type, SqliteAdapter<SqliteModel>> sqliteMappings = {
   CustomerPayments: CustomerPaymentsAdapter(),
   Device: DeviceAdapter(),
   Discount: DiscountAdapter(),
+  DiscountCode: DiscountCodeAdapter(),
   Ebm: EbmAdapter(),
   Favorite: FavoriteAdapter(),
   FinanceProvider: FinanceProviderAdapter(),
@@ -270,6 +277,7 @@ final Map<Type, SqliteAdapter<SqliteModel>> sqliteMappings = {
   LPermission: LPermissionAdapter(),
   Pin: PinAdapter(),
   PlanAddon: PlanAddonAdapter(),
+  PlanDiscount: PlanDiscountAdapter(),
   Plan: PlanAdapter(),
   Product: ProductAdapter(),
   Purchase: PurchaseAdapter(),

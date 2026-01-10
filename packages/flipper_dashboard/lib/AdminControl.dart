@@ -16,6 +16,7 @@ import 'package:flutter/foundation.dart';
 import 'package:supabase_models/brick/models/stock.model.dart';
 import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
 import 'modals/_isBranchEnableForPayment.dart';
+import 'package:flipper_ui/snack_bar_utils.dart';
 
 class AdminControl extends StatefulWidget {
   const AdminControl({super.key});
@@ -181,10 +182,9 @@ class _AdminControlState extends State<AdminControl> {
           setState(() {
             isUpdatingReceiptLogo = false;
           });
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Failed to read selected file. Please try again.'),
-            ),
+          showErrorNotification(
+            context,
+            'Failed to read selected file. Please try again.',
           );
           return;
         }
@@ -194,10 +194,9 @@ class _AdminControlState extends State<AdminControl> {
         setState(() {
           isUpdatingReceiptLogo = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Selected file has no data. Please pick another.'),
-          ),
+        showErrorNotification(
+          context,
+          'Selected file has no data. Please pick another.',
         );
         return;
       }
@@ -207,12 +206,9 @@ class _AdminControlState extends State<AdminControl> {
         setState(() {
           isUpdatingReceiptLogo = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Please choose an image under 200KB for best print quality.',
-            ),
-          ),
+        showErrorNotification(
+          context,
+          'Please choose an image under 200KB for best print quality.',
         );
         return;
       }
@@ -227,17 +223,13 @@ class _AdminControlState extends State<AdminControl> {
         isUpdatingReceiptLogo = false;
       });
 
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Receipt logo updated.')));
+      showSuccessNotification(context, 'Receipt logo updated.');
     } catch (e) {
       if (!mounted) return;
       setState(() {
         isUpdatingReceiptLogo = false;
       });
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Failed to update logo: $e')));
+      showErrorNotification(context, 'Failed to update logo: $e');
     }
   }
 
@@ -256,19 +248,16 @@ class _AdminControlState extends State<AdminControl> {
         isRemovingReceiptLogo = false;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Receipt logo removed. Default logo will be used.'),
-        ),
+      showSuccessNotification(
+        context,
+        'Receipt logo removed. Default logo will be used.',
       );
     } catch (e) {
       if (!mounted) return;
       setState(() {
         isRemovingReceiptLogo = false;
       });
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Failed to remove logo: $e')));
+      showErrorNotification(context, 'Failed to remove logo: $e');
     }
   }
 

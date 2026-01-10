@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flipper_models/models/ai_model.dart';
 import 'package:flutter/services.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
@@ -42,6 +43,7 @@ class GeminiBusinessAnalyticsMock extends Mock
     String userPrompt, {
     String? filePath,
     List<Content>? history,
+    AIModel? aiModel,
   }) async {
     return 'Mocked response';
   }

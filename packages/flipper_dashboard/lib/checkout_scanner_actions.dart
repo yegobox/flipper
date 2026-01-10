@@ -6,7 +6,7 @@ import 'package:flipper_services/event_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:flipper_dashboard/utils/snack_bar_utils.dart';
+import 'package:flipper_ui/snack_bar_utils.dart';
 // To refresh transaction items
 import 'package:flipper_dashboard/transaction_item_adder.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';

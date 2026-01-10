@@ -12,7 +12,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.router.dart';
-import 'package:flipper_dashboard/utils/snack_bar_utils.dart';
+import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flipper_services/locator.dart' as loc;
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/app.locator.dart' show locator;
@@ -98,7 +98,7 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
       print('Branch switch already in progress, ignoring request');
       return;
     }
-    setLoadingState(branch.id?.toString());
+    setLoadingState(branch.id.toString());
     setIsLoading(true);
     final appService = loc.getIt<AppService>();
 
@@ -410,7 +410,7 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
 
   Future<void> _updateBranchActive(Branch branch) async {
     await ProxyService.strategy.updateBranch(
-      branchId: branch.id!,
+      branchId: branch.id,
       active: true,
       isDefault: true,
     );
@@ -902,7 +902,7 @@ class _BranchSwitchDialogState extends State<_BranchSwitchDialog> {
                       // Check if this is the current active branch
                       final isActive = branch.id == currentBranchId;
                       final isLoading =
-                          widget.loadingItemId == branch.id?.toString();
+                          widget.loadingItemId == branch.id.toString();
 
                       return Material(
                         color: Colors.transparent,

@@ -1,4 +1,4 @@
-import 'package:flipper_dashboard/utils/snack_bar_utils.dart';
+import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/extensions.dart';
 import 'package:flipper_models/isolateHandelr.dart';

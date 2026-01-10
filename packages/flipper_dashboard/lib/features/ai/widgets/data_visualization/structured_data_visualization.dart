@@ -5,8 +5,6 @@ import 'package:flutter/material.dart';
 import 'dart:math';
 import 'package:fl_chart/fl_chart.dart';
 import 'visualization_interface.dart';
-import 'package:flutter/rendering.dart';
-import 'package:flutter/services.dart';
 
 /// A stateful button that shows a checkmark for a short duration when tapped.
 class CopyButton extends StatefulWidget {
@@ -62,8 +60,12 @@ class StructuredDataVisualization implements VisualizationInterface {
   final GlobalKey cardKey;
   final VoidCallback onCopyGraph;
 
-  StructuredDataVisualization(this.data, this.currencyService,
-      {required this.cardKey, required this.onCopyGraph});
+  StructuredDataVisualization(
+    this.data,
+    this.currencyService, {
+    required this.cardKey,
+    required this.onCopyGraph,
+  });
 
   @override
   Widget build(BuildContext context, {String? currency}) {
@@ -79,9 +81,18 @@ class StructuredDataVisualization implements VisualizationInterface {
         return _buildTaxVisualization(context, structuredData, currency);
       case 'business_analytics':
         return _buildBusinessAnalyticsVisualization(
-            context, structuredData, currency);
+          context,
+          structuredData,
+          currency,
+        );
       case 'inventory':
         return _buildInventoryVisualization(context, structuredData, currency);
+      case 'financial_report':
+        return _buildFinancialReportVisualization(
+          context,
+          structuredData,
+          currency,
+        );
       default:
         return const SizedBox.shrink();
     }
@@ -96,7 +107,8 @@ class StructuredDataVisualization implements VisualizationInterface {
   Map<String, dynamic>? _extractStructuredData(String data) {
     try {
       final RegExp jsonRegex = RegExp(
-          r'\{\{VISUALIZATION_DATA\}\}([\s\S]*?)\{\{\/VISUALIZATION_DATA\}\}');
+        r'\{\{VISUALIZATION_DATA\}\}([\s\S]*?)\{\{\/VISUALIZATION_DATA\}\}',
+      );
       final match = jsonRegex.firstMatch(data);
 
       if (match != null && match.groupCount >= 1) {
@@ -128,43 +140,43 @@ class StructuredDataVisualization implements VisualizationInterface {
       'cardPadding': isDesktop
           ? 24.0
           : isTablet
-              ? 20.0
-              : 16.0,
+          ? 20.0
+          : 16.0,
       'chartHeight': isDesktop
           ? 280.0
           : isTablet
-              ? 240.0
-              : 200.0,
+          ? 240.0
+          : 200.0,
       'titleSize': isDesktop
           ? 20.0
           : isTablet
-              ? 18.0
-              : 16.0,
+          ? 18.0
+          : 16.0,
       'subtitleSize': isDesktop
           ? 16.0
           : isTablet
-              ? 14.0
-              : 12.0,
+          ? 14.0
+          : 12.0,
       'legendSize': isDesktop
           ? 14.0
           : isTablet
-              ? 12.0
-              : 11.0,
+          ? 12.0
+          : 11.0,
       'maxLegendColumns': isDesktop
           ? 3
           : isTablet
-              ? 2
-              : 1,
+          ? 2
+          : 1,
       'pieRadius': isDesktop
           ? 80.0
           : isTablet
-              ? 70.0
-              : 60.0,
+          ? 70.0
+          : 60.0,
       'barWidth': isDesktop
           ? 32.0
           : isTablet
-              ? 28.0
-              : 24.0,
+          ? 28.0
+          : 24.0,
     };
   }
 
@@ -186,7 +198,10 @@ class StructuredDataVisualization implements VisualizationInterface {
 
   /// Build enhanced tax visualization with adaptive layout
   Widget _buildTaxVisualization(
-      BuildContext context, Map<String, dynamic> data, String? currency) {
+    BuildContext context,
+    Map<String, dynamic> data,
+    String? currency,
+  ) {
     final config = _getResponsiveConfig(context);
     final colors = _getModernColorPalette();
 
@@ -227,10 +242,7 @@ class StructuredDataVisualization implements VisualizationInterface {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [
-                Colors.white,
-                Colors.grey.shade50,
-              ],
+              colors: [Colors.white, Colors.grey.shade50],
             ),
           ),
           child: Padding(
@@ -274,10 +286,20 @@ class StructuredDataVisualization implements VisualizationInterface {
 
     if (shouldUsePie) {
       return _buildModernPieChart(
-          sortedItems, totalTax, currencyCode, colors, config);
+        sortedItems,
+        totalTax,
+        currencyCode,
+        colors,
+        config,
+      );
     } else {
       return _buildModernHorizontalBarChart(
-          sortedItems, totalTax, currencyCode, colors, config);
+        sortedItems,
+        totalTax,
+        currencyCode,
+        colors,
+        config,
+      );
     }
   }
 
@@ -294,8 +316,9 @@ class StructuredDataVisualization implements VisualizationInterface {
     final hasOther = items.length > 5;
 
     if (hasOther) {
-      final otherAmount =
-          items.skip(5).fold(0.0, (sum, item) => sum + item.value);
+      final otherAmount = items
+          .skip(5)
+          .fold(0.0, (sum, item) => sum + item.value);
       displayItems.add(MapEntry('Other Items', otherAmount));
     }
 
@@ -349,7 +372,11 @@ class StructuredDataVisualization implements VisualizationInterface {
                 Expanded(
                   flex: 2,
                   child: _buildModernLegend(
-                      displayItems, currencyCode, colors, config),
+                    displayItems,
+                    currencyCode,
+                    colors,
+                    config,
+                  ),
                 ),
             ],
           ),
@@ -444,16 +471,47 @@ class StructuredDataVisualization implements VisualizationInterface {
     );
   }
 
+  /// Safely parse hex color string with fallback
+  Color _safeParseHexColor(String colorStr, Color fallbackColor) {
+    try {
+      // Remove '#' if present and validate format
+      String cleanColorStr = colorStr.trim();
+      if (cleanColorStr.startsWith('#')) {
+        cleanColorStr = cleanColorStr.substring(1);
+      }
+
+      // Validate hex format (should be 6 or 8 hex digits)
+      if (!RegExp(r'^[0-9A-Fa-f]{6}$|^[0-9A-Fa-f]{8}$').hasMatch(cleanColorStr)) {
+        return fallbackColor;
+      }
+
+      // Add alpha prefix if needed
+      if (cleanColorStr.length == 6) {
+        cleanColorStr = 'FF$cleanColorStr';
+      }
+
+      int parsedColor = int.parse(cleanColorStr, radix: 16);
+      return Color(parsedColor);
+    } catch (e) {
+      // Return fallback color if parsing fails
+      return fallbackColor;
+    }
+  }
+
   /// Build enhanced business analytics visualization
   Widget _buildBusinessAnalyticsVisualization(
-      BuildContext context, Map<String, dynamic> data, String? currency) {
+    BuildContext context,
+    Map<String, dynamic> data,
+    String? currency,
+  ) {
     final config = _getResponsiveConfig(context);
     final colors = _getModernColorPalette();
 
     final double revenue = _parseNumericValue(data['revenue']);
     final double profit = _parseNumericValue(data['profit']);
     final double unitsSold = _parseNumericValue(data['unitsSold']);
-    final String currencyCode = data['currencyCode'] ??
+    final String currencyCode =
+        data['currencyCode'] ??
         currency ??
         '${ProxyService.box.defaultCurrency()}';
     final String date = data['date'] ?? 'Today';
@@ -491,10 +549,22 @@ class StructuredDataVisualization implements VisualizationInterface {
                   ),
                   SizedBox(height: config['cardPadding']),
                   _buildMetricCards(
-                      revenue, profit, unitsSold, currencyCode, colors, config),
+                    revenue,
+                    profit,
+                    unitsSold,
+                    currencyCode,
+                    colors,
+                    config,
+                  ),
                   SizedBox(height: config['cardPadding']),
                   _buildModernBarChart(
-                      revenue, profit, unitsSold, currencyCode, colors, config),
+                    revenue,
+                    profit,
+                    unitsSold,
+                    currencyCode,
+                    colors,
+                    config,
+                  ),
                   SizedBox(height: config['cardPadding']),
                   if (bestSellingItems.isNotEmpty)
                     _buildItemPerformanceList(
@@ -571,8 +641,9 @@ class StructuredDataVisualization implements VisualizationInterface {
           final metric = entry.value;
           return Expanded(
             child: Container(
-              margin:
-                  EdgeInsets.only(right: index < metrics.length - 1 ? 8 : 0),
+              margin: EdgeInsets.only(
+                right: index < metrics.length - 1 ? 8 : 0,
+              ),
               child: _buildMetricCard(metric, config),
             ),
           );
@@ -583,7 +654,9 @@ class StructuredDataVisualization implements VisualizationInterface {
 
   /// Build individual metric card
   Widget _buildMetricCard(
-      Map<String, dynamic> metric, Map<String, dynamic> config) {
+    Map<String, dynamic> metric,
+    Map<String, dynamic> config,
+  ) {
     return Container(
       padding: EdgeInsets.all(config['cardPadding'] * 0.75),
       decoration: BoxDecoration(
@@ -744,7 +817,10 @@ class StructuredDataVisualization implements VisualizationInterface {
 
   /// Build inventory visualization placeholder
   Widget _buildInventoryVisualization(
-      BuildContext context, Map<String, dynamic> data, String? currency) {
+    BuildContext context,
+    Map<String, dynamic> data,
+    String? currency,
+  ) {
     final config = _getResponsiveConfig(context);
 
     return RepaintBoundary(
@@ -793,9 +869,7 @@ class StructuredDataVisualization implements VisualizationInterface {
                         ),
                       ],
                     ),
-                    CopyButton(
-                      onPressed: onCopyGraph,
-                    ),
+                    CopyButton(onPressed: onCopyGraph),
                   ],
                 ),
                 const SizedBox(height: 16),
@@ -809,6 +883,246 @@ class StructuredDataVisualization implements VisualizationInterface {
           ),
         ),
       ),
+    );
+  }
+
+  /// Build professional financial report visualization with line charts
+  Widget _buildFinancialReportVisualization(
+    BuildContext context,
+    Map<String, dynamic> data,
+    String? currency,
+  ) {
+    final config = _getResponsiveConfig(context);
+    final colors = _getModernColorPalette();
+
+    final String title = data['title'] ?? 'Financial Report';
+    final List<dynamic> labels = data['labels'] ?? [];
+    final List<dynamic> datasets = data['datasets'] ?? [];
+
+    return RepaintBoundary(
+      key: cardKey,
+      child: Card(
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: Colors.grey.shade200, width: 1),
+        ),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Colors.white, Colors.grey.shade50],
+            ),
+          ),
+          child: Padding(
+            padding: EdgeInsets.all(config['cardPadding']),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildModernHeader(
+                  title: title,
+                  subtitle: 'Trends Analysis',
+                  config: config,
+                  onCopy: onCopyGraph,
+                ),
+                SizedBox(height: config['cardPadding']),
+                _buildModernLineChart(labels, datasets, config, colors),
+                SizedBox(height: config['cardPadding']),
+                _buildLineChartLegend(datasets, config, colors),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Build modern line chart with multi-series support
+  Widget _buildModernLineChart(
+    List<dynamic> labels,
+    List<dynamic> datasets,
+    Map<String, dynamic> config,
+    List<Color> colors,
+  ) {
+    if (labels.isEmpty || datasets.isEmpty) return const SizedBox.shrink();
+
+    // Calculate max Y value for scaling
+    double maxY = 0;
+    for (var dataset in datasets) {
+      final List<dynamic> data = dataset['data'] ?? [];
+      for (var val in data) {
+        final dVal = _parseNumericValue(val);
+        if (dVal > maxY) maxY = dVal;
+      }
+    }
+    maxY = maxY * 1.2; // Add 20% headroom
+
+    final List<LineChartBarData> lineBarsData = [];
+
+    for (int i = 0; i < datasets.length; i++) {
+      final dataset = datasets[i];
+      final List<dynamic> data = dataset['data'] ?? [];
+      final colorStr = dataset['color'];
+      final Color color = colorStr != null && colorStr.isNotEmpty
+          ? _safeParseHexColor(colorStr, colors[i % colors.length])
+          : colors[i % colors.length];
+
+      final List<FlSpot> spots = [];
+      for (int j = 0; j < data.length; j++) {
+        spots.add(FlSpot(j.toDouble(), _parseNumericValue(data[j])));
+      }
+
+      lineBarsData.add(
+        LineChartBarData(
+          spots: spots,
+          isCurved: true,
+          color: color,
+          barWidth: 3,
+          isStrokeCapRound: true,
+          dotData: FlDotData(
+            show: true,
+            getDotPainter: (spot, percent, barData, index) =>
+                FlDotCirclePainter(
+                  radius: 4,
+                  color: Colors.white,
+                  strokeWidth: 2,
+                  strokeColor: color,
+                ),
+          ),
+          belowBarData: BarAreaData(
+            show: true,
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                color.withValues(alpha: 0.2),
+                color.withValues(alpha: 0.0),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return SizedBox(
+      height: config['chartHeight'],
+      child: LineChart(
+        LineChartData(
+          lineBarsData: lineBarsData,
+          maxY: maxY,
+          titlesData: FlTitlesData(
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                getTitlesWidget: (value, meta) {
+                  final index = value.toInt();
+                  if (index >= 0 && index < labels.length) {
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Text(
+                        labels[index].toString(),
+                        style: TextStyle(
+                          color: Colors.grey.shade600,
+                          fontSize: config['legendSize'] - 2,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    );
+                  }
+                  return const SizedBox.shrink();
+                },
+                reservedSize: 30,
+              ),
+            ),
+            leftTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                getTitlesWidget: (value, meta) {
+                  return Text(
+                    _formatAxisValue(value),
+                    style: TextStyle(
+                      color: Colors.grey.shade600,
+                      fontSize: config['legendSize'] - 2,
+                    ),
+                  );
+                },
+                reservedSize: 45,
+              ),
+            ),
+            topTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            rightTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+          ),
+          gridData: FlGridData(
+            show: true,
+            drawHorizontalLine: true,
+            getDrawingHorizontalLine: (value) =>
+                FlLine(color: Colors.grey.shade200, strokeWidth: 1),
+            drawVerticalLine: false,
+          ),
+          borderData: FlBorderData(show: false),
+          lineTouchData: LineTouchData(
+            enabled: true,
+            touchTooltipData: LineTouchTooltipData(
+              // tooltipBgColor: Colors.grey.shade800,
+              getTooltipItems: (List<LineBarSpot> touchedSpots) {
+                return touchedSpots.map((spot) {
+                  final dataset = datasets[spot.barIndex];
+                  return LineTooltipItem(
+                    '${dataset['label']}: ${_formatCurrency(spot.y)}',
+                    const TextStyle(color: Colors.white, fontSize: 12),
+                  );
+                }).toList();
+              },
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Build legend for line chart
+  Widget _buildLineChartLegend(
+    List<dynamic> datasets,
+    Map<String, dynamic> config,
+    List<Color> colors,
+  ) {
+    return Wrap(
+      spacing: 16,
+      runSpacing: 8,
+      children: datasets.asMap().entries.map((entry) {
+        final index = entry.key;
+        final dataset = entry.value;
+        final colorStr = dataset['color'];
+        final Color color = colorStr != null
+            ? Color(int.parse(colorStr.replaceFirst('#', '0xFF')))
+            : colors[index % colors.length];
+
+        return Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 12,
+              height: 12,
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              dataset['label'] ?? 'Series $index',
+              style: TextStyle(
+                fontSize: config['legendSize'],
+                fontWeight: FontWeight.w500,
+                color: Colors.grey.shade700,
+              ),
+            ),
+          ],
+        );
+      }).toList(),
     );
   }
 
@@ -850,10 +1164,7 @@ class StructuredDataVisualization implements VisualizationInterface {
             ],
           ),
         ),
-        if (onCopy != null)
-          CopyButton(
-            onPressed: onCopy,
-          ),
+        if (onCopy != null) CopyButton(onPressed: onCopy),
       ],
     );
   }
@@ -892,8 +1203,10 @@ class StructuredDataVisualization implements VisualizationInterface {
               final revenue = _parseNumericValue(item['revenue']);
 
               return Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
                   border: Border(
                     bottom: index < items.length - 1
@@ -1019,7 +1332,11 @@ class StructuredDataVisualization implements VisualizationInterface {
 
   /// Create modern bar group with gradient
   BarChartGroupData _createModernBarGroup(
-      int x, double y, Color color, Map<String, dynamic> config) {
+    int x,
+    double y,
+    Color color,
+    Map<String, dynamic> config,
+  ) {
     return BarChartGroupData(
       x: x,
       barRods: [
@@ -1033,10 +1350,7 @@ class StructuredDataVisualization implements VisualizationInterface {
           gradient: LinearGradient(
             begin: Alignment.bottomCenter,
             end: Alignment.topCenter,
-            colors: [
-              color.withValues(alpha: 0.7),
-              color,
-            ],
+            colors: [color.withValues(alpha: 0.7), color],
           ),
         ),
       ],
@@ -1065,7 +1379,9 @@ class StructuredDataVisualization implements VisualizationInterface {
     } else if (value.abs() >= 1000) {
       return '${(value / 1000).toStringAsFixed(1)}K';
     }
-    return value.toStringAsFixed(2).replaceAllMapped(
+    return value
+        .toStringAsFixed(2)
+        .replaceAllMapped(
           RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
           (Match m) => '${m[1]},',
         );
@@ -1073,7 +1389,9 @@ class StructuredDataVisualization implements VisualizationInterface {
 
   /// Format number with proper separators
   String _formatNumber(double value) {
-    return value.toStringAsFixed(0).replaceAllMapped(
+    return value
+        .toStringAsFixed(0)
+        .replaceAllMapped(
           RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
           (Match m) => '${m[1]},',
         );

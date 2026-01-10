@@ -49,8 +49,10 @@ final customersStreamProvider = StreamProvider.autoDispose
 final customerProvider = FutureProvider.autoDispose
     .family<Customer?, ({String? id})>((ref, params) async {
   final (:id) = params;
+  String? branchId = ProxyService.box.getBranchId();
+  if (branchId == null || branchId.isEmpty) return null;
   return (await ProxyService.getStrategy(Strategy.capella)
-          .customers(id: id, branchId: ProxyService.box.getBranchId()!))
+          .customers(id: id, branchId: branchId))
       .firstOrNull;
 });
 
@@ -64,8 +66,10 @@ final attachedCustomerProvider = FutureProvider.autoDispose
     return null;
   }
 
+  String? branchId = ProxyService.box.getBranchId();
+  if (branchId == null || branchId.isEmpty) return null;
   return (await ProxyService.getStrategy(Strategy.capella)
-          .customers(id: customerId, branchId: ProxyService.box.getBranchId()!))
+          .customers(id: customerId, branchId: branchId))
       .firstOrNull;
 });
 
@@ -236,11 +240,11 @@ final customersProvider =
         CustomersNotifier.new);
 
 class CustomersNotifier extends Notifier<AsyncValue<List<Customer>>> {
-  late String branchId;
+  late String? branchId;
 
   @override
   AsyncValue<List<Customer>> build() {
-    branchId = ProxyService.box.getBranchId() ?? "";
+    branchId = ProxyService.box.getBranchId();
     // We should not await here for build method synchronous return,
     // but we can start async load.
     loadCustomers();
@@ -250,9 +254,11 @@ class CustomersNotifier extends Notifier<AsyncValue<List<Customer>>> {
   Future<void> loadCustomers() async {
     try {
       // await any ongoing database persistance
-      List<Customer> customers =
-          await ProxyService.getStrategy(Strategy.capella)
-              .customers(branchId: branchId);
+      List<Customer> customers = [];
+      if (branchId != null && branchId!.isNotEmpty) {
+        customers = await ProxyService.getStrategy(Strategy.capella)
+            .customers(branchId: branchId);
+      }
 
       state = AsyncData(customers);
     } catch (error) {

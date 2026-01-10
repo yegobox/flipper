@@ -97,29 +97,39 @@ mixin CapellaCustomerMixin implements CustomerInterface {
       /// end of workaround
       ///
 
-      // Base query
-      String query = 'SELECT * FROM customers WHERE 1=1';
+      // Build SQL WHERE clause conditions
+      final List<String> whereClauses = [];
       final arguments = <String, dynamic>{};
 
       // Add branch filter if provided
       if (branchId != null && branchId.isNotEmpty) {
-        query += ' AND branchId = :branchId';
+        whereClauses.add('branchId = :branchId');
         arguments['branchId'] = branchId;
       }
 
       // Add ID filter if provided
       if (id != null && id.isNotEmpty) {
-        query += ' AND id = :id';
+        whereClauses.add('id = :id');
         arguments['id'] = id;
       }
 
       // Add search filter if key is provided
       if (key != null && key.isNotEmpty) {
         final searchKey = '%$key%';
-        query +=
-            " AND (UPPER(custNm) LIKE UPPER(:searchKey) OR UPPER(email) LIKE UPPER(:searchKey) OR UPPER(telNo) LIKE UPPER(:searchKey))";
+        whereClauses.add(
+            "(UPPER(custNm) LIKE UPPER(:searchKey) OR UPPER(email) LIKE UPPER(:searchKey) OR UPPER(telNo) LIKE UPPER(:searchKey))");
         arguments['searchKey'] = searchKey;
       }
+
+      // If no filters are provided, return an empty list as per documentation
+      if (whereClauses.isEmpty) {
+        talker
+            .info('No filters provided for customers(), returning empty list');
+        return [];
+      }
+
+      final whereClause = whereClauses.join(' AND ');
+      final query = 'SELECT * FROM customers WHERE $whereClause';
 
       if (ProxyService.box.getUserLoggingEnabled() ?? false) {
         await logService.logException(

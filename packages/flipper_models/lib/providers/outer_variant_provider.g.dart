@@ -49,7 +49,7 @@ final class OuterVariantsProvider
   }
 }
 
-String _$outerVariantsHash() => r'29c78f1bf8fc750a388a793a61de29b1a73b513a';
+String _$outerVariantsHash() => r'5a942f3de0f091e4844ddc2ddc6935288944e7c8';
 
 final class OuterVariantsFamily extends $Family
     with

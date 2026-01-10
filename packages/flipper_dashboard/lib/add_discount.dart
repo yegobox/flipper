@@ -36,87 +36,86 @@ class _AddDiscountState extends State<AddDiscount> {
   Widget build(BuildContext context) {
     return Material(
       child: ViewModelBuilder<DiscountViewModel>.reactive(
-          builder: (context, model, child) {
-            return CupertinoPageScaffold(
-              navigationBar: CupertinoNavigationBar(
-                previousPageTitle: 'Back',
-                trailing: SizedBox(
-                  width: 80,
-                  height: 40,
-                  child: BoxButton(
-                    borderRadius: 2,
-                    title: 'Save',
-                    onTap: () async {
-                      if (_formKey.currentState!.validate()) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Saved discount')),
+        builder: (context, model, child) {
+          return CupertinoPageScaffold(
+            navigationBar: CupertinoNavigationBar(
+              previousPageTitle: 'Back',
+              trailing: SizedBox(
+                width: 80,
+                height: 40,
+                child: BoxButton(
+                  borderRadius: 2,
+                  title: 'Save',
+                  onTap: () async {
+                    if (_formKey.currentState!.validate()) {
+                      showSuccessNotification(context, 'Saved discount');
+                      if (widget.discount == null) {
+                        await model.save(
+                          name: nameController.text,
+                          amount: double.parse(amountController.text),
                         );
-                        if (widget.discount == null) {
-                          await model.save(
-                            name: nameController.text,
-                            amount: double.parse(amountController.text),
-                          );
-                        } else {
-                          // await model.update(
-                          //   name: nameController.text,
-                          //   amount: double.parse(amountController.text),
-                          //   id: widget.discount!.id!,
-                          // );
-                        }
-                        _routerService.pop();
-                        ;
+                      } else {
+                        // await model.update(
+                        //   name: nameController.text,
+                        //   amount: double.parse(amountController.text),
+                        //   id: widget.discount!.id!,
+                        // );
                       }
-                    },
+                      _routerService.pop();
+                      ;
+                    }
+                  },
+                ),
+              ),
+              middle: const Text('Create Discount'),
+            ),
+            child: ListView(
+              children: <Widget>[
+                Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      ColorAndImagePlaceHolder(
+                        currentColor: '#ee5253',
+                        product: null,
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: BoxInputField(
+                          validatorFunc: (text) {
+                            if (text.length > 0) {
+                              return null;
+                            }
+                            return 'Name can not be null';
+                          },
+                          enabled: true,
+                          controller: nameController,
+                          placeholder: 'Name',
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: BoxInputField(
+                          enabled: true,
+                          validatorFunc: (text) {
+                            if (text.length > 0) {
+                              return null;
+                            }
+                            return 'Amount can not be null';
+                          },
+                          controller: amountController,
+                          placeholder: 'RWF',
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                middle: const Text('Create Discount'),
-              ),
-              child: ListView(
-                children: <Widget>[
-                  Form(
-                    key: _formKey,
-                    child: Column(
-                      children: [
-                        ColorAndImagePlaceHolder(
-                          currentColor: '#ee5253',
-                          product: null,
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: BoxInputField(
-                            validatorFunc: (text) {
-                              if (text.length > 0) {
-                                return null;
-                              }
-                              return 'Name can not be null';
-                            },
-                            enabled: true,
-                            controller: nameController,
-                            placeholder: 'Name',
-                          ),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: BoxInputField(
-                            enabled: true,
-                            validatorFunc: (text) {
-                              if (text.length > 0) {
-                                return null;
-                              }
-                              return 'Amount can not be null';
-                            },
-                            controller: amountController,
-                            placeholder: 'RWF',
-                          ),
-                        )
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-          viewModelBuilder: () => DiscountViewModel()),
+              ],
+            ),
+          );
+        },
+        viewModelBuilder: () => DiscountViewModel(),
+      ),
     );
   }
 }

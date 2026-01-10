@@ -5,6 +5,7 @@ import 'package:supabase_models/brick/repository.dart';
 import 'package:supabase_models/brick/repository.dart' as brick;
 import 'package:uuid/uuid.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:brick_offline_first/brick_offline_first.dart';
 
 abstract class ShiftApi {
   Future<models.Shift> startShift(
@@ -102,6 +103,7 @@ mixin ShiftMixin implements ShiftApi {
     final String businessId = ProxyService.box.getBusinessId()!;
     talker.debug('getCurrentShift: businessId: $businessId');
     final shifts = await repository.get<models.Shift>(
+      policy: OfflineFirstGetPolicy.localOnly,
       query: brick.Query(where: [
         brick.Where('userId').isExactly(userId),
         brick.Where('businessId').isExactly(businessId),

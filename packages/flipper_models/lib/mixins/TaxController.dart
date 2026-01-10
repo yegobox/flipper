@@ -241,6 +241,7 @@ class TaxController<OBJ> {
   }) async {
     // Use provided items or fetch transaction items
     List<TransactionItem> transactionItems = items ?? [];
+
     if (transactionItems.isEmpty) {
       try {
         transactionItems =

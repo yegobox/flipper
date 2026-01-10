@@ -1,10 +1,8 @@
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
-import 'package:flipper_services/constants.dart';
 import 'package:riverpod/riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'widgets/analytics_gauge/flipper_analytic.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -66,12 +64,10 @@ Widget BuildGaugeOrList({
         switch (widgetType) {
           case 'gauge':
             final sumCashIn = filteredTransactions
-                .where((transaction) =>
-                    transaction.transactionType == TransactionType.cashIn)
+                .where((transaction) => transaction.isIncome == true)
                 .fold(0.0, (sum, transaction) => sum + transaction.subTotal!);
             final sumCashOut = filteredTransactions
-                .where((transaction) =>
-                    transaction.transactionType == TransactionType.cashOut)
+                .where((transaction) => transaction.isIncome == false)
                 .fold(0.0, (sum, transaction) => sum + transaction.subTotal!);
 
             return _buildModernGauge(
@@ -84,7 +80,9 @@ Widget BuildGaugeOrList({
           case 'list':
             if (filteredTransactions.isEmpty) {
               return _buildEmptyStateWithPeriod(
-                  context, model.transactionPeriod);
+                context,
+                model.transactionPeriod,
+              );
             }
             return _buildModernTransactionList(
               context: context,
@@ -119,10 +117,7 @@ Widget _buildModernGauge({
       gradient: LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [
-          Colors.white,
-          Colors.grey.shade50,
-        ],
+        colors: [Colors.white, Colors.grey.shade50],
       ),
       borderRadius: BorderRadius.circular(16),
       boxShadow: [
@@ -132,10 +127,7 @@ Widget _buildModernGauge({
           offset: const Offset(0, 8),
         ),
       ],
-      border: Border.all(
-        color: Colors.grey.shade200,
-        width: 1,
-      ),
+      border: Border.all(color: Colors.grey.shade200, width: 1),
     ),
     child: Column(
       children: [
@@ -153,10 +145,10 @@ Widget _buildModernGauge({
             const SizedBox(width: 12),
             Text(
               'Financial Overview',
-              style: GoogleFonts.inter(
+              style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
-                color: const Color(0xFF323130),
+                color: Color(0xFF323130),
               ),
             ),
           ],
@@ -208,20 +200,20 @@ Widget _buildEmptyState(BuildContext context) {
         const SizedBox(height: 24),
         Text(
           'Ready to start tracking!',
-          style: GoogleFonts.nunito(
+          style: const TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.w700,
-            color: const Color(0xFF4B4B4B),
+            color: Color(0xFF4B4B4B),
           ),
         ),
         const SizedBox(height: 12),
         Text(
           'Your transactions will appear here once you start adding them.',
           textAlign: TextAlign.center,
-          style: GoogleFonts.nunito(
+          style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w400,
-            color: const Color(0xFF777777),
+            color: Color(0xFF777777),
           ),
         ),
       ],
@@ -262,20 +254,20 @@ Widget _buildEmptyStateWithPeriod(BuildContext context, String period) {
         const SizedBox(height: 20),
         Text(
           'No records for ${period.toLowerCase()}',
-          style: GoogleFonts.nunito(
+          style: const TextStyle(
             fontSize: 20,
             fontWeight: FontWeight.w600,
-            color: const Color(0xFF4B4B4B),
+            color: Color(0xFF4B4B4B),
           ),
         ),
         const SizedBox(height: 8),
         Text(
           'Try selecting a different time period or add some transactions.',
           textAlign: TextAlign.center,
-          style: GoogleFonts.nunito(
+          style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w400,
-            color: const Color(0xFF777777),
+            color: Color(0xFF777777),
           ),
         ),
       ],
@@ -307,9 +299,7 @@ Widget _buildModernTransactionList({
               topLeft: Radius.circular(12),
               topRight: Radius.circular(12),
             ),
-            border: Border(
-              bottom: BorderSide(color: Colors.grey.shade200),
-            ),
+            border: Border(bottom: BorderSide(color: Colors.grey.shade200)),
           ),
           child: Row(
             children: [
@@ -321,26 +311,28 @@ Widget _buildModernTransactionList({
               const SizedBox(width: 12),
               Text(
                 'Recent Transactions',
-                style: GoogleFonts.inter(
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
-                  color: const Color(0xFF1A1A1A),
+                  color: Color(0xFF1A1A1A),
                 ),
               ),
               const Spacer(),
               Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFF0077C5).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Text(
                   '${transactions.length}',
-                  style: GoogleFonts.inter(
+                  style: const TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xFF0077C5),
+                    color: Color(0xFF0077C5),
                   ),
                 ),
               ),
@@ -374,10 +366,10 @@ Widget _buildModernTransactionItem({
   required RouterService routerService,
   required bool isLastItem,
 }) {
-  final isIncome = transaction.transactionType != TransactionType.cashOut;
-  final amount = NumberFormat('#,###').format(
-    double.parse(transaction.subTotal.toString()),
-  );
+  final isIncome = transaction.isIncome ?? true;
+  final amount = NumberFormat(
+    '#,###',
+  ).format(double.parse(transaction.subTotal.toString()));
 
   return InkWell(
     onTap: () => routerService.navigateTo(
@@ -388,9 +380,7 @@ Widget _buildModernTransactionItem({
       decoration: BoxDecoration(
         border: isLastItem
             ? null
-            : Border(
-                bottom: BorderSide(color: Colors.grey.shade100),
-              ),
+            : Border(bottom: BorderSide(color: Colors.grey.shade100)),
       ),
       child: Row(
         children: [
@@ -409,10 +399,11 @@ Widget _buildModernTransactionItem({
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: (isIncome
-                          ? const Color(0xFF10B981)
-                          : const Color(0xFFEF4444))
-                      .withValues(alpha: 0.2),
+                  color:
+                      (isIncome
+                              ? const Color(0xFF10B981)
+                              : const Color(0xFFEF4444))
+                          .withValues(alpha: 0.2),
                   blurRadius: 8,
                   offset: const Offset(0, 4),
                 ),
@@ -442,15 +433,15 @@ Widget _buildModernTransactionItem({
                           .last
                           .replaceAll(RegExp(r'([a-z])([A-Z])'), r'$1 $2')
                           .toUpperCase(),
-                      style: GoogleFonts.inter(
+                      style: const TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: const Color(0xFF374151),
+                        color: Color(0xFF374151),
                       ),
                     ),
                     Text(
                       '${isIncome ? '+' : '-'}$amount RWF',
-                      style: GoogleFonts.inter(
+                      style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
                         color: isIncome
@@ -470,9 +461,10 @@ Widget _buildModernTransactionItem({
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      DateFormat('MMM dd, yyyy')
-                          .format(transaction.lastTouched!),
-                      style: GoogleFonts.inter(
+                      DateFormat(
+                        'MMM dd, yyyy',
+                      ).format(transaction.lastTouched!),
+                      style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w400,
                         color: Colors.grey.shade600,
@@ -487,7 +479,7 @@ Widget _buildModernTransactionItem({
                     const SizedBox(width: 6),
                     Text(
                       DateFormat('HH:mm').format(transaction.lastTouched!),
-                      style: GoogleFonts.inter(
+                      style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w400,
                         color: Colors.grey.shade600,
@@ -534,10 +526,10 @@ Widget _buildLoadingState(BuildContext context) {
         const SizedBox(height: 24),
         Text(
           'Loading transactions...',
-          style: GoogleFonts.inter(
+          style: const TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w500,
-            color: const Color(0xFF605E5C),
+            color: Color(0xFF605E5C),
           ),
         ),
       ],
@@ -568,20 +560,20 @@ Widget _buildErrorState(BuildContext context, String error) {
         const SizedBox(height: 20),
         Text(
           'Something went wrong',
-          style: GoogleFonts.inter(
+          style: const TextStyle(
             fontSize: 18,
             fontWeight: FontWeight.w600,
-            color: const Color(0xFF1F2937),
+            color: Color(0xFF1F2937),
           ),
         ),
         const SizedBox(height: 8),
         Text(
           error,
           textAlign: TextAlign.center,
-          style: GoogleFonts.inter(
+          style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w400,
-            color: const Color(0xFF6B7280),
+            color: Color(0xFF6B7280),
           ),
         ),
       ],

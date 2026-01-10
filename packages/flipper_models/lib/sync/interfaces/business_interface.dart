@@ -5,7 +5,7 @@ import 'package:flipper_models/helperModels/business_type.dart';
 import 'package:flipper_models/db_model_export.dart' hide BusinessType;
 
 abstract class BusinessInterface {
-  Future<Business?> activeBusiness({int? userId});
+  Future<Business?> activeBusiness();
   Future<Category?> activeCategory({required String branchId});
   FutureOr<Business?> getBusinessById(
       {required String businessId, bool fetchOnline = false});
