@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'utils/snack_bar_utils.dart';
+import 'package:flipper_ui/snack_bar_utils.dart';
 
 mixin SnackBarMixin {
   void showCustomSnackBar(

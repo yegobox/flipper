@@ -46,28 +46,6 @@ class ForceDataEntryService {
       }
     }
 
-    /// bootstrap app permission for admin
-    List<Access> permissions = await ProxyService.strategy
-        .access(userId: ProxyService.box.getUserId() ?? "", fetchRemote: true);
-    if (permissions.isEmpty) {
-      String? branchId = ProxyService.box.getBranchId();
-      String? businessId = ProxyService.box.getBusinessId();
-      String userId = ProxyService.box.getUserId() ?? "";
-
-      /// it is empty but we might have them on cloud so check on cloud
-      final doesBusinessHavePermission = await ProxyService.httpApi
-          .hasAcessSaved(
-              flipperHttpClient: ProxyService.http, businessId: businessId!);
-      String? ybPermission = ProxyService.box.yegoboxLoggedInUserPermission();
-      if (!doesBusinessHavePermission && ybPermission == 'admin') {
-        for (var feature in features) {
-          /// because having ticket is considered to be elevated permission you can't have both tickets and sales
-          /// so ticket endup having elevated permission which means it show only on the screen
-          addAccess(feature, userId, businessId, branchId!);
-        }
-      }
-    }
-
     /// Add default categories to be used, these category can't be deleted as they are helper to identify
     /// type of transaction and categorization of transaction
     /// e.g salaries, airtime and we shall add more as we learn what users needs

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flipper_dashboard/utils/snack_bar_utils.dart';
+import 'package:flipper_ui/snack_bar_utils.dart';
 
 /// Utility class for handling and displaying user-friendly error messages
 class ErrorHandler {

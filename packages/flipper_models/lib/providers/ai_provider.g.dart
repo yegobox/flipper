@@ -8,6 +8,41 @@ part of 'ai_provider.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
+
+@ProviderFor(availableModels)
+const availableModelsProvider = AvailableModelsProvider._();
+
+final class AvailableModelsProvider extends $FunctionalProvider<
+        AsyncValue<List<AIModel>>, List<AIModel>, FutureOr<List<AIModel>>>
+    with $FutureModifier<List<AIModel>>, $FutureProvider<List<AIModel>> {
+  const AvailableModelsProvider._()
+      : super(
+          from: null,
+          argument: null,
+          retry: null,
+          name: r'availableModelsProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$availableModelsHash();
+
+  @$internal
+  @override
+  $FutureProviderElement<List<AIModel>> $createElement(
+          $ProviderPointer pointer) =>
+      $FutureProviderElement(pointer);
+
+  @override
+  FutureOr<List<AIModel>> create(Ref ref) {
+    return availableModels(ref);
+  }
+}
+
+String _$availableModelsHash() => r'b0bcf36e9f71093151ad6446448c7a88a2206c5a';
+
 /// Providers
 
 @ProviderFor(GeminiResponse)
@@ -19,7 +54,11 @@ final class GeminiResponseProvider
   /// Providers
   const GeminiResponseProvider._(
       {required GeminiResponseFamily super.from,
-      required GeminiInput super.argument})
+      required (
+        UnifiedAIInput,
+        AIModel?,
+      )
+          super.argument})
       : super(
           retry: null,
           name: r'geminiResponseProvider',
@@ -35,7 +74,7 @@ final class GeminiResponseProvider
   String toString() {
     return r'geminiResponseProvider'
         ''
-        '($argument)';
+        '$argument';
   }
 
   @$internal
@@ -53,14 +92,21 @@ final class GeminiResponseProvider
   }
 }
 
-String _$geminiResponseHash() => r'2035609e3fa651e343607ebc87d760a7a1f9661e';
+String _$geminiResponseHash() => r'09bf77145db165e2fa41cbe79d94ea3c933c0c9e';
 
 /// Providers
 
 final class GeminiResponseFamily extends $Family
     with
-        $ClassFamilyOverride<GeminiResponse, AsyncValue<String>, String,
-            FutureOr<String>, GeminiInput> {
+        $ClassFamilyOverride<
+            GeminiResponse,
+            AsyncValue<String>,
+            String,
+            FutureOr<String>,
+            (
+              UnifiedAIInput,
+              AIModel?,
+            )> {
   const GeminiResponseFamily._()
       : super(
           retry: null,
@@ -73,9 +119,13 @@ final class GeminiResponseFamily extends $Family
   /// Providers
 
   GeminiResponseProvider call(
-    GeminiInput input,
+    UnifiedAIInput input,
+    AIModel? aiModel,
   ) =>
-      GeminiResponseProvider._(argument: input, from: this);
+      GeminiResponseProvider._(argument: (
+        input,
+        aiModel,
+      ), from: this);
 
   @override
   String toString() => r'geminiResponseProvider';
@@ -84,17 +134,23 @@ final class GeminiResponseFamily extends $Family
 /// Providers
 
 abstract class _$GeminiResponse extends $AsyncNotifier<String> {
-  late final _$args = ref.$arg as GeminiInput;
-  GeminiInput get input => _$args;
+  late final _$args = ref.$arg as (
+    UnifiedAIInput,
+    AIModel?,
+  );
+  UnifiedAIInput get input => _$args.$1;
+  AIModel? get aiModel => _$args.$2;
 
   FutureOr<String> build(
-    GeminiInput input,
+    UnifiedAIInput input,
+    AIModel? aiModel,
   );
   @$mustCallSuper
   @override
   void runBuild() {
     final created = build(
-      _$args,
+      _$args.$1,
+      _$args.$2,
     );
     final ref = this.ref as $Ref<AsyncValue<String>, String>;
     final element = ref.element as $ClassProviderElement<
@@ -118,6 +174,7 @@ final class GeminiBusinessAnalyticsProvider
         String, {
         String? filePath,
         List<Content>? history,
+        AIModel? aiModel,
       })
           super.argument})
       : super(
@@ -155,7 +212,7 @@ final class GeminiBusinessAnalyticsProvider
 }
 
 String _$geminiBusinessAnalyticsHash() =>
-    r'fd64812a1f608a4a2bbbb020744788ccc53bdceb';
+    r'ef0e8b4d99442c624fb6ec4632083175077d3652';
 
 final class GeminiBusinessAnalyticsFamily extends $Family
     with
@@ -169,6 +226,7 @@ final class GeminiBusinessAnalyticsFamily extends $Family
               String, {
               String? filePath,
               List<Content>? history,
+              AIModel? aiModel,
             })> {
   const GeminiBusinessAnalyticsFamily._()
       : super(
@@ -184,12 +242,14 @@ final class GeminiBusinessAnalyticsFamily extends $Family
     String userPrompt, {
     String? filePath,
     List<Content>? history,
+    AIModel? aiModel,
   }) =>
       GeminiBusinessAnalyticsProvider._(argument: (
         branchId,
         userPrompt,
         filePath: filePath,
         history: history,
+        aiModel: aiModel,
       ), from: this);
 
   @override
@@ -202,17 +262,20 @@ abstract class _$GeminiBusinessAnalytics extends $AsyncNotifier<String> {
     String, {
     String? filePath,
     List<Content>? history,
+    AIModel? aiModel,
   });
   String get branchId => _$args.$1;
   String get userPrompt => _$args.$2;
   String? get filePath => _$args.filePath;
   List<Content>? get history => _$args.history;
+  AIModel? get aiModel => _$args.aiModel;
 
   FutureOr<String> build(
     String branchId,
     String userPrompt, {
     String? filePath,
     List<Content>? history,
+    AIModel? aiModel,
   });
   @$mustCallSuper
   @override
@@ -222,6 +285,7 @@ abstract class _$GeminiBusinessAnalytics extends $AsyncNotifier<String> {
       _$args.$2,
       filePath: _$args.filePath,
       history: _$args.history,
+      aiModel: _$args.aiModel,
     );
     final ref = this.ref as $Ref<AsyncValue<String>, String>;
     final element = ref.element as $ClassProviderElement<
@@ -284,7 +348,7 @@ final class GeminiSummaryProvider
   }
 }
 
-String _$geminiSummaryHash() => r'47ce0665f73a819980ec6f4fc79db07c9fbad9d3';
+String _$geminiSummaryHash() => r'2a5ea7c9b7721717b6b56bd58d713c646a3fc534';
 
 final class GeminiSummaryFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<String>, String> {

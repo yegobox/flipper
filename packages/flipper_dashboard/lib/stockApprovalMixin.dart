@@ -9,6 +9,7 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:uuid/uuid.dart';
 import 'dart:async';
+import 'package:flipper_ui/snack_bar_utils.dart';
 
 mixin StockRequestApprovalLogic {
   Future<void> approveRequest({
@@ -844,19 +845,11 @@ mixin StockRequestApprovalLogic {
     bool isError = false,
   }) {
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          margin: const EdgeInsets.only(
-            left: 350.0,
-            right: 350.0,
-            bottom: 20.0,
-          ),
-          content: Text(message),
-          backgroundColor: isError ? Colors.red : Colors.green,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        ),
-      );
+      if (isError) {
+        showErrorNotification(context, message);
+      } else {
+        showSuccessNotification(context, message);
+      }
     }
   }
 }

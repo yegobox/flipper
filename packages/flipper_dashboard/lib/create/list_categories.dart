@@ -139,7 +139,15 @@ class ListCategoriesState extends ConsumerState<ListCategories> {
                         buildCategoryList(
                           categories: categories,
                           model: model,
-                          groupValue: _selectedCategoryId ?? '',
+                          groupValue:
+                              _selectedCategoryId ??
+                              categories
+                                  .firstWhere(
+                                    (c) => (c.focused) && (c.active ?? false),
+                                    orElse: () => Category(id: '', name: ''),
+                                  )
+                                  .id
+                                  .toString(),
                         ),
                       ],
                     ),

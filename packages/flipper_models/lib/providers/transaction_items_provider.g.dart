@@ -83,7 +83,7 @@ final class TransactionItemsProvider extends $FunctionalProvider<
   }
 }
 
-String _$transactionItemsHash() => r'b7bbec484cfaba8e042dc874cbb43b17d12be689';
+String _$transactionItemsHash() => r'5c68f2bfa302821fafde633b23f6238e2fbc43fa';
 
 final class TransactionItemsFamily extends $Family
     with

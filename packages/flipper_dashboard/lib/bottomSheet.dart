@@ -1,7 +1,6 @@
 // ignore_for_file: unused_result
 
 import 'package:flipper_dashboard/SearchCustomer.dart';
-import 'package:flipper_dashboard/utils/snack_bar_utils.dart';
 import 'package:flipper_dashboard/widgets/payment_methods_card.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';

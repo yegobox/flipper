@@ -30,3 +30,4 @@ export 'style_widget/TimeSegmentUI.dart';
 export 'style_widget/scrolling/styled_scroll_bar.dart';
 export 'style_widget/text.dart';
 export 'style_widget/text_field.dart';
+export 'snack_bar_utils.dart';

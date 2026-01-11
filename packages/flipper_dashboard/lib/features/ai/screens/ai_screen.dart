@@ -10,6 +10,7 @@ import 'package:supabase_models/brick/models/conversation.model.dart';
 import 'package:supabase_models/brick/models/message.model.dart';
 import 'package:supabase_models/brick/repository.dart';
 
+import 'package:flipper_models/models/ai_model.dart';
 import '../widgets/message_bubble.dart';
 import '../widgets/ai_input_field.dart';
 import '../widgets/conversation_list.dart';
@@ -18,6 +19,7 @@ import '../widgets/welcome_view.dart';
 import '../providers/whatsapp_message_provider.dart';
 import '../providers/conversation_provider.dart';
 import 'package:flipper_services/whatsapp_service.dart';
+import '../widgets/excel_analysis_modal.dart';
 
 /// Main screen for the AI feature with a modern, polished UI.
 class AiScreen extends ConsumerStatefulWidget {
@@ -39,13 +41,26 @@ class _AiScreenState extends ConsumerState<AiScreen> {
   String? _attachedFilePath; // New variable to store attached file path
   List<Content> _conversationHistory =
       []; // To store conversation history for AI
+  AIModel? _selectedModel; // State for selected AI model
 
   void _handleAttachedFile(String filePath) {
+    // Check if it's an Excel file
+    if (filePath.endsWith('.xlsx') || filePath.endsWith('.xls')) {
+      // Launch the dedicated Excel analysis modal
+      ExcelAnalysisModal.show(
+        context,
+        filePath,
+        preSelectedModel: _selectedModel,
+      );
+      return;
+    }
+
+    // For other files, use the standard attachment flow
     setState(() {
       _attachedFilePath = filePath;
     });
     // Send a placeholder message to display the file in the chat bubble
-    _sendMessage('[file](' + filePath + ')');
+    _sendMessage('[file]($filePath)');
   }
 
   @override
@@ -244,11 +259,21 @@ class _AiScreenState extends ConsumerState<AiScreen> {
               filePath:
                   fileToAnalyzePath, // Provider still needs the path for the current call
               history: _conversationHistory, // Pass conversation history
+              aiModel: _selectedModel, // Pass the selected model
             ).future,
           )
           .catchError((e) {
             if (e.toString().contains('RESOURCE_EXHAUSTED')) {
               return 'I\'m having trouble analyzing your data right now. Please try again in a moment.';
+            } else if (e.toString().contains('Operation cancelled')) {
+              return 'The operation was cancelled. Please try again.';
+            } else if (e.toString().contains('Upgrade Required')) {
+              // Extract the model name from the error message for a more personalized message
+              final modelMatch = RegExp(
+                r'The selected model \(([^)]+)\)',
+              ).firstMatch(e.toString());
+              final modelName = modelMatch?.group(1) ?? 'this AI model';
+              return "To use $modelName, you need either a Pro plan subscription or sufficient credits. You can upgrade your subscription or purchase credits to access this feature.";
             }
             throw e;
           });
@@ -499,6 +524,37 @@ class _AiScreenState extends ConsumerState<AiScreen> {
   @override
   Widget build(BuildContext context) {
     final conversationsAsync = ref.watch(conversationProvider);
+    final availableModelsAsync = ref.watch(availableModelsProvider);
+
+    // Initialize selected model if not set
+    if (_selectedModel == null &&
+        availableModelsAsync.value != null &&
+        availableModelsAsync.value!.isNotEmpty) {
+      // Prefer default model, otherwise first active
+      try {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            setState(() {
+              _selectedModel = availableModelsAsync.value!.firstWhere(
+                (m) => m.isDefault,
+                orElse: () => availableModelsAsync.value!.first,
+              );
+            });
+          }
+        });
+      } catch (e) {
+        // Log the exception and handle gracefully
+        debugPrint('Error initializing selected AI model: $e');
+        // Set to null to indicate no model is available
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            setState(() {
+              _selectedModel = null;
+            });
+          }
+        });
+      }
+    }
 
     // Handle initial selection if needed
     ref.listen(conversationProvider, (previous, next) {
@@ -528,25 +584,49 @@ class _AiScreenState extends ConsumerState<AiScreen> {
       });
     });
 
+    // Listen to available models to ensure selected model is valid
+    ref.listen<AsyncValue<List<AIModel>>>(availableModelsProvider, (
+      previous,
+      next,
+    ) {
+      if (next.hasValue && next.value != null) {
+        final availableModels = next.value!;
+        if (_selectedModel != null &&
+            !availableModels.any((model) => model.id == _selectedModel!.id)) {
+          setState(() {
+            // Set to first available model if current selection is not in the list
+            _selectedModel = availableModels.isNotEmpty
+                ? availableModels.first
+                : null;
+          });
+        }
+      }
+    });
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final isMobile = constraints.maxWidth < 600;
         return Scaffold(
           key: _scaffoldKey,
           backgroundColor: AiTheme.backgroundColor,
-          appBar: isMobile ? _buildMobileAppBar() : null,
+          appBar: isMobile
+              ? _buildMobileAppBar(availableModelsAsync.value ?? [])
+              : null,
           drawer: isMobile
               ? _buildDrawer(conversationsAsync.value ?? [])
               : null,
           body: isMobile
               ? _buildMobileLayout()
-              : _buildDesktopLayout(conversationsAsync.value ?? []),
+              : _buildDesktopLayout(
+                  conversationsAsync.value ?? [],
+                  availableModelsAsync.value ?? [],
+                ),
         );
       },
     );
   }
 
-  AppBar _buildMobileAppBar() {
+  AppBar _buildMobileAppBar(List<AIModel> availableModels) {
     return AppBar(
       leading: IconButton(
         icon: const Icon(Icons.menu_rounded, color: AiTheme.secondaryColor),
@@ -556,6 +636,69 @@ class _AiScreenState extends ConsumerState<AiScreen> {
         'AI Assistant',
         style: TextStyle(color: AiTheme.textColor),
       ),
+      actions: [
+        if (availableModels.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: PopupMenuButton<AIModel>(
+              initialValue: _selectedModel,
+              icon: const Icon(Icons.psychology, color: AiTheme.primaryColor),
+              tooltip: 'Select AI Model',
+              onSelected: (AIModel model) {
+                setState(() {
+                  _selectedModel = model;
+                });
+              },
+              itemBuilder: (BuildContext context) {
+                return availableModels.map((AIModel model) {
+                  return PopupMenuItem<AIModel>(
+                    value: model,
+                    child: Row(
+                      children: [
+                        if (model.id == _selectedModel?.id)
+                          const Icon(
+                            Icons.check,
+                            color: AiTheme.primaryColor,
+                            size: 18,
+                          ),
+                        if (model.id == _selectedModel?.id)
+                          const SizedBox(width: 8),
+                        Text(
+                          model.name,
+                          style: TextStyle(
+                            fontWeight: model.id == _selectedModel?.id
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                          ),
+                        ),
+                        if (model.isPaidOnly) const SizedBox(width: 8),
+                        if (model.isPaidOnly)
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.amber.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(color: Colors.amber),
+                            ),
+                            child: const Text(
+                              'PRO',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.amber,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  );
+                }).toList();
+              },
+            ),
+          ),
+      ],
       backgroundColor: AiTheme.surfaceColor,
       elevation: 1,
       shadowColor: Colors.black.withValues(alpha: 0.1),
@@ -607,7 +750,10 @@ class _AiScreenState extends ConsumerState<AiScreen> {
     );
   }
 
-  Widget _buildDesktopLayout(List<Conversation> conversations) {
+  Widget _buildDesktopLayout(
+    List<Conversation> conversations,
+    List<AIModel> availableModels,
+  ) {
     return Row(
       children: [
         ConversationList(
@@ -633,6 +779,115 @@ class _AiScreenState extends ConsumerState<AiScreen> {
         Expanded(
           child: Column(
             children: [
+              // Desktop Header with Model Selector
+              Container(
+                height: 60,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                decoration: const BoxDecoration(
+                  color: AiTheme.surfaceColor,
+                  border: Border(
+                    bottom: BorderSide(color: AiTheme.borderColor, width: 1),
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Chat',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w600,
+                        color: AiTheme.textColor,
+                      ),
+                    ),
+                    if (availableModels.isNotEmpty)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AiTheme.backgroundColor,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: AiTheme.borderColor),
+                        ),
+                        child: DropdownButtonHideUnderline(
+                          child: DropdownButton<AIModel>(
+                            value: _selectedModel,
+                            hint: const Text('Select Model'),
+                            icon: const Icon(
+                              Icons.arrow_drop_down,
+                              color: AiTheme.secondaryColor,
+                            ),
+                            onChanged: (AIModel? newValue) {
+                              if (newValue != null) {
+                                setState(() {
+                                  _selectedModel = newValue;
+                                });
+                              }
+                            },
+                            items: availableModels
+                                .map<DropdownMenuItem<AIModel>>((
+                                  AIModel model,
+                                ) {
+                                  return DropdownMenuItem<AIModel>(
+                                    value: model,
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(
+                                          Icons.psychology,
+                                          size: 16,
+                                          color: AiTheme.primaryColor,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          model.name,
+                                          style: TextStyle(
+                                            color: AiTheme.textColor,
+                                            fontWeight:
+                                                model.id == _selectedModel?.id
+                                                ? FontWeight.bold
+                                                : FontWeight.normal,
+                                          ),
+                                        ),
+                                        if (model.isPaidOnly) ...[
+                                          const SizedBox(width: 8),
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 6,
+                                              vertical: 2,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: Colors.amber.withValues(
+                                                alpha: 0.2,
+                                              ),
+                                              borderRadius:
+                                                  BorderRadius.circular(4),
+                                              border: Border.all(
+                                                color: Colors.amber,
+                                              ),
+                                            ),
+                                            child: const Text(
+                                              'PRO',
+                                              style: TextStyle(
+                                                fontSize: 10,
+                                                color: Colors.amber,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                  );
+                                })
+                                .toList(),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
               Expanded(child: _buildMessageList()),
               AiInputField(
                 controller: _controller,

@@ -80,7 +80,7 @@ class _RadioButtonsState extends State<RadioButtons> {
         child: Text(
           text,
           style: TextStyle(
-            color: isSelected ? widget.textColor : Colors.black,
+            color: isSelected ? widget.textColor : Colors.white,
             fontSize: widget.fontSize,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
           ),

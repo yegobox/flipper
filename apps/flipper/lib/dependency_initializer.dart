@@ -45,14 +45,23 @@ class MyHttpOverrides extends HttpOverrides {
 
 Future<void> _initializeCriticalDependencies() async {
   // Configure HTTP overrides for SSL/TLS connections
+  //  Commenting out this as it is making the aplication to timeout sometime, wll
+  //  have to re-enable it sometimes later.
   if (!foundation.kIsWeb) {
-    HttpOverrides.global = MyHttpOverrides();
-    debugPrint('HTTP overrides configured for secure connections');
-    ByteData data =
-        // echo | openssl s_client -connect apihub.yegobox.com:443 | openssl x509 > apihub.yegobox.pem
-        await PlatformAssetBundle().load('assets/ca/lets-encrypt-r3.pem');
-    SecurityContext.defaultContext
-        .setTrustedCertificatesBytes(data.buffer.asUint8List());
+    try {
+      await Future(() async {
+        HttpOverrides.global = MyHttpOverrides();
+        debugPrint('Configuring HTTP overrides for secure connections...');
+        ByteData data =
+            // echo | openssl s_client -connect apihub.yegobox.com:443 | openssl x509 > apihub.yegobox.pem
+            await PlatformAssetBundle().load('assets/ca/lets-encrypt-r3.pem');
+        SecurityContext.defaultContext
+            .setTrustedCertificatesBytes(data.buffer.asUint8List());
+        debugPrint('HTTP overrides configured for secure connections...');
+      }).timeout(const Duration(seconds: 5));
+    } catch (e) {
+      debugPrint('Failed to configure HTTP overrides: $e');
+    }
   }
 
   // Platform-specific database initialization
@@ -126,7 +135,7 @@ Future<void> _configurePlatformServices() async {
     );
   }
 
-  if (!isWeb && !isWindows) {
+  if (!isWeb) {
     await NotificationManager.create(
       flutterLocalNotificationsPlugin: FlutterLocalNotificationsPlugin(),
     );

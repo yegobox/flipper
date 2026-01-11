@@ -2,7 +2,6 @@ import 'dart:math' as math;
 
 import 'package:flipper_services/utils.dart';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class SemiCircleGauge extends StatefulWidget {
   final double dataOnGreenSide;
@@ -19,8 +18,8 @@ class SemiCircleGauge extends StatefulWidget {
     required this.profitType,
     this.startPadding = 0.0,
     this.areValueColumnsVisible = true,
-  })  : maxDataValue = math.max(dataOnGreenSide, dataOnRedSide),
-        super(key: key);
+  }) : maxDataValue = math.max(dataOnGreenSide, dataOnRedSide),
+       super(key: key);
 
   @override
   State<SemiCircleGauge> createState() => _SemiCircleGaugeState();
@@ -54,8 +53,9 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge>
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    double radius =
-        widget.areValueColumnsVisible ? size.width / 3.2 : size.width / 3.8;
+    double radius = widget.areValueColumnsVisible
+        ? size.width / 3.2
+        : size.width / 3.8;
 
     // Ensure minimum radius
     radius = math.max(radius, 20.0);
@@ -77,28 +77,29 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge>
     final (resultText, profitOrLoss, color) = _calculateResults();
 
     // Determine font size based on length
-    String profitOrLossStr =
-        formatNumber(profitOrLoss); // Use formatted string for length check
+    String profitOrLossStr = formatNumber(
+      profitOrLoss,
+    ); // Use formatted string for length check
     int numberLength = profitOrLossStr.length;
     double fontSize = 28; // Default font size
 
-    if (numberLength > 7) {
-      fontSize =
-          widget.areValueColumnsVisible ? 22 : 18; // Adjust for visibility
+    if (numberLength > 13) {
+      fontSize = widget.areValueColumnsVisible
+          ? 14
+          : 12; // Minimum font size cap
     } else if (numberLength > 10) {
       fontSize = widget.areValueColumnsVisible
           ? 18
           : 14; // Further reduction for very large numbers
-    } else if (numberLength > 13) {
-      fontSize =
-          widget.areValueColumnsVisible ? 14 : 12; // Minimum font size cap
+    } else if (numberLength > 7) {
+      fontSize = widget.areValueColumnsVisible
+          ? 22
+          : 18; // Adjust for visibility
     }
 
     return Card(
       elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
         padding: const EdgeInsets.only(top: 16),
         child: Column(
@@ -124,7 +125,7 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge>
                       children: [
                         Text(
                           formatNumber(profitOrLoss) + ' RWF',
-                          style: GoogleFonts.poppins(
+                          style: TextStyle(
                             fontSize: fontSize,
                             color: color,
                             fontWeight: FontWeight.w600,
@@ -139,9 +140,7 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge>
               ),
             ),
             if (widget.areValueColumnsVisible) ...[
-              Divider(
-                color: Colors.grey.withValues(alpha: 0.2),
-              ),
+              Divider(color: Colors.grey.withValues(alpha: 0.2)),
               Padding(
                 padding: const EdgeInsets.only(bottom: 16),
                 child: Row(
@@ -183,7 +182,7 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge>
       children: [
         Text(
           formatNumber(amount) + " RWF",
-          style: GoogleFonts.poppins(
+          style: const TextStyle(
             fontSize: 16,
             color: Colors.black87,
             fontWeight: FontWeight.w600,
@@ -192,7 +191,7 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge>
         const SizedBox(height: 4),
         Text(
           label,
-          style: GoogleFonts.poppins(
+          style: TextStyle(
             fontSize: 14,
             color: color.withValues(alpha: 0.8),
             fontWeight: FontWeight.w500,
@@ -210,7 +209,7 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge>
     if (widget.dataOnGreenSide > widget.dataOnRedSide) {
       resultText = Text(
         widget.profitType,
-        style: GoogleFonts.poppins(
+        style: TextStyle(
           fontSize: widget.areValueColumnsVisible ? 16 : 14,
           color: Colors.green.withValues(alpha: 0.7),
           fontWeight: FontWeight.w500,
@@ -223,7 +222,7 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge>
     } else if (widget.dataOnRedSide > widget.dataOnGreenSide) {
       resultText = Text(
         'Loss',
-        style: GoogleFonts.poppins(
+        style: TextStyle(
           fontSize: widget.areValueColumnsVisible ? 16 : 14,
           color: Colors.red.withValues(alpha: 0.7),
           fontWeight: FontWeight.w500,
@@ -233,10 +232,10 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge>
       valueColor = Colors.red;
     } else if (widget.dataOnRedSide == widget.dataOnGreenSide &&
         widget.dataOnRedSide > 0) {
-      resultText = Text(
+      resultText = const Text(
         'Balanced',
-        style: GoogleFonts.poppins(
-          fontSize: widget.areValueColumnsVisible ? 16 : 14,
+        style: TextStyle(
+          fontSize: 14,
           color: Colors.grey,
           fontWeight: FontWeight.w500,
         ),
@@ -244,10 +243,10 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge>
       profitOrLoss = 0;
       valueColor = Colors.grey;
     } else {
-      resultText = Text(
+      resultText = const Text(
         'No transactions',
-        style: GoogleFonts.poppins(
-          fontSize: widget.areValueColumnsVisible ? 16 : 14,
+        style: TextStyle(
+          fontSize: 14,
           color: Colors.grey,
           fontWeight: FontWeight.w500,
         ),

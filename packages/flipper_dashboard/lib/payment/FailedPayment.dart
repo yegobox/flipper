@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:flipper_dashboard/utils/snack_bar_utils.dart';
+import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';

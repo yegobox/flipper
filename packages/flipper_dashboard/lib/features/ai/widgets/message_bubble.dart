@@ -4,13 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_models/brick/models/message.model.dart';
 import 'package:intl/intl.dart';
-import 'package:flutter/rendering.dart';
-import 'dart:ui' as ui;
-import 'package:pasteboard/pasteboard.dart';
 import 'package:markdown_widget/markdown_widget.dart';
+
+import '../utils/visualization_utils.dart';
 
 import '../theme/ai_theme.dart';
 import 'data_visualization.dart';
+import 'package:flipper_dashboard/features/credits/dialogs/credit_purchase_dialog.dart';
 
 /// A chat message bubble with a modern and clean design.
 class MessageBubble extends StatefulWidget {
@@ -33,35 +33,21 @@ class _MessageBubbleState extends State<MessageBubble> {
   Future<void> _copyToClipboard() async {
     if (_shouldShowDataVisualization(widget.message.text)) {
       // If it's a visualization, capture and copy the image
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        try {
-          RenderRepaintBoundary? boundary =
-              _visualizationKey.currentContext?.findRenderObject()
-                  as RenderRepaintBoundary?;
-          if (boundary == null) {
-            _showSnackBar('Error: Could not find render object.');
-            return;
-          }
-
-          ui.Image image = await boundary.toImage(pixelRatio: 3.0);
-          ByteData? byteData = await image.toByteData(
-            format: ui.ImageByteFormat.png,
-          );
-          if (byteData == null) {
-            return;
-          }
-
-          await Pasteboard.writeImage(byteData.buffer.asUint8List());
-        } catch (e) {
-          return;
-        }
-      });
+      VisualizationUtils.copyToClipboard(
+        context,
+        _visualizationKey,
+        onSuccess: _handleCopySuccess,
+      );
     } else {
       // If it's plain text, copy the text
       final text = widget.message.text;
       await Clipboard.setData(ClipboardData(text: text));
+      _handleCopySuccess();
     }
+  }
 
+  void _handleCopySuccess() {
+    if (!mounted) return;
     setState(() {
       _showCopied = true;
     });
@@ -134,31 +120,70 @@ class _MessageBubbleState extends State<MessageBubble> {
                               ),
                             ],
                           ),
-                          child: hasVisualization
-                              ? DataVisualization(
-                                  data: widget.message.text,
-                                  currency: ProxyService.box.defaultCurrency(),
-                                  cardKey: _visualizationKey,
-                                  onCopyGraph: _copyToClipboard,
-                                )
-                              : MarkdownWidget(
-                                  data: widget.message.text,
-                                  shrinkWrap: true,
-                                  physics: const NeverScrollableScrollPhysics(),
-                                  config: MarkdownConfig(
-                                    configs: [
-                                      PConfig(
-                                        textStyle: TextStyle(
-                                          color: widget.isUser
-                                              ? AiTheme.onPrimaryColor
-                                              : AiTheme.onAssistantMessageColor,
-                                          fontSize: 16,
-                                          height: 1.4,
-                                        ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              hasVisualization
+                                  ? DataVisualization(
+                                      data: widget.message.text,
+                                      currency: ProxyService.box
+                                          .defaultCurrency(),
+                                      cardKey: _visualizationKey,
+                                      onCopyGraph: _copyToClipboard,
+                                    )
+                                  : MarkdownWidget(
+                                      data: widget.message.text,
+                                      shrinkWrap: true,
+                                      physics:
+                                          const NeverScrollableScrollPhysics(),
+                                      config: MarkdownConfig(
+                                        configs: [
+                                          PConfig(
+                                            textStyle: TextStyle(
+                                              color: widget.isUser
+                                                  ? AiTheme.onPrimaryColor
+                                                  : AiTheme
+                                                        .onAssistantMessageColor,
+                                              fontSize: 16,
+                                              height: 1.4,
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                    ],
+                                    ),
+                              if (widget.message.text.contains(
+                                "purchase credits",
+                              ))
+                                Padding(
+                                  padding: const EdgeInsets.only(top: 12.0),
+                                  child: ElevatedButton(
+                                    onPressed: () {
+                                      showDialog(
+                                        context: context,
+                                        builder: (context) => CreditPurchaseDialog(
+                                          onPaymentSuccess: () {
+                                            Navigator.pop(
+                                              context,
+                                            ); // Close dialog
+                                            _showSnackBar(
+                                              "Payment successful! You can now retry your request.",
+                                            );
+                                          },
+                                        ),
+                                      );
+                                    },
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AiTheme.primaryColor,
+                                      foregroundColor: Colors.white,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                    child: const Text("Purchase Credits"),
                                   ),
                                 ),
+                            ],
+                          ),
                         ),
                         if (_isHovering && !hasVisualization)
                           Positioned(

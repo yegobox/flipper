@@ -53,7 +53,9 @@ mixin VariantMixin implements VariantInterface {
         Where('stockId').isExactly(stockId),
       ]
     ]);
-    return (await repository.get<Variant>(query: query)).firstOrNull;
+    return (await repository.get<Variant>(
+            query: query, policy: OfflineFirstGetPolicy.localOnly))
+        .firstOrNull;
   }
 
   @override
@@ -276,7 +278,13 @@ mixin VariantMixin implements VariantInterface {
           if (skipRRaCall) {
             return;
           }
-          if (ebm?.taxServerUrl.isEmpty ?? true) {
+
+          final isTaxEnabled = await ProxyService.strategy.isTaxEnabled(
+            businessId: ProxyService.box.getBusinessId()!,
+            branchId: ProxyService.box.getBranchId()!,
+          );
+
+          if (!isTaxEnabled) {
             return;
           }
 

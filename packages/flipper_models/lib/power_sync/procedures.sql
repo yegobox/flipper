@@ -94,11 +94,12 @@ BEGIN
             WHERE v.branch_id = NEW.branch_id;
             -- Calculate comprehensive analytics data
             FOR transaction_item IN
-                SELECT ti.price * ti.qty AS item_value, 
+                SELECT 
+                       COALESCE(NULLIF(ti.price, 0), ti.prc, 0) * ti.qty AS item_value, 
                        v.item_nm AS item_name, 
                        ti.qty, 
                        v.tax_ty_cd, 
-                       ti.price, 
+                       COALESCE(NULLIF(ti.price, 0), ti.prc, 0) AS price, 
                        v.category_name,
                        v.category_id,
                        COALESCE(v.supply_price, 0) AS supply_price,
@@ -123,8 +124,8 @@ BEGIN
                 -- Keep transaction-specific stock for reference
                 total_stock_value := total_stock_value + (transaction_item.current_stock * transaction_item.retail_price);
 
-                -- Calculate profit based on selling price and supply price
-                total_profit := total_profit + (transaction_item.price - transaction_item.supply_price) * transaction_item.qty;
+                -- Calculate profit based on item value (revenue) minus total supply cost for this item line
+                total_profit := total_profit + (transaction_item.item_value - (transaction_item.supply_price * transaction_item.qty));
                 
                 -- Accumulate remaining stock from transaction items
                 total_stock_remained := total_stock_remained + transaction_item.remaining_stock;
@@ -135,7 +136,12 @@ BEGIN
                 item_name_list := substring(item_name_list FROM 3);
                 category_name_list := substring(category_name_list FROM 3);
                 category_id_list := substring(category_id_list FROM 3);
-                average_price := total_price / item_count;
+                -- Use weighted average price (Total Value / Total Quantity) instead of simple average
+                IF total_quantity > 0 THEN
+                    average_price := total_value / total_quantity;
+                ELSE
+                    average_price := 0;
+                END IF;
             END IF;
 
             -- Insert comprehensive analytics data

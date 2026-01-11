@@ -5,7 +5,7 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:flipper_dashboard/utils/snack_bar_utils.dart';
+import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:synchronized/synchronized.dart';
@@ -73,12 +73,7 @@ class TransactionItemAdder {
           if (context.mounted) {
             ScaffoldMessenger.of(context).hideCurrentSnackBar();
           }
-          showCustomSnackBarUtil(
-            context,
-            "You do not have enough stock",
-            backgroundColor: Colors.red,
-            showCloseButton: true,
-          );
+          showErrorNotification(context, "You do not have enough stock");
           return;
         }
         if (variant.taxTyCd != "D" &&
@@ -87,12 +82,7 @@ class TransactionItemAdder {
           if (context.mounted) {
             ScaffoldMessenger.of(context).hideCurrentSnackBar();
           }
-          showCustomSnackBarUtil(
-            context,
-            "You do not have enough stock",
-            backgroundColor: Colors.red,
-            showCloseButton: true,
-          );
+          showErrorNotification(context, "You do not have enough stock");
           return;
         }
       }
@@ -180,11 +170,7 @@ class TransactionItemAdder {
           'timestamp': DateTime.now().toIso8601String(),
         },
       );
-      showCustomSnackBarUtil(
-        context,
-        "Failed to add item to cart",
-        backgroundColor: Colors.red,
-      );
+      showErrorNotification(context, "Failed to add item to cart");
       if (context.mounted) {
         w?.log("ItemAddedToTransactionFailed"); // Log failure
       }
