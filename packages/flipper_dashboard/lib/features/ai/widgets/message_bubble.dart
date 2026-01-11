@@ -4,10 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_models/brick/models/message.model.dart';
 import 'package:intl/intl.dart';
-import 'package:flutter/rendering.dart';
-import 'dart:ui' as ui;
-import 'package:pasteboard/pasteboard.dart';
 import 'package:markdown_widget/markdown_widget.dart';
+
+import '../utils/visualization_utils.dart';
 
 import '../theme/ai_theme.dart';
 import 'data_visualization.dart';
@@ -34,35 +33,21 @@ class _MessageBubbleState extends State<MessageBubble> {
   Future<void> _copyToClipboard() async {
     if (_shouldShowDataVisualization(widget.message.text)) {
       // If it's a visualization, capture and copy the image
-      WidgetsBinding.instance.addPostFrameCallback((_) async {
-        try {
-          RenderRepaintBoundary? boundary =
-              _visualizationKey.currentContext?.findRenderObject()
-                  as RenderRepaintBoundary?;
-          if (boundary == null) {
-            _showSnackBar('Error: Could not find render object.');
-            return;
-          }
-
-          ui.Image image = await boundary.toImage(pixelRatio: 3.0);
-          ByteData? byteData = await image.toByteData(
-            format: ui.ImageByteFormat.png,
-          );
-          if (byteData == null) {
-            return;
-          }
-
-          await Pasteboard.writeImage(byteData.buffer.asUint8List());
-        } catch (e) {
-          return;
-        }
-      });
+      VisualizationUtils.copyToClipboard(
+        context,
+        _visualizationKey,
+        onSuccess: _handleCopySuccess,
+      );
     } else {
       // If it's plain text, copy the text
       final text = widget.message.text;
       await Clipboard.setData(ClipboardData(text: text));
+      _handleCopySuccess();
     }
+  }
 
+  void _handleCopySuccess() {
+    if (!mounted) return;
     setState(() {
       _showCopied = true;
     });

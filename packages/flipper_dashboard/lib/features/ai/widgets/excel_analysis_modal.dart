@@ -3,9 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_models/providers/excel_analysis_provider.dart';
 import 'package:flipper_dashboard/features/ai/widgets/data_visualization/structured_data_visualization.dart';
-import 'dart:ui' as ui;
-import 'package:flutter/rendering.dart';
-import 'package:pasteboard/pasteboard.dart';
+import 'package:flipper_dashboard/features/ai/utils/visualization_utils.dart';
 
 class ExcelAnalysisModal extends ConsumerStatefulWidget {
   final String filePath;
@@ -498,40 +496,6 @@ class _ExcelAnalysisModalState extends ConsumerState<ExcelAnalysisModal> {
   }
 
   Future<void> _copyToClipboard() async {
-    // Capture and copy the image
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      try {
-        final boundary =
-            _visualizationKey.currentContext?.findRenderObject()
-                as RenderRepaintBoundary?;
-        if (boundary == null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Error: Could not find chart to copy.'),
-            ),
-          );
-          return;
-        }
-
-        final image = await boundary.toImage(pixelRatio: 3.0);
-        final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-        if (byteData == null) {
-          return;
-        }
-
-        await Pasteboard.writeImage(byteData.buffer.asUint8List());
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Chart copied to clipboard!')),
-          );
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(
-            context,
-          ).showSnackBar(SnackBar(content: Text('Failed to copy chart: $e')));
-        }
-      }
-    });
+    await VisualizationUtils.copyToClipboard(context, _visualizationKey);
   }
 }
