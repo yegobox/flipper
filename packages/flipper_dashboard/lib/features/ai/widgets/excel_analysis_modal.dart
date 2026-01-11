@@ -6,15 +6,27 @@ import 'package:flipper_dashboard/features/ai/widgets/data_visualization/structu
 
 class ExcelAnalysisModal extends ConsumerStatefulWidget {
   final String filePath;
+  final AIModel? preSelectedModel;
 
-  const ExcelAnalysisModal({super.key, required this.filePath});
+  const ExcelAnalysisModal({
+    super.key,
+    required this.filePath,
+    this.preSelectedModel,
+  });
 
-  static void show(BuildContext context, String filePath) {
+  static void show(
+    BuildContext context,
+    String filePath, {
+    AIModel? preSelectedModel,
+  }) {
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
       barrierLabel: 'Excel Analysis',
-      pageBuilder: (context, _, __) => ExcelAnalysisModal(filePath: filePath),
+      pageBuilder: (context, _, __) => ExcelAnalysisModal(
+        filePath: filePath,
+        preSelectedModel: preSelectedModel,
+      ),
     );
   }
 
@@ -30,8 +42,20 @@ class _ExcelAnalysisModalState extends ConsumerState<ExcelAnalysisModal> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(excelAnalysisProvider.notifier).initWithFile(widget.filePath);
+      ref
+          .read(excelAnalysisProvider.notifier)
+          .initWithFile(
+            widget.filePath,
+            preSelectedModel: widget.preSelectedModel,
+          );
     });
+  }
+
+  @override
+  void dispose() {
+    _chatController.dispose();
+    _chatScrollController.dispose();
+    super.dispose();
   }
 
   @override
@@ -262,13 +286,22 @@ class _ExcelAnalysisModalState extends ConsumerState<ExcelAnalysisModal> {
               child: SingleChildScrollView(
                 child: Builder(
                   builder: (context) {
-                    final viz = StructuredDataVisualization(
-                      state.lastVisualizationData!,
-                      null, // currencyService placeholder
-                      cardKey: GlobalKey(),
-                      onCopyGraph: () {},
-                    );
-                    return viz.build(context);
+                    try {
+                      final viz = StructuredDataVisualization(
+                        state.lastVisualizationData!,
+                        null, // currencyService placeholder
+                        cardKey: GlobalKey(),
+                        onCopyGraph: () {},
+                      );
+                      return viz.build(context);
+                    } catch (e) {
+                      return Center(
+                        child: Text(
+                          'Error rendering chart: $e',
+                          style: const TextStyle(color: Colors.red),
+                        ),
+                      );
+                    }
                   },
                 ),
               ),

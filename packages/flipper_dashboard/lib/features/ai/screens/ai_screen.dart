@@ -47,7 +47,11 @@ class _AiScreenState extends ConsumerState<AiScreen> {
     // Check if it's an Excel file
     if (filePath.endsWith('.xlsx') || filePath.endsWith('.xls')) {
       // Launch the dedicated Excel analysis modal
-      ExcelAnalysisModal.show(context, filePath);
+      ExcelAnalysisModal.show(
+        context,
+        filePath,
+        preSelectedModel: _selectedModel,
+      );
       return;
     }
 
@@ -539,7 +543,16 @@ class _AiScreenState extends ConsumerState<AiScreen> {
           }
         });
       } catch (e) {
-        // Handle case where no models might be available momentarily
+        // Log the exception and handle gracefully
+        debugPrint('Error initializing selected AI model: $e');
+        // Set to null to indicate no model is available
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            setState(() {
+              _selectedModel = null;
+            });
+          }
+        });
       }
     }
 
@@ -569,6 +582,25 @@ class _AiScreenState extends ConsumerState<AiScreen> {
           _startNewConversation();
         }
       });
+    });
+
+    // Listen to available models to ensure selected model is valid
+    ref.listen<AsyncValue<List<AIModel>>>(availableModelsProvider, (
+      previous,
+      next,
+    ) {
+      if (next.hasValue && next.value != null) {
+        final availableModels = next.value!;
+        if (_selectedModel != null &&
+            !availableModels.any((model) => model.id == _selectedModel!.id)) {
+          setState(() {
+            // Set to first available model if current selection is not in the list
+            _selectedModel = availableModels.isNotEmpty
+                ? availableModels.first
+                : null;
+          });
+        }
+      }
     });
 
     return LayoutBuilder(

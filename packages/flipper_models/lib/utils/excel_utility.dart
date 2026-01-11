@@ -7,10 +7,10 @@ class ExcelUtility {
   static Future<String> excelToMarkdown(String filePath) async {
     try {
       final file = File(filePath);
-      if (!file.existsSync()) {
+      if (!(await file.exists())) {
         return 'Error: File does not exist at $filePath';
       }
-      final bytes = file.readAsBytesSync();
+      final bytes = await file.readAsBytes();
       if (bytes.isEmpty) {
         return 'Error: File is empty.';
       }
@@ -84,10 +84,10 @@ class ExcelUtility {
       String filePath) async {
     try {
       final file = File(filePath);
-      if (!file.existsSync()) {
+      if (!(await file.exists())) {
         throw Exception('File does not exist');
       }
-      final bytes = file.readAsBytesSync();
+      final bytes = await file.readAsBytes();
       final excel = Excel.decodeBytes(bytes);
       final Map<String, Map<String, dynamic>> results = {};
 
@@ -114,7 +114,7 @@ class ExcelUtility {
       return results;
     } catch (e) {
       talker.error('Error extracting data from Excel: $e');
-      return {};
+      rethrow;
     }
   }
 

@@ -53,17 +53,19 @@ class AIModelRepository {
   Future<BusinessAIConfig?> getBusinessConfig(String businessId) async {
     try {
       final supabase = Supabase.instance.client;
+
+      // Perform an upsert to ensure the config exists, then return the result
       final response = await supabase
           .from('business_ai_configs')
+          .upsert({
+            'business_id': businessId,
+            'usage_limit': 100, // Default limit
+            'current_usage': 0,
+            'ai_model_id': null, // Use global default
+          },
+          onConflict: 'business_id') // Use the unique constraint on business_id
           .select()
-          .eq('business_id', businessId)
-          .maybeSingle();
-
-      if (response == null) {
-        talker.warning(
-            'AIModelRepository: No config found for business $businessId, creating default.');
-        return await _createDefaultConfig(businessId);
-      }
+          .single();
 
       // Manual mapping until mapper is generated/fixed
       return BusinessAIConfig(
@@ -80,41 +82,6 @@ class AIModelRepository {
     }
   }
 
-  /// Create a default AI configuration for a business
-  Future<BusinessAIConfig?> _createDefaultConfig(String businessId) async {
-    try {
-      talker.info(
-          'AIModelRepository: Creating default config for business $businessId');
-      final supabase = Supabase.instance.client;
-
-      // Get default model if available, otherwise null (global default)
-      // We don't strictly need to fetch it here if we just want to pass null,
-      // but let's leave it null to use system default.
-
-      final response = await supabase
-          .from('business_ai_configs')
-          .insert({
-            'business_id': businessId,
-            'usage_limit': 100, // Default limit
-            'current_usage': 0,
-            'ai_model_id': null, // Use global default
-          })
-          .select()
-          .single();
-
-      return BusinessAIConfig(
-        id: response['id'],
-        businessId: response['business_id'],
-        aiModelId: response['ai_model_id'],
-        usageLimit: response['usage_limit'] ?? 100,
-        currentUsage: response['current_usage'] ?? 0,
-        updatedAt: DateTime.parse(response['updated_at']),
-      );
-    } catch (e) {
-      talker.error('AIModelRepository: Failed to create default config: $e');
-      return null;
-    }
-  }
 
   /// Increment usage for a business config
   Future<void> incrementUsage(String configId) async {

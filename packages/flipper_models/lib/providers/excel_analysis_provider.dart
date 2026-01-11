@@ -1,10 +1,8 @@
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/utils/excel_utility.dart';
 import 'package:flipper_models/providers/ai_provider.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
+
 import 'package:flipper_models/models/ai_model.dart';
 import 'package:flipper_models/repositories/ai_model_repository.dart';
 import 'package:flipper_models/providers/unified_ai_input.dart';
@@ -19,7 +17,9 @@ class ExcelAnalysisState {
   final Map<String, Map<String, dynamic>> excelData;
   final String? filePath;
   final List<AIModel> availableModels;
+
   final AIModel? selectedModel;
+  final String? markdownData;
 
   ExcelAnalysisState({
     this.history = const [],
@@ -30,6 +30,7 @@ class ExcelAnalysisState {
     this.filePath,
     this.availableModels = const [],
     this.selectedModel,
+    this.markdownData,
   });
 
   ExcelAnalysisState copyWith({
@@ -41,6 +42,7 @@ class ExcelAnalysisState {
     String? filePath,
     List<AIModel>? availableModels,
     AIModel? selectedModel,
+    String? markdownData,
   }) {
     return ExcelAnalysisState(
       history: history ?? this.history,
@@ -52,6 +54,7 @@ class ExcelAnalysisState {
       filePath: filePath ?? this.filePath,
       availableModels: availableModels ?? this.availableModels,
       selectedModel: selectedModel ?? this.selectedModel,
+      markdownData: markdownData ?? this.markdownData,
     );
   }
 }
@@ -90,7 +93,8 @@ class ExcelAnalysis extends _$ExcelAnalysis {
     return '❌ Analysis Failed\n\nSomething went wrong while analyzing your data. Please try again or contact support if the issue persists.';
   }
 
-  Future<void> initWithFile(String filePath) async {
+  Future<void> initWithFile(String filePath,
+      {AIModel? preSelectedModel}) async {
     talker.info('ExcelAnalysis: Initializing with file: $filePath');
     state = state.copyWith(isLoading: true, filePath: filePath);
     try {
@@ -106,17 +110,22 @@ class ExcelAnalysis extends _$ExcelAnalysis {
       final models = await repository.getAvailableModels();
       final defaultModel = await repository.getDefaultModel();
 
+      // Use preSelectedModel if provided, otherwise fallback to default
+      final modelToUse = preSelectedModel ?? defaultModel;
+
       state = state.copyWith(
         excelData: data,
         history: [],
         availableModels: models,
-        selectedModel: defaultModel,
+        selectedModel: modelToUse,
         isLoading: false,
+        markdownData: markdown,
       );
 
       // Trigger initial AI response with context
+      // We send a clean message to the UI, but the provider will inject the markdown data
       await analyzeMessage(
-          "I have uploaded an Excel file for analysis. Here is the data in Markdown format:\n\n$markdown\n\nPlease analyze this data and give me a brief summary of what's inside.");
+          "Please analyze this data and provide: 1) A visualization showing key trends or metrics, and 2) A brief summary of the main insights.");
     } catch (e, stack) {
       talker.error('ExcelAnalysis: Init failed: $e');
       talker.error(stack);
@@ -154,8 +163,91 @@ class ExcelAnalysis extends _$ExcelAnalysis {
     );
 
     try {
+      // Prepare contents for AI, injecting markdown data if needed
+      List<Content> apiContents = List.from(newHistory);
+
+      // 1. Inject Excel Data into the first message (Context)
+      if (state.markdownData != null && apiContents.isNotEmpty) {
+        if (apiContents[0].role == 'user') {
+          final originalText = apiContents[0]
+              .parts
+              .firstWhere(
+                (p) => p.toJson().containsKey('text'),
+                orElse: () => Part.text(''),
+              )
+              .toJson()['text'] as String;
+
+          final dataContext =
+              "Here is the Excel data to analyze:\n\n${state.markdownData}\n\n$originalText";
+
+          apiContents[0] = Content(
+            role: "user",
+            parts: [Part.text(dataContext)],
+          );
+        }
+      }
+
+      // 2. Inject Visualization Instructions into the LAST message (Immediate Instruction)
+      // This ensures the model sees the strict formatting requirements right after the specific user question.
+      if (apiContents.isNotEmpty) {
+        final lastIdx = apiContents.length - 1;
+        if (apiContents[lastIdx].role == 'user') {
+          final currentText = apiContents[lastIdx]
+              .parts
+              .firstWhere(
+                (p) => p.toJson().containsKey('text'),
+                orElse: () => Part.text(''),
+              )
+              .toJson()['text'] as String;
+
+          const visualizationInstructions = """
+
+CRITICAL REQUIREMENT: You MUST include a visualization for this financial data.
+
+The "type" field in the JSON MUST be exactly "financial_report". Do NOT use "line_chart" or "bar_chart".
+
+Your response MUST follow this exact structure:
+1. First, output the {{VISUALIZATION_DATA}} block with the chart data
+2. Then, provide a brief 2-3 sentence summary
+
+Example format:
+{{VISUALIZATION_DATA}}
+{
+  "type": "financial_report",
+  "title": "Monthly Financial Performance",
+  "xAxisLabel": "Month",
+  "yAxisLabel": "Amount (RWF)",
+  "labels": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct"],
+  "datasets": [
+    {
+      "label": "Revenue",
+      "data": [4500000, 4800000, 5200000, 5000000, 5600000, 5900000, 6200000, 6500000, 6300000, 6800000],
+      "color": "#0078D4"
+    },
+    {
+      "label": "Gross Profit",
+      "data": [180000, 190000, 220000, 205000, 240000, 260000, 270000, 280000, 270000, 290000],
+      "color": "#107C10"
+    }
+  ]
+}
+{{/VISUALIZATION_DATA}}
+
+Now analyze the provided Excel data and create your visualization following this exact format.
+""";
+
+          final textWithInstructions =
+              "$currentText\n\n$visualizationInstructions";
+
+          apiContents[lastIdx] = Content(
+            role: "user",
+            parts: [Part.text(textWithInstructions)],
+          );
+        }
+      }
+
       final inputData = UnifiedAIInput(
-        contents: newHistory,
+        contents: apiContents,
         generationConfig: GenerationConfig(
           temperature: 0.2,
           maxOutputTokens: 2048,
@@ -181,22 +273,53 @@ class ExcelAnalysis extends _$ExcelAnalysis {
 
       talker.info('ExcelAnalysis: Got response (${response.length} chars)');
 
-      final assistantMessage = Content(
-        role: "model",
-        parts: [Part.text(response)],
-      );
-
       // Extract visualization data if present
       String? vizData;
+      String cleanedResponse = response;
+
       if (response.contains('{{VISUALIZATION_DATA}}')) {
-        final start = response.indexOf('{{VISUALIZATION_DATA}}') +
-            '{{VISUALIZATION_DATA}}'.length;
-        final end = response.indexOf('{{/VISUALIZATION_DATA}}');
-        if (end > start) {
-          vizData = response.substring(start, end).trim();
-          talker.info('ExcelAnalysis: Extracted visualization data');
+        final startTag = '{{VISUALIZATION_DATA}}';
+        final endTag = '{{/VISUALIZATION_DATA}}';
+
+        final startIdx = response.indexOf(startTag);
+        final endIdx = response.indexOf(endTag);
+
+        if (startIdx != -1 && endIdx != -1 && endIdx > startIdx) {
+          // Extract the full block including markers (needed for StructuredDataVisualization)
+          vizData = response.substring(startIdx, endIdx + endTag.length);
+
+          // Safety fix: The visualization widget only supports specific types.
+          // If the AI invents 'line_chart' or 'bar_chart', map them to 'financial_report' which handles them.
+          if (vizData.contains('"type": "line_chart"') ||
+              vizData.contains('"type": "bar_chart"') ||
+              vizData.contains('"type": "pie_chart"')) {
+            vizData = vizData.replaceAll(
+                RegExp(r'"type":\s*"(line|bar|pie)_chart"'),
+                '"type": "financial_report"');
+            talker.warning(
+                'ExcelAnalysis: Corrected visualization type to financial_report');
+          }
+
+          talker
+              .info('ExcelAnalysis: Extracted visualization data with markers');
+
+          // Remove the visualization block from the response shown in chat
+          cleanedResponse = response
+              .replaceAll(
+                RegExp(
+                  r'\{\{VISUALIZATION_DATA\}\}.*?\{\{/VISUALIZATION_DATA\}\}',
+                  dotAll: true,
+                ),
+                '',
+              )
+              .trim();
         }
       }
+
+      final assistantMessage = Content(
+        role: "model",
+        parts: [Part.text(cleanedResponse)],
+      );
 
       state = state.copyWith(
         history: [...newHistory, assistantMessage],
