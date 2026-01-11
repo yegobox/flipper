@@ -3,12 +3,26 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
+  amplify_db_common
+  desktop_drop
+  desktop_webview_auth
+  file_selector_linux
+  flutter_localization
   gtk
+  pasteboard
+  printing
+  record_linux
+  screen_retriever_linux
+  sentry_flutter
+  tray_manager
   url_launcher_linux
+  window_manager
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST
   ditto_live
+  flutter_soloud
+  jni
 )
 
 set(PLUGIN_BUNDLED_LIBRARIES)

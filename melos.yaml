@@ -18,7 +18,7 @@ command:
 
 # Global dependency overrides for consistent versions across packages
 dependency_overrides:
-  archive: ^3.6.1
+  archive: ^4.0.2
   flutter_native_splash: ^2.3.2
   analyzer: ^9.0.0
   source_gen: ">=3.1.0 <5.0.0"  # Override to allow compatibility with json_serializable
