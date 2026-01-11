@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_models/providers/excel_analysis_provider.dart';
 import 'package:flipper_dashboard/features/ai/widgets/data_visualization/structured_data_visualization.dart';
+import 'dart:ui' as ui;
+import 'package:flutter/rendering.dart';
+import 'package:pasteboard/pasteboard.dart';
 
 class ExcelAnalysisModal extends ConsumerStatefulWidget {
   final String filePath;
@@ -37,6 +40,7 @@ class ExcelAnalysisModal extends ConsumerStatefulWidget {
 class _ExcelAnalysisModalState extends ConsumerState<ExcelAnalysisModal> {
   final TextEditingController _chatController = TextEditingController();
   final ScrollController _chatScrollController = ScrollController();
+  final GlobalKey _visualizationKey = GlobalKey();
 
   @override
   void initState() {
@@ -290,8 +294,8 @@ class _ExcelAnalysisModalState extends ConsumerState<ExcelAnalysisModal> {
                       final viz = StructuredDataVisualization(
                         state.lastVisualizationData!,
                         null, // currencyService placeholder
-                        cardKey: GlobalKey(),
-                        onCopyGraph: () {},
+                        cardKey: _visualizationKey,
+                        onCopyGraph: _copyToClipboard,
                       );
                       return viz.build(context);
                     } catch (e) {
@@ -489,6 +493,44 @@ class _ExcelAnalysisModalState extends ConsumerState<ExcelAnalysisModal> {
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeOut,
         );
+      }
+    });
+  }
+
+  Future<void> _copyToClipboard() async {
+    // Capture and copy the image
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      try {
+        final boundary =
+            _visualizationKey.currentContext?.findRenderObject()
+                as RenderRepaintBoundary?;
+        if (boundary == null) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Error: Could not find chart to copy.'),
+            ),
+          );
+          return;
+        }
+
+        final image = await boundary.toImage(pixelRatio: 3.0);
+        final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+        if (byteData == null) {
+          return;
+        }
+
+        await Pasteboard.writeImage(byteData.buffer.asUint8List());
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Chart copied to clipboard!')),
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Failed to copy chart: $e')));
+        }
       }
     });
   }
