@@ -4,7 +4,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # 1.170.4252223234854+1755779343
 # 1.180.4252223234901+1756527939
 
-version: 1.180.4252223234901+1756528660
+version: 1.180.4252223234901+1756528661
 
 
 environment:
@@ -76,10 +76,10 @@ dependencies:
   dropdown_search: ^6.0.2
   loading_animation_widget: ^1.2.0+4
   email_validator_flutter: ^1.0.0
-  syncfusion_flutter_datagrid: ^32.1.22
-  syncfusion_flutter_xlsio: ^32.1.22
-  syncfusion_flutter_datagrid_export: ^32.1.22
-  syncfusion_flutter_core: ^32.1.22
+  syncfusion_flutter_datagrid: ^29.2.11
+  syncfusion_flutter_xlsio: ^29.2.11
+  syncfusion_flutter_datagrid_export: ^29.2.11
+  syncfusion_flutter_core: ^29.2.11
   flex_color_picker: ^3.7.1
   sizer: ^2.0.15
   talker_flutter: ^4.1.5
@@ -113,15 +113,15 @@ dependencies:
   pdf_widget_wrapper: '>=1.0.0 <2.0.0'
   # plugin_platform_interface: ^2.1.0
   web: ^1.1.0
-  archive: ^4.0.2
+  archive: ^3.6.1
   bidi: ^2.0.10
   crypto: ^3.0.7
   path_parsing: ">=0.2.0 <2.0.0"
   vector_math: ^2.1.0
   xml: ">=6.3.0 <7.0.0"
   dotted_line: ^3.2.2
-  syncfusion_flutter_pdf: ^32.1.22
-  syncfusion_flutter_barcodes: ^32.1.22
+  syncfusion_flutter_pdf: ^29.2.11
+  syncfusion_flutter_barcodes: ^29.2.11
   win32: ^5.14.0
   qr: ^3.0.2
   flutter_bloc: ^9.1.1
@@ -158,7 +158,7 @@ dependency_overrides:
   stacked: ^3.5.0
   device_info_plus: ^12.3.0
   firebase_ui_auth: ^3.0.0
-  archive: ^4.0.2
+  archive: ^3.6.1
   mime: ^2.0.0
   get_it: ^8.0.3
   cbor: ^6.3.7
@@ -195,7 +195,7 @@ msix_config:
     force_update_from_any_version: true
   publisher_display_name: yegobox ltd
   identity_name: yegobox.yegoboxflipper
-  msix_version: 1.170.5051.723
+  msix_version: 1.170.5051.724
   publisher: CN=B0F334A1E-8AET-4B2C-BD1B-F239D4F791AE
   logo_path: "./assets/icon.png"
   start_menu_icon_path: "/assets/icon.png"
