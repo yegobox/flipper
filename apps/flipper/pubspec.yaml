@@ -4,7 +4,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # 1.170.4252223234854+1755779343
 # 1.180.4252223234901+1756527939
 
-version: 1.180.4252223234901+1756528661
+version: 1.180.4252223234901+1756528662
 
 
 environment:
@@ -141,7 +141,7 @@ dependencies:
   amplify_storage_s3: ^2.8.0
   shared_preferences: ^2.5.2
   easy_localization: ^3.0.7 
-  supabase_flutter: ^2.10.0
+  supabase_flutter: ^2.12.0
   sqflite_common_ffi: ^2.4.0+1
   sqflite_common_ffi_web: ^1.0.1+1
   posthog_flutter: ^5.4.3
@@ -195,7 +195,7 @@ msix_config:
     force_update_from_any_version: true
   publisher_display_name: yegobox ltd
   identity_name: yegobox.yegoboxflipper
-  msix_version: 1.170.5051.724
+  msix_version: 1.170.5051.725
   publisher: CN=B0F334A1E-8AET-4B2C-BD1B-F239D4F791AE
   logo_path: "./assets/icon.png"
   start_menu_icon_path: "/assets/icon.png"
