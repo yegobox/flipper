@@ -481,7 +481,9 @@ class StructuredDataVisualization implements VisualizationInterface {
       }
 
       // Validate hex format (should be 6 or 8 hex digits)
-      if (!RegExp(r'^[0-9A-Fa-f]{6}$|^[0-9A-Fa-f]{8}$').hasMatch(cleanColorStr)) {
+      if (!RegExp(
+        r'^[0-9A-Fa-f]{6}$|^[0-9A-Fa-f]{8}$',
+      ).hasMatch(cleanColorStr)) {
         return fallbackColor;
       }
 
@@ -794,7 +796,7 @@ class StructuredDataVisualization implements VisualizationInterface {
             enabled: true,
             touchTooltipData: BarTouchTooltipData(
               // tooltipBgColor: Colors.grey.shade800,
-              tooltipRoundedRadius: 8,
+              tooltipBorderRadius: BorderRadius.circular(8),
               tooltipPadding: const EdgeInsets.all(8),
               getTooltipItem: (group, groupIndex, rod, rodIndex) {
                 final values = [revenue, profit, unitsSold];
