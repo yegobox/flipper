@@ -20,6 +20,9 @@ import 'package:supabase_models/brick/repository.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
 import 'package:flipper_models/view_models/startup_viewmodel.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper_models/view_models/ScannViewModel.dart';
+
+class MockScannViewModel extends Mock implements ScannViewModel {}
 
 class MockRepository extends Mock implements Repository {}
 
