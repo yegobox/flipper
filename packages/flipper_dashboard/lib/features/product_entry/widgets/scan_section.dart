@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 
@@ -33,9 +33,10 @@ class _ScanSectionState extends State<ScanSection> {
   void _handleSubmission(String value) {
     if (value.isEmpty) return;
 
-    // We assume validation is handled by the parent or we validate here if needed.
-    // Ideally, we should check Form.of(context)?.validate() ?? false
-    if (Form.of(context).validate()) {
+    final formState = Form.maybeOf(context);
+    final isValid = formState?.validate() ?? true;
+
+    if (isValid) {
       _inputTimer?.cancel();
       _inputTimer = Timer(const Duration(seconds: 1), () {
         widget.onBarcodeScanned(value);
@@ -72,7 +73,7 @@ class _ScanSectionState extends State<ScanSection> {
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16.0),
                 filled: true,
                 fillColor: Colors.grey.shade50,
-                suffixIcon: (Platform.isAndroid || Platform.isIOS)
+                suffixIcon: (!kIsWeb && (defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS))
                     ? IconButton(
                         icon: const Icon(
                           FluentIcons.camera_20_regular,

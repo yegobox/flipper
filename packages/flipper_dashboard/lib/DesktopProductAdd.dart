@@ -496,7 +496,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
     }
   }
 
-  void _onSaveButtonPressed(
+  Future<void> _onSaveButtonPressed(
     ScannViewModel model,
     BuildContext context,
     Product product, {
@@ -777,18 +777,46 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                               onUnitOfMeasureChanged: (unitCode, variantId) {
                                 final units =
                                     ref.read(unitsProvider).value?.value ?? [];
-                                final unit = units.firstWhere(
-                                  (u) => u.code == unitCode,
-                                  orElse: () => units.firstWhere(
-                                    (u) => u.name == unitCode,
-                                    orElse: () => units.firstWhere(
-                                      (u) =>
-                                          u.name ==
-                                          model.scannedVariants.first.unit,
-                                      orElse: () => units.first,
-                                    ),
-                                  ),
-                                );
+
+                                // Guard against empty units list to prevent StateError
+                                if (units.isEmpty) {
+                                  // Skip updating the variant if no units are available
+                                  return;
+                                }
+
+                                // Safely find the unit with fallback options
+                                IUnit? unit;
+
+                                try {
+                                  // Find by code first
+                                  unit = units.firstWhere((u) => u.code == unitCode);
+                                } catch (e) {
+                                  try {
+                                    // If not found by code, try by name
+                                    unit = units.firstWhere((u) => u.name == unitCode);
+                                  } catch (e) {
+                                    try {
+                                      // If not found by name, try to match with first variant's unit
+                                      if (model.scannedVariants.isNotEmpty) {
+                                        unit = units.firstWhere(
+                                          (u) => u.name == model.scannedVariants.first.unit
+                                        );
+                                      } else {
+                                        // If no scanned variants, just return the first unit if available
+                                        unit = units.isNotEmpty ? units.first : null;
+                                      }
+                                    } catch (e) {
+                                      // Ultimate fallback to first unit if available
+                                      unit = units.isNotEmpty ? units.first : null;
+                                    }
+                                  }
+                                }
+
+                                // If no unit was found, return early
+                                if (unit == null) {
+                                  return;
+                                }
+
                                 final variantIndex = model.scannedVariants
                                     .indexWhere((v) => v.id == variantId);
                                 if (variantIndex != -1) {
@@ -822,13 +850,13 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                               if (!mounted) return;
                               try {
                                 if (_formKey.currentState!.validate() &&
-                                    !ref.watch(isCompositeProvider)) {
+                                    !ref.read(isCompositeProvider)) {
                                   if (productRef == null) {
                                     toast("Invalid product reference");
                                     return;
                                   }
                                   if (!mounted) return;
-                                  _onSaveButtonPressed(
+                                  await _onSaveButtonPressed(
                                     model,
                                     context,
                                     productRef,

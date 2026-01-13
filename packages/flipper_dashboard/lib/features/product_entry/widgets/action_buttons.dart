@@ -48,7 +48,7 @@ class ActionButtons extends StatelessWidget {
                   ),
                   disabledBackgroundColor: const Color(
                     0xFF006AF6,
-                  ).withOpacity(0.6),
+                  ).withValues(alpha: 0.6),
                 ),
                 child: isSaving
                     ? const SizedBox(

@@ -1,6 +1,7 @@
 import 'package:flipper_dashboard/features/product_entry/widgets/scan_section.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 
 void main() {
   late TextEditingController controller;
@@ -96,13 +97,19 @@ void main() {
         ),
       );
 
-      // Camera icon is only shown on mobile platforms
+      // Camera icon is only shown on mobile platforms (not on web)
       // For testing purposes, we check if the icon exists in the widget tree
-      final cameraIcon = find.byIcon(Icons.camera_alt);
+      final cameraIcon = find.byIcon(FluentIcons.camera_20_regular);
 
-      // The icon might not be visible on desktop test environment
-      // but we can verify the widget structure is correct
-      expect(find.byType(TextFormField), findsOneWidget);
+      // Only test the tap if the camera icon is present (mobile platforms)
+      if (tester.any(cameraIcon)) {
+        await tester.tap(cameraIcon);
+        await tester.pump();
+        expect(cameraCalled, true);
+      } else {
+        // On web/desktop, the camera icon shouldn't be present
+        expect(cameraIcon, findsNothing);
+      }
     });
 
     testWidgets('uses provided controller', (WidgetTester tester) async {
