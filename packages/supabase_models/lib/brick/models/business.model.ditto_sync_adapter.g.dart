@@ -231,6 +231,7 @@ class BusinessDittoAdapter extends DittoSyncAdapter<Business> {
       encryptionKey: document["encryptionKey"],
       phoneNumber: document["phoneNumber"],
       messagingChannels: document["messagingChannels"],
+      branches: null, // Excluded from Ditto sync
     );
   }
 

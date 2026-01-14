@@ -994,6 +994,8 @@ class _ModernBusinessCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // The branches are now expected to be populated via getUserAccess
+    // which modifies the Business object before it reaches here.
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -1008,108 +1010,7 @@ class _ModernBusinessCard extends StatelessWidget {
           ),
         ],
       ),
-      child: FutureBuilder<List<Branch>>(
-        future: ProxyService.strategy.branches(businessId: business.id),
-        builder: (context, branchSnapshot) {
-          if (branchSnapshot.connectionState == ConnectionState.waiting) {
-            return _buildLoadingCard();
-          }
-
-          if (branchSnapshot.hasError) {
-            return _buildErrorCard();
-          }
-
-          final List<Branch> branches = branchSnapshot.data ?? [];
-          return _buildBusinessCard(context, branches);
-        },
-      ),
-    );
-  }
-
-  Widget _buildLoadingCard() {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: Colors.grey.shade200,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: const Icon(Icons.business_rounded, size: 20),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  business.name ?? 'Loading...',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Loading branches...',
-                  style: TextStyle(fontSize: 13, color: Colors.grey[600]),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(
-            width: 20,
-            height: 20,
-            child: CircularProgressIndicator(strokeWidth: 2),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildErrorCard() {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: Colors.red.shade50,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(
-              Icons.error_outline_rounded,
-              size: 20,
-              color: Colors.red.shade400,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  business.name ?? 'Error',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Failed to load branches',
-                  style: TextStyle(fontSize: 13, color: Colors.red[600]),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+      child: _buildBusinessCard(context, business.branches ?? []),
     );
   }
 
