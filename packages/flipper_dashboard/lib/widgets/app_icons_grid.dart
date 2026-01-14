@@ -158,7 +158,7 @@ class AppIconsGrid extends ConsumerWidget {
         crossAxisCount: isBigScreen ? 6 : 3,
         crossAxisSpacing: 16,
         mainAxisSpacing: 16,
-        childAspectRatio: 1,
+        childAspectRatio: 0.85,
       ),
       padding: const EdgeInsets.symmetric(horizontal: 16),
       shrinkWrap: true,
@@ -194,51 +194,43 @@ class AppIconsGrid extends ConsumerWidget {
       );
     }
 
-    return Card(
-      elevation: 1,
-      shadowColor: Colors.black26,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-        side: BorderSide(color: Colors.grey[200]!, width: 1),
-      ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(8),
-        onTap: () async {
-          HapticFeedback.lightImpact();
-          await _navigateToPage(app['page'], ref, app['feature'], context);
-        },
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: EdgeInsets.all(isBigScreen ? 6 : 12),
-              decoration: BoxDecoration(
-                color: app['color'].withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                app['icon'],
-                color: app['color'],
-                size: isBigScreen ? 18 : 28,
-              ),
+    return GestureDetector(
+      onTap: () async {
+        HapticFeedback.lightImpact();
+        await _navigateToPage(app['page'], ref, app['feature'], context);
+      },
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: isBigScreen ? 60 : 72,
+            height: isBigScreen ? 60 : 72,
+            decoration: BoxDecoration(
+              color: app['color'].withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(18), // Squircle
             ),
-            const SizedBox(height: 6),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: Text(
-                app['label'],
-                style: GoogleFonts.poppins(
-                  fontSize: isBigScreen ? 11 : 12,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.grey[800],
-                ),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
+            child: Icon(
+              app['icon'],
+              color: app['color'],
+              size: isBigScreen ? 28 : 36,
             ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 10),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Text(
+              app['label'],
+              style: GoogleFonts.poppins(
+                fontSize: isBigScreen ? 12 : 13,
+                fontWeight: FontWeight.w500,
+                color: Colors.grey[800],
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -263,56 +255,57 @@ class _CreditsAppCard extends ConsumerWidget {
         ? ref.watch(creditStreamProvider(branchId))
         : const AsyncValue.data(null); // Handle null branchId case
 
-    return Card(
-      elevation: 1,
-      shadowColor: Colors.black26,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
-        side: BorderSide(color: Colors.grey[200]!, width: 1),
-      ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(8),
-        onTap: onTap,
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            creditAsyncValue.when(
-              data: (credit) {
-                final availableCredits = credit?.credits.toInt() ?? 100;
-                return CreditIconWidget(
-                  credits: availableCredits,
-                  maxCredits: 1000000, // Assuming a max credit value
-                  size: isBigScreen ? 30 : 40,
-                );
-              },
-              loading: () => SizedBox(
-                width: isBigScreen ? 30 : 40,
-                height: isBigScreen ? 30 : 40,
-                child: const CircularProgressIndicator(strokeWidth: 2),
-              ),
-              error: (error, stack) => Icon(
-                Icons.error,
-                color: Colors.red,
-                size: isBigScreen ? 30 : 40,
-              ),
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: isBigScreen ? 60 : 72,
+            height: isBigScreen ? 60 : 72,
+            decoration: BoxDecoration(
+              color: Colors.orange.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(18), // Squircle
             ),
-            const SizedBox(height: 6),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: Text(
-                app['label'],
-                style: GoogleFonts.poppins(
-                  fontSize: isBigScreen ? 11 : 12,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.grey[800],
+            child: Center(
+              child: creditAsyncValue.when(
+                data: (credit) {
+                  final availableCredits = credit?.credits.toInt() ?? 100;
+                  return CreditIconWidget(
+                    credits: availableCredits,
+                    maxCredits: 1000000,
+                    size: isBigScreen ? 28 : 36,
+                  );
+                },
+                loading: () => SizedBox(
+                  width: isBigScreen ? 24 : 32,
+                  height: isBigScreen ? 24 : 32,
+                  child: const CircularProgressIndicator(strokeWidth: 2),
                 ),
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
+                error: (error, stack) => Icon(
+                  Icons.error,
+                  color: Colors.red,
+                  size: isBigScreen ? 28 : 36,
+                ),
               ),
             ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 10),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Text(
+              app['label'],
+              style: GoogleFonts.poppins(
+                fontSize: isBigScreen ? 12 : 13,
+                fontWeight: FontWeight.w500,
+                color: Colors.grey[800],
+              ),
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
       ),
     );
   }
