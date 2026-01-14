@@ -1,5 +1,5 @@
-import 'package:flipper_dashboard/ProfileFutureWidget.dart';
 import 'package:flutter/material.dart';
+import 'package:flipper_dashboard/ProfileFutureWidget.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_dashboard/dashboard_view.dart';

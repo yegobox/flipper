@@ -237,22 +237,38 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
   }
 
   DateTime _calculateStartingDate(String transactionPeriod) {
-    DateTime now = DateTime.now();
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
     if (transactionPeriod == 'Today') {
-      return DateTime(now.year, now.month, now.day);
+      return today;
     } else if (transactionPeriod == 'This Week') {
-      return DateTime(now.year, now.month, now.day - 7).subtract(
-        Duration(hours: now.hour, minutes: now.minute, seconds: now.second),
-      );
+      // Last 7 days
+      return today.subtract(const Duration(days: 7));
     } else if (transactionPeriod == 'This Month') {
-      return DateTime(now.year, now.month - 1, now.day).subtract(
-        Duration(hours: now.hour, minutes: now.minute, seconds: now.second),
-      );
+      // Last Month (Same day or clamped)
+      // Logic: subtract 1 from month, handle year rollover, clamp day to valid range
+      int targetYear = now.year;
+      int targetMonth = now.month - 1;
+      if (targetMonth < 1) {
+        targetYear -= 1;
+        targetMonth = 12;
+      }
+      return _safeDateTime(targetYear, targetMonth, now.day);
     } else {
-      return DateTime(now.year - 1, now.month, now.day).subtract(
-        Duration(hours: now.hour, minutes: now.minute, seconds: now.second),
-      );
+      // This Year (Last Year Same day or clamped)
+      return _safeDateTime(now.year - 1, now.month, now.day);
     }
+  }
+
+  /// Helper to construct a valid DateTime, clamping the day if necessary
+  /// (e.g. Feb 30 -> Feb 28/29)
+  DateTime _safeDateTime(int year, int month, int day) {
+    // Determine the last day of the target month
+    // by going to the next month's 0th day (which is the last day of current month)
+    final lastDayOfMonth = DateTime(year, month + 1, 0).day;
+    final clampedDay = day > lastDayOfMonth ? lastDayOfMonth : day;
+    return DateTime(year, month, clampedDay);
   }
 
   double _calculateCashIn(List<ITransaction> transactions, String period) {
