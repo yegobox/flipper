@@ -230,8 +230,8 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
     return transactions
         .where(
           (transaction) =>
-              transaction.createdAt!.isAfter(startingDate) ||
-              transaction.createdAt!.isAtSameMomentAs(startingDate),
+              transaction.createdAt?.isAfter(startingDate) == true ||
+              transaction.createdAt?.isAtSameMomentAs(startingDate) == true,
         )
         .toList();
   }
