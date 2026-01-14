@@ -883,3 +883,6 @@ class App {}
 // adb shell settings put global package_verifier_enable 0
 // adb shell settings put global verifier_verify_adb_installs 0
 
+// AI Research on what to add in near future
+// https://www.sap.com/asset/dynamic/2024/07/5cca3259-c97e-0010-bca6-c68f7e60039b.html
+

@@ -102,7 +102,8 @@ class EnhancedSideMenu extends ConsumerWidget {
           isSelected: selectedItem == 5,
           onTap: () {
             ref.read(selectedMenuItemProvider.notifier).state = 5;
-            _routerService.navigateTo(ShiftHistoryViewRoute());
+            ref.read(selectedPageProvider.notifier).state =
+                DashboardPage.shiftHistory;
           },
           tooltip: 'Shift History',
         ),

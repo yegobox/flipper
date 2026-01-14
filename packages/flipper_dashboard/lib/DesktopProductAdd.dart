@@ -1,14 +1,8 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:flipper_models/providers/ebm_provider.dart';
 import 'package:flipper_scanner/scanner_view.dart';
 import 'package:flipper_services/GlobalLogError.dart';
-import 'package:fluentui_system_icons/fluentui_system_icons.dart';
-import 'package:flipper_dashboard/CountryOfOriginSelector.dart';
-import 'package:flipper_dashboard/DropdownButtonWithLabel.dart';
-import 'package:flipper_dashboard/SearchableCategoryDropdown.dart';
 import 'package:flipper_dashboard/FieldCompositeActivated.dart';
-import 'package:flipper_dashboard/ProductTypeDropdown.dart';
 import 'package:flipper_dashboard/SearchProduct.dart';
 import 'package:flipper_dashboard/CompositeVariation.dart';
 import 'package:flipper_dashboard/TableVariants.dart';
@@ -27,11 +21,15 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:overlay_support/overlay_support.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_dashboard/features/product/widgets/invoice_number_modal.dart';
 import 'package:flipper_dashboard/features/product/widgets/add_category_modal.dart';
 import 'package:flipper_dashboard/dashboard_scanner_actions.dart';
+import 'package:flipper_dashboard/features/product_entry/widgets/basic_info_section.dart';
+import 'package:flipper_dashboard/features/product_entry/widgets/pricing_section.dart';
+import 'package:flipper_dashboard/features/product_entry/widgets/action_buttons.dart';
+import 'package:flipper_dashboard/features/product_entry/widgets/inventory_section.dart';
+import 'package:flipper_dashboard/features/product_entry/widgets/scan_section.dart';
 
 class ProductEntryScreen extends StatefulHookConsumerWidget {
   const ProductEntryScreen({super.key, this.productId});
@@ -498,7 +496,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
     }
   }
 
-  void _onSaveButtonPressed(
+  Future<void> _onSaveButtonPressed(
     ScannViewModel model,
     BuildContext context,
     Product product, {
@@ -530,10 +528,44 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
   // Add a state variable to hold the selected product type
   String selectedProductType = "2";
 
+  void _handleBarcodeScan(
+    String barCodeInput,
+    ScannViewModel model,
+    Product? productRef,
+  ) {
+    if (barCodeInput.trim().isNotEmpty) {
+      if (productRef == null) {
+        toast(
+          "Invalid product reference. Please select or create a product first.",
+        );
+        talker.error(
+          "Attempted to scan barcode with null productRef. Skipping scan.",
+        );
+        return;
+      }
+      try {
+        model.onScanItem(
+          countryCode: countryOfOriginController.text,
+          editmode: widget.productId != null,
+          barCode: barCodeInput,
+          retailPrice: double.tryParse(retailPriceController.text) ?? 0,
+          supplyPrice: double.tryParse(supplyPriceController.text) ?? 0,
+          isTaxExempted: false,
+          product: productRef,
+        );
+        talker.warning("onAddVariant called successfully");
+        scannedInputController.clear();
+        _scannedInputFocusNode.requestFocus();
+      } catch (e, s) {
+        talker.error("Error in onAddVariant: $e", s);
+        toast("We faced unexpected error, close this window and open again");
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final productRef = ref.watch(unsavedProductProvider);
-
     final isLoading = ref.watch(loadingProvider).isLoading;
 
     return Stack(
@@ -544,23 +576,18 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
             viewModelBuilder: () => ScannViewModel(),
             onViewModelReady: (model) async {
               if (widget.productId != null) {
-                // Load existing product if productId is given
-
                 Product product = await model.getProduct(
                   productId: widget.productId!,
                 );
                 if (!mounted) return;
-                if (mounted) {
-                  ref
-                      .read(unsavedProductProvider.notifier)
-                      .emitProduct(value: product);
-                }
+                ref
+                    .read(unsavedProductProvider.notifier)
+                    .emitProduct(value: product);
 
-                // Populate product name with the name of the product being edited
                 productNameController.text = product.name;
                 model.setProductName(name: product.name);
                 final isVatEnabled = ref.watch(ebmVatEnabledProvider);
-                // Populate variants related to the product
+
                 final paged = await ProxyService.strategy.variants(
                   taxTyCds: isVatEnabled.value == true
                       ? ['A', 'B', 'C', 'TT']
@@ -571,43 +598,33 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                 List<Variant> variants = List<Variant>.from(paged.variants);
                 if (!mounted) return;
 
-                // Preserve existing itemTyCd if it exists
                 if (variants.isNotEmpty && variants.first.itemTyCd != null) {
                   selectedProductType = variants.first.itemTyCd!;
                 }
 
-                /// populate the supplyPrice and retailPrice of the first item
-                /// this in assumption that all variants added has same supply and retail price
-                /// but this will change in future when we support for variant to have different
-                /// prices
                 supplyPriceController.text = variants.first.supplyPrice
                     .toString();
                 retailPriceController.text = variants.first.retailPrice
                     .toString();
 
-                // Set the selectedCategoryId from the first variant's categoryId
                 if (variants.isNotEmpty && variants.first.categoryId != null) {
-                  if (mounted) {
-                    setState(() {
-                      selectedCategoryId = variants.first.categoryId;
-                    });
-                  }
+                  setState(() {
+                    selectedCategoryId = variants.first.categoryId;
+                  });
                 }
 
                 model.setScannedVariants(variants);
 
-                // If there are variants, set the color to the color of the first variant
                 if (variants.isNotEmpty) {
                   pickerColor = getColorOrDefault(variants.first.color!);
                 }
               } else {
-                // If productId is not given, create a new product
                 Product? product = await model.createProduct(
                   name: TEMP_PRODUCT,
                   createItemCode: false,
                 );
                 if (!mounted) return;
-                if (mounted && product != null) {
+                if (product != null) {
                   ref
                       .read(unsavedProductProvider.notifier)
                       .emitProduct(value: product);
@@ -617,19 +634,15 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
               model.initialize();
             },
             builder: (context, model, child) {
-              // Every time the widget rebuilds, ensure variants have the correct product type.
-              // This is essential for new products where variants are scanned before the type is set.
               for (var variant in model.scannedVariants) {
                 if (variant.itemTyCd != selectedProductType) {
                   variant.itemTyCd = selectedProductType;
-                  // If the product is a service, its quantity should be 0.
                   if (selectedProductType == "3") {
                     variant.qty = 0;
                   }
                 }
               }
               return Form(
-                // Wrap the entire content with a Form widget
                 key: _formKey,
                 child: SingleChildScrollView(
                   child: Padding(
@@ -643,194 +656,226 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          topButtons(context, model, productRef),
-
-                          /// toggle between is composite vs non-composite product
-                          ToggleButtonWidget(),
-
-                          /// End of toggle
-                          productNameField(model),
-                          retailPrice(model),
-                          supplyPrice(model),
-
-                          // Add the product type dropdown here
-                          !ref.watch(isCompositeProvider)
-                              ? scanField(model, productRef: productRef)
-                              : SizedBox.shrink(),
-
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8.0),
-                            child: ResponsiveLayout(
-                              mobile: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  DropdownButtonWithLabel(
-                                    label: "Packaging Unit",
-                                    selectedValue: selectedPackageUnitValue,
-                                    options: model.pkgUnits,
-                                    // Create a map of full values to display names (extract the description part after the second colon)
-                                    displayNames: Map.fromEntries(
-                                      model.pkgUnits.map(
-                                        (unit) => MapEntry(
-                                          unit,
-                                          unit.split(':').sublist(2).join(':'),
-                                        ),
-                                      ),
-                                    ),
-                                    onChanged: (String? newValue) {
-                                      if (mounted && newValue != null) {
-                                        setState(() {
-                                          selectedPackageUnitValue = newValue;
-                                        });
-                                      }
-                                    },
-                                  ),
-                                  const SizedBox(height: 16),
-                                  SearchableCategoryDropdown(
-                                    selectedValue: selectedCategoryId,
-                                    onChanged: (String? newValue) {
-                                      if (mounted && newValue != null) {
-                                        setState(() {
-                                          selectedCategoryId = newValue;
-                                        });
-                                      }
-                                    },
-                                    onAdd: () {
-                                      showAddCategoryModal(context);
-                                    },
-                                  ),
-                                ],
-                              ),
-                              tablet: Row(
-                                children: [
-                                  Expanded(
-                                    child: DropdownButtonWithLabel(
-                                      label: "Packaging Unit",
-                                      selectedValue: selectedPackageUnitValue,
-                                      options: model.pkgUnits,
-                                      onChanged: (String? newValue) {
-                                        if (mounted && newValue != null) {
-                                          setState(() {
-                                            selectedPackageUnitValue = newValue;
-                                          });
-                                        }
-                                      },
-                                    ),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    child: SearchableCategoryDropdown(
-                                      selectedValue: selectedCategoryId,
-                                      onChanged: (String? newValue) {
-                                        if (mounted && newValue != null) {
-                                          setState(() {
-                                            selectedCategoryId = newValue;
-                                          });
-                                        }
-                                      },
-                                      onAdd: () {
-                                        showAddCategoryModal(context);
-                                      },
-                                    ),
-                                  ),
-                                ],
-                              ),
+                          Center(
+                            child: Browsephotos(
+                              imageUrl: productRef?.imageUrl,
+                              currentColor: pickerColor,
+                              onColorSelected: (color) {
+                                setState(() {
+                                  pickerColor = color;
+                                });
+                              },
                             ),
                           ),
-                          ProductTypeDropdown(
-                            selectedValue: selectedProductType,
-                            onChanged: (String? newValue) {
-                              if (mounted && newValue != null) {
-                                setState(() {
-                                  selectedProductType = newValue;
-                                });
-                              }
-                            },
+                          const SizedBox(height: 16),
+                          // Toggle for Composite/Simple
+                          ToggleButtonWidget(),
+                          const SizedBox(height: 16),
+
+                          BasicInfoSection(
+                            productNameController: productNameController,
+                            model: model,
                             isEditMode: widget.productId != null,
                           ),
-                          CountryOfOriginSelector(
-                            controller: countryOfOriginController,
-                            onCountrySelected: (Country country) {
-                              print("Selected country: ${country.name}");
-                            },
+                          const SizedBox(height: 16),
+                          PricingSection(
+                            retailPriceController: retailPriceController,
+                            supplyPriceController: supplyPriceController,
+                            model: model,
+                            isComposite: ref.watch(isCompositeProvider),
                           ),
 
-                          !ref.watch(isCompositeProvider)
-                              ? TableVariants(
-                                  isEbmEnabled:
-                                      ref.watch(ebmVatEnabledProvider).value ??
-                                      false,
-                                  isEditMode: widget.productId != null,
-                                  onDateChanged:
-                                      (String variantId, DateTime date) {
-                                        _dates[variantId] =
-                                            TextEditingController(
-                                              text: date.toIso8601String(),
-                                            );
-                                      },
-                                  unversalProducts: ref
-                                      .watch(universalProductsNames)
-                                      .value,
-                                  units:
-                                      ref.watch(unitsProvider).value?.value ??
-                                      [],
-                                  scannedInputFocusNode: _scannedInputFocusNode,
-                                  unitOfMeasures: [],
-                                  model: model,
-                                  onUnitOfMeasureChanged: (unitCode, variantId) {
-                                    // Get the units list from the provider
-                                    final units =
-                                        ref.read(unitsProvider).value?.value ??
-                                        [];
-                                    // Find the unit with the matching code
-                                    final unit = units.firstWhere(
-                                      (u) => u.code == unitCode,
-                                      orElse: () => units.firstWhere(
-                                        (u) => u.name == unitCode,
-                                        orElse: () => units.firstWhere(
-                                          (u) =>
-                                              u.name ==
-                                              model.scannedVariants.first.unit,
-                                          orElse: () => units.first,
-                                        ),
+                          if (!ref.watch(isCompositeProvider)) ...[
+                            const SizedBox(height: 16),
+                            InventorySection(
+                              selectedPackageUnitValue:
+                                  selectedPackageUnitValue,
+                              pkgUnits: model.pkgUnits,
+                              onPackageUnitChanged: (newValue) {
+                                if (newValue != null) {
+                                  setState(() {
+                                    selectedPackageUnitValue = newValue;
+                                  });
+                                }
+                              },
+                              selectedCategoryId: selectedCategoryId,
+                              onCategoryChanged: (newValue) {
+                                if (newValue != null) {
+                                  setState(() {
+                                    selectedCategoryId = newValue;
+                                  });
+                                }
+                              },
+                              onAddCategory: () {
+                                showAddCategoryModal(context);
+                              },
+                              selectedProductType: selectedProductType,
+                              onProductTypeChanged: (newValue) {
+                                if (newValue != null) {
+                                  setState(() {
+                                    selectedProductType = newValue;
+                                  });
+                                }
+                              },
+                              countryOfOriginController:
+                                  countryOfOriginController,
+                              isEditMode: widget.productId != null,
+                            ),
+                            const SizedBox(height: 16),
+                            ScanSection(
+                              controller: scannedInputController,
+                              focusNode: _scannedInputFocusNode,
+                              onBarcodeScanned: (value) =>
+                                  _handleBarcodeScan(value, model, productRef),
+                              onRequestCamera: () async {
+                                await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ScannView(
+                                      intent: BARCODE,
+                                      scannerActions: DashboardScannerActions(
+                                        context,
+                                        ref,
                                       ),
-                                    );
+                                    ),
+                                  ),
+                                );
+                                String barcode =
+                                    ProxyService.productService.barCode;
+                                if (barcode.trim().isNotEmpty) {
+                                  scannedInputController.text = barcode.trim();
+                                  _handleBarcodeScan(
+                                    barcode.trim(),
+                                    model,
+                                    productRef,
+                                  );
+                                }
+                              },
+                            ),
+                          ],
 
-                                    // Find and update only the specific variant
-                                    final variantIndex = model.scannedVariants
-                                        .indexWhere((v) => v.id == variantId);
-                                    if (variantIndex != -1) {
-                                      final variant =
-                                          model.scannedVariants[variantIndex];
-                                      // Update the unit code fields
-                                      variant.qtyUnitCd = unitCode;
-                                      // Update the display name
-                                      variant.unit = unit.name ?? unitCode;
+                          const SizedBox(height: 16),
+                          if (!ref.watch(isCompositeProvider))
+                            TableVariants(
+                              isEbmEnabled:
+                                  ref.watch(ebmVatEnabledProvider).value ??
+                                  false,
+                              isEditMode: widget.productId != null,
+                              onDateChanged: (String variantId, DateTime date) {
+                                _dates[variantId] = TextEditingController(
+                                  text: date.toIso8601String(),
+                                );
+                              },
+                              unversalProducts: ref
+                                  .watch(universalProductsNames)
+                                  .value,
+                              units:
+                                  ref.watch(unitsProvider).value?.value ?? [],
+                              scannedInputFocusNode: _scannedInputFocusNode,
+                              unitOfMeasures: [],
+                              model: model,
+                              onUnitOfMeasureChanged: (unitCode, variantId) {
+                                final units =
+                                    ref.read(unitsProvider).value?.value ?? [];
+
+                                // Guard against empty units list to prevent StateError
+                                if (units.isEmpty) {
+                                  // Skip updating the variant if no units are available
+                                  return;
+                                }
+
+                                // Safely find the unit with fallback options
+                                IUnit? unit;
+
+                                try {
+                                  // Find by code first
+                                  unit = units.firstWhere((u) => u.code == unitCode);
+                                } catch (e) {
+                                  try {
+                                    // If not found by code, try by name
+                                    unit = units.firstWhere((u) => u.name == unitCode);
+                                  } catch (e) {
+                                    try {
+                                      // If not found by name, try to match with first variant's unit
+                                      if (model.scannedVariants.isNotEmpty) {
+                                        unit = units.firstWhere(
+                                          (u) => u.name == model.scannedVariants.first.unit
+                                        );
+                                      } else {
+                                        // If no scanned variants, just return the first unit if available
+                                        unit = units.isNotEmpty ? units.first : null;
+                                      }
+                                    } catch (e) {
+                                      // Ultimate fallback to first unit if available
+                                      unit = units.isNotEmpty ? units.first : null;
                                     }
-                                  },
-                                )
-                              : SizedBox.shrink(),
-                          ref.watch(isCompositeProvider)
-                              ? Fieldcompositeactivated(
-                                  formKey: _fieldComposite,
-                                  skuController: skuController,
-                                  barCodeController: barCodeController,
-                                )
-                              : SizedBox.shrink(),
-                          ref.watch(isCompositeProvider)
-                              ? SearchProduct()
-                              : SizedBox.shrink(),
-                          ref.watch(isCompositeProvider)
-                              ? Padding(
-                                  padding: EdgeInsets.all(16),
-                                  child: Text("Components"),
-                                )
-                              : SizedBox.shrink(),
-                          ref.watch(isCompositeProvider)
-                              ? CompositeVariation(
-                                  supplyPriceController: supplyPriceController,
-                                )
-                              : SizedBox.shrink(),
+                                  }
+                                }
+
+                                // If no unit was found, return early
+                                if (unit == null) {
+                                  return;
+                                }
+
+                                final variantIndex = model.scannedVariants
+                                    .indexWhere((v) => v.id == variantId);
+                                if (variantIndex != -1) {
+                                  final variant =
+                                      model.scannedVariants[variantIndex];
+                                  variant.qtyUnitCd = unitCode;
+                                  variant.unit = unit.name ?? unitCode;
+                                }
+                              },
+                            ),
+
+                          if (ref.watch(isCompositeProvider)) ...[
+                            Fieldcompositeactivated(
+                              formKey: _fieldComposite,
+                              skuController: skuController,
+                              barCodeController: barCodeController,
+                            ),
+                            SearchProduct(),
+                            Padding(
+                              padding: EdgeInsets.all(16),
+                              child: Text("Components"),
+                            ),
+                            CompositeVariation(
+                              supplyPriceController: supplyPriceController,
+                            ),
+                          ],
+
+                          ActionButtons(
+                            isSaving: isLoading,
+                            onSave: () async {
+                              if (!mounted) return;
+                              try {
+                                if (_formKey.currentState!.validate() &&
+                                    !ref.read(isCompositeProvider)) {
+                                  if (productRef == null) {
+                                    toast("Invalid product reference");
+                                    return;
+                                  }
+                                  if (!mounted) return;
+                                  await _onSaveButtonPressed(
+                                    model,
+                                    context,
+                                    productRef,
+                                    selectedProductType: selectedProductType,
+                                  );
+                                } else if (_fieldComposite.currentState
+                                        ?.validate() ??
+                                    false) {
+                                  await _handleCompositeProductSave(model);
+                                }
+                              } catch (e) {
+                                toast("An unexpected error occurred");
+                                talker.error("Error in save button: $e");
+                              }
+                            },
+                            onClose: () {
+                              Navigator.maybePop(context);
+                            },
+                          ),
                         ],
                       ),
                     ),
@@ -850,360 +895,6 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
             ),
           ),
       ],
-    );
-  }
-
-  Future<String?> getImageFilePath({required String imageFileName}) async {
-    Directory appSupportDir = await getApplicationSupportDirectory();
-
-    final imageFilePath = '${appSupportDir.path}/$imageFileName';
-    final file = File(imageFilePath);
-
-    if (await file.exists()) {
-      return imageFilePath;
-    } else {
-      return null;
-    }
-  }
-
-  Widget topButtons(
-    BuildContext context,
-    ScannViewModel productModel,
-    Product? productRef,
-  ) {
-    return ViewModelBuilder.nonReactive(
-      viewModelBuilder: () => UploadViewModel(),
-      builder: (context, model, child) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  ElevatedButton(
-                    onPressed: () async {
-                      if (!mounted) return;
-                      try {
-                        if (_formKey.currentState!.validate() &&
-                            !ref.watch(isCompositeProvider)) {
-                          if (productRef == null) {
-                            toast("Invalid product reference");
-                            return;
-                          }
-                          if (!mounted) return;
-                          _onSaveButtonPressed(
-                            selectedProductType: selectedProductType,
-                            productModel,
-                            context,
-                            productRef,
-                          );
-                        } else if (_fieldComposite.currentState?.validate() ??
-                            false) {
-                          await _handleCompositeProductSave(productModel);
-                        }
-                      } catch (e) {
-                        toast("An unexpected error occurred");
-                        talker.error("Error in save button: $e");
-                      }
-                    },
-                    child: const Text('Save'),
-                  ),
-                  SizedBox(width: 10),
-                  ElevatedButton(
-                    onPressed: () async {
-                      /// close the dialog
-                      Navigator.maybePop(context);
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red, // Background color
-                      foregroundColor: Colors.white, // Text color
-                    ),
-                    child: const Text('Close'),
-                  ),
-                ],
-              ),
-            ),
-            // Always use Browsephotos with the current product's imageUrl
-            // The Browsephotos widget will handle displaying the image correctly using its internal state
-            Browsephotos(
-              imageUrl: ref.watch(unsavedProductProvider)?.imageUrl,
-              currentColor: pickerColor,
-              onColorSelected: (color) {
-                setState(() {
-                  pickerColor = color;
-                });
-              },
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  Padding scanField(ScannViewModel model, {Product? productRef}) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: TextFormField(
-        controller: scannedInputController,
-        decoration: InputDecoration(
-          labelText: 'Scan or Type',
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16.0),
-          suffixIcon: (Platform.isAndroid || Platform.isIOS)
-              ? IconButton(
-                  icon: Icon(FluentIcons.camera_20_regular, color: Colors.blue),
-                  onPressed: () async {
-                    // Open scanner and get result
-                    await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => ScannView(
-                          intent: BARCODE,
-                          scannerActions: DashboardScannerActions(context, ref),
-                        ),
-                      ),
-                    );
-                    String barcode = ProxyService.productService.barCode;
-                    if (barcode.trim().isNotEmpty && barcode != "") {
-                      scannedInputController.text = barcode.trim();
-                      // Trigger the same logic as manual submit
-                      FocusScope.of(
-                        context,
-                      ).requestFocus(_scannedInputFocusNode);
-                      // Manually call onFieldSubmitted
-                      if (_formKey.currentState!.validate()) {
-                        _inputTimer?.cancel();
-                        talker.warning(
-                          "Starting timer for barcode: " + barcode.trim(),
-                        );
-                        _inputTimer = Timer(const Duration(seconds: 1), () {
-                          talker.warning(
-                            "Timer completed for barcode: " + barcode.trim(),
-                          );
-
-                          if (productRef == null) {
-                            toast(
-                              "Invalid product reference. Please select or create a product first.",
-                            );
-                            talker.error(
-                              "Attempted to scan barcode with null productRef. Skipping scan.",
-                            );
-                            return;
-                          }
-                          if (!mounted) return;
-                          try {
-                            model.onScanItem(
-                              countryCode: countryOfOriginController.text,
-                              editmode: widget.productId != null,
-                              barCode: scannedInputController.text,
-                              retailPrice:
-                                  double.tryParse(retailPriceController.text) ??
-                                  0,
-                              supplyPrice:
-                                  double.tryParse(supplyPriceController.text) ??
-                                  0,
-                              isTaxExempted: false,
-                              product: productRef,
-                            );
-                            talker.warning("onAddVariant called successfully");
-                          } catch (e, s) {
-                            talker.error("Error in onAddVariant: $e", s);
-                            toast(
-                              "We faced unexpected error, close this window and open again",
-                            );
-                          }
-                          scannedInputController.clear();
-                          _scannedInputFocusNode.requestFocus();
-                        });
-                      }
-                    }
-                  },
-                )
-              : null,
-        ),
-        textInputAction: TextInputAction.done,
-        validator: (value) {
-          final retailPrice = double.tryParse(retailPriceController.text);
-          final supplyPrice = double.tryParse(supplyPriceController.text);
-
-          if (retailPrice == null) {
-            return 'Retail Price cannot be null or invalid';
-          }
-          if (supplyPrice == null) {
-            return 'Supply Price cannot be null or invalid';
-          }
-
-          return null;
-        },
-        onFieldSubmitted: (barCodeInput) {
-          if (_formKey.currentState!.validate()) {
-            // Ensure the form is valid before proceeding
-            _inputTimer?.cancel();
-            talker.warning(
-              "Starting timer for barcode: " + barCodeInput.trim(),
-            );
-
-            _inputTimer = Timer(const Duration(seconds: 1), () {
-              talker.warning(
-                "Timer completed for barcode: " + barCodeInput.trim(),
-              );
-
-              if (barCodeInput.trim().isNotEmpty) {
-                if (productRef == null) {
-                  toast(
-                    "Invalid product reference. Please select or create a product first.",
-                  );
-                  talker.error(
-                    "Attempted to scan barcode with null productRef. Skipping scan.",
-                  );
-                  return;
-                }
-                if (!mounted) return;
-                try {
-                  model.onScanItem(
-                    countryCode: countryOfOriginController.text,
-                    editmode: widget.productId != null,
-                    barCode: barCodeInput,
-                    retailPrice:
-                        double.tryParse(retailPriceController.text) ?? 0,
-                    supplyPrice:
-                        double.tryParse(supplyPriceController.text) ?? 0,
-                    isTaxExempted: false,
-                    product: productRef, // safe, checked above
-                  );
-                  talker.warning("onAddVariant called successfully");
-                } catch (e, s) {
-                  talker.error("Error in onAddVariant: $e", s);
-                  toast(
-                    "We faced unexpected error, close this window and open again",
-                  );
-                }
-
-                scannedInputController.clear();
-                _scannedInputFocusNode.requestFocus();
-              }
-            });
-          }
-        },
-        focusNode: _scannedInputFocusNode,
-      ),
-    );
-  }
-
-  Padding productNameField(ScannViewModel model) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: TextFormField(
-        controller: productNameController,
-        textInputAction: TextInputAction.next,
-        onChanged: (value) {
-          model.setProductName(name: value);
-        },
-        validator: (value) {
-          if (value == null || value.isEmpty) {
-            return 'Product name is required';
-          } else if (value.length < 3) {
-            return 'Product name must be at least 3 characters long';
-          }
-          return null;
-        },
-        decoration: InputDecoration(
-          labelText: 'Product Name',
-          labelStyle: const TextStyle(
-            // Add labelStyle
-            color: Colors.black,
-          ),
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16.0),
-          // When in error state
-          errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8.0),
-            borderSide: BorderSide(color: Theme.of(context).colorScheme.error),
-          ),
-          // When in error state and focused
-          focusedErrorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8.0),
-            borderSide: BorderSide(color: Theme.of(context).colorScheme.error),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Container previewName(ScannViewModel model) {
-    return Container(
-      padding: const EdgeInsets.all(16.0),
-      alignment: Alignment.center,
-      child: Text(
-        'Product Name: ${model.kProductName}',
-        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-      ),
-    );
-  }
-
-  Padding supplyPrice(ScannViewModel model) {
-    bool isComposite = ref.watch(isCompositeProvider);
-
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: TextFormField(
-        textInputAction: TextInputAction.next,
-        controller: supplyPriceController,
-        readOnly: isComposite,
-        onChanged: (value) => model.setSupplyPrice(price: value),
-        decoration: InputDecoration(
-          labelText: 'Cost',
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16.0),
-          filled: isComposite, // Fill the background color when read-only
-          fillColor: isComposite
-              ? Colors.grey[200]
-              : null, // Light grey background when read-only
-          suffixIcon: isComposite
-              ? Icon(
-                  Icons.lock,
-                  color: Colors.grey,
-                ) // Lock icon to indicate read-only
-              : null,
-        ),
-        keyboardType: TextInputType.number,
-        style: TextStyle(
-          color: isComposite
-              ? Colors.grey
-              : Colors.black, // Lighter text color when read-only
-        ),
-      ),
-    );
-  }
-
-  Padding retailPrice(ScannViewModel model) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: TextFormField(
-        textInputAction: TextInputAction.next,
-        controller: retailPriceController,
-        onChanged: (value) => model.setRetailPrice(price: value),
-        validator: (value) {
-          if (value == null || value.isEmpty) {
-            return 'Price is required';
-          }
-
-          // Use tryParse to check if the value can be converted to a double
-          if (double.tryParse(value) == null) {
-            return 'Wrong value given';
-          }
-
-          return null; // Validation passed
-        },
-        decoration: InputDecoration(
-          labelText: 'Price',
-          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16.0),
-        ),
-        keyboardType: TextInputType.number,
-      ),
     );
   }
 }

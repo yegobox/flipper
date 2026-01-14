@@ -92,7 +92,7 @@ final class GeminiResponseProvider
   }
 }
 
-String _$geminiResponseHash() => r'09bf77145db165e2fa41cbe79d94ea3c933c0c9e';
+String _$geminiResponseHash() => r'8f8093f1ed97aa93a4d979bbeb2f78fea0f664a5';
 
 /// Providers
 
@@ -212,7 +212,7 @@ final class GeminiBusinessAnalyticsProvider
 }
 
 String _$geminiBusinessAnalyticsHash() =>
-    r'ef0e8b4d99442c624fb6ec4632083175077d3652';
+    r'6b90936bff9ba316eb7bb8277b3b949acee31852';
 
 final class GeminiBusinessAnalyticsFamily extends $Family
     with
@@ -304,7 +304,12 @@ final class GeminiSummaryProvider
     extends $FunctionalProvider<AsyncValue<String>, String, FutureOr<String>>
     with $FutureModifier<String>, $FutureProvider<String> {
   const GeminiSummaryProvider._(
-      {required GeminiSummaryFamily super.from, required String super.argument})
+      {required GeminiSummaryFamily super.from,
+      required (
+        String, {
+        AIModel? aiModel,
+      })
+          super.argument})
       : super(
           retry: null,
           name: r'geminiSummaryProvider',
@@ -320,7 +325,7 @@ final class GeminiSummaryProvider
   String toString() {
     return r'geminiSummaryProvider'
         ''
-        '($argument)';
+        '$argument';
   }
 
   @$internal
@@ -330,10 +335,14 @@ final class GeminiSummaryProvider
 
   @override
   FutureOr<String> create(Ref ref) {
-    final argument = this.argument as String;
+    final argument = this.argument as (
+      String, {
+      AIModel? aiModel,
+    });
     return geminiSummary(
       ref,
-      argument,
+      argument.$1,
+      aiModel: argument.aiModel,
     );
   }
 
@@ -348,10 +357,16 @@ final class GeminiSummaryProvider
   }
 }
 
-String _$geminiSummaryHash() => r'2a5ea7c9b7721717b6b56bd58d713c646a3fc534';
+String _$geminiSummaryHash() => r'b7a55d141811bb2dd07a499ba7fa38c25ecc3ff2';
 
 final class GeminiSummaryFamily extends $Family
-    with $FunctionalFamilyOverride<FutureOr<String>, String> {
+    with
+        $FunctionalFamilyOverride<
+            FutureOr<String>,
+            (
+              String, {
+              AIModel? aiModel,
+            })> {
   const GeminiSummaryFamily._()
       : super(
           retry: null,
@@ -362,9 +377,13 @@ final class GeminiSummaryFamily extends $Family
         );
 
   GeminiSummaryProvider call(
-    String prompt,
-  ) =>
-      GeminiSummaryProvider._(argument: prompt, from: this);
+    String prompt, {
+    AIModel? aiModel,
+  }) =>
+      GeminiSummaryProvider._(argument: (
+        prompt,
+        aiModel: aiModel,
+      ), from: this);
 
   @override
   String toString() => r'geminiSummaryProvider';

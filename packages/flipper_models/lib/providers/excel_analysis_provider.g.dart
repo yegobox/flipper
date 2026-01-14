@@ -41,7 +41,7 @@ final class ExcelAnalysisProvider
   }
 }
 
-String _$excelAnalysisHash() => r'edac2db8b3907981fad9e12877dbb2aefae6f786';
+String _$excelAnalysisHash() => r'2e0d5d8c2bd8b9b90b6652db20ceead9e74de733';
 
 abstract class _$ExcelAnalysis extends $Notifier<ExcelAnalysisState> {
   ExcelAnalysisState build();

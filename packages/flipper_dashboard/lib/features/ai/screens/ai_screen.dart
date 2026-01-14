@@ -313,7 +313,12 @@ class _AiScreenState extends ConsumerState<AiScreen> {
             "$aiResponseText";
 
         final summaryText = await ref
-            .refresh(geminiSummaryProvider(summaryPrompt).future)
+            .refresh(
+              geminiSummaryProvider(
+                summaryPrompt,
+                aiModel: _selectedModel,
+              ).future,
+            )
             .onError((error, stackTrace) {
               talker.error("Failed to generate summary: $error");
               return "Error: Could not generate summary.";

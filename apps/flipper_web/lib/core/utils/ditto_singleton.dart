@@ -8,6 +8,7 @@ import 'package:flipper_web/core/utils/platform_utils.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:http/http.dart' as http;
 import 'database_path.dart';
+import 'lock_mechanism.dart';
 
 /// Singleton manager for Ditto instances to prevent file lock conflicts
 class DittoSingleton {
@@ -16,6 +17,10 @@ class DittoSingleton {
   static bool _isInitializing = false;
   static Completer<Ditto?>? _initCompleter;
   static String? _userId;
+
+  // Lock mechanism abstraction
+  static LockMechanism? _lockMechanism;
+  static bool _lockAcquired = false;
 
   DittoSingleton._();
 
@@ -38,10 +43,11 @@ class DittoSingleton {
       'isInitializing': _isInitializing,
       'hasInstance': _ditto != null,
       'instanceIsNull': _ditto == null,
+      'lockAcquired': _lockAcquired,
     };
   }
 
-  /// Initialize Ditto with proper singleton handling
+  /// Initialize Ditto with proper singleton handling and file locking
   Future<Ditto?> initialize({
     required String appId,
     required String userId,
@@ -51,6 +57,7 @@ class DittoSingleton {
       print('❌ Ditto initialization failed: appId is empty');
       return null;
     }
+
     // Detect user mismatch and force logout/reset to prevent silent user swaps
     // If a non-null userId is passed that differs from the currently stored _userId,
     // we perform a logout and set _ditto to null to force a fresh initialization.
@@ -63,6 +70,7 @@ class DittoSingleton {
     }
 
     _userId = userId;
+
     // Prevent multiple simultaneous initializations
     if (_isInitializing) {
       print(
@@ -71,9 +79,9 @@ class DittoSingleton {
       return _initCompleter?.future;
     }
 
-    // Return existing instance if available
-    if (_ditto != null) {
-      print('✅ Using existing Ditto instance');
+    // Return existing instance if available and properly initialized
+    if (_ditto != null && _lockAcquired) {
+      print('✅ Using existing Ditto instance with active lock');
       return _ditto;
     }
 
@@ -81,6 +89,38 @@ class DittoSingleton {
     _initCompleter = Completer<Ditto?>();
 
     try {
+      // Get the persistence directory first
+      final persistenceDirectory = await DatabasePath.getDatabaseDirectory(
+        subDirectory: 'db2',
+      );
+      print('📂 Using persistence directory: $persistenceDirectory');
+
+      if (persistenceDirectory.isEmpty) {
+        print('❌ Ditto initialization failed: persistenceDirectory is empty');
+        _isInitializing = false;
+        _initCompleter?.complete(null);
+        _initCompleter = null;
+        return null;
+      }
+
+      // Create and acquire lock file before initializing Ditto
+      final lockFilePath = '$persistenceDirectory/.ditto_lock';
+      _lockMechanism = getLockMechanism();
+
+      // Attempt to acquire the lock atomically
+      final lockAcquired = await _lockMechanism!.acquire(lockFilePath);
+      if (!lockAcquired) {
+        print(
+          '❌ Failed to acquire Ditto lock - another instance may be running',
+        );
+        _isInitializing = false;
+        _initCompleter?.complete(null);
+        _initCompleter = null;
+        return null;
+      }
+      _lockAcquired = true;
+
+      // Initialize Ditto
       print('Initializing Ditto...');
       await Ditto.init();
       print('Initializing Ditto Done');
@@ -98,21 +138,13 @@ class DittoSingleton {
         authenticationHandler: authHandler,
       );
       print('Initializing OnlineWithAuthenticationIdentity Done');
-      final persistenceDirectory = await DatabasePath.getDatabaseDirectory(
-        subDirectory: 'db2',
-      );
-      print('📂 Using persistence directory: $persistenceDirectory');
 
-      if (persistenceDirectory.isEmpty) {
-        print('❌ Ditto initialization failed: persistenceDirectory is empty');
-        return null;
-      }
       // isAndroid ? "ditto" :
       _ditto = await Ditto.open(
         identity: identity,
         persistenceDirectory: persistenceDirectory,
       );
-      print('✅ Ditto singleton initialized successfully');
+      print('✅ Ditto singleton initialized successfully with lock');
 
       try {
         print('Setting DQL_STRICT_MODE to false');
@@ -123,6 +155,7 @@ class DittoSingleton {
         );
       }
       print('Setting DQL_STRICT_MODE to false Done');
+
       try {
         // Configure transports manually for the web/cloud sync
         _ditto!.updateTransportConfig((config) {
@@ -132,7 +165,6 @@ class DittoSingleton {
         print('Configuring transports manually for the web/cloud sync Done');
 
         // Start sync to connect to Ditto cloud
-
         final userName = platformUserName;
         final platform = getPlatformName();
         _ditto!.deviceName = '$userName-$platform-$userId';
@@ -146,12 +178,14 @@ class DittoSingleton {
         print('⚠️ Error starting Ditto sync: $e');
       }
 
-      print('✅ Ditto singleton initialized successfully');
+      print('✅ Ditto singleton initialized successfully with lock');
       _initCompleter?.complete(_ditto);
       return _ditto;
     } catch (e) {
       print('❌ Ditto singleton initialization failed: $e');
       _ditto = null;
+      _lockAcquired = false;
+      await _releaseLock();
       if (!(_initCompleter?.isCompleted ?? true)) {
         _initCompleter?.completeError(e);
       }
@@ -162,15 +196,33 @@ class DittoSingleton {
     }
   }
 
+  /// Release the lock file and close the handle
+  Future<void> _releaseLock() async {
+    if (_lockMechanism != null) {
+      await _lockMechanism!.release();
+      _lockAcquired = false;
+      print('🔓 Released Ditto lock');
+    }
+  }
+
   /// Reset singleton (for testing or hot restart)
   static Future<void> reset() async {
+    print('🔄 Resetting DittoSingleton...');
     if (_instance != null) {
       await _instance!.dispose();
       _instance = null;
     }
+    // Also reset static variables to ensure clean state
+    _ditto = null;
+    _isInitializing = false;
+    _initCompleter = null;
+    _userId = null;
+    _lockMechanism = null;
+    _lockAcquired = false;
+    print('✅ DittoSingleton reset complete');
   }
 
-  /// Dispose Ditto instance properly
+  /// Dispose Ditto instance properly and release lock
   Future<void> dispose() async {
     if (_ditto != null) {
       try {
@@ -178,11 +230,15 @@ class DittoSingleton {
         _ditto!.stopSync();
         await Future.delayed(const Duration(milliseconds: 500));
         _ditto = null;
-        print('✅ Ditto singleton disposed');
+        await _releaseLock();
+        print('✅ Ditto singleton disposed and lock released');
       } catch (e) {
         print('❌ Error disposing Ditto singleton: $e');
         _ditto = null;
+        await _releaseLock();
       }
+    } else {
+      await _releaseLock();
     }
   }
 
