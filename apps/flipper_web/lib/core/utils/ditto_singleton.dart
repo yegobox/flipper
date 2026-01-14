@@ -97,6 +97,9 @@ class DittoSingleton {
 
       if (persistenceDirectory.isEmpty) {
         print('❌ Ditto initialization failed: persistenceDirectory is empty');
+        _isInitializing = false;
+        _initCompleter?.complete(null);
+        _initCompleter = null;
         return null;
       }
 
@@ -111,6 +114,8 @@ class DittoSingleton {
           '❌ Failed to acquire Ditto lock - another instance may be running',
         );
         _isInitializing = false;
+        _initCompleter?.complete(null);
+        _initCompleter = null;
         return null;
       }
       _lockAcquired = true;
