@@ -567,7 +567,7 @@ User Query: $enrichedUserPrompt
 }
 
 @riverpod
-Future<String> geminiSummary(Ref ref, String prompt) async {
+Future<String> geminiSummary(Ref ref, String prompt, {AIModel? aiModel}) async {
   final inputData = UnifiedAIInput(
     contents: [
       Content(
@@ -577,7 +577,7 @@ Future<String> geminiSummary(Ref ref, String prompt) async {
         ],
       ),
     ],
-    model: null, // Will use default Gemini model
+    model: aiModel?.modelId, // Use provided model instead of null
     generationConfig: GenerationConfig(
       temperature: 0.7, // Higher temperature for more creative summaries
       maxOutputTokens: 512,
@@ -585,7 +585,7 @@ Future<String> geminiSummary(Ref ref, String prompt) async {
   );
 
   try {
-    return await ref.read(geminiResponseProvider(inputData, null).future);
+    return await ref.read(geminiResponseProvider(inputData, aiModel).future);
   } catch (e) {
     // Handle specific upgrade error
     if (e.toString().contains('Upgrade Required')) {

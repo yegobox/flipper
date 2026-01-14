@@ -18,7 +18,7 @@ dependencies:
   riverpod: ^3.0.3
 
   # Ditto for offline sync
-  ditto_live: ^4.14.0
+  ditto_live: ^4.14.1
 
   # Flipper web for Ditto service
   flipper_web: any

@@ -3,11 +3,11 @@ import 'dart:async';
 import 'package:flipper_dashboard/layout.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
-import 'package:flipper_models/view_models/startup_viewmodel.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/event_bus.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/locator.dart';
+import 'package:flipper_web/core/utils/ditto_singleton.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -173,6 +173,18 @@ class _AppLifecycleObserver extends WidgetsBindingObserver {
     } else if (state == AppLifecycleState.detached) {
       // Clean up global event bus on app shutdown
       EventBus().dispose();
+      // Also dispose of Ditto singleton to ensure proper cleanup
+      _cleanupDitto();
+    }
+  }
+
+  /// Clean up Ditto singleton to ensure proper resource disposal
+  Future<void> _cleanupDitto() async {
+    try {
+      await DittoSingleton.instance.dispose();
+      print('✅ Ditto singleton disposed on app shutdown');
+    } catch (e) {
+      print('⚠️ Error disposing Ditto singleton on app shutdown: $e');
     }
   }
 }
