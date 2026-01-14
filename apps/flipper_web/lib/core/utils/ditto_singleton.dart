@@ -20,6 +20,7 @@ class DittoSingleton {
 
   // Lock file to prevent multiple instances from accessing the same directory
   static File? _lockFile;
+  static RandomAccessFile? _lockFileHandle;
   static bool _lockAcquired = false;
 
   DittoSingleton._();
@@ -104,41 +105,12 @@ class DittoSingleton {
       final lockFilePath = '$persistenceDirectory/.ditto_lock';
       _lockFile = File(lockFilePath);
 
-      if (await _lockFile!.exists()) {
-        // Check if the lock file contains a valid, running process ID
-        try {
-          final existingPid = await _lockFile!.readAsString();
-          if (existingPid.isNotEmpty) {
-            // On macOS/Linux, we can check if the process is still running
-            // For cross-platform compatibility, we'll just check if it's a valid number
-            int parsedPid = int.tryParse(existingPid.trim()) ?? 0;
-            if (parsedPid > 0) {
-              print('🔍 Found existing lock file with PID: $parsedPid');
-              // Instead of just deleting, we'll try to determine if it's stale
-              // For now, we'll remove it as we can't reliably check if the process is running cross-platform
-              await _lockFile!.delete();
-              print('🧹 Removed existing lock file (assuming stale)');
-            }
-          }
-        } catch (e) {
-          print('⚠️ Error reading existing lock file: $e');
-          // If we can't read the lock file, try to delete it anyway
-          try {
-            await _lockFile!.delete();
-          } catch (deleteError) {
-            print('⚠️ Could not delete lock file: $deleteError');
-          }
-        }
-      }
-
-      // Attempt to acquire the lock
-      try {
-        await _lockFile!.create(recursive: true);
-        await _lockFile!.writeAsString(pid.toString());
-        _lockAcquired = true;
-        print('🔒 Acquired Ditto lock file: $lockFilePath with PID: $pid');
-      } catch (e) {
-        print('❌ Failed to acquire Ditto lock: $e');
+      // Attempt to acquire the lock atomically
+      final lockAcquired = await _tryAcquireLock();
+      if (!lockAcquired) {
+        print(
+          '❌ Failed to acquire Ditto lock - another instance may be running',
+        );
         _isInitializing = false;
         return null;
       }
@@ -219,26 +191,72 @@ class DittoSingleton {
     }
   }
 
-  /// Release the lock file
-  Future<void> _releaseLock() async {
-    if (_lockFile != null && _lockAcquired) {
-      try {
-        await _lockFile!.delete();
-        _lockAcquired = false;
-        print('🔓 Released Ditto lock file');
-      } catch (e) {
-        print('⚠️ Could not release Ditto lock file: $e');
+  /// Atomically acquire an exclusive lock on the lock file
+  Future<bool> _tryAcquireLock() async {
+    if (_lockFile == null) {
+      print('❌ Lock file not initialized');
+      return false;
+    }
+
+    try {
+      // Create the lock file if it doesn't exist
+      await _lockFile!.create(recursive: true);
+
+      // Open the file for read/write access
+      _lockFileHandle = await _lockFile!.open(mode: FileMode.write);
+
+      // Try to acquire an exclusive lock atomically
+      // This will fail immediately if another process holds the lock
+      await _lockFileHandle!.lock(FileLock.exclusive);
+
+      // Write the current process ID while holding the lock
+      await _lockFileHandle!.truncate(0);
+      await _lockFileHandle!.setPosition(0);
+      await _lockFileHandle!.writeString(pid.toString());
+      await _lockFileHandle!.flush();
+
+      _lockAcquired = true;
+      print('🔒 Acquired exclusive Ditto lock with PID: $pid');
+      return true;
+    } catch (e) {
+      print('⚠️ Failed to acquire exclusive lock: $e');
+      // Clean up on failure
+      if (_lockFileHandle != null) {
+        try {
+          await _lockFileHandle!.close();
+        } catch (closeError) {
+          print('⚠️ Error closing lock file handle: $closeError');
+        }
+        _lockFileHandle = null;
       }
-    } else if (_lockFile != null && !_lockAcquired) {
-      // If we have a lockFile reference but no lock acquired,
-      // it might be a leftover from a previous run, try to delete it
+      _lockAcquired = false;
+      return false;
+    }
+  }
+
+  /// Release the lock file and close the handle
+  Future<void> _releaseLock() async {
+    if (_lockFileHandle != null && _lockAcquired) {
+      try {
+        // Unlock is automatic when we close the file handle
+        await _lockFileHandle!.close();
+        _lockFileHandle = null;
+        _lockAcquired = false;
+        print('🔓 Released Ditto lock file handle');
+      } catch (e) {
+        print('⚠️ Could not release Ditto lock file handle: $e');
+      }
+    }
+
+    // Clean up the lock file itself
+    if (_lockFile != null) {
       try {
         if (await _lockFile!.exists()) {
           await _lockFile!.delete();
-          print('🧹 Cleaned up orphaned lock file');
+          print('🧹 Deleted lock file');
         }
       } catch (e) {
-        print('⚠️ Could not clean up orphaned lock file: $e');
+        print('⚠️ Could not delete lock file: $e');
       }
     }
   }
@@ -256,6 +274,7 @@ class DittoSingleton {
     _initCompleter = null;
     _userId = null;
     _lockFile = null;
+    _lockFileHandle = null;
     _lockAcquired = false;
     print('✅ DittoSingleton reset complete');
   }
