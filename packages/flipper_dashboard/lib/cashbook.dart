@@ -400,7 +400,15 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
           final today = DateTime.now();
           final dateStr =
               '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
-          final itemCode = '${transactionType.toUpperCase()}-$dateStr';
+
+          // Ensure transaction type is hyphenated (e.g., cashIn -> CASH-IN, cashOut -> CASH-OUT)
+          final formattedType = transactionType.toLowerCase() == 'cashin'
+              ? 'CASH-IN'
+              : transactionType.toLowerCase() == 'cashout'
+              ? 'CASH-OUT'
+              : transactionType.toUpperCase();
+
+          final itemCode = '$formattedType-$dateStr';
 
           utilityVariant = Variant(
             id: utilityVariant.id,
