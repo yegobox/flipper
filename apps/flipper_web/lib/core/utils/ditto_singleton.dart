@@ -8,7 +8,7 @@ import 'package:flipper_web/core/utils/platform_utils.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:http/http.dart' as http;
 import 'database_path.dart';
-import 'dart:io';
+import 'lock_mechanism.dart';
 
 /// Singleton manager for Ditto instances to prevent file lock conflicts
 class DittoSingleton {
@@ -18,9 +18,8 @@ class DittoSingleton {
   static Completer<Ditto?>? _initCompleter;
   static String? _userId;
 
-  // Lock file to prevent multiple instances from accessing the same directory
-  static File? _lockFile;
-  static RandomAccessFile? _lockFileHandle;
+  // Lock mechanism abstraction
+  static LockMechanism? _lockMechanism;
   static bool _lockAcquired = false;
 
   DittoSingleton._();
@@ -103,10 +102,10 @@ class DittoSingleton {
 
       // Create and acquire lock file before initializing Ditto
       final lockFilePath = '$persistenceDirectory/.ditto_lock';
-      _lockFile = File(lockFilePath);
+      _lockMechanism = getLockMechanism();
 
       // Attempt to acquire the lock atomically
-      final lockAcquired = await _tryAcquireLock();
+      final lockAcquired = await _lockMechanism!.acquire(lockFilePath);
       if (!lockAcquired) {
         print(
           '❌ Failed to acquire Ditto lock - another instance may be running',
@@ -114,6 +113,7 @@ class DittoSingleton {
         _isInitializing = false;
         return null;
       }
+      _lockAcquired = true;
 
       // Initialize Ditto
       print('Initializing Ditto...');
@@ -191,73 +191,12 @@ class DittoSingleton {
     }
   }
 
-  /// Atomically acquire an exclusive lock on the lock file
-  Future<bool> _tryAcquireLock() async {
-    if (_lockFile == null) {
-      print('❌ Lock file not initialized');
-      return false;
-    }
-
-    try {
-      // Create the lock file if it doesn't exist
-      await _lockFile!.create(recursive: true);
-
-      // Open the file for read/write access
-      _lockFileHandle = await _lockFile!.open(mode: FileMode.write);
-
-      // Try to acquire an exclusive lock atomically
-      // This will fail immediately if another process holds the lock
-      await _lockFileHandle!.lock(FileLock.exclusive);
-
-      // Write the current process ID while holding the lock
-      await _lockFileHandle!.truncate(0);
-      await _lockFileHandle!.setPosition(0);
-      await _lockFileHandle!.writeString(pid.toString());
-      await _lockFileHandle!.flush();
-
-      _lockAcquired = true;
-      print('🔒 Acquired exclusive Ditto lock with PID: $pid');
-      return true;
-    } catch (e) {
-      print('⚠️ Failed to acquire exclusive lock: $e');
-      // Clean up on failure
-      if (_lockFileHandle != null) {
-        try {
-          await _lockFileHandle!.close();
-        } catch (closeError) {
-          print('⚠️ Error closing lock file handle: $closeError');
-        }
-        _lockFileHandle = null;
-      }
-      _lockAcquired = false;
-      return false;
-    }
-  }
-
   /// Release the lock file and close the handle
   Future<void> _releaseLock() async {
-    if (_lockFileHandle != null && _lockAcquired) {
-      try {
-        // Unlock is automatic when we close the file handle
-        await _lockFileHandle!.close();
-        _lockFileHandle = null;
-        _lockAcquired = false;
-        print('🔓 Released Ditto lock file handle');
-      } catch (e) {
-        print('⚠️ Could not release Ditto lock file handle: $e');
-      }
-    }
-
-    // Clean up the lock file itself
-    if (_lockFile != null) {
-      try {
-        if (await _lockFile!.exists()) {
-          await _lockFile!.delete();
-          print('🧹 Deleted lock file');
-        }
-      } catch (e) {
-        print('⚠️ Could not delete lock file: $e');
-      }
+    if (_lockMechanism != null) {
+      await _lockMechanism!.release();
+      _lockAcquired = false;
+      print('🔓 Released Ditto lock');
     }
   }
 
@@ -273,8 +212,7 @@ class DittoSingleton {
     _isInitializing = false;
     _initCompleter = null;
     _userId = null;
-    _lockFile = null;
-    _lockFileHandle = null;
+    _lockMechanism = null;
     _lockAcquired = false;
     print('✅ DittoSingleton reset complete');
   }
