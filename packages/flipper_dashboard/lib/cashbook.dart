@@ -330,7 +330,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
         discount: 0,
         isIncome: isIncome,
         transactionType: transactionType,
-        category: category!,
+        category: category,
       );
 
       // Reset the form and return to the transaction list
@@ -393,6 +393,66 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
           branchId: branchId,
         );
         if (utilityVariant != null) {
+          // CRITICAL: Update the variant's retailPrice to match the cash amount
+          // This ensures the transaction item's price reflects the actual amount being recorded
+
+          // Generate itemCd with transaction type and today's date
+          final today = DateTime.now();
+          final dateStr =
+              '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
+          final itemCode = '${transactionType.toUpperCase()}-$dateStr';
+
+          utilityVariant = Variant(
+            id: utilityVariant.id,
+            name: utilityVariant.name,
+            color: utilityVariant.color,
+            sku: utilityVariant.sku,
+            productId: utilityVariant.productId,
+            unit: utilityVariant.unit,
+            productName: utilityVariant.productName,
+            branchId: utilityVariant.branchId,
+            taxName: utilityVariant.taxName,
+            taxPercentage: utilityVariant.taxPercentage,
+            retailPrice: cashReceived, // Set price to the cash amount
+            supplyPrice: utilityVariant.supplyPrice,
+            lastTouched: utilityVariant.lastTouched,
+            itemSeq: utilityVariant.itemSeq,
+            isrccCd: utilityVariant.isrccCd,
+            isrccNm: utilityVariant.isrccNm,
+            isrcRt: utilityVariant.isrcRt,
+            isrcAmt: utilityVariant.isrcAmt,
+            taxTyCd: utilityVariant.taxTyCd,
+            bcd: utilityVariant.bcd,
+            itemClsCd: utilityVariant.itemClsCd,
+            itemTyCd: utilityVariant.itemTyCd,
+            itemStdNm: utilityVariant.itemStdNm,
+            orgnNatCd: utilityVariant.orgnNatCd,
+            pkg: utilityVariant.pkg,
+            itemCd: itemCode, // Set to CASH-IN-{DATE} or CASH-OUT-{DATE}
+            pkgUnitCd: utilityVariant.pkgUnitCd,
+            qtyUnitCd: utilityVariant.qtyUnitCd,
+            itemNm: utilityVariant.itemNm,
+            qty: utilityVariant.qty,
+            prc: utilityVariant.prc,
+            splyAmt: utilityVariant.splyAmt,
+            tin: utilityVariant.tin,
+            bhfId: utilityVariant.bhfId,
+            dftPrc: utilityVariant.dftPrc,
+            addInfo: utilityVariant.addInfo,
+            isrcAplcbYn: utilityVariant.isrcAplcbYn,
+            useYn: utilityVariant.useYn,
+            regrId: utilityVariant.regrId,
+            regrNm: utilityVariant.regrNm,
+            modrId: utilityVariant.modrId,
+            modrNm: utilityVariant.modrNm,
+            rsdQty: utilityVariant.rsdQty,
+            dcRt: utilityVariant.dcRt,
+            dcAmt: utilityVariant.dcAmt,
+            stock: utilityVariant.stock,
+            ebmSynced: utilityVariant.ebmSynced,
+            taxAmt: utilityVariant.taxAmt,
+          );
+
           await ProxyService.strategy.saveTransactionItem(
             variation: utilityVariant,
             amountTotal: cashReceived,
@@ -411,7 +471,6 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
 
         talker.info("Called keyboardKeyPressed with '+' key");
         HapticFeedback.lightImpact();
-
 
         // For cashbook transactions, the subtotal should be the cash received amount
         double subTotal = cashReceived;
