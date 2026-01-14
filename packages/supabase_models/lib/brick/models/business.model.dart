@@ -12,6 +12,7 @@ import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
 import 'package:supabase_models/sync/ditto_sync_generated.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
+import 'package:supabase_models/brick/models/branch.model.dart';
 
 part 'business.model.ditto_sync_adapter.g.dart';
 
@@ -85,6 +86,10 @@ class Business extends OfflineFirstWithSupabaseModel {
   )
   String? messagingChannels;
 
+  @Sqlite(ignore: true)
+  @Supabase(ignore: true)
+  List<Branch>? branches;
+
   Business({
     String? id,
     this.name,
@@ -130,6 +135,7 @@ class Business extends OfflineFirstWithSupabaseModel {
     this.encryptionKey,
     this.phoneNumber,
     this.messagingChannels,
+    this.branches,
   })  : id = id ?? const Uuid().v4(),
         createdAt = createdAt ?? DateTime.now();
 
@@ -180,6 +186,7 @@ class Business extends OfflineFirstWithSupabaseModel {
     String? encryptionKey,
     String? phoneNumber,
     String? messagingChannels,
+    List<Branch>? branches,
   }) {
     return Business(
       id: id ?? this.id,
@@ -215,6 +222,7 @@ class Business extends OfflineFirstWithSupabaseModel {
       phoneNumber: phoneNumber ?? this.phoneNumber,
       messagingChannels: messagingChannels ?? this.messagingChannels,
       referredBy: referredBy ?? this.referredBy,
+      branches: branches ?? this.branches,
     );
   }
 
@@ -269,6 +277,9 @@ class Business extends OfflineFirstWithSupabaseModel {
       encryptionKey: map['encryption_key'] as String?,
       phoneNumber: map['phone_number'] as String?,
       messagingChannels: map['messaging_channels'] as String?,
+      branches: map['branches'] != null
+          ? (map['branches'] as List).map((x) => Branch.fromMap(x)).toList()
+          : null,
     );
   }
   // to json
