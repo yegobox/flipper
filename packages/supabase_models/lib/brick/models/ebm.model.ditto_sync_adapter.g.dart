@@ -181,6 +181,7 @@ class EbmDittoAdapter extends DittoSyncAdapter<Ebm> {
       "branchId": model.branchId,
       "vatEnabled": model.vatEnabled,
       "mrc": model.mrc,
+      "remoteServerUrl": model.remoteServerUrl,
     };
   }
 
@@ -223,6 +224,7 @@ class EbmDittoAdapter extends DittoSyncAdapter<Ebm> {
       branchId: document["branchId"],
       vatEnabled: document["vatEnabled"],
       mrc: document["mrc"],
+      remoteServerUrl: document["remoteServerUrl"],
     );
   }
 

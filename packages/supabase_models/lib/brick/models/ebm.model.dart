@@ -41,6 +41,8 @@ class Ebm extends OfflineFirstWithSupabaseModel {
   bool? vatEnabled;
   @Supabase(name: "mrc")
   String mrc;
+  @Supabase(name: "remote_server_url")
+  final String? remoteServerUrl;
 
   Ebm({
     String? id,
@@ -53,5 +55,6 @@ class Ebm extends OfflineFirstWithSupabaseModel {
     required this.branchId,
     this.vatEnabled = false,
     required this.mrc,
+    this.remoteServerUrl,
   }) : id = id ?? const Uuid().v4();
 }

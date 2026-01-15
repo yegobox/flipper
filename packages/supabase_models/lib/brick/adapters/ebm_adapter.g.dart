@@ -19,6 +19,9 @@ Future<Ebm> _$EbmFromSupabase(
         ? null
         : data['vat_enabled'] as bool?,
     mrc: data['mrc'] as String,
+    remoteServerUrl: data['remote_server_url'] == null
+        ? null
+        : data['remote_server_url'] as String?,
   );
 }
 
@@ -38,6 +41,7 @@ Future<Map<String, dynamic>> _$EbmToSupabase(
     'branch_id': instance.branchId,
     'vat_enabled': instance.vatEnabled,
     'mrc': instance.mrc,
+    'remote_server_url': instance.remoteServerUrl,
   };
 }
 
@@ -57,6 +61,9 @@ Future<Ebm> _$EbmFromSqlite(
     branchId: data['branch_id'] as String,
     vatEnabled: data['vat_enabled'] == null ? null : data['vat_enabled'] == 1,
     mrc: data['mrc'] as String,
+    remoteServerUrl: data['remote_server_url'] == null
+        ? null
+        : data['remote_server_url'] as String?,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -78,6 +85,7 @@ Future<Map<String, dynamic>> _$EbmToSqlite(
         ? null
         : (instance.vatEnabled! ? 1 : 0),
     'mrc': instance.mrc,
+    'remote_server_url': instance.remoteServerUrl,
   };
 }
 
@@ -130,6 +138,10 @@ class EbmAdapter extends OfflineFirstWithSupabaseAdapter<Ebm> {
     'mrc': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'mrc',
+    ),
+    'remoteServerUrl': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'remote_server_url',
     ),
   };
   @override
@@ -201,6 +213,12 @@ class EbmAdapter extends OfflineFirstWithSupabaseAdapter<Ebm> {
     'mrc': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'mrc',
+      iterable: false,
+      type: String,
+    ),
+    'remoteServerUrl': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'remote_server_url',
       iterable: false,
       type: String,
     ),
