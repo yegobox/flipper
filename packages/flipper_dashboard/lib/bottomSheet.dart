@@ -406,7 +406,7 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
 
                                     // Force refresh the provider
                                     await ref.refresh(
-                                      transactionItemsProvider(
+                                      transactionItemsStreamProvider(
                                         transactionId: transactionId,
                                         branchId: ProxyService.box
                                             .getBranchId()!,
@@ -475,7 +475,7 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
 
     // Ensure the parent widget rebuilds with the updated data
     ref.invalidate(
-      transactionItemsProvider(
+      transactionItemsStreamProvider(
         transactionId: transactionId,
         branchId: ProxyService.box.getBranchId()!,
       ),
@@ -593,7 +593,7 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
     });
 
     final itemsAsync = ref.watch(
-      transactionItemsProvider(
+      transactionItemsStreamProvider(
         transactionId: widget.transactionIdInt,
         branchId: ProxyService.box.getBranchId()!,
       ),
@@ -775,7 +775,7 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                                             );
                                       }
                                       ref.refresh(
-                                        transactionItemsProvider(
+                                        transactionItemsStreamProvider(
                                           transactionId:
                                               widget.transactionIdInt,
                                           branchId: ProxyService.box
