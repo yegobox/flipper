@@ -15,6 +15,8 @@ import 'package:uuid/uuid.dart';
 mixin VariantMixin implements VariantInterface {
   Repository get repository;
 
+  bool get isMobileDevice => isAndroid || isIos;
+
   @override
   Future<Variant?> getVariant(
       {String? id,
@@ -54,7 +56,8 @@ mixin VariantMixin implements VariantInterface {
       ]
     ]);
     return (await repository.get<Variant>(
-            query: query, policy: OfflineFirstGetPolicy.localOnly))
+            query: query,
+            policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist))
         .firstOrNull;
   }
 
@@ -288,9 +291,14 @@ mixin VariantMixin implements VariantInterface {
             return;
           }
 
+          String serverUrl = ebm!.taxServerUrl;
+
+          if (isMobileDevice) {
+            serverUrl = ebm.remoteServerUrl ?? serverUrl;
+          }
+
           // save items
-          await ProxyService.tax
-              .saveItem(variation: variant, URI: ebm!.taxServerUrl);
+          await ProxyService.tax.saveItem(variation: variant, URI: serverUrl);
 
           // save io
           final sar = await ProxyService.strategy
@@ -316,7 +324,7 @@ mixin VariantMixin implements VariantInterface {
               invoiceNumber: sar.sarNo,
               remark: "Stock In from adding new item",
               ocrnDt: DateTime.now().toUtc(),
-              URI: ebm.taxServerUrl,
+              URI: serverUrl,
             );
           }
 
@@ -324,7 +332,7 @@ mixin VariantMixin implements VariantInterface {
           if (variantToSave.itemTyCd != "3") {
             await ProxyService.tax.saveStockMaster(
               variant: variant,
-              URI: ebm.taxServerUrl,
+              URI: serverUrl,
               stockMasterQty: variantToSave.stock?.currentStock!,
             );
           }

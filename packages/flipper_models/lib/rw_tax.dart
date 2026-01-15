@@ -713,7 +713,8 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
             );
             for (var item in items) {
               Variant? variant =
-                  await ProxyService.strategy.getVariant(id: item.variantId!);
+                  await ProxyService.getStrategy(Strategy.capella)
+                      .getVariant(id: item.variantId!);
               Stock stock = await ProxyService.strategy
                   .getStockById(id: variant!.stockId!);
 

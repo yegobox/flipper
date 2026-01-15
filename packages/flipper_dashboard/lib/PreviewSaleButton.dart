@@ -44,14 +44,26 @@ class PreviewSaleButton extends ConsumerWidget {
 
         // The transaction function is responsible for stopping the loading state.
       } catch (e) {
-        loadingNotifier.stopLoading(buttonType); // Stop loading on error
+        if (ref.context.mounted) {
+          loadingNotifier.stopLoading(buttonType); // Stop loading on error
+        }
         // Handle error (e.g., show a snackbar or log error)
       }
     } else if (mode == SellingMode.forOrdering && previewCart != null) {
+      // stop any other loading button
+      loadingNotifier.stopLoading();
+      // end of stop
+      loadingNotifier.startLoading(buttonType); // Start loading
+
       try {
+        // Call the preview cart function
         previewCart?.call();
       } catch (e) {
-        loadingNotifier.stopLoading(buttonType); // Stop loading on error
+        // Handle error (e.g., show a snackbar or log error)
+      } finally {
+        if (ref.context.mounted) {
+          loadingNotifier.stopLoading(buttonType); // Stop loading in finally to ensure it always stops
+        }
       }
     }
   }
@@ -70,35 +82,37 @@ class PreviewSaleButton extends ConsumerWidget {
         children: [
           // Left Side: Main Button (Pay/Preview Cart)
           Expanded(
-              child: icon == null
-                  ? FlipperButton(
-                      height: 64,
-                      key: const Key("PaymentButton"),
-                      color: Colors.blue.shade700,
-                      text: wording,
-                      onPressed: (payButtonLoading[ButtonType.pay] ?? false)
-                          ? null
-                          : () => _handleButtonPress(ref,
-                              buttonType: ButtonType.pay),
-                      isLoading: payButtonLoading[ButtonType.pay] ?? false,
-                    )
-                  : FlipperIconButton(
-                      height: 64,
-                      color: Colors.blue.shade700,
-                      key: const Key("PaymentButton"),
-                      icon: icon!,
-                      onPressed: (payButtonLoading[ButtonType.pay] ?? false)
-                          ? null
-                          : () => _handleButtonPress(ref,
-                              buttonType: ButtonType.pay),
-                      isLoading: payButtonLoading[ButtonType.pay] ?? false,
-                    )),
+            child: icon == null
+                ? FlipperButton(
+                    height: 64,
+                    key: const Key("PaymentButton"),
+                    color: Colors.blue.shade700,
+                    text: wording,
+                    onPressed: (payButtonLoading[ButtonType.pay] ?? false)
+                        ? null
+                        : () => _handleButtonPress(
+                            ref,
+                            buttonType: ButtonType.pay,
+                          ),
+                    isLoading: payButtonLoading[ButtonType.pay] ?? false,
+                  )
+                : FlipperIconButton(
+                    height: 64,
+                    color: Colors.blue.shade700,
+                    key: const Key("PaymentButton"),
+                    icon: icon!,
+                    onPressed: (payButtonLoading[ButtonType.pay] ?? false)
+                        ? null
+                        : () => _handleButtonPress(
+                            ref,
+                            buttonType: ButtonType.pay,
+                          ),
+                    isLoading: payButtonLoading[ButtonType.pay] ?? false,
+                  ),
+          ),
           // Only show divider and Complete Now button when in selling mode
           if (showCompleteNow) ...[
-            Container(
-              width: 1,
-              color: Colors.grey.shade300,
-            ),
+            Container(width: 1, color: Colors.grey.shade300),
             Expanded(
               child: icon == null
                   ? FlipperButton(

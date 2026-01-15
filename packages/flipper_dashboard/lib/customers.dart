@@ -9,6 +9,7 @@ import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
+import 'package:flipper_dashboard/providers/customer_phone_provider.dart';
 
 class Customers extends StatefulHookConsumerWidget {
   const Customers({Key? key}) : super(key: key);
@@ -490,6 +491,8 @@ class CustomersState extends ConsumerState<Customers> {
                   customer: customer,
                   transaction: transaction,
                 );
+                ref.read(customerPhoneNumberProvider.notifier).state =
+                    customer.telNo;
                 model.getTransactionById();
               },
               backgroundColor: successColor,
@@ -500,6 +503,7 @@ class CustomersState extends ConsumerState<Customers> {
             SlidableAction(
               onPressed: (_) async {
                 await model.removeFromSale(transaction: transaction);
+                ref.read(customerPhoneNumberProvider.notifier).state = null;
                 model.getTransactionById();
                 showSimpleNotification(
                   const Text(
@@ -532,6 +536,8 @@ class CustomersState extends ConsumerState<Customers> {
             borderRadius: BorderRadius.circular(12),
             onTap: () {
               model.assignToSale(customer: customer, transaction: transaction);
+              ref.read(customerPhoneNumberProvider.notifier).state =
+                  customer.telNo;
               model.getTransactionById();
             },
             child: Padding(
@@ -734,6 +740,8 @@ class CustomersState extends ConsumerState<Customers> {
     } else {
       final customer = filteredCustomers.first;
       model.assignToSale(customer: customer, transaction: transaction);
+      ref.read(customerPhoneNumberProvider.notifier).state = customer.telNo;
+      model.getTransactionById();
     }
   }
 }

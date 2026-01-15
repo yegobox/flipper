@@ -886,3 +886,15 @@ class App {}
 // AI Research on what to add in near future
 // https://www.sap.com/asset/dynamic/2024/07/5cca3259-c97e-0010-bca6-c68f7e60039b.html
 
+// Running ngrok forever on local machine.
+// screen -S ngrok
+// ngrok http 8080
+
+// Detach with:
+
+// Ctrl + A, then D
+
+// Reattach later:
+
+// screen -r ngrok
+

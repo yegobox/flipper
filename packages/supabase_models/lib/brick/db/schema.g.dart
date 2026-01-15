@@ -1,6 +1,7 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
+part '20260115095918.migration.dart';
 part '20251206093643.migration.dart';
 part '20251212042542.migration.dart';
 part '20251212052427.migration.dart';
@@ -25,6 +26,7 @@ part '20260107143027.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
+  const Migration20260115095918(),
   const Migration20251206093643(),
   const Migration20251212042542(),
   const Migration20251212052427(),
@@ -653,6 +655,7 @@ final schema = Schema(
         SchemaColumn('branch_id', Column.varchar),
         SchemaColumn('vat_enabled', Column.boolean),
         SchemaColumn('mrc', Column.varchar),
+        SchemaColumn('remote_server_url', Column.varchar),
       },
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['id'], unique: true),

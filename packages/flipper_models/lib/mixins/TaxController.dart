@@ -495,9 +495,20 @@ class TaxController<OBJ> {
       // increment the counter before we pass it in
       // this is because if we don't then the EBM counter will give us the
 
-      // Receipt? receipt =
-      //     await ProxyService.strategy.getReceipt(transactionId: transaction.id);
+      Ebm? ebm = await ProxyService.strategy
+          .ebm(branchId: ProxyService.box.getBranchId()!);
       DateTime now = DateTime.now();
+
+      String? serverUrl = await ProxyService.box.getServerUrl();
+      final enableTransactionDelegation = ProxyService.box.readBool(
+        key: 'enableTransactionDelegation',
+      );
+
+      if (isMobileDevice &&
+          (enableTransactionDelegation == null ||
+              !enableTransactionDelegation)) {
+        serverUrl = ebm?.remoteServerUrl ?? serverUrl;
+      }
 
       RwApiResponse receiptSignature =
           await ProxyService.tax.generateReceiptSignature(
@@ -508,7 +519,7 @@ class TaxController<OBJ> {
         receiptType: receiptType,
         salesSttsCd: salesSttsCd,
         originalInvoiceNumber: originalInvoiceNumber,
-        URI: await ProxyService.box.getServerUrl() ?? "",
+        URI: serverUrl ?? "",
         purchaseCode: purchaseCode,
         timeToUser: now,
         sarTyCd: sarTyCd,
