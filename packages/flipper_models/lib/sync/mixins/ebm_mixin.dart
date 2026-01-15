@@ -45,11 +45,16 @@ mixin EbmMixin implements EbmInterface {
       final resolvedTin =
           (await effectiveTin(business: business, branchId: branchId));
 
+      // Check if resolvedTin is null to avoid runtime exception
+      if (resolvedTin == null) {
+        throw Exception("Could not resolve TIN number for EBM creation. Business or branch may not have a valid TIN.");
+      }
+
       Ebm updatedEbm = existingEbm ??
           Ebm(
             mrc: mrc,
             bhfId: bhFId,
-            tinNumber: resolvedTin!,
+            tinNumber: resolvedTin,
             dvcSrlNo: business.dvcSrlNo ?? "vsdcyegoboxltd",
             userId: ProxyService.box.getUserId()!,
             taxServerUrl: severUrl,

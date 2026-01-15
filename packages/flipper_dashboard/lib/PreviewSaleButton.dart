@@ -50,11 +50,19 @@ class PreviewSaleButton extends ConsumerWidget {
         // Handle error (e.g., show a snackbar or log error)
       }
     } else if (mode == SellingMode.forOrdering && previewCart != null) {
+      // stop any other loading button
+      loadingNotifier.stopLoading();
+      // end of stop
+      loadingNotifier.startLoading(buttonType); // Start loading
+
       try {
+        // Call the preview cart function
         previewCart?.call();
       } catch (e) {
+        // Handle error (e.g., show a snackbar or log error)
+      } finally {
         if (ref.context.mounted) {
-          loadingNotifier.stopLoading(buttonType); // Stop loading on error
+          loadingNotifier.stopLoading(buttonType); // Stop loading in finally to ensure it always stops
         }
       }
     }

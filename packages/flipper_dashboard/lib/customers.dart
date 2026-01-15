@@ -741,6 +741,7 @@ class CustomersState extends ConsumerState<Customers> {
       final customer = filteredCustomers.first;
       model.assignToSale(customer: customer, transaction: transaction);
       ref.read(customerPhoneNumberProvider.notifier).state = customer.telNo;
+      model.getTransactionById();
     }
   }
 }
