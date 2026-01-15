@@ -54,7 +54,7 @@ mixin VariantMixin implements VariantInterface {
       ]
     ]);
     return (await repository.get<Variant>(
-            query: query, policy: OfflineFirstGetPolicy.localOnly))
+            query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist))
         .firstOrNull;
   }
 

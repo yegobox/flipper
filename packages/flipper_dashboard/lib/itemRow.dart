@@ -299,8 +299,10 @@ class _RowItemState extends ConsumerState<RowItem>
         final double maxHeight = constraints.maxHeight;
 
         // Allocate space for image and info sections
-        // Reserve at least 40px for product info to prevent overflow
-        final double maxInfoHeight = 50.0; // Minimum height for info section
+        // Reserve at least 75px for product info to prevent overflow because some names are long
+        // and we display 4 rows of text.
+        final double maxInfoHeight =
+            75.0; // Increased height for info section from 50.0
         final double availableForImage =
             maxHeight - maxInfoHeight - 4; // 4px for spacing
 
@@ -327,7 +329,11 @@ class _RowItemState extends ConsumerState<RowItem>
             // Product Info Section with fixed maximum height
             Container(
               constraints: BoxConstraints(maxHeight: maxInfoHeight),
-              child: _buildCompactProductInfo(textTheme),
+              // Use SingleChildScrollView to prevent RenderFlex overflow if text is too large
+              child: SingleChildScrollView(
+                physics: const NeverScrollableScrollPhysics(),
+                child: _buildCompactProductInfo(textTheme),
+              ),
             ),
           ],
         );
@@ -447,83 +453,89 @@ class _RowItemState extends ConsumerState<RowItem>
             Container(
               width: availableForInfo,
               constraints: BoxConstraints(maxHeight: 70), // Match image height
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Product name
-                  Text(
-                    _truncateString(
-                      widget.productName.isNotEmpty
-                          ? widget.productName
-                          : "Unnamed Product",
-                      20,
-                    ),
-                    style: textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: Colors.black87,
-                      fontSize: 12, // Smaller font size
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-
-                  const SizedBox(height: 2), // Reduced spacing
-                  // Variant name (if different from product name)
-                  if (widget.variantName != widget.productName &&
-                      widget.variantName.isNotEmpty)
+              child: SingleChildScrollView(
+                physics: const NeverScrollableScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Product name
                     Text(
-                      _truncateString(widget.variantName, 20),
-                      style: textTheme.bodyMedium?.copyWith(
-                        color: Colors.grey[600],
-                        fontSize: 10, // Smaller font size
+                      _truncateString(
+                        widget.productName.isNotEmpty
+                            ? widget.productName
+                            : "Unnamed Product",
+                        20,
                       ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-
-                  const SizedBox(height: 4), // Reduced spacing
-                  // Price tag - simplified to avoid overflow
-                  if (widget.variant?.retailPrice != null &&
-                      widget.variant?.retailPrice != 0)
-                    Text(
-                      (widget.variant?.retailPrice ?? 0).toCurrencyFormatted(
-                        symbol: ProxyService.box.defaultCurrency(),
-                      ),
-                      style: textTheme.labelSmall?.copyWith(
-                        color: Colors.blue[700],
+                      style: textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
-                        fontSize: 12,
+                        color: Colors.black87,
+                        fontSize: 12, // Smaller font size
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
 
-                  // Stock display with live updates from Riverpod
-                  RepaintBoundary(
-                    child: Consumer(
-                      builder: (context, ref, child) {
-                        final stockAsync = ref.watch(
-                          stockByVariantProvider(widget.variant?.stockId ?? ''),
-                        );
-                        final stockValue = stockAsync.value?.currentStock ?? 0;
+                    const SizedBox(height: 2), // Reduced spacing
+                    // Variant name (if different from product name)
+                    if (widget.variantName != widget.productName &&
+                        widget.variantName.isNotEmpty)
+                      Text(
+                        _truncateString(widget.variantName, 20),
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: Colors.grey[600],
+                          fontSize: 10, // Smaller font size
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
 
-                        return Text(
-                          '$stockValue in stock',
-                          style: textTheme.bodySmall?.copyWith(
-                            color: stockValue > 0
-                                ? Colors.green[700]
-                                : Colors.red[700],
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        );
-                      },
+                    const SizedBox(height: 4), // Reduced spacing
+                    // Price tag - simplified to avoid overflow
+                    if (widget.variant?.retailPrice != null &&
+                        widget.variant?.retailPrice != 0)
+                      Text(
+                        (widget.variant?.retailPrice ?? 0).toCurrencyFormatted(
+                          symbol: ProxyService.box.defaultCurrency(),
+                        ),
+                        style: textTheme.labelSmall?.copyWith(
+                          color: Colors.blue[700],
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+
+                    // Stock display with live updates from Riverpod
+                    RepaintBoundary(
+                      child: Consumer(
+                        builder: (context, ref, child) {
+                          final stockAsync = ref.watch(
+                            stockByVariantProvider(
+                              widget.variant?.stockId ?? '',
+                            ),
+                          );
+                          final stockValue =
+                              stockAsync.value?.currentStock ?? 0;
+
+                          return Text(
+                            '$stockValue in stock',
+                            style: textTheme.bodySmall?.copyWith(
+                              color: stockValue > 0
+                                  ? Colors.green[700]
+                                  : Colors.red[700],
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          );
+                        },
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ],

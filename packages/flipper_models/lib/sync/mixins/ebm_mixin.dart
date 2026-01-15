@@ -4,6 +4,7 @@ import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/sync/interfaces/ebm_interface.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_web/services/ditto_service.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:flipper_services/proxy.dart';
@@ -21,48 +22,66 @@ mixin EbmMixin implements EbmInterface {
     required String bhFId,
     bool vatEnabled = false,
   }) async {
-    final business = await ProxyService.strategy
-        .getBusiness(businessId: ProxyService.box.getBusinessId()!);
+    try {
+      final business = await ProxyService.strategy
+          .getBusiness(businessId: ProxyService.box.getBusinessId()!);
 
-    if (business == null) {
-      throw Exception("Business not found");
+      if (business == null) {
+        throw Exception("Business not found");
+      }
+
+      final query = Query(where: [
+        Where('branchId').isExactly(branchId),
+        Where('bhfId').isExactly(bhFId),
+      ]);
+
+      final ebm = await repository.get<Ebm>(
+        query: query,
+        policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+      );
+
+      final existingEbm = ebm.firstOrNull;
+
+      final resolvedTin =
+          (await effectiveTin(business: business, branchId: branchId));
+
+      Ebm updatedEbm = existingEbm ??
+          Ebm(
+            mrc: mrc,
+            bhfId: bhFId,
+            tinNumber: resolvedTin!,
+            dvcSrlNo: business.dvcSrlNo ?? "vsdcyegoboxltd",
+            userId: ProxyService.box.getUserId()!,
+            taxServerUrl: severUrl,
+            businessId: business.id,
+            branchId: branchId,
+            vatEnabled: vatEnabled,
+          );
+
+      if (existingEbm != null) {
+        updatedEbm.taxServerUrl = severUrl;
+        updatedEbm.vatEnabled = vatEnabled;
+        updatedEbm.mrc = mrc;
+      }
+
+      await repository.upsert(updatedEbm);
+
+      final supabase = Supabase.instance.client;
+      await supabase.from('ebms').upsert({
+        'id': updatedEbm.id,
+        'bhf_id': updatedEbm.bhfId,
+        'tin_number': updatedEbm.tinNumber,
+        'dvc_srl_no': updatedEbm.dvcSrlNo,
+        'user_id': updatedEbm.userId,
+        'tax_server_url': updatedEbm.taxServerUrl,
+        'business_id': updatedEbm.businessId,
+        'branch_id': updatedEbm.branchId,
+        'vat_enabled': updatedEbm.vatEnabled,
+        'mrc': updatedEbm.mrc,
+      });
+    } catch (e) {
+      talker.error('Error saving EBM: $e');
     }
-
-    final query = Query(where: [
-      Where('branchId').isExactly(branchId),
-      Where('bhfId').isExactly(bhFId),
-    ]);
-
-    final ebm = await repository.get<Ebm>(
-      query: query,
-      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
-    );
-
-    final existingEbm = ebm.firstOrNull;
-
-    final resolvedTin =
-        (await effectiveTin(business: business, branchId: branchId));
-
-    Ebm updatedEbm = existingEbm ??
-        Ebm(
-          mrc: mrc,
-          bhfId: bhFId,
-          tinNumber: resolvedTin!,
-          dvcSrlNo: business.dvcSrlNo ?? "vsdcyegoboxltd",
-          userId: ProxyService.box.getUserId()!,
-          taxServerUrl: severUrl,
-          businessId: business.id,
-          branchId: branchId,
-          vatEnabled: vatEnabled,
-        );
-
-    if (existingEbm != null) {
-      updatedEbm.taxServerUrl = severUrl;
-      updatedEbm.vatEnabled = vatEnabled;
-      updatedEbm.mrc = mrc;
-    }
-
-    await repository.upsert(updatedEbm);
   }
 
   @override

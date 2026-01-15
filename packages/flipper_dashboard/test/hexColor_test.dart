@@ -14,6 +14,16 @@ void main() {
       expect(isValidHexColor('FF00FF00'), isTrue);
     });
 
+    test('returns true for known named colors', () {
+      expect(isValidHexColor('Red'), isTrue);
+      expect(isValidHexColor('blue'), isTrue);
+      expect(isValidHexColor('LIGHTGreen'), isTrue);
+    });
+
+    test('returns false for unknown named colors', () {
+      expect(isValidHexColor('NotAColor'), isFalse);
+    });
+
     test('returns false for invalid hex color code', () {
       expect(isValidHexColor('#GGGGGG'), isFalse);
       expect(isValidHexColor('GGGGGG'), isFalse);
@@ -29,24 +39,37 @@ void main() {
   group('getColorOrDefault', () {
     test('should create a Color from a valid 6-digit hex color code', () {
       final hexColor = HexColor('#FF00FF');
-      expect(hexColor.value, equals(Color(0xFFFF00FF).value));
+      expect(hexColor.toARGB32(), equals(Color(0xFFFF00FF).toARGB32()));
     });
 
-    test('should create a Color from a valid 8-digit hex color code with alpha',
-        () {
-      final hexColor = HexColor('#80FF00FF');
-      expect(hexColor.value, equals(Color(0x80FF00FF).value));
-    });
+    test(
+      'should create a Color from a valid 8-digit hex color code with alpha',
+      () {
+        final hexColor = HexColor('#80FF00FF');
+        expect(hexColor.toARGB32(), equals(Color(0x80FF00FF).toARGB32()));
+      },
+    );
 
     test('should create a Color from the provided hex color code #0984e3', () {
       final hexColor = HexColor('#0984e3');
-      expect(hexColor.value, equals(Color(0xFF0984E3).value));
+      expect(hexColor.toARGB32(), equals(Color(0xFF0984E3).toARGB32()));
     });
 
-    test('should create a Color from a valid hex color code with mixed case',
-        () {
-      final hexColor = HexColor('#fF00Ff');
-      expect(hexColor.value, equals(Color(0xFFFF00FF).value));
+    test(
+      'should create a Color from a valid hex color code with mixed case',
+      () {
+        final hexColor = HexColor('#fF00Ff');
+        expect(hexColor.toARGB32(), equals(Color(0xFFFF00FF).toARGB32()));
+      },
+    );
+
+    test('should create a Color from named color', () {
+      expect(HexColor('Red').toARGB32(), equals(Color(0xFFFF0000).toARGB32()));
+      expect(HexColor('blue').toARGB32(), equals(Color(0xFF0000FF).toARGB32()));
+      expect(
+        HexColor('White').toARGB32(),
+        equals(Color(0xFFFFFFFF).toARGB32()),
+      );
     });
 
     // test('should throw an exception for invalid hex color codes', () {
