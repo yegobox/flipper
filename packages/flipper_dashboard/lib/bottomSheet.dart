@@ -155,6 +155,9 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
     TextEditingController newQtyController = TextEditingController();
     newQtyController.text = transactionItem.qty.toString();
 
+    TextEditingController newPriceController = TextEditingController();
+    newPriceController.text = transactionItem.price.toString();
+
     // Create a completer to signal when the edit is complete
     final completer = Completer<bool>();
 
@@ -213,7 +216,10 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                         double localQty =
                             double.tryParse(newQtyController.text) ??
                             transactionItem.qty.toDouble();
-                        double localTotal = localQty * transactionItem.price;
+                        double localPrice =
+                            double.tryParse(newPriceController.text) ??
+                            transactionItem.price.toDouble();
+                        double localTotal = localQty * localPrice;
 
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -324,13 +330,27 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                                           color: Colors.grey[600],
                                         ),
                                       ),
-                                      Text(
-                                        formatNumber(
-                                          transactionItem.price.toDouble(),
-                                        ),
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w600,
+                                      Container(
+                                        width: 100,
+                                        child: TextFormField(
+                                          controller: newPriceController,
+                                          keyboardType:
+                                              TextInputType.numberWithOptions(
+                                                decimal: true,
+                                              ),
+                                          textAlign: TextAlign.end,
+                                          style: TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                          decoration: InputDecoration(
+                                            border: UnderlineInputBorder(),
+                                            contentPadding: EdgeInsets.zero,
+                                            isDense: true,
+                                          ),
+                                          onChanged: (val) {
+                                            setModalState(() {});
+                                          },
                                         ),
                                       ),
                                     ],
@@ -366,16 +386,20 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                             FlipperButton(
                               color: Colors.blue,
                               width: double.infinity,
-                              text: 'Update Quantity',
+                              text: 'Update Item',
                               onPressed: () async {
                                 final qty = double.tryParse(
                                   newQtyController.text,
                                 );
-                                if (qty != null && qty != 0) {
+                                final price = double.tryParse(
+                                  newPriceController.text,
+                                );
+                                if (qty != null && qty != 0 && price != null) {
                                   try {
                                     await ProxyService.strategy
                                         .updateTransactionItem(
                                           qty: qty,
+                                          price: price,
                                           ignoreForReport: false,
                                           transactionItemId: transactionItem.id,
                                         );
@@ -399,7 +423,7 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                         content: Text(
-                                          'Error updating quantity: ${e.toString()}',
+                                          'Error updating item: ${e.toString()}',
                                         ),
                                       ),
                                     );
