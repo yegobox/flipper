@@ -58,7 +58,7 @@ class IppisBusiness {
       numberOfEmployees: json['numberOfEmployees'] ?? 0,
       numberOfFemaleEmployees: json['numberOfFemaleEmployees'] ?? 0,
       numberOfMaleEmployees: json['numberOfMaleEmployees'] ?? 0,
-      businessType: json['bsinessType'] ?? '',
+      businessType: json['businessType'] ?? '',
       province: json['province'] ?? '',
       district: json['district'] ?? '',
       sector: json['sector'] ?? '',

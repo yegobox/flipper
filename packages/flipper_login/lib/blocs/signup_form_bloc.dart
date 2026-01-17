@@ -300,9 +300,16 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
       throw Exception('OTP is required to verify');
     }
 
+    final emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[a-zA-Z]{2,}$');
+    final isEmail = emailRegex.hasMatch(phoneNumber.value);
+    String normalizedContact = phoneNumber.value;
+    if (!isEmail) {
+      normalizedContact = _ensurePhoneHasDialCode(phoneNumber.value, countryName.value ?? 'Rwanda');
+    }
+
     try {
       final result = await ProxyService.strategy
-          .verifyOtpForSignup(phoneNumber.value, otpCode.value);
+          .verifyOtpForSignup(normalizedContact, otpCode.value);
       final isVerified = result['verified'] == true;
 
       if (isVerified) {
@@ -330,9 +337,16 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
       'error': null,
     });
 
+    final emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[a-zA-Z]{2,}$');
+    final isEmail = emailRegex.hasMatch(phoneNumber.value);
+    String normalizedContact = phoneNumber.value;
+    if (!isEmail) {
+      normalizedContact = _ensurePhoneHasDialCode(phoneNumber.value, countryName.value ?? 'Rwanda');
+    }
+
     try {
       final result = await ProxyService.strategy
-          .verifyOtpForSignup(phoneNumber.value, otpCode.value);
+          .verifyOtpForSignup(normalizedContact, otpCode.value);
       final isVerified = result['verified'] == true;
 
       if (isVerified) {

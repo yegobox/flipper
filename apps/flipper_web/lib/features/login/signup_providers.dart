@@ -185,32 +185,34 @@ class SignupForm extends _$SignupForm {
   }
 
   void updateTinNumber(String tinNumber) {
-    // If we have valid tin details, the field is "locked" logically,
-    // although UI should handle the disable.
-    // If the user tries to update, we should only allow it if they are resetting or if we decide to unlock.
-    // Ideally, we reset state if they change the input (though UI might prevent typing).
-
-    // However, if the UI is NOT locked yet (or if we want to allow correction before full validation),
-    // we just update.
-
-    // If already validated successfully, prevent changes unless we implement a clear/reset mechanism.
-    if (state.tinDetails != null) return;
-
+    // Immediately update the TIN and clear previous validation state
     state = state.copyWith(
       tinNumber: tinNumber,
+      isValidatingTin: false, // Stop any previous validation indicator
       tinError: null,
       tinDetails: null,
     );
-    if (tinNumber.length == 9) {
+
+    // If the TIN has the required length, trigger validation
+    if (tinNumber.length >= 9) {
       validateTin(tinNumber);
     }
   }
 
-  Future<void> validateTin(String tin) async {
+  Future<void> validateTin(String tinToValidate) async {
+    // Set loading state for the current validation request
     state = state.copyWith(isValidatingTin: true, tinError: null);
+
     try {
       final ippisService = IppisService();
-      final business = await ippisService.getBusinessDetails(tin);
+      final business = await ippisService.getBusinessDetails(tinToValidate);
+
+      // Before applying the result, check if the TIN hasn't changed
+      if (state.tinNumber != tinToValidate) {
+        // User has typed a new TIN while this request was in-flight. Ignore stale result.
+        return;
+      }
+
       if (business != null) {
         state = state.copyWith(isValidatingTin: false, tinDetails: business);
       } else {
@@ -220,6 +222,10 @@ class SignupForm extends _$SignupForm {
         );
       }
     } catch (e) {
+      // Before applying the error, also check if the TIN has changed
+      if (state.tinNumber != tinToValidate) {
+        return; // Ignore error from a stale request
+      }
       state = state.copyWith(
         isValidatingTin: false,
         tinError: 'Error validating TIN',

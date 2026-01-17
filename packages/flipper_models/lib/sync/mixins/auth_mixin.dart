@@ -860,9 +860,9 @@ mixin AuthMixin implements AuthInterface {
     );
 
     if (response.statusCode == 200) {
-      return jsonDecode(response.body);
+      return _safeJsonDecode(response.body);
     } else {
-      final errorBody = jsonDecode(response.body);
+      final errorBody = _safeJsonDecode(response.body);
       throw Exception(errorBody['error'] ?? 'Failed to verify OTP for signup');
     }
   }
@@ -909,5 +909,15 @@ mixin AuthMixin implements AuthInterface {
   /// Static method to reset Ditto initialization state, can be called from anywhere
   static void resetDittoInitializationStatic() {
     _isDittoInitialized = false;
+  }
+
+  /// Helper function to safely decode JSON responses
+  Map<String, dynamic> _safeJsonDecode(String body) {
+    try {
+      return jsonDecode(body) as Map<String, dynamic>;
+    } catch (e) {
+      talker.error("Failed to parse JSON response: $body. Error: $e");
+      return {'error': 'Invalid server response format.'};
+    }
   }
 }

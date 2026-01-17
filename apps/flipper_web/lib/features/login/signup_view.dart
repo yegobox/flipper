@@ -1103,32 +1103,67 @@ class _SignupViewState extends ConsumerState<SignupView> {
                                 const SizedBox(width: 16),
                                 Expanded(
                                   child: _showTinField
-                                      ? _buildInputField(
-                                          label: 'TIN Number',
-                                          hint: 'Enter TIN number',
-                                          icon: Icons.credit_card_outlined,
-                                          controller: _tinController,
-                                          keyboardType: TextInputType.number,
-                                          readOnly:
-                                              formState.tinDetails != null,
-                                          suffixIcon: _buildTinSuffix(
-                                            formState,
-                                          ),
-                                          validator: (value) {
-                                            if (_showTinField) {
-                                              if (value == null ||
-                                                  value.isEmpty) {
-                                                return 'TIN number is required';
-                                              }
-                                              if (value.length < 9) {
-                                                return 'TIN number must be at least 9 characters';
-                                              }
-                                            }
-                                            return null;
-                                          },
-                                          onChanged: (value) => ref
-                                              .read(signupFormProvider.notifier)
-                                              .updateTinNumber(value),
+                                      ? Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            _buildInputField(
+                                              label: 'TIN Number',
+                                              hint: 'Enter TIN number',
+                                              icon:
+                                                  Icons.credit_card_outlined,
+                                              controller: _tinController,
+                                              keyboardType:
+                                                  TextInputType.number,
+                                              readOnly:
+                                                  formState.tinDetails != null,
+                                              suffixIcon: _buildTinSuffix(
+                                                formState,
+                                              ),
+                                              validator: (value) {
+                                                if (_showTinField) {
+                                                  if (value == null ||
+                                                      value.isEmpty) {
+                                                    return 'TIN number is required';
+                                                  }
+                                                  if (value.length < 9) {
+                                                    return 'TIN number must be at least 9 characters';
+                                                  }
+                                                }
+                                                return null;
+                                              },
+                                              onChanged: (value) => ref
+                                                  .read(signupFormProvider
+                                                      .notifier)
+                                                  .updateTinNumber(value),
+                                            ),
+                                            if (formState.tinDetails != null)
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                    bottom: 16.0),
+                                                child: Text(
+                                                  'Business: ${formState.tinDetails!.taxPayerName}',
+                                                  style: const TextStyle(
+                                                    color: Colors.green,
+                                                    fontWeight:
+                                                        FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ),
+                                            if (formState.tinError != null)
+                                              Padding(
+                                                padding: const EdgeInsets.only(
+                                                    bottom: 16.0),
+                                                child: Text(
+                                                  formState.tinError!,
+                                                  style: const TextStyle(
+                                                    color: Colors.red,
+                                                    fontWeight:
+                                                        FontWeight.bold,
+                                                  ),
+                                                ),
+                                              ),
+                                          ],
                                         )
                                       : const SizedBox(), // Empty placeholder
                                 ),

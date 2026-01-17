@@ -31,7 +31,7 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
   bool _showTinField = false;
   bool _isSendingOtp = false;
   final _formKey = GlobalKey<FormState>();
-  bool _countryListenerSet = false;
+  StreamSubscription? _otpVerificationSubscription; // State-level field
 
   @override
   void initState() {
@@ -78,6 +78,7 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
 
   @override
   void dispose() {
+    _otpVerificationSubscription?.cancel(); // Cancel subscription in dispose
     super.dispose();
   }
 
@@ -195,7 +196,7 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                                       statusData['error'];
 
                                                   final String phoneValue =
-                                                      phoneState.value ?? '';
+                                                      phoneState.value;
                                                   final phoneHasValue =
                                                       phoneValue.isNotEmpty;
 
@@ -206,27 +207,11 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                                           _isValidEmail(
                                                               phoneValue);
 
-                                                  // Debug logging
-                                                  print(
-                                                      'DEBUG: phoneValue = "$phoneValue"');
-                                                  print(
-                                                      'DEBUG: isValidPhone = ${_isValidPhoneNumber(phoneValue)}');
-                                                  print(
-                                                      'DEBUG: isValidEmail = ${_isValidEmail(phoneValue)}');
-                                                  print(
-                                                      'DEBUG: isValidEmailOrPhone = $isValidEmailOrPhone');
-                                                  print(
-                                                      'DEBUG: isVerified = $isVerified');
-                                                  print(
-                                                      'DEBUG: _isSendingOtp = $_isSendingOtp');
-
                                                   final bool canSend =
                                                       !isVerified &&
                                                           isValidEmailOrPhone &&
                                                           !_isSendingOtp;
 
-                                                  print(
-                                                      'DEBUG: canSend = $canSend');
 
                                                   if (isVerifying) {
                                                     // Show loading indicator during verification
@@ -432,15 +417,22 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                                   // Only verify if not already verified
                                                   if (!formBloc
                                                       .isPhoneVerified) {
+                                                    // Cancel any existing subscription to prevent leaks
+                                                    _otpVerificationSubscription
+                                                        ?.cancel();
+
                                                     // Listen to verification status to show notifications
-                                                    final verificationStream =
+                                                    _otpVerificationSubscription =
                                                         formBloc
-                                                            .otpVerificationStatusStream;
-                                                    StreamSubscription?
-                                                        subscription;
-                                                    subscription =
-                                                        verificationStream
+                                                            .otpVerificationStatusStream
                                                             .listen((status) {
+                                                      // Ensure the widget is still mounted before updating UI
+                                                      if (!mounted) {
+                                                        _otpVerificationSubscription
+                                                            ?.cancel(); // Cancel if widget is no longer mounted
+                                                        return;
+                                                      }
+
                                                       if (!status[
                                                           'isVerifying']) {
                                                         if (status['error'] !=
@@ -457,7 +449,8 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                                               'Phone number verified successfully!');
                                                         }
                                                         // Cancel subscription after handling the result
-                                                        subscription?.cancel();
+                                                        _otpVerificationSubscription
+                                                            ?.cancel();
                                                       }
                                                     });
 
