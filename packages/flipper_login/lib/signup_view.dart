@@ -30,12 +30,8 @@ class SignUpView extends StatefulHookConsumerWidget {
 class PhoneValidationRule {
   final String dialCode;
   final List<int> localLengths;
-  final int totalLength;
 
-  PhoneValidationRule(
-      {required this.dialCode,
-      required this.localLengths,
-      required this.totalLength});
+  PhoneValidationRule({required this.dialCode, required this.localLengths});
 }
 
 class _SignUpViewState extends ConsumerState<SignUpView> {
@@ -45,12 +41,12 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
   StreamSubscription? _otpVerificationSubscription; // State-level field
 
   static final Map<String, PhoneValidationRule> _phoneValidationRules = {
-    'Rwanda': PhoneValidationRule(
-        dialCode: '+250', localLengths: [9, 10], totalLength: 12),
-    'Zambia': PhoneValidationRule(
-        dialCode: '+260', localLengths: [9, 10], totalLength: 12),
-    'Mozambique': PhoneValidationRule(
-        dialCode: '+258', localLengths: [9, 10], totalLength: 12),
+    'Rwanda':
+        PhoneValidationRule(dialCode: '+250', localLengths: [9]),
+    'Zambia':
+        PhoneValidationRule(dialCode: '+260', localLengths: [9]),
+    'Mozambique':
+        PhoneValidationRule(dialCode: '+258', localLengths: [9]),
   };
 
   @override
@@ -65,33 +61,31 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
   }
 
   static bool _isValidPhoneNumber(String value, String country) {
-    // If the value is empty, it's not valid
     if (value.isEmpty) {
       return false;
     }
-
-    final rule =
-        _phoneValidationRules[country] ?? _phoneValidationRules['Rwanda']!;
-    // Extract just the numeric part
     final digitsOnly = value.replaceAll(RegExp(r'[^\d]'), '');
 
-    // Check if the value starts with a dial code
+    // Check against all known rules if number starts with '+'
     if (value.startsWith('+')) {
-      // For international format, check if we have exactly the expected number of digits
-      return digitsOnly.length == rule.totalLength;
+      for (final rule in _phoneValidationRules.values) {
+        if (value.startsWith(rule.dialCode)) {
+          // Dynamically compute valid total lengths
+          final dialCodeDigits =
+              rule.dialCode.replaceAll(RegExp(r'\D'), '').length;
+          final validTotalLengths =
+              rule.localLengths.map((len) => dialCodeDigits + len);
+          return validTotalLengths.contains(digitsOnly.length);
+        }
+      }
+      return false; // Starts with '+' but not a known dial code
     }
 
-    // For local format (without dial code)
-    if (value.startsWith('0')) {
-      // Local format with leading zero: should match one of the allowed local lengths + 1 (for the zero)
-      return rule.localLengths.any((len) => digitsOnly.length == len + 1) ||
-          digitsOnly.length == 10; // Fallback to 10 as it was hardcoded before
-    } else {
-      // Local format without leading zero (9 digits) OR
-      // full number with country code but without '+' (12 digits)
-      return rule.localLengths.any((len) => digitsOnly.length == len) ||
-          digitsOnly.length == rule.totalLength;
-    }
+    // If no '+', assume it's a local number for the currently selected country
+    final currentRule = _phoneValidationRules[country];
+    if (currentRule == null) return false; // Should not happen
+
+    return currentRule.localLengths.contains(digitsOnly.length);
   }
 
   @override
@@ -267,18 +261,22 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                                               try {
                                                                 await formBloc
                                                                     .requestOtp();
+                                                                if (!mounted) return;
                                                                 showSuccessNotification(
                                                                     context,
                                                                     'OTP resent successfully!');
                                                               } catch (e) {
+                                                                if (!mounted) return;
                                                                 showErrorNotification(
                                                                     context,
                                                                     'Failed to resend OTP: ${e.toString()}');
                                                               } finally {
-                                                                setState(() {
-                                                                  _isSendingOtp =
-                                                                      false;
-                                                                });
+                                                                if (mounted) {
+                                                                  setState(() {
+                                                                    _isSendingOtp =
+                                                                        false;
+                                                                  });
+                                                                }
                                                               }
                                                             }
                                                           : null,
@@ -339,18 +337,22 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                                               try {
                                                                 await formBloc
                                                                     .requestOtp();
+                                                                if (!mounted) return;
                                                                 showSuccessNotification(
                                                                     context,
                                                                     'OTP sent successfully!');
                                                               } catch (e) {
+                                                                if (!mounted) return;
                                                                 showErrorNotification(
                                                                     context,
                                                                     'Failed to send OTP: ${e.toString()}');
                                                               } finally {
-                                                                setState(() {
-                                                                  _isSendingOtp =
-                                                                      false;
-                                                                });
+                                                                if (mounted) {
+                                                                  setState(() {
+                                                                    _isSendingOtp =
+                                                                        false;
+                                                                  });
+                                                                }
                                                               }
                                                             }
                                                           : null,
