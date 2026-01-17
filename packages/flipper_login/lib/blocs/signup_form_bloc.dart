@@ -141,6 +141,14 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
       }
     });
 
+    // Listen to phone number changes to reset verification status when field is cleared
+    phoneNumber.stream.listen((state) {
+      if (state.value.isEmpty && _isPhoneVerified) {
+        // Reset phone verification status when phone number is cleared
+        setPhoneVerified(false);
+      }
+    });
+
     username.addAsyncValidators([_checkUsername]);
   }
 

@@ -10,6 +10,7 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
+import 'package:rxdart/rxdart.dart';
 
 // Import our extracted components
 import 'blocs/signup_form_bloc.dart';
@@ -66,6 +67,42 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
   void initState() {
     super.initState();
     // Remove the listener setup from here - we'll set it up after the provider is available
+  }
+
+  bool _isValidEmail(String value) {
+    final emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+    return emailRegex.hasMatch(value);
+  }
+
+  bool _isValidPhoneNumber(String value) {
+    // If the value is empty or just the dial code, it's not valid
+    if (value.isEmpty) {
+      return false;
+    }
+
+    // Check if it looks like a phone number with dial code
+    final phoneWithDialCodeRegex = RegExp(r'^\+[0-9\s\-\(\)]{8,15}$');
+
+    // If it already has the dial code, check if it's valid and has more than just the dial code
+    if (phoneWithDialCodeRegex.hasMatch(value)) {
+      // Extract just the numeric part to check if there are enough digits beyond the dial code
+      final digitsOnly = value.replaceAll(RegExp(r'[^\d]'), '');
+      final dialCodeDigits = _dialCodeForCountry('Rwanda')
+          .replaceAll(RegExp(r'[^\d]'), ''); // Get numeric part of dial code
+
+      // Check if total digits exceed the dial code digits (meaning there's an actual phone number)
+      return digitsOnly.length > dialCodeDigits.length;
+    }
+
+    // If it doesn't have a dial code, check if it's a valid local number that could have dial code added
+    // This would be a sequence of digits, typically 7-10 digits for Rwanda mobile numbers
+    final localNumberRegex =
+        RegExp(r'^[0-9]{7,10}$'); // 7-10 digits for local numbers
+    if (localNumberRegex.hasMatch(value)) {
+      return true;
+    }
+
+    return false;
   }
 
   @override
@@ -182,25 +219,51 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                           icon: Icons.phone_outlined,
                                           hint: 'Enter your phone or email',
                                           keyboardType: TextInputType.text,
-                                          suffix: StreamBuilder<
-                                              Map<String, dynamic>>(
-                                            stream: formBloc
-                                                .otpVerificationStatusStream,
-                                            builder: (context, statusSnapshot) {
+                                          suffix: StreamBuilder(
+                                            stream: Rx.combineLatest2(
+                                              formBloc
+                                                  .otpVerificationStatusStream,
+                                              formBloc.phoneNumber.stream,
+                                              (statusData, phoneState) => {
+                                                'status': statusData,
+                                                'phone': phoneState
+                                              },
+                                            ),
+                                            builder:
+                                                (context, combinedSnapshot) {
+                                              // Extract status data from combined snapshot
+                                              final combinedData =
+                                                  combinedSnapshot.data ?? {};
+                                              final statusData =
+                                                  combinedData['status']
+                                                      as Map<String, dynamic>?;
+                                              final phoneState =
+                                                  combinedData['phone'];
                                               // Get current verification status
-                                              final isVerifying = statusSnapshot
-                                                      .data?['isVerifying'] ??
-                                                  false;
-                                              final isVerified = statusSnapshot
-                                                      .data?['isVerified'] ??
-                                                  formBloc.isPhoneVerified;
+                                              final isVerifying =
+                                                  statusData?['isVerifying'] ??
+                                                      false;
+                                              final phoneHasValue = formBloc
+                                                  .phoneNumber.value.isNotEmpty;
+                                              final isVerified = phoneHasValue
+                                                  ? (statusData?[
+                                                          'isVerified'] ??
+                                                      formBloc.isPhoneVerified)
+                                                  : false;
                                               final error =
-                                                  statusSnapshot.data?['error'];
+                                                  statusData?['error'];
+
+                                              // Check if phone field has sufficient content (not just dial code)
+                                              final String phoneValue =
+                                                  formBloc.phoneNumber.value;
+                                              final bool isValidEmailOrPhone =
+                                                  _isValidPhoneNumber(
+                                                          phoneValue) ||
+                                                      _isValidEmail(phoneValue);
 
                                               final bool canSend =
                                                   !isVerified &&
-                                                      formBloc.phoneNumber.value
-                                                          .isNotEmpty &&
+                                                      isValidEmailOrPhone &&
                                                       !_isSendingOtp;
 
                                               if (isVerifying) {
@@ -223,8 +286,9 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                                     ),
                                                   ),
                                                 );
-                                              } else if (error != null) {
-                                                // Show "Resend Code" button when verification fails
+                                              } else if (error != null &&
+                                                  phoneHasValue) {
+                                                // Show "Resend Code" button when verification fails and phone has a value
                                                 return TextButton(
                                                   onPressed: canSend
                                                       ? () async {
@@ -279,7 +343,8 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                                                   FontWeight
                                                                       .w600)),
                                                 );
-                                              } else if (isVerified) {
+                                              } else if (isVerified &&
+                                                  phoneHasValue) {
                                                 // Show checkmark when phone is verified
                                                 return Padding(
                                                   padding:
