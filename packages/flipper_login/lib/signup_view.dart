@@ -10,7 +10,6 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
-import 'package:rxdart/rxdart.dart';
 
 // Import our extracted components
 import 'blocs/signup_form_bloc.dart';
@@ -33,35 +32,6 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
   bool _isSendingOtp = false;
   final _formKey = GlobalKey<FormState>();
   bool _countryListenerSet = false;
-
-  // Phone controller and country dial code helpers
-  final Map<String, String> _countryDialCodes = {
-    'Rwanda': '+250',
-    'Zambia': '+260',
-    'Mozambique': '+258',
-  };
-
-  String _dialCodeForCountry(String country) {
-    return _countryDialCodes[country] ?? '+250';
-  }
-
-  String _ensurePhoneHasDialCode(String phone, String country) {
-    final code = _dialCodeForCountry(country);
-    final cleaned = phone.trim();
-    if (cleaned.isEmpty) return code;
-    // If phone already starts with the correct dial code for this country, return as-is
-    if (cleaned.startsWith(code)) return cleaned;
-    // If phone starts with any known dial code, replace it with the correct one
-    for (final c in _countryDialCodes.values) {
-      if (cleaned.startsWith(c)) {
-        return code + cleaned.substring(c.length);
-      }
-    }
-    // Remove leading zero if present (local formats) and prepend dial code
-    var local = cleaned;
-    if (local.startsWith('0')) local = local.substring(1);
-    return '$code$local';
-  }
 
   @override
   void initState() {
@@ -130,30 +100,6 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
               final formBloc =
                   BlocProvider.of<AsyncFieldValidationFormBloc>(context);
 
-              // Set initial phone value only if it's empty (first time setup)
-              if (formBloc.phoneNumber.value.isEmpty) {
-                formBloc.phoneNumber.updateValue(
-                    _ensurePhoneHasDialCode('', widget.countryNm ?? 'Rwanda'));
-              }
-
-              // Set up country change listener only once
-              if (!_countryListenerSet) {
-                _countryListenerSet = true;
-                formBloc.countryName.stream.listen((state) {
-                  if (state.value != null) {
-                    final currentPhone = formBloc.phoneNumber.value;
-                    final newPhone = _ensurePhoneHasDialCode(
-                      currentPhone,
-                      state.value!,
-                    );
-                    // Only update if the dial code actually changed
-                    if (newPhone != currentPhone) {
-                      formBloc.phoneNumber.updateValue(newPhone);
-                    }
-                  }
-                });
-              }
-
               return FormBlocListener<AsyncFieldValidationFormBloc, String,
                   String>(
                 formBloc: formBloc,
@@ -220,228 +166,227 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                           icon: Icons.phone_outlined,
                                           hint: 'Enter your phone or email',
                                           keyboardType: TextInputType.text,
-                                          suffix: StreamBuilder(
-                                            stream: Rx.combineLatest2(
-                                              formBloc
-                                                  .otpVerificationStatusStream
-                                                  .startWith({
-                                                'isVerifying': false,
-                                                'isVerified':
-                                                    formBloc.isPhoneVerified,
-                                                'error': null
-                                              }),
-                                              formBloc.phoneNumber.stream,
-                                              (statusData, phoneState) => {
-                                                'status': statusData,
-                                                'phone': phoneState
-                                              },
-                                            ),
-                                            builder:
-                                                (context, combinedSnapshot) {
-                                              // Extract status data from combined snapshot
-                                              final combinedData =
-                                                  combinedSnapshot.data ?? {};
-                                              final statusData =
-                                                  combinedData['status']
-                                                      as Map<String, dynamic>?;
-                                              final phoneState =
-                                                  combinedData['phone']
-                                                      as TextFieldBlocState?;
-
-                                              // Get current verification status
-                                              final isVerifying =
-                                                  statusData?['isVerifying'] ??
+                                          suffix: BlocBuilder<TextFieldBloc,
+                                              TextFieldBlocState>(
+                                            bloc: formBloc.phoneNumber,
+                                            builder: (context, phoneState) {
+                                              return StreamBuilder<
+                                                  Map<String, dynamic>>(
+                                                stream: formBloc
+                                                    .otpVerificationStatusStream,
+                                                initialData: {
+                                                  'isVerifying': false,
+                                                  'isVerified':
+                                                      formBloc.isPhoneVerified,
+                                                  'error': null
+                                                },
+                                                builder:
+                                                    (context, statusSnapshot) {
+                                                  final statusData =
+                                                      statusSnapshot.data!;
+                                                  final isVerifying = statusData[
+                                                          'isVerifying'] ??
                                                       false;
-
-                                              // Extract phone value from the state
-                                              final String phoneValue =
-                                                  phoneState?.value ?? '';
-                                              final phoneHasValue =
-                                                  phoneValue.isNotEmpty;
-
-                                              final isVerified = phoneHasValue
-                                                  ? (statusData?[
+                                                  final isVerified = statusData[
                                                           'isVerified'] ??
-                                                      formBloc.isPhoneVerified)
-                                                  : false;
-                                              final error =
-                                                  statusData?['error'];
+                                                      false;
+                                                  final error =
+                                                      statusData['error'];
 
-                                              // Check if phone field has sufficient content (not just dial code)
-                                              final bool isValidEmailOrPhone =
-                                                  _isValidPhoneNumber(
-                                                          phoneValue) ||
-                                                      _isValidEmail(phoneValue);
+                                                  final String phoneValue =
+                                                      phoneState.value ?? '';
+                                                  final phoneHasValue =
+                                                      phoneValue.isNotEmpty;
 
-                                              // Debug logging
-                                              print(
-                                                  'DEBUG: phoneValue = "$phoneValue"');
-                                              print(
-                                                  'DEBUG: isValidPhone = ${_isValidPhoneNumber(phoneValue)}');
-                                              print(
-                                                  'DEBUG: isValidEmail = ${_isValidEmail(phoneValue)}');
-                                              print(
-                                                  'DEBUG: isValidEmailOrPhone = $isValidEmailOrPhone');
-                                              print(
-                                                  'DEBUG: isVerified = $isVerified');
-                                              print(
-                                                  'DEBUG: _isSendingOtp = $_isSendingOtp');
+                                                  final bool
+                                                      isValidEmailOrPhone =
+                                                      _isValidPhoneNumber(
+                                                              phoneValue) ||
+                                                          _isValidEmail(
+                                                              phoneValue);
 
-                                              final bool canSend =
-                                                  !isVerified &&
-                                                      isValidEmailOrPhone &&
-                                                      !_isSendingOtp;
+                                                  // Debug logging
+                                                  print(
+                                                      'DEBUG: phoneValue = "$phoneValue"');
+                                                  print(
+                                                      'DEBUG: isValidPhone = ${_isValidPhoneNumber(phoneValue)}');
+                                                  print(
+                                                      'DEBUG: isValidEmail = ${_isValidEmail(phoneValue)}');
+                                                  print(
+                                                      'DEBUG: isValidEmailOrPhone = $isValidEmailOrPhone');
+                                                  print(
+                                                      'DEBUG: isVerified = $isVerified');
+                                                  print(
+                                                      'DEBUG: _isSendingOtp = $_isSendingOtp');
 
-                                              print(
-                                                  'DEBUG: canSend = $canSend');
+                                                  final bool canSend =
+                                                      !isVerified &&
+                                                          isValidEmailOrPhone &&
+                                                          !_isSendingOtp;
 
-                                              if (isVerifying) {
-                                                // Show loading indicator during verification
-                                                return Padding(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                          right: 16.0),
-                                                  child: SizedBox(
-                                                    width: 16,
-                                                    height: 16,
-                                                    child:
-                                                        CircularProgressIndicator(
-                                                      strokeWidth: 2,
-                                                      valueColor:
-                                                          AlwaysStoppedAnimation<
-                                                              Color>(
-                                                        const Color(0xFF0078D4),
+                                                  print(
+                                                      'DEBUG: canSend = $canSend');
+
+                                                  if (isVerifying) {
+                                                    // Show loading indicator during verification
+                                                    return Padding(
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                              right: 16.0),
+                                                      child: SizedBox(
+                                                        width: 16,
+                                                        height: 16,
+                                                        child:
+                                                            CircularProgressIndicator(
+                                                          strokeWidth: 2,
+                                                          valueColor:
+                                                              AlwaysStoppedAnimation<
+                                                                  Color>(
+                                                            const Color(
+                                                                0xFF0078D4),
+                                                          ),
+                                                        ),
                                                       ),
-                                                    ),
-                                                  ),
-                                                );
-                                              } else if (error != null &&
-                                                  phoneHasValue) {
-                                                // Show "Resend Code" button when verification fails and phone has a value
-                                                return TextButton(
-                                                  onPressed: canSend
-                                                      ? () async {
-                                                          setState(() {
-                                                            _isSendingOtp =
-                                                                true;
-                                                          });
-                                                          try {
-                                                            await formBloc
-                                                                .requestOtp();
-                                                            showSuccessNotification(
-                                                                context,
-                                                                'OTP resent successfully!');
-                                                          } catch (e) {
-                                                            showErrorNotification(
-                                                                context,
-                                                                'Failed to resend OTP: ${e.toString()}');
-                                                          } finally {
-                                                            setState(() {
-                                                              _isSendingOtp =
-                                                                  false;
-                                                            });
-                                                          }
-                                                        }
-                                                      : null,
-                                                  style: TextButton.styleFrom(
-                                                    foregroundColor:
-                                                        const Color(0xFF0078D4),
-                                                    disabledForegroundColor:
-                                                        Colors.grey,
-                                                    padding: const EdgeInsets
-                                                        .symmetric(
-                                                        horizontal: 16),
-                                                  ),
-                                                  child: _isSendingOtp
-                                                      ? const SizedBox(
-                                                          width: 20,
-                                                          height: 20,
-                                                          child:
-                                                              CircularProgressIndicator(
-                                                            strokeWidth: 2,
-                                                            valueColor:
-                                                                AlwaysStoppedAnimation<
-                                                                        Color>(
-                                                                    Color(
-                                                                        0xFF0078D4)),
-                                                          ),
-                                                        )
-                                                      : const Text('Resend',
-                                                          style: TextStyle(
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w600)),
-                                                );
-                                              } else if (isVerified &&
-                                                  phoneHasValue) {
-                                                // Show checkmark when phone is verified
-                                                return Padding(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                          right: 16.0),
-                                                  child: Icon(
-                                                    Icons.check_circle,
-                                                    color: Colors.green,
-                                                    size: 24,
-                                                  ),
-                                                );
-                                              } else {
-                                                // Show "Send Code" button when not verified
-                                                return TextButton(
-                                                  onPressed: canSend
-                                                      ? () async {
-                                                          setState(() {
-                                                            _isSendingOtp =
-                                                                true;
-                                                          });
-                                                          try {
-                                                            await formBloc
-                                                                .requestOtp();
-                                                            showSuccessNotification(
-                                                                context,
-                                                                'OTP sent successfully!');
-                                                          } catch (e) {
-                                                            showErrorNotification(
-                                                                context,
-                                                                'Failed to send OTP: ${e.toString()}');
-                                                          } finally {
-                                                            setState(() {
-                                                              _isSendingOtp =
-                                                                  false;
-                                                            });
-                                                          }
-                                                        }
-                                                      : null,
-                                                  style: TextButton.styleFrom(
-                                                    foregroundColor:
-                                                        const Color(0xFF0078D4),
-                                                    disabledForegroundColor:
-                                                        Colors.grey,
-                                                    padding: const EdgeInsets
-                                                        .symmetric(
-                                                        horizontal: 16),
-                                                  ),
-                                                  child: _isSendingOtp
-                                                      ? const SizedBox(
-                                                          width: 20,
-                                                          height: 20,
-                                                          child:
-                                                              CircularProgressIndicator(
-                                                            strokeWidth: 2,
-                                                            valueColor:
-                                                                AlwaysStoppedAnimation<
-                                                                        Color>(
-                                                                    Color(
-                                                                        0xFF0078D4)),
-                                                          ),
-                                                        )
-                                                      : const Text('Send Code',
-                                                          style: TextStyle(
-                                                              fontWeight:
-                                                                  FontWeight
-                                                                      .w600)),
-                                                );
-                                              }
+                                                    );
+                                                  } else if (error != null &&
+                                                      phoneHasValue) {
+                                                    // Show "Resend Code" button when verification fails and phone has a value
+                                                    return TextButton(
+                                                      onPressed: canSend
+                                                          ? () async {
+                                                              setState(() {
+                                                                _isSendingOtp =
+                                                                    true;
+                                                              });
+                                                              try {
+                                                                await formBloc
+                                                                    .requestOtp();
+                                                                showSuccessNotification(
+                                                                    context,
+                                                                    'OTP resent successfully!');
+                                                              } catch (e) {
+                                                                showErrorNotification(
+                                                                    context,
+                                                                    'Failed to resend OTP: ${e.toString()}');
+                                                              } finally {
+                                                                setState(() {
+                                                                  _isSendingOtp =
+                                                                      false;
+                                                                });
+                                                              }
+                                                            }
+                                                          : null,
+                                                      style: TextButton
+                                                          .styleFrom(
+                                                        foregroundColor:
+                                                            const Color(
+                                                                0xFF0078D4),
+                                                        disabledForegroundColor:
+                                                            Colors.grey,
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .symmetric(
+                                                                horizontal: 16),
+                                                      ),
+                                                      child: _isSendingOtp
+                                                          ? const SizedBox(
+                                                              width: 20,
+                                                              height: 20,
+                                                              child:
+                                                                  CircularProgressIndicator(
+                                                                strokeWidth: 2,
+                                                                valueColor:
+                                                                    AlwaysStoppedAnimation<
+                                                                            Color>(
+                                                                        Color(
+                                                                            0xFF0078D4)),
+                                                              ),
+                                                            )
+                                                          : const Text(
+                                                              'Resend',
+                                                              style:
+                                                                  TextStyle(
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w600)),
+                                                    );
+                                                  } else if (isVerified &&
+                                                      phoneHasValue) {
+                                                    // Show checkmark when phone is verified
+                                                    return Padding(
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                              right: 16.0),
+                                                      child: Icon(
+                                                        Icons.check_circle,
+                                                        color: Colors.green,
+                                                        size: 24,
+                                                      ),
+                                                    );
+                                                  } else {
+                                                    // Show "Send Code" button when not verified
+                                                    return TextButton(
+                                                      onPressed: canSend
+                                                          ? () async {
+                                                              setState(() {
+                                                                _isSendingOtp =
+                                                                    true;
+                                                              });
+                                                              try {
+                                                                await formBloc
+                                                                    .requestOtp();
+                                                                showSuccessNotification(
+                                                                    context,
+                                                                    'OTP sent successfully!');
+                                                              } catch (e) {
+                                                                showErrorNotification(
+                                                                    context,
+                                                                    'Failed to send OTP: ${e.toString()}');
+                                                              } finally {
+                                                                setState(() {
+                                                                  _isSendingOtp =
+                                                                      false;
+                                                                });
+                                                              }
+                                                            }
+                                                          : null,
+                                                      style: TextButton
+                                                          .styleFrom(
+                                                        foregroundColor:
+                                                            const Color(
+                                                                0xFF0078D4),
+                                                        disabledForegroundColor:
+                                                            Colors.grey,
+                                                        padding:
+                                                            const EdgeInsets
+                                                                .symmetric(
+                                                                horizontal: 16),
+                                                      ),
+                                                      child: _isSendingOtp
+                                                          ? const SizedBox(
+                                                              width: 20,
+                                                              height: 20,
+                                                              child:
+                                                                  CircularProgressIndicator(
+                                                                strokeWidth: 2,
+                                                                valueColor:
+                                                                    AlwaysStoppedAnimation<
+                                                                            Color>(
+                                                                        Color(
+                                                                            0xFF0078D4)),
+                                                              ),
+                                                            )
+                                                          : const Text(
+                                                              'Send Code',
+                                                              style:
+                                                                  TextStyle(
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .w600)),
+                                                    );
+                                                  }
+                                                },
+                                              );
                                             },
                                           ),
                                         ),

@@ -109,14 +109,35 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
       _phoneVerificationField // Add phone verification field
     ]);
 
-    // Add a custom validation that checks phone verification status
-    this.stream.listen((state) {
-      // Update form validation based on phone verification status
-      if (!isPhoneVerified && phoneNumber.value.isNotEmpty) {
-        // If phone is not verified but has a value, we might want to show a warning
-        // For now, we'll just ensure the form state updates properly
+    // Set initial phone value and listen for country changes
+    final initialPhone = _ensurePhoneHasDialCode('', country);
+    phoneNumber.updateInitialValue(initialPhone);
+
+    countryName.stream.listen((state) {
+      if (state.value != null) {
+        final currentPhone = phoneNumber.value;
+        final newPhone = _ensurePhoneHasDialCode(currentPhone, state.value!);
+        if (newPhone != currentPhone) {
+          phoneNumber.updateValue(newPhone);
+        }
       }
     });
+
+    // Listen to username and fullName streams to enable/disable phoneNumber
+    void updatePhoneNumberEnabled() {
+      final isEnabled = username.value.isNotEmpty && fullName.value.isNotEmpty;
+      phoneNumber.updateExtraData({'enabled': isEnabled});
+      if (!isEnabled && phoneNumber.value.isNotEmpty) {
+        phoneNumber.updateValue('');
+      }
+    }
+
+    // Initial check
+    updatePhoneNumberEnabled();
+
+    // Listen to each stream
+    username.stream.listen((_) => updatePhoneNumberEnabled());
+    fullName.stream.listen((_) => updatePhoneNumberEnabled());
 
     // Listen to business type changes to update tinNumber validation
     businessTypes.stream.listen((state) {
@@ -216,15 +237,55 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
     return null;
   }
 
+  // Phone normalization logic
+  final Map<String, String> _countryDialCodes = {
+    'Rwanda': '+250',
+    'Zambia': '+260',
+    'Mozambique': '+258',
+  };
+
+  String _dialCodeForCountry(String country) {
+    return _countryDialCodes[country] ?? '+250';
+  }
+
+  String _ensurePhoneHasDialCode(String phone, String country) {
+    final code = _dialCodeForCountry(country);
+    final cleaned = phone.trim();
+    if (cleaned.isEmpty) return code;
+    // If phone already starts with the correct dial code for this country, return as-is
+    if (cleaned.startsWith(code)) return cleaned;
+    // If phone starts with any known dial code, replace it with the correct one
+    for (final c in _countryDialCodes.values) {
+      if (cleaned.startsWith(c)) {
+        return code + cleaned.substring(c.length);
+      }
+    }
+    // Remove leading zero if present (local formats) and prepend dial code
+    var local = cleaned;
+    if (local.startsWith('0')) local = local.substring(1);
+    return '$code$local';
+  }
+
   /// Method to send OTP to the user's phone number or email
   Future<Map<String, dynamic>?> requestOtp() async {
     if (phoneNumber.value.isEmpty) {
       throw Exception('Phone number or email is required to send OTP');
     }
 
+    // Check if it's an email
+    final emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+    final isEmail = emailRegex.hasMatch(phoneNumber.value);
+
+    String contactInfo = phoneNumber.value;
+    if (!isEmail) {
+      // It's a phone number, so normalize it
+      contactInfo =
+          _ensurePhoneHasDialCode(phoneNumber.value, countryName.value ?? 'Rwanda');
+    }
+
     try {
       final result =
-          await ProxyService.strategy.sendOtpForSignup(phoneNumber.value);
+          await ProxyService.strategy.sendOtpForSignup(contactInfo);
       // Enable the OTP field after successful request
       otpCode.updateExtraData({'enabled': true});
       return result;
