@@ -75,34 +75,35 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
   }
 
   bool _isValidPhoneNumber(String value) {
-    // If the value is empty or just the dial code, it's not valid
+    // If the value is empty, it's not valid
     if (value.isEmpty) {
       return false;
     }
 
-    // Check if it looks like a phone number with dial code
-    final phoneWithDialCodeRegex = RegExp(r'^\+[0-9\s\-\(\)]{8,15}$');
+    // Extract just the numeric part
+    final digitsOnly = value.replaceAll(RegExp(r'[^\d]'), '');
 
-    // If it already has the dial code, check if it's valid and has more than just the dial code
-    if (phoneWithDialCodeRegex.hasMatch(value)) {
-      // Extract just the numeric part to check if there are enough digits beyond the dial code
-      final digitsOnly = value.replaceAll(RegExp(r'[^\d]'), '');
-      final dialCodeDigits = _dialCodeForCountry('Rwanda')
-          .replaceAll(RegExp(r'[^\d]'), ''); // Get numeric part of dial code
+    // Define expected total digits for each country (dial code + local number)
+    // Rwanda: +250 (3 digits) + 9 digits = 12 total
+    // Zambia: +260 (3 digits) + 9 digits = 12 total
+    // Mozambique: +258 (3 digits) + 9 digits = 12 total
+    final expectedDigits = 12;
 
-      // Check if total digits exceed the dial code digits (meaning there's an actual phone number)
-      return digitsOnly.length > dialCodeDigits.length;
+    // Check if the value starts with a dial code
+    if (value.startsWith('+')) {
+      // For international format, check if we have exactly the expected number of digits
+      return digitsOnly.length == expectedDigits;
     }
 
-    // If it doesn't have a dial code, check if it's a valid local number that could have dial code added
-    // This would be a sequence of digits, typically 7-10 digits for Rwanda mobile numbers
-    final localNumberRegex =
-        RegExp(r'^[0-9]{7,10}$'); // 7-10 digits for local numbers
-    if (localNumberRegex.hasMatch(value)) {
-      return true;
+    // For local format (without dial code), check if we have 9 digits
+    // This handles cases like "783054874" or "0783054874"
+    if (value.startsWith('0')) {
+      // Local format with leading zero: should be 10 digits (0 + 9 digits)
+      return digitsOnly.length == 10;
+    } else {
+      // Local format without leading zero: should be 9 digits
+      return digitsOnly.length == 9;
     }
-
-    return false;
   }
 
   @override
