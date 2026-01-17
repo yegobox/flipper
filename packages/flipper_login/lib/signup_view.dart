@@ -40,7 +40,7 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
   }
 
   bool _isValidEmail(String value) {
-    final emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
+    final emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[a-zA-Z]{2,}$');
     return emailRegex.hasMatch(value);
   }
 
@@ -184,9 +184,10 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                                     (context, statusSnapshot) {
                                                   final statusData =
                                                       statusSnapshot.data!;
-                                                  final isVerifying = statusData[
-                                                          'isVerifying'] ??
-                                                      false;
+                                                  final isVerifying =
+                                                      statusData[
+                                                              'isVerifying'] ??
+                                                          false;
                                                   final isVerified = statusData[
                                                           'isVerified'] ??
                                                       false;
@@ -276,8 +277,8 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                                               }
                                                             }
                                                           : null,
-                                                      style: TextButton
-                                                          .styleFrom(
+                                                      style:
+                                                          TextButton.styleFrom(
                                                         foregroundColor:
                                                             const Color(
                                                                 0xFF0078D4),
@@ -302,13 +303,11 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                                                             0xFF0078D4)),
                                                               ),
                                                             )
-                                                          : const Text(
-                                                              'Resend',
-                                                              style:
-                                                                  TextStyle(
-                                                                      fontWeight:
-                                                                          FontWeight
-                                                                              .w600)),
+                                                          : const Text('Resend',
+                                                              style: TextStyle(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600)),
                                                     );
                                                   } else if (isVerified &&
                                                       phoneHasValue) {
@@ -350,8 +349,8 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                                               }
                                                             }
                                                           : null,
-                                                      style: TextButton
-                                                          .styleFrom(
+                                                      style:
+                                                          TextButton.styleFrom(
                                                         foregroundColor:
                                                             const Color(
                                                                 0xFF0078D4),
@@ -378,11 +377,10 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                                             )
                                                           : const Text(
                                                               'Send Code',
-                                                              style:
-                                                                  TextStyle(
-                                                                      fontWeight:
-                                                                          FontWeight
-                                                                              .w600)),
+                                                              style: TextStyle(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w600)),
                                                     );
                                                   }
                                                 },
