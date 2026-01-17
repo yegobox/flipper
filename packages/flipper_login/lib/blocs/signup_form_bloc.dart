@@ -29,7 +29,6 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
       FieldBlocValidators.required,
       _validateContactInfo,
     ],
-    asyncValidatorDebounceTime: const Duration(milliseconds: 300),
   );
   final otpCode = TextFieldBloc(
     validators: [

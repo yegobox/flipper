@@ -95,14 +95,14 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
       return digitsOnly.length == expectedDigits;
     }
 
-    // For local format (without dial code), check if we have 9 digits
-    // This handles cases like "783054874" or "0783054874"
+    // For local format (without dial code)
     if (value.startsWith('0')) {
       // Local format with leading zero: should be 10 digits (0 + 9 digits)
       return digitsOnly.length == 10;
     } else {
-      // Local format without leading zero: should be 9 digits
-      return digitsOnly.length == 9;
+      // Local format without leading zero (9 digits) OR
+      // full number with country code but without '+' (12 digits)
+      return digitsOnly.length == 9 || digitsOnly.length == expectedDigits;
     }
   }
 
@@ -223,7 +223,13 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                           suffix: StreamBuilder(
                                             stream: Rx.combineLatest2(
                                               formBloc
-                                                  .otpVerificationStatusStream,
+                                                  .otpVerificationStatusStream
+                                                  .startWith({
+                                                'isVerifying': false,
+                                                'isVerified':
+                                                    formBloc.isPhoneVerified,
+                                                'error': null
+                                              }),
                                               formBloc.phoneNumber.stream,
                                               (statusData, phoneState) => {
                                                 'status': statusData,
@@ -239,13 +245,20 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                                   combinedData['status']
                                                       as Map<String, dynamic>?;
                                               final phoneState =
-                                                  combinedData['phone'];
+                                                  combinedData['phone']
+                                                      as TextFieldBlocState?;
+
                                               // Get current verification status
                                               final isVerifying =
                                                   statusData?['isVerifying'] ??
                                                       false;
-                                              final phoneHasValue = formBloc
-                                                  .phoneNumber.value.isNotEmpty;
+
+                                              // Extract phone value from the state
+                                              final String phoneValue =
+                                                  phoneState?.value ?? '';
+                                              final phoneHasValue =
+                                                  phoneValue.isNotEmpty;
+
                                               final isVerified = phoneHasValue
                                                   ? (statusData?[
                                                           'isVerified'] ??
@@ -255,17 +268,32 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                                   statusData?['error'];
 
                                               // Check if phone field has sufficient content (not just dial code)
-                                              final String phoneValue =
-                                                  formBloc.phoneNumber.value;
                                               final bool isValidEmailOrPhone =
                                                   _isValidPhoneNumber(
                                                           phoneValue) ||
                                                       _isValidEmail(phoneValue);
 
+                                              // Debug logging
+                                              print(
+                                                  'DEBUG: phoneValue = "$phoneValue"');
+                                              print(
+                                                  'DEBUG: isValidPhone = ${_isValidPhoneNumber(phoneValue)}');
+                                              print(
+                                                  'DEBUG: isValidEmail = ${_isValidEmail(phoneValue)}');
+                                              print(
+                                                  'DEBUG: isValidEmailOrPhone = $isValidEmailOrPhone');
+                                              print(
+                                                  'DEBUG: isVerified = $isVerified');
+                                              print(
+                                                  'DEBUG: _isSendingOtp = $_isSendingOtp');
+
                                               final bool canSend =
                                                   !isVerified &&
                                                       isValidEmailOrPhone &&
                                                       !_isSendingOtp;
+
+                                              print(
+                                                  'DEBUG: canSend = $canSend');
 
                                               if (isVerifying) {
                                                 // Show loading indicator during verification
