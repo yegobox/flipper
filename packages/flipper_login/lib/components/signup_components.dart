@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 import 'package:flipper_login/blocs/signup_form_bloc.dart';
 
@@ -69,52 +70,67 @@ class SignupComponents {
     required IconData icon,
     TextInputType? keyboardType,
     String? hint,
+    List<TextInputFormatter>? inputFormatters,
+    Widget? suffix,
   }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
-      child: TextFieldBlocBuilder(
-        textFieldBloc: fieldBloc,
-        suffixButton: SuffixButton.asyncValidating,
-        keyboardType: keyboardType ?? TextInputType.text,
-        decoration: InputDecoration(
-          labelText: label,
-          hintText: hint,
-          hintStyle: TextStyle(color: textSecondary.withOpacity(0.7)),
-          prefixIcon: Icon(icon, color: textSecondary, size: 22),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8.0),
-            borderSide: BorderSide(color: Colors.grey.shade300, width: 1),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8.0),
-            borderSide: BorderSide(color: Colors.grey.shade300, width: 1),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8.0),
-            borderSide: const BorderSide(color: primaryColor, width: 2),
-          ),
-          errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8.0),
-            borderSide: const BorderSide(color: errorColor, width: 1),
-          ),
-          filled: true,
-          fillColor: surfaceColor,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-          labelStyle: const TextStyle(
-            color: textSecondary,
-            fontWeight: FontWeight.w500,
-          ),
-          floatingLabelStyle: const TextStyle(
-            color: primaryColor,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        style: const TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.w500,
-          color: textPrimary,
-        ),
+      child: BlocBuilder<TextFieldBloc, TextFieldBlocState>(
+        bloc: fieldBloc,
+        builder: (context, state) {
+          final isEnabled = (state.extraData is Map &&
+                  (state.extraData as Map).containsKey('enabled'))
+              ? (state.extraData as Map)['enabled'] as bool
+              : true;
+
+          return TextFieldBlocBuilder(
+            textFieldBloc: fieldBloc,
+            isEnabled: isEnabled,
+            suffixButton: suffix != null ? null : SuffixButton.asyncValidating,
+            keyboardType: keyboardType ?? TextInputType.text,
+            inputFormatters: inputFormatters,
+            decoration: InputDecoration(
+              suffixIcon: suffix,
+              labelText: label,
+              hintText: hint,
+              hintStyle: TextStyle(color: textSecondary.withOpacity(0.7)),
+              prefixIcon: Icon(icon, color: textSecondary, size: 22),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.0),
+                borderSide: BorderSide(color: Colors.grey.shade300, width: 1),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.0),
+                borderSide: BorderSide(color: Colors.grey.shade300, width: 1),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.0),
+                borderSide: const BorderSide(color: primaryColor, width: 2),
+              ),
+              errorBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8.0),
+                borderSide: const BorderSide(color: errorColor, width: 1),
+              ),
+              filled: true,
+              fillColor: surfaceColor,
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              labelStyle: const TextStyle(
+                color: textSecondary,
+                fontWeight: FontWeight.w500,
+              ),
+              floatingLabelStyle: const TextStyle(
+                color: primaryColor,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: textPrimary,
+            ),
+          );
+        },
       ),
     );
   }
@@ -177,33 +193,74 @@ class SignupComponents {
       margin: const EdgeInsets.symmetric(vertical: 24),
       width: double.infinity,
       height: 52,
-      child: ElevatedButton(
-        onPressed: isLoading ? null : formBloc.submit,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: primaryColor,
-          foregroundColor: Colors.white,
-          disabledBackgroundColor: primaryColor.withOpacity(0.6),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8.0),
-          ),
-          elevation: 0,
-        ),
-        child: isLoading
-            ? const SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  color: Colors.white,
-                  strokeWidth: 3,
-                ),
-              )
-            : const Text(
-                'Create Account',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
+      child: BlocBuilder<AsyncFieldValidationFormBloc,
+          FormBlocState<String, String>>(
+        bloc: formBloc,
+        builder: (context, state) {
+          // Check if the form is valid AND all required fields have been validated
+          final isFormValid = state.isValid();
+
+          // Additional validation checks for specific fields
+          final isUsernameValid = formBloc.username.value.isNotEmpty &&
+              formBloc.username.state.isValid;
+          final isFullNameValid = formBloc.fullName.value.isNotEmpty &&
+              formBloc.fullName.state.isValid;
+          final isPhoneValid = formBloc.phoneNumber.value.isNotEmpty &&
+              formBloc.phoneNumber.state.isValid;
+          final isBusinessTypeValid = formBloc.businessTypes.value != null &&
+              formBloc.businessTypes.state.isValid;
+
+          // Check if OTP is enabled and if so, it must be valid
+          final isOtpEnabled = (formBloc.otpCode.state.extraData
+                  as Map<String, dynamic>?)?['enabled'] ==
+              true;
+          final isOtpValid = !isOtpEnabled ||
+              (formBloc.otpCode.value.isNotEmpty &&
+                  formBloc.otpCode.state.isValid);
+
+          // Check if TIN is required and valid (for non-individual business types)
+          final isTinRequired = formBloc.businessTypes.value?.id != "2";
+          // TIN validation passes if: not required (individual), or validated successfully
+          final isTinValid = !isTinRequired || formBloc.tinNumber.state.isValid;
+
+          // Overall validity depends on all required validations passing
+          final isValid = isFormValid &&
+              isUsernameValid &&
+              isFullNameValid &&
+              isPhoneValid &&
+              isBusinessTypeValid &&
+              isOtpValid &&
+              isTinValid;
+
+          return ElevatedButton(
+            onPressed: (isLoading || !isValid) ? null : formBloc.submit,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: primaryColor,
+              foregroundColor: Colors.white,
+              disabledBackgroundColor: primaryColor.withOpacity(0.6),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8.0),
               ),
+              elevation: 0,
+            ),
+            child: isLoading
+                ? const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 3,
+                    ),
+                  )
+                : const Text(
+                    'Create Account',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+          );
+        },
       ),
     );
   }

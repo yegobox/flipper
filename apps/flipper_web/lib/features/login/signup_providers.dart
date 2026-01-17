@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:flipper_models/ippis_service.dart';
 
 import '../../models/business_type.dart';
 import '../../repositories/signup_repository.dart';
@@ -22,6 +23,9 @@ class SignupFormState {
   final String? errorMessage;
   final bool isCheckingUsername;
   final bool? isUsernameAvailable;
+  final bool isValidatingTin;
+  final IppisBusiness? tinDetails;
+  final String? tinError;
 
   SignupFormState({
     this.username = '',
@@ -34,6 +38,9 @@ class SignupFormState {
     this.errorMessage,
     this.isCheckingUsername = false,
     this.isUsernameAvailable,
+    this.isValidatingTin = false,
+    this.tinDetails,
+    this.tinError,
   });
 
   SignupFormState copyWith({
@@ -47,6 +54,9 @@ class SignupFormState {
     String? errorMessage,
     bool? isCheckingUsername,
     bool? isUsernameAvailable,
+    bool? isValidatingTin,
+    IppisBusiness? tinDetails,
+    String? tinError,
   }) {
     return SignupFormState(
       username: username ?? this.username,
@@ -59,6 +69,9 @@ class SignupFormState {
       errorMessage: errorMessage,
       isCheckingUsername: isCheckingUsername ?? this.isCheckingUsername,
       isUsernameAvailable: isUsernameAvailable ?? this.isUsernameAvailable,
+      isValidatingTin: isValidatingTin ?? this.isValidatingTin,
+      tinDetails: tinDetails ?? this.tinDetails,
+      tinError: tinError ?? this.tinError,
     );
   }
 
@@ -69,7 +82,10 @@ class SignupFormState {
 
     // TIN is required except for business type with id '2' (Individual)
     final needsTin = businessType?.id != '2';
-    final isTinNumberValid = !needsTin || tinNumber.length >= 9;
+    // If TIN is needed, it must be valid length AND successfully validated (tinDetails != null)
+    final isTinNumberValid =
+        !needsTin ||
+        (tinNumber.length >= 9 && tinDetails != null && tinError == null);
 
     final isCountryValid = country.isNotEmpty;
 
@@ -169,7 +185,55 @@ class SignupForm extends _$SignupForm {
   }
 
   void updateTinNumber(String tinNumber) {
-    state = state.copyWith(tinNumber: tinNumber);
+    // If we have valid tin details, the field is "locked" logically,
+    // although UI should handle the disable.
+    // If the user tries to update, we should only allow it if they are resetting or if we decide to unlock.
+    // Ideally, we reset state if they change the input (though UI might prevent typing).
+
+    // However, if the UI is NOT locked yet (or if we want to allow correction before full validation),
+    // we just update.
+
+    // If already validated successfully, prevent changes unless we implement a clear/reset mechanism.
+    if (state.tinDetails != null) return;
+
+    state = state.copyWith(
+      tinNumber: tinNumber,
+      tinError: null,
+      tinDetails: null,
+    );
+    if (tinNumber.length == 9) {
+      validateTin(tinNumber);
+    }
+  }
+
+  Future<void> validateTin(String tin) async {
+    state = state.copyWith(isValidatingTin: true, tinError: null);
+    try {
+      final ippisService = IppisService();
+      final business = await ippisService.getBusinessDetails(tin);
+      if (business != null) {
+        state = state.copyWith(isValidatingTin: false, tinDetails: business);
+      } else {
+        state = state.copyWith(
+          isValidatingTin: false,
+          tinError: 'No data found for this TIN',
+        );
+      }
+    } catch (e) {
+      state = state.copyWith(
+        isValidatingTin: false,
+        tinError: 'Error validating TIN',
+      );
+    }
+  }
+
+  void clearTin() {
+    state = state.copyWith(
+      tinNumber: '',
+      tinDetails: null,
+      tinError: null,
+      isValidatingTin: false,
+    );
   }
 
   void updateCountry(String country) {

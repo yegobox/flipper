@@ -79,6 +79,7 @@ class _SignupViewState extends ConsumerState<SignupView> {
 
   // Phone controller and country dial code helpers
   late final TextEditingController _phoneController;
+  late final TextEditingController _tinController;
 
   final Map<String, String> _countryDialCodes = {
     'Rwanda': '+250',
@@ -126,11 +127,20 @@ class _SignupViewState extends ConsumerState<SignupView> {
           .read(signupFormProvider.notifier)
           .updatePhoneNumber(_phoneController.text);
     });
+    _tinController = TextEditingController(text: state.tinNumber);
+    _tinController.addListener(() {
+      if (_tinController.text != state.tinNumber) {
+        ref
+            .read(signupFormProvider.notifier)
+            .updateTinNumber(_tinController.text);
+      }
+    });
   }
 
   @override
   void dispose() {
     _phoneController.dispose();
+    _tinController.dispose();
     super.dispose();
   }
 
@@ -320,26 +330,55 @@ class _SignupViewState extends ConsumerState<SignupView> {
                       },
                     ),
                     if (_showTinField)
-                      _buildInputField(
-                        label: 'TIN Number',
-                        hint: 'Enter TIN number',
-                        icon: Icons.credit_card_outlined,
-                        value: formState.tinNumber,
-                        keyboardType: TextInputType.number,
-                        validator: (value) {
-                          if (_showTinField) {
-                            if (value == null || value.isEmpty) {
-                              return 'TIN number is required';
-                            }
-                            if (value.length < 9) {
-                              return 'TIN number must be at least 9 characters';
-                            }
-                          }
-                          return null;
-                        },
-                        onChanged: (value) => ref
-                            .read(signupFormProvider.notifier)
-                            .updateTinNumber(value),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildInputField(
+                            label: 'TIN Number',
+                            hint: 'Enter TIN number',
+                            icon: Icons.credit_card_outlined,
+                            controller: _tinController,
+                            keyboardType: TextInputType.number,
+                            readOnly: formState.tinDetails != null,
+                            suffixIcon: _buildTinSuffix(formState),
+                            validator: (value) {
+                              if (_showTinField) {
+                                if (value == null || value.isEmpty) {
+                                  return 'TIN number is required';
+                                }
+                                if (value.length < 9) {
+                                  return 'TIN number must be at least 9 characters';
+                                }
+                              }
+                              return null;
+                            },
+                            onChanged: (value) => ref
+                                .read(signupFormProvider.notifier)
+                                .updateTinNumber(value),
+                          ),
+                          if (formState.tinDetails != null)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 16.0),
+                              child: Text(
+                                'Business: ${formState.tinDetails!.taxPayerName}',
+                                style: const TextStyle(
+                                  color: Colors.green,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          if (formState.tinError != null)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 16.0),
+                              child: Text(
+                                formState.tinError!,
+                                style: const TextStyle(
+                                  color: Colors.red,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
                     _buildDropdownField<String>(
                       label: 'Country',
@@ -522,22 +561,53 @@ class _SignupViewState extends ConsumerState<SignupView> {
     return const SizedBox.shrink();
   }
 
+  Widget _buildTinSuffix(SignupFormState formState) {
+    if (formState.isValidatingTin) {
+      return const SizedBox(
+        width: 20,
+        height: 20,
+        child: Padding(
+          padding: EdgeInsets.all(8.0),
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      );
+    } else if (formState.tinDetails != null) {
+      return IconButton(
+        icon: const Icon(Icons.close, color: Colors.grey),
+        onPressed: () {
+          _tinController.text = ''; // Clear text field
+          ref.read(signupFormProvider.notifier).clearTin();
+        },
+      );
+    } else if (formState.tinError != null) {
+      return const Icon(Icons.cancel, color: Colors.orange);
+    }
+    return const SizedBox.shrink();
+  }
+
   Widget _buildInputField({
     required String label,
     required String hint,
     required IconData icon,
-    required String value,
+    String? value,
     required Function(String) onChanged,
     String? Function(String?)? validator,
     TextInputType keyboardType = TextInputType.text,
+    Widget? suffixIcon,
+    bool readOnly = false,
+    TextEditingController? controller,
   }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 24),
       child: TextFormField(
-        initialValue: value,
+        controller: controller, // Use controller if provided
+        initialValue: controller == null
+            ? value
+            : null, // Use value only if no controller
         onChanged: onChanged,
         validator: validator,
         keyboardType: keyboardType,
+        readOnly: readOnly,
         decoration: InputDecoration(
           labelText: label,
           hintText: hint,
@@ -549,6 +619,7 @@ class _SignupViewState extends ConsumerState<SignupView> {
             margin: const EdgeInsets.only(right: 12),
             child: Icon(icon, color: primaryGreen, size: 24),
           ),
+          suffixIcon: suffixIcon,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(16),
             borderSide: const BorderSide(color: Color(0xFFE5E5E5), width: 2),
@@ -1036,8 +1107,13 @@ class _SignupViewState extends ConsumerState<SignupView> {
                                           label: 'TIN Number',
                                           hint: 'Enter TIN number',
                                           icon: Icons.credit_card_outlined,
-                                          value: formState.tinNumber,
+                                          controller: _tinController,
                                           keyboardType: TextInputType.number,
+                                          readOnly:
+                                              formState.tinDetails != null,
+                                          suffixIcon: _buildTinSuffix(
+                                            formState,
+                                          ),
                                           validator: (value) {
                                             if (_showTinField) {
                                               if (value == null ||

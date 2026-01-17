@@ -2,13 +2,17 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_models/ippis_service.dart';
+import 'package:flipper_ui/snack_bar_utils.dart';
 
 class TinInputField extends StatefulWidget {
   final TextFieldBloc<String> tinNumberBloc;
+  final Function(bool isValid, bool isRelaxed)? onValidationResult;
 
   const TinInputField({
     Key? key,
     required this.tinNumberBloc,
+    this.onValidationResult,
   }) : super(key: key);
 
   @override
@@ -17,6 +21,7 @@ class TinInputField extends StatefulWidget {
 
 class _TinInputFieldState extends State<TinInputField> {
   bool _isLoading = false;
+  bool _isValidating = false;
   String? _errorText;
 
   Future<void> _pickAndProcessPdf() async {
@@ -67,6 +72,51 @@ class _TinInputFieldState extends State<TinInputField> {
     }
   }
 
+  Future<void> _validateTin(String tin) async {
+    setState(() {
+      _isValidating = true;
+      _errorText = null;
+    });
+
+    try {
+      final ippisService = IppisService();
+      final business = await ippisService.getBusinessDetails(tin);
+
+      if (business != null) {
+        if (mounted) {
+          showSuccessNotification(
+              context, 'TIN validated: ${business.taxPayerName}');
+          widget.onValidationResult?.call(true, false);
+        }
+      } else {
+        setState(() {
+          _errorText = 'No data found for this TIN';
+        });
+        widget.onValidationResult?.call(false, false);
+      }
+    } catch (e) {
+      if (e.toString().contains("Server Error")) {
+        // Relax validation
+        if (mounted) {
+          showErrorNotification(
+              context, 'Service Unavailable: Validation skipped');
+          widget.onValidationResult?.call(false, true);
+        }
+      } else {
+        setState(() {
+          _errorText = 'Error validating TIN: ${e.toString()}';
+        });
+        widget.onValidationResult?.call(false, false);
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isValidating = false;
+        });
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -86,20 +136,50 @@ class _TinInputFieldState extends State<TinInputField> {
               size: 20,
               color: Colors.black87,
             ),
-            suffixIcon: IconButton(
-              icon: _isLoading
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(
-                      Icons.upload_file_outlined,
-                      size: 20,
-                      color: Colors.black87,
+            suffixIcon: BlocBuilder<TextFieldBloc, TextFieldBlocState>(
+              bloc: widget.tinNumberBloc,
+              builder: (context, state) {
+                if (state.value.toString().isNotEmpty) {
+                  return TextButton(
+                    onPressed: _isValidating
+                        ? null
+                        : () => _validateTin(state.value.toString()),
+                    style: TextButton.styleFrom(
+                      foregroundColor: const Color(0xFF0078D4),
+                      disabledForegroundColor: Colors.grey,
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
                     ),
-              onPressed: _isLoading ? null : _pickAndProcessPdf,
-              tooltip: 'Upload PDF with TIN',
+                    child: _isValidating
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                  Color(0xFF0078D4)),
+                            ),
+                          )
+                        : const Text('Validate',
+                            style: TextStyle(fontWeight: FontWeight.w600)),
+                  );
+                } else {
+                  return IconButton(
+                    icon: _isLoading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(
+                            Icons.upload_file_outlined,
+                            size: 20,
+                            color: Colors.black87,
+                          ),
+                    onPressed: _isLoading ? null : _pickAndProcessPdf,
+                    tooltip: 'Upload PDF with TIN',
+                  );
+                }
+              },
             ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8.0),

@@ -93,16 +93,6 @@ class _LandingState extends State<Landing> {
         child: SafeArea(
           child: Column(
             children: [
-              // Logo with proper spacing
-              Padding(
-                padding: const EdgeInsets.only(top: 16.0),
-                child: Image.asset(
-                  'assets/flipper_logo.png',
-                  height: 82,
-                  width: 82,
-                  package: 'flipper_login',
-                ),
-              ),
               Expanded(
                 child: Column(
                   children: [
