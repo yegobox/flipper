@@ -11,6 +11,7 @@ import 'package:stacked_services/stacked_services.dart';
 
 /// Form bloc for handling signup form validation and submission
 class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
+  static final RegExp EMAIL_REGEX = RegExp(r'^[^@\s]+@[^@\s]+\.[a-zA-Z]{2,}$');
   final username = TextFieldBloc(
     validators: [
       FieldBlocValidators.required,
@@ -273,8 +274,7 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
     }
 
     // Check if it's an email
-    final emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
-    final isEmail = emailRegex.hasMatch(phoneNumber.value);
+    final isEmail = EMAIL_REGEX.hasMatch(phoneNumber.value);
 
     String contactInfo = phoneNumber.value;
     if (!isEmail) {
