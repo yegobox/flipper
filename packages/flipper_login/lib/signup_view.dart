@@ -232,8 +232,8 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                                     // Show loading indicator during verification
                                                     return Padding(
                                                       padding:
-                                                          const EdgeInsets.only(
-                                                              right: 16.0),
+                                                          const EdgeInsets.all(
+                                                              12.0),
                                                       child: SizedBox(
                                                         width: 16,
                                                         height: 16,
