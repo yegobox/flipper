@@ -129,7 +129,7 @@ class _SignupViewState extends ConsumerState<SignupView> {
     });
     _tinController = TextEditingController(text: state.tinNumber);
     _tinController.addListener(() {
-      if (_tinController.text != state.tinNumber) {
+      if (_tinController.text != ref.read(signupFormProvider).tinNumber) {
         ref
             .read(signupFormProvider.notifier)
             .updateTinNumber(_tinController.text);

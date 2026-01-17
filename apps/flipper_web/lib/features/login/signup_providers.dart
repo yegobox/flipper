@@ -55,8 +55,8 @@ class SignupFormState {
     bool? isCheckingUsername,
     bool? isUsernameAvailable,
     bool? isValidatingTin,
-    IppisBusiness? tinDetails,
-    String? tinError,
+    Object? tinDetails = _unset, // Use Object? and default to sentinel
+    Object? tinError = _unset,   // Use Object? and default to sentinel
   }) {
     return SignupFormState(
       username: username ?? this.username,
@@ -70,8 +70,8 @@ class SignupFormState {
       isCheckingUsername: isCheckingUsername ?? this.isCheckingUsername,
       isUsernameAvailable: isUsernameAvailable ?? this.isUsernameAvailable,
       isValidatingTin: isValidatingTin ?? this.isValidatingTin,
-      tinDetails: tinDetails ?? this.tinDetails,
-      tinError: tinError ?? this.tinError,
+      tinDetails: tinDetails == _unset ? this.tinDetails : (tinDetails as IppisBusiness?), // Identity check
+      tinError: tinError == _unset ? this.tinError : (tinError as String?),             // Identity check
     );
   }
 
@@ -444,3 +444,10 @@ typedef SignupFormNotifier = SignupForm;
 
 // Generated providers are top-level accessible:
 // signupFormProvider, businessTypesProvider, countriesProvider
+
+// Sentinel value to differentiate between explicitly passing null and not passing a value at all
+class _Unset {
+  const _Unset();
+}
+const _unset = _Unset();
+

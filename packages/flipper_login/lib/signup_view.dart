@@ -27,11 +27,31 @@ class SignUpView extends StatefulHookConsumerWidget {
   _SignUpViewState createState() => _SignUpViewState();
 }
 
+class PhoneValidationRule {
+  final String dialCode;
+  final List<int> localLengths;
+  final int totalLength;
+
+  PhoneValidationRule(
+      {required this.dialCode,
+      required this.localLengths,
+      required this.totalLength});
+}
+
 class _SignUpViewState extends ConsumerState<SignUpView> {
   bool _showTinField = false;
   bool _isSendingOtp = false;
   final _formKey = GlobalKey<FormState>();
   StreamSubscription? _otpVerificationSubscription; // State-level field
+
+  static final Map<String, PhoneValidationRule> _phoneValidationRules = {
+    'Rwanda': PhoneValidationRule(
+        dialCode: '+250', localLengths: [9, 10], totalLength: 12),
+    'Zambia': PhoneValidationRule(
+        dialCode: '+260', localLengths: [9, 10], totalLength: 12),
+    'Mozambique': PhoneValidationRule(
+        dialCode: '+258', localLengths: [9, 10], totalLength: 12),
+  };
 
   @override
   void initState() {
@@ -44,35 +64,33 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
     return emailRegex.hasMatch(value);
   }
 
-  bool _isValidPhoneNumber(String value) {
+  static bool _isValidPhoneNumber(String value, String country) {
     // If the value is empty, it's not valid
     if (value.isEmpty) {
       return false;
     }
 
+    final rule =
+        _phoneValidationRules[country] ?? _phoneValidationRules['Rwanda']!;
     // Extract just the numeric part
     final digitsOnly = value.replaceAll(RegExp(r'[^\d]'), '');
-
-    // Define expected total digits for each country (dial code + local number)
-    // Rwanda: +250 (3 digits) + 9 digits = 12 total
-    // Zambia: +260 (3 digits) + 9 digits = 12 total
-    // Mozambique: +258 (3 digits) + 9 digits = 12 total
-    final expectedDigits = 12;
 
     // Check if the value starts with a dial code
     if (value.startsWith('+')) {
       // For international format, check if we have exactly the expected number of digits
-      return digitsOnly.length == expectedDigits;
+      return digitsOnly.length == rule.totalLength;
     }
 
     // For local format (without dial code)
     if (value.startsWith('0')) {
-      // Local format with leading zero: should be 10 digits (0 + 9 digits)
-      return digitsOnly.length == 10;
+      // Local format with leading zero: should match one of the allowed local lengths + 1 (for the zero)
+      return rule.localLengths.any((len) => digitsOnly.length == len + 1) ||
+          digitsOnly.length == 10; // Fallback to 10 as it was hardcoded before
     } else {
       // Local format without leading zero (9 digits) OR
       // full number with country code but without '+' (12 digits)
-      return digitsOnly.length == 9 || digitsOnly.length == expectedDigits;
+      return rule.localLengths.any((len) => digitsOnly.length == len) ||
+          digitsOnly.length == rule.totalLength;
     }
   }
 
@@ -203,7 +221,10 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                                   final bool
                                                       isValidEmailOrPhone =
                                                       _isValidPhoneNumber(
-                                                              phoneValue) ||
+                                                              phoneValue,
+                                                              formBloc.countryName
+                                                                      .value ??
+                                                                  'Rwanda') ||
                                                           _isValidEmail(
                                                               phoneValue);
 
@@ -211,7 +232,6 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                                       !isVerified &&
                                                           isValidEmailOrPhone &&
                                                           !_isSendingOtp;
-
 
                                                   if (isVerifying) {
                                                     // Show loading indicator during verification
