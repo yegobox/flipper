@@ -241,7 +241,7 @@ class _PinLoginState extends State<PinLogin>
       errorMessage = 'Account not found';
     } else {
       final errorDetails = await ProxyService.strategy.handleLoginError(e, s);
-      errorMessage = errorDetails['errorMessage'];
+      errorMessage = (errorDetails['errorMessage'] as String?) ?? 'An unexpected error occurred.';
     }
 
     GlobalErrorHandler.logError(
