@@ -37,6 +37,8 @@ class PhoneValidationRule {
 class _SignUpViewState extends ConsumerState<SignUpView> {
   bool _showTinField = false;
   bool _isSendingOtp = false;
+  bool _isVerifyingOtp = false;
+  String? _lastSubmittedOtp;
   final _formKey = GlobalKey<FormState>();
   StreamSubscription? _otpVerificationSubscription; // State-level field
 
@@ -436,9 +438,22 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                                 // Use a post-frame callback to ensure UI updates happen first
                                                 WidgetsBinding.instance
                                                     .addPostFrameCallback((_) {
+                                                  // Guard against re-triggering verification for the same OTP
+                                                  if (_isVerifyingOtp ||
+                                                      state.value ==
+                                                          _lastSubmittedOtp) {
+                                                    return;
+                                                  }
+
                                                   // Only verify if not already verified
                                                   if (!formBloc
                                                       .isPhoneVerified) {
+                                                    setState(() {
+                                                      _isVerifyingOtp = true;
+                                                      _lastSubmittedOtp =
+                                                          state.value;
+                                                    });
+
                                                     // Cancel any existing subscription to prevent leaks
                                                     _otpVerificationSubscription
                                                         ?.cancel();
@@ -457,6 +472,17 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
 
                                                       if (!status[
                                                           'isVerifying']) {
+                                                        setState(() {
+                                                          _isVerifyingOtp =
+                                                              false;
+                                                          // If verification failed, clear the last submitted OTP to allow retry
+                                                          if (status['error'] !=
+                                                              null) {
+                                                            _lastSubmittedOtp =
+                                                                null;
+                                                          }
+                                                        });
+
                                                         if (status['error'] !=
                                                             null) {
                                                           // Show error notification when verification fails
