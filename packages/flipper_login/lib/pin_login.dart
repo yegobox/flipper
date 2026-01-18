@@ -241,7 +241,8 @@ class _PinLoginState extends State<PinLogin>
       errorMessage = 'Account not found';
     } else {
       final errorDetails = await ProxyService.strategy.handleLoginError(e, s);
-      errorMessage = (errorDetails['errorMessage'] as String?) ?? 'An unexpected error occurred.';
+      errorMessage = (errorDetails['errorMessage'] as String?) ??
+          'An unexpected error occurred.';
     }
 
     GlobalErrorHandler.logError(
@@ -306,6 +307,28 @@ class _PinLoginState extends State<PinLogin>
         await _handleLoginError(e, s);
       }
     }
+  }
+
+  void _showHelpDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Trouble Signing In?'),
+          content: const Text(
+            'If you are having trouble signing in, please ensure your PIN and OTP (if applicable) are correct.\n\nFor further assistance, please contact support.',
+          ),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -759,7 +782,7 @@ class _PinLoginState extends State<PinLogin>
   Widget _buildHelpText(bool isDark, double screenHeight) {
     return Center(
       child: TextButton(
-        onPressed: () {},
+        onPressed: _showHelpDialog,
         child: Text(
           'Trouble signing in?',
           style: TextStyle(
