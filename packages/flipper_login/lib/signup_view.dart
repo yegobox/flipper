@@ -438,6 +438,8 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                                 // Use a post-frame callback to ensure UI updates happen first
                                                 WidgetsBinding.instance
                                                     .addPostFrameCallback((_) {
+                                                  if (!mounted) return; // Add mounted check here
+
                                                   // Guard against re-triggering verification for the same OTP
                                                   if (_isVerifyingOtp ||
                                                       state.value ==
