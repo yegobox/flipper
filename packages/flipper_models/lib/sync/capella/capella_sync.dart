@@ -1341,4 +1341,16 @@ class CapellaSync extends AiStrategyImpl
     // TODO: implement updateCategory
     throw UnimplementedError();
   }
+  
+  @override
+  Future<Map<String, dynamic>> sendOtpForSignup(String contact) {
+    // TODO: implement sendOtpForSignup
+    throw UnimplementedError();
+  }
+  
+  @override
+  Future<Map<String, dynamic>> verifyOtpForSignup(String contact, String otp) {
+    // TODO: implement verifyOtpForSignup
+    throw UnimplementedError();
+  }
 }

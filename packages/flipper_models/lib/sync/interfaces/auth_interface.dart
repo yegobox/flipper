@@ -50,4 +50,8 @@ abstract class AuthInterface {
   Future<Map<String, dynamic>> requestOtp(String pin);
 
   Future<IUser> verifyOtpAndLogin(String otp, {IPin? pin});
+
+  Future<Map<String, dynamic>> sendOtpForSignup(String contact);
+
+  Future<Map<String, dynamic>> verifyOtpForSignup(String contact, String otp);
 }

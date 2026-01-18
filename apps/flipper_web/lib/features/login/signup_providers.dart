@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:flipper_models/ippis_service.dart';
 
 import '../../models/business_type.dart';
 import '../../repositories/signup_repository.dart';
@@ -22,6 +23,9 @@ class SignupFormState {
   final String? errorMessage;
   final bool isCheckingUsername;
   final bool? isUsernameAvailable;
+  final bool isValidatingTin;
+  final IppisBusiness? tinDetails;
+  final String? tinError;
 
   SignupFormState({
     this.username = '',
@@ -34,6 +38,9 @@ class SignupFormState {
     this.errorMessage,
     this.isCheckingUsername = false,
     this.isUsernameAvailable,
+    this.isValidatingTin = false,
+    this.tinDetails,
+    this.tinError,
   });
 
   SignupFormState copyWith({
@@ -47,6 +54,9 @@ class SignupFormState {
     String? errorMessage,
     bool? isCheckingUsername,
     bool? isUsernameAvailable,
+    bool? isValidatingTin,
+    Object? tinDetails = _unset, // Use Object? and default to sentinel
+    Object? tinError = _unset,   // Use Object? and default to sentinel
   }) {
     return SignupFormState(
       username: username ?? this.username,
@@ -59,6 +69,9 @@ class SignupFormState {
       errorMessage: errorMessage,
       isCheckingUsername: isCheckingUsername ?? this.isCheckingUsername,
       isUsernameAvailable: isUsernameAvailable ?? this.isUsernameAvailable,
+      isValidatingTin: isValidatingTin ?? this.isValidatingTin,
+      tinDetails: tinDetails == _unset ? this.tinDetails : (tinDetails as IppisBusiness?), // Identity check
+      tinError: tinError == _unset ? this.tinError : (tinError as String?),             // Identity check
     );
   }
 
@@ -69,7 +82,10 @@ class SignupFormState {
 
     // TIN is required except for business type with id '2' (Individual)
     final needsTin = businessType?.id != '2';
-    final isTinNumberValid = !needsTin || tinNumber.length >= 9;
+    // If TIN is needed, it must be valid length AND successfully validated (tinDetails != null)
+    final isTinNumberValid =
+        !needsTin ||
+        (tinNumber.length >= 9 && tinDetails != null && tinError == null);
 
     final isCountryValid = country.isNotEmpty;
 
@@ -169,7 +185,61 @@ class SignupForm extends _$SignupForm {
   }
 
   void updateTinNumber(String tinNumber) {
-    state = state.copyWith(tinNumber: tinNumber);
+    // Immediately update the TIN and clear previous validation state
+    state = state.copyWith(
+      tinNumber: tinNumber,
+      isValidatingTin: false, // Stop any previous validation indicator
+      tinError: null,
+      tinDetails: null,
+    );
+
+    // If the TIN has the required length, trigger validation
+    if (tinNumber.length >= 9) {
+      validateTin(tinNumber);
+    }
+  }
+
+  Future<void> validateTin(String tinToValidate) async {
+    // Set loading state for the current validation request
+    state = state.copyWith(isValidatingTin: true, tinError: null);
+
+    try {
+      final ippisService = IppisService();
+      final business = await ippisService.getBusinessDetails(tinToValidate);
+
+      // Before applying the result, check if the TIN hasn't changed
+      if (state.tinNumber != tinToValidate) {
+        // User has typed a new TIN while this request was in-flight. Ignore stale result.
+        return;
+      }
+
+      if (business != null) {
+        state = state.copyWith(isValidatingTin: false, tinDetails: business);
+      } else {
+        state = state.copyWith(
+          isValidatingTin: false,
+          tinError: 'No data found for this TIN',
+        );
+      }
+    } catch (e) {
+      // Before applying the error, also check if the TIN has changed
+      if (state.tinNumber != tinToValidate) {
+        return; // Ignore error from a stale request
+      }
+      state = state.copyWith(
+        isValidatingTin: false,
+        tinError: 'Error validating TIN',
+      );
+    }
+  }
+
+  void clearTin() {
+    state = state.copyWith(
+      tinNumber: '',
+      tinDetails: null,
+      tinError: null,
+      isValidatingTin: false,
+    );
   }
 
   void updateCountry(String country) {
@@ -374,3 +444,10 @@ typedef SignupFormNotifier = SignupForm;
 
 // Generated providers are top-level accessible:
 // signupFormProvider, businessTypesProvider, countriesProvider
+
+// Sentinel value to differentiate between explicitly passing null and not passing a value at all
+class _Unset {
+  const _Unset();
+}
+const _unset = _Unset();
+

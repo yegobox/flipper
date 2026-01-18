@@ -832,6 +832,41 @@ mixin AuthMixin implements AuthInterface {
     }
   }
 
+  @override
+  Future<Map<String, dynamic>> sendOtpForSignup(String contact) async {
+    final response = await ProxyService.http.post(
+      Uri.parse(apihub + '/v2/api/login/send-otp-signup'),
+      body: jsonEncode({'contact': contact}),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else if (response.statusCode == 409) {
+      // Conflict - contact already exists
+      final errorBody = jsonDecode(response.body);
+      throw Exception(errorBody['error'] ?? 'Contact already exists');
+    } else {
+      throw Exception('Failed to send OTP for signup');
+    }
+  }
+
+  @override
+  Future<Map<String, dynamic>> verifyOtpForSignup(String contact, String otp) async {
+    final response = await ProxyService.http.post(
+      Uri.parse(apihub + '/v2/api/login/verify-otp-signup'),
+      body: jsonEncode({'contact': contact, 'otp': otp}),
+      headers: {'Content-Type': 'application/json'},
+    );
+
+    if (response.statusCode == 200) {
+      return _safeJsonDecode(response.body);
+    } else {
+      final errorBody = _safeJsonDecode(response.body);
+      throw Exception(errorBody['error'] ?? 'Failed to verify OTP for signup');
+    }
+  }
+
   /// Helper function to initialize Ditto with proper guards against repeated initialization
   /// This prevents double initialization while preserving skipInitialFetch and error logging behavior
   Future<void> _initializeDitto(String userId) async {
@@ -874,5 +909,15 @@ mixin AuthMixin implements AuthInterface {
   /// Static method to reset Ditto initialization state, can be called from anywhere
   static void resetDittoInitializationStatic() {
     _isDittoInitialized = false;
+  }
+
+  /// Helper function to safely decode JSON responses
+  Map<String, dynamic> _safeJsonDecode(String body) {
+    try {
+      return jsonDecode(body) as Map<String, dynamic>;
+    } catch (e) {
+      talker.error("Failed to parse JSON response: $body. Error: $e");
+      return {'error': 'Invalid server response format.'};
+    }
   }
 }
