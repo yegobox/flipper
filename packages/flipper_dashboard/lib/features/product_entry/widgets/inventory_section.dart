@@ -10,6 +10,7 @@ class InventorySection extends StatelessWidget {
   final List<String> pkgUnits;
   final Function(String?) onPackageUnitChanged;
   final String? selectedCategoryId;
+  final String? selectedCategoryName;
   final Function(String?) onCategoryChanged;
   final VoidCallback onAddCategory;
   final String selectedProductType;
@@ -23,6 +24,7 @@ class InventorySection extends StatelessWidget {
     required this.pkgUnits,
     required this.onPackageUnitChanged,
     required this.selectedCategoryId,
+    this.selectedCategoryName,
     required this.onCategoryChanged,
     required this.onAddCategory,
     required this.selectedProductType,
@@ -68,6 +70,7 @@ class InventorySection extends StatelessWidget {
             const SizedBox(height: 16),
             SearchableCategoryDropdown(
               selectedValue: selectedCategoryId,
+              initialName: selectedCategoryName,
               onChanged: onCategoryChanged,
               onAdd: onAddCategory,
             ),

@@ -84,7 +84,8 @@ mixin VariantMixin implements VariantInterface {
     try {
       final List<WhereCondition> conditions = [
         Where('branchId').isExactly(branchId),
-        Where('assigned').isExactly(false),
+        if (productId == null && variantId == null)
+          Where('assigned').isExactly(false),
       ];
 
       // Apply taxTyCds filter FIRST and ensure it's always respected
@@ -151,14 +152,9 @@ mixin VariantMixin implements VariantInterface {
         orderBy: [const OrderBy('lastTouched', ascending: false)],
       );
 
-      /// when fetching remotely, fetch all variants and sort them by lastTouched
+      /// when fetching remotely, use the same query but with Hydrate policy
       List<Variant> fetchedVariants = await repository.get<Variant>(
-        query: fetchRemote
-            ? Query(
-                where: [Where('branchId').isExactly(branchId)],
-                orderBy: [const OrderBy('lastTouched', ascending: false)],
-              )
-            : query,
+        query: query,
         policy: fetchRemote
             ? OfflineFirstGetPolicy.alwaysHydrate
             : OfflineFirstGetPolicy.localOnly,
@@ -420,6 +416,7 @@ mixin VariantMixin implements VariantInterface {
         variant.productName = productName ?? variant.productName;
         variant.productId = productId ?? variant.productId;
         variant.taxTyCd = taxTyCd ?? variant.taxTyCd;
+        variant.taxName = variant.taxTyCd; // Ensure taxName matches taxTyCd
         variant.unit = unit ?? variant.unit;
         variant.prc = variant.retailPrice;
         variant.dftPrc = variant.retailPrice;
@@ -481,6 +478,12 @@ mixin VariantMixin implements VariantInterface {
             newRetailPrice == null ? updatables[i].retailPrice : newRetailPrice;
         if (selectedProductType != null) {
           updatables[i].itemTyCd = selectedProductType;
+        }
+
+        // Update taxTyCd and ensure taxName matches if provided
+        if (taxTyCd != null) {
+          updatables[i].taxTyCd = taxTyCd;
+          updatables[i].taxName = taxTyCd; // Ensure taxName matches taxTyCd
         }
 
         updatables[i].expirationDate = dates?[updatables[i].id] == null

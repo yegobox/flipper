@@ -47,7 +47,8 @@ mixin EbmMixin implements EbmInterface {
 
       // Check if resolvedTin is null to avoid runtime exception
       if (resolvedTin == null) {
-        throw Exception("Could not resolve TIN number for EBM creation. Business or branch may not have a valid TIN.");
+        throw Exception(
+            "Could not resolve TIN number for EBM creation. Business or branch may not have a valid TIN.");
       }
 
       Ebm updatedEbm = existingEbm ??
@@ -97,9 +98,14 @@ mixin EbmMixin implements EbmInterface {
         where: [Where('branchId').isExactly(branchId)],
       );
 
+      // Select policy based on fetchRemote parameter
+      final policy = fetchRemote
+          ? OfflineFirstGetPolicy.alwaysHydrate
+          : OfflineFirstGetPolicy.localOnly;
+
       List<Ebm> fetchedEbms = await repository.get<Ebm>(
         query: query,
-        policy: OfflineFirstGetPolicy.localOnly,
+        policy: policy,
       );
 
       // If no data found locally and fetchRemote is true, try Ditto direct query

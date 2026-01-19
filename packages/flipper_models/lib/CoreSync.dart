@@ -2197,33 +2197,6 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Future<void> addCategory(
-      {required String name,
-      required String branchId,
-      required bool active,
-      required bool focused,
-      required DateTime lastTouched,
-      String? id,
-      required DateTime createdAt,
-      required deletedAt}) async {
-    final category = await repository.get<Category>(
-        query: brick.Query(where: [
-          brick.Where('name').isExactly(name),
-        ]),
-        policy: OfflineFirstGetPolicy.localOnly);
-    if (category.firstOrNull == null) {
-      await repository.upsert<Category>(Category(
-        focused: focused,
-        name: name,
-        active: active,
-        branchId: branchId,
-        lastTouched: lastTouched,
-        deletedAt: deletedAt,
-      ));
-    }
-  }
-
-  @override
   FutureOr<void> addColor({required String name, required String branchId}) {
     repository.upsert<PColor>(PColor(
       name: name,

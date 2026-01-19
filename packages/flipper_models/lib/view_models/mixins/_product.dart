@@ -62,8 +62,15 @@ mixin ProductMixin {
         businessId: ProxyService.box.getBusinessId()!,
       );
       // get the category
-      Category? category =
-          await ProxyService.strategy.category(id: categoryId ?? "");
+      Category? category;
+      if (categoryId == null || categoryId.isEmpty) {
+        category = await ProxyService.strategy.ensureUncategorizedCategory(
+          branchId: ProxyService.box.getBranchId()!,
+        );
+        categoryId = category.id;
+      } else {
+        category = await ProxyService.strategy.category(id: categoryId);
+      }
       List<Variant> updatables = [];
       for (var i = 0; i < variations!.length; i++) {
         // Parse the packagingUnit string to extract code and name

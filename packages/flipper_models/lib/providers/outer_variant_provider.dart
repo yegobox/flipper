@@ -113,7 +113,16 @@ class OuterVariants extends _$OuterVariants {
   /// Add newly created variants to the provider without full reload.
   void addVariants(List<Variant> newVariants) {
     if (newVariants.isEmpty || state.value == null) return;
-    final newList = [...newVariants, ...state.value!];
+
+    // Get IDs of new/updated variants
+    final newVariantIds = newVariants.map((v) => v.id).toSet();
+
+    // Filter out existing variants that match the new IDs to prevent duplicates
+    final filteredExisting =
+        state.value!.where((v) => !newVariantIds.contains(v.id)).toList();
+
+    // Prepend the new/updated variants to the list
+    final newList = [...newVariants, ...filteredExisting];
     state = AsyncValue.data(newList);
   }
 

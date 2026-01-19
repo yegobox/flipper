@@ -1,6 +1,5 @@
 import 'package:flipper_services/log_service.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'ebm_provider.g.dart';

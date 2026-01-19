@@ -192,7 +192,13 @@ class BulkAddProductViewModel extends ChangeNotifier {
     String orgnNatCd = "RW"; // Define the variable
     List<Future<brick.Variant>> itemFutures = _excelData!.map((product) async {
       String barCode = product['BarCode'] ?? '';
-      String categoryId = _selectedCategories[barCode] ?? '';
+      String finalCategoryId = _selectedCategories[barCode] ?? '';
+      if (finalCategoryId.isEmpty) {
+        final category = await ProxyService.strategy
+            .ensureUncategorizedCategory(
+                branchId: ProxyService.box.getBranchId()!);
+        finalCategoryId = category.id;
+      }
 
       return brick.Variant(
         itemCd: (await ProxyService.strategy.itemCode(
@@ -205,12 +211,13 @@ class BulkAddProductViewModel extends ChangeNotifier {
         bcdU: product['bcdU'] ?? '',
         barCode: barCode,
         name: product['Name'] ?? '',
-        category:
-            categoryId.isNotEmpty ? categoryId : (product['Category'] ?? ''),
+        category: finalCategoryId.isNotEmpty
+            ? finalCategoryId
+            : (product['Category'] ?? ''),
         retailPrice: double.tryParse(product['Price'] ?? '0') ?? 0,
         supplyPrice: double.tryParse(product['Price'] ?? '0') ?? 0,
         quantity: double.tryParse(product['Quantity'] ?? '0') ?? 0,
-        categoryId: categoryId,
+        categoryId: finalCategoryId,
       );
     }).toList();
 
@@ -239,7 +246,13 @@ class BulkAddProductViewModel extends ChangeNotifier {
     String orgnNatCd = "RW"; // Define the variable
     List<Future<brick.Variant>> itemFutures = _excelData!.map((product) async {
       String barCode = product['BarCode'] ?? '';
-      String categoryId = _selectedCategories[barCode] ?? '';
+      String finalCategoryId = _selectedCategories[barCode] ?? '';
+      if (finalCategoryId.isEmpty) {
+        final category = await ProxyService.strategy
+            .ensureUncategorizedCategory(
+                branchId: ProxyService.box.getBranchId()!);
+        finalCategoryId = category.id;
+      }
 
       return brick.Variant(
         itemCd: (await ProxyService.strategy.itemCode(
@@ -252,12 +265,13 @@ class BulkAddProductViewModel extends ChangeNotifier {
         bcdU: product['bcdU'] ?? '',
         barCode: barCode,
         name: product['Name'] ?? '',
-        category:
-            categoryId.isNotEmpty ? categoryId : (product['Category'] ?? ''),
+        category: finalCategoryId.isNotEmpty
+            ? finalCategoryId
+            : (product['Category'] ?? ''),
         retailPrice: double.tryParse(product['Price'] ?? '0') ?? 0,
         supplyPrice: double.tryParse(product['Price'] ?? '0') ?? 0,
         quantity: double.tryParse(product['Quantity'] ?? '0') ?? 0,
-        categoryId: categoryId,
+        categoryId: finalCategoryId,
       );
     }).toList();
     List<brick.Variant> items = await Future.wait(itemFutures);
