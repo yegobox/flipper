@@ -98,9 +98,14 @@ mixin EbmMixin implements EbmInterface {
         where: [Where('branchId').isExactly(branchId)],
       );
 
+      // Select policy based on fetchRemote parameter
+      final policy = fetchRemote
+          ? OfflineFirstGetPolicy.alwaysHydrate
+          : OfflineFirstGetPolicy.localOnly;
+
       List<Ebm> fetchedEbms = await repository.get<Ebm>(
         query: query,
-        policy: OfflineFirstGetPolicy.alwaysHydrate,
+        policy: policy,
       );
 
       // If no data found locally and fetchRemote is true, try Ditto direct query
