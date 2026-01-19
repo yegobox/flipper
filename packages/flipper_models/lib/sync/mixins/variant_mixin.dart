@@ -420,6 +420,7 @@ mixin VariantMixin implements VariantInterface {
         variant.productName = productName ?? variant.productName;
         variant.productId = productId ?? variant.productId;
         variant.taxTyCd = taxTyCd ?? variant.taxTyCd;
+        variant.taxName = variant.taxTyCd; // Ensure taxName matches taxTyCd
         variant.unit = unit ?? variant.unit;
         variant.prc = variant.retailPrice;
         variant.dftPrc = variant.retailPrice;
@@ -481,6 +482,12 @@ mixin VariantMixin implements VariantInterface {
             newRetailPrice == null ? updatables[i].retailPrice : newRetailPrice;
         if (selectedProductType != null) {
           updatables[i].itemTyCd = selectedProductType;
+        }
+
+        // Update taxTyCd and ensure taxName matches if provided
+        if (taxTyCd != null) {
+          updatables[i].taxTyCd = taxTyCd;
+          updatables[i].taxName = taxTyCd; // Ensure taxName matches taxTyCd
         }
 
         updatables[i].expirationDate = dates?[updatables[i].id] == null

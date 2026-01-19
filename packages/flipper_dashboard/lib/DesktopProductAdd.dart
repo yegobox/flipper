@@ -396,6 +396,10 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
       // Create variant using the standard addVariant method for consistency
       // This ensures all EBM fields and required configurations are properly set
       try {
+        // Get the current EBM VAT status directly to ensure consistency
+        final ebm = await ProxyService.strategy.ebm(branchId: branchId);
+        final isVatEnabled = ebm?.vatEnabled ?? false;
+
         await model.addVariant(
           model: model,
           productName: productNameController.text,
@@ -426,9 +430,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
               regrNm: productNameController.text,
               lastTouched: DateTime.now().toUtc(),
               itemTyCd: "3", // Mark as service (no stock reporting to RRA)
-              taxTyCd: ref.watch(ebmVatEnabledProvider).value == true
-                  ? "B"
-                  : "D", // VAT or non-VAT
+              taxTyCd: isVatEnabled ? "B" : "D", // VAT or non-VAT
+              taxName: isVatEnabled ? "B" : "D", // Should match taxTyCd
             ),
           ],
           product: product,
