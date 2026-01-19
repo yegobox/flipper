@@ -534,6 +534,14 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       String? categoryId}) async {
     if (editmode) {
       try {
+        String? finalCategoryId = categoryId;
+        if (finalCategoryId == null || finalCategoryId.isEmpty) {
+          final category = await ProxyService.strategy
+              .ensureUncategorizedCategory(
+                  branchId: ProxyService.box.getBranchId()!);
+          finalCategoryId = category.id;
+        }
+
         for (var variant in scannedVariants) {
           // Update expiration date if available
           if (dates != null && dates.containsKey(variant.id)) {
@@ -559,7 +567,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
             color: color,
             dcRt: variant.dcRt,
             // because we are in edit mode if there is no category selected then user use the one on variant.
-            categoryId: categoryId ?? variant.categoryId,
+            categoryId: finalCategoryId,
             selectedProductType: selectedProductType,
             productName: productName.isEmpty ? null : productName,
             expirationDate: variant.expirationDate,

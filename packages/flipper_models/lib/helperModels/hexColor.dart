@@ -163,25 +163,27 @@ class HexColor extends Color {
   HexColor(final String hexColor) : super(_getColorFromHex(hexColor));
 
   static int _getColorFromHex(String hexColor) {
-    String processedColor = hexColor.toLowerCase();
-    if (colorNames.containsKey(processedColor)) {
-      processedColor = colorNames[processedColor]!;
-    } else {
-      processedColor = hexColor;
-    }
+    try {
+      String processedColor = hexColor.toLowerCase();
+      if (colorNames.containsKey(processedColor)) {
+        processedColor = colorNames[processedColor]!;
+      } else if (!isValidHexColor(hexColor)) {
+        return 0xFFFF0000; // Red
+      } else {
+        processedColor = hexColor;
+      }
 
-    processedColor = processedColor.toUpperCase().replaceAll('#', '');
-    if (processedColor.length == 6) {
-      processedColor = 'FF' + processedColor;
+      processedColor = processedColor.toUpperCase().replaceAll('#', '');
+      if (processedColor.length == 6) {
+        processedColor = 'FF' + processedColor;
+      }
+      return int.parse(processedColor, radix: 16);
+    } catch (e) {
+      return 0xFFFF0000; // Fallback to red
     }
-    return int.parse(processedColor, radix: 16);
   }
 }
 
 Color getColorOrDefault(String colorCode) {
-  try {
-    return HexColor(colorCode);
-  } catch (e) {
-    throw Exception("Invalid color code: $colorCode");
-  }
+  return HexColor(colorCode);
 }

@@ -84,7 +84,8 @@ mixin VariantMixin implements VariantInterface {
     try {
       final List<WhereCondition> conditions = [
         Where('branchId').isExactly(branchId),
-        Where('assigned').isExactly(false),
+        if (productId == null && variantId == null)
+          Where('assigned').isExactly(false),
       ];
 
       // Apply taxTyCds filter FIRST and ensure it's always respected
@@ -151,14 +152,9 @@ mixin VariantMixin implements VariantInterface {
         orderBy: [const OrderBy('lastTouched', ascending: false)],
       );
 
-      /// when fetching remotely, fetch all variants and sort them by lastTouched
+      /// when fetching remotely, use the same query but with Hydrate policy
       List<Variant> fetchedVariants = await repository.get<Variant>(
-        query: fetchRemote
-            ? Query(
-                where: [Where('branchId').isExactly(branchId)],
-                orderBy: [const OrderBy('lastTouched', ascending: false)],
-              )
-            : query,
+        query: query,
         policy: fetchRemote
             ? OfflineFirstGetPolicy.alwaysHydrate
             : OfflineFirstGetPolicy.localOnly,

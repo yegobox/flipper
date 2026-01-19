@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/providers/ebm_provider.dart';
 import 'package:flipper_scanner/scanner_view.dart';
 import 'package:flipper_services/GlobalLogError.dart';
@@ -52,6 +53,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
   // Default to the first packaging unit option (Ampoule)
   String selectedPackageUnitValue = RRADEFAULTS.packagingUnit.first;
   String? selectedCategoryId;
+  String? selectedCategoryName;
 
   TextEditingController productNameController = TextEditingController();
   TextEditingController retailPriceController = TextEditingController();
@@ -98,10 +100,6 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
     toast('No Product saved!');
   }
 
-  void _showNoCategorySelectedToast() {
-    toast('Please select a category!');
-  }
-
   void _addVariantsToProvider(List<Variant> variants) {
     final branchId = ProxyService.box.getBranchId();
     if (branchId != null && mounted) {
@@ -122,12 +120,6 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
       if (model.kProductName == null) {
         _showNoProductNameToast();
         ref.read(loadingProvider.notifier).stopLoading();
-        return;
-      }
-
-      if (selectedCategoryId == null) {
-        ref.read(loadingProvider.notifier).stopLoading();
-        _showNoCategorySelectedToast();
         return;
       }
 
@@ -271,8 +263,15 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
         }
 
         ref.read(loadingProvider.notifier).stopLoading();
+        if (mounted) {
+          toast("Product saved successfully!");
+          Navigator.pop(context);
+        }
       } else if (_fieldComposite.currentState?.validate() ?? false) {
         await _handleCompositeProductSave(model);
+      } else {
+        // Validation failed or no action taken
+        ref.read(loadingProvider.notifier).stopLoading();
       }
     } catch (e, s) {
       GlobalErrorHandler.logError(
@@ -589,37 +588,54 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
 
                 productNameController.text = product.name;
                 model.setProductName(name: product.name);
-                final isVatEnabled = ref.watch(ebmVatEnabledProvider);
 
-                final paged = await ProxyService.strategy.variants(
-                  taxTyCds: isVatEnabled.value == true
-                      ? ['A', 'B', 'C', 'TT']
-                      : ['D', 'TT'],
-                  productId: widget.productId!,
-                  branchId: ProxyService.box.getBranchId()!,
-                );
+                // Fetch variants WITHOUT tax filtering to ensure we find all variants
+                // for the product when in edit mode.
+                final paged = await ProxyService.getStrategy(Strategy.capella)
+                    .variants(
+                      taxTyCds: [],
+                      productId: widget.productId!,
+                      branchId: ProxyService.box.getBranchId()!,
+                      fetchRemote: true,
+                    );
+
                 List<Variant> variants = List<Variant>.from(paged.variants);
                 if (!mounted) return;
 
-                if (variants.isNotEmpty && variants.first.itemTyCd != null) {
-                  selectedProductType = variants.first.itemTyCd!;
-                }
-
-                supplyPriceController.text = variants.first.supplyPrice
-                    .toString();
-                retailPriceController.text = variants.first.retailPrice
-                    .toString();
-
-                if (variants.isNotEmpty && variants.first.categoryId != null) {
-                  setState(() {
-                    selectedCategoryId = variants.first.categoryId;
-                  });
-                }
-
-                model.setScannedVariants(variants);
-
                 if (variants.isNotEmpty) {
-                  pickerColor = getColorOrDefault(variants.first.color!);
+                  if (variants.first.itemTyCd != null) {
+                    selectedProductType = variants.first.itemTyCd!;
+                  }
+
+                  supplyPriceController.text = variants.first.supplyPrice
+                      .toString();
+                  retailPriceController.text = variants.first.retailPrice
+                      .toString();
+
+                  // Explicitly update model prices to ensure UI sync
+                  model.setRetailPrice(price: retailPriceController.text);
+                  model.setSupplyPrice(price: supplyPriceController.text);
+
+                  if (variants.first.categoryId != null) {
+                    String? catName = variants.first.categoryName;
+                    if (catName == null) {
+                      Category? fetchedCategory =
+                          await ProxyService.getStrategy(
+                            Strategy.capella,
+                          ).category(id: variants.first.categoryId!);
+                      catName = fetchedCategory?.name;
+                    }
+                    setState(() {
+                      selectedCategoryId = variants.first.categoryId;
+                      selectedCategoryName = catName;
+                    });
+                  }
+
+                  model.setScannedVariants(variants);
+
+                  if (variants.first.color != null) {
+                    pickerColor = getColorOrDefault(variants.first.color!);
+                  }
                 }
               } else {
                 Product? product = await model.createProduct(
@@ -635,6 +651,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
               }
 
               model.initialize();
+              // Ensure we are not in loading state AFTER data is loaded
+              ref.read(loadingProvider.notifier).stopLoading();
             },
             builder: (context, model, child) {
               for (var variant in model.scannedVariants) {
@@ -702,6 +720,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                                 }
                               },
                               selectedCategoryId: selectedCategoryId,
+                              selectedCategoryName: selectedCategoryName,
                               onCategoryChanged: (newValue) {
                                 if (newValue != null) {
                                   setState(() {
@@ -792,25 +811,35 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
 
                                 try {
                                   // Find by code first
-                                  unit = units.firstWhere((u) => u.code == unitCode);
+                                  unit = units.firstWhere(
+                                    (u) => u.code == unitCode,
+                                  );
                                 } catch (e) {
                                   try {
                                     // If not found by code, try by name
-                                    unit = units.firstWhere((u) => u.name == unitCode);
+                                    unit = units.firstWhere(
+                                      (u) => u.name == unitCode,
+                                    );
                                   } catch (e) {
                                     try {
                                       // If not found by name, try to match with first variant's unit
                                       if (model.scannedVariants.isNotEmpty) {
                                         unit = units.firstWhere(
-                                          (u) => u.name == model.scannedVariants.first.unit
+                                          (u) =>
+                                              u.name ==
+                                              model.scannedVariants.first.unit,
                                         );
                                       } else {
                                         // If no scanned variants, just return the first unit if available
-                                        unit = units.isNotEmpty ? units.first : null;
+                                        unit = units.isNotEmpty
+                                            ? units.first
+                                            : null;
                                       }
                                     } catch (e) {
                                       // Ultimate fallback to first unit if available
-                                      unit = units.isNotEmpty ? units.first : null;
+                                      unit = units.isNotEmpty
+                                          ? units.first
+                                          : null;
                                     }
                                   }
                                 }

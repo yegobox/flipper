@@ -242,10 +242,11 @@ mixin CapellaVariantMixin implements VariantInterface {
         onChange: (result) {
           if (!completer.isCompleted) {
             final itemCount = result.items.length;
-            // Complete the completer immediately to avoid hanging
-            if (result.items.isNotEmpty) {
-              completer.complete(result.items.toList());
-            }
+            // Complete the completer to avoid hanging
+            // If fetchRemote is true and we have no items, we might want to wait,
+            // but usually the first call is local data.
+            completer.complete(result.items.toList());
+
             // Log asynchronously without waiting for completion
             if (ProxyService.box.getUserLoggingEnabled() ?? false) {
               logService.logException(
@@ -654,11 +655,13 @@ mixin CapellaVariantMixin implements VariantInterface {
         arguments: arguments,
         onChange: (result) {
           final itemCount = result.items.length;
-          // Complete the completer immediately to avoid hanging
+          // Complete the completer to avoid hanging
           if (!completer.isCompleted) {
             if (result.items.isNotEmpty) {
               completer.complete(Variant.fromJson(
                   Map<String, dynamic>.from(result.items.first.value)));
+            } else {
+              completer.complete(null);
             }
           }
           // Log asynchronously without waiting for completion

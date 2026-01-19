@@ -305,20 +305,6 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  FutureOr<void> addCategory(
-      {required String name,
-      required String branchId,
-      required bool active,
-      required bool focused,
-      required DateTime lastTouched,
-      String? id,
-      required DateTime createdAt,
-      required deletedAt}) {
-    // TODO: implement addCategory
-    throw UnimplementedError();
-  }
-
-  @override
   FutureOr<void> addColor({required String name, required String branchId}) {
     // TODO: implement addColor
     throw UnimplementedError();
@@ -1341,13 +1327,13 @@ class CapellaSync extends AiStrategyImpl
     // TODO: implement updateCategory
     throw UnimplementedError();
   }
-  
+
   @override
   Future<Map<String, dynamic>> sendOtpForSignup(String contact) {
     // TODO: implement sendOtpForSignup
     throw UnimplementedError();
   }
-  
+
   @override
   Future<Map<String, dynamic>> verifyOtpForSignup(String contact, String otp) {
     // TODO: implement verifyOtpForSignup
