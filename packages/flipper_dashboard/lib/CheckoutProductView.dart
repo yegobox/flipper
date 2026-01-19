@@ -247,7 +247,7 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
                       child: Container(
                         height: 48,
                         decoration: BoxDecoration(
-                          color: const Color(0xFF34C759), // Green like Loyverse
+                          color: const Color(0xFF0078D4), // App primary blue
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: const Center(
@@ -273,7 +273,7 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
                       child: Container(
                         height: 48,
                         decoration: BoxDecoration(
-                          color: const Color(0xFF34C759), // Green like Loyverse
+                          color: const Color(0xFF0078D4), // App primary blue
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Center(
@@ -304,7 +304,7 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
                   child: Container(
                     height: 48,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF34C759),
+                      color: const Color(0xFF0078D4),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Center(
@@ -324,7 +324,7 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
                   child: Container(
                     height: 48,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF34C759),
+                      color: const Color(0xFF0078D4),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Center(
@@ -353,7 +353,7 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
                   child: Container(
                     height: 48,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF34C759),
+                      color: const Color(0xFF0078D4),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Center(
@@ -373,7 +373,7 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
                   child: Container(
                     height: 48,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF34C759),
+                      color: const Color(0xFF0078D4),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Center(
