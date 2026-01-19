@@ -240,47 +240,13 @@ final customersProvider =
         CustomersNotifier.new);
 
 class CustomersNotifier extends Notifier<AsyncValue<List<Customer>>> {
-  late String? branchId;
-
   @override
   AsyncValue<List<Customer>> build() {
-    branchId = ProxyService.box.getBranchId();
-    // We should not await here for build method synchronous return,
-    // but we can start async load.
-    loadCustomers();
-    return const AsyncValue.loading();
-  }
-
-  Future<void> loadCustomers() async {
-    try {
-      // await any ongoing database persistance
-      List<Customer> customers = [];
-      if (branchId != null && branchId!.isNotEmpty) {
-        customers = await ProxyService.getStrategy(Strategy.capella)
-            .customers(branchId: branchId);
-      }
-
-      state = AsyncData(customers);
-    } catch (error) {
-      //state = AsyncError(error, StackTrace.current);
+    final branchId = ProxyService.box.getBranchId();
+    if (branchId == null || branchId.isEmpty) {
+      return const AsyncValue.data([]);
     }
-  }
-
-  void addCustomers({required List<Customer> customers}) {
-    final currentData = state.value ?? [];
-    final List<Customer> updatedCustomers = [...currentData, ...customers];
-    state = AsyncData(updatedCustomers);
-  }
-
-  void deleteCustomer({required String customerId}) {
-    state.maybeWhen(
-      data: (currentData) {
-        final updatedCustomers =
-            currentData.where((customer) => customer.id != customerId).toList();
-        state = AsyncData(updatedCustomers);
-      },
-      orElse: () {},
-    );
+    return ref.watch(customersStreamProvider((branchId: branchId, id: null)));
   }
 
   List<Customer> filterCustomers(
