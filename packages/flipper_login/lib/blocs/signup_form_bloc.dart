@@ -187,8 +187,9 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
       return 'Phone number or email is required';
     }
 
-    // Regex for phone number (starts with +, 8-15 digits, spaces, hyphens, parentheses allowed)
-    final phoneRegex = RegExp(r'^\+[0-9\s\-\(\)]{8,15}$');
+    // Regex for phone number (optional +, 8-15 digits, spaces, hyphens, parentheses allowed)
+    // Loosened to match the UI validation which is more permissive
+    final phoneRegex = RegExp(r'^\+?[0-9\s\-\(\)]{8,15}$');
     // Regex for email
     final emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
 
@@ -199,7 +200,7 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
       return null; // Valid email
     }
 
-    return 'Please enter a valid phone number (e.g., +250...) or email address';
+    return 'Please enter a valid phone number or email address';
   }
 
   /// Checks if username is available
@@ -279,13 +280,12 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
     String contactInfo = phoneNumber.value;
     if (!isEmail) {
       // It's a phone number, so normalize it
-      contactInfo =
-          _ensurePhoneHasDialCode(phoneNumber.value, countryName.value ?? 'Rwanda');
+      contactInfo = _ensurePhoneHasDialCode(
+          phoneNumber.value, countryName.value ?? 'Rwanda');
     }
 
     try {
-      final result =
-          await ProxyService.strategy.sendOtpForSignup(contactInfo);
+      final result = await ProxyService.strategy.sendOtpForSignup(contactInfo);
       // Enable the OTP field after successful request
       otpCode.updateExtraData({'enabled': true});
       return result;
@@ -303,7 +303,8 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
     final isEmail = EMAIL_REGEX.hasMatch(phoneNumber.value);
     String normalizedContact = phoneNumber.value;
     if (!isEmail) {
-      normalizedContact = _ensurePhoneHasDialCode(phoneNumber.value, countryName.value ?? 'Rwanda');
+      normalizedContact = _ensurePhoneHasDialCode(
+          phoneNumber.value, countryName.value ?? 'Rwanda');
     }
 
     try {
@@ -339,7 +340,8 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
     final isEmail = EMAIL_REGEX.hasMatch(phoneNumber.value);
     String normalizedContact = phoneNumber.value;
     if (!isEmail) {
-      normalizedContact = _ensurePhoneHasDialCode(phoneNumber.value, countryName.value ?? 'Rwanda');
+      normalizedContact = _ensurePhoneHasDialCode(
+          phoneNumber.value, countryName.value ?? 'Rwanda');
     }
 
     try {

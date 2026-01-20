@@ -198,7 +198,8 @@ class SignupComponents {
         bloc: formBloc,
         builder: (context, state) {
           // Check if the form is valid AND all required fields have been validated
-          final isFormValid = state.isValid();
+          // Note: state.isValid() sometimes reports false if there are hidden fields
+          // with validation errors or if async validation hasn't finished.
 
           // Additional validation checks for specific fields
           final isUsernameValid = formBloc.username.value.isNotEmpty &&
@@ -209,6 +210,10 @@ class SignupComponents {
               formBloc.phoneNumber.state.isValid;
           final isBusinessTypeValid = formBloc.businessTypes.value != null &&
               formBloc.businessTypes.state.isValid;
+
+          // Crucial: check if phone is verified via the OTP flow
+          // The BLoC manages this state explicitly.
+          final isPhoneVerified = formBloc.isPhoneVerified;
 
           // Check if OTP is enabled and if so, it must be valid
           final isOtpEnabled = (formBloc.otpCode.state.extraData
@@ -224,11 +229,13 @@ class SignupComponents {
           final isTinValid = !isTinRequired || formBloc.tinNumber.state.isValid;
 
           // Overall validity depends on all required validations passing
-          final isValid = isFormValid &&
-              isUsernameValid &&
+          // We prioritize our explicit checks over state.isValid() if needed,
+          // but usually state.isValid() should reflect these.
+          final isValid = isUsernameValid &&
               isFullNameValid &&
               isPhoneValid &&
               isBusinessTypeValid &&
+              isPhoneVerified &&
               isOtpValid &&
               isTinValid;
 
