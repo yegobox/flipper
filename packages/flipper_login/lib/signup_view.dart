@@ -200,9 +200,15 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                                       statusData[
                                                               'isVerifying'] ??
                                                           false;
-                                                  final isVerified = statusData[
-                                                          'isVerified'] ??
-                                                      false;
+                                                  final bool isVerified = (statusData[
+                                                              'isVerified'] ??
+                                                          false) &&
+                                                      (phoneState.extraData
+                                                              is Map &&
+                                                          (phoneState.extraData
+                                                                      as Map)[
+                                                                  'verified'] ==
+                                                              true);
                                                   final error =
                                                       statusData['error'];
 
@@ -520,6 +526,11 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                             ),
                                           ),
                                           onChanged: (value) {
+                                            print(
+                                              'Usage changed: ${value?.typeName} (id: ${value?.id})',
+                                            );
+                                            formBloc.businessTypes
+                                                .updateValue(value);
                                             setState(() {
                                               _showTinField = value?.id != "2";
                                             });
@@ -541,6 +552,7 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                                   formBloc
                                                       .setTinVerified(false);
                                                 }
+                                                setState(() {});
                                               },
                                             ),
                                           ),
@@ -556,9 +568,15 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                             ),
                                           ),
                                         ),
-                                        components.SignupComponents
-                                            .buildSubmitButton(
-                                                formBloc, model.registerStart),
+                                        BlocBuilder<
+                                            AsyncFieldValidationFormBloc,
+                                            FormBlocState>(
+                                          builder: (context, state) {
+                                            return components.SignupComponents
+                                                .buildSubmitButton(formBloc,
+                                                    model.registerStart);
+                                          },
+                                        ),
                                       ],
                                     ),
                                   ),
