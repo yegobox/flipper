@@ -4,6 +4,7 @@ import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/ippis_service.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
+import 'package:flipper_login/blocs/signup_form_bloc.dart';
 
 class TinInputField extends StatefulWidget {
   final TextFieldBloc<String> tinNumberBloc;
@@ -139,6 +140,21 @@ class _TinInputFieldState extends State<TinInputField> {
             suffixIcon: BlocBuilder<TextFieldBloc, TextFieldBlocState>(
               bloc: widget.tinNumberBloc,
               builder: (context, state) {
+                final formBloc =
+                    BlocProvider.of<AsyncFieldValidationFormBloc>(context);
+                final isVerified = formBloc.isTinVerified;
+
+                if (isVerified && state.value.toString().isNotEmpty) {
+                  return const Padding(
+                    padding: EdgeInsets.only(right: 12.0),
+                    child: Icon(
+                      Icons.check_circle,
+                      color: Colors.green,
+                      size: 24,
+                    ),
+                  );
+                }
+
                 if (state.value.toString().isNotEmpty) {
                   return TextButton(
                     onPressed: _isValidating

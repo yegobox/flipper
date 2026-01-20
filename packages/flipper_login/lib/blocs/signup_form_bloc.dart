@@ -498,6 +498,8 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
 
   bool get isPhoneVerified => _isPhoneVerified;
 
+  bool get isTinVerified => _isTinVerified || _isTinValidationRelaxed;
+
   Stream<bool> get isPhoneVerifiedStream => _phoneVerifiedController.stream;
 
   Stream<Map<String, dynamic>> get otpVerificationStatusStream =>

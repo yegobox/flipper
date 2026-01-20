@@ -226,11 +226,10 @@ class SignupComponents {
           // Check if TIN is required and valid (for non-individual business types)
           final isTinRequired = formBloc.businessTypes.value?.id != "2";
           // TIN validation passes if: not required (individual), or validated successfully
-          final isTinValid = !isTinRequired || formBloc.tinNumber.state.isValid;
+          final isTinValid = !isTinRequired ||
+              (formBloc.tinNumber.value.isNotEmpty && formBloc.isTinVerified);
 
           // Overall validity depends on all required validations passing
-          // We prioritize our explicit checks over state.isValid() if needed,
-          // but usually state.isValid() should reflect these.
           final isValid = isUsernameValid &&
               isFullNameValid &&
               isPhoneValid &&
