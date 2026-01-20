@@ -430,7 +430,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
           ebmSynced: scannedVariant.ebmSynced,
           dcRt: scannedVariant.dcRt,
           expirationDate: scannedVariant.expirationDate,
-          qty: scannedVariant.qty,
+          qty: newQuantity,
           totWt: scannedVariant.totWt,
           netWt: scannedVariant.netWt,
           spplrNm: scannedVariant.spplrNm,
@@ -475,6 +475,14 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
           variant: updatedVariant,
           stockMasterQty: updatedVariant.stock?.currentStock ?? 0,
         );
+        // persist stock update
+        if (updatedVariant.stockId != null) {
+          await ProxyService.strategy.updateStock(
+            stockId: updatedVariant.stockId!,
+            currentStock: newQuantity,
+            rsdQty: newQuantity,
+          );
+        }
 
         // Notify listeners to rebuild the UI
         notifyListeners();
