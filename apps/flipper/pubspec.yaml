@@ -4,7 +4,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # 1.170.4252223234854+1755779343
 # 1.180.4252223234901+1756527939
 
-version: 1.180.4252223234901+1756528712
+version: 1.180.4252223234901+1756528713
 
 
 environment:

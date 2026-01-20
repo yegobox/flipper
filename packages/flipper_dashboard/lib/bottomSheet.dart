@@ -216,10 +216,19 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                         double localQty =
                             double.tryParse(newQtyController.text) ??
                             transactionItem.qty.toDouble();
-                        double localPrice =
-                            double.tryParse(newPriceController.text) ??
-                            transactionItem.price.toDouble();
-                        double localTotal = localQty * localPrice;
+                        final originalUnitPrice =
+                            transactionItem.retailPrice ??
+                            transactionItem.price;
+
+                        // If price controller is empty, we use the original unit price
+                        double localPriceInput =
+                            double.tryParse(newPriceController.text) ?? 0.0;
+
+                        double localTotal =
+                            localQty *
+                            (localPriceInput > 0
+                                ? localPriceInput
+                                : originalUnitPrice.toDouble());
 
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -335,20 +344,49 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                                         child: TextFormField(
                                           controller: newPriceController,
                                           keyboardType:
-                                              TextInputType.numberWithOptions(
+                                              const TextInputType.numberWithOptions(
                                                 decimal: true,
                                               ),
                                           textAlign: TextAlign.end,
-                                          style: TextStyle(
+                                          style: const TextStyle(
                                             fontSize: 16,
                                             fontWeight: FontWeight.w600,
                                           ),
                                           decoration: InputDecoration(
-                                            border: UnderlineInputBorder(),
+                                            border:
+                                                const UnderlineInputBorder(),
                                             contentPadding: EdgeInsets.zero,
                                             isDense: true,
+                                            helperText:
+                                                (double.tryParse(
+                                                          newPriceController
+                                                              .text,
+                                                        ) ??
+                                                        0) >
+                                                    0
+                                                ? 'Qty: ${(double.tryParse(newPriceController.text)! / originalUnitPrice).toStringAsFixed(2)}'
+                                                : null,
+                                            helperStyle: const TextStyle(
+                                              fontSize: 10,
+                                              color: Colors.blue,
+                                            ),
                                           ),
                                           onChanged: (val) {
+                                            final newPrice =
+                                                double.tryParse(val) ?? 0.0;
+                                            if (originalUnitPrice > 0 &&
+                                                newPrice > 0) {
+                                              final newQty =
+                                                  newPrice / originalUnitPrice;
+                                              newQtyController.text = newQty
+                                                  .toStringAsFixed(2);
+                                              if (newQtyController.text
+                                                  .endsWith('.00')) {
+                                                newQtyController.text =
+                                                    newQtyController.text
+                                                        .replaceAll('.00', '');
+                                              }
+                                            }
                                             setModalState(() {});
                                           },
                                         ),
@@ -396,13 +434,31 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                                 );
                                 if (qty != null && qty != 0 && price != null) {
                                   try {
-                                    await ProxyService.strategy
-                                        .updateTransactionItem(
-                                          qty: qty,
-                                          price: price,
-                                          ignoreForReport: false,
-                                          transactionItemId: transactionItem.id,
-                                        );
+                                    final originalUnitPrice =
+                                        transactionItem.retailPrice ??
+                                        transactionItem.price;
+
+                                    if (originalUnitPrice > 0 &&
+                                        price != transactionItem.price) {
+                                      final newQty = price / originalUnitPrice;
+                                      await ProxyService.strategy
+                                          .updateTransactionItem(
+                                            qty: newQty,
+                                            price: originalUnitPrice.toDouble(),
+                                            ignoreForReport: false,
+                                            transactionItemId:
+                                                transactionItem.id,
+                                          );
+                                    } else {
+                                      await ProxyService.strategy
+                                          .updateTransactionItem(
+                                            qty: qty,
+                                            price: price,
+                                            ignoreForReport: false,
+                                            transactionItemId:
+                                                transactionItem.id,
+                                          );
+                                    }
 
                                     // Force refresh the provider
                                     await ref.refresh(

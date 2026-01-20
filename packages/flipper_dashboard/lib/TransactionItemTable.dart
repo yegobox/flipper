@@ -581,6 +581,18 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     final controller = _priceControllers[item.id]!;
     final focusNode = _priceFocusNodes[item.id]!;
 
+    final originalUnitPrice = item.retailPrice ?? item.price;
+    final double? currentPrice = double.tryParse(controller.text);
+    String? helperText;
+
+    if (currentPrice != null &&
+        originalUnitPrice > 0 &&
+        currentPrice != item.price) {
+      final calculatedQty = currentPrice / originalUnitPrice;
+      helperText =
+          'Equivalent to ${calculatedQty.toStringAsFixed(2)} units at ${originalUnitPrice.toStringAsFixed(0)} RWF';
+    }
+
     return TextFormField(
       controller: controller,
       focusNode: focusNode,
@@ -593,6 +605,8 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
           fontWeight: FontWeight.w600,
           color: Colors.grey[700],
         ),
+        helperText: helperText,
+        helperStyle: const TextStyle(color: Colors.blue, fontSize: 12),
         contentPadding: const EdgeInsets.symmetric(
           vertical: 16,
           horizontal: 16,
@@ -613,6 +627,14 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
           _hasItemChanged[item.id] = true;
           _itemErrors.remove(item.id);
         });
+
+        // Real-time quantity feedback
+        final newPrice = double.tryParse(value);
+        if (newPrice != null && originalUnitPrice > 0) {
+          final newQty = newPrice / originalUnitPrice;
+          _quantityControllers[item.id]?.text = newQty.toStringAsFixed(2);
+        }
+
         _debounceTimers[item.id]?.cancel();
         _debounceTimers[item.id] = Timer(_debounceDuration, () {
           _updatePriceFromTextField(item, value, isOrdering);
@@ -840,12 +862,35 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     final doubleValue = double.tryParse(trimmedValue);
 
     if (doubleValue != null && doubleValue >= 0) {
-      // Pass only 'price' to updateTransactionItemInDb
-      await _updateTransactionItemInDb(
-        item,
-        price: doubleValue,
-        isOrdering: isOrdering,
-      );
+      final originalUnitPrice = item.retailPrice ?? item.price;
+
+      if (originalUnitPrice > 0 && doubleValue != item.price) {
+        final newQty = doubleValue / originalUnitPrice;
+
+        // If we are adjusting quantity based on price, we keep the unit price
+        // as the original retail price and adjust the quantity.
+        // This ensures correct stock deduction and mathematical consistency.
+        await _updateTransactionItemInDb(
+          item,
+          qty: newQty,
+          price: originalUnitPrice.toDouble(),
+          isOrdering: isOrdering,
+        );
+
+        // Update controllers to reflect adjusted values
+        setState(() {
+          _quantityControllers[item.id]?.text = newQty.toStringAsFixed(2);
+          _priceControllers[item.id]?.text = originalUnitPrice.toStringAsFixed(
+            2,
+          );
+        });
+      } else {
+        await _updateTransactionItemInDb(
+          item,
+          price: doubleValue,
+          isOrdering: isOrdering,
+        );
+      }
     } else {
       setState(() {
         _itemErrors[item.id] = 'Invalid price';
