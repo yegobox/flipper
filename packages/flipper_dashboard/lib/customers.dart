@@ -147,6 +147,13 @@ class CustomersState extends ConsumerState<Customers> {
                   return Column(
                     children: [
                       _buildSearchBar(),
+                      _buildAddButton(
+                        context,
+                        model,
+                        customersRef,
+                        searchKeyword,
+                        transaction,
+                      ),
                       _buildResultStats(filteredCustomers),
                       Expanded(
                         child: _buildCustomerList(
@@ -154,13 +161,6 @@ class CustomersState extends ConsumerState<Customers> {
                           transaction,
                           filteredCustomers,
                         ),
-                      ),
-                      _buildAddButton(
-                        context,
-                        model,
-                        customersRef,
-                        searchKeyword,
-                        transaction,
                       ),
                     ],
                   );
@@ -664,7 +664,7 @@ class CustomersState extends ConsumerState<Customers> {
           BoxShadow(
             color: Colors.black.withOpacity(0.05),
             blurRadius: 10,
-            offset: const Offset(0, -5),
+            offset: const Offset(0, 5),
           ),
         ],
       ),

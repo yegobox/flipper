@@ -556,7 +556,7 @@ class CoreViewModel extends FlipperBaseModel
       String? id,
       String? tinNumber}) async {
     String branchId = ProxyService.box.getBranchId()!;
-    ProxyService.strategy.addCustomer(
+    await ProxyService.strategy.addCustomer(
         customer: Customer(
           id: id,
           custNm: name,
@@ -822,9 +822,9 @@ class CoreViewModel extends FlipperBaseModel
       callback("customer deleted");
     } else {
       /// first detach the customer from trans
-      ProxyService.strategy
+      await ProxyService.strategy
           .updateTransaction(transaction: transaction, customerId: null);
-      ProxyService.strategy.flipperDelete(
+      await ProxyService.strategy.flipperDelete(
           id: id, endPoint: 'customer', flipperHttpClient: ProxyService.http);
 
       callback("customer deleted");
