@@ -870,26 +870,41 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
         // If we are adjusting quantity based on price, we keep the unit price
         // as the original retail price and adjust the quantity.
         // This ensures correct stock deduction and mathematical consistency.
-        await _updateTransactionItemInDb(
-          item,
-          qty: newQty,
-          price: originalUnitPrice.toDouble(),
-          isOrdering: isOrdering,
-        );
-
-        // Update controllers to reflect adjusted values
-        setState(() {
-          _quantityControllers[item.id]?.text = newQty.toStringAsFixed(2);
-          _priceControllers[item.id]?.text = originalUnitPrice.toStringAsFixed(
-            2,
+        try {
+          await _updateTransactionItemInDb(
+            item,
+            qty: newQty,
+            price: originalUnitPrice.toDouble(),
+            isOrdering: isOrdering,
           );
-        });
+
+          // Update controllers to reflect adjusted values only if the DB update succeeded
+          setState(() {
+            _quantityControllers[item.id]?.text = newQty.toStringAsFixed(2);
+            _priceControllers[item.id]?.text = originalUnitPrice.toStringAsFixed(
+              2,
+            );
+          });
+        } catch (e) {
+          // Log the error and don't update the UI controllers to keep them in sync with the backend
+          talker.error('Failed to update transaction item in DB: $e');
+        }
       } else {
-        await _updateTransactionItemInDb(
-          item,
-          price: doubleValue,
-          isOrdering: isOrdering,
-        );
+        try {
+          await _updateTransactionItemInDb(
+            item,
+            price: doubleValue,
+            isOrdering: isOrdering,
+          );
+
+          // Update the price controller to reflect the new value only if the DB update succeeded
+          setState(() {
+            _priceControllers[item.id]?.text = doubleValue.toStringAsFixed(2);
+          });
+        } catch (e) {
+          // Log the error and don't update the UI controllers to keep them in sync with the backend
+          talker.error('Failed to update transaction item in DB: $e');
+        }
       }
     } else {
       setState(() {
