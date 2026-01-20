@@ -4,14 +4,17 @@ import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/ippis_service.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
+import '../blocs/signup_form_bloc.dart';
 
 class TinInputField extends StatefulWidget {
   final TextFieldBloc tinNumberBloc;
+  final AsyncFieldValidationFormBloc? formBloc;
   final Function(bool isValid, bool isRelaxed)? onValidationResult;
 
   const TinInputField({
     Key? key,
     required this.tinNumberBloc,
+    this.formBloc,
     this.onValidationResult,
   }) : super(key: key);
 
@@ -86,6 +89,12 @@ class _TinInputFieldState extends State<TinInputField> {
         if (mounted) {
           showSuccessNotification(
               context, 'TIN validated: ${business.taxPayerName}');
+
+          // Update the username field with the taxpayer name if formBloc is available
+          if (widget.formBloc != null) {
+            widget.formBloc!.username.updateValue(business.taxPayerName);
+          }
+
           widget.onValidationResult?.call(true, false);
         }
       } else {

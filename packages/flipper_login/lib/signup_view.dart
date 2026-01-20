@@ -542,6 +542,7 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                                 bottom: 16.0),
                                             child: TinInputField(
                                               tinNumberBloc: formBloc.tinNumber,
+                                              formBloc: formBloc,
                                               onValidationResult:
                                                   (isValid, isRelaxed) {
                                                 if (isRelaxed) {
