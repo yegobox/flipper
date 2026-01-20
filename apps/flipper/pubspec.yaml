@@ -4,7 +4,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # 1.170.4252223234854+1755779343
 # 1.180.4252223234901+1756527939
 
-version: 1.180.4252223234901+1756528715
+version: 1.180.4252223234901+1756528716
 
 
 environment:
@@ -194,8 +194,8 @@ msix_config:
     show_prompt: true
     force_update_from_any_version: true
   publisher_display_name: yegobox ltd
-  # identity_name: yegobox.yegoboxflipper
-  identity_name: yegobox.yegoboxflipper_6y224vs1dg1rr
+  identity_name: yegobox.yegoboxflipper
+  # identity_name: yegobox.yegoboxflipper_6y224vs1dg1rr
   msix_version: 1.170.5051.0
   publisher: CN=B0F98A1E-8AE8-4B2B-BD1B-F494D4F791AE
   # publisher: CN=B0F334A1E-8AET-4B2C-BD1B-F239D4F791AE
