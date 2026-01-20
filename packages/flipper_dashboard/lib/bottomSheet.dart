@@ -224,9 +224,15 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                         double localPriceInput =
                             double.tryParse(newPriceController.text) ?? 0.0;
 
-                        double localTotal =
-                            localQty *
-                            (localPriceInput > 0
+                        // Determine if the user is overriding the price (entering total instead of unit price)
+                        bool isPriceOverride = originalUnitPrice > 0 &&
+                                               localPriceInput > 0 &&
+                                               localPriceInput != originalUnitPrice;
+
+                        // Calculate total based on whether price is being overridden
+                        double localTotal = isPriceOverride
+                            ? localPriceInput  // When price override, the entered price IS the total
+                            : localQty * (localPriceInput > 0
                                 ? localPriceInput
                                 : originalUnitPrice.toDouble());
 
@@ -358,14 +364,12 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                                             contentPadding: EdgeInsets.zero,
                                             isDense: true,
                                             helperText:
-                                                (double.tryParse(
-                                                          newPriceController
-                                                              .text,
-                                                        ) ??
-                                                        0) >
-                                                    0
-                                                ? 'Qty: ${(double.tryParse(newPriceController.text)! / originalUnitPrice).toStringAsFixed(2)}'
-                                                : null,
+                                                (() {
+                                                  final parsedPrice = double.tryParse(newPriceController.text) ?? 0;
+                                                  return parsedPrice > 0 && originalUnitPrice > 0
+                                                      ? 'Qty: ${(parsedPrice / originalUnitPrice).toStringAsFixed(2)} (calc.)'
+                                                      : null;
+                                                })(),
                                             helperStyle: const TextStyle(
                                               fontSize: 10,
                                               color: Colors.blue,
@@ -438,8 +442,12 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                                         transactionItem.retailPrice ??
                                         transactionItem.price;
 
-                                    if (originalUnitPrice > 0 &&
-                                        price != transactionItem.price) {
+                                    // Use the same logic as the UI to determine if price is being overridden
+                                    bool isPriceOverride = originalUnitPrice > 0 &&
+                                                           price > 0 &&
+                                                           price != originalUnitPrice;
+
+                                    if (isPriceOverride) {
                                       final newQty = price / originalUnitPrice;
                                       await ProxyService.strategy
                                           .updateTransactionItem(
