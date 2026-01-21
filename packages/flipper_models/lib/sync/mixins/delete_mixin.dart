@@ -4,6 +4,7 @@ import 'package:flipper_models/sync/interfaces/delete_interface.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_web/services/ditto_service.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
@@ -96,31 +97,67 @@ mixin DeleteMixin implements DeleteInterface {
         break;
       case 'variant':
         try {
+          // Try to find and delete locally first
           final variant = await ProxyService.strategy.getVariant(id: id);
-          final stock = await getStockById(id: variant!.stockId ?? "");
 
-          await repository.delete<Variant>(
-            variant,
-            query: Query(
-                action: QueryAction.delete, where: [Where('id').isExactly(id)]),
-          );
-          await repository.delete<Stock>(
-            stock!,
-            query: Query(
-                action: QueryAction.delete, where: [Where('id').isExactly(id)]),
-          );
-        } catch (e, s) {
-          final variant = await ProxyService.strategy.getVariant(id: id);
-          if (variant == null) {
-            talker.error('Variant with id $id not found for deletion.');
-            rethrow;
+          if (variant != null) {
+            // Found locally, delete variant and its stock
+            final stock = await getStockById(id: variant.stockId ?? "");
+
+            await repository.delete<Variant>(
+              variant,
+              query: Query(
+                  action: QueryAction.delete,
+                  where: [Where('id').isExactly(id)]),
+            );
+
+            if (stock != null) {
+              await repository.delete<Stock>(
+                stock,
+                query: Query(
+                    action: QueryAction.delete,
+                    where: [Where('id').isExactly(stock.id)]),
+              );
+            }
+          } else {
+            // Not found locally, delete using Supabase directly
+            talker.warning(
+                'Variant with id $id not found locally, deleting from Supabase and Ditto directly.');
+
+            try {
+              // Delete from Supabase
+              await Supabase.instance.client
+                  .from('variants')
+                  .delete()
+                  .eq('id', id);
+
+              talker.info('Deleted variant $id from Supabase');
+            } catch (supabaseError) {
+              talker.error(
+                  'Failed to delete variant $id from Supabase: $supabaseError');
+            }
+
+            // Delete from Ditto
+            final ditto = dittoService.dittoInstance;
+            if (ditto != null) {
+              try {
+                await ditto.store.execute(
+                  'DELETE FROM variants WHERE _id = :id',
+                  arguments: {'id': id},
+                );
+                talker.info('Deleted variant $id from Ditto');
+              } catch (dittoError) {
+                talker.error(
+                    'Failed to delete variant $id from Ditto: $dittoError');
+              }
+            } else {
+              talker.warning(
+                  'Ditto not initialized, skipping Ditto deletion for variant $id');
+            }
           }
-          await repository.delete<Variant>(
-            variant,
-            query: Query(
-                action: QueryAction.delete, where: [Where('id').isExactly(id)]),
-          );
-          //talker.warning(s);
+        } catch (e, s) {
+          talker.error('Error during variant deletion: $e');
+          talker.warning(s);
           rethrow;
         }
 
@@ -142,7 +179,8 @@ mixin DeleteMixin implements DeleteInterface {
               where: [
                 Where('id').isExactly(id),
                 Where('branchId').isExactly(branchId),
-                Where('businessId').isExactly(ProxyService.box.getBusinessId()!),
+                Where('businessId')
+                    .isExactly(ProxyService.box.getBusinessId()!),
               ],
             ),
           );

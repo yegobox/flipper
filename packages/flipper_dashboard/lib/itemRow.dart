@@ -934,20 +934,28 @@ class _RowItemState extends ConsumerState<RowItem>
                 final stock = await strategy.getStockById(
                   id: widget.variant!.stockId!,
                 );
+                final businessId = ProxyService.box.getBusinessId();
+                final branchId = ProxyService.box.getBranchId();
 
-                if ((stock.currentStock ?? 0) > 0 && !kDebugMode) {
-                  final dialogService = locator<DialogService>();
-                  dialogService.showCustomDialog(
-                    variant: DialogType.info,
-                    title: 'Error',
-                    description: 'Cannot delete a variant with stock.',
-                    data: {'status': InfoDialogStatus.error},
-                  );
-                  return;
-                }
-                widget.delete(widget.variant!.productId!, 'product');
-              } else if (widget.product != null) {
-                widget.delete(widget.product?.id, 'product');
+                final isEbmEnabled =
+                    businessId != null &&
+                    branchId != null &&
+                    await ProxyService.strategy.isTaxEnabled(
+                      businessId: businessId,
+                      branchId: branchId,
+                    );
+
+                // if ((stock.currentStock ?? 0) > 0 && isEbmEnabled) {
+                //   final dialogService = locator<DialogService>();
+                //   dialogService.showCustomDialog(
+                //     variant: DialogType.info,
+                //     title: 'Error',
+                //     description: 'Cannot delete a variant with stock.',
+                //     data: {'status': InfoDialogStatus.error},
+                //   );
+                //   return;
+                // }
+                widget.delete(widget.variant!.id, 'variant');
               }
             },
           ),

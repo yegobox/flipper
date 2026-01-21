@@ -8,6 +8,7 @@ import 'package:flipper_dashboard/UniversalProductDropdown.dart';
 import 'package:flipper_dashboard/_showEditQuantityDialog.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/ebm_provider.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -140,8 +141,18 @@ class TableVariants extends StatelessWidget {
             ),
             IconButton(
               icon: const Icon(Icons.delete, color: Colors.redAccent),
-              onPressed: () {
-                if (variant.stock?.currentStock != 0) {
+              onPressed: () async {
+                final businessId = ProxyService.box.getBusinessId();
+                final branchId = ProxyService.box.getBranchId();
+                final isEbmEnabled =
+                    businessId != null &&
+                    branchId != null &&
+                    await ProxyService.strategy.isTaxEnabled(
+                      businessId: businessId,
+                      branchId: branchId,
+                    );
+
+                if ((variant.stock?.currentStock ?? 0) > 0 && isEbmEnabled) {
                   final dialogService = locator<DialogService>();
                   dialogService.showCustomDialog(
                     variant: DialogType.info,
@@ -467,8 +478,18 @@ class TableVariants extends StatelessWidget {
         DataCell(
           IconButton(
             icon: const Icon(Icons.delete, color: Colors.redAccent),
-            onPressed: () {
-              if (variant.stock?.currentStock != 0) {
+            onPressed: () async {
+              final businessId = ProxyService.box.getBusinessId();
+              final branchId = ProxyService.box.getBranchId();
+              final isEbmEnabled =
+                  businessId != null &&
+                  branchId != null &&
+                  await ProxyService.strategy.isTaxEnabled(
+                    businessId: businessId,
+                    branchId: branchId,
+                  );
+
+              if ((variant.stock?.currentStock ?? 0) > 0 && isEbmEnabled) {
                 final dialogService = locator<DialogService>();
                 dialogService.showCustomDialog(
                   variant: DialogType.info,
