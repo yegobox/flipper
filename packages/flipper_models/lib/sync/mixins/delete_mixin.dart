@@ -128,13 +128,13 @@ mixin DeleteMixin implements DeleteInterface {
               // 1. Fetch remote variant to get stockId
               final remoteVariant = await Supabase.instance.client
                   .from('variants')
-                  .select('stockId')
+                  .select('stock_id')
                   .eq('id', id)
                   .maybeSingle();
 
               String? stockId;
-              if (remoteVariant != null && remoteVariant['stockId'] != null) {
-                stockId = remoteVariant['stockId'] as String;
+              if (remoteVariant != null && remoteVariant['stock_id'] != null) {
+                stockId = remoteVariant['stock_id'] as String;
               }
 
               // 2. Delete from Supabase (Stock first, then Variant to maintain ref integrity if needed,
