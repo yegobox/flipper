@@ -242,8 +242,7 @@ class TableVariants extends StatelessWidget {
                         // Find the unit by name and pass its code and variant ID
                         final unit = units.firstWhere(
                           (u) => u.name == newValue,
-                          orElse: () =>
-                              units.firstWhere((u) => u.name == variant.unit),
+                          orElse: () => units.first,
                         );
                         onUnitOfMeasureChanged?.call(
                           unit.code ?? newValue,

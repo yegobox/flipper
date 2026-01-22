@@ -120,39 +120,65 @@ mixin DeleteMixin implements DeleteInterface {
               );
             }
           } else {
-            // Not found locally, delete using Supabase directly
+            // Not found locally, delete using remote sources
             talker.warning(
-                'Variant with id $id not found locally, deleting from Supabase and Ditto directly.');
+                'Variant with id $id not found locally, attempting remote deletion.');
 
             try {
-              // Delete from Supabase
+              // 1. Fetch remote variant to get stockId
+              final remoteVariant = await Supabase.instance.client
+                  .from('variants')
+                  .select('stockId')
+                  .eq('id', id)
+                  .maybeSingle();
+
+              String? stockId;
+              if (remoteVariant != null && remoteVariant['stockId'] != null) {
+                stockId = remoteVariant['stockId'] as String;
+              }
+
+              // 2. Delete from Supabase (Stock first, then Variant to maintain ref integrity if needed,
+              // or Variant first if cascades. Assuming independent for now or cascade from variant?
+              // Usually child (stock) should be deleted or if variant is parent...
+              // Let's delete both explicitly as requested)
+
+              if (stockId != null) {
+                await Supabase.instance.client
+                    .from('stocks')
+                    .delete()
+                    .eq('id', stockId);
+                talker.info('Deleted stock $stockId from Supabase');
+              }
+
               await Supabase.instance.client
                   .from('variants')
                   .delete()
                   .eq('id', id);
-
               talker.info('Deleted variant $id from Supabase');
-            } catch (supabaseError) {
-              talker.error(
-                  'Failed to delete variant $id from Supabase: $supabaseError');
-            }
 
-            // Delete from Ditto
-            final ditto = dittoService.dittoInstance;
-            if (ditto != null) {
-              try {
+              // 3. Delete from Ditto
+              final ditto = dittoService.dittoInstance;
+              if (ditto != null) {
+                if (stockId != null) {
+                  await ditto.store.execute(
+                    'DELETE FROM stocks WHERE _id = :id',
+                    arguments: {'id': stockId},
+                  );
+                  talker.info('Deleted stock $stockId from Ditto');
+                }
+
                 await ditto.store.execute(
                   'DELETE FROM variants WHERE _id = :id',
                   arguments: {'id': id},
                 );
                 talker.info('Deleted variant $id from Ditto');
-              } catch (dittoError) {
-                talker.error(
-                    'Failed to delete variant $id from Ditto: $dittoError');
+              } else {
+                talker
+                    .warning('Ditto not initialized, skipping Ditto deletion');
               }
-            } else {
-              talker.warning(
-                  'Ditto not initialized, skipping Ditto deletion for variant $id');
+            } catch (e) {
+              talker.error('Error during remote deletion: $e');
+              rethrow;
             }
           }
         } catch (e, s) {

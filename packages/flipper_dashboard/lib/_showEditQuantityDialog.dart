@@ -90,7 +90,10 @@ void showEditQuantityDialog(
                           ),
                         ),
                         IconButton(
-                          onPressed: () => Navigator.pop(context),
+                          onPressed: () {
+                            onDialogClosed();
+                            Navigator.pop(context);
+                          },
                           icon: const Icon(Icons.close),
                           style: IconButton.styleFrom(
                             backgroundColor: Colors.grey[100],
@@ -159,6 +162,7 @@ void showEditQuantityDialog(
                           if (variant.itemTyCd == "3") {
                             model.updateVariantQuantity(variant.id, 0.0);
                             toast("Services do not have stock");
+                            onDialogClosed();
                             Navigator.pop(context);
                             return;
                           }
@@ -179,6 +183,7 @@ void showEditQuantityDialog(
                           }
 
                           model.updateVariantQuantity(variant.id, newQty);
+                          onDialogClosed();
                           Navigator.pop(context);
                         },
                         text: 'Update Stock',
