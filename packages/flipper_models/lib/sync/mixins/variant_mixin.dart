@@ -441,7 +441,7 @@ mixin VariantMixin implements VariantInterface {
           await addStockToVariant(variant: updatables[i]);
         } else if (updatables[i].stock != null &&
             updatables[i].itemTyCd != "3") {
-          repository.upsert<Stock>(updatables[i].stock!);
+          await repository.upsert<Stock>(updatables[i].stock!);
         }
 
         if (updatables[i].itemCd == null ||
@@ -452,7 +452,6 @@ mixin VariantMixin implements VariantInterface {
             updatables[i].pchsSttsCd == "1" ||
             updatables[i].imptItemSttsCd == "4" ||
             updatables[i].imptItemSttsCd == "2" ||
-            // variant.itemCd == "3" ||
             updatables[i].assigned == true) {
           updatables[i].ebmSynced = true;
         }
