@@ -103,7 +103,7 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             );
 
         if (imageDeleted) {
-          await model.deleteProduct(productId: variantId);
+          await model.deleteProduct(productId: product.id);
           // Remove the variant from the provider state directly
           ref
               .read(
