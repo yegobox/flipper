@@ -439,6 +439,9 @@ mixin VariantMixin implements VariantInterface {
         updatables[i].productName = name;
         if (updatables[i].stock == null && updatables[i].itemTyCd != "3") {
           await addStockToVariant(variant: updatables[i]);
+        } else if (updatables[i].stock != null &&
+            updatables[i].itemTyCd != "3") {
+          repository.upsert<Stock>(updatables[i].stock!);
         }
 
         if (updatables[i].itemCd == null ||

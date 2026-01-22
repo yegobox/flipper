@@ -23,10 +23,10 @@ PODS:
     - Flutter
   - device_info_plus (0.0.1):
     - Flutter
-  - ditto_live (4.14.0):
-    - DittoFlutter (= 4.14.0)
+  - ditto_live (4.14.1):
+    - DittoFlutter (= 4.14.1)
     - Flutter
-  - DittoFlutter (4.14.0)
+  - DittoFlutter (4.14.1)
   - DKImagePickerController/Core (4.3.9):
     - DKImagePickerController/ImageDataManager
     - DKImagePickerController/Resource
@@ -305,7 +305,7 @@ PODS:
     - Flutter
   - pointer_interceptor_ios (0.0.1):
     - Flutter
-  - PostHog (3.36.2)
+  - PostHog (3.37.2)
   - posthog_flutter (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -526,8 +526,8 @@ SPEC CHECKSUMS:
   connectivity_plus: 2a701ffec2c0ae28a48cf7540e279787e77c447d
   desktop_webview_auth: d645139460ef203d50bd0cdb33356785dd939cce
   device_info_plus: bf2e3232933866d73fe290f2942f2156cdd10342
-  ditto_live: 8e326a5aa68d29a690eca7bc6940ca0b05e9e016
-  DittoFlutter: 7177d01f21c2c73db156705f29a765508e30e67c
+  ditto_live: 19026fd657d55a6f0be3aecc36ed17fa0bc60d34
+  DittoFlutter: fe7b0e062cdb6cd6ae76cb18a9b283d920a8ffdd
   DKImagePickerController: 946cec48c7873164274ecc4624d19e3da4c1ef3c
   DKPhotoGallery: b3834fecb755ee09a593d7c9e389d8b5d6deed60
   file_picker: b159e0c068aef54932bb15dc9fd1571818edaf49
@@ -582,7 +582,7 @@ SPEC CHECKSUMS:
   patrol: 5a504c6012be7a84369231475ede1fce6e777268
   permission_handler_apple: 9878588469a2b0d0fc1e048d9f43605f92e6cec2
   pointer_interceptor_ios: a78ffe95ad3c6cd52c42ad362c116d92355c3d42
-  PostHog: 43ba4f42cc8dda909b33033e9ba0a1f64a2a8eb2
+  PostHog: 6e90f34cb71fc0881d8f98b8654e8e1799d72dbe
   posthog_flutter: c7888a7df4a4eb0a6473c50da2e12520c33408c4
   printing: 233e1b73bd1f4a05615548e9b5a324c98588640b
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47

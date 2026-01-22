@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flipper_models/db_model_export.dart';
+import 'package:uuid/uuid.dart';
 import 'package:flipper_models/sync/interfaces/variant_interface.dart';
 import 'package:flipper_models/sync/interfaces/stock_interface.dart';
 import 'package:flipper_models/sync/models/paged_variants.dart';
@@ -8,6 +9,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flipper_services/log_service.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:supabase_models/brick/repository.dart';
 import 'package:talker/talker.dart';
 
 mixin CapellaVariantMixin implements VariantInterface {
@@ -825,26 +827,66 @@ mixin CapellaVariantMixin implements VariantInterface {
     if (ditto == null) return;
 
     for (var variant in updatables) {
-      final updateData = <String, dynamic>{};
-      if (color != null) updateData['color'] = color;
-      if (taxTyCd != null) updateData['taxTyCd'] = taxTyCd;
-      if (retailPrice != null) updateData['retailPrice'] = retailPrice;
-      if (supplyPrice != null) updateData['supplyPrice'] = supplyPrice;
-      if (expirationDate != null) {
-        updateData['expirationDate'] = expirationDate.toIso8601String();
+      if (color != null) variant.color = color;
+      if (taxTyCd != null) {
+        variant.taxTyCd = taxTyCd;
+        variant.taxName = taxTyCd;
       }
-      if (productName != null) updateData['productName'] = productName;
-      if (unit != null) updateData['unit'] = unit;
-      if (dcRt != null) updateData['dcRt'] = dcRt;
-      if (ebmSynced != null) updateData['ebmSynced'] = ebmSynced;
-      if (categoryId != null) updateData['categoryId'] = categoryId;
-      updateData['qty'] = variant.qty;
+      if (retailPrice != null) variant.retailPrice = retailPrice;
+      if (supplyPrice != null) variant.supplyPrice = supplyPrice;
+      if (expirationDate != null) variant.expirationDate = expirationDate;
+      if (productName != null) variant.productName = productName;
+      if (unit != null) variant.unit = unit;
+      if (dcRt != null) variant.dcRt = dcRt;
+      if (ebmSynced != null) variant.ebmSynced = ebmSynced;
+      if (categoryId != null) variant.categoryId = categoryId;
+      if (selectedProductType != null) variant.itemTyCd = selectedProductType;
+      if (newRetailPrice != null) {
+        variant.retailPrice = newRetailPrice;
+        variant.prc = newRetailPrice;
+        variant.dftPrc = newRetailPrice;
+      }
+      if (dates != null && dates.containsKey(variant.id)) {
+        variant.expirationDate = DateTime.tryParse(dates[variant.id]!);
+      }
+      variant.lastTouched = DateTime.now().toUtc();
 
-      if (updateData.isNotEmpty) {
-        await ditto.store.execute(
-          'UPDATE variants SET ${updateData.keys.map((key) => '$key = :$key').join(', ')} WHERE _id = :id',
-          arguments: {...updateData, 'id': variant.id},
+      // Upsert the variant
+      await ditto.store.execute(
+        "INSERT INTO variants DOCUMENTS (:doc) ON ID CONFLICT DO REPLACE",
+        arguments: {'doc': variant.toFlipperJson()},
+      );
+      final repository = Repository();
+      await repository.upsert<Variant>(variant);
+
+      // Handle Stock logic for new variants or missing stock
+      if (variant.stock == null && variant.itemTyCd != "3") {
+        final newStock = Stock(
+          id: const Uuid().v4(),
+          currentStock: variant.qty ?? 0,
+          branchId: variant.branchId ?? ProxyService.box.getBranchId()!,
+          lastTouched: DateTime.now().toUtc(),
+          rsdQty: variant.qty ?? 0,
+          initialStock: variant.qty ?? 0,
+          showLowStockAlert: true,
+          active: true,
+          ebmSynced: false,
         );
+        variant.stock = newStock;
+        variant.stockId = newStock.id;
+
+        await ditto.store.execute(
+          "INSERT INTO stocks DOCUMENTS (:doc) ON ID CONFLICT DO REPLACE",
+          arguments: {'doc': newStock.toJson()},
+        );
+        await repository.upsert<Stock>(newStock);
+      } else if (variant.stock != null) {
+        // Ensure existing stock is synced
+        await ditto.store.execute(
+          "INSERT INTO stocks DOCUMENTS (:doc) ON ID CONFLICT DO REPLACE",
+          arguments: {'doc': variant.stock!.toJson()},
+        );
+        await repository.upsert<Stock>(variant.stock!);
       }
     }
   }

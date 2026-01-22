@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flipper_models/helper_models.dart';
 import 'package:flipper_models/sync/interfaces/stock_interface.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:supabase_models/brick/repository.dart';
@@ -270,9 +271,34 @@ mixin CapellaStockMixin implements StockInterface {
       required String productId,
       required String variantId,
       required String branchId,
+      String? id,
       required double currentStock,
-      required double value}) {
-    throw UnimplementedError('saveStock needs to be implemented for Capella');
+      required double value}) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      throw Exception('Ditto not initialized:7');
+    }
+    final stockId = id ?? const Uuid().v4();
+    final stock = Stock(
+        id: stockId,
+        rsdQty: rsdQty,
+        branchId: branchId,
+        currentStock: currentStock,
+        value: value,
+        active: true,
+        lastTouched: DateTime.now().toUtc(),
+        ebmSynced: false,
+        initialStock: currentStock,
+        showLowStockAlert: true,
+        canTrackingStock: true,
+        lowStock: 0);
+    // Ensure existing stock is synced
+    await ditto.store.execute(
+      "INSERT INTO stocks DOCUMENTS (:doc) ON ID CONFLICT DO REPLACE",
+      arguments: {'doc': stock.toJson()},
+    );
+    await repository.upsert<Stock>(stock);
+    return stock;
   }
 
   @override

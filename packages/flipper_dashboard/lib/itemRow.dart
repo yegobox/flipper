@@ -382,6 +382,18 @@ class _RowItemState extends ConsumerState<RowItem>
             overflow: TextOverflow.ellipsis,
           ),
 
+        // Barcode display
+        if (widget.variant?.bcd != null && widget.variant!.bcd!.isNotEmpty)
+          Text(
+            'BCD: ${widget.variant!.bcd}',
+            style: textTheme.bodySmall?.copyWith(
+              color: Colors.grey[600],
+              fontSize: 9,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+
         // Price tag - simplified to avoid overflow
         if (widget.variant?.retailPrice != null &&
             widget.variant?.retailPrice != 0)
@@ -490,7 +502,23 @@ class _RowItemState extends ConsumerState<RowItem>
                         overflow: TextOverflow.ellipsis,
                       ),
 
-                    const SizedBox(height: 4), // Reduced spacing
+                    const SizedBox(height: 2),
+
+                    // Barcode display
+                    if (widget.variant?.bcd != null &&
+                        widget.variant!.bcd!.isNotEmpty) ...[
+                      Text(
+                        'BCD: ${widget.variant!.bcd}',
+                        style: textTheme.bodySmall?.copyWith(
+                          color: Colors.grey[600],
+                          fontSize: 10,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                    ],
+
                     // Price tag - simplified to avoid overflow
                     if (widget.variant?.retailPrice != null &&
                         widget.variant?.retailPrice != 0)
@@ -945,16 +973,16 @@ class _RowItemState extends ConsumerState<RowItem>
                       branchId: branchId,
                     );
 
-                // if ((stock.currentStock ?? 0) > 0 && isEbmEnabled) {
-                //   final dialogService = locator<DialogService>();
-                //   dialogService.showCustomDialog(
-                //     variant: DialogType.info,
-                //     title: 'Error',
-                //     description: 'Cannot delete a variant with stock.',
-                //     data: {'status': InfoDialogStatus.error},
-                //   );
-                //   return;
-                // }
+                if ((stock.currentStock ?? 0) > 0 && isEbmEnabled) {
+                  final dialogService = locator<DialogService>();
+                  dialogService.showCustomDialog(
+                    variant: DialogType.info,
+                    title: 'Error',
+                    description: 'Cannot delete a variant with stock.',
+                    data: {'status': InfoDialogStatus.error},
+                  );
+                  return;
+                }
                 widget.delete(widget.variant!.id, 'variant');
               }
             },

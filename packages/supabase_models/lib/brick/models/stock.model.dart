@@ -114,4 +114,24 @@ class Stock extends OfflineFirstWithSupabaseModel {
       initialStock: initialStock ?? this.initialStock,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      '_id': id,
+      'id': id,
+      'tin': tin,
+      'bhfId': bhfId,
+      'branchId': branchId,
+      'currentStock': currentStock,
+      'lowStock': lowStock,
+      'canTrackingStock': canTrackingStock,
+      'showLowStockAlert': showLowStockAlert,
+      'active': active,
+      'value': value,
+      'rsdQty': rsdQty,
+      'lastTouched': lastTouched?.toIso8601String(),
+      'ebmSynced': ebmSynced,
+      'initialStock': initialStock,
+    };
+  }
 }

@@ -379,6 +379,7 @@ class Variant extends OfflineFirstWithSupabaseModel {
   // toJson() method
   Map<String, dynamic> toFlipperJson() {
     return {
+      '_id': id,
       'id': id,
       'name': name,
       'color': color,
