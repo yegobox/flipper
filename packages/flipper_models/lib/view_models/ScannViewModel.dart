@@ -288,7 +288,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       useYn: "N", // Default as per product_mixin
       orgnNatCd: "RW", // Origin National Code (Rwanda)
       // regrId: Random 5-digit number as per product_mixin
-      regrId: randomNumber().toString().substring(0, 5),
+      regrId: randomNumber().toString().padLeft(5, '0').substring(0, 5),
       itemCd: await ProxyService.strategy.itemCode(
         countryCode: "RW",
         productType: "2",
@@ -514,7 +514,8 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
             variant.orgnNatCd = "RW";
           }
           if (variant.regrId == null || variant.regrId!.isEmpty) {
-            variant.regrId = randomNumber().toString().substring(0, 5);
+            variant.regrId =
+                randomNumber().toString().padLeft(5, '0').substring(0, 5);
           }
           if (variant.isrcAplcbYn == null || variant.isrcAplcbYn!.isEmpty) {
             variant.isrcAplcbYn = "N";
@@ -555,7 +556,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
               variant.bhfId = ebm?.bhfId ?? "00";
             }
           }
-          // check if a given variant is existing if it does not then use addVariant which will add it to rra
+
           await ProxyService.strategy.updateVariant(
             updatables: [variant],
             color: color,
