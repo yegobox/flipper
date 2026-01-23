@@ -186,6 +186,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
     String? customerTin,
     String? customerPhone,
     required String countryCode,
+    String? note,
   });
 
   Future<Setting?> getSetting({required String businessId});

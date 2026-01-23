@@ -451,6 +451,21 @@ Widget _buildModernTransactionItem({
                     ),
                   ],
                 ),
+                if (transaction.note != null &&
+                    transaction.note!.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    transaction.note!,
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w400,
+                      color: Colors.grey.shade600,
+                      fontStyle: FontStyle.italic,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
                 const SizedBox(height: 4),
                 Row(
                   children: [
