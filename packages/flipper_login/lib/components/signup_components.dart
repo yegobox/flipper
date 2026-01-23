@@ -1,3 +1,4 @@
+import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
@@ -189,78 +190,94 @@ class SignupComponents {
   /// Build the submit button.
   static Widget buildSubmitButton(
       AsyncFieldValidationFormBloc formBloc, bool isLoading) {
+    // Manual validity checks that are robust across UI states
+    final hasUsername = formBloc.username.value.isNotEmpty;
+    final isUsernameValid = hasUsername &&
+        !formBloc.username.state.isValidating &&
+        !formBloc.username.state.hasError;
+
+    final hasFullName = formBloc.fullName.value.isNotEmpty;
+    final hasPhone = formBloc.phoneNumber.value.isNotEmpty;
+    final hasBusinessType = formBloc.businessTypes.value != null;
+
+    // Source verification status directly from extraData for maximum reactivity
+    final isPhoneVerified = (formBloc.phoneNumber.state.extraData is Map &&
+        (formBloc.phoneNumber.state.extraData as Map)['verified'] == true);
+
+    // Use the form bloc's getter which properly handles both strict and relaxed verification
+    final isTinVerified = formBloc.isTinVerified;
+
+    // Check if TIN is required and valid
+    final selectedBusinessType = formBloc.businessTypes.value;
+    final isTinRequired =
+        selectedBusinessType != null && selectedBusinessType.id != "2";
+
+    // If TIN is required, it must be filled and verified; if not required, it's automatically valid
+    // Also check if the field has errors which would make it invalid
+    final isTinValid = !isTinRequired ||
+        (formBloc.tinNumber.value.isNotEmpty &&
+            isTinVerified &&
+            !formBloc.tinNumber.state.hasError);
+
+    // OTP field logic
+    final isOtpEnabled = (formBloc.otpCode.state.extraData is Map &&
+        (formBloc.otpCode.state.extraData as Map)['enabled'] == true);
+    final isOtpValid = isPhoneVerified ||
+        !isOtpEnabled ||
+        (formBloc.otpCode.value.isNotEmpty && !formBloc.otpCode.state.hasError);
+
+    final isValid = isUsernameValid &&
+        hasFullName &&
+        hasPhone &&
+        isPhoneVerified &&
+        hasBusinessType &&
+        isOtpValid &&
+        isTinValid;
+
+    // Debug log to help identify which condition is failing
+    log(
+        'Signup Button Status: '
+        'isValid: $isValid, '
+        'isUsernameValid: $isUsernameValid (hasVal: $hasUsername, isValing: ${formBloc.username.state.isValidating}, err: ${formBloc.username.state.hasError}), '
+        'hasFullName: $hasFullName, '
+        'hasPhone: $hasPhone, '
+        'isPhoneVerified: $isPhoneVerified, '
+        'hasBusinessType: $hasBusinessType, '
+        'isOtpValid: $isOtpValid, '
+        'isTinValid: $isTinValid (isReq: $isTinRequired, hasVal: ${formBloc.tinNumber.value.isNotEmpty}, isVer: $isTinVerified, hasErr: ${formBloc.tinNumber.state.hasError})',
+        name: 'SignupComponents');
+
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 24),
       width: double.infinity,
       height: 52,
-      child: BlocBuilder<AsyncFieldValidationFormBloc,
-          FormBlocState<String, String>>(
-        bloc: formBloc,
-        builder: (context, state) {
-          // Check if the form is valid AND all required fields have been validated
-          final isFormValid = state.isValid();
-
-          // Additional validation checks for specific fields
-          final isUsernameValid = formBloc.username.value.isNotEmpty &&
-              formBloc.username.state.isValid;
-          final isFullNameValid = formBloc.fullName.value.isNotEmpty &&
-              formBloc.fullName.state.isValid;
-          final isPhoneValid = formBloc.phoneNumber.value.isNotEmpty &&
-              formBloc.phoneNumber.state.isValid;
-          final isBusinessTypeValid = formBloc.businessTypes.value != null &&
-              formBloc.businessTypes.state.isValid;
-
-          // Check if OTP is enabled and if so, it must be valid
-          final isOtpEnabled = (formBloc.otpCode.state.extraData
-                  as Map<String, dynamic>?)?['enabled'] ==
-              true;
-          final isOtpValid = !isOtpEnabled ||
-              (formBloc.otpCode.value.isNotEmpty &&
-                  formBloc.otpCode.state.isValid);
-
-          // Check if TIN is required and valid (for non-individual business types)
-          final isTinRequired = formBloc.businessTypes.value?.id != "2";
-          // TIN validation passes if: not required (individual), or validated successfully
-          final isTinValid = !isTinRequired || formBloc.tinNumber.state.isValid;
-
-          // Overall validity depends on all required validations passing
-          final isValid = isFormValid &&
-              isUsernameValid &&
-              isFullNameValid &&
-              isPhoneValid &&
-              isBusinessTypeValid &&
-              isOtpValid &&
-              isTinValid;
-
-          return ElevatedButton(
-            onPressed: (isLoading || !isValid) ? null : formBloc.submit,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: primaryColor,
-              foregroundColor: Colors.white,
-              disabledBackgroundColor: primaryColor.withOpacity(0.6),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8.0),
+      child: ElevatedButton(
+        onPressed: (isLoading || !isValid) ? null : formBloc.submit,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: primaryColor,
+          foregroundColor: Colors.white,
+          disabledBackgroundColor: primaryColor.withOpacity(0.6),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8.0),
+          ),
+          elevation: 0,
+        ),
+        child: isLoading
+            ? const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 3,
+                ),
+              )
+            : const Text(
+                'Create Account',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-              elevation: 0,
-            ),
-            child: isLoading
-                ? const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(
-                      color: Colors.white,
-                      strokeWidth: 3,
-                    ),
-                  )
-                : const Text(
-                    'Create Account',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-          );
-        },
       ),
     );
   }

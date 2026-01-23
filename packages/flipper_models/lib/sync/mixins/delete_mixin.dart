@@ -4,6 +4,7 @@ import 'package:flipper_models/sync/interfaces/delete_interface.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_web/services/ditto_service.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
@@ -96,31 +97,93 @@ mixin DeleteMixin implements DeleteInterface {
         break;
       case 'variant':
         try {
+          // Try to find and delete locally first
           final variant = await ProxyService.strategy.getVariant(id: id);
-          final stock = await getStockById(id: variant!.stockId ?? "");
 
-          await repository.delete<Variant>(
-            variant,
-            query: Query(
-                action: QueryAction.delete, where: [Where('id').isExactly(id)]),
-          );
-          await repository.delete<Stock>(
-            stock!,
-            query: Query(
-                action: QueryAction.delete, where: [Where('id').isExactly(id)]),
-          );
-        } catch (e, s) {
-          final variant = await ProxyService.strategy.getVariant(id: id);
-          if (variant == null) {
-            talker.error('Variant with id $id not found for deletion.');
-            rethrow;
+          if (variant != null) {
+            // Found locally, delete variant and its stock
+            final stock = await getStockById(id: variant.stockId ?? "");
+
+            await repository.delete<Variant>(
+              variant,
+              query: Query(
+                  action: QueryAction.delete,
+                  where: [Where('id').isExactly(id)]),
+            );
+
+            if (stock != null) {
+              await repository.delete<Stock>(
+                stock,
+                query: Query(
+                    action: QueryAction.delete,
+                    where: [Where('id').isExactly(stock.id)]),
+              );
+            }
+          } else {
+            // Not found locally, delete using remote sources
+            talker.warning(
+                'Variant with id $id not found locally, attempting remote deletion.');
+
+            try {
+              // 1. Fetch remote variant to get stockId
+              final remoteVariant = await Supabase.instance.client
+                  .from('variants')
+                  .select('stock_id')
+                  .eq('id', id)
+                  .maybeSingle();
+
+              String? stockId;
+              if (remoteVariant != null && remoteVariant['stock_id'] != null) {
+                stockId = remoteVariant['stock_id'] as String;
+              }
+
+              // 2. Delete from Supabase (Stock first, then Variant to maintain ref integrity if needed,
+              // or Variant first if cascades. Assuming independent for now or cascade from variant?
+              // Usually child (stock) should be deleted or if variant is parent...
+              // Let's delete both explicitly as requested)
+
+              if (stockId != null) {
+                await Supabase.instance.client
+                    .from('stocks')
+                    .delete()
+                    .eq('id', stockId);
+                talker.info('Deleted stock $stockId from Supabase');
+              }
+
+              await Supabase.instance.client
+                  .from('variants')
+                  .delete()
+                  .eq('id', id);
+              talker.info('Deleted variant $id from Supabase');
+
+              // 3. Delete from Ditto
+              final ditto = dittoService.dittoInstance;
+              if (ditto != null) {
+                if (stockId != null) {
+                  await ditto.store.execute(
+                    'DELETE FROM stocks WHERE _id = :id',
+                    arguments: {'id': stockId},
+                  );
+                  talker.info('Deleted stock $stockId from Ditto');
+                }
+
+                await ditto.store.execute(
+                  'DELETE FROM variants WHERE _id = :id',
+                  arguments: {'id': id},
+                );
+                talker.info('Deleted variant $id from Ditto');
+              } else {
+                talker
+                    .warning('Ditto not initialized, skipping Ditto deletion');
+              }
+            } catch (e) {
+              talker.error('Error during remote deletion: $e');
+              rethrow;
+            }
           }
-          await repository.delete<Variant>(
-            variant,
-            query: Query(
-                action: QueryAction.delete, where: [Where('id').isExactly(id)]),
-          );
-          //talker.warning(s);
+        } catch (e, s) {
+          talker.error('Error during variant deletion: $e');
+          talker.warning(s);
           rethrow;
         }
 
@@ -142,7 +205,8 @@ mixin DeleteMixin implements DeleteInterface {
               where: [
                 Where('id').isExactly(id),
                 Where('branchId').isExactly(branchId),
-                Where('businessId').isExactly(ProxyService.box.getBusinessId()!),
+                Where('businessId')
+                    .isExactly(ProxyService.box.getBusinessId()!),
               ],
             ),
           );

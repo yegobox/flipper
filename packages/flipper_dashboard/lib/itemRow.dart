@@ -382,6 +382,18 @@ class _RowItemState extends ConsumerState<RowItem>
             overflow: TextOverflow.ellipsis,
           ),
 
+        // Barcode display
+        if (widget.variant?.bcd != null && widget.variant!.bcd!.isNotEmpty)
+          Text(
+            'BCD: ${widget.variant!.bcd}',
+            style: textTheme.bodySmall?.copyWith(
+              color: Colors.grey[600],
+              fontSize: 9,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+
         // Price tag - simplified to avoid overflow
         if (widget.variant?.retailPrice != null &&
             widget.variant?.retailPrice != 0)
@@ -433,7 +445,7 @@ class _RowItemState extends ConsumerState<RowItem>
       builder: (context, constraints) {
         // Calculate available width for product info
         final double maxWidth = constraints.maxWidth;
-        final double imageWidth = 70; // Fixed image width
+        final double imageWidth = 95; // Fixed image width
         final double spacing = 8; // Reduced spacing
         final double availableForInfo = maxWidth - imageWidth - spacing;
 
@@ -443,7 +455,7 @@ class _RowItemState extends ConsumerState<RowItem>
             // Product Image - Fixed size for list view
             SizedBox(
               width: imageWidth,
-              height: 70,
+              height: 95,
               child: _buildProductImageSection(isSelected),
             ),
 
@@ -452,7 +464,7 @@ class _RowItemState extends ConsumerState<RowItem>
             // Product Info - Constrained width
             Container(
               width: availableForInfo,
-              constraints: BoxConstraints(maxHeight: 70), // Match image height
+              constraints: BoxConstraints(maxHeight: 95), // Match image height
               child: SingleChildScrollView(
                 physics: const NeverScrollableScrollPhysics(),
                 child: Column(
@@ -490,7 +502,23 @@ class _RowItemState extends ConsumerState<RowItem>
                         overflow: TextOverflow.ellipsis,
                       ),
 
-                    const SizedBox(height: 4), // Reduced spacing
+                    const SizedBox(height: 2),
+
+                    // Barcode display
+                    if (widget.variant?.bcd != null &&
+                        widget.variant!.bcd!.isNotEmpty) ...[
+                      Text(
+                        'BCD: ${widget.variant!.bcd}',
+                        style: textTheme.bodySmall?.copyWith(
+                          color: Colors.grey[600],
+                          fontSize: 10,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                    ],
+
                     // Price tag - simplified to avoid overflow
                     if (widget.variant?.retailPrice != null &&
                         widget.variant?.retailPrice != 0)
@@ -586,7 +614,7 @@ class _RowItemState extends ConsumerState<RowItem>
                                 : widget.productName),
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 22.0,
+                        fontSize: 35.0,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -934,8 +962,18 @@ class _RowItemState extends ConsumerState<RowItem>
                 final stock = await strategy.getStockById(
                   id: widget.variant!.stockId!,
                 );
+                final businessId = ProxyService.box.getBusinessId();
+                final branchId = ProxyService.box.getBranchId();
 
-                if ((stock.currentStock ?? 0) > 0 && !kDebugMode) {
+                final isEbmEnabled =
+                    businessId != null &&
+                    branchId != null &&
+                    await ProxyService.strategy.isTaxEnabled(
+                      businessId: businessId,
+                      branchId: branchId,
+                    );
+
+                if ((stock.currentStock ?? 0) > 0 && isEbmEnabled) {
                   final dialogService = locator<DialogService>();
                   dialogService.showCustomDialog(
                     variant: DialogType.info,
@@ -945,9 +983,7 @@ class _RowItemState extends ConsumerState<RowItem>
                   );
                   return;
                 }
-                widget.delete(widget.variant!.productId!, 'product');
-              } else if (widget.product != null) {
-                widget.delete(widget.product?.id, 'product');
+                widget.delete(widget.variant!.id, 'variant');
               }
             },
           ),

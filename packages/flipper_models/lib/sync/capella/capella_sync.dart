@@ -454,7 +454,8 @@ class CapellaSync extends AiStrategyImpl
       String? customerName,
       String? customerTin,
       String? customerPhone,
-      required String countryCode}) {
+      required String countryCode,
+      String? note}) {
     // TODO: implement collectPayment
     throw UnimplementedError();
   }

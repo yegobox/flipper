@@ -43,7 +43,8 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       throw Exception('Failed to delete all selected tickets');
     } else if (failedDeletions.isNotEmpty) {
       throw Exception(
-          'Failed to delete ${failedDeletions.length} out of ${selectedIds.length} tickets');
+        'Failed to delete ${failedDeletions.length} out of ${selectedIds.length} tickets',
+      );
     }
   }
 
@@ -141,8 +142,9 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
               padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4),
               child: Consumer(
                 builder: (context, ref, _) {
-                  final isSelected =
-                      ref.watch(ticketSelectionProvider).contains(ticket.id);
+                  final isSelected = ref
+                      .watch(ticketSelectionProvider)
+                      .contains(ticket.id);
                   return TicketCard(
                     ticket: ticket,
                     isSelected: isSelected,
@@ -168,13 +170,19 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              child:
-                  buildSection('Loan Tickets', Colors.deepPurple, loanTickets),
+              child: buildSection(
+                'Loan Tickets',
+                Colors.deepPurple,
+                loanTickets,
+              ),
             ),
             const VerticalDivider(width: 20, thickness: 1, color: Colors.grey),
             Expanded(
-              child:
-                  buildSection('Regular Tickets', Colors.blue, nonLoanTickets),
+              child: buildSection(
+                'Regular Tickets',
+                Colors.blue,
+                nonLoanTickets,
+              ),
             ),
           ],
         ),
@@ -193,9 +201,12 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
   /// Dialog to update ticket status or resume
   Future<void> _handleTicketTap(
-      BuildContext context, ITransaction ticket) async {
-    final currentStatus =
-        TicketStatusExtension.fromString(ticket.status ?? PARKED);
+    BuildContext context,
+    ITransaction ticket,
+  ) async {
+    final currentStatus = TicketStatusExtension.fromString(
+      ticket.status ?? PARKED,
+    );
     final selectedStatus = await showDialog<TicketStatus?>(
       context: context,
       builder: (context) => AlertDialog(
@@ -221,17 +232,19 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                 runSpacing: 8,
                 children: TicketStatus.values
                     .where((s) => s != currentStatus)
-                    .map((status) => FilterChip(
-                          label: Text(status.displayName),
-                          labelStyle: TextStyle(
-                            color: status.color,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          selectedColor: status.color.withValues(alpha: 0.1),
-                          side: BorderSide(color: status.color, width: 1),
-                          selected: false,
-                          onSelected: (_) => Navigator.of(context).pop(status),
-                        ))
+                    .map(
+                      (status) => FilterChip(
+                        label: Text(status.displayName),
+                        labelStyle: TextStyle(
+                          color: status.color,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        selectedColor: status.color.withValues(alpha: 0.1),
+                        side: BorderSide(color: status.color, width: 1),
+                        selected: false,
+                        onSelected: (_) => Navigator.of(context).pop(status),
+                      ),
+                    )
                     .toList(),
               ),
             ),
@@ -294,7 +307,8 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         if (tx.id == excludeId) continue;
         if (tx.subTotal != 0.0) {
           throw Exception(
-              'Cannot park pending transaction ${tx.id}: non-zero subtotal');
+            'Cannot resume ticket while current cart has items. Please complete or clear the current transaction first.',
+          );
         }
         await ProxyService.strategy.updateTransaction(
           transaction: tx,
@@ -338,10 +352,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           context: context,
           builder: (ctx) => AlertDialog(
             title: const Text('Action Failed'),
-            content: Text(
-              e.toString(),
-              style: const TextStyle(fontSize: 14),
-            ),
+            content: Text(e.toString(), style: const TextStyle(fontSize: 14)),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(ctx).pop(),
@@ -358,7 +369,8 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   Future<void> _deleteTicket(ITransaction ticket) async {
     bool confirmed = false;
     if (mounted) {
-      confirmed = await showDialog<bool>(
+      confirmed =
+          await showDialog<bool>(
             context: context,
             builder: (ctx) => AlertDialog(
               title: const Text('Delete Ticket?'),
@@ -372,8 +384,10 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                 ),
                 TextButton(
                   onPressed: () => Navigator.of(ctx).pop(true),
-                  child:
-                      const Text('Delete', style: TextStyle(color: Colors.red)),
+                  child: const Text(
+                    'Delete',
+                    style: TextStyle(color: Colors.red),
+                  ),
                 ),
               ],
             ),
@@ -408,8 +422,11 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       );
     } catch (e, st) {
       talker.error('Delete failed: $e', st);
-      showCustomSnackBarUtil(context, 'Delete failed',
-          backgroundColor: Colors.red);
+      showCustomSnackBarUtil(
+        context,
+        'Delete failed',
+        backgroundColor: Colors.red,
+      );
     } finally {
       if (mounted) Navigator.of(context, rootNavigator: true).maybePop();
     }
@@ -433,10 +450,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           ),
           Text(
             'Create a new ticket to get started',
-            style: GoogleFonts.inter(
-              fontSize: 14,
-              color: Colors.grey[600],
-            ),
+            style: GoogleFonts.inter(fontSize: 14, color: Colors.grey[600]),
           ),
         ],
       ),
@@ -476,69 +490,73 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   Stream<List<ITransaction>> _getTicketsStream() {
     final waitingStream = ProxyService.strategy
         .transactionsStream(
-      status: WAITING,
-      branchId: ProxyService.box.getBranchId(),
-      removeAdjustmentTransactions: true,
-      forceRealData: true,
-      skipOriginalTransactionCheck: false,
-    )
+          status: WAITING,
+          branchId: ProxyService.box.getBranchId(),
+          removeAdjustmentTransactions: true,
+          forceRealData: true,
+          skipOriginalTransactionCheck: false,
+        )
         .startWith(const <ITransaction>[]);
 
     final parkedStream = ProxyService.strategy
         .transactionsStream(
-      status: PARKED,
-      removeAdjustmentTransactions: true,
-      forceRealData: true,
-      branchId: ProxyService.box.getBranchId(),
-      skipOriginalTransactionCheck: false,
-    )
+          status: PARKED,
+          removeAdjustmentTransactions: true,
+          forceRealData: true,
+          branchId: ProxyService.box.getBranchId(),
+          skipOriginalTransactionCheck: false,
+        )
         .startWith(const <ITransaction>[]);
 
     final inProgressStream = ProxyService.strategy
         .transactionsStream(
-      status: IN_PROGRESS,
-      removeAdjustmentTransactions: true,
-      forceRealData: true,
-      branchId: ProxyService.box.getBranchId(),
-      skipOriginalTransactionCheck: false,
-    )
+          status: IN_PROGRESS,
+          removeAdjustmentTransactions: true,
+          forceRealData: true,
+          branchId: ProxyService.box.getBranchId(),
+          skipOriginalTransactionCheck: false,
+        )
         .startWith(const <ITransaction>[]);
 
-    return Rx.combineLatest3<List<ITransaction>, List<ITransaction>,
-        List<ITransaction>, List<ITransaction>>(
-      waitingStream,
-      parkedStream,
-      inProgressStream,
-      (waiting, parked, inProgress) {
-        // Combine all transactions
-        final allTickets = <ITransaction>[
-          ...waiting,
-          ...parked,
-          ...inProgress,
-        ];
+    return Rx.combineLatest3<
+          List<ITransaction>,
+          List<ITransaction>,
+          List<ITransaction>,
+          List<ITransaction>
+        >(waitingStream, parkedStream, inProgressStream, (
+          waiting,
+          parked,
+          inProgress,
+        ) {
+          // Combine all transactions
+          final allTickets = <ITransaction>[
+            ...waiting,
+            ...parked,
+            ...inProgress,
+          ];
 
-        // Sort by priority and creation date
-        allTickets.sort((a, b) {
-          final priority = <String, int>{
-            WAITING: 3,
-            PARKED: 2,
-            IN_PROGRESS: 1,
-          };
-          final aPrio = priority[a.status] ?? 0;
-          final bPrio = priority[b.status] ?? 0;
-          if (aPrio != bPrio) return bPrio.compareTo(aPrio);
+          // Sort by priority and creation date
+          allTickets.sort((a, b) {
+            final priority = <String, int>{
+              WAITING: 3,
+              PARKED: 2,
+              IN_PROGRESS: 1,
+            };
+            final aPrio = priority[a.status] ?? 0;
+            final bPrio = priority[b.status] ?? 0;
+            if (aPrio != bPrio) return bPrio.compareTo(aPrio);
 
-          final aDate = a.createdAt ?? DateTime(1970);
-          final bDate = b.createdAt ?? DateTime(1970);
-          return bDate.compareTo(aDate);
+            final aDate = a.createdAt ?? DateTime(1970);
+            final bDate = b.createdAt ?? DateTime(1970);
+            return bDate.compareTo(aDate);
+          });
+
+          return allTickets;
+        })
+        .handleError((e, st) {
+          talker.error('Ticket stream error: $e', st);
+          throw e;
         });
-
-        return allTickets;
-      },
-    ).handleError((e, st) {
-      talker.error('Ticket stream error: $e', st);
-      throw e;
-    });
   }
 
   /// Reusable status badge (like QuickBooks tags)
@@ -622,8 +640,10 @@ class TicketCard extends StatelessWidget {
                   ),
                   // Status badge
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: statusExt.color.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(12),
@@ -644,7 +664,9 @@ class TicketCard extends StatelessWidget {
               if (ticket.ticketName != null && ticket.ticketName!.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 16.0, vertical: 12.0),
+                    horizontal: 16.0,
+                    vertical: 12.0,
+                  ),
                   child: Container(
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
@@ -663,7 +685,9 @@ class TicketCard extends StatelessWidget {
                       ],
                     ),
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 12.0, vertical: 8.0),
+                      horizontal: 12.0,
+                      vertical: 8.0,
+                    ),
                     child: Row(
                       children: [
                         Container(
@@ -738,9 +762,9 @@ class TicketCard extends StatelessWidget {
                         onPressed: onTap,
                         tooltip: 'Resume Order',
                         style: IconButton.styleFrom(
-                          backgroundColor: Theme.of(context)
-                              .primaryColor
-                              .withValues(alpha: 0.1),
+                          backgroundColor: Theme.of(
+                            context,
+                          ).primaryColor.withValues(alpha: 0.1),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
@@ -748,8 +772,11 @@ class TicketCard extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       IconButton(
-                        icon: const Icon(Icons.delete,
-                            size: 20, color: Colors.red),
+                        icon: const Icon(
+                          Icons.delete,
+                          size: 20,
+                          color: Colors.red,
+                        ),
                         onPressed: onDelete,
                         tooltip: 'Delete Ticket',
                         style: IconButton.styleFrom(

@@ -217,6 +217,10 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       num? approvedQty,
       bool updateMaster = true,
       required String URI}) async {
+    if ((isAndroid || isIos) && URI.contains('localhost')) {
+      return RwApiResponse(
+          resultCd: "000", resultMsg: "Skipped localhost call on mobile");
+    }
     try {
       final url = Uri.parse(URI)
           .replace(path: Uri.parse(URI).path + 'stock/saveStockItems')
@@ -319,6 +323,10 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       required String URI,
       num? approvedQty,
       double? stockMasterQty}) async {
+    if ((isAndroid || isIos) && URI.contains('localhost')) {
+      return RwApiResponse(
+          resultCd: "000", resultMsg: "Skipped localhost call on mobile");
+    }
     try {
       final url = Uri.parse(URI)
           .replace(path: Uri.parse(URI).path + 'stockMaster/saveStockMaster')
@@ -455,6 +463,10 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
   @override
   Future<RwApiResponse> saveItem(
       {required Variant variation, required String URI}) async {
+    if ((isAndroid || isIos) && URI.contains('localhost')) {
+      return RwApiResponse(
+          resultCd: "000", resultMsg: "Skipped localhost call on mobile");
+    }
     final url = Uri.parse(URI)
         .replace(path: Uri.parse(URI).path + 'items/saveItems')
         .toString();
@@ -565,6 +577,10 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     required String customerName,
     Customer? customer,
   }) async {
+    if ((isAndroid || isIos) && URI.contains('localhost')) {
+      return RwApiResponse(
+          resultCd: "000", resultMsg: "Skipped localhost call on mobile");
+    }
     final repository = Repository();
     // Get business details
     Business? business = await ProxyService.strategy

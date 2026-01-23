@@ -8,6 +8,7 @@ import 'package:flipper_dashboard/UniversalProductDropdown.dart';
 import 'package:flipper_dashboard/_showEditQuantityDialog.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/ebm_provider.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -18,7 +19,7 @@ class TableVariants extends StatelessWidget {
   final ScannViewModel model;
   final List<String> unitOfMeasures;
   final void Function(String? unitCode, String variantId)?
-      onUnitOfMeasureChanged;
+  onUnitOfMeasureChanged;
   final FocusNode scannedInputFocusNode;
   final List<IUnit> units;
   final AsyncValue<List<UnversalProduct>>? unversalProducts;
@@ -68,8 +69,9 @@ class TableVariants extends StatelessWidget {
                   : _buildDesktopLayout(context, constraints),
             ),
             // Show delete button only if at least one item is selected
-            if (model.scannedVariants
-                .any((variant) => model.isSelected(variant.id)))
+            if (model.scannedVariants.any(
+              (variant) => model.isSelected(variant.id),
+            ))
               Positioned(
                 top: 10,
                 right: 10,
@@ -85,9 +87,7 @@ class TableVariants extends StatelessWidget {
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: ConstrainedBox(
-        constraints: BoxConstraints(
-          minWidth: constraints.maxWidth,
-        ),
+        constraints: BoxConstraints(minWidth: constraints.maxWidth),
         child: DataTable(
           decoration: BoxDecoration(
             border: Border.all(color: Colors.grey[300]!, width: 1),
@@ -141,8 +141,18 @@ class TableVariants extends StatelessWidget {
             ),
             IconButton(
               icon: const Icon(Icons.delete, color: Colors.redAccent),
-              onPressed: () {
-                if (variant.stock?.currentStock != 0) {
+              onPressed: () async {
+                final businessId = ProxyService.box.getBusinessId();
+                final branchId = ProxyService.box.getBranchId();
+                final isEbmEnabled =
+                    businessId != null &&
+                    branchId != null &&
+                    await ProxyService.strategy.isTaxEnabled(
+                      businessId: businessId,
+                      branchId: branchId,
+                    );
+
+                if ((variant.stock?.currentStock ?? 0) > 0 && isEbmEnabled) {
                   final dialogService = locator<DialogService>();
                   dialogService.showCustomDialog(
                     variant: DialogType.info,
@@ -163,110 +173,116 @@ class TableVariants extends StatelessWidget {
             child: Column(
               children: [
                 _buildMobileInfoRow(
-                    'Quantity',
-                    QuantityCell(
-                      quantity: variant.stock?.currentStock,
-                      onEdit: isEditMode
-                          ? () {}
-                          : () {
-                              showEditQuantityDialog(
-                                context,
-                                variant,
-                                model,
-                                () {
-                                  FocusScope.of(context)
-                                      .requestFocus(scannedInputFocusNode);
-                                },
-                              );
-                            },
-                    )),
-                _buildMobileInfoRow('Tax',
-                    Consumer(builder: (context, ref, child) {
-                  final vatEnabledAsync = ref.watch(ebmVatEnabledProvider);
-                  return vatEnabledAsync.when(
-                    data: (vatEnabled) {
-                      // If VAT is enabled, show A, B, C (exclude D)
-                      // If VAT is disabled, only show tax type D
-                      final options = vatEnabled ? ["A", "B", "C"] : ["D"];
-                      // If current value is not in options, default based on VAT status
-                      final currentValue = options.contains(variant.taxTyCd)
-                          ? variant.taxTyCd
-                          : (vatEnabled ? "B" : "D");
-                      return TaxDropdown(
-                        isEditMode: isEditMode,
-                        selectedValue: currentValue,
-                        options: options,
-                        onChanged: (newValue) =>
-                            model.updateTax(variant, newValue),
+                  'Quantity',
+                  QuantityCell(
+                    quantity: variant.stock?.currentStock,
+                    onEdit: () {
+                      showEditQuantityDialog(context, variant, model, () {
+                        FocusScope.of(
+                          context,
+                        ).requestFocus(scannedInputFocusNode);
+                      });
+                    },
+                  ),
+                ),
+                _buildMobileInfoRow(
+                  'Tax',
+                  Consumer(
+                    builder: (context, ref, child) {
+                      final vatEnabledAsync = ref.watch(ebmVatEnabledProvider);
+                      return vatEnabledAsync.when(
+                        data: (vatEnabled) {
+                          // If VAT is enabled, show A, B, C (exclude D)
+                          // If VAT is disabled, only show tax type D
+                          final options = vatEnabled ? ["A", "B", "C"] : ["D"];
+                          // If current value is not in options, default based on VAT status
+                          final currentValue = options.contains(variant.taxTyCd)
+                              ? variant.taxTyCd
+                              : (vatEnabled ? "B" : "D");
+                          return TaxDropdown(
+                            isEditMode: isEditMode,
+                            selectedValue: currentValue,
+                            options: options,
+                            onChanged: (newValue) =>
+                                model.updateTax(variant, newValue),
+                          );
+                        },
+                        loading: () => TaxDropdown(
+                          selectedValue: variant.taxTyCd,
+                          options: ["A", "B", "C", "D"],
+                          onChanged: (newValue) =>
+                              model.updateTax(variant, newValue),
+                        ),
+                        error: (_, __) => TaxDropdown(
+                          selectedValue: variant.taxTyCd,
+                          options: ["A", "B", "C", "D"],
+                          onChanged: (newValue) =>
+                              model.updateTax(variant, newValue),
+                        ),
                       );
                     },
-                    loading: () => TaxDropdown(
-                      selectedValue: variant.taxTyCd,
-                      options: ["A", "B", "C", "D"],
-                      onChanged: (newValue) =>
-                          model.updateTax(variant, newValue),
+                  ),
+                ),
+                _buildMobileInfoRow(
+                  'Discount',
+                  TextFormField(
+                    controller: model.getDiscountController(variant.id),
+                    decoration: const InputDecoration(suffixText: '%'),
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  ),
+                ),
+                _buildMobileInfoRow(
+                  'Unit',
+                  UnitOfMeasureDropdown(
+                    items: units.map((e) => e.name ?? '').toList(),
+                    selectedItem: variant.unit,
+                    onChanged: (String? newValue) {
+                      if (newValue != null) {
+                        // Find the unit by name and pass its code and variant ID
+                        final unit = units.firstWhere(
+                          (u) => u.name == newValue,
+                          orElse: () => units.first,
+                        );
+                        onUnitOfMeasureChanged?.call(
+                          unit.code ?? newValue,
+                          variant.id,
+                        );
+                      }
+                    },
+                  ),
+                ),
+                _buildMobileInfoRow(
+                  'Classification',
+                  UniversalProductDropdown(
+                    context: context,
+                    model: model,
+                    variant: variant,
+                    universalProducts: unversalProducts,
+                  ),
+                ),
+                _buildMobileInfoRow(
+                  'Expiration',
+                  TextFormField(
+                    controller: model.getDateController(variant.id),
+                    decoration: InputDecoration(
+                      suffixIcon: const Icon(Icons.calendar_today),
+                      hintText: variant.expirationDate != null
+                          ? DateFormat(
+                              'MMMM dd, yyyy',
+                            ).format(variant.expirationDate!)
+                          : 'Select Date',
                     ),
-                    error: (_, __) => TaxDropdown(
-                      selectedValue: variant.taxTyCd,
-                      options: ["A", "B", "C", "D"],
-                      onChanged: (newValue) =>
-                          model.updateTax(variant, newValue),
-                    ),
-                  );
-                })),
-                _buildMobileInfoRow(
-                    'Discount',
-                    TextFormField(
-                      controller: model.getDiscountController(variant.id),
-                      decoration: const InputDecoration(suffixText: '%'),
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    )),
-                _buildMobileInfoRow(
-                    'Unit',
-                    UnitOfMeasureDropdown(
-                      items: units.map((e) => e.name ?? '').toList(),
-                      selectedItem: variant.unit,
-                      onChanged: (String? newValue) {
-                        if (newValue != null) {
-                          // Find the unit by name and pass its code and variant ID
-                          final unit = units.firstWhere(
-                              (u) => u.name == newValue,
-                              orElse: () => units
-                                  .firstWhere((u) => u.name == variant.unit));
-                          onUnitOfMeasureChanged?.call(
-                              unit.code ?? newValue, variant.id);
-                        }
-                      },
-                    )),
-                _buildMobileInfoRow(
-                    'Classification',
-                    UniversalProductDropdown(
-                      context: context,
-                      model: model,
-                      variant: variant,
-                      universalProducts: unversalProducts,
-                    )),
-                _buildMobileInfoRow(
-                    'Expiration',
-                    TextFormField(
-                      controller: model.getDateController(variant.id),
-                      decoration: InputDecoration(
-                        suffixIcon: const Icon(Icons.calendar_today),
-                        hintText: variant.expirationDate != null
-                            ? DateFormat('MMMM dd, yyyy')
-                                .format(variant.expirationDate!)
-                            : 'Select Date',
-                      ),
-                      readOnly: true,
-                      onTap: () async {
-                        final date = await model.pickDate(context);
-                        if (date != null) {
-                          onDateChanged(variant.id, date);
-                          model.updateDateController(variant.id, date);
-                        }
-                      },
-                    )),
+                    readOnly: true,
+                    onTap: () async {
+                      final date = await model.pickDate(context);
+                      if (date != null) {
+                        onDateChanged(variant.id, date);
+                        model.updateDateController(variant.id, date);
+                      }
+                    },
+                  ),
+                ),
               ],
             ),
           ),
@@ -322,12 +338,16 @@ class TableVariants extends StatelessWidget {
         label: Text('Unit', style: TextStyle(fontWeight: FontWeight.bold)),
       ),
       const DataColumn(
-        label: Text('Classification',
-            style: TextStyle(fontWeight: FontWeight.bold)),
+        label: Text(
+          'Classification',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
       ),
       const DataColumn(
-        label:
-            Text('Expiration', style: TextStyle(fontWeight: FontWeight.bold)),
+        label: Text(
+          'Expiration',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
       ),
       const DataColumn(
         label: Text('Action', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -336,89 +356,94 @@ class TableVariants extends StatelessWidget {
   }
 
   DataRow _buildRow(
-      BuildContext context, ScannViewModel model, Variant variant) {
+    BuildContext context,
+    ScannViewModel model,
+    Variant variant,
+  ) {
     return DataRow(
       selected: model.isSelected(variant.id),
       cells: [
-        DataCell(Checkbox(
-          value: model.isSelected(variant.id),
-          onChanged: (value) => model.toggleSelect(variant.id),
-        )),
+        DataCell(
+          Checkbox(
+            value: model.isSelected(variant.id),
+            onChanged: (value) => model.toggleSelect(variant.id),
+          ),
+        ),
         DataCell(Text(variant.bcd ?? variant.name)),
         DataCell(Text(variant.retailPrice?.toStringAsFixed(2) ?? '')),
         DataCell(
           QuantityCell(
             quantity: variant.stock?.currentStock,
-            onEdit: isEbmEnabled && isEditMode
-                ? () {}
-                : () {
-                    showEditQuantityDialog(
-                      context,
-                      variant,
-                      model,
-                      () {
-                        FocusScope.of(context)
-                            .requestFocus(scannedInputFocusNode);
-                      },
-                    );
-                  },
+            onEdit: () {
+              showEditQuantityDialog(context, variant, model, () {
+                FocusScope.of(context).requestFocus(scannedInputFocusNode);
+              });
+            },
           ),
         ),
-        DataCell(Consumer(builder: (context, ref, child) {
-          final vatEnabledAsync = ref.watch(ebmVatEnabledProvider);
-          return vatEnabledAsync.when(
-            data: (vatEnabled) {
-              // If VAT is enabled, show A, B, C (exclude D)
-              // If VAT is disabled, only show tax type D
-              final options = vatEnabled ? ["A", "B", "C"] : ["D"];
-              // If current value is not in options, default based on VAT status
-              final currentValue = options.contains(variant.taxTyCd)
-                  ? variant.taxTyCd
-                  : (vatEnabled ? "B" : "D");
-              return TaxDropdown(
-                selectedValue: currentValue,
-                options: options,
-                isEditMode: isEditMode,
-                onChanged: (newValue) => model.updateTax(variant, newValue),
-              );
-            },
-            loading: () => TaxDropdown(
-              selectedValue: variant.taxTyCd,
-              options: ["A", "B", "C", "D"],
-              isEditMode: isEditMode,
-              onChanged: (newValue) => model.updateTax(variant, newValue),
-            ),
-            error: (_, __) => TaxDropdown(
-              selectedValue: variant.taxTyCd,
-              options: ["A", "B", "C", "D"],
-              isEditMode: isEditMode,
-              onChanged: (newValue) => model.updateTax(variant, newValue),
-            ),
-          );
-        })),
-        DataCell(TextFormField(
-          controller: model.getDiscountController(variant.id),
-          decoration: const InputDecoration(suffixText: '%'),
-          keyboardType: TextInputType.number,
-          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-        )),
-        DataCell(UnitOfMeasureDropdown(
-          items: units.map((e) => e.name ?? '').toList(),
-          selectedItem: variant.unit,
-          onChanged: (String? newValue) {
-            if (newValue != null) {
-              // Find the unit by name and pass its code and variant ID
-              final unit = units.firstWhere(
-                (u) => u.name == newValue,
-                orElse: () => units.firstWhere(
-                  (u) => u.name == variant.unit,
-                  orElse: () => units.first,
+        DataCell(
+          Consumer(
+            builder: (context, ref, child) {
+              final vatEnabledAsync = ref.watch(ebmVatEnabledProvider);
+              return vatEnabledAsync.when(
+                data: (vatEnabled) {
+                  // If VAT is enabled, show A, B, C (exclude D)
+                  // If VAT is disabled, only show tax type D
+                  final options = vatEnabled ? ["A", "B", "C"] : ["D"];
+                  // If current value is not in options, default based on VAT status
+                  final currentValue = options.contains(variant.taxTyCd)
+                      ? variant.taxTyCd
+                      : (vatEnabled ? "B" : "D");
+                  return TaxDropdown(
+                    selectedValue: currentValue,
+                    options: options,
+                    isEditMode: isEditMode,
+                    onChanged: (newValue) => model.updateTax(variant, newValue),
+                  );
+                },
+                loading: () => TaxDropdown(
+                  selectedValue: variant.taxTyCd,
+                  options: ["A", "B", "C", "D"],
+                  isEditMode: isEditMode,
+                  onChanged: (newValue) => model.updateTax(variant, newValue),
+                ),
+                error: (_, __) => TaxDropdown(
+                  selectedValue: variant.taxTyCd,
+                  options: ["A", "B", "C", "D"],
+                  isEditMode: isEditMode,
+                  onChanged: (newValue) => model.updateTax(variant, newValue),
                 ),
               );
-              onUnitOfMeasureChanged?.call(unit.code ?? newValue, variant.id);
-            }
-          },
-        )),
+            },
+          ),
+        ),
+        DataCell(
+          TextFormField(
+            controller: model.getDiscountController(variant.id),
+            decoration: const InputDecoration(suffixText: '%'),
+            keyboardType: TextInputType.number,
+            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          ),
+        ),
+        DataCell(
+          UnitOfMeasureDropdown(
+            items: units.map((e) => e.name ?? '').toList(),
+            selectedItem: variant.unit,
+            onChanged: (String? newValue) {
+              if (newValue != null) {
+                // Find the unit by name and pass its code and variant ID
+                final unit = units.firstWhere(
+                  (u) => u.name == newValue,
+                  orElse: () => units.firstWhere(
+                    (u) => u.name == variant.unit,
+                    orElse: () => units.first,
+                  ),
+                );
+                onUnitOfMeasureChanged?.call(unit.code ?? newValue, variant.id);
+              }
+            },
+          ),
+        ),
         DataCell(
           ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 150), // Limit width
@@ -430,28 +455,40 @@ class TableVariants extends StatelessWidget {
             ),
           ),
         ),
-        DataCell(TextFormField(
-          controller: model.getDateController(variant.id),
-          decoration: InputDecoration(
-            suffixIcon: const Icon(Icons.calendar_today),
-            hintText: variant.expirationDate != null
-                ? DateFormat('MMMM dd, yyyy').format(variant.expirationDate!)
-                : 'Select Date',
+        DataCell(
+          TextFormField(
+            controller: model.getDateController(variant.id),
+            decoration: InputDecoration(
+              suffixIcon: const Icon(Icons.calendar_today),
+              hintText: variant.expirationDate != null
+                  ? DateFormat('MMMM dd, yyyy').format(variant.expirationDate!)
+                  : 'Select Date',
+            ),
+            readOnly: true,
+            onTap: () async {
+              final date = await model.pickDate(context);
+              if (date != null) {
+                onDateChanged(variant.id, date);
+                model.updateDateController(variant.id, date);
+              }
+            },
           ),
-          readOnly: true,
-          onTap: () async {
-            final date = await model.pickDate(context);
-            if (date != null) {
-              onDateChanged(variant.id, date);
-              model.updateDateController(variant.id, date);
-            }
-          },
-        )),
+        ),
         DataCell(
           IconButton(
             icon: const Icon(Icons.delete, color: Colors.redAccent),
-            onPressed: () {
-              if (variant.stock?.currentStock != 0) {
+            onPressed: () async {
+              final businessId = ProxyService.box.getBusinessId();
+              final branchId = ProxyService.box.getBranchId();
+              final isEbmEnabled =
+                  businessId != null &&
+                  branchId != null &&
+                  await ProxyService.strategy.isTaxEnabled(
+                    businessId: businessId,
+                    branchId: branchId,
+                  );
+
+              if ((variant.stock?.currentStock ?? 0) > 0 && isEbmEnabled) {
                 final dialogService = locator<DialogService>();
                 dialogService.showCustomDialog(
                   variant: DialogType.info,

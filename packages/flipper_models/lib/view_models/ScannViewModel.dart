@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/sync/utils/stock_io_util.dart';
 import 'package:flipper_models/view_models/mixins/rraConstants.dart';
 import 'package:flipper_services/constants.dart';
@@ -52,7 +53,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
         final existingVariant = scannedVariants[index]; //Get existing variant
         scannedVariants[index] = Variant(
             id: existingVariant.id,
-            stockId: existingVariant.stockId,
+            stockId: existingVariant.stock?.id ?? existingVariant.stockId,
             stock: existingVariant.stock != null
                 ? Stock(
                     branchId: branchId,
@@ -280,6 +281,24 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
           ? "B"
           : "D", // Set correct tax type based on EBM VAT status
       lastTouched: DateTime.now().toUtc(),
+      // Add missing RRA fields
+      // itemClsCd: Default to "5020230602" (Beverages) as per product_mixin.dart
+      itemClsCd: "5020230602",
+      qtyUnitCd: "U", // Quantity Unit Code (Units)
+      useYn: "N", // Default as per product_mixin
+      orgnNatCd: "RW", // Origin National Code (Rwanda)
+      // regrId: Random 5-digit number as per product_mixin
+      regrId: randomNumber().toString().padLeft(5, '0').substring(0, 5),
+      itemCd: await ProxyService.strategy.itemCode(
+        countryCode: "RW",
+        productType: "2",
+        packagingUnit: "CT",
+        quantityUnit: "U",
+        branchId: branchId,
+      ),
+      modrNm: product.name, // Modifier Name should be product name
+      isrcAplcbYn: "N", // Insurance Applicable Yes/No
+      tin: ebm?.tinNumber ?? -1,
     );
     final stock = Stock(
       currentStock: 0,
@@ -364,120 +383,40 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
     try {
       // Find the variant with the specified id
       int index = scannedVariants.indexWhere((variant) => variant.id == id);
-      String branchId = ProxyService.box.getBranchId()!;
 
       if (index != -1) {
-        // Create a *new* Variant object with the updated quantity
-        final scannedVariant =
-            scannedVariants[index]; // Store the original variant
+        // Update the existing variant and stock directly
+        final scannedVariant = scannedVariants[index];
+        scannedVariant.qty = newQuantity;
+        scannedVariant.lastTouched = DateTime.now().toUtc();
 
-        final updatedVariant = Variant(
-          id: scannedVariant.id,
-          stockId: scannedVariant.stockId,
-          stock: scannedVariant.stock != null
-              ? Stock(
-                  branchId: branchId,
-                  id: scannedVariant.stock!.id,
-                  currentStock: newQuantity,
-                  rsdQty: newQuantity,
-                  value: newQuantity * (scannedVariant.retailPrice ?? 0.0),
-                  lastTouched: DateTime.now().toUtc(),
-                )
-              : null,
-          taxPercentage: scannedVariant.taxPercentage,
-          name: scannedVariant.name,
-          color: scannedVariant.color,
-          sku: scannedVariant.sku,
-          productId: scannedVariant.productId,
-          unit: scannedVariant.unit,
-          productName: scannedVariant.productName,
-          branchId: scannedVariant.branchId,
-          taxName: scannedVariant.taxName,
-          itemSeq: scannedVariant.itemSeq,
-          isrccCd: scannedVariant.isrccCd,
-          isrccNm: scannedVariant.isrccNm,
-          isrcRt: scannedVariant.isrcRt,
-          isrcAmt: scannedVariant.isrcAmt,
-          taxTyCd: scannedVariant.taxTyCd,
-          bcd: scannedVariant.bcd,
-          itemClsCd: scannedVariant.itemClsCd,
-          itemTyCd: scannedVariant.itemTyCd,
-          itemStdNm: scannedVariant.itemStdNm,
-          orgnNatCd: scannedVariant.orgnNatCd,
-          pkg: scannedVariant.pkg,
-          itemCd: scannedVariant.itemCd,
-          pkgUnitCd: scannedVariant.pkgUnitCd,
-          qtyUnitCd: scannedVariant.qtyUnitCd,
-          itemNm: scannedVariant.itemNm,
-          prc: scannedVariant.prc,
-          splyAmt: scannedVariant.splyAmt,
-          tin: scannedVariant.tin,
-          bhfId: scannedVariant.bhfId,
-          dftPrc: scannedVariant.dftPrc,
-          addInfo: scannedVariant.addInfo,
-          isrcAplcbYn: scannedVariant.isrcAplcbYn,
-          useYn: scannedVariant.useYn,
-          regrId: scannedVariant.regrId,
-          regrNm: scannedVariant.regrNm,
-          modrId: scannedVariant.modrId,
-          modrNm: scannedVariant.modrNm,
-          lastTouched: DateTime.now().toUtc(),
-          supplyPrice: scannedVariant.supplyPrice,
-          retailPrice: scannedVariant.retailPrice,
-          spplrItemClsCd: scannedVariant.spplrItemClsCd,
-          spplrItemCd: scannedVariant.spplrItemCd,
-          spplrItemNm: scannedVariant.spplrItemNm,
-          ebmSynced: scannedVariant.ebmSynced,
-          dcRt: scannedVariant.dcRt,
-          expirationDate: scannedVariant.expirationDate,
-          qty: scannedVariant.qty,
-          totWt: scannedVariant.totWt,
-          netWt: scannedVariant.netWt,
-          spplrNm: scannedVariant.spplrNm,
-          agntNm: scannedVariant.agntNm,
-          invcFcurAmt: scannedVariant.invcFcurAmt,
-          invcFcurCd: scannedVariant.invcFcurCd,
-          invcFcurExcrt: scannedVariant.invcFcurExcrt,
-          exptNatCd: scannedVariant.exptNatCd,
-          dclNo: scannedVariant.dclNo,
-          taskCd: scannedVariant.taskCd,
-          dclDe: scannedVariant.dclDe,
-          hsCd: scannedVariant.hsCd,
-          imptItemSttsCd: scannedVariant.imptItemSttsCd,
-          barCode: scannedVariant.barCode,
-          bcdU: scannedVariant.bcdU,
-          quantity: scannedVariant.quantity,
-          category: scannedVariant.category,
-          dcAmt: scannedVariant.dcAmt,
-          taxblAmt: scannedVariant.taxblAmt,
-          taxAmt: scannedVariant.taxAmt,
-          totAmt: scannedVariant.totAmt,
-          pchsSttsCd: scannedVariant.pchsSttsCd,
-          isShared: scannedVariant.isShared,
-        );
+        if (scannedVariant.stock != null) {
+          scannedVariant.stock!.currentStock = newQuantity;
+          scannedVariant.stock!.rsdQty = newQuantity;
+          scannedVariant.stock!.value =
+              newQuantity * (scannedVariant.retailPrice ?? 0.0);
+          scannedVariant.stock!.lastTouched = DateTime.now().toUtc();
+        }
 
-        // Replace the old variant with the new variant
-        scannedVariants[index] = updatedVariant;
-
-        //Persit to db
-        // ProxyService.strategy.updateVariant(
-        //   updatables: [updatedVariant],
-        //   variantId: updatedVariant.id,
-        // );
-        // // update io
-        // await StockIOUtil.saveStockIO(
-        //   repository: Repository(),
-        //   variant: updatedVariant,
-        //   approvedQty: updatedVariant.stock?.currentStock ?? 0,
-        //   remark: "New import item processing",
-        // );
-        await StockIOUtil.saveStockMaster(
-          variant: updatedVariant,
-          stockMasterQty: updatedVariant.stock?.currentStock ?? 0,
-        );
-
-        // Notify listeners to rebuild the UI
+        // Notify listeners immediately to update UI
         notifyListeners();
+
+        try {
+          //Persit to db
+          await StockIOUtil.saveStockMaster(
+            variant: scannedVariant,
+            stockMasterQty: scannedVariant.stock?.currentStock ?? 0,
+          );
+          // persist stock update
+          if (scannedVariant.stockId != null) {
+            await ProxyService.strategy.updateVariant(
+              updatables: [scannedVariant],
+            );
+          }
+        } catch (e) {
+          talker.warning(
+              "Failed to persist stock update (expected for new variants): $e");
+        }
       } else {
         // Handle the exception if the variant is not found
         print('Variant with ID $id not found');
@@ -561,9 +500,65 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
               }
             }
           }
+          // Populate missing RRA fields if they are null
+          if (variant.itemClsCd == null || variant.itemClsCd!.isEmpty) {
+            variant.itemClsCd = "5020230602";
+          }
+          if (variant.qtyUnitCd == null || variant.qtyUnitCd!.isEmpty) {
+            variant.qtyUnitCd = "U";
+          }
+          if (variant.useYn == null || variant.useYn!.isEmpty) {
+            variant.useYn = "N";
+          }
+          if (variant.orgnNatCd == null || variant.orgnNatCd!.isEmpty) {
+            variant.orgnNatCd = "RW";
+          }
+          if (variant.regrId == null || variant.regrId!.isEmpty) {
+            variant.regrId =
+                randomNumber().toString().padLeft(5, '0').substring(0, 5);
+          }
+          if (variant.isrcAplcbYn == null || variant.isrcAplcbYn!.isEmpty) {
+            variant.isrcAplcbYn = "N";
+          }
+          if (variant.tin == null || variant.tin == -1) {
+            final ebm = await ProxyService.strategy
+                .ebm(branchId: ProxyService.box.getBranchId()!);
+            variant.tin = ebm?.tinNumber ?? -1;
+          }
+          if (variant.modrNm == null || variant.modrNm!.isEmpty) {
+            variant.modrNm =
+                productName.isNotEmpty ? productName : variant.name;
+          }
+          if (variant.itemCd == null || variant.itemCd!.isEmpty) {
+            variant.itemCd = await ProxyService.strategy.itemCode(
+              countryCode: "RW",
+              productType: "2",
+              packagingUnit: "CT",
+              quantityUnit: "U",
+              branchId: ProxyService.box.getBranchId()!,
+            );
+          }
+          // fix any invalid tin or bhfId saved on a variant
+          if (variant.tin == null ||
+              variant.tin == -1 ||
+              variant.tin.toString().length != 9 ||
+              variant.bhfId == null) {
+            final ebm = await ProxyService.strategy
+                .ebm(branchId: ProxyService.box.getBranchId()!);
+            if (variant.tin == null ||
+                variant.tin == -1 ||
+                variant.tin.toString().length != 9) {
+              variant.tin = ebm?.tinNumber ?? -1;
+            }
+            if (variant.bhfId == null ||
+                variant.bhfId!.isEmpty ||
+                variant.bhfId == 'null') {
+              variant.bhfId = ebm?.bhfId ?? "00";
+            }
+          }
 
           await ProxyService.strategy.updateVariant(
-            updatables: scannedVariants,
+            updatables: [variant],
             color: color,
             dcRt: variant.dcRt,
             // because we are in edit mode if there is no category selected then user use the one on variant.
@@ -578,6 +573,10 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
             retailPrice: retailPrice != 0 ? retailPrice : null,
             updateIo: false,
           );
+          await ProxyService.strategy.addVariant(
+              variations: [variant],
+              branchId: ProxyService.box.getBranchId()!,
+              skipRRaCall: false);
         }
 
         // Call the onCompleteCallback if provided

@@ -1,12 +1,15 @@
 import 'dart:async';
 
 import 'package:flipper_models/db_model_export.dart';
+import 'package:uuid/uuid.dart';
 import 'package:flipper_models/sync/interfaces/variant_interface.dart';
+import 'package:flipper_models/sync/interfaces/stock_interface.dart';
 import 'package:flipper_models/sync/models/paged_variants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flipper_services/log_service.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:supabase_models/brick/repository.dart';
 import 'package:talker/talker.dart';
 
 mixin CapellaVariantMixin implements VariantInterface {
@@ -394,13 +397,19 @@ mixin CapellaVariantMixin implements VariantInterface {
       }
 
       // Parse results
-      final variants = items
-          .map((doc) => Variant.fromJson(Map<String, dynamic>.from(doc.value)))
-          .toList();
+      final pagedVariants = <Variant>[];
+      for (var doc in items) {
+        final variant = Variant.fromJson(Map<String, dynamic>.from(doc.value));
+        if (variant.stockId != null) {
+          variant.stock =
+              await (this as StockInterface).getStockById(id: variant.stockId!);
+        }
+        pagedVariants.add(variant);
+      }
 
       if (ProxyService.box.getUserLoggingEnabled() ?? false) {
         await logService.logException(
-          'Successfully parsed ${variants.length} variants (totalCount: $totalCount)',
+          'Successfully parsed ${pagedVariants.length} variants (totalCount: $totalCount)',
           type: 'business_fetch',
           tags: {
             'userId': (ProxyService.box
@@ -411,15 +420,17 @@ mixin CapellaVariantMixin implements VariantInterface {
                 'unknown',
             'method': 'variants',
             'branchId': branchId.toString(),
-            'parsedVariantsCount': variants.length.toString(),
+            'parsedVariantsCount': pagedVariants.length.toString(),
             'totalCount': totalCount?.toString() ?? 'null',
           },
         );
       }
 
       talker.info(
-          'Returning ${variants.length} variants (totalCount: $totalCount)');
-      return PagedVariants(variants: variants, totalCount: totalCount);
+          'Returning ${pagedVariants.length} variants (totalCount: $totalCount)');
+      return PagedVariants(
+          variants: pagedVariants,
+          totalCount: totalCount ?? pagedVariants.length);
     } catch (e, st) {
       talker.error('Error fetching variants from Ditto: $e\n$st');
       await logService.logException(
@@ -734,6 +745,10 @@ mixin CapellaVariantMixin implements VariantInterface {
           );
         }
 
+        if (variant != null && variant.stockId != null) {
+          variant.stock =
+              await (this as StockInterface).getStockById(id: variant.stockId!);
+        }
         return variant;
       } finally {
         observer.cancel();
@@ -807,9 +822,73 @@ mixin CapellaVariantMixin implements VariantInterface {
       String? propertyTyCd,
       String? roomTypeCd,
       String? ttCatCd,
-      Map<String, String>? dates}) {
-    throw UnimplementedError(
-        'updateVariant needs to be implemented for Capella');
+      Map<String, String>? dates}) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) return;
+
+    for (var variant in updatables) {
+      if (color != null) variant.color = color;
+      if (taxTyCd != null) {
+        variant.taxTyCd = taxTyCd;
+        variant.taxName = taxTyCd;
+      }
+      if (retailPrice != null) variant.retailPrice = retailPrice;
+      if (supplyPrice != null) variant.supplyPrice = supplyPrice;
+      if (expirationDate != null) variant.expirationDate = expirationDate;
+      if (productName != null) variant.productName = productName;
+      if (unit != null) variant.unit = unit;
+      if (dcRt != null) variant.dcRt = dcRt;
+      if (ebmSynced != null) variant.ebmSynced = ebmSynced;
+      if (categoryId != null) variant.categoryId = categoryId;
+      if (selectedProductType != null) variant.itemTyCd = selectedProductType;
+      if (newRetailPrice != null) {
+        variant.retailPrice = newRetailPrice;
+        variant.prc = newRetailPrice;
+        variant.dftPrc = newRetailPrice;
+      }
+      if (dates != null && dates.containsKey(variant.id)) {
+        variant.expirationDate = DateTime.tryParse(dates[variant.id]!);
+      }
+      variant.lastTouched = DateTime.now().toUtc();
+
+      // Upsert the variant
+      await ditto.store.execute(
+        "INSERT INTO variants DOCUMENTS (:doc) ON ID CONFLICT DO REPLACE",
+        arguments: {'doc': variant.toFlipperJson()},
+      );
+      final repository = Repository();
+      await repository.upsert<Variant>(variant);
+
+      // Handle Stock logic for new variants or missing stock
+      if (variant.stock == null && variant.itemTyCd != "3") {
+        final newStock = Stock(
+          id: const Uuid().v4(),
+          currentStock: variant.qty ?? 0,
+          branchId: variant.branchId ?? ProxyService.box.getBranchId()!,
+          lastTouched: DateTime.now().toUtc(),
+          rsdQty: variant.qty ?? 0,
+          initialStock: variant.qty ?? 0,
+          showLowStockAlert: true,
+          active: true,
+          ebmSynced: false,
+        );
+        variant.stock = newStock;
+        variant.stockId = newStock.id;
+
+        await ditto.store.execute(
+          "INSERT INTO stocks DOCUMENTS (:doc) ON ID CONFLICT DO REPLACE",
+          arguments: {'doc': newStock.toJson()},
+        );
+        await repository.upsert<Stock>(newStock);
+      } else if (variant.stock != null) {
+        // Ensure existing stock is synced
+        await ditto.store.execute(
+          "INSERT INTO stocks DOCUMENTS (:doc) ON ID CONFLICT DO REPLACE",
+          arguments: {'doc': variant.stock!.toJson()},
+        );
+        await repository.upsert<Stock>(variant.stock!);
+      }
+    }
   }
 
   @override
@@ -939,10 +1018,15 @@ mixin CapellaVariantMixin implements VariantInterface {
         );
       }
 
-      final variants = items
-          .map(
-              (item) => Variant.fromJson(Map<String, dynamic>.from(item.value)))
-          .toList();
+      final variants = <Variant>[];
+      for (var item in items) {
+        final variant = Variant.fromJson(Map<String, dynamic>.from(item.value));
+        if (variant.stockId != null) {
+          variant.stock =
+              await (this as StockInterface).getStockById(id: variant.stockId!);
+        }
+        variants.add(variant);
+      }
 
       if (ProxyService.box.getUserLoggingEnabled() ?? false) {
         await logService.logException(

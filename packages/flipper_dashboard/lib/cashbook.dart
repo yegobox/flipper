@@ -331,6 +331,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
         isIncome: isIncome,
         transactionType: transactionType,
         category: category,
+        note: _descriptionController.text,
       );
 
       // Reset the form and return to the transaction list
@@ -359,6 +360,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
     required String transactionType,
     required String countryCode,
     required Category category,
+    String? note,
   }) async {
     // This implementation exactly matches HandleTransactionFromCashBook in KeyPadView
     try {
@@ -499,6 +501,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
               directlyHandleReceipt: false,
               isIncome: isIncome,
               categoryId: category.id.toString(),
+              note: note,
             );
 
         talker.info(

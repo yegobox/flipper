@@ -4,14 +4,17 @@ import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/ippis_service.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
+import '../blocs/signup_form_bloc.dart';
 
 class TinInputField extends StatefulWidget {
-  final TextFieldBloc<String> tinNumberBloc;
+  final TextFieldBloc tinNumberBloc;
+  final AsyncFieldValidationFormBloc? formBloc;
   final Function(bool isValid, bool isRelaxed)? onValidationResult;
 
   const TinInputField({
     Key? key,
     required this.tinNumberBloc,
+    this.formBloc,
     this.onValidationResult,
   }) : super(key: key);
 
@@ -86,6 +89,12 @@ class _TinInputFieldState extends State<TinInputField> {
         if (mounted) {
           showSuccessNotification(
               context, 'TIN validated: ${business.taxPayerName}');
+
+          // Update the username field with the taxpayer name if formBloc is available
+          if (widget.formBloc != null) {
+            widget.formBloc!.username.updateValue(business.taxPayerName);
+          }
+
           widget.onValidationResult?.call(true, false);
         }
       } else {
@@ -139,6 +148,20 @@ class _TinInputFieldState extends State<TinInputField> {
             suffixIcon: BlocBuilder<TextFieldBloc, TextFieldBlocState>(
               bloc: widget.tinNumberBloc,
               builder: (context, state) {
+                final isVerified = (state.extraData is Map &&
+                    (state.extraData as Map)['verified'] == true);
+
+                if (isVerified && state.value.toString().isNotEmpty) {
+                  return const Padding(
+                    padding: EdgeInsets.only(right: 12.0),
+                    child: Icon(
+                      Icons.check_circle,
+                      color: Colors.green,
+                      size: 24,
+                    ),
+                  );
+                }
+
                 if (state.value.toString().isNotEmpty) {
                   return TextButton(
                     onPressed: _isValidating

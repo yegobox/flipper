@@ -12,33 +12,33 @@ import 'package:stacked_services/stacked_services.dart';
 /// Form bloc for handling signup form validation and submission
 class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
   static final RegExp EMAIL_REGEX = RegExp(r'^[^@\s]+@[^@\s]+\.[a-zA-Z]{2,}$');
-  final username = TextFieldBloc(
+  final username = TextFieldBloc<Object>(
     validators: [
       FieldBlocValidators.required,
       _min4Char,
     ],
     asyncValidatorDebounceTime: const Duration(milliseconds: 300),
   );
-  final fullName = TextFieldBloc(
+  final fullName = TextFieldBloc<Object>(
     validators: [
       FieldBlocValidators.required,
     ],
     asyncValidatorDebounceTime: const Duration(milliseconds: 300),
   );
-  final phoneNumber = TextFieldBloc(
+  final TextFieldBloc<Object> phoneNumber = TextFieldBloc<Object>(
     validators: [
       FieldBlocValidators.required,
       _validateContactInfo,
     ],
   );
-  final otpCode = TextFieldBloc(
+  final otpCode = TextFieldBloc<Object>(
     validators: [
       FieldBlocValidators.required,
       _validateOtp,
     ],
     asyncValidatorDebounceTime: const Duration(milliseconds: 300),
   );
-  late final TextFieldBloc<String> tinNumber = TextFieldBloc<String>(
+  late final TextFieldBloc<Object> tinNumber = TextFieldBloc<Object>(
     validators: [
       FieldBlocValidators.required,
       _validateTinStatus,
@@ -46,7 +46,7 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
     asyncValidatorDebounceTime: const Duration(milliseconds: 300),
   );
 
-  final _phoneVerificationField = TextFieldBloc(
+  final _phoneVerificationField = TextFieldBloc<Object>(
     validators: [
       _validatePhoneNotVerified,
     ],
@@ -57,6 +57,8 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
   bool _isPhoneVerified = false;
   bool _isVerifyingOtp = false;
   String? _otpVerificationError;
+  String? _verifiedPhoneNumber; // Track the verified phone number
+  String? _verifiedTinNumber; // Track the verified TIN number
   final _phoneVerifiedController = StreamController<bool>.broadcast();
   final _otpVerificationStatusController =
       StreamController<Map<String, dynamic>>.broadcast();
@@ -127,7 +129,10 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
     // Listen to username and fullName streams to enable/disable phoneNumber
     void updatePhoneNumberEnabled() {
       final isEnabled = username.value.isNotEmpty && fullName.value.isNotEmpty;
-      phoneNumber.updateExtraData({'enabled': isEnabled});
+      phoneNumber.updateExtraData({
+        ...(phoneNumber.state.extraData as Map<String, dynamic>? ?? {}),
+        'enabled': isEnabled,
+      });
       if (!isEnabled && phoneNumber.value.isNotEmpty) {
         phoneNumber.updateValue('');
       }
@@ -153,6 +158,14 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
       tinNumber.validate();
     });
 
+    // Listen to TIN changes to reset verification if it was verified but value changed
+    tinNumber.stream.listen((state) {
+      if ((_isTinVerified || _isTinValidationRelaxed) &&
+          state.value != _verifiedTinNumber) {
+        setTinVerified(false);
+      }
+    });
+
     // Listen to OTP changes to trigger verification when OTP is complete
     otpCode.stream.listen((state) {
       // Only trigger verification if OTP is 6 digits and field is valid
@@ -162,10 +175,10 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
       }
     });
 
-    // Listen to phone number changes to reset verification status when field is cleared
+    // Listen to phone number changes to reset verification status when field is cleared or changed
     phoneNumber.stream.listen((state) {
-      if (state.value.isEmpty && _isPhoneVerified) {
-        // Reset phone verification status when phone number is cleared
+      if (_isPhoneVerified && state.value != _verifiedPhoneNumber) {
+        // Reset phone verification status when phone number changes
         setPhoneVerified(false);
       }
     });
@@ -187,8 +200,9 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
       return 'Phone number or email is required';
     }
 
-    // Regex for phone number (starts with +, 8-15 digits, spaces, hyphens, parentheses allowed)
-    final phoneRegex = RegExp(r'^\+[0-9\s\-\(\)]{8,15}$');
+    // Regex for phone number (optional +, 8-15 digits, spaces, hyphens, parentheses allowed)
+    // Loosened to match the UI validation which is more permissive
+    final phoneRegex = RegExp(r'^\+?[0-9\s\-\(\)]{8,15}$');
     // Regex for email
     final emailRegex = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
 
@@ -199,7 +213,7 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
       return null; // Valid email
     }
 
-    return 'Please enter a valid phone number (e.g., +250...) or email address';
+    return 'Please enter a valid phone number or email address';
   }
 
   /// Checks if username is available
@@ -279,13 +293,12 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
     String contactInfo = phoneNumber.value;
     if (!isEmail) {
       // It's a phone number, so normalize it
-      contactInfo =
-          _ensurePhoneHasDialCode(phoneNumber.value, countryName.value ?? 'Rwanda');
+      contactInfo = _ensurePhoneHasDialCode(
+          phoneNumber.value, countryName.value ?? 'Rwanda');
     }
 
     try {
-      final result =
-          await ProxyService.strategy.sendOtpForSignup(contactInfo);
+      final result = await ProxyService.strategy.sendOtpForSignup(contactInfo);
       // Enable the OTP field after successful request
       otpCode.updateExtraData({'enabled': true});
       return result;
@@ -303,7 +316,8 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
     final isEmail = EMAIL_REGEX.hasMatch(phoneNumber.value);
     String normalizedContact = phoneNumber.value;
     if (!isEmail) {
-      normalizedContact = _ensurePhoneHasDialCode(phoneNumber.value, countryName.value ?? 'Rwanda');
+      normalizedContact = _ensurePhoneHasDialCode(
+          phoneNumber.value, countryName.value ?? 'Rwanda');
     }
 
     try {
@@ -339,7 +353,8 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
     final isEmail = EMAIL_REGEX.hasMatch(phoneNumber.value);
     String normalizedContact = phoneNumber.value;
     if (!isEmail) {
-      normalizedContact = _ensurePhoneHasDialCode(phoneNumber.value, countryName.value ?? 'Rwanda');
+      normalizedContact = _ensurePhoneHasDialCode(
+          phoneNumber.value, countryName.value ?? 'Rwanda');
     }
 
     try {
@@ -470,19 +485,65 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
   }
 
   void setTinVerified(bool verified) {
+    log('Setting TIN verified: $verified',
+        name: 'AsyncFieldValidationFormBloc');
     _isTinVerified = verified;
     _isTinValidationRelaxed = false; // specific verification overrides relaxed
+    _verifiedTinNumber = verified ? tinNumber.value : null;
+
+    if (businessTypes.value?.id != "2") {
+      if (verified) {
+        // The TIN is verified, so we no longer need the status validator.
+        tinNumber.updateValidators([FieldBlocValidators.required]);
+      } else {
+        // The TIN is not verified, so we need the status validator.
+        tinNumber.updateValidators(
+            [FieldBlocValidators.required, _validateTinStatus]);
+      }
+    }
+
+    tinNumber.updateExtraData({
+      ...tinNumber.state.extraData as Map<dynamic, dynamic>? ?? {},
+      'verified': verified,
+    });
     tinNumber.validate();
   }
 
   void setTinRelaxed(bool relaxed) {
+    log('Setting TIN relaxed: $relaxed', name: 'AsyncFieldValidationFormBloc');
     _isTinValidationRelaxed = relaxed;
     // if relaxed, we don't strictly require verification, so we don't change _isTinVerified
+    _verifiedTinNumber = relaxed ? tinNumber.value : null;
+
+    if (businessTypes.value?.id != "2") {
+      if (relaxed) {
+        // Validation is relaxed, so we no longer need the status validator.
+        tinNumber.updateValidators([FieldBlocValidators.required]);
+      } else {
+        // Validation is not relaxed, add back the status validator if not already verified.
+        if (!_isTinVerified) {
+          tinNumber.updateValidators(
+              [FieldBlocValidators.required, _validateTinStatus]);
+        }
+      }
+    }
+
+    tinNumber.updateExtraData({
+      ...tinNumber.state.extraData as Map<dynamic, dynamic>? ?? {},
+      'verified': relaxed,
+    });
     tinNumber.validate();
   }
 
   void setPhoneVerified(bool verified) {
+    log('Setting Phone verified: $verified',
+        name: 'AsyncFieldValidationFormBloc');
     _isPhoneVerified = verified;
+    _verifiedPhoneNumber = verified ? phoneNumber.value : null;
+    phoneNumber.updateExtraData({
+      ...phoneNumber.state.extraData as Map<dynamic, dynamic>? ?? {},
+      'verified': verified,
+    });
     // Update the phone verification field validation
     if (verified) {
       _phoneVerificationField
@@ -495,6 +556,8 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
   }
 
   bool get isPhoneVerified => _isPhoneVerified;
+
+  bool get isTinVerified => _isTinVerified || _isTinValidationRelaxed;
 
   Stream<bool> get isPhoneVerifiedStream => _phoneVerifiedController.stream;
 

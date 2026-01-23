@@ -43,12 +43,9 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
   StreamSubscription? _otpVerificationSubscription; // State-level field
 
   static final Map<String, PhoneValidationRule> _phoneValidationRules = {
-    'Rwanda':
-        PhoneValidationRule(dialCode: '+250', localLengths: [9]),
-    'Zambia':
-        PhoneValidationRule(dialCode: '+260', localLengths: [9]),
-    'Mozambique':
-        PhoneValidationRule(dialCode: '+258', localLengths: [9]),
+    'Rwanda': PhoneValidationRule(dialCode: '+250', localLengths: [9]),
+    'Zambia': PhoneValidationRule(dialCode: '+260', localLengths: [9]),
+    'Mozambique': PhoneValidationRule(dialCode: '+258', localLengths: [9]),
   };
 
   @override
@@ -203,9 +200,15 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                                       statusData[
                                                               'isVerifying'] ??
                                                           false;
-                                                  final isVerified = statusData[
-                                                          'isVerified'] ??
-                                                      false;
+                                                  final bool isVerified = (statusData[
+                                                              'isVerified'] ??
+                                                          false) &&
+                                                      (phoneState.extraData
+                                                              is Map &&
+                                                          (phoneState.extraData
+                                                                      as Map)[
+                                                                  'verified'] ==
+                                                              true);
                                                   final error =
                                                       statusData['error'];
 
@@ -263,12 +266,14 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                                               try {
                                                                 await formBloc
                                                                     .requestOtp();
-                                                                if (!mounted) return;
+                                                                if (!mounted)
+                                                                  return;
                                                                 showSuccessNotification(
                                                                     context,
                                                                     'OTP resent successfully!');
                                                               } catch (e) {
-                                                                if (!mounted) return;
+                                                                if (!mounted)
+                                                                  return;
                                                                 showErrorNotification(
                                                                     context,
                                                                     'Failed to resend OTP: ${e.toString()}');
@@ -339,12 +344,14 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                                               try {
                                                                 await formBloc
                                                                     .requestOtp();
-                                                                if (!mounted) return;
+                                                                if (!mounted)
+                                                                  return;
                                                                 showSuccessNotification(
                                                                     context,
                                                                     'OTP sent successfully!');
                                                               } catch (e) {
-                                                                if (!mounted) return;
+                                                                if (!mounted)
+                                                                  return;
                                                                 showErrorNotification(
                                                                     context,
                                                                     'Failed to send OTP: ${e.toString()}');
@@ -438,7 +445,8 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                                 // Use a post-frame callback to ensure UI updates happen first
                                                 WidgetsBinding.instance
                                                     .addPostFrameCallback((_) {
-                                                  if (!mounted) return; // Add mounted check here
+                                                  if (!mounted)
+                                                    return; // Add mounted check here
 
                                                   // Guard against re-triggering verification for the same OTP
                                                   if (_isVerifyingOtp ||
@@ -477,12 +485,6 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                                         setState(() {
                                                           _isVerifyingOtp =
                                                               false;
-                                                          // If verification failed, clear the last submitted OTP to allow retry
-                                                          if (status['error'] !=
-                                                              null) {
-                                                            _lastSubmittedOtp =
-                                                                null;
-                                                          }
                                                         });
 
                                                         if (status['error'] !=
@@ -524,6 +526,11 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                             ),
                                           ),
                                           onChanged: (value) {
+                                            print(
+                                              'Usage changed: ${value?.typeName} (id: ${value?.id})',
+                                            );
+                                            formBloc.businessTypes
+                                                .updateValue(value);
                                             setState(() {
                                               _showTinField = value?.id != "2";
                                             });
@@ -535,6 +542,7 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                                 bottom: 16.0),
                                             child: TinInputField(
                                               tinNumberBloc: formBloc.tinNumber,
+                                              formBloc: formBloc,
                                               onValidationResult:
                                                   (isValid, isRelaxed) {
                                                 if (isRelaxed) {
@@ -545,6 +553,7 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                                   formBloc
                                                       .setTinVerified(false);
                                                 }
+                                                setState(() {});
                                               },
                                             ),
                                           ),
@@ -560,9 +569,15 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                             ),
                                           ),
                                         ),
-                                        components.SignupComponents
-                                            .buildSubmitButton(
-                                                formBloc, model.registerStart),
+                                        BlocBuilder<
+                                            AsyncFieldValidationFormBloc,
+                                            FormBlocState>(
+                                          builder: (context, state) {
+                                            return components.SignupComponents
+                                                .buildSubmitButton(formBloc,
+                                                    model.registerStart);
+                                          },
+                                        ),
                                       ],
                                     ),
                                   ),

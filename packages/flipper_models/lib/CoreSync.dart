@@ -2071,8 +2071,12 @@ class CoreSync extends AiStrategyImpl
     String? customerName,
     String? customerTin,
     String? customerPhone,
+    String? note,
   }) async {
     if (transaction != null) {
+      if (note != null) {
+        transaction.note = note;
+      }
       try {
         final userId = ProxyService.box.getUserId();
         if (userId != null) {

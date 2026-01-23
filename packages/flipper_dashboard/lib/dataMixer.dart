@@ -3,6 +3,7 @@
 import 'package:flipper_dashboard/DesktopProductAdd.dart';
 import 'package:flipper_dashboard/itemRow.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
 import 'package:flipper_services/proxy.dart';
@@ -13,17 +14,22 @@ import 'package:overlay_support/overlay_support.dart';
 import 'package:flipper_dashboard/widgets/variant_shimmer_placeholder.dart';
 
 // Create cached providers to reduce network requests
-final productProvider =
-    FutureProvider.family.autoDispose<Product?, String>((ref, productId) async {
+final productProvider = FutureProvider.family.autoDispose<Product?, String>((
+  ref,
+  productId,
+) async {
   if (productId.isEmpty) return null;
   return await ProxyService.strategy.getProduct(
-      businessId: ProxyService.box.getBusinessId()!,
-      id: productId,
-      branchId: ProxyService.box.getBranchId()!);
+    businessId: ProxyService.box.getBusinessId()!,
+    id: productId,
+    branchId: ProxyService.box.getBranchId()!,
+  );
 });
 
-final assetProvider =
-    FutureProvider.family.autoDispose<Assets?, String>((ref, productId) async {
+final assetProvider = FutureProvider.family.autoDispose<Assets?, String>((
+  ref,
+  productId,
+) async {
   if (productId.isEmpty) return null;
   return await ProxyService.strategy.getAsset(productId: productId);
 });
@@ -39,70 +45,82 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     bool forceListView = false, // Add parameter with default value
   }) {
     return buildRowItem(
-        forceRemoteUrl: forceRemoteUrl,
-        forceListView: forceListView, // Pass the parameter
-        context: context,
-        model: model,
-        variant: variant,
-        stock: isOrdering ? 0.0 : variant.stock?.currentStock ?? 0.0,
-        isOrdering: isOrdering);
+      forceRemoteUrl: forceRemoteUrl,
+      forceListView: forceListView, // Pass the parameter
+      context: context,
+      model: model,
+      variant: variant,
+      stock: isOrdering ? 0.0 : variant.stock?.currentStock ?? 0.0,
+      isOrdering: isOrdering,
+    );
   }
 
-  Future<void> deleteFunc(String? productId, ProductViewModel model) async {
+  Future<void> deleteFunc(String? variantId, ProductViewModel model) async {
     try {
       /// first if there is image attached delete if first
-      final product = await ref.read(productProvider(productId!).future);
-      Variant? variant =
-          await ProxyService.strategy.getVariant(productId: productId);
+      final product = await ref.read(productProvider(variantId!).future);
+      Variant? variant = await ProxyService.getStrategy(
+        Strategy.capella,
+      ).getVariant(id: variantId);
 
       /// Check if the product and variant are valid and if the variant is owned (not shared)
       ///
-      bool canDelete =
-          variant != null && (variant.isShared != null && !variant.isShared!);
+      bool canDelete = variant?.isShared == false;
 
       if (canDelete) {
         if (product == null) {
-          ProxyService.strategy
-              .flipperDelete(id: variant.id, endPoint: 'variant');
+          ProxyService.strategy.flipperDelete(
+            id: variantId,
+            endPoint: 'variant',
+          );
           // Remove the variant from the provider state directly
           ref
-              .read(outerVariantsProvider(ProxyService.box.getBranchId()!)
-                  .notifier)
-              .removeVariantById(variant.id);
+              .read(
+                outerVariantsProvider(ProxyService.box.getBranchId()!).notifier,
+              )
+              .removeVariantById(variantId);
           return;
         }
         // If the product is  composite, search and delete related composites
         if ((product.isComposite ?? false)) {
-          List<Composite> composites =
-              await ProxyService.strategy.composites(productId: productId);
+          List<Composite> composites = await ProxyService.strategy.composites(
+            variantId: variantId,
+          );
           for (Composite composite in composites) {
             await ProxyService.strategy.flipperDelete(
-                id: composite.id,
-                endPoint: 'composite',
-                flipperHttpClient: ProxyService.http);
+              id: composite.id,
+              endPoint: 'composite',
+              flipperHttpClient: ProxyService.http,
+            );
           }
         }
 
         // If the product has an associated image, attempt to remove it from S3
-        bool imageDeleted = product.imageUrl == null ||
-            await ProxyService.strategy
-                .removeS3File(fileName: product.imageUrl!);
+        bool imageDeleted =
+            product.imageUrl == null ||
+            await ProxyService.strategy.removeS3File(
+              fileName: product.imageUrl!,
+            );
 
         if (imageDeleted) {
-          await model.deleteProduct(productId: productId);
+          await model.deleteProduct(productId: product.id);
           // Remove the variant from the provider state directly
           ref
-              .read(outerVariantsProvider(ProxyService.box.getBranchId()!)
-                  .notifier)
-              .removeVariantById(variant.id);
+              .read(
+                outerVariantsProvider(ProxyService.box.getBranchId()!).notifier,
+              )
+              .removeVariantById(variantId);
 
           // Delete associated assets
           if (product.imageUrl != null) {
-            Assets? asset = await ProxyService.strategy
-                .getAsset(assetName: product.imageUrl!);
+            Assets? asset = await ProxyService.strategy.getAsset(
+              assetName: product.imageUrl!,
+            );
             if (asset != null) {
               await ProxyService.strategy.flipperDelete(
-                  id: asset.id, flipperHttpClient: ProxyService.http);
+                id: asset.id,
+                flipperHttpClient: ProxyService.http,
+              );
             }
           }
         } else {
@@ -129,7 +147,8 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     final productAsync = ref.watch(productProvider(variant.productId ?? ""));
 
     // Only fetch asset if product exists and has a product ID
-    final assetAsync = variant.productId != null && variant.productId!.isNotEmpty
+    final assetAsync =
+        variant.productId != null && variant.productId!.isNotEmpty
         ? ref.watch(assetProvider(variant.productId ?? ""))
         : null;
 
@@ -158,9 +177,8 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             showDialog(
               barrierDismissible: false,
               context: context,
-              builder: (context) => OptionModal(
-                child: ProductEntryScreen(productId: productId),
-              ),
+              builder: (context) =>
+                  OptionModal(child: ProductEntryScreen(productId: productId)),
             );
           },
           delete: (productId, type) async {
@@ -253,8 +271,9 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
               productName: variant.productName ?? "Unknown Product",
               variantName: variant.name,
               imageUrl: null, // No image available in error case
-              isComposite:
-                  !isOrdering ? (product?.isComposite ?? false) : false,
+              isComposite: !isOrdering
+                  ? (product?.isComposite ?? false)
+                  : false,
               edit: (productId, type) {
                 talker.info("navigating to Edit!");
                 showDialog(
@@ -285,8 +304,9 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
               productName: variant.productName!,
               variantName: variant.name,
               imageUrl: asset?.assetName,
-              isComposite:
-                  !isOrdering ? (product?.isComposite ?? false) : false,
+              isComposite: !isOrdering
+                  ? (product?.isComposite ?? false)
+                  : false,
               edit: (productId, type) {
                 talker.info("navigating to Edit!");
 
