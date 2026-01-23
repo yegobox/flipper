@@ -445,7 +445,7 @@ class _RowItemState extends ConsumerState<RowItem>
       builder: (context, constraints) {
         // Calculate available width for product info
         final double maxWidth = constraints.maxWidth;
-        final double imageWidth = 70; // Fixed image width
+        final double imageWidth = 95; // Fixed image width
         final double spacing = 8; // Reduced spacing
         final double availableForInfo = maxWidth - imageWidth - spacing;
 
@@ -455,7 +455,7 @@ class _RowItemState extends ConsumerState<RowItem>
             // Product Image - Fixed size for list view
             SizedBox(
               width: imageWidth,
-              height: 70,
+              height: 95,
               child: _buildProductImageSection(isSelected),
             ),
 
@@ -464,7 +464,7 @@ class _RowItemState extends ConsumerState<RowItem>
             // Product Info - Constrained width
             Container(
               width: availableForInfo,
-              constraints: BoxConstraints(maxHeight: 70), // Match image height
+              constraints: BoxConstraints(maxHeight: 95), // Match image height
               child: SingleChildScrollView(
                 physics: const NeverScrollableScrollPhysics(),
                 child: Column(
