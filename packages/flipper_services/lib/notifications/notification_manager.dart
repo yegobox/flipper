@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:flipper_models/db_model_export.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import 'interfaces/notification_interface.dart';

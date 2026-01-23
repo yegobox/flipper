@@ -43,6 +43,8 @@ import 'package:supabase_models/brick/models/variant.model.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:flipper_models/helperModels/random.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
+import 'package:supabase_models/brick/models/transaction_payment_record.model.dart';
+// ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:supabase_models/brick/models/stock.model.dart';// GENERATED CODE DO NOT EDIT
 // ignore: unused_import
 import 'dart:convert';

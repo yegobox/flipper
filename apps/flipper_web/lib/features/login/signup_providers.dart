@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -56,7 +56,7 @@ class SignupFormState {
     bool? isUsernameAvailable,
     bool? isValidatingTin,
     Object? tinDetails = _unset, // Use Object? and default to sentinel
-    Object? tinError = _unset,   // Use Object? and default to sentinel
+    Object? tinError = _unset, // Use Object? and default to sentinel
   }) {
     return SignupFormState(
       username: username ?? this.username,
@@ -70,8 +70,12 @@ class SignupFormState {
       isCheckingUsername: isCheckingUsername ?? this.isCheckingUsername,
       isUsernameAvailable: isUsernameAvailable ?? this.isUsernameAvailable,
       isValidatingTin: isValidatingTin ?? this.isValidatingTin,
-      tinDetails: tinDetails == _unset ? this.tinDetails : (tinDetails as IppisBusiness?), // Identity check
-      tinError: tinError == _unset ? this.tinError : (tinError as String?),             // Identity check
+      tinDetails: tinDetails == _unset
+          ? this.tinDetails
+          : (tinDetails as IppisBusiness?), // Identity check
+      tinError: tinError == _unset
+          ? this.tinError
+          : (tinError as String?), // Identity check
     );
   }
 
@@ -449,5 +453,5 @@ typedef SignupFormNotifier = SignupForm;
 class _Unset {
   const _Unset();
 }
-const _unset = _Unset();
 
+const _unset = _Unset();

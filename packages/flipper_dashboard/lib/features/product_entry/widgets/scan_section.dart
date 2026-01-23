@@ -1,5 +1,5 @@
 import 'dart:async';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter/material.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 
@@ -73,7 +73,10 @@ class _ScanSectionState extends State<ScanSection> {
                 contentPadding: const EdgeInsets.symmetric(horizontal: 16.0),
                 filled: true,
                 fillColor: Colors.grey.shade50,
-                suffixIcon: (!kIsWeb && (defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS))
+                suffixIcon:
+                    (!kIsWeb &&
+                        (defaultTargetPlatform == TargetPlatform.android ||
+                            defaultTargetPlatform == TargetPlatform.iOS))
                     ? IconButton(
                         icon: const Icon(
                           FluentIcons.camera_20_regular,

@@ -1,7 +1,7 @@
 import 'package:flipper_web/models/user_profile.dart';
 import 'package:flipper_web/repositories/user_repository.dart';
 import 'package:flipper_web/services/auth_service.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Provider to check if the user has selected a default business and branch in Ditto

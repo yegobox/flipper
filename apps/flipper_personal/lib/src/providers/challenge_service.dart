@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flipper_models/models/challenge_code.dart';
 import 'package:flipper_models/models/claim.dart';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:flipper_web/services/ditto_service.dart';
 import 'location_service.dart';
 

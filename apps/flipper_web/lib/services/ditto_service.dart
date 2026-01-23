@@ -2,7 +2,7 @@
 import 'dart:async';
 
 import 'package:ditto_live/ditto_live.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'ditto_mixins/ditto_core_mixin.dart';
 import 'ditto_mixins/user_profile_mixin.dart';

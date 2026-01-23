@@ -425,6 +425,28 @@ Future<ITransaction> _$ITransactionFromSqlite(
                 }))
             .toList()
             .cast<TransactionItem>(),
+    payments:
+        (await provider
+                .rawQuery(
+                  'SELECT DISTINCT `f_TransactionPaymentRecord_brick_id` FROM `_brick_ITransaction_payments` WHERE l_ITransaction_brick_id = ?',
+                  [data['_brick_id'] as int],
+                )
+                .then((results) {
+                  final ids = results.map(
+                    (r) => r['f_TransactionPaymentRecord_brick_id'],
+                  );
+                  return Future.wait<TransactionPaymentRecord>(
+                    ids.map(
+                      (primaryKey) => repository!
+                          .getAssociation<TransactionPaymentRecord>(
+                            Query.where('primaryKey', primaryKey, limit1: true),
+                          )
+                          .then((r) => r!.first),
+                    ),
+                  );
+                }))
+            .toList()
+            .cast<TransactionPaymentRecord>(),
     customerPhone: data['customer_phone'] == null
         ? null
         : data['customer_phone'] as String?,
@@ -1125,6 +1147,12 @@ class ITransactionAdapter
       iterable: true,
       type: TransactionItem,
     ),
+    'payments': const RuntimeSqliteColumnDefinition(
+      association: true,
+      columnName: 'payments',
+      iterable: true,
+      type: TransactionPaymentRecord,
+    ),
     'customerPhone': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'customer_phone',
@@ -1196,6 +1224,48 @@ class ITransactionAdapter
                   );
               return await provider.rawInsert(
                 'INSERT OR IGNORE INTO `_brick_ITransaction_items` (`l_ITransaction_brick_id`, `f_TransactionItem_brick_id`) VALUES (?, ?)',
+                [instance.primaryKey, id],
+              );
+            }) ??
+            [],
+      );
+    }
+
+    if (instance.primaryKey != null) {
+      final paymentsOldColumns = await provider.rawQuery(
+        'SELECT `f_TransactionPaymentRecord_brick_id` FROM `_brick_ITransaction_payments` WHERE `l_ITransaction_brick_id` = ?',
+        [instance.primaryKey],
+      );
+      final paymentsOldIds = paymentsOldColumns.map(
+        (a) => a['f_TransactionPaymentRecord_brick_id'],
+      );
+      final paymentsNewIds =
+          instance.payments?.map((s) => s.primaryKey).whereType<int>() ?? [];
+      final paymentsIdsToDelete = paymentsOldIds.where(
+        (id) => !paymentsNewIds.contains(id),
+      );
+
+      await Future.wait<void>(
+        paymentsIdsToDelete.map((id) async {
+          return await provider
+              .rawExecute(
+                'DELETE FROM `_brick_ITransaction_payments` WHERE `l_ITransaction_brick_id` = ? AND `f_TransactionPaymentRecord_brick_id` = ?',
+                [instance.primaryKey, id],
+              )
+              .catchError((e) => null);
+        }),
+      );
+
+      await Future.wait<int?>(
+        instance.payments?.map((s) async {
+              final id =
+                  s.primaryKey ??
+                  await provider.upsert<TransactionPaymentRecord>(
+                    s,
+                    repository: repository,
+                  );
+              return await provider.rawInsert(
+                'INSERT OR IGNORE INTO `_brick_ITransaction_payments` (`l_ITransaction_brick_id`, `f_TransactionPaymentRecord_brick_id`) VALUES (?, ?)',
                 [instance.primaryKey, id],
               );
             }) ??

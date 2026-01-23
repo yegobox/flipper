@@ -11,7 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flipper_services/DeviceType.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 
 /// A stateful widget that handles user authentication and login flow
 /// Supports multiple platforms (Web, Desktop, Mobile) with different UI layouts

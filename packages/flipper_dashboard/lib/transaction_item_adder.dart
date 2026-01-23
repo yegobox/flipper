@@ -11,7 +11,7 @@ import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:synchronized/synchronized.dart';
 import 'package:flipper_services/GlobalLogError.dart';
 import 'package:flipper_models/helperModels/flipperWatch.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 
 class TransactionItemAdder {
   final BuildContext context;

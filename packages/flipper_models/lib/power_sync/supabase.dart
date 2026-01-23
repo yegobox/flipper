@@ -1,7 +1,8 @@
 import 'package:flipper_models/secrets.dart';
 import 'package:supabase_models/brick/repository.dart';
-import 'package:flutter/foundation.dart';
-// 
+import 'package:flutter/foundation.dart' hide Category;
+
+//
 Future<void> loadSupabase() async {
   try {
     String supabaseUrl = AppSecrets.supabaseUrl;

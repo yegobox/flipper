@@ -19,6 +19,7 @@ import 'package:supabase_models/brick/models/stock_recount_item.model.dart' as s
 import 'package:supabase_models/brick/models/transaction.model.dart' as transaction_model;
 import 'package:supabase_models/brick/models/transactionItem.model.dart' as transactionItem_model;
 import 'package:supabase_models/brick/models/transaction_delegation.model.dart' as transaction_delegation_model;
+import 'package:supabase_models/brick/models/transaction_payment_record.model.dart' as transaction_payment_record_model;
 import 'package:supabase_models/brick/models/variant.model.dart' as variant_model;
 
 /// Forces all Ditto adapter static initializers to run.
@@ -41,5 +42,6 @@ void ensureDittoAdaptersLoaded() {
   transaction_model.ITransactionDittoAdapter.registryToken; // ignore: unnecessary_statements
   transactionItem_model.TransactionItemDittoAdapter.registryToken; // ignore: unnecessary_statements
   transaction_delegation_model.TransactionDelegationDittoAdapter.registryToken; // ignore: unnecessary_statements
+  transaction_payment_record_model.TransactionPaymentRecordDittoAdapter.registryToken; // ignore: unnecessary_statements
   variant_model.VariantDittoAdapter.registryToken; // ignore: unnecessary_statements
 }

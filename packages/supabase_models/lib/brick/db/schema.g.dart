@@ -1,7 +1,7 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20260115095918.migration.dart';
+part '20260121124148.migration.dart';
 part '20251206093643.migration.dart';
 part '20251212042542.migration.dart';
 part '20251212052427.migration.dart';
@@ -23,10 +23,14 @@ part '20251231094858.migration.dart';
 part '20260101131413.migration.dart';
 part '20260106104847.migration.dart';
 part '20260107143027.migration.dart';
+part '20260115095918.migration.dart';
+part '20260121083953.migration.dart';
+part '20260121104832.migration.dart';
+part '20260121123900.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20260115095918(),
+  const Migration20260121124148(),
   const Migration20251206093643(),
   const Migration20251212042542(),
   const Migration20251212052427(),
@@ -48,11 +52,15 @@ final migrations = <Migration>{
   const Migration20260101131413(),
   const Migration20260106104847(),
   const Migration20260107143027(),
+  const Migration20260115095918(),
+  const Migration20260121083953(),
+  const Migration20260121104832(),
+  const Migration20260121123900(),
 };
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
-  20260107143027,
+  20260121123900,
   generatorVersion: 1,
   tables: <SchemaTable>{
     SchemaTable(
@@ -1535,6 +1543,43 @@ final schema = Schema(
       indices: <SchemaIndex>{
         SchemaIndex(
           columns: ['l_ITransaction_brick_id', 'f_TransactionItem_brick_id'],
+          unique: true,
+        ),
+      },
+    ),
+    SchemaTable(
+      '_brick_ITransaction_payments',
+      columns: <SchemaColumn>{
+        SchemaColumn(
+          '_brick_id',
+          Column.integer,
+          autoincrement: true,
+          nullable: false,
+          isPrimaryKey: true,
+        ),
+        SchemaColumn(
+          'l_ITransaction_brick_id',
+          Column.integer,
+          isForeignKey: true,
+          foreignTableName: 'ITransaction',
+          onDeleteCascade: true,
+          onDeleteSetDefault: false,
+        ),
+        SchemaColumn(
+          'f_TransactionPaymentRecord_brick_id',
+          Column.integer,
+          isForeignKey: true,
+          foreignTableName: 'TransactionPaymentRecord',
+          onDeleteCascade: true,
+          onDeleteSetDefault: false,
+        ),
+      },
+      indices: <SchemaIndex>{
+        SchemaIndex(
+          columns: [
+            'l_ITransaction_brick_id',
+            'f_TransactionPaymentRecord_brick_id',
+          ],
           unique: true,
         ),
       },

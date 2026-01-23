@@ -4,7 +4,7 @@ import 'package:flipper_dashboard/data_view_reports/DynamicDataSource.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:intl/intl.dart';
 import 'package:open_filex/open_filex.dart';
@@ -24,17 +24,11 @@ class PdfHelper {
     PdfTextAlignment align = PdfTextAlignment.left,
     PdfBrush? brush,
   }) {
-    final textElement = PdfTextElement(
-      text: text,
-      font: font,
-      brush: brush,
-    );
+    final textElement = PdfTextElement(text: text, font: font, brush: brush);
     textElement.draw(
       page: page,
       bounds: ui.Rect.fromLTWH(x, y, width, 0),
-      format: PdfLayoutFormat(
-        layoutType: PdfLayoutType.paginate,
-      ),
+      format: PdfLayoutFormat(layoutType: PdfLayoutType.paginate),
     )!;
   }
 
@@ -278,16 +272,17 @@ class PLUReport {
     required DateTime startDate,
     required DateTime endDate,
   }) async {
-    final business = await ProxyService.strategy
-        .getBusiness(businessId: ProxyService.box.getBusinessId()!);
+    final business = await ProxyService.strategy.getBusiness(
+      businessId: ProxyService.box.getBusinessId()!,
+    );
 
     // Fetch transactions with their items
-    final transactionsWithItems =
-        await ProxyService.strategy.transactionsAndItems(
-      startDate: startDate,
-      endDate: endDate,
-      status: COMPLETE,
-    );
+    final transactionsWithItems = await ProxyService.strategy
+        .transactionsAndItems(
+          startDate: startDate,
+          endDate: endDate,
+          status: COMPLETE,
+        );
 
     // Extract all transaction items
     final List<TransactionItem> allItems = transactionsWithItems
@@ -318,10 +313,7 @@ class PLUReport {
       final variant = await ProxyService.strategy.getVariant(id: variantId);
 
       if (variant == null) continue;
-      talker.info(
-        variant.id,
-        "${variant.lastTouched}:${variant.name}",
-      );
+      talker.info(variant.id, "${variant.lastTouched}:${variant.name}");
       // Calculate totals
       final soldQty = items.fold<double>(0, (sum, item) => sum + item.qty);
 
@@ -344,13 +336,22 @@ class PLUReport {
     final pageSize = page.getClientSize();
 
     // Set font
-    final headerFont =
-        PdfStandardFont(PdfFontFamily.helvetica, 20, style: PdfFontStyle.bold);
-    final titleFont =
-        PdfStandardFont(PdfFontFamily.helvetica, 12, style: PdfFontStyle.bold);
+    final headerFont = PdfStandardFont(
+      PdfFontFamily.helvetica,
+      20,
+      style: PdfFontStyle.bold,
+    );
+    final titleFont = PdfStandardFont(
+      PdfFontFamily.helvetica,
+      12,
+      style: PdfFontStyle.bold,
+    );
     final normalFont = PdfStandardFont(PdfFontFamily.helvetica, 9);
-    final boldFont =
-        PdfStandardFont(PdfFontFamily.helvetica, 9, style: PdfFontStyle.bold);
+    final boldFont = PdfStandardFont(
+      PdfFontFamily.helvetica,
+      9,
+      style: PdfFontStyle.bold,
+    );
 
     // Draw header
     double yPosition = 30; // Start below top margin
@@ -370,7 +371,11 @@ class PLUReport {
       business?.name ?? 'N/A',
       titleFont,
       bounds: ui.Rect.fromLTWH(
-          margin, yPosition, pageSize.width - (2 * margin), titleFont.height),
+        margin,
+        yPosition,
+        pageSize.width - (2 * margin),
+        titleFont.height,
+      ),
       format: PdfStringFormat(alignment: PdfTextAlignment.left),
     );
     yPosition += 20;
@@ -379,7 +384,11 @@ class PLUReport {
       'TIN: ${business?.tinNumber ?? 'N/A'}',
       normalFont,
       bounds: ui.Rect.fromLTWH(
-          margin, yPosition, pageSize.width - (2 * margin), normalFont.height),
+        margin,
+        yPosition,
+        pageSize.width - (2 * margin),
+        normalFont.height,
+      ),
       format: PdfStringFormat(alignment: PdfTextAlignment.left),
     );
     yPosition += 15;
@@ -388,7 +397,11 @@ class PLUReport {
       'Date: ${DateFormat('yyyy-MM-dd').format(startDate)} - ${DateFormat('yyyy-MM-dd').format(endDate)}',
       normalFont,
       bounds: ui.Rect.fromLTWH(
-          margin, yPosition, pageSize.width - (2 * margin), normalFont.height),
+        margin,
+        yPosition,
+        pageSize.width - (2 * margin),
+        normalFont.height,
+      ),
       format: PdfStringFormat(alignment: PdfTextAlignment.left),
     );
     yPosition += 25;
@@ -407,9 +420,9 @@ class PLUReport {
 
     // Add footer with logo and generation info
     yPosition = max(
-        yPosition,
-        page.getClientSize().height -
-            120); // Ensure footer is at least 120 from bottom
+      yPosition,
+      page.getClientSize().height - 120,
+    ); // Ensure footer is at least 120 from bottom
 
     // Ensure we have enough space for footer
     if (yPosition > page.getClientSize().height - 150) {
@@ -422,15 +435,20 @@ class PLUReport {
       'Generated on: ${DateFormat('yyyy-MM-dd HH:mm:ss').format(DateTime.now())}',
       PdfStandardFont(PdfFontFamily.helvetica, 8),
       bounds: ui.Rect.fromLTWH(
-          margin, yPosition, pageSize.width - (2 * margin), 10),
+        margin,
+        yPosition,
+        pageSize.width - (2 * margin),
+        10,
+      ),
       format: PdfStringFormat(alignment: PdfTextAlignment.center),
     );
     yPosition += 15;
 
     // Draw Flipper logo and footer text
     try {
-      final ByteData imageData =
-          await rootBundle.load('packages/receipt/assets/flipper_logo.png');
+      final ByteData imageData = await rootBundle.load(
+        'packages/receipt/assets/flipper_logo.png',
+      );
       final PdfBitmap logoImage = PdfBitmap(imageData.buffer.asUint8List());
       const double logoWidth = 25;
       const double logoHeight = 25;
@@ -447,8 +465,12 @@ class PLUReport {
       page.graphics.drawString(
         'Powered by flipper',
         footerFont,
-        bounds:
-            ui.Rect.fromLTWH(0, yPosition + logoHeight + 5, pageSize.width, 15),
+        bounds: ui.Rect.fromLTWH(
+          0,
+          yPosition + logoHeight + 5,
+          pageSize.width,
+          15,
+        ),
         format: PdfStringFormat(alignment: PdfTextAlignment.center),
       );
     } catch (e) {

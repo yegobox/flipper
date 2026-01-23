@@ -5,7 +5,7 @@
 // import 'package:path_provider/path_provider.dart';
 // import 'package:cbl_flutter/cbl_flutter.dart';
 // import 'package:cbl/cbl.dart';
-// import 'package:flutter/foundation.dart';
+// import 'package:flutter/foundation.dart' hide Category;
 // import 'dart:convert';
 // import 'package:crypto/crypto.dart';
 

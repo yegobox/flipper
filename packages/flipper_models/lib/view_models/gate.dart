@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 
 class LoginInfo extends ChangeNotifier {
   var _isLoggedIn = false;

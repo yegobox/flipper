@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 
 // how to use
 // final flipperWatch? w = kDebugMode ? flipperWatch("callApiWatch") : null;

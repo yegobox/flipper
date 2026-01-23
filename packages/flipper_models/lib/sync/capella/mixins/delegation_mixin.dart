@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flipper_models/sync/interfaces/DelegationInterface.dart';
 import 'package:flipper_web/services/ditto_service.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:supabase_models/brick/models/all_models.dart';
 
 mixin CapellaDelegationMixin implements DelegationInterface {

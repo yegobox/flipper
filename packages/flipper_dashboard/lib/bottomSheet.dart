@@ -11,12 +11,14 @@ import 'package:flutter/services.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
+import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/providers/pay_button_provider.dart';
 import 'package:flipper_models/providers/digital_payment_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
     as oldProvider;
 import 'package:flipper_dashboard/providers/customer_phone_provider.dart';
 import 'package:flipper_services/utils.dart';
+import 'package:flipper_services/constants.dart';
 import 'dart:async';
 
 enum ChargeButtonState {
@@ -32,9 +34,9 @@ class BottomSheets {
     required WidgetRef ref,
     required Function doneDelete,
     required Function onCharge,
-    String? transactionId,
+    ITransaction? transaction,
   }) {
-    if (transactionId == null) {
+    if (transaction == null) {
       return; // Handle null case
     }
 
@@ -70,33 +72,10 @@ class BottomSheets {
                     ),
                   ),
                   // Header
-                  Container(
-                    padding: EdgeInsets.only(left: 20, right: 20),
-                    child: Row(
-                      children: [
-                        Text(
-                          'Complete Your Sale',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        Spacer(),
-                        IconButton(
-                          icon: Icon(Icons.close, color: Colors.grey[600]),
-                          onPressed: () {
-                            ref
-                                .read(oldProvider.loadingProvider.notifier)
-                                .stopLoading();
-                            Navigator.of(context).pop();
-                          },
-                          style: IconButton.styleFrom(
-                            backgroundColor: Colors.grey[100],
-                            padding: EdgeInsets.all(8),
-                          ),
-                        ),
-                      ],
-                    ),
+                  _BottomSheetHeader(
+                    ref: ref,
+                    context: context,
+                    transaction: transaction,
                   ),
                   Divider(height: 1, color: Colors.grey[200]),
                   // Content
@@ -104,7 +83,7 @@ class BottomSheets {
                     child: Padding(
                       padding: const EdgeInsets.all(20.0),
                       child: _BottomSheetContent(
-                        transactionIdInt: transactionId,
+                        transactionIdInt: transaction.id,
                         doneDelete: doneDelete,
                         onCharge: onCharge,
                       ),
@@ -225,16 +204,18 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                             double.tryParse(newPriceController.text) ?? 0.0;
 
                         // Determine if the user is overriding the price (entering total instead of unit price)
-                        bool isPriceOverride = originalUnitPrice > 0 &&
-                                               localPriceInput > 0 &&
-                                               localPriceInput != originalUnitPrice;
+                        bool isPriceOverride =
+                            originalUnitPrice > 0 &&
+                            localPriceInput > 0 &&
+                            localPriceInput != originalUnitPrice;
 
                         // Calculate total based on whether price is being overridden
                         double localTotal = isPriceOverride
-                            ? localPriceInput  // When price override, the entered price IS the total
-                            : localQty * (localPriceInput > 0
-                                ? localPriceInput
-                                : originalUnitPrice.toDouble());
+                            ? localPriceInput // When price override, the entered price IS the total
+                            : localQty *
+                                  (localPriceInput > 0
+                                      ? localPriceInput
+                                      : originalUnitPrice.toDouble());
 
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -363,13 +344,17 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                                                 const UnderlineInputBorder(),
                                             contentPadding: EdgeInsets.zero,
                                             isDense: true,
-                                            helperText:
-                                                (() {
-                                                  final parsedPrice = double.tryParse(newPriceController.text) ?? 0;
-                                                  return parsedPrice > 0 && originalUnitPrice > 0
-                                                      ? 'Qty: ${(parsedPrice / originalUnitPrice).toStringAsFixed(2)} (calc.)'
-                                                      : null;
-                                                })(),
+                                            helperText: (() {
+                                              final parsedPrice =
+                                                  double.tryParse(
+                                                    newPriceController.text,
+                                                  ) ??
+                                                  0;
+                                              return parsedPrice > 0 &&
+                                                      originalUnitPrice > 0
+                                                  ? 'Qty: ${(parsedPrice / originalUnitPrice).toStringAsFixed(2)} (calc.)'
+                                                  : null;
+                                            })(),
                                             helperStyle: const TextStyle(
                                               fontSize: 10,
                                               color: Colors.blue,
@@ -443,9 +428,10 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                                         transactionItem.price;
 
                                     // Use the same logic as the UI to determine if price is being overridden
-                                    bool isPriceOverride = originalUnitPrice > 0 &&
-                                                           price > 0 &&
-                                                           price != originalUnitPrice;
+                                    bool isPriceOverride =
+                                        originalUnitPrice > 0 &&
+                                        price > 0 &&
+                                        price != originalUnitPrice;
 
                                     if (isPriceOverride) {
                                       final newQty = price / originalUnitPrice;
@@ -669,9 +655,59 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
     // Watch customer phone number to update button state
     final customerPhone = ref.watch(customerPhoneNumberProvider);
 
+    // Watch transaction to get authoritative total
+    final transactionAsync = ref.watch(
+      transactionByIdProvider(widget.transactionIdInt.toString()),
+    );
+
+    // Watch payment methods
+    final payments = ref.watch(oldProvider.paymentMethodsProvider);
+
     double calculateTotal(List<TransactionItem> items) {
-      return items.fold(0, (sum, item) => sum + (item.price * item.qty));
+      double sumItems = items.fold(
+        0,
+        (sum, item) => sum + (item.price * item.qty),
+      );
+
+      // Fallback: If transaction subTotal is greater, use it
+      if (transactionAsync.value != null) {
+        double transactionTotal = transactionAsync.value!.subTotal ?? 0.0;
+        talker.warning(
+          "BottomSheet: SumItems: $sumItems, TransactionTotal: $transactionTotal",
+        );
+        if (transactionTotal > sumItems) {
+          talker.warning(
+            "BottomSheet: Using transaction subTotal ($transactionTotal) as it is greater than sumItems ($sumItems)",
+          );
+          return transactionTotal;
+        }
+      }
+      return sumItems;
     }
+
+    final totalPaid = payments.fold<double>(0, (sum, p) => sum + p.amount);
+
+    // Calculate reliable total
+    double totalAmount = 0.0;
+    if (itemsAsync.asData?.value != null) {
+      totalAmount = calculateTotal(itemsAsync.asData!.value);
+    } else if (transactionAsync.value != null) {
+      totalAmount = transactionAsync.value!.subTotal ?? 0.0;
+      talker.warning(
+        "BottomSheet: itemsAsync empty/loading, using transaction subTotal: $totalAmount",
+      );
+    }
+
+    talker.warning(
+      "BottomSheet: Final TotalAmount passed to PaymentMethodsCard: $totalAmount",
+    );
+
+    final remainingBalance = totalAmount - totalPaid;
+
+    // Debug logging
+    talker.warning(
+      "BottomSheet: TotalAmount: $totalAmount, TotalPaid: $totalPaid, RemainingBalance: $remainingBalance",
+    );
 
     Widget _buildTransactionItem(TransactionItem transactionItem) {
       return Container(
@@ -794,6 +830,8 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
     Widget _buildTotalSection(
       List<TransactionItem> items, {
       required bool isDigitalPaymentEnabled,
+      required double totalPaid,
+      required double remainingBalance,
     }) {
       final total = calculateTotal(items);
 
@@ -808,6 +846,7 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 FlipperButtonFlat(
                   textColor: Colors.red[600],
@@ -886,6 +925,30 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                         color: Colors.green[700],
                       ),
                     ),
+                    if (totalPaid > 0 && totalPaid != total) ...[
+                      SizedBox(height: 4),
+                      Text(
+                        'Amount Paid: ${totalPaid.toCurrencyFormatted()}',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.blue[700],
+                        ),
+                      ),
+                      SizedBox(height: 2),
+                      Text(
+                        remainingBalance > 0
+                            ? 'Remaining: ${remainingBalance.toCurrencyFormatted()}'
+                            : 'Change: ${(totalPaid - total).toCurrencyFormatted()}',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: remainingBalance > 0
+                              ? Colors.red[700]
+                              : Colors.orange[700],
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ],
@@ -907,6 +970,7 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                           items.isEmpty,
                           total,
                           customerPhone,
+                          remainingBalance,
                         ),
                         textColor: Colors.white,
                         borderRadius: BorderRadius.only(
@@ -936,7 +1000,9 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                       child: FlipperButton(
                         height: 56,
                         color: Colors.green,
-                        text: 'Complete Now',
+                        text: remainingBalance > 0.01
+                            ? 'Record Payment'
+                            : 'Complete Now',
                         textColor: Colors.white,
                         borderRadius: BorderRadius.only(
                           topRight: Radius.circular(12),
@@ -962,14 +1028,11 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
               FlipperButton(
                 height: 56,
                 color: Colors.green,
-                text: 'Complete Now',
+                text: remainingBalance > 0.01
+                    ? 'Record Payment'
+                    : 'Complete Now',
                 textColor: Colors.white,
-                borderRadius: BorderRadius.only(
-                  topRight: Radius.circular(12),
-                  topLeft: Radius.circular(12),
-                  bottomLeft: Radius.circular(12),
-                  bottomRight: Radius.circular(12),
-                ),
+                borderRadius: BorderRadius.all(Radius.circular(12)),
                 isLoading: _isImmediateCompletion && _shouldShowSpinner(),
                 onPressed: _getButtonEnabled(items.isEmpty, customerPhone)
                     ? () => _handleCharge(
@@ -1002,6 +1065,8 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
               _buildTotalSection(
                 items,
                 isDigitalPaymentEnabled: isDigitalPaymentEnabled,
+                totalPaid: totalPaid,
+                remainingBalance: remainingBalance,
               ),
             ],
           ),
@@ -1057,7 +1122,12 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
         _chargeState == ChargeButtonState.printingReceipt;
   }
 
-  String _getButtonText(bool isEmpty, double total, String? customerPhone) {
+  String _getButtonText(
+    bool isEmpty,
+    double total,
+    String? customerPhone, [
+    double remainingBalance = 0,
+  ]) {
     if (isEmpty) return 'Add items to charge';
 
     // Check if customer has been added
@@ -1066,7 +1136,7 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
 
     switch (_chargeState) {
       case ChargeButtonState.initial:
-        return 'Charge Now';
+        return remainingBalance > 0 ? 'Record Payment' : 'Charge Now';
       case ChargeButtonState.waitingForPayment:
         return 'Waiting for payment...';
       case ChargeButtonState.printingReceipt:
@@ -1074,5 +1144,113 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
       case ChargeButtonState.failed:
         return 'Payment Failed. Retry?';
     }
+  }
+}
+
+class _BottomSheetHeader extends HookConsumerWidget {
+  final WidgetRef ref;
+  final BuildContext context;
+  final ITransaction transaction;
+
+  const _BottomSheetHeader({
+    required this.ref,
+    required this.context,
+    required this.transaction,
+  });
+
+  Color _getStatusColor(String? status) {
+    switch (status?.toUpperCase()) {
+      case 'COMPLETED':
+        return Colors.green;
+      case 'PENDING':
+        return Colors.orange;
+      case 'PARKED':
+        return Colors.blue;
+      case 'CANCELLED':
+        return Colors.red;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isLoan = transaction.isLoan ?? false;
+    final customerPhone = ref.watch(customerPhoneNumberProvider);
+
+    return Container(
+      padding: EdgeInsets.only(left: 20, right: 20, top: 8, bottom: 8),
+      child: Row(
+        children: [
+          // Customer info
+          if (transaction.customerId != null ||
+              (customerPhone != null && customerPhone.isNotEmpty))
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.person, size: 16, color: Colors.blue),
+                SizedBox(width: 4),
+                Text(
+                  transaction.customerName ?? customerPhone ?? 'Customer',
+                  style: TextStyle(color: Colors.blue, fontSize: 14),
+                ),
+              ],
+            ),
+          SizedBox(width: 12),
+          // Transaction status
+          Container(
+            padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: _getStatusColor(transaction.status),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Text(
+              transaction.status?.toUpperCase() ?? 'PENDING',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          Spacer(),
+          // Save Ticket button for loans
+          if (isLoan)
+            TextButton(
+              onPressed: () async {
+                try {
+                  await ProxyService.strategy.updateTransaction(
+                    transaction: transaction,
+                    status: PARKED,
+                    updatedAt: DateTime.now().toUtc(),
+                  );
+                  ref.read(oldProvider.loadingProvider.notifier).stopLoading();
+                  Navigator.of(context).pop();
+                } catch (e) {
+                  talker.error(e);
+                }
+              },
+              child: Text(
+                "Save Ticket",
+                style: TextStyle(
+                  color: Colors.blue,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          IconButton(
+            icon: Icon(Icons.close, color: Colors.grey[600]),
+            onPressed: () {
+              ref.read(oldProvider.loadingProvider.notifier).stopLoading();
+              Navigator.of(context).pop();
+            },
+            style: IconButton.styleFrom(
+              backgroundColor: Colors.grey[100],
+              padding: EdgeInsets.all(8),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
