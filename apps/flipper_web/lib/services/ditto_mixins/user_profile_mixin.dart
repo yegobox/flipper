@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flipper_web/models/user_profile.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'ditto_core_mixin.dart';
 
 mixin UserProfileMixin on DittoCore {
@@ -29,7 +29,8 @@ mixin UserProfileMixin on DittoCore {
 
   /// Get user profile by ID from Ditto
   Future<UserProfile?> getUserProfile(String id) async {
-    if (dittoInstance == null) return handleNotInitializedAndReturn('getUserProfile', null);
+    if (dittoInstance == null)
+      return handleNotInitializedAndReturn('getUserProfile', null);
     final result = await dittoInstance!.store.execute(
       "SELECT * FROM users WHERE _id = :id",
       arguments: {"id": id},
@@ -43,7 +44,8 @@ mixin UserProfileMixin on DittoCore {
 
   /// Get all user profiles from Ditto
   Future<List<UserProfile>> getAllUserProfiles() async {
-    if (dittoInstance == null) return handleNotInitializedAndReturn('getAllUserProfiles', []);
+    if (dittoInstance == null)
+      return handleNotInitializedAndReturn('getAllUserProfiles', []);
     final result = await dittoInstance!.store.execute("SELECT * FROM users");
     return result.items
         .map((doc) => _parseUserProfile(doc.value))

@@ -1,6 +1,6 @@
 import 'package:posthog_flutter/posthog_flutter.dart';
 import 'package:flipper_models/secrets.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;

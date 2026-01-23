@@ -20,7 +20,7 @@ import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
     as oldImplementationOfRiverpod;
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';

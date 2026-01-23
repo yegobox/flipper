@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'ditto_core_mixin.dart';
 
 mixin ChallengeCodeMixin on DittoCore {
@@ -17,7 +17,8 @@ mixin ChallengeCodeMixin on DittoCore {
     String? businessId,
     bool onlyValid = true,
   }) async {
-    if (dittoInstance == null) return handleNotInitializedAndReturn('getChallengeCodes', []);
+    if (dittoInstance == null)
+      return handleNotInitializedAndReturn('getChallengeCodes', []);
     String query = "SELECT * FROM challengeCodes";
     final arguments = <String, dynamic>{};
     if (businessId != null) {
@@ -30,7 +31,10 @@ mixin ChallengeCodeMixin on DittoCore {
       arguments["now"] = DateTime.now().toIso8601String();
     }
     query += " ORDER BY createdAt DESC";
-    final result = await dittoInstance!.store.execute(query, arguments: arguments);
+    final result = await dittoInstance!.store.execute(
+      query,
+      arguments: arguments,
+    );
     return result.items
         .map((doc) => Map<String, dynamic>.from(doc.value))
         .toList();

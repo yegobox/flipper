@@ -1,5 +1,4 @@
-
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'ditto_core_mixin.dart';
 
 mixin EventMixin on DittoCore {
@@ -16,7 +15,8 @@ mixin EventMixin on DittoCore {
     String channel,
     String eventType,
   ) async {
-    if (dittoInstance == null) return handleNotInitializedAndReturn('getEvents', []);
+    if (dittoInstance == null)
+      return handleNotInitializedAndReturn('getEvents', []);
     final result = await dittoInstance!.store.execute(
       "SELECT * FROM events WHERE channel = :channel AND type = :eventType ORDER BY timestamp DESC",
       arguments: {"channel": channel, "eventType": eventType},
@@ -27,7 +27,10 @@ mixin EventMixin on DittoCore {
   }
 
   /// Helper method to flatten event data
-  Map<String, dynamic> _flattenEventData(Map<String, dynamic> eventData, String eventId) {
+  Map<String, dynamic> _flattenEventData(
+    Map<String, dynamic> eventData,
+    String eventId,
+  ) {
     final Map<String, dynamic> flattened = {};
     flattened.addAll(eventData);
     if (eventData['data'] is Map<String, dynamic>) {

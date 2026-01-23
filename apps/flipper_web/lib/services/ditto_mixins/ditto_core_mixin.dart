@@ -1,5 +1,5 @@
 import 'package:ditto_live/ditto_live.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 
 /// Base class that provides core Ditto functionality
 class DittoCore {

@@ -12,7 +12,7 @@ import 'package:flipper_services/sms/sms_notification_service.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:supabase_models/brick/models/stock.model.dart';
 import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
 import 'modals/_isBranchEnableForPayment.dart';

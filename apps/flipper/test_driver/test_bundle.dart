@@ -1,6 +1,6 @@
 // ignore_for_file: type=lint, invalid_use_of_internal_member
 
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:patrol/patrol.dart';
 

@@ -9,7 +9,7 @@ import 'package:flipper_models/providers/product_sort_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';

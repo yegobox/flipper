@@ -1,5 +1,5 @@
 import 'dart:convert';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 import 'package:flipper_web/core/secrets.dart';
@@ -99,7 +99,7 @@ class UserRepository {
         debugPrint('Using cached profile from Ditto');
         return cachedProfile;
       }
-      
+
       // If not in Ditto or empty, fetch from API
       debugPrint('No cached profile found, fetching from API');
       return await fetchAndSaveUserProfile(session);

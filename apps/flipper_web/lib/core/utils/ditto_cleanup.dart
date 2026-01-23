@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:path/path.dart' as path;
 
 /// Utility class for cleaning up old Ditto directories
@@ -17,7 +17,7 @@ class DittoCleanup {
     try {
       // Get the current working directory or documents directory
       final currentDir = Directory.current;
-      
+
       // Look for Ditto directories in common locations
       final searchDirs = [
         currentDir,
@@ -31,15 +31,14 @@ class DittoCleanup {
         await for (final entity in searchDir.list()) {
           if (entity is Directory) {
             final dirName = path.basename(entity.path);
-            
+
             // Check if it's a Ditto directory
             if (dirName.startsWith('flipper_data_bridge_') ||
                 dirName.startsWith('ditto_flipper_')) {
-              
               // Check if it's old enough to clean up
               final stat = await entity.stat();
               final age = DateTime.now().difference(stat.modified);
-              
+
               if (age > olderThan) {
                 try {
                   await entity.delete(recursive: true);
@@ -62,17 +61,16 @@ class DittoCleanup {
     if (kIsWeb) return 0;
 
     int totalSize = 0;
-    
+
     try {
       final currentDir = Directory.current;
-      
+
       await for (final entity in currentDir.list()) {
         if (entity is Directory) {
           final dirName = path.basename(entity.path);
-          
+
           if (dirName.startsWith('flipper_data_bridge_') ||
               dirName.startsWith('ditto_flipper_')) {
-            
             await for (final file in entity.list(recursive: true)) {
               if (file is File) {
                 final stat = await file.stat();
@@ -85,7 +83,7 @@ class DittoCleanup {
     } catch (e) {
       debugPrint('⚠️  Error calculating Ditto directory size: $e');
     }
-    
+
     return totalSize;
   }
 
@@ -94,14 +92,14 @@ class DittoCleanup {
     if (kIsWeb) return [];
 
     final directories = <String>[];
-    
+
     try {
       final currentDir = Directory.current;
-      
+
       await for (final entity in currentDir.list()) {
         if (entity is Directory) {
           final dirName = path.basename(entity.path);
-          
+
           if (dirName.startsWith('flipper_data_bridge_') ||
               dirName.startsWith('ditto_flipper_')) {
             directories.add(dirName);
@@ -111,7 +109,7 @@ class DittoCleanup {
     } catch (e) {
       debugPrint('⚠️  Error listing Ditto directories: $e');
     }
-    
+
     return directories;
   }
 }

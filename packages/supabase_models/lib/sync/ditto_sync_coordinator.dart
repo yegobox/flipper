@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:ditto_live/ditto_live.dart';
 import 'package:flipper_models/helperModels/talker.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:supabase_models/sync/ditto_sync_adapter.dart';
 
 /// Coordinates two-way synchronisation between Ditto and OfflineFirst models.

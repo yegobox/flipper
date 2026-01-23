@@ -21,7 +21,7 @@ import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:amplify_storage_s3/amplify_storage_s3.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:cached_network_image/cached_network_image.dart';
 
 import 'package:flipper_services/DeviceType.dart';

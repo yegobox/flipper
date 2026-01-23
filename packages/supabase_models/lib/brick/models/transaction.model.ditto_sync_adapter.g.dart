@@ -326,6 +326,7 @@ class ITransactionDittoAdapter extends DittoSyncAdapter<ITransaction> {
       numberOfItems: document["numberOfItems"],
       discountAmount: document["discountAmount"],
       items: null, // Excluded from Ditto sync
+      payments: null, // Excluded from Ditto sync
       customerPhone: document["customerPhone"],
       agentId: document["agentId"],
     );

@@ -6,7 +6,7 @@ import 'package:flipper_auth/auth_scanner_actions.dart';
 import 'package:flipper_auth/features/totp/providers/providers/totp_notifier.dart';
 import 'package:flipper_scanner/scanner_view.dart';
 import 'package:flipper_services/constants.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';

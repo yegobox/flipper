@@ -2,7 +2,7 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:flipper_services/ebm_sync_service.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:supabase_models/brick/repository.dart';
 import 'package:flipper_models/AppInitializer.dart';
 import 'package:flipper_models/helperModels/talker.dart';

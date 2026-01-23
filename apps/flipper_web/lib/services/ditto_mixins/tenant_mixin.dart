@@ -1,6 +1,5 @@
-
 import 'package:flipper_web/models/user_profile.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'ditto_core_mixin.dart';
 
 mixin TenantMixin on DittoCore {
@@ -22,7 +21,8 @@ mixin TenantMixin on DittoCore {
 
   /// Get tenants for a specific user
   Future<List<Tenant>> getTenantsForUser(String userId) async {
-    if (dittoInstance == null) return handleNotInitializedAndReturn('getTenantsForUser', []);
+    if (dittoInstance == null)
+      return handleNotInitializedAndReturn('getTenantsForUser', []);
     final result = await dittoInstance!.store.execute(
       "SELECT * FROM tenants WHERE userId = :userId",
       arguments: {"userId": userId},

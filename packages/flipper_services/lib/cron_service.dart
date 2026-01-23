@@ -13,7 +13,7 @@ import 'package:flipper_services/log_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 // ignore_for_file: invalid_use_of_visible_for_testing_member
 
 import 'package:ditto_live/ditto_live.dart';

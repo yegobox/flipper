@@ -1,6 +1,6 @@
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:supabase_models/brick/models/all_models.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:url_launcher/url_launcher.dart';

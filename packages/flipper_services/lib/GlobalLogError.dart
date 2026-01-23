@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:isolate';
 import 'package:flipper_services/log_service.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter/material.dart';
 
 class GlobalErrorHandler {

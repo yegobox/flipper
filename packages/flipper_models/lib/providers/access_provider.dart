@@ -3,7 +3,7 @@ import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 part 'access_provider.g.dart';
 
 @riverpod

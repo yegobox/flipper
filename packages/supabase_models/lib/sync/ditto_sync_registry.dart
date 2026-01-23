@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:ditto_live/ditto_live.dart';
 import 'package:flipper_web/services/ditto_service.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:supabase_models/brick/repository.dart';
 import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
 import 'package:supabase_models/sync/ditto_sync_generated.dart';

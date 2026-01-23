@@ -5,7 +5,7 @@ import 'dart:math' as math;
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/isolateHandelr.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
