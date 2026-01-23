@@ -614,7 +614,7 @@ class _RowItemState extends ConsumerState<RowItem>
                                 : widget.productName),
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 22.0,
+                        fontSize: 35.0,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
