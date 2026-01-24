@@ -271,6 +271,16 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         if (item.itemTyCd == "3") {
           continue;
         }
+
+        // SKIP items that have already had their stock deducted for this transaction
+        // We use quantityShipped as a flag for "stock deduction completed for this item"
+        if (item.quantityShipped == item.qty.toInt()) {
+          talker.info(
+            "Skipping stock deduction for item ${item.name} as it was already processed.",
+          );
+          continue;
+        }
+
         final variant = await ProxyService.getStrategy(
           Strategy.capella,
         ).getVariant(id: item.variantId!);
@@ -290,6 +300,14 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
             stockId: stock.id,
             currentStock: newStock,
             rsdQty: newStock,
+          );
+          // Mark the item as processed for stock deduction
+          // This prevents double-deduction on subsequent partial payments
+          item.quantityShipped = item.qty.toInt();
+          await ProxyService.strategy.updateTransactionItem(
+            transactionItemId: item.id,
+            quantityShipped: item.quantityShipped,
+            ignoreForReport: false,
           );
         }
       }

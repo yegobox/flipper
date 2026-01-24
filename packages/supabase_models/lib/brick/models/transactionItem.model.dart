@@ -4,7 +4,6 @@ import 'package:brick_supabase/brick_supabase.dart';
 import 'package:supabase_models/brick/models/stock.model.dart';
 import 'package:uuid/uuid.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
-import 'package:brick_core/query.dart';
 import 'package:brick_ditto_generators/ditto_sync_adapter.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/foundation.dart' hide Category;

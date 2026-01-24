@@ -54,12 +54,14 @@ mixin TransactionMixinOld {
           (transaction.subTotal ?? 0);
       final shouldComplete = !isLoan || isFullyPaid;
 
-      // update transaction type
+      // Update receipt generation logic to only trigger when fully paid.
+      // This prevents printing receipts for partial payments as per user request.
       if (taxEnabled &&
           ebm?.taxServerUrl != null &&
           hasUser &&
           !isTaxServiceStoped &&
-          shouldComplete) {
+          shouldComplete &&
+          isFullyPaid) {
         ProxyService.box.writeString(
           key: "getServerUrl",
           value: ebm!.taxServerUrl,
