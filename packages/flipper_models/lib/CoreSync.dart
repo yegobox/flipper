@@ -2535,27 +2535,10 @@ class CoreSync extends AiStrategyImpl
       return;
     }
 
-    // 4. Handle payment method update or creation
-    final existingPaymentRecord = await repository
-        .get<TransactionPaymentRecord>(
-          query: brick.Query(where: [
-            brick.Where('transactionId').isExactly(transactionId),
-            brick.Where('paymentMethod').isExactly(paymentMethod),
-          ]),
-        )
-        .then((records) => records.firstOrNull);
-
-    if (existingPaymentRecord != null) {
-      existingPaymentRecord
-        ..paymentMethod = paymentMethod
-        ..amount = amount;
-
-      await repository.upsert<TransactionPaymentRecord>(
-        existingPaymentRecord,
-        query: brick.Query(
-            action: QueryAction.update), // Changed from insert to update
-      );
-    } else {
+    // 4. Create a new payment record for the payment attempt
+    // This allows multiple partial payments of the same type (e.g., multiple Cash payments)
+    // to be recorded as separate entries in the history, preventing overwriting.
+    if (amount != 0) {
       final newPaymentRecord = TransactionPaymentRecord(
         createdAt: DateTime.now().toUtc(),
         amount: amount,
@@ -2569,7 +2552,6 @@ class CoreSync extends AiStrategyImpl
       );
     }
   }
-
 
   @override
   FutureOr<LPermission?> permission({required String userId}) async {
