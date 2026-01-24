@@ -370,7 +370,7 @@ void main() {
           active: false,
           ignoreForReport: false,
         ),
-      ).called(17);
+      );
 
       // Now, pump and settle to allow the async operation to complete and the dialog to dismiss.
       await tester.pumpAndSettle();

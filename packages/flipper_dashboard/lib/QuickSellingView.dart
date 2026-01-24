@@ -60,19 +60,27 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         TransactionItemTable,
         DateCoreWidget,
         Refresh<QuickSellingView> {
-  /// Returns the amount to change to the customer (received - totalAfterDiscountAndShipping), or 0 if negative/invalid.
-  /// Returns the amount to change to the customer (received - totalAfterDiscountAndShipping), or 0 if negative/invalid.
-  double _amountToChange() {
+  double _amountToChange(double alreadyPaid) {
     final payments = ref.watch(paymentMethodsProvider);
-    final received = payments.fold<double>(0, (sum, p) => sum + p.amount);
-    final change = received - totalAfterDiscountAndShipping;
+    final currentReceived = payments.fold<double>(
+      0,
+      (sum, p) => sum + p.amount,
+    );
+
+    final change =
+        (alreadyPaid + currentReceived) - totalAfterDiscountAndShipping;
     return change > 0 ? change : 0.0;
   }
 
-  double _remainingBalance() {
+  double _remainingBalance(double alreadyPaid) {
     final payments = ref.watch(paymentMethodsProvider);
-    final received = payments.fold<double>(0, (sum, p) => sum + p.amount);
-    final remaining = totalAfterDiscountAndShipping - received;
+    final currentReceived = payments.fold<double>(
+      0,
+      (sum, p) => sum + p.amount,
+    );
+
+    final remaining =
+        totalAfterDiscountAndShipping - (alreadyPaid + currentReceived);
     // Use a small epsilon for float comparison
     return remaining > 0.01 ? remaining : 0.0;
   }
@@ -148,8 +156,123 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     // Listen for transaction completion flag
     ProxyService.box.writeBool(key: 'transactionCompleting', value: false);
 
+    // Initial pre-fill for resumed transactions if they are already available
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final transaction = ref
+          .read(
+            pendingTransactionStreamProvider(
+              isExpense: ProxyService.box.isOrdering() ?? false,
+            ),
+          )
+          .value;
+      if (transaction != null) {
+        _prefillCustomerDetails(transaction);
+      }
+    });
+
     // Store initial branch ID to detect changes
     _currentBranchId = ProxyService.box.getBranchId();
+  }
+
+  void _prefillCustomerDetails(ITransaction transaction) {
+    if (transaction.customerName != null &&
+        transaction.customerName!.isNotEmpty &&
+        ref.read(customerNameControllerProvider).text.isEmpty) {
+      talker.info('Pre-filling customer name: ${transaction.customerName}');
+      ref.read(customerNameControllerProvider).text = transaction.customerName!;
+      ProxyService.box.writeString(
+        key: 'customerName',
+        value: transaction.customerName!,
+      );
+    }
+
+    if (transaction.customerPhone != null &&
+        transaction.customerPhone!.isNotEmpty &&
+        widget.customerPhoneNumberController.text.isEmpty) {
+      talker.info('Pre-filling customer phone: ${transaction.customerPhone}');
+      String phone = transaction.customerPhone!;
+      // Handle country code if present (assuming +250 or 250)
+      if (phone.startsWith('+')) {
+        // Find dial code match if possible, or just strip commonly known ones
+        if (phone.startsWith('+250')) {
+          widget.countryCodeController.text = '+250';
+          widget.customerPhoneNumberController.text = phone.substring(4);
+        } else {
+          // Fallback: strip + and first 3 digits as a guess or just put all in phone
+          widget.customerPhoneNumberController.text = phone.substring(1);
+        }
+      } else if (phone.startsWith('250') && phone.length > 9) {
+        widget.countryCodeController.text = '+250';
+        widget.customerPhoneNumberController.text = phone.substring(3);
+      } else {
+        widget.customerPhoneNumberController.text = phone;
+      }
+      ProxyService.box.writeString(
+        key: 'currentSaleCustomerPhoneNumber',
+        value: widget.customerPhoneNumberController.text,
+      );
+    }
+
+    // Initialize received amount to remainder
+    final alreadyPaid = transaction.cashReceived ?? 0.0;
+    final total = totalAfterDiscountAndShipping;
+    final remainder = total - alreadyPaid;
+    final displayRemainder = remainder > 0 ? remainder : 0.0;
+
+    if (widget.receivedAmountController.text.isEmpty) {
+      talker.info(
+        'Initializing received amount to remainder: $displayRemainder',
+      );
+      widget.receivedAmountController.text = displayRemainder.toString();
+      _lastAutoSetAmount = displayRemainder;
+    }
+
+    // Also update/initialize the first payment method in the provider
+    final payments = ref.read(paymentMethodsProvider);
+    if (payments.isEmpty) {
+      talker.info(
+        'Adding default payment method with remainder: $displayRemainder',
+      );
+      ref
+          .read(paymentMethodsProvider.notifier)
+          .addPaymentMethod(
+            Payment(
+              amount: displayRemainder,
+              method: "Cash",
+              controller: TextEditingController(
+                text: displayRemainder.toString(),
+              ),
+            ),
+          );
+    } else {
+      final firstPayment = payments[0];
+      // If the first payment is 0 or matches the full total (default initialization),
+      // update it to the true remainder for this session.
+      if (firstPayment.amount == 0 ||
+          (firstPayment.amount - (transaction.subTotal ?? 0.0)).abs() < 0.01) {
+        talker.info(
+          'Updating first payment method to remainder: $displayRemainder',
+        );
+        ref
+            .read(paymentMethodsProvider.notifier)
+            .updatePaymentMethod(
+              0,
+              Payment(
+                amount: displayRemainder,
+                method: firstPayment.method,
+                id: firstPayment.id,
+                controller: firstPayment.controller,
+              ),
+              transactionId: transaction.id,
+            );
+        // Also update its controller text if it matches full total or is empty
+        if (firstPayment.controller.text.isEmpty ||
+            double.tryParse(firstPayment.controller.text) ==
+                (transaction.subTotal ?? 0.0)) {
+          firstPayment.controller.text = displayRemainder.toString();
+        }
+      }
+    }
   }
 
   // Controllers for quantity inputs per item (small device view)
@@ -294,6 +417,18 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       }
     });
 
+    // Listen to pending transaction for resumption pre-filling
+    ref.listen<AsyncValue<ITransaction>>(
+      pendingTransactionStreamProvider(
+        isExpense: ProxyService.box.isOrdering() ?? false,
+      ),
+      (previous, next) {
+        if (next.hasValue && next.value != null) {
+          _prefillCustomerDetails(next.value!);
+        }
+      },
+    );
+
     // Check for branch changes and refresh transaction if needed
     final currentBranchId = ProxyService.box.getBranchId();
     if (_currentBranchId != currentBranchId && currentBranchId != null) {
@@ -400,13 +535,19 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           } else {
             internalTransactionItems = [];
           }
+          final transactionId = transactionAsyncValue.value?.id ?? "";
+          final alreadyPaidVal =
+              ref.watch(transactionTotalPaidProvider(transactionId)).value ??
+              0.0;
           return context.isSmallDevice
               ? _buildSmallDeviceScaffold(
+                  alreadyPaidVal,
                   isOrdering,
                   transactionAsyncValue,
                   model,
                 )
               : _buildSharedView(
+                  alreadyPaidVal,
                   transactionAsyncValue,
                   context.isSmallDevice,
                   isOrdering,
@@ -440,18 +581,29 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   }
 
   Widget _buildSmallDeviceScaffold(
+    double alreadyPaid,
     bool isOrdering,
     AsyncValue<ITransaction> transactionAsyncValue,
     CoreViewModel model,
   ) {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
-      body: _buildScrollableContent(isOrdering, transactionAsyncValue, model),
-      bottomNavigationBar: _buildBottomActionBar(transactionAsyncValue, model),
+      body: _buildScrollableContent(
+        alreadyPaid,
+        isOrdering,
+        transactionAsyncValue,
+        model,
+      ),
+      bottomNavigationBar: _buildBottomActionBar(
+        alreadyPaid,
+        transactionAsyncValue,
+        model,
+      ),
     );
   }
 
   Widget _buildScrollableContent(
+    double alreadyPaid,
     bool isOrdering,
     AsyncValue<ITransaction> transactionAsyncValue,
     CoreViewModel model,
@@ -998,6 +1150,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   }
 
   Widget _buildBottomActionBar(
+    double alreadyPaid,
     AsyncValue<ITransaction> transactionAsyncValue,
     CoreViewModel model,
   ) {
@@ -1036,9 +1189,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                             'Complete sale with total amount ${getSumOfItems(transactionId: transactionAsyncValue.value?.id).toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())}',
                         child: PayableView(
                           transactionId: transactionAsyncValue.value?.id ?? "",
-                          wording: (_remainingBalance() > 0)
+                          wording: (_remainingBalance(alreadyPaid) > 0)
                               ? "Record Payment • ${(ref.watch(paymentMethodsProvider).fold<double>(0, (sum, p) => sum + p.amount)).toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())}"
-                              : "Pay • ${getSumOfItems(transactionId: transactionAsyncValue.value?.id).toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())}",
+                              : "Pay • ${(totalAfterDiscountAndShipping - alreadyPaid).toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())}",
                           mode: SellingMode.forSelling,
                           completeTransaction:
                               (
@@ -1159,6 +1312,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   }
 
   Widget _buildSharedView(
+    double alreadyPaid,
     AsyncValue<ITransaction> transactionAsyncValue,
     bool isSmallDevice,
     bool isOrdering,
@@ -1182,6 +1336,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
               _buildForm(
                 isOrdering,
                 transactionId: transactionAsyncValue.value?.id ?? "",
+                alreadyPaid: alreadyPaid,
               ),
             SizedBox(height: 20),
             if (isOrdering) ...[
@@ -1199,14 +1354,18 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                 ),
               ),
             ],
-            _buildFooter(transactionAsyncValue, model),
+            _buildFooter(alreadyPaid, transactionAsyncValue, model),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildForm(bool isOrdering, {required String transactionId}) {
+  Widget _buildForm(
+    bool isOrdering, {
+    required String transactionId,
+    required double alreadyPaid,
+  }) {
     return KeyboardListener(
       focusNode: FocusNode(),
       onKeyEvent: (KeyEvent event) {
@@ -1258,7 +1417,10 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           children: [
             // Customer Information Section (only shown when not ordering)
             if (!isOrdering) ...[
-              _buildReceivedAmountField(transactionId: transactionId),
+              _buildReceivedAmountField(
+                transactionId: transactionId,
+                alreadyPaid: alreadyPaid,
+              ),
               const SizedBox(height: 6.0),
               _customerNameField(),
               const SizedBox(height: 6.0),
@@ -1277,22 +1439,25 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
               ),
             ),
             const SizedBox(height: 6.0),
-            _buildPaymentRow(isOrdering, transactionId),
+            _buildPaymentRow(isOrdering, transactionId, alreadyPaid),
           ],
         ),
       ),
     );
   }
 
-  // Payment row with country code, phone field, and payment method
-  Widget _buildPaymentRow(bool isOrdering, String transactionId) {
+  Widget _buildPaymentRow(
+    bool isOrdering,
+    String transactionId,
+    double alreadyPaid,
+  ) {
     return Row(
       children: [
         // Payment Method Field
         Expanded(
           child: PaymentMethodsCard(
             transactionId: transactionId,
-            totalPayable: totalAfterDiscountAndShipping,
+            totalPayable: totalAfterDiscountAndShipping - alreadyPaid,
           ),
         ),
       ],
@@ -1374,53 +1539,47 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     );
   }
 
-  Widget _buildReceivedAmountField({required String transactionId}) {
+  Widget _buildReceivedAmountField({
+    required String transactionId,
+    required double alreadyPaid,
+  }) {
     // Auto-update received amount when total changes (unless user manually changed it)
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // Only auto-update if total has likely changed or field is empty.
-      // We use a small epsilon for double comparison just in case, though direct double comparison usually works for currency if consistent.
-      if ((totalAfterDiscountAndShipping - _lastAutoSetAmount).abs() > 0.01 ||
+      final total = totalAfterDiscountAndShipping;
+      final currentRemainder = total - alreadyPaid;
+      final displayRemainder = currentRemainder > 0 ? currentRemainder : 0.0;
+
+      // Only auto-update if remainder has likely changed or field is empty.
+      if ((displayRemainder - _lastAutoSetAmount).abs() > 0.01 ||
           widget.receivedAmountController.text.isEmpty) {
         talker.warning(
-          "Auto-update check: Text='${widget.receivedAmountController.text}', Last='$_lastAutoSetAmount', NewTotal='$totalAfterDiscountAndShipping'",
+          "Auto-update check: Text='${widget.receivedAmountController.text}', Last='$_lastAutoSetAmount', NewRemainder='$displayRemainder'",
         );
 
-        // Additional check: if the user has manually edited the field to something ELSE,
-        // we might not want to overwrite it unless the TOTAL changed.
-        // The condition above `(totalAfterDiscountAndShipping - _lastAutoSetAmount).abs() > 0.01` handles the "Total Changed" case.
-        // The condition `widget.receivedAmountController.text.isEmpty` handles the initialization case.
-
-        // So if we are here, it means we SHOULD update.
-        talker.warning(
-          "Auto-updating received amount to $totalAfterDiscountAndShipping",
-        );
-        widget.receivedAmountController.text = totalAfterDiscountAndShipping
-            .toString();
-        _lastAutoSetAmount = totalAfterDiscountAndShipping;
+        talker.warning("Auto-updating received amount to $displayRemainder");
+        widget.receivedAmountController.text = displayRemainder.toString();
+        _lastAutoSetAmount = displayRemainder;
 
         ProxyService.box.writeDouble(
           key: 'getCashReceived',
-          value: totalAfterDiscountAndShipping,
+          value: displayRemainder,
         );
         final payments = ref.read(paymentMethodsProvider);
         if (payments.isNotEmpty) {
-          talker.warning(
-            "Updating payment provider with $totalAfterDiscountAndShipping",
-          );
+          talker.warning("Updating payment provider with $displayRemainder");
           ref
               .read(paymentMethodsProvider.notifier)
               .updatePaymentMethod(
                 0,
                 Payment(
-                  amount: totalAfterDiscountAndShipping,
+                  amount: displayRemainder,
                   method: payments[0].method,
                   id: payments[0].id,
                   controller: payments[0].controller,
                 ),
                 transactionId: transactionId,
               );
-          payments[0].controller.text = totalAfterDiscountAndShipping
-              .toString();
+          payments[0].controller.text = displayRemainder.toString();
         }
       }
     });
@@ -1480,11 +1639,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
             ref.read(payButtonStateProvider.notifier).stopLoading();
             return 'Please enter a valid number';
           }
-          if (number < totalAfterDiscountAndShipping) {
-            // We allow partial payments, so this is valid.
-            // We return null to indicate no error.
-            return null;
-          }
+          // We allow partial payments, so this is valid.
           return null;
         },
       ),
@@ -1684,6 +1839,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   }
 
   Widget _buildFooter(
+    double alreadyPaid,
     AsyncValue<ITransaction> transactionAsyncValue,
     CoreViewModel model,
   ) {
@@ -1736,11 +1892,11 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  _remainingBalance() > 0
+                  _remainingBalance(alreadyPaid) > 0
                       ? 'Remaining Balance'
                       : 'Amount to Change',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: _remainingBalance() > 0
+                    color: _remainingBalance(alreadyPaid) > 0
                         ? Colors.red
                         : Theme.of(
                             context,
@@ -1749,14 +1905,14 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                   ),
                 ),
                 Text(
-                  (_remainingBalance() > 0
-                          ? _remainingBalance()
-                          : _amountToChange())
+                  (_remainingBalance(alreadyPaid) > 0
+                          ? _remainingBalance(alreadyPaid)
+                          : _amountToChange(alreadyPaid))
                       .toCurrencyFormatted(
                         symbol: ProxyService.box.defaultCurrency(),
                       ),
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: _remainingBalance() > 0
+                    color: _remainingBalance(alreadyPaid) > 0
                         ? Colors.red
                         : Theme.of(context).colorScheme.primary,
                     fontWeight: FontWeight.w700,

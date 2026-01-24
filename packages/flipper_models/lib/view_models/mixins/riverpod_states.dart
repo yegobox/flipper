@@ -324,6 +324,18 @@ final currentTransactionsByIdStream =
   return transactionsStream;
 });
 
+final transactionTotalPaidProvider = FutureProvider.autoDispose
+    .family<double, String>((ref, transactionId) async {
+  if (transactionId.isEmpty) return 0.0;
+  final branchId = ProxyService.box.getBranchId();
+  if (branchId == null) return 0.0;
+  return await ProxyService.getStrategy(Strategy.capella)
+      .getTotalPaidForTransaction(
+    transactionId: transactionId,
+    branchId: branchId,
+  );
+});
+
 final selectImportItemsProvider = FutureProvider.autoDispose
     .family<List<Variant>, int?>((ref, productId) async {
   // Fetch the list of variants from a remote service.
