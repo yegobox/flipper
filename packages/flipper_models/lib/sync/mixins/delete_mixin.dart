@@ -74,6 +74,16 @@ mixin DeleteMixin implements DeleteInterface {
         remainingItems[i].itemSeq = i + 1;
         await repository.upsert<TransactionItem>(remainingItems[i]);
       }
+
+      // Calculate and update the transaction's subtotal
+      double newSubTotal =
+          remainingItems.fold(0, (sum, item) => sum + (item.price * item.qty));
+      await ProxyService.strategy.updateTransaction(
+        transactionId: transactionId,
+        subTotal: newSubTotal,
+        updatedAt: DateTime.now().toUtc(),
+        lastTouched: DateTime.now().toUtc(),
+      );
     } catch (e, s) {
       talker.error(s);
       rethrow;

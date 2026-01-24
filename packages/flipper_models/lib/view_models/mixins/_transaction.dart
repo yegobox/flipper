@@ -7,7 +7,7 @@ import 'package:flipper_services/keypad_service.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/proxy.dart';
 import 'dart:io';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:talker_flutter/talker_flutter.dart';
 import 'package:printing/printing.dart';
 import 'package:pdf/pdf.dart';
@@ -49,11 +49,17 @@ mixin TransactionMixinOld {
       final hasUser = (await ProxyService.box.bhfId()) != null;
       final isTaxServiceStoped = ProxyService.box.stopTaxService() ?? false;
 
+      final isLoan = transaction.isLoan == true;
+      final isFullyPaid = ((transaction.cashReceived ?? 0) + amount) >=
+          (transaction.subTotal ?? 0);
+      final shouldComplete = !isLoan || isFullyPaid;
+
       // update transaction type
       if (taxEnabled &&
           ebm?.taxServerUrl != null &&
           hasUser &&
-          !isTaxServiceStoped) {
+          !isTaxServiceStoped &&
+          shouldComplete) {
         ProxyService.box.writeString(
           key: "getServerUrl",
           value: ebm!.taxServerUrl,
@@ -79,7 +85,9 @@ mixin TransactionMixinOld {
               countryCode: countryCodeController.text);
         }
       } else {
-        // For non-tax enabled scenarios, complete the transaction here
+        // For non-tax enabled scenarios OR partial loan payments, complete the transaction data update
+        // but it won't be marked as COMPLETE in the DB yet if it's a partial loan payment
+        // because collectPayment (called inside) only updates cashReceived and balance.
         await _completeTransactionAfterTaxValidation(
           transaction,
           customerName: customerNameController.text,
@@ -89,7 +97,10 @@ mixin TransactionMixinOld {
 
       if (response == null) {
         onComplete();
-        return RwApiResponse(resultCd: "001", resultMsg: "Sale completed");
+        return RwApiResponse(
+            resultCd: "001",
+            resultMsg:
+                isLoan && !isFullyPaid ? "Payment recorded" : "Sale completed");
       }
 
       // Only call onComplete on success, not on error

@@ -719,3 +719,78 @@ final class TotalIncomeStreamFamily extends $Family
   @override
   String toString() => r'totalIncomeStreamProvider';
 }
+
+@ProviderFor(transactionById)
+const transactionByIdProvider = TransactionByIdFamily._();
+
+final class TransactionByIdProvider extends $FunctionalProvider<
+        AsyncValue<ITransaction?>, ITransaction?, Stream<ITransaction?>>
+    with $FutureModifier<ITransaction?>, $StreamProvider<ITransaction?> {
+  const TransactionByIdProvider._(
+      {required TransactionByIdFamily super.from,
+      required String super.argument})
+      : super(
+          retry: null,
+          name: r'transactionByIdProvider',
+          isAutoDispose: true,
+          dependencies: null,
+          $allTransitiveDependencies: null,
+        );
+
+  @override
+  String debugGetCreateSourceHash() => _$transactionByIdHash();
+
+  @override
+  String toString() {
+    return r'transactionByIdProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $StreamProviderElement<ITransaction?> $createElement(
+          $ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
+
+  @override
+  Stream<ITransaction?> create(Ref ref) {
+    final argument = this.argument as String;
+    return transactionById(
+      ref,
+      argument,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is TransactionByIdProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$transactionByIdHash() => r'1204f8d620a1728f30f5e1e5712a1325891d7787';
+
+final class TransactionByIdFamily extends $Family
+    with $FunctionalFamilyOverride<Stream<ITransaction?>, String> {
+  const TransactionByIdFamily._()
+      : super(
+          retry: null,
+          name: r'transactionByIdProvider',
+          dependencies: null,
+          $allTransitiveDependencies: null,
+          isAutoDispose: true,
+        );
+
+  TransactionByIdProvider call(
+    String transactionId,
+  ) =>
+      TransactionByIdProvider._(argument: transactionId, from: this);
+
+  @override
+  String toString() => r'transactionByIdProvider';
+}

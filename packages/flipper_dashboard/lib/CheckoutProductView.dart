@@ -399,10 +399,11 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
   void _showPreviewCartBottomSheet(ITransaction transaction) {
     // Show bottom sheet like in old implementation
     if (Platform.isAndroid || Platform.isIOS) {
+      print("Transaction isLoan: ${transaction.isLoan}");
       BottomSheets.showBottom(
         context: context,
         ref: ref,
-        transactionId: transaction.id,
+        transaction: transaction,
         onCharge:
             (
               transactionId,

@@ -16,6 +16,7 @@ import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/posthog_service.dart';
 import 'package:flipper_ui/flipper_ui.dart';
+import 'package:flipper_ui/dialogs/SharedTicketDialog.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -23,7 +24,6 @@ import 'package:flutter/services.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:stacked/stacked.dart';
 import 'package:country_code_picker/country_code_picker.dart';
-
 import 'package:flipper_dashboard/providers/customer_provider.dart';
 import 'package:flipper_dashboard/providers/customer_phone_provider.dart';
 import 'package:flipper_dashboard/widgets/payment_methods_card.dart';
@@ -61,18 +61,48 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         DateCoreWidget,
         Refresh<QuickSellingView> {
   /// Returns the amount to change to the customer (received - totalAfterDiscountAndShipping), or 0 if negative/invalid.
+  /// Returns the amount to change to the customer (received - totalAfterDiscountAndShipping), or 0 if negative/invalid.
   double _amountToChange() {
-    final received =
-        double.tryParse(widget.receivedAmountController.text) ?? 0.0;
+    final payments = ref.watch(paymentMethodsProvider);
+    final received = payments.fold<double>(0, (sum, p) => sum + p.amount);
     final change = received - totalAfterDiscountAndShipping;
     return change > 0 ? change : 0.0;
+  }
+
+  double _remainingBalance() {
+    final payments = ref.watch(paymentMethodsProvider);
+    final received = payments.fold<double>(0, (sum, p) => sum + p.amount);
+    final remaining = totalAfterDiscountAndShipping - received;
+    // Use a small epsilon for float comparison
+    return remaining > 0.01 ? remaining : 0.0;
   }
 
   double get totalAfterDiscountAndShipping {
     final discountPercent =
         double.tryParse(widget.discountController.text) ?? 0.0;
-    final discountAmount = (grandTotal * discountPercent) / 100;
-    return grandTotal - discountAmount;
+
+    // Default to using the calculated grandTotal from the item table
+    double baseTotal = grandTotal.toDouble();
+
+    // Fallback/Validation: Check if the transaction's stored subTotal is larger (implying missing items in the UI list)
+    try {
+      final isExpense = ProxyService.box.isOrdering() ?? false;
+      final transaction = ref
+          .read(pendingTransactionStreamProvider(isExpense: isExpense))
+          .value;
+
+      if (transaction != null && (transaction.subTotal ?? 0.0) > baseTotal) {
+        talker.warning(
+          "QuickSellingView: UI grandTotal ($baseTotal) is less than Transaction subTotal (${transaction.subTotal}). Using subTotal.",
+        );
+        baseTotal = transaction.subTotal!;
+      }
+    } catch (e) {
+      talker.error("Error reading transaction subTotal: $e");
+    }
+
+    final discountAmount = (baseTotal * discountPercent) / 100;
+    return baseTotal - discountAmount;
   }
 
   Widget _buildInvoiceNumber() {
@@ -274,6 +304,22 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       });
     }
 
+    // Listen to paymentMethodsProvider to update receivedAmountController for backward compatibility
+    ref.listen(paymentMethodsProvider, (previous, next) {
+      final totalPaid = next.fold<double>(0, (sum, p) => sum + p.amount);
+      if (widget.receivedAmountController.text != totalPaid.toString()) {
+        final textValue = totalPaid == 0.0 && next.isEmpty
+            ? ""
+            : totalPaid.toString();
+
+        // Prevent infinite loops / conflicts if the update came from the controller
+        if (double.tryParse(widget.receivedAmountController.text) !=
+            totalPaid) {
+          widget.receivedAmountController.text = textValue;
+        }
+      }
+    });
+
     final transactionAsyncValue = ref.watch(
       pendingTransactionStreamProvider(
         isExpense: ProxyService.box.isOrdering() ?? false,
@@ -364,6 +410,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                   transactionAsyncValue,
                   context.isSmallDevice,
                   isOrdering,
+                  model,
                 );
         } catch (e, stackTrace) {
           talker.error('Error in QuickSellingView builder', e, stackTrace);
@@ -413,7 +460,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       slivers: [
         // Transaction Summary Header
         SliverToBoxAdapter(
-          child: _buildTransactionSummaryCard(transactionAsyncValue),
+          child: _buildTransactionSummaryCard(transactionAsyncValue, model),
         ),
 
         SliverToBoxAdapter(child: _buildInvoiceNumber()),
@@ -458,6 +505,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
   Widget _buildTransactionSummaryCard(
     AsyncValue<ITransaction> transactionAsyncValue,
+    CoreViewModel model,
   ) {
     return Semantics(
       label: 'Transaction summary',
@@ -519,6 +567,75 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                 ),
               ],
             ),
+            if (transactionAsyncValue.value?.isLoan == true) ...[
+              SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Amount Paid',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                    ),
+                  ),
+                  Text(
+                    (transactionAsyncValue.value?.cashReceived ?? 0.0)
+                        .toCurrencyFormatted(
+                          symbol: ProxyService.box.defaultCurrency(),
+                        ),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 4),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Remaining Balance',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Colors.redAccent,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    (transactionAsyncValue.value?.remainingBalance ??
+                            (transactionAsyncValue.value?.subTotal ?? 0.0))
+                        .toCurrencyFormatted(
+                          symbol: ProxyService.box.defaultCurrency(),
+                        ),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.redAccent,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+            const SizedBox(height: 16),
+            if (transactionAsyncValue.value != null &&
+                internalTransactionItems.isNotEmpty)
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () =>
+                      _showParkDialog(transactionAsyncValue.value!, model),
+                  icon: const Icon(Icons.save_alt),
+                  label: const Text('Save Ticket (Park)'),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    side: BorderSide(
+                      color: Theme.of(context).colorScheme.onPrimaryContainer,
+                    ),
+                    foregroundColor: Theme.of(
+                      context,
+                    ).colorScheme.onPrimaryContainer,
+                  ),
+                ),
+              ),
           ],
         ),
       ),
@@ -919,8 +1036,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                             'Complete sale with total amount ${getSumOfItems(transactionId: transactionAsyncValue.value?.id).toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())}',
                         child: PayableView(
                           transactionId: transactionAsyncValue.value?.id ?? "",
-                          wording:
-                              "Complete Sale • ${getSumOfItems(transactionId: transactionAsyncValue.value?.id).toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())}",
+                          wording: (_remainingBalance() > 0)
+                              ? "Record Payment • ${(ref.watch(paymentMethodsProvider).fold<double>(0, (sum, p) => sum + p.amount)).toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())}"
+                              : "Pay • ${getSumOfItems(transactionId: transactionAsyncValue.value?.id).toCurrencyFormatted(symbol: ProxyService.box.defaultCurrency())}",
                           mode: SellingMode.forSelling,
                           completeTransaction:
                               (
@@ -1044,6 +1162,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     AsyncValue<ITransaction> transactionAsyncValue,
     bool isSmallDevice,
     bool isOrdering,
+    CoreViewModel model,
   ) {
     return SingleChildScrollView(
       child: Padding(
@@ -1080,7 +1199,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                 ),
               ),
             ],
-            _buildFooter(transactionAsyncValue),
+            _buildFooter(transactionAsyncValue, model),
           ],
         ),
       ),
@@ -1258,12 +1377,51 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   Widget _buildReceivedAmountField({required String transactionId}) {
     // Auto-update received amount when total changes (unless user manually changed it)
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (widget.receivedAmountController.text.isEmpty ||
-          widget.receivedAmountController.text ==
-              _lastAutoSetAmount.toString()) {
+      // Only auto-update if total has likely changed or field is empty.
+      // We use a small epsilon for double comparison just in case, though direct double comparison usually works for currency if consistent.
+      if ((totalAfterDiscountAndShipping - _lastAutoSetAmount).abs() > 0.01 ||
+          widget.receivedAmountController.text.isEmpty) {
+        talker.warning(
+          "Auto-update check: Text='${widget.receivedAmountController.text}', Last='$_lastAutoSetAmount', NewTotal='$totalAfterDiscountAndShipping'",
+        );
+
+        // Additional check: if the user has manually edited the field to something ELSE,
+        // we might not want to overwrite it unless the TOTAL changed.
+        // The condition above `(totalAfterDiscountAndShipping - _lastAutoSetAmount).abs() > 0.01` handles the "Total Changed" case.
+        // The condition `widget.receivedAmountController.text.isEmpty` handles the initialization case.
+
+        // So if we are here, it means we SHOULD update.
+        talker.warning(
+          "Auto-updating received amount to $totalAfterDiscountAndShipping",
+        );
         widget.receivedAmountController.text = totalAfterDiscountAndShipping
             .toString();
         _lastAutoSetAmount = totalAfterDiscountAndShipping;
+
+        ProxyService.box.writeDouble(
+          key: 'getCashReceived',
+          value: totalAfterDiscountAndShipping,
+        );
+        final payments = ref.read(paymentMethodsProvider);
+        if (payments.isNotEmpty) {
+          talker.warning(
+            "Updating payment provider with $totalAfterDiscountAndShipping",
+          );
+          ref
+              .read(paymentMethodsProvider.notifier)
+              .updatePaymentMethod(
+                0,
+                Payment(
+                  amount: totalAfterDiscountAndShipping,
+                  method: payments[0].method,
+                  id: payments[0].id,
+                  controller: payments[0].controller,
+                ),
+                transactionId: transactionId,
+              );
+          payments[0].controller.text = totalAfterDiscountAndShipping
+              .toString();
+        }
       }
     });
 
@@ -1323,8 +1481,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
             return 'Please enter a valid number';
           }
           if (number < totalAfterDiscountAndShipping) {
-            ref.read(payButtonStateProvider.notifier).stopLoading();
-            return 'You are receiving less than the total due';
+            // We allow partial payments, so this is valid.
+            // We return null to indicate no error.
+            return null;
           }
           return null;
         },
@@ -1513,7 +1672,21 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     );
   }
 
-  Widget _buildFooter(AsyncValue<ITransaction> transactionAsyncValue) {
+  Future<void> _showParkDialog(
+    ITransaction transaction,
+    CoreViewModel model,
+  ) async {
+    await showSharedTicketDialog(
+      context: context,
+      transaction: transaction,
+      model: model,
+    );
+  }
+
+  Widget _buildFooter(
+    AsyncValue<ITransaction> transactionAsyncValue,
+    CoreViewModel model,
+  ) {
     final transaction = transactionAsyncValue.asData?.value;
     final displayId = (transaction != null)
         ? transaction.id.toString()
@@ -1563,20 +1736,29 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Amount to Change',
+                  _remainingBalance() > 0
+                      ? 'Remaining Balance'
+                      : 'Amount to Change',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.onSurface.withValues(alpha: 0.8),
+                    color: _remainingBalance() > 0
+                        ? Colors.red
+                        : Theme.of(
+                            context,
+                          ).colorScheme.onSurface.withValues(alpha: 0.8),
                     fontWeight: FontWeight.w500,
                   ),
                 ),
                 Text(
-                  _amountToChange().toCurrencyFormatted(
-                    symbol: ProxyService.box.defaultCurrency(),
-                  ),
+                  (_remainingBalance() > 0
+                          ? _remainingBalance()
+                          : _amountToChange())
+                      .toCurrencyFormatted(
+                        symbol: ProxyService.box.defaultCurrency(),
+                      ),
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: Theme.of(context).colorScheme.primary,
+                    color: _remainingBalance() > 0
+                        ? Colors.red
+                        : Theme.of(context).colorScheme.primary,
                     fontWeight: FontWeight.w700,
                     letterSpacing: -0.5,
                   ),
@@ -1683,6 +1865,52 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
               ],
             ),
           ),
+          const SizedBox(height: 12.0),
+          if (transaction != null && internalTransactionItems.isNotEmpty)
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: () => _showParkDialog(transaction, model),
+                borderRadius: BorderRadius.circular(8.0),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 12.0,
+                    horizontal: 16.0,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Theme.of(
+                      context,
+                    ).colorScheme.secondaryContainer.withValues(alpha: 0.3),
+                    borderRadius: BorderRadius.circular(8.0),
+                    border: Border.all(
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.outline.withValues(alpha: 0.3),
+                      width: 1.0,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.save_alt,
+                        size: 18.0,
+                        color: Theme.of(context).colorScheme.primary,
+                      ),
+                      const SizedBox(width: 8.0),
+                      Text(
+                        'Save Ticket (Park)',
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );

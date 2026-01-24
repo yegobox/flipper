@@ -14,9 +14,11 @@ import 'package:stacked_services/stacked_services.dart';
 import '../widgets/tickets_list.dart';
 
 class TicketsScreen extends StatefulHookConsumerWidget {
-  const TicketsScreen(
-      {Key? key, required this.transaction, this.showAppBar = true})
-      : super(key: key);
+  const TicketsScreen({
+    Key? key,
+    required this.transaction,
+    this.showAppBar = true,
+  }) : super(key: key);
 
   final ITransaction? transaction;
   final bool showAppBar;
@@ -56,15 +58,17 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
     final visibleTicketIds = visibleTickets.map((t) => t.id).toSet();
 
     // Filter to only include visible tickets
-    final validSelectedIds =
-        selectedIds.where((id) => visibleTicketIds.contains(id)).toSet();
+    final validSelectedIds = selectedIds
+        .where((id) => visibleTicketIds.contains(id))
+        .toSet();
 
     // Clear invalid selections
     if (validSelectedIds.length != selectedIds.length) {
       ref.read(ticketSelectionProvider.notifier).clearSelection();
       // Re-select only valid tickets
-      final validTickets =
-          visibleTickets.where((t) => validSelectedIds.contains(t.id)).toList();
+      final validTickets = visibleTickets
+          .where((t) => validSelectedIds.contains(t.id))
+          .toList();
       if (validTickets.isNotEmpty) {
         ref.read(ticketSelectionProvider.notifier).selectAll(validTickets);
       }
@@ -72,8 +76,9 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
 
     if (validSelectedIds.isEmpty) return;
 
-    final selectedTickets =
-        visibleTickets.where((t) => validSelectedIds.contains(t.id)).toList();
+    final selectedTickets = visibleTickets
+        .where((t) => validSelectedIds.contains(t.id))
+        .toList();
 
     showDeletionConfirmationSnackBar(
       context,
@@ -131,12 +136,16 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                     builder: (context, ref, _) {
                       final transaction = widget.transaction;
                       final itemCount = transaction != null
-                          ? ref.watch(transactionItemsProvider(
-                                  transactionId: transaction.id))
-                              .maybeWhen(
-                                data: (items) => items.length,
-                                orElse: () => 0,
-                              )
+                          ? ref
+                                .watch(
+                                  transactionItemsProvider(
+                                    transactionId: transaction.id,
+                                  ),
+                                )
+                                .maybeWhen(
+                                  data: (items) => items.length,
+                                  orElse: () => 0,
+                                )
                           : 0; // If no transaction, itemCount is 0
                       return ElevatedButton(
                         style: ElevatedButton.styleFrom(
@@ -170,7 +179,8 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
                                 content: Text(
-                                    'Please add items to the transaction before creating a ticket'),
+                                  'Please add items to the transaction before creating a ticket',
+                                ),
                                 duration: Duration(seconds: 2),
                               ),
                             );
@@ -179,8 +189,11 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.add,
-                                size: 18, color: Colors.white),
+                            const Icon(
+                              Icons.add,
+                              size: 18,
+                              color: Colors.white,
+                            ),
                             const SizedBox(width: 6),
                             Text(
                               'Create Ticket${itemCount > 0 ? ' ($itemCount ${itemCount == 1 ? 'item' : 'items'})' : ''}',
@@ -197,8 +210,9 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                   ),
                 ),
               ),
-              SizedBox(height: isMobile ? 16 : 24)
-                  .eligibleToSeeIfYouAre(ref, [UserType.ADMIN]),
+              SizedBox(
+                height: isMobile ? 16 : 24,
+              ).eligibleToSeeIfYouAre(ref, [UserType.ADMIN]),
               SizedBox(height: isMobile ? 8 : 16),
               // Make ticket section scrollable on mobile
               Expanded(
@@ -252,8 +266,10 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                             if (hasSelection) ...[
                               IconButton(
                                 onPressed: () => _deleteSelectedTickets(ref),
-                                icon:
-                                    const Icon(Icons.delete, color: Colors.red),
+                                icon: const Icon(
+                                  Icons.delete,
+                                  color: Colors.red,
+                                ),
                                 tooltip:
                                     'Delete Selected (${selection.length})',
                               ),
@@ -261,8 +277,10 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                                 onPressed: () => ref
                                     .read(ticketSelectionProvider.notifier)
                                     .clearSelection(),
-                                icon:
-                                    const Icon(Icons.clear, color: Colors.grey),
+                                icon: const Icon(
+                                  Icons.clear,
+                                  color: Colors.grey,
+                                ),
                                 tooltip: 'Clear Selection',
                               ),
                             ],
@@ -292,16 +310,21 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                                   value: 'sort_all',
                                   child: Row(
                                     children: [
-                                      Icon(Icons.list,
+                                      Icon(
+                                        Icons.list,
+                                        color: _sortFilter == 'all'
+                                            ? Colors.blue
+                                            : null,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'All Tickets',
+                                        style: TextStyle(
                                           color: _sortFilter == 'all'
                                               ? Colors.blue
-                                              : null),
-                                      const SizedBox(width: 8),
-                                      Text('All Tickets',
-                                          style: TextStyle(
-                                              color: _sortFilter == 'all'
-                                                  ? Colors.blue
-                                                  : null)),
+                                              : null,
+                                        ),
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -309,16 +332,21 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                                   value: 'sort_regular',
                                   child: Row(
                                     children: [
-                                      Icon(Icons.receipt,
+                                      Icon(
+                                        Icons.receipt,
+                                        color: _sortFilter == 'regular'
+                                            ? Colors.blue
+                                            : null,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'Regular Tickets',
+                                        style: TextStyle(
                                           color: _sortFilter == 'regular'
                                               ? Colors.blue
-                                              : null),
-                                      const SizedBox(width: 8),
-                                      Text('Regular Tickets',
-                                          style: TextStyle(
-                                              color: _sortFilter == 'regular'
-                                                  ? Colors.blue
-                                                  : null)),
+                                              : null,
+                                        ),
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -326,16 +354,21 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                                   value: 'sort_loans',
                                   child: Row(
                                     children: [
-                                      Icon(Icons.credit_card,
+                                      Icon(
+                                        Icons.credit_card,
+                                        color: _sortFilter == 'loans'
+                                            ? Colors.blue
+                                            : null,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'Loan Tickets',
+                                        style: TextStyle(
                                           color: _sortFilter == 'loans'
                                               ? Colors.blue
-                                              : null),
-                                      const SizedBox(width: 8),
-                                      Text('Loan Tickets',
-                                          style: TextStyle(
-                                              color: _sortFilter == 'loans'
-                                                  ? Colors.blue
-                                                  : null)),
+                                              : null,
+                                        ),
+                                      ),
                                     ],
                                   ),
                                 ),

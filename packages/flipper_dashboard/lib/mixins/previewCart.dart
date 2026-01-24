@@ -412,10 +412,14 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     double finalSubTotal,
     List<Payment> paymentMethods,
   ) async {
+    final isFullyPaid =
+        (transaction.cashReceived ?? 0) >= (transaction.subTotal ?? 0);
+    final status = isFullyPaid ? COMPLETE : PARKED;
+
     await ProxyService.strategy.updateTransaction(
       transaction: transaction,
-      status: COMPLETE,
-      cashReceived: ProxyService.box.getCashReceived(),
+      status: status,
+      cashReceived: transaction.cashReceived,
       subTotal: finalSubTotal,
       lastTouched: DateTime.now(),
     );
@@ -424,7 +428,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     // Save payment methods
     for (var payment in paymentMethods) {
       await ProxyService.strategy.savePaymentType(
-        singlePaymentOnly: paymentMethods.length == 1,
+        singlePaymentOnly: false, // Support multiple partial payments
         amount: payment.amount,
         transactionId: transaction.id,
         paymentMethod: payment.method,

@@ -626,6 +626,16 @@ class CoreViewModel extends FlipperBaseModel
       String? customerId}) async {
     // Only park if a ticket name is provided.
     if (ticketName.isNotEmpty) {
+      // Reconcile transaction.cashReceived with database records sum to handle unsaved UI edits.
+      final totalRecordsAmount = await ProxyService.strategy
+          .getTotalPaidForTransaction(
+              transactionId: transaction.id,
+              branchId:
+                  transaction.branchId ?? ProxyService.box.getBranchId()!);
+
+      if (transaction.cashReceived != totalRecordsAmount) {
+        transaction.cashReceived = totalRecordsAmount;
+      }
       // If a customer is attached, check if they already have a parked ticket.
       if (customerId != null) {
         final existingParkedTransactions =

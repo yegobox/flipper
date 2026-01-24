@@ -1,7 +1,6 @@
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'transaction_items_provider.g.dart';
 
@@ -15,9 +14,7 @@ Future<List<TransactionItem>> transactionItems(Ref ref,
   return await ProxyService.getStrategy(Strategy.capella).transactionItems(
     transactionId: transactionId,
     doneWithTransaction: doneWithTransaction,
-    branchId: (await ProxyService.strategy
-            .activeBranch(branchId: ProxyService.box.getBranchId()!))
-        .id,
+    branchId: ProxyService.box.getBranchId()!,
     active: true,
     fetchRemote: fetchRemote,
     requestId: requestId,
@@ -34,7 +31,7 @@ Stream<List<TransactionItem>> transactionItemsStream(
   bool doneWithTransaction = false,
   bool forceRealData = true,
 }) {
-  return ProxyService.strategy.transactionItemsStreams(
+  return ProxyService.getStrategy(Strategy.capella).transactionItemsStreams(
     branchId: branchId,
     transactionId: transactionId,
     doneWithTransaction: doneWithTransaction,

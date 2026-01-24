@@ -719,12 +719,6 @@ class PaymentMethodsNotifier extends Notifier<List<Payment>> {
     state = updatedList;
 
     talker.warning("Payment Lenght:${state.length}");
-
-    ProxyService.strategy.savePaymentType(
-        amount: payment.amount,
-        singlePaymentOnly: state.length == 1,
-        paymentMethod: payment.method,
-        transactionId: transactionId);
   }
 
   // Method to remove a payment method

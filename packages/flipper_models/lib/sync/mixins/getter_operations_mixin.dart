@@ -7,7 +7,6 @@ import 'package:flipper_models/sync/interfaces/getter_operations_interface.dart'
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:supabase_models/brick/repository.dart';
-import 'package:flipper_services/constants.dart';
 
 mixin GetterOperationsMixin implements GetterOperationsInterface {
   Repository get repository;
@@ -18,25 +17,6 @@ mixin GetterOperationsMixin implements GetterOperationsInterface {
       {required String businessId, bool fetchOnline = false});
   @override
   FutureOr<Branch?> branch({String? name, String? serverId});
-  @override
-  Future<List<ITransaction>> transactions({
-    DateTime? startDate,
-    bool fetchRemote = false,
-    DateTime? endDate,
-    String? status,
-    String? transactionType,
-    bool isCashOut = false,
-    String? id,
-    FilterType? filterType,
-    bool includeZeroSubTotal = false,
-    String? branchId,
-    bool isExpense = false,
-    bool includePending = false,
-    bool forceRealData = true,
-    bool skipOriginalTransactionCheck = false,
-    List<String>? receiptNumber,
-    String? customerId,
-  });
 
   @override
   Future<Device?> getDevice(

@@ -1,4 +1,5 @@
 // ignore_for_file: unused_result
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
@@ -296,30 +297,29 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   Future<void> _parkExistingPendingTransactions({
     required String excludeId,
   }) async {
-    try {
-      final pending = await ProxyService.strategy.transactions(
-        branchId: ProxyService.box.getBranchId()!,
-        status: PENDING,
-        includeZeroSubTotal: true,
-      );
-      talker.debug('Pending to park: ${pending.length}');
-      for (final tx in pending) {
-        if (tx.id == excludeId) continue;
-        if (tx.subTotal != 0.0) {
-          throw Exception(
-            'Cannot resume ticket while current cart has items. Please complete or clear the current transaction first.',
+    final strategies = [Strategy.capella, Strategy.cloudSync];
+    for (final strategy in strategies) {
+      try {
+        final pending = await ProxyService.getStrategy(strategy).transactions(
+          branchId: ProxyService.box.getBranchId()!,
+          status: PENDING,
+          includeZeroSubTotal: true,
+          agentId: ProxyService.box.getUserId()!,
+        );
+        talker.debug('Pending to park ($strategy): ${pending.length}');
+        for (final tx in pending) {
+          if (tx.id == excludeId) continue;
+          await ProxyService.getStrategy(
+            strategy,
+          ).deleteTransaction(transaction: tx);
+          talker.info(
+            'Deleted pending transaction to clear cart ($strategy): ${tx.id}',
           );
         }
-        await ProxyService.strategy.updateTransaction(
-          transaction: tx,
-          status: PARKED,
-          updatedAt: DateTime.now().toUtc(),
-        );
-        talker.info('Parked zero-total pending: ${tx.id}');
+      } catch (e) {
+        talker.error('Error parking pending for $strategy: $e');
+        // Don't rethrow, just try the next strategy
       }
-    } catch (e) {
-      talker.error('Error parking pending: $e');
-      rethrow;
     }
   }
 
@@ -327,7 +327,11 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   Future<void> _resumeOrder(ITransaction ticket) async {
     try {
       await _parkExistingPendingTransactions(excludeId: ticket.id);
+
+      // Update ticket to belong to current agent and be pending
       ticket.status = PENDING;
+      ticket.agentId = ProxyService.box.getUserId();
+
       await ProxyService.strategy.updateTransaction(
         transaction: ticket,
         status: PENDING,
@@ -721,6 +725,43 @@ class TicketCard extends StatelessWidget {
                   ),
                 ),
 
+              if (ticket.note != null && ticket.note!.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.grey.shade200),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.note_alt_outlined,
+                          size: 14,
+                          color: Colors.grey.shade600,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            ticket.note!,
+                            style: GoogleFonts.inter(
+                              fontSize: 13,
+                              color: Colors.grey.shade800,
+                              height: 1.4,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
               const SizedBox(height: 12),
 
               // Ticket details
@@ -736,6 +777,32 @@ class TicketCard extends StatelessWidget {
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
                           ),
+                        ),
+                        FutureBuilder<double>(
+                          future: ProxyService.getStrategy(Strategy.capella)
+                              .getTotalPaidForTransaction(
+                                transactionId: ticket.id,
+                                branchId: ticket.branchId ?? '',
+                              ),
+                          builder: (context, snapshot) {
+                            if (!snapshot.hasData) {
+                              return const SizedBox.shrink();
+                            }
+                            final totalPaid = snapshot.data!;
+                            final remainingBalance =
+                                (ticket.subTotal ?? 0.0) - totalPaid;
+                            if (remainingBalance > 0) {
+                              return Text(
+                                'Remaining: ${remainingBalance.toCurrencyFormatted()}',
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.redAccent,
+                                ),
+                              );
+                            }
+                            return const SizedBox.shrink();
+                          },
                         ),
                         const SizedBox(height: 4),
                         Text(

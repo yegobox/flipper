@@ -25,6 +25,7 @@ final dashboardTransactionsProvider = StreamProvider<List<ITransaction>>((ref) {
 
   return ProxyService.getStrategy(Strategy.capella).transactionsStream(
     status: COMPLETE,
+    includeParked: true,
     branchId: branchId,
     skipOriginalTransactionCheck: true,
     startDate: startDate,
@@ -58,16 +59,19 @@ Stream<List<ITransaction>> transactionList(
       branchId: ProxyService.box.getBranchId(),
       isCashOut: false,
       status: COMPLETE,
+      includeParked: true,
       forceRealData: forceRealData,
     );
 
     // Use `switchMap` to handle potential changes in dateRangeProvider
     await for (final transactions in stream.switchMap((transactions) {
-      // Log the received data to the console
-      // talker.info("Transaction Data: $transactions");
-
-      // Handle null or empty transactions if needed
-      return Stream.value(transactions);
+      // Filter for COMPLETE or PARKED with payments
+      final filtered = transactions.where((tx) {
+        if (tx.status == COMPLETE) return true;
+        if (tx.status == PARKED && (tx.cashReceived ?? 0) > 0) return true;
+        return false;
+      }).toList();
+      return Stream.value(filtered);
     })) {
       yield transactions;
     }
@@ -240,6 +244,7 @@ Stream<double> netProfitStream(
         forceRealData: forceRealData,
         isCashOut: false, // Only get income transactions
         removeAdjustmentTransactions: true,
+        includeParked: true,
       )
       .asBroadcastStream();
 
@@ -272,7 +277,11 @@ Stream<double> netProfitStream(
     // Calculate total from filtered income transactions (revenue)
     final totalIncome = filteredIncome.fold<double>(
       0.0,
-      (sum, transaction) => sum + (transaction.subTotal ?? 0.0),
+      (sum, transaction) =>
+          sum +
+          (transaction.status == COMPLETE
+              ? (transaction.subTotal ?? 0.0)
+              : (transaction.cashReceived ?? 0.0)),
     );
 
     // Calculate total from expense transactions
@@ -349,6 +358,7 @@ Stream<double> grossProfitStream(
     branchId: branchId,
     isCashOut: false, // Only get income transactions
     removeAdjustmentTransactions: true,
+    includeParked: true,
   );
 
   await for (final incomeTransactions in incomeStream) {
@@ -360,7 +370,11 @@ Stream<double> grossProfitStream(
     // Calculate total from filtered income transactions
     final totalIncome = filteredIncome.fold<double>(
       0.0,
-      (sum, tx) => sum + (tx.subTotal ?? 0.0),
+      (sum, tx) =>
+          sum +
+          (tx.status == COMPLETE
+              ? (tx.subTotal ?? 0.0)
+              : (tx.cashReceived ?? 0.0)),
     );
 
     yield totalIncome;
@@ -388,6 +402,7 @@ Stream<double> totalIncomeStream(
     branchId: branchId,
     skipOriginalTransactionCheck: false,
     removeAdjustmentTransactions: true,
+    includeParked: true,
   );
 
   await for (final transactions in transactionsStream) {
@@ -398,9 +413,23 @@ Stream<double> totalIncomeStream(
     // Calculate total income only from non-expense transactions
     final totalIncome = incomeTransactions.fold<double>(
       0.0,
-      (sum, tx) => sum + (tx.subTotal ?? 0.0),
+      (sum, tx) =>
+          sum +
+          (tx.status == COMPLETE
+              ? (tx.subTotal ?? 0.0)
+              : (tx.cashReceived ?? 0.0)),
     );
 
     yield totalIncome;
   }
+}
+
+@riverpod
+Stream<ITransaction?> transactionById(Ref ref, String transactionId) {
+  return ProxyService.getStrategy(Strategy.capella)
+      .transactionsStream(
+          id: transactionId,
+          skipOriginalTransactionCheck: true,
+          removeAdjustmentTransactions: true)
+      .map((list) => list.firstOrNull);
 }
