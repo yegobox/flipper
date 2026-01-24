@@ -14,6 +14,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper_ui/dialogs/ResumeTicketDialog.dart';
 import '../models/ticket_status.dart';
 // import 'ticket_tile.dart';
 
@@ -205,92 +206,33 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     BuildContext context,
     ITransaction ticket,
   ) async {
-    final currentStatus = TicketStatusExtension.fromString(
-      ticket.status ?? PARKED,
-    );
-    final selectedStatus = await showDialog<TicketStatus?>(
+    await showResumeTicketDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(
-          'Update Ticket #${ticket.id.substring(0, 6).toUpperCase()}',
-          style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w600),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _statusBadge(currentStatus.displayName, currentStatus.color),
-            const SizedBox(height: 16),
-            const Text(
-              'Select new status:',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-            ),
-            const SizedBox(height: 8),
-            SizedBox(
-              width: double.maxFinite,
-              child: Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: TicketStatus.values
-                    .where((s) => s != currentStatus)
-                    .map(
-                      (status) => FilterChip(
-                        label: Text(status.displayName),
-                        labelStyle: TextStyle(
-                          color: status.color,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        selectedColor: status.color.withValues(alpha: 0.1),
-                        side: BorderSide(color: status.color, width: 1),
-                        selected: false,
-                        onSelected: (_) => Navigator.of(context).pop(status),
-                      ),
-                    )
-                    .toList(),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(null),
-            child: const Text('Cancel'),
-          ),
-          TextButton.icon(
-            onPressed: () {
-              Navigator.of(context).pop(null);
-              _resumeOrder(ticket);
-            },
-            icon: const Icon(Icons.play_arrow, size: 16),
-            label: const Text('Resume Order'),
-            style: TextButton.styleFrom(foregroundColor: Colors.green),
-          ),
-        ],
-      ),
+      ticket: ticket,
+      onResume: (t) => _resumeOrder(t),
+      onStatusChange: (newStatus) async {
+        try {
+          await ProxyService.strategy.updateTransaction(
+            transaction: ticket,
+            status: newStatus,
+            updatedAt: DateTime.now().toUtc(),
+          );
+          if (mounted) setState(() {});
+          showCustomSnackBarUtil(
+            context,
+            'Ticket status updated successfully',
+            backgroundColor: Colors.green,
+          );
+        } catch (e) {
+          talker.error('Failed to update status: $e');
+          showCustomSnackBarUtil(
+            context,
+            'Failed to update status',
+            backgroundColor: Colors.red,
+          );
+        }
+      },
     );
-
-    if (selectedStatus != null) {
-      try {
-        await ProxyService.strategy.updateTransaction(
-          transaction: ticket,
-          status: selectedStatus.statusValue,
-          updatedAt: DateTime.now().toUtc(),
-        );
-        if (mounted) setState(() {});
-        showCustomSnackBarUtil(
-          context,
-          'Ticket status updated to ${selectedStatus.displayName}',
-          backgroundColor: selectedStatus.color,
-        );
-      } catch (e) {
-        talker.error('Failed to update status: $e');
-        showCustomSnackBarUtil(
-          context,
-          'Failed to update status',
-          backgroundColor: Colors.red,
-        );
-      }
-    }
   }
 
   /// Park all pending except the one we're resuming
@@ -561,26 +503,6 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           talker.error('Ticket stream error: $e', st);
           throw e;
         });
-  }
-
-  /// Reusable status badge (like QuickBooks tags)
-  Widget _statusBadge(String label, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: .15),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color, width: 1),
-      ),
-      child: Text(
-        label,
-        style: GoogleFonts.inter(
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
-          color: color,
-        ),
-      ),
-    );
   }
 }
 
