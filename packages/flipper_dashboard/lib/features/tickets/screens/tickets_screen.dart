@@ -135,6 +135,17 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                   child: Consumer(
                     builder: (context, ref, _) {
                       final transaction = widget.transaction;
+
+                      // Don't show "Create Ticket" button if this is a resumed ticket
+                      // (resumed tickets already have a ticketName)
+                      final isResumedTicket =
+                          transaction?.ticketName != null &&
+                          transaction!.ticketName!.isNotEmpty;
+
+                      if (isResumedTicket) {
+                        return const SizedBox.shrink();
+                      }
+
                       final itemCount = transaction != null
                           ? ref
                                 .watch(
@@ -210,6 +221,7 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                   ),
                 ),
               ),
+
               SizedBox(
                 height: isMobile ? 16 : 24,
               ).eligibleToSeeIfYouAre(ref, [UserType.ADMIN]),
