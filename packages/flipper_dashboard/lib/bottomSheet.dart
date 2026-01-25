@@ -132,25 +132,51 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
   }
 
   void _initializePaymentWithRemainder() {
-    final payments = ref.read(oldProvider.paymentMethodsProvider);
-    if (payments.isEmpty) {
-      final transaction = widget.transaction;
-      final total = transaction.subTotal ?? 0.0;
-      final paid = transaction.cashReceived ?? 0.0;
-      final remainder = total - paid;
+    final transaction = widget.transaction;
+    final total = transaction.subTotal ?? 0.0;
+    final paid = transaction.cashReceived ?? 0.0;
+    final remainder = total - paid;
+    // Epsilon check for float precision.
+    if (remainder <= 0.01) return;
 
-      // Only preemptively add a payment method if there is a remainder to pay.
-      // Epsilon check for float precision.
-      if (remainder > 0.01) {
+    final payments = ref.read(oldProvider.paymentMethodsProvider);
+
+    if (payments.isEmpty) {
+      ref
+          .read(oldProvider.paymentMethodsProvider.notifier)
+          .addPaymentMethod(
+            oldProvider.Payment(
+              amount: remainder,
+              method: "Cash",
+              controller: TextEditingController(text: remainder.toString()),
+            ),
+          );
+    } else {
+      // Logic adapted from QuickSellingView.dart:
+      // If the first payment is 0 or matches the full total (default initialization),
+      // update it to the true remainder for current session.
+      final firstPayment = payments[0];
+      if (firstPayment.amount == 0 ||
+          (firstPayment.amount - total).abs() < 0.01) {
+        // Update the model to remainder
         ref
             .read(oldProvider.paymentMethodsProvider.notifier)
-            .addPaymentMethod(
+            .updatePaymentMethod(
+              0,
               oldProvider.Payment(
                 amount: remainder,
-                method: "Cash",
-                controller: TextEditingController(text: remainder.toString()),
+                method: firstPayment.method,
+                id: firstPayment.id,
+                controller: firstPayment.controller,
               ),
+              transactionId: widget.transactionIdInt,
             );
+
+        // Also update its controller text if it matches full total or is empty
+        if (firstPayment.controller.text.isEmpty ||
+            double.tryParse(firstPayment.controller.text) == total) {
+          firstPayment.controller.text = remainder.toString();
+        }
       }
     }
   }

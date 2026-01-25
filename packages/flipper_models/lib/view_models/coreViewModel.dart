@@ -628,11 +628,12 @@ class CoreViewModel extends FlipperBaseModel
     if (ticketName.isNotEmpty) {
       // Reconcile transaction.cashReceived with database records sum to handle unsaved UI edits.
       try {
-        final totalRecordsAmount = await ProxyService.strategy
-            .getTotalPaidForTransaction(
-                transactionId: transaction.id,
-                branchId:
-                    transaction.branchId ?? ProxyService.box.getBranchId()!);
+        final totalRecordsAmount =
+            await ProxyService.getStrategy(Strategy.capella)
+                .getTotalPaidForTransaction(
+                    transactionId: transaction.id,
+                    branchId: transaction.branchId ??
+                        ProxyService.box.getBranchId()!);
 
         // Only update cashReceived if getTotalPaidForTransaction succeeded (non-null)
         if (totalRecordsAmount != null &&

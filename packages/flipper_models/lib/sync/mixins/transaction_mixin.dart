@@ -1222,7 +1222,6 @@ mixin TransactionMixin implements TransactionInterface {
       final paymentRecords = await repository.get<TransactionPaymentRecord>(
         query: Query(where: [
           Where('transactionId').isExactly(transactionId),
-          Where('branchId').isExactly(branchId),
         ]),
         policy: OfflineFirstGetPolicy.localOnly,
       );

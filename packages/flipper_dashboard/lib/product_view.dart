@@ -303,19 +303,24 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               // Showing X–Y of Z results
-              Builder(
-                builder: (context) {
-                  final start = loadedCount == 0 ? 0 : (_currentPage * ipp) + 1;
-                  final total = notifier.totalCount ?? loadedCount;
-                  final end = ((_currentPage + 1) * ipp) > total
-                      ? total
-                      : ((_currentPage + 1) * ipp);
-                  final totalText = total.toString();
-                  return Text(
-                    'Showing $start–$end of $totalText results',
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  );
-                },
+              Expanded(
+                child: Builder(
+                  builder: (context) {
+                    final start = loadedCount == 0
+                        ? 0
+                        : (_currentPage * ipp) + 1;
+                    final total = notifier.totalCount ?? loadedCount;
+                    final end = ((_currentPage + 1) * ipp) > total
+                        ? total
+                        : ((_currentPage + 1) * ipp);
+                    final totalText = total.toString();
+                    return Text(
+                      'Showing $start–$end of $totalText results',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                      overflow: TextOverflow.ellipsis,
+                    );
+                  },
+                ),
               ),
               // Sorting dropdown
               _buildSortingDropdown(context),
