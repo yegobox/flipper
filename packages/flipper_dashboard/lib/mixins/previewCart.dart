@@ -344,6 +344,10 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                 (Platform.isAndroid || Platform.isIOS || Platform.isMacOS),
           );
 
+      final String? ticketName =
+          customer?.custNm ??
+          (mounted ? ref.read(customerNameControllerProvider).text : null);
+
       if (isDigitalPaymentEnabled && !immediateCompletion) {
         // Process digital payment only if immediateCompletion is false
         await _processDigitalPayment(
@@ -357,6 +361,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           paymentType: paymentType,
           onPaymentConfirmed: onPaymentConfirmed,
           onPaymentFailed: onPaymentFailed,
+          ticketName: ticketName,
         );
         // Return true to indicate we're waiting for payment confirmation
         // Bottom sheet should NOT close yet
@@ -370,7 +375,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           paymentMethods: paymentMethods,
           discount: discount,
           paymentType: paymentType,
-
+          ticketName: ticketName,
           completeTransaction: () async {
             // Update the local transaction object with the payment amount we just processed.
             // This ensures markTransactionAsCompleted sees the correct total paid, avoiding race conditions
@@ -379,9 +384,10 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
             // Show success confirmation before completing
             await markTransactionAsCompleted(
-              transaction,
-              finalSubTotal,
-              paymentMethods,
+              transaction: transaction,
+              finalSubTotal: finalSubTotal,
+              paymentMethods: paymentMethods,
+              ticketName: ticketName,
             );
             if (mounted && context.mounted) {
               showCustomSnackBarUtil(
@@ -433,11 +439,12 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     }
   }
 
-  Future<void> markTransactionAsCompleted(
-    ITransaction transaction,
-    double finalSubTotal,
-    List<Payment> paymentMethods,
-  ) async {
+  Future<void> markTransactionAsCompleted({
+    required ITransaction transaction,
+    required double finalSubTotal,
+    required List<Payment> paymentMethods,
+    String? ticketName,
+  }) async {
     // Fetch fresh transaction to ensure we have the accumulated cashReceived
     // from the database, which was updated in collectPayment.
     // However, also fallback to the local transaction object's cashReceived if it's greater,
@@ -462,6 +469,10 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       cashReceived: effectiveCashReceived,
       subTotal: finalSubTotal,
       lastTouched: DateTime.now(),
+      ticketName:
+          (transaction.ticketName == null || transaction.ticketName!.isEmpty)
+          ? ticketName
+          : transaction.ticketName,
     );
     transaction.subTotal = finalSubTotal; // Update the local object's subTotal
     transaction.lastTouched = DateTime.now();
@@ -519,6 +530,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     Function? onPaymentConfirmed,
     Function(String)? onPaymentFailed,
     required List<Payment> paymentMethods,
+    String? ticketName,
   }) async {
     try {
       // customer.telNo from database already has country code (e.g., "+250783054874")
@@ -658,6 +670,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                   discount: discount,
                   paymentMethods: paymentMethods,
                   paymentType: paymentType,
+                  ticketName: ticketName,
                   completeTransaction: () {
                     // For digital payments, don't call completeTransaction yet
                     // We'll call it after this succeeds
@@ -729,6 +742,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     required String paymentType,
     required Function completeTransaction,
     required List<Payment> paymentMethods,
+    String? ticketName,
   }) async {
     try {
       // Check if widget is still mounted before using ref
