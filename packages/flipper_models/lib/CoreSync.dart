@@ -2151,7 +2151,12 @@ class CoreSync extends AiStrategyImpl
           transaction.lastPaymentDate = DateTime.now().toUtc();
           transaction.lastPaymentAmount = cashReceived;
         } else {
-          transaction.cashReceived = cashReceived;
+          // Accumulate cashReceived for non-loan transactions as well
+          // to correctly handle partial payments and subsequent full payments
+          transaction.cashReceived =
+              (transaction.cashReceived ?? 0.0) + cashReceived;
+          transaction.remainingBalance =
+              (transaction.subTotal ?? 0.0) - (transaction.cashReceived ?? 0.0);
         }
 
         transaction.transactionType = transactionType;

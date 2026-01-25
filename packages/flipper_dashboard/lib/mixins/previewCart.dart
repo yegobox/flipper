@@ -319,6 +319,9 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         (sum, item) => sum + (item.price * item.qty),
       );
 
+      // Ensure transaction subTotal is updated for correct isFullyPaid check downstream
+      transaction.subTotal = finalSubTotal;
+
       final amount = double.tryParse(receivedAmountController.text) ?? 0;
       final discount = double.tryParse(discountController.text) ?? 0;
 
@@ -369,6 +372,11 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           paymentType: paymentType,
 
           completeTransaction: () async {
+            // Update the local transaction object with the payment amount we just processed.
+            // This ensures markTransactionAsCompleted sees the correct total paid, avoiding race conditions
+            // with the database fetch.
+            transaction.cashReceived = (transaction.cashReceived ?? 0) + amount;
+
             // Show success confirmation before completing
             await markTransactionAsCompleted(
               transaction,
@@ -378,7 +386,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
             if (mounted && context.mounted) {
               showCustomSnackBarUtil(
                 context,
-                "Payment Successful — Amount: ${transaction.subTotal!.toCurrencyFormatted()}",
+                "Payment Successful",
                 backgroundColor: Colors.green,
                 showCloseButton: true,
               );
@@ -430,14 +438,28 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     double finalSubTotal,
     List<Payment> paymentMethods,
   ) async {
-    final isFullyPaid =
-        (transaction.cashReceived ?? 0) >= (transaction.subTotal ?? 0);
+    // Fetch fresh transaction to ensure we have the accumulated cashReceived
+    // from the database, which was updated in collectPayment.
+    // However, also fallback to the local transaction object's cashReceived if it's greater,
+    // to handle cases where the DB update hasn't propagated or returned yet.
+    final freshTransaction = await ProxyService.strategy.getTransaction(
+      id: transaction.id,
+      branchId: ProxyService.box.getBranchId()!,
+    );
+
+    final dbCashReceived = freshTransaction?.cashReceived ?? 0;
+    final localCashReceived = transaction.cashReceived ?? 0;
+    final effectiveCashReceived = dbCashReceived > localCashReceived
+        ? dbCashReceived
+        : localCashReceived;
+
+    final isFullyPaid = effectiveCashReceived >= (transaction.subTotal ?? 0);
     final status = isFullyPaid ? COMPLETE : PARKED;
 
     await ProxyService.strategy.updateTransaction(
       transaction: transaction,
       status: status,
-      cashReceived: transaction.cashReceived,
+      cashReceived: effectiveCashReceived,
       subTotal: finalSubTotal,
       lastTouched: DateTime.now(),
     );
