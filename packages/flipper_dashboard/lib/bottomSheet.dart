@@ -6,6 +6,7 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
+import 'package:flipper_ui/dialogs/SharedTicketDialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
@@ -84,6 +85,7 @@ class BottomSheets {
                       padding: const EdgeInsets.all(20.0),
                       child: _BottomSheetContent(
                         transactionIdInt: transaction.id,
+                        transaction: transaction,
                         doneDelete: doneDelete,
                         onCharge: onCharge,
                       ),
@@ -102,10 +104,12 @@ class BottomSheets {
 class _BottomSheetContent extends ConsumerStatefulWidget {
   const _BottomSheetContent({
     required this.transactionIdInt,
+    required this.transaction,
     required this.doneDelete,
     required this.onCharge,
   });
   final String transactionIdInt;
+  final ITransaction transaction;
   final Function doneDelete;
   final Function onCharge;
 
@@ -122,6 +126,41 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _initializePaymentWithRemainder();
+    });
+  }
+
+  void _initializePaymentWithRemainder() {
+    final payments = ref.read(oldProvider.paymentMethodsProvider);
+    if (payments.isEmpty) {
+      final transaction = widget.transaction;
+      final total = transaction.subTotal ?? 0.0;
+      final paid = transaction.cashReceived ?? 0.0;
+      final remainder = total - paid;
+
+      // Only preemptively add a payment method if there is a remainder to pay.
+      // Epsilon check for float precision.
+      if (remainder > 0.01) {
+        ref
+            .read(oldProvider.paymentMethodsProvider.notifier)
+            .addPaymentMethod(
+              oldProvider.Payment(
+                amount: remainder,
+                method: "Cash",
+                controller: TextEditingController(text: remainder.toString()),
+              ),
+            );
+      }
+    }
+  }
+
+  Future<void> _showParkDialog(BuildContext context) async {
+    await showSharedTicketDialog(
+      context: context,
+      transaction: widget.transaction,
+      model: CoreViewModel(),
+    );
   }
 
   static Future<void> edit({
@@ -954,6 +993,25 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
               ],
             ),
             SizedBox(height: 20),
+            // Park Ticket Button - shown when items exist
+            if (items.isNotEmpty)
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.only(bottom: 12),
+                child: OutlinedButton.icon(
+                  onPressed: () => _showParkDialog(context),
+                  icon: Icon(Icons.save_alt),
+                  label: Text('Save Ticket (Park)'),
+                  style: OutlinedButton.styleFrom(
+                    padding: EdgeInsets.symmetric(vertical: 16),
+                    side: BorderSide(color: Colors.blue),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    foregroundColor: Colors.blue,
+                  ),
+                ),
+              ),
             // Conditional button layout based on digital payment status
             if (isDigitalPaymentEnabled) ...[
               // Two-button layout when digital payment is enabled
@@ -1027,6 +1085,7 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
               // Single button when digital payment is disabled
               FlipperButton(
                 height: 56,
+                width: double.infinity,
                 color: Colors.green,
                 text: remainingBalance > 0.01
                     ? 'Record Payment'
