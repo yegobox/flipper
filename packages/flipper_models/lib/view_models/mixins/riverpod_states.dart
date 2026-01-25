@@ -329,11 +329,18 @@ final transactionTotalPaidProvider = FutureProvider.autoDispose
   if (transactionId.isEmpty) return 0.0;
   final branchId = ProxyService.box.getBranchId();
   if (branchId == null) return 0.0;
-  return await ProxyService.getStrategy(Strategy.capella)
-      .getTotalPaidForTransaction(
-    transactionId: transactionId,
-    branchId: branchId,
-  );
+
+  try {
+    final totalPaid = await ProxyService.getStrategy(Strategy.capella)
+        .getTotalPaidForTransaction(
+      transactionId: transactionId,
+      branchId: branchId,
+    );
+    return totalPaid ?? 0.0;
+  } catch (e) {
+    talker.error('Error getting total paid for transaction: $e');
+    return 0.0;
+  }
 });
 
 final selectImportItemsProvider = FutureProvider.autoDispose

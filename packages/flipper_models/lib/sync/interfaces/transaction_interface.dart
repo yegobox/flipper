@@ -196,7 +196,8 @@ abstract class TransactionInterface {
   });
 
   /// Get total amount paid for a transaction by summing all payment records
-  Future<double> getTotalPaidForTransaction({
+  /// Returns null if there's an error fetching payment records
+  Future<double?> getTotalPaidForTransaction({
     required String transactionId,
     required String branchId,
   });

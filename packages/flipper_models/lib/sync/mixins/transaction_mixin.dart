@@ -1198,10 +1198,11 @@ mixin TransactionMixin implements TransactionInterface {
     to.subTotal = newTotal;
 
     // Recalculate cashReceived for the 'to' transaction
-    to.cashReceived = await getTotalPaidForTransaction(
+    final totalPaid = await getTotalPaidForTransaction(
       transactionId: to.id,
       branchId: to.branchId!,
     );
+    to.cashReceived = totalPaid ?? 0.0;
 
     final now = DateTime.now();
     to.updatedAt = now;
@@ -1213,7 +1214,7 @@ mixin TransactionMixin implements TransactionInterface {
   }
 
   @override
-  Future<double> getTotalPaidForTransaction({
+  Future<double?> getTotalPaidForTransaction({
     required String transactionId,
     required String branchId,
   }) async {
@@ -1236,7 +1237,7 @@ mixin TransactionMixin implements TransactionInterface {
       );
     } catch (e, s) {
       talker.error('Error getting total paid for transaction: $e', s);
-      return 0.0;
+      throw Exception('Failed to get total paid: $e');
     }
   }
 

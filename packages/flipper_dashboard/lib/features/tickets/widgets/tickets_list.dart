@@ -700,7 +700,7 @@ class TicketCard extends StatelessWidget {
                             fontWeight: FontWeight.w500,
                           ),
                         ),
-                        FutureBuilder<double>(
+                        FutureBuilder<double?>(
                           future: ProxyService.getStrategy(Strategy.capella)
                               .getTotalPaidForTransaction(
                                 transactionId: ticket.id,

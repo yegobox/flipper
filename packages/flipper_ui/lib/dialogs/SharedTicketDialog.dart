@@ -13,11 +13,13 @@ Future<void> showSharedTicketDialog({
   required ITransaction transaction,
   required CoreViewModel model,
 }) {
+  final formKey = GlobalKey<SharedTicketFormState>();
+
   return WoltModalSheet.show(
     context: context,
     pageListBuilder: (context) {
       return [
-        _buildSharedTicketPage(context, transaction, model),
+        _buildSharedTicketPage(context, transaction, model, formKey),
       ];
     },
     modalTypeBuilder: (context) => WoltModalType.dialog(),
@@ -29,9 +31,8 @@ SliverWoltModalSheetPage _buildSharedTicketPage(
   BuildContext context,
   ITransaction transaction,
   CoreViewModel model,
+  GlobalKey<SharedTicketFormState> formKey,
 ) {
-  final formKey = GlobalKey<SharedTicketFormState>();
-
   return SliverWoltModalSheetPage(
     backgroundColor: Colors.white,
     pageTitle: Container(
@@ -260,6 +261,8 @@ class SharedTicketFormState extends State<SharedTicketForm> {
   DateTime? _dueDate;
   Customer? _selectedCustomer;
   bool _isSaving = false;
+  List<Customer> _customers = [];
+  bool _loadingCustomers = true;
 
   @override
   void initState() {
@@ -269,6 +272,38 @@ class SharedTicketFormState extends State<SharedTicketForm> {
     _noteController = TextEditingController(text: widget.transaction.note);
     _isLoan = widget.transaction.isLoan ?? false;
     _dueDate = widget.transaction.dueDate;
+    _loadCustomers();
+  }
+
+  Future<void> _loadCustomers() async {
+    try {
+      final customers =
+          await ProxyService.getStrategy(Strategy.capella).customers(
+        branchId: ProxyService.box.getBranchId() ?? '00',
+      );
+      if (mounted) {
+        setState(() {
+          _customers = customers;
+          _loadingCustomers = false;
+          // Resolve selected customer if transaction has customerId
+          if (_selectedCustomer == null &&
+              widget.transaction.customerId != null) {
+            try {
+              _selectedCustomer = customers
+                  .firstWhere((c) => c.id == widget.transaction.customerId);
+            } catch (_) {
+              // Customer not found in list
+            }
+          }
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _loadingCustomers = false;
+        });
+      }
+    }
   }
 
   @override
@@ -286,15 +321,32 @@ class SharedTicketFormState extends State<SharedTicketForm> {
         widget.transaction.isLoan = _isLoan;
         widget.transaction.dueDate = _isLoan ? _dueDate?.toUtc() : null;
 
-        await widget.model.saveTicket(
-          ticketName: _ticketNameController.text,
-          transaction: widget.transaction,
-          ticketNote: _noteController.text,
-          customerId: _selectedCustomer?.id,
-        );
-        widget.onSuccess?.call();
-        if (mounted && widget.onSuccess == null) {
-          Navigator.of(context).pop();
+        try {
+          await widget.model.saveTicket(
+            ticketName: _ticketNameController.text,
+            transaction: widget.transaction,
+            ticketNote: _noteController.text,
+            customerId: _selectedCustomer?.id,
+          );
+          // Only proceed on success
+          widget.onSuccess?.call();
+          if (mounted && widget.onSuccess == null) {
+            Navigator.of(context).pop();
+          }
+        } catch (e) {
+          // Handle saveTicket errors
+          if (mounted) {
+            setState(() => _isSaving = false);
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Failed to save ticket: ${e.toString()}'),
+                backgroundColor: Colors.red,
+                behavior: SnackBarBehavior.floating,
+              ),
+            );
+          }
+          // Don't call onSuccess or pop on error
+          return;
         }
       } finally {
         if (mounted) setState(() => _isSaving = false);
@@ -371,83 +423,72 @@ class SharedTicketFormState extends State<SharedTicketForm> {
             maxLines: 2,
           ),
           const SizedBox(height: 20),
-          FutureBuilder<List<Customer>>(
-            future: Future.value(
-              ProxyService.getStrategy(Strategy.capella).customers(
-                branchId: ProxyService.box.getBranchId() ?? '00',
-              ),
-            ),
-            builder: (context, snapshot) {
-              final customers = snapshot.data ?? [];
-              if (_selectedCustomer == null &&
-                  widget.transaction.customerId != null) {
-                try {
-                  _selectedCustomer = customers
-                      .firstWhere((c) => c.id == widget.transaction.customerId);
-                } catch (_) {}
-              }
-
-              return DropdownSearch<Customer>(
-                items: (filter, loadProps) => customers
-                    .where((c) =>
-                        c.custNm
-                            ?.toLowerCase()
-                            .contains(filter.toLowerCase()) ??
-                        false)
-                    .toList(),
-                compareFn: (i, s) => i.id == s.id,
-                selectedItem: _selectedCustomer,
-                decoratorProps: DropDownDecoratorProps(
-                  decoration: _buildInputDecoration(
-                      'Attach Customer', Icons.person_outline_rounded),
-                ),
-                enabled: !_isSaving,
-                onChanged: (Customer? newValue) {
-                  setState(() => _selectedCustomer = newValue);
-                },
-                popupProps: PopupProps.menu(
-                  showSearchBox: true,
-                  searchFieldProps: TextFieldProps(
+          _loadingCustomers
+              ? const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: CircularProgressIndicator(),
+                  ),
+                )
+              : DropdownSearch<Customer>(
+                  items: (filter, loadProps) => _customers
+                      .where((c) =>
+                          c.custNm
+                              ?.toLowerCase()
+                              .contains(filter.toLowerCase()) ??
+                          false)
+                      .toList(),
+                  compareFn: (i, s) => i.id == s.id,
+                  selectedItem: _selectedCustomer,
+                  decoratorProps: DropDownDecoratorProps(
                     decoration: _buildInputDecoration(
-                        'Search customers...', Icons.search),
+                        'Attach Customer', Icons.person_outline_rounded),
                   ),
-                  menuProps: MenuProps(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  itemBuilder: (context, item, isDisabled, isSelected) {
-                    return Container(
-                      margin: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: isSelected
-                            ? const Color(0xFF01B8E4).withOpacity(0.05)
-                            : null,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: ListTile(
-                        selected: isSelected,
-                        title: Text(item.custNm ?? 'Unknown',
-                            style: GoogleFonts.poppins(
-                                fontWeight: isSelected
-                                    ? FontWeight.w600
-                                    : FontWeight.w400)),
-                        subtitle: Text(item.telNo ?? '',
-                            style: GoogleFonts.poppins(fontSize: 12)),
-                        leading: CircleAvatar(
-                          backgroundColor:
-                              const Color(0xFF01B8E4).withOpacity(0.1),
-                          child: Text((item.custNm ?? 'U')[0].toUpperCase(),
-                              style: const TextStyle(
-                                  color: Color(0xFF01B8E4), fontSize: 14)),
-                        ),
-                      ),
-                    );
+                  enabled: !_isSaving,
+                  onChanged: (Customer? newValue) {
+                    setState(() => _selectedCustomer = newValue);
                   },
+                  popupProps: PopupProps.menu(
+                    showSearchBox: true,
+                    searchFieldProps: TextFieldProps(
+                      decoration: _buildInputDecoration(
+                          'Search customers...', Icons.search),
+                    ),
+                    menuProps: MenuProps(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    itemBuilder: (context, item, isDisabled, isSelected) {
+                      return Container(
+                        margin: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? const Color(0xFF01B8E4).withOpacity(0.05)
+                              : null,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: ListTile(
+                          selected: isSelected,
+                          title: Text(item.custNm ?? 'Unknown',
+                              style: GoogleFonts.poppins(
+                                  fontWeight: isSelected
+                                      ? FontWeight.w600
+                                      : FontWeight.w400)),
+                          subtitle: Text(item.telNo ?? '',
+                              style: GoogleFonts.poppins(fontSize: 12)),
+                          leading: CircleAvatar(
+                            backgroundColor:
+                                const Color(0xFF01B8E4).withOpacity(0.1),
+                            child: Text((item.custNm ?? 'U')[0].toUpperCase(),
+                                style: const TextStyle(
+                                    color: Color(0xFF01B8E4), fontSize: 14)),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  itemAsString: (Customer c) => c.custNm ?? 'Unknown',
                 ),
-                itemAsString: (Customer c) => c.custNm ?? 'Unknown',
-              );
-            },
-          ),
           const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.all(4),

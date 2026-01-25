@@ -790,7 +790,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
   }
 
   @override
-  Future<double> getTotalPaidForTransaction({
+  Future<double?> getTotalPaidForTransaction({
     required String transactionId,
     required String branchId,
   }) async {
@@ -798,7 +798,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       final ditto = dittoService.dittoInstance;
       if (ditto == null) {
         talker.error('Ditto not initialized for getTotalPaidForTransaction');
-        return 0.0;
+        throw Exception('Ditto not initialized for getTotalPaidForTransaction');
       }
 
       final query =
@@ -829,7 +829,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       return total;
     } catch (e, s) {
       talker.error('Error getting total paid for transaction: $e', s);
-      return 0.0;
+      throw Exception('Failed to get total paid: $e');
     }
   }
 

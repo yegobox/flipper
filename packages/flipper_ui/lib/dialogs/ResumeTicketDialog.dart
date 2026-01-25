@@ -247,7 +247,7 @@ class _ResumeTicketSummaryState extends ConsumerState<ResumeTicketSummary> {
           spacing: 8,
           runSpacing: 8,
           children: [
-            _buildStatusChip(context, 'Waiting', PARKED, Colors.purple),
+            _buildStatusChip(context, 'Waiting', WAITING, Colors.purple),
             _buildStatusChip(context, 'In Progress', IN_PROGRESS, Colors.blue),
             _buildStatusChip(context, 'Completed', COMPLETE, Colors.green),
           ],
