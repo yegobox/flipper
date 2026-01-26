@@ -92,10 +92,11 @@ mixin TransactionComputationMixin {
                 amount: displayRemainder,
                 method: payments[0].method,
                 id: payments[0].id,
-                controller: payments[0].controller,
+                controller: TextEditingController(
+                  text: displayRemainder.toString(),
+                ),
               ),
             );
-        payments[0].controller.text = displayRemainder.toString();
       }
     }
   }
@@ -134,23 +135,25 @@ mixin TransactionComputationMixin {
       // update it to the true remainder for this session.
       if (firstPayment.amount == 0 ||
           (firstPayment.amount - (transaction.subTotal ?? 0.0)).abs() < 0.01) {
+        // Check if we need to update the controller text
+        bool shouldUpdateControllerText =
+            firstPayment.controller.text.isEmpty ||
+            double.tryParse(firstPayment.controller.text) ==
+                (transaction.subTotal ?? 0.0);
+
+        // Create a new Payment with updated amount and potentially updated controller
+        Payment updatedPayment = Payment(
+          amount: displayRemainder,
+          method: firstPayment.method,
+          id: firstPayment.id,
+          controller: shouldUpdateControllerText
+              ? TextEditingController(text: displayRemainder.toString())
+              : firstPayment.controller,
+        );
+
         ref
             .read(paymentMethodsProvider.notifier)
-            .updatePaymentMethod(
-              0,
-              Payment(
-                amount: displayRemainder,
-                method: firstPayment.method,
-                id: firstPayment.id,
-                controller: firstPayment.controller,
-              ),
-            );
-        // Also update its controller text if it matches full total or is empty
-        if (firstPayment.controller.text.isEmpty ||
-            double.tryParse(firstPayment.controller.text) ==
-                (transaction.subTotal ?? 0.0)) {
-          firstPayment.controller.text = displayRemainder.toString();
-        }
+            .updatePaymentMethod(0, updatedPayment);
       }
     }
   }
