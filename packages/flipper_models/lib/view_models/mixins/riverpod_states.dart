@@ -732,7 +732,7 @@ class PaymentMethodsNotifier extends Notifier<List<Payment>> {
   }
 
   void updatePaymentMethod(int index, Payment payment,
-      {required String transactionId}) {
+      {String? transactionId}) {
     final updatedList = List<Payment>.from(state);
     updatedList[index] = payment;
     state = updatedList;

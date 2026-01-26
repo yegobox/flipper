@@ -69,15 +69,22 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
     if (totalPayable == 0) return;
 
     if (payments.isEmpty) {
+      final transaction = ref
+          .read(transactionByIdProvider(transactionId))
+          .value;
+      final initialAmount = transaction != null
+          ? calculateCurrentRemainder(transaction, totalPayable)
+          : totalPayable;
+
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ref
             .read(paymentMethodsProvider.notifier)
             .addPaymentMethod(
               Payment(
-                amount: totalPayable,
+                amount: initialAmount,
                 method: "Cash",
                 controller: TextEditingController(
-                  text: totalPayable.toString(),
+                  text: initialAmount.toString(),
                 ),
               ),
             );

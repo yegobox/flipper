@@ -685,6 +685,33 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
     // Watch payment methods
     final payments = ref.watch(oldProvider.paymentMethodsProvider);
 
+    // Listen to transaction for pre-filling (matches QuickSellingView behavior)
+    ref.listen<AsyncValue<ITransaction?>>(
+      transactionByIdProvider(widget.transactionIdInt.toString()),
+      (previous, next) {
+        if (next.hasValue && next.value != null) {
+          final items = ref
+              .read(
+                transactionItemsStreamProvider(
+                  transactionId: widget.transactionIdInt,
+                  branchId: ProxyService.box.getBranchId()!,
+                ),
+              )
+              .value;
+          if (items != null) {
+            standardizedPaymentInitialization(
+              ref: ref,
+              transaction: next.value!,
+              total: calculateTransactionTotal(
+                items: items,
+                transaction: next.value,
+              ),
+            );
+          }
+        }
+      },
+    );
+
     double calculateTotal(List<TransactionItem> items) {
       return calculateTransactionTotal(
         items: items,
@@ -692,7 +719,12 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
       );
     }
 
-    final totalPaid = calculateTotalPaid(payments);
+    final alreadyPaid =
+        transactionAsync.value?.cashReceived ??
+        widget.transaction.cashReceived ??
+        0.0;
+    final pendingPayment = calculateTotalPaid(payments);
+    final totalPaid = alreadyPaid + pendingPayment;
 
     // Calculate reliable total
     double totalAmount = 0.0;
@@ -920,46 +952,68 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                         },
                   text: 'Clear All',
                 ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      'Total Amount',
-                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                    ),
-                    Text(
-                      total.toCurrencyFormatted(),
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.green[700],
-                      ),
-                    ),
-                    if (totalPaid > 0 && totalPaid != total) ...[
-                      SizedBox(height: 4),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
                       Text(
-                        'Amount Paid: ${totalPaid.toCurrencyFormatted()}',
+                        'Total Amount',
+                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                      ),
+                      Text(
+                        total.toCurrencyFormatted(),
                         style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.blue[700],
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green[700],
                         ),
                       ),
-                      SizedBox(height: 2),
+                      if (alreadyPaid > 0) ...[
+                        SizedBox(height: 4),
+                        Text(
+                          'Amount Paid: ${alreadyPaid.toCurrencyFormatted()}',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.blue[700],
+                          ),
+                        ),
+                      ],
                       Text(
-                        remainingBalance > 0
-                            ? 'Remaining: ${remainingBalance.toCurrencyFormatted()}'
-                            : 'Change: ${(totalPaid - total).toCurrencyFormatted()}',
+                        'Remaining Balance: ${calculateCurrentRemainder(transactionAsync.value ?? widget.transaction, total).toCurrencyFormatted()}',
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.bold,
-                          color: remainingBalance > 0
-                              ? Colors.red[700]
-                              : Colors.orange[700],
+                          color: Colors.red[700],
                         ),
                       ),
+                      if (pendingPayment > 0) ...[
+                        SizedBox(height: 8),
+                        Divider(height: 1, color: Colors.grey[300]),
+                        SizedBox(height: 8),
+                        Text(
+                          'This Payment: ${pendingPayment.toCurrencyFormatted()}',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.blue[600],
+                          ),
+                        ),
+                        Text(
+                          remainingBalance > 0
+                              ? 'Balance after payment: ${remainingBalance.toCurrencyFormatted()}'
+                              : 'Change: ${(alreadyPaid + pendingPayment - total).toCurrencyFormatted()}',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: remainingBalance > 0
+                                ? Colors.orange[700]
+                                : Colors.green[700],
+                          ),
+                        ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ],
             ),

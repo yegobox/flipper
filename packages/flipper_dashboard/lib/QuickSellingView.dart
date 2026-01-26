@@ -225,66 +225,13 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       );
     }
 
-    // Initialize received amount to remainder
-    final alreadyPaid = transaction.cashReceived ?? 0.0;
     final total = totalAfterDiscountAndShipping;
-    final remainder = total - alreadyPaid;
-    final displayRemainder = remainder > 0 ? remainder : 0.0;
 
-    if (widget.receivedAmountController.text.isEmpty) {
-      talker.info(
-        'Initializing received amount to remainder: $displayRemainder',
-      );
-      widget.receivedAmountController.text = displayRemainder.toString();
-      _lastAutoSetAmount = displayRemainder;
-    }
-
-    // Also update/initialize the first payment method in the provider
-    final payments = ref.read(paymentMethodsProvider);
-    if (payments.isEmpty) {
-      talker.info(
-        'Adding default payment method with remainder: $displayRemainder',
-      );
-      ref
-          .read(paymentMethodsProvider.notifier)
-          .addPaymentMethod(
-            Payment(
-              amount: displayRemainder,
-              method: "Cash",
-              controller: TextEditingController(
-                text: displayRemainder.toString(),
-              ),
-            ),
-          );
-    } else {
-      final firstPayment = payments[0];
-      // If the first payment is 0 or matches the full total (default initialization),
-      // update it to the true remainder for this session.
-      if (firstPayment.amount == 0 ||
-          (firstPayment.amount - (transaction.subTotal ?? 0.0)).abs() < 0.01) {
-        talker.info(
-          'Updating first payment method to remainder: $displayRemainder',
-        );
-        ref
-            .read(paymentMethodsProvider.notifier)
-            .updatePaymentMethod(
-              0,
-              Payment(
-                amount: displayRemainder,
-                method: firstPayment.method,
-                id: firstPayment.id,
-                controller: firstPayment.controller,
-              ),
-              transactionId: transaction.id,
-            );
-        // Also update its controller text if it matches full total or is empty
-        if (firstPayment.controller.text.isEmpty ||
-            double.tryParse(firstPayment.controller.text) ==
-                (transaction.subTotal ?? 0.0)) {
-          firstPayment.controller.text = displayRemainder.toString();
-        }
-      }
-    }
+    standardizedPaymentInitialization(
+      ref: ref,
+      transaction: transaction,
+      total: total,
+    );
   }
 
   // Controllers for quantity inputs per item (small device view)
@@ -1497,7 +1444,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         Expanded(
           child: PaymentMethodsCard(
             transactionId: transactionId,
-            totalPayable: totalAfterDiscountAndShipping - alreadyPaid,
+            totalPayable: totalAfterDiscountAndShipping,
           ),
         ),
       ],

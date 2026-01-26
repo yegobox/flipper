@@ -29,8 +29,11 @@ mixin TransactionComputationMixin {
     return baseTotal;
   }
 
-  double calculateTotalPaid(List<Payment> payments) {
-    return payments.fold<double>(0.0, (sum, p) => sum + p.amount);
+  double calculateTotalPaid(
+    List<Payment> payments, {
+    double alreadyPaid = 0.0,
+  }) {
+    return payments.fold<double>(alreadyPaid, (sum, p) => sum + p.amount);
   }
 
   double calculateRemainingBalance({
@@ -75,7 +78,7 @@ mixin TransactionComputationMixin {
       }
 
       ProxyService.box.writeDouble(
-        key: 'getCashReceived',
+        key: 'lastSetRemainder',
         value: displayRemainder,
       );
 
@@ -91,9 +94,63 @@ mixin TransactionComputationMixin {
                 id: payments[0].id,
                 controller: payments[0].controller,
               ),
-              transactionId: transaction.id,
             );
         payments[0].controller.text = displayRemainder.toString();
+      }
+    }
+  }
+
+  double calculateCurrentRemainder(ITransaction transaction, double total) {
+    final alreadyPaid = transaction.cashReceived ?? 0.0;
+    final currentRemainder = total - alreadyPaid;
+    return currentRemainder > 0.01 ? currentRemainder : 0.0;
+  }
+
+  void standardizedPaymentInitialization({
+    required WidgetRef ref,
+    required ITransaction transaction,
+    required double total,
+  }) {
+    final alreadyPaid = transaction.cashReceived ?? 0.0;
+    final remainder = total - alreadyPaid;
+    final displayRemainder = remainder > 0.01 ? remainder : 0.0;
+
+    final payments = ref.read(paymentMethodsProvider);
+    if (payments.isEmpty) {
+      ref
+          .read(paymentMethodsProvider.notifier)
+          .addPaymentMethod(
+            Payment(
+              amount: displayRemainder,
+              method: "Cash",
+              controller: TextEditingController(
+                text: displayRemainder.toString(),
+              ),
+            ),
+          );
+    } else {
+      final firstPayment = payments[0];
+      // If the first payment is 0 or matches the full total (default initialization),
+      // update it to the true remainder for this session.
+      if (firstPayment.amount == 0 ||
+          (firstPayment.amount - (transaction.subTotal ?? 0.0)).abs() < 0.01) {
+        ref
+            .read(paymentMethodsProvider.notifier)
+            .updatePaymentMethod(
+              0,
+              Payment(
+                amount: displayRemainder,
+                method: firstPayment.method,
+                id: firstPayment.id,
+                controller: firstPayment.controller,
+              ),
+            );
+        // Also update its controller text if it matches full total or is empty
+        if (firstPayment.controller.text.isEmpty ||
+            double.tryParse(firstPayment.controller.text) ==
+                (transaction.subTotal ?? 0.0)) {
+          firstPayment.controller.text = displayRemainder.toString();
+        }
       }
     }
   }
