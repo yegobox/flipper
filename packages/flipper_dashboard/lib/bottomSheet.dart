@@ -693,8 +693,8 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
     // Standardized pre-filling initialization (ensures it happens once both items and transaction are ready)
     String? currentTransactionId = (transactionAsync.value ?? widget.transaction).id;
     if (itemsAsync.hasValue && transactionAsync.hasValue && _lastTransactionId != currentTransactionId) {
+      _lastTransactionId = currentTransactionId;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        _lastTransactionId = currentTransactionId;
         standardizedPaymentInitialization(
           ref: ref,
           transaction: transactionAsync.value ?? widget.transaction,
@@ -1078,7 +1078,7 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                       ),
                     ],
                     Text(
-                      'Remaining Balance: ${(total - alreadyPaid).toCurrencyFormatted()}',
+                      'Remaining Balance: ${remainingBalance.toCurrencyFormatted()}',
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.bold,

@@ -1024,7 +1024,7 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
             onPressed: () =>
                 _addPaymentMethod(transactionId: widget.transactionId),
             icon: Icon(Icons.add, size: 18),
-            label: Text('Add Payment Method'),
+            label: Text('Add Payment'),
             style: OutlinedButton.styleFrom(
               padding: EdgeInsets.symmetric(vertical: 12),
               side: BorderSide(color: Theme.of(context).colorScheme.primary),
