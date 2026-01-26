@@ -1438,13 +1438,14 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     String transactionId,
     double alreadyPaid,
   ) {
+    final finalPayable = (totalAfterDiscountAndShipping - alreadyPaid).clamp(0.0, double.infinity);
     return Row(
       children: [
         // Payment Method Field
         Expanded(
           child: PaymentMethodsCard(
             transactionId: transactionId,
-            totalPayable: totalAfterDiscountAndShipping,
+            totalPayable: finalPayable,
           ),
         ),
       ],

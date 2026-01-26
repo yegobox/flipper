@@ -149,6 +149,11 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
         } else {
           amount = amount.clamp(0.0, totalPayable - allocatedAmount);
           payments[i].amount = amount;
+          // Update the controller text to match the clamped amount to avoid UI/model mismatch
+          final newText = amount.toStringAsFixed(2);
+          if (payments[i].controller.text != newText) {
+            payments[i].controller.text = newText;
+          }
         }
         allocatedAmount += amount;
       }

@@ -54,10 +54,6 @@ class TransactionInitializationHelper {
               value: customer.custTin!,
             );
           }
-
-          talker.info(
-            'Initialized live customer: ${customer.custNm}, Phone: ${customer.telNo}',
-          );
           return customer;
         }
       } catch (e) {
