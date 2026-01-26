@@ -113,6 +113,49 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     return baseTotal - discountAmount;
   }
 
+  void _updateReceivedAmountIfNeeded(ITransaction transaction) {
+    if (!mounted) return;
+
+    final alreadyPaid = transaction.cashReceived ?? 0.0;
+    final total = totalAfterDiscountAndShipping;
+    final currentRemainder = total - alreadyPaid;
+    final displayRemainder = currentRemainder > 0 ? currentRemainder : 0.0;
+
+    // Only auto-update if remainder has likely changed or field is empty.
+    if ((displayRemainder - _lastAutoSetAmount).abs() > 0.01 ||
+        widget.receivedAmountController.text.isEmpty) {
+      talker.warning(
+        "Auto-update check: Text='${widget.receivedAmountController.text}', Last='$_lastAutoSetAmount', NewRemainder='$displayRemainder'",
+      );
+
+      talker.warning("Auto-updating received amount to $displayRemainder");
+      widget.receivedAmountController.text = displayRemainder.toString();
+      _lastAutoSetAmount = displayRemainder;
+
+      ProxyService.box.writeDouble(
+        key: 'getCashReceived',
+        value: displayRemainder,
+      );
+      final payments = ref.read(paymentMethodsProvider);
+      if (payments.isNotEmpty) {
+        talker.warning("Updating payment provider with $displayRemainder");
+        ref
+            .read(paymentMethodsProvider.notifier)
+            .updatePaymentMethod(
+              0,
+              Payment(
+                amount: displayRemainder,
+                method: payments[0].method,
+                id: payments[0].id,
+                controller: payments[0].controller,
+              ),
+              transactionId: transaction.id,
+            );
+        payments[0].controller.text = displayRemainder.toString();
+      }
+    }
+  }
+
   Widget _buildInvoiceNumber() {
     final branchId = ProxyService.box.getBranchId();
     if (branchId == null) {
@@ -127,6 +170,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           Text('Invoice No: ', style: Theme.of(context).textTheme.bodyMedium),
           Text(
             '${highestInvoiceNumber}',
+            key: Key('invoice-number-text'), // Add key for testing/targeting
             style: Theme.of(
               context,
             ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
@@ -167,11 +211,29 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           .value;
       if (transaction != null) {
         _prefillCustomerDetails(transaction);
+        // Initial check for received amount update
+        _updateReceivedAmountIfNeeded(transaction);
       }
     });
 
+    // Listen to discount changes to trigger update
+    widget.discountController.addListener(_onDiscountChanged);
+
     // Store initial branch ID to detect changes
     _currentBranchId = ProxyService.box.getBranchId();
+  }
+
+  void _onDiscountChanged() {
+    final transaction = ref
+        .read(
+          pendingTransactionStreamProvider(
+            isExpense: ProxyService.box.isOrdering() ?? false,
+          ),
+        )
+        .value;
+    if (transaction != null) {
+      _updateReceivedAmountIfNeeded(transaction);
+    }
   }
 
   void _prefillCustomerDetails(ITransaction transaction) {
@@ -351,6 +413,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
   @override
   void dispose() {
+    widget.discountController.removeListener(_onDiscountChanged);
     for (final c in _quantityControllers.values) {
       c.dispose();
     }
@@ -425,9 +488,37 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       (previous, next) {
         if (next.hasValue && next.value != null) {
           _prefillCustomerDetails(next.value!);
+          _updateReceivedAmountIfNeeded(next.value!);
         }
       },
     );
+
+    // Also listen to items stream as it affects grandTotal and thus totalAfterDiscountAndShipping
+    final transactionId = ref
+        .watch(
+          pendingTransactionStreamProvider(
+            isExpense: ProxyService.box.isOrdering() ?? false,
+          ),
+        )
+        .value
+        ?.id;
+    if (transactionId != null) {
+      ref.listen(transactionItemsStreamProvider(transactionId: transactionId), (
+        previous,
+        next,
+      ) {
+        final transaction = ref
+            .read(
+              pendingTransactionStreamProvider(
+                isExpense: ProxyService.box.isOrdering() ?? false,
+              ),
+            )
+            .value;
+        if (transaction != null) {
+          _updateReceivedAmountIfNeeded(transaction);
+        }
+      });
+    }
 
     // Check for branch changes and refresh transaction if needed
     final currentBranchId = ProxyService.box.getBranchId();
@@ -535,10 +626,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           } else {
             internalTransactionItems = [];
           }
-          final transactionId = transactionAsyncValue.value?.id ?? "";
+
           final alreadyPaidVal =
-              ref.watch(transactionTotalPaidProvider(transactionId)).value ??
-              0.0;
+              transactionAsyncValue.value?.cashReceived ?? 0.0;
           return context.isSmallDevice
               ? _buildSmallDeviceScaffold(
                   alreadyPaidVal,
@@ -1544,45 +1634,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     required double alreadyPaid,
   }) {
     // Auto-update received amount when total changes (unless user manually changed it)
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final total = totalAfterDiscountAndShipping;
-      final currentRemainder = total - alreadyPaid;
-      final displayRemainder = currentRemainder > 0 ? currentRemainder : 0.0;
-
-      // Only auto-update if remainder has likely changed or field is empty.
-      if ((displayRemainder - _lastAutoSetAmount).abs() > 0.01 ||
-          widget.receivedAmountController.text.isEmpty) {
-        talker.warning(
-          "Auto-update check: Text='${widget.receivedAmountController.text}', Last='$_lastAutoSetAmount', NewRemainder='$displayRemainder'",
-        );
-
-        talker.warning("Auto-updating received amount to $displayRemainder");
-        widget.receivedAmountController.text = displayRemainder.toString();
-        _lastAutoSetAmount = displayRemainder;
-
-        ProxyService.box.writeDouble(
-          key: 'getCashReceived',
-          value: displayRemainder,
-        );
-        final payments = ref.read(paymentMethodsProvider);
-        if (payments.isNotEmpty) {
-          talker.warning("Updating payment provider with $displayRemainder");
-          ref
-              .read(paymentMethodsProvider.notifier)
-              .updatePaymentMethod(
-                0,
-                Payment(
-                  amount: displayRemainder,
-                  method: payments[0].method,
-                  id: payments[0].id,
-                  controller: payments[0].controller,
-                ),
-                transactionId: transactionId,
-              );
-          payments[0].controller.text = displayRemainder.toString();
-        }
-      }
-    });
+    // Auto-update logic moved to _updateReceivedAmountIfNeeded and triggered via listeners
 
     return Semantics(
       label: 'Received amount in ${ProxyService.box.defaultCurrency()}',
