@@ -100,15 +100,16 @@ class TransactionInitializationHelper {
     final payments = ref.read(oldProvider.paymentMethodsProvider);
 
     if (payments.isEmpty) {
+      final controller = TextEditingController(
+        text: displayRemainder.toString(),
+      );
       ref
           .read(oldProvider.paymentMethodsProvider.notifier)
           .addPaymentMethod(
             oldProvider.Payment(
               amount: displayRemainder,
               method: "Cash",
-              controller: TextEditingController(
-                text: displayRemainder.toString(),
-              ),
+              controller: controller,
             ),
           );
     } else {

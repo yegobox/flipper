@@ -12,6 +12,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper_routing/app.dialogs.dart';
+import 'package:flipper_dashboard/dialog_status.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'dart:async';
 import 'package:flipper_dashboard/providers/customer_provider.dart';
@@ -135,6 +137,7 @@ class SearchInputWithDropdown extends ConsumerStatefulWidget {
 class _SearchInputWithDropdownState
     extends ConsumerState<SearchInputWithDropdown> {
   final TextEditingController _searchController = TextEditingController();
+  final _dialogService = locator<DialogService>();
 
   String _selectedCustomerType = 'Walk-in';
   String _selectedSaleType = 'Outgoing- Sale';
@@ -280,23 +283,14 @@ class _SearchInputWithDropdownState
       ref.read(customerPhoneNumberProvider.notifier).state = customer.telNo;
 
       // Show success alert
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Success'),
-          content: Text('Customer ${customer.custNm} added to the sale!'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-                // Refresh the transaction
-                ref.refresh(pendingTransactionStreamProvider(isExpense: false));
-              },
-              child: const Text('OK'),
-            ),
-          ],
-        ),
+      await _dialogService.showCustomDialog(
+        variant: DialogType.info,
+        title: 'Success',
+        description: 'Customer ${customer.custNm} added to the sale!',
+        data: {'status': InfoDialogStatus.success},
       );
+      // Refresh the transaction
+      ref.refresh(pendingTransactionStreamProvider(isExpense: false));
 
       // Clear search results
       setState(() {

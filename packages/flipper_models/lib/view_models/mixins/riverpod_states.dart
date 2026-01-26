@@ -704,6 +704,10 @@ class Payment {
   })  : controller = controller ??
             TextEditingController(text: amount.toStringAsFixed(2)),
         id = id ?? UniqueKey().toString();
+
+  void dispose() {
+    controller.dispose();
+  }
 }
 
 final paymentMethodsProvider =
@@ -715,8 +719,21 @@ class PaymentMethodsNotifier extends Notifier<List<Payment>> {
   PaymentMethodsNotifier([this.initialPayments]);
 
   @override
-  List<Payment> build() =>
-      initialPayments ?? [Payment(amount: 0.0, method: 'CASH')];
+  List<Payment> build() {
+    ref.onDispose(() {
+      for (var payment in state) {
+        payment.dispose();
+      }
+    });
+    return initialPayments ?? [Payment(amount: 0.0, method: 'CASH')];
+  }
+
+  void _safeDispose(Payment payment) {
+    final controller = payment.controller;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.dispose();
+    });
+  }
 
   // Method to add a payment method
   void addPaymentMethod(Payment method) {
@@ -724,15 +741,31 @@ class PaymentMethodsNotifier extends Notifier<List<Payment>> {
       final existingIndex = state.indexWhere(
           (existingMethod) => existingMethod.method == method.method);
       if (existingIndex != -1) {
-        state[existingIndex] = method;
+        final oldPayment = state[existingIndex];
+        // Only dispose if we are NOT reusing the same controller
+        if (oldPayment.controller != method.controller) {
+          _safeDispose(oldPayment);
+        }
+        final updatedList = List<Payment>.from(state);
+        updatedList[existingIndex] = method;
+        state = updatedList;
       } else {
         state = [...state, method];
       }
-    } catch (e) {}
+    } catch (e) {
+      talker.error('Error adding payment method: $e');
+    }
   }
 
   void updatePaymentMethod(int index, Payment payment,
       {String? transactionId}) {
+    if (index >= 0 && index < state.length) {
+      final oldPayment = state[index];
+      // Only dispose if we are NOT reusing the same controller
+      if (oldPayment.controller != payment.controller) {
+        _safeDispose(oldPayment);
+      }
+    }
     final updatedList = List<Payment>.from(state);
     updatedList[index] = payment;
     state = updatedList;
@@ -740,16 +773,26 @@ class PaymentMethodsNotifier extends Notifier<List<Payment>> {
     talker.warning("Payment Lenght:${state.length}");
   }
 
-  // Method to remove a payment method
   void removePaymentMethod(int index) {
+    if (index >= 0 && index < state.length) {
+      _safeDispose(state[index]);
+    }
     state = [
       for (int i = 0; i < state.length; i++)
         if (i != index) state[i]
     ];
   }
 
-  // Method to update payment methods
   void setPaymentMethods(List<Payment> methods) {
+    // Collect controllers that are being kept
+    final newControllers = methods.map((p) => p.controller).toSet();
+
+    // Dispose only those that are NOT in the new list
+    for (final oldPayment in state) {
+      if (!newControllers.contains(oldPayment.controller)) {
+        _safeDispose(oldPayment);
+      }
+    }
     state = methods;
   }
 }

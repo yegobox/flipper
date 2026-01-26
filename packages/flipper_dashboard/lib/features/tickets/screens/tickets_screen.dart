@@ -80,18 +80,42 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
         .where((t) => validSelectedIds.contains(t.id))
         .toList();
 
+    // Filter decomposable/deletable tickets
+    final List<ITransaction> deletableTickets = [];
+    final List<ITransaction> nonDeletableTickets = [];
+
+    for (final ticket in selectedTickets) {
+      if (await canDeleteTicket(ticket)) {
+        deletableTickets.add(ticket);
+      } else {
+        nonDeletableTickets.add(ticket);
+      }
+    }
+
+    if (deletableTickets.isEmpty && nonDeletableTickets.isNotEmpty) {
+      if (mounted) {
+        showCustomSnackBarUtil(
+          context,
+          'Selected tickets have partial payments and cannot be deleted',
+          backgroundColor: Colors.orange,
+        );
+      }
+      return;
+    }
+
     showDeletionConfirmationSnackBar(
       context,
-      selectedTickets,
+      deletableTickets,
       (ticket) => 'Ticket #${ticket.reference ?? ticket.id.substring(0, 8)}',
       () async {
         try {
-          await deleteSelectedTickets(validSelectedIds);
+          final deletableIds = deletableTickets.map((t) => t.id).toSet();
+          await deleteSelectedTickets(deletableIds);
           ref.read(ticketSelectionProvider.notifier).clearSelection();
           if (mounted) {
             showCustomSnackBarUtil(
               context,
-              '${validSelectedIds.length} ticket${validSelectedIds.length == 1 ? '' : 's'} deleted successfully',
+              '${deletableIds.length} ticket${deletableIds.length == 1 ? '' : 's'} deleted successfully',
               backgroundColor: Colors.green,
             );
           }

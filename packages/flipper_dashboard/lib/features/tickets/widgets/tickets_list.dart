@@ -1,4 +1,4 @@
-// ignore_for_file: unused_result
+import '../../../../dialog_status.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -6,6 +6,7 @@ import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/ticket_selection_provider.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -20,16 +21,35 @@ import '../models/ticket_status.dart';
 
 mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   final _routerService = locator<RouterService>();
+  final _dialogService = locator<DialogService>();
   List<ITransaction> _currentTickets = [];
 
   List<ITransaction> getCurrentTickets() => _currentTickets;
 
+  Future<bool> canDeleteTicket(ITransaction ticket) async {
+    final totalPaid = await ProxyService.getStrategy(Strategy.capella)
+        .getTotalPaidForTransaction(
+          transactionId: ticket.id,
+          branchId: ticket.branchId ?? '',
+        );
+    return (totalPaid ?? 0.0) <= 0;
+  }
+
   Future<void> deleteSelectedTickets(Set<String> selectedIds) async {
     final List<String> failedDeletions = [];
+    final List<String> skippedTickets = [];
 
     for (final ticketId in selectedIds) {
       try {
         final ticket = _currentTickets.firstWhere((t) => t.id == ticketId);
+
+        if (!(await canDeleteTicket(ticket))) {
+          skippedTickets.add(
+            'Ticket #${ticket.reference ?? ticket.id.substring(0, 6).toUpperCase()}',
+          );
+          continue;
+        }
+
         await ProxyService.strategy.deleteTransaction(transaction: ticket);
       } catch (e) {
         talker.error('Failed to delete ticket $ticketId: $e');
@@ -40,8 +60,17 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     // Refresh the UI after deletion attempts
     if (mounted) setState(() {});
 
+    if (skippedTickets.isNotEmpty && mounted) {
+      showCustomSnackBarUtil(
+        context,
+        'Skipped ${skippedTickets.length} ticket(s) with partial payments',
+        backgroundColor: Colors.orange,
+      );
+    }
+
     // Throw error only if all deletions failed
-    if (failedDeletions.length == selectedIds.length) {
+    if (failedDeletions.length == selectedIds.length &&
+        selectedIds.length > skippedTickets.length) {
       throw Exception('Failed to delete all selected tickets');
     } else if (failedDeletions.isNotEmpty) {
       throw Exception(
@@ -313,6 +342,17 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
   /// Delete a ticket with confirmation and loading
   Future<void> _deleteTicket(ITransaction ticket) async {
+    if (!(await canDeleteTicket(ticket))) {
+      await _dialogService.showCustomDialog(
+        variant: DialogType.info,
+        title: 'Error',
+        description:
+            'This ticket has partial payments and cannot be deleted.',
+        data: {'status': InfoDialogStatus.error},
+      );
+      return;
+    }
+
     bool confirmed = false;
     if (mounted) {
       confirmed =
