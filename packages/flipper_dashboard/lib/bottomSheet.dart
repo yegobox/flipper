@@ -21,6 +21,7 @@ import 'package:flipper_dashboard/providers/customer_phone_provider.dart';
 import 'package:flipper_services/utils.dart';
 import 'package:flipper_services/constants.dart';
 import 'dart:async';
+import 'package:flipper_dashboard/utils/resume_transaction_helper.dart';
 
 enum ChargeButtonState {
   initial, // "Charge"
@@ -127,58 +128,11 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _initializePaymentWithRemainder();
+      TransactionInitializationHelper.initializeSession(
+        ref: ref,
+        transaction: widget.transaction,
+      );
     });
-  }
-
-  void _initializePaymentWithRemainder() {
-    final transaction = widget.transaction;
-    final total = transaction.subTotal ?? 0.0;
-    final paid = transaction.cashReceived ?? 0.0;
-    final remainder = total - paid;
-    // Epsilon check for float precision.
-    if (remainder <= 0.01) return;
-
-    final payments = ref.read(oldProvider.paymentMethodsProvider);
-
-    if (payments.isEmpty) {
-      ref
-          .read(oldProvider.paymentMethodsProvider.notifier)
-          .addPaymentMethod(
-            oldProvider.Payment(
-              amount: remainder,
-              method: "Cash",
-              controller: TextEditingController(text: remainder.toString()),
-            ),
-          );
-    } else {
-      // Logic adapted from QuickSellingView.dart:
-      // If the first payment is 0 or matches the full total (default initialization),
-      // update it to the true remainder for current session.
-      final firstPayment = payments[0];
-      if (firstPayment.amount == 0 ||
-          (firstPayment.amount - total).abs() < 0.01) {
-        // Update the model to remainder
-        ref
-            .read(oldProvider.paymentMethodsProvider.notifier)
-            .updatePaymentMethod(
-              0,
-              oldProvider.Payment(
-                amount: remainder,
-                method: firstPayment.method,
-                id: firstPayment.id,
-                controller: firstPayment.controller,
-              ),
-              transactionId: widget.transactionIdInt,
-            );
-
-        // Also update its controller text if it matches full total or is empty
-        if (firstPayment.controller.text.isEmpty ||
-            double.tryParse(firstPayment.controller.text) == total) {
-          firstPayment.controller.text = remainder.toString();
-        }
-      }
-    }
   }
 
   Future<void> _showParkDialog(BuildContext context) async {
@@ -1262,6 +1216,9 @@ class _BottomSheetHeader extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final isLoan = transaction.isLoan ?? false;
     final customerPhone = ref.watch(customerPhoneNumberProvider);
+    final attachedCustomerAsync = ref.watch(
+      oldProvider.attachedCustomerProvider(transaction.customerId),
+    );
 
     return Container(
       padding: EdgeInsets.only(left: 20, right: 20, top: 8, bottom: 8),
@@ -1275,9 +1232,18 @@ class _BottomSheetHeader extends HookConsumerWidget {
               children: [
                 Icon(Icons.person, size: 16, color: Colors.blue),
                 SizedBox(width: 4),
-                Text(
-                  transaction.customerName ?? customerPhone ?? 'Customer',
-                  style: TextStyle(color: Colors.blue, fontSize: 14),
+                attachedCustomerAsync.maybeWhen(
+                  data: (customer) => Text(
+                    customer?.custNm ??
+                        transaction.customerName ??
+                        customerPhone ??
+                        'Customer',
+                    style: TextStyle(color: Colors.blue, fontSize: 14),
+                  ),
+                  orElse: () => Text(
+                    transaction.customerName ?? customerPhone ?? 'Customer',
+                    style: TextStyle(color: Colors.blue, fontSize: 14),
+                  ),
                 ),
               ],
             ),

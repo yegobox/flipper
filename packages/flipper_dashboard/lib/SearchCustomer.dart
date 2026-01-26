@@ -16,6 +16,7 @@ import 'package:flipper_models/providers/transactions_provider.dart';
 import 'dart:async';
 import 'package:flipper_dashboard/providers/customer_provider.dart';
 import 'package:flipper_dashboard/providers/customer_phone_provider.dart';
+import 'package:flipper_dashboard/utils/resume_transaction_helper.dart';
 
 class CustomDropdownButton extends StatefulWidget {
   final List<String> items;
@@ -161,36 +162,23 @@ class _SearchInputWithDropdownState
       pendingTransactionStreamProvider(isExpense: false),
     );
 
-    // Only initialize from database customer if there's no manually entered customer name
+    // Reuse the central logic for initializing customer from transaction
+    if (transaction.value != null) {
+      final customer = await TransactionInitializationHelper.initializeCustomer(
+        ref,
+        transaction.value!,
+      );
+
+      if (customer != null) {
+        _searchController.text = customer.custNm ?? '';
+        return;
+      }
+    }
+
+    // Fallback: Use snapshot data from box
     final existingCustomerName = ProxyService.box.customerName();
 
-    if (transaction.value?.customerId != null && existingCustomerName == null) {
-      final customer = await ProxyService.getStrategy(Strategy.capella)
-          .customers(
-            id: transaction.value!.customerId,
-            branchId: ProxyService.box.getBranchId()!,
-          );
-      if (customer.isNotEmpty) {
-        ProxyService.box.writeString(
-          key: 'currentSaleCustomerPhoneNumber',
-          value: customer.first.telNo!,
-        );
-        ProxyService.box.writeString(
-          key: 'customerName',
-          value: customer.first.custNm!,
-        );
-        ProxyService.box.writeString(
-          key: 'customerTin',
-          value: customer.first.custTin!,
-        );
-        _searchController.text = customer.first.custNm!;
-        // Update the Riverpod provider for customer phone number
-        Future(() {
-          ref.read(customerPhoneNumberProvider.notifier).state =
-              customer.first.telNo!;
-        });
-      }
-    } else if (existingCustomerName != null) {
+    if (existingCustomerName != null) {
       // Use the manually entered customer name
       _searchController.text = existingCustomerName;
     } else {
