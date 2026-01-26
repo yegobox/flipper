@@ -759,13 +759,17 @@ class PaymentMethodsNotifier extends Notifier<List<Payment>> {
 
   void updatePaymentMethod(int index, Payment payment,
       {String? transactionId}) {
-    if (index >= 0 && index < state.length) {
-      final oldPayment = state[index];
-      // Only dispose if we are NOT reusing the same controller
-      if (oldPayment.controller != payment.controller) {
-        _safeDispose(oldPayment);
-      }
+    if (index < 0 || index >= state.length) {
+      talker.error("Invalid index $index for updatePaymentMethod. List length: ${state.length}");
+      return; // Early return if index is out of bounds
     }
+
+    final oldPayment = state[index];
+    // Only dispose if we are NOT reusing the same controller
+    if (oldPayment.controller != payment.controller) {
+      _safeDispose(oldPayment);
+    }
+
     final updatedList = List<Payment>.from(state);
     updatedList[index] = payment;
     state = updatedList;
