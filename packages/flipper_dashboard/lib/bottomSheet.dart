@@ -2,19 +2,21 @@
 
 import 'package:flipper_dashboard/SearchCustomer.dart';
 import 'package:flipper_dashboard/widgets/payment_methods_card.dart';
-import 'package:flipper_models/db_model_export.dart';
-import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/helperModels/extensions.dart';
+import 'package:flipper_models/providers/digital_payment_provider.dart';
+import 'package:flipper_models/providers/transactions_provider.dart';
+import 'package:flipper_models/view_models/coreViewModel.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flipper_ui/dialogs/SharedTicketDialog.dart';
+import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:supabase_models/brick/models/transaction.model.dart';
+import 'package:supabase_models/brick/models/transactionItem.model.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
-import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/providers/pay_button_provider.dart';
-import 'package:flipper_models/providers/digital_payment_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
     as oldProvider;
 import 'package:flipper_dashboard/providers/customer_phone_provider.dart';
@@ -22,6 +24,8 @@ import 'package:flipper_services/utils.dart';
 import 'dart:async';
 import 'package:flipper_dashboard/utils/resume_transaction_helper.dart';
 import 'package:flipper_dashboard/mixins/transaction_computation_mixin.dart';
+
+import 'data_view_reports/DynamicDataSource.dart';
 
 enum ChargeButtonState {
   initial, // "Charge"
@@ -685,38 +689,18 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
     // Watch payment methods
     final payments = ref.watch(oldProvider.paymentMethodsProvider);
 
-    // Listen to transaction for pre-filling (matches QuickSellingView behavior)
-    ref.listen<AsyncValue<ITransaction?>>(
-      transactionByIdProvider(widget.transactionIdInt.toString()),
-      (previous, next) {
-        if (next.hasValue && next.value != null) {
-          final items = ref
-              .read(
-                transactionItemsStreamProvider(
-                  transactionId: widget.transactionIdInt,
-                  branchId: ProxyService.box.getBranchId()!,
-                ),
-              )
-              .value;
-          if (items != null) {
-            standardizedPaymentInitialization(
-              ref: ref,
-              transaction: next.value!,
-              total: calculateTransactionTotal(
-                items: items,
-                transaction: next.value,
-              ),
-            );
-          }
-        }
-      },
-    );
-
-    double calculateTotal(List<TransactionItem> items) {
-      return calculateTransactionTotal(
-        items: items,
-        transaction: transactionAsync.value,
-      );
+    // Standardized pre-filling initialization (ensures it happens once both items and transaction are ready)
+    if (itemsAsync.hasValue && transactionAsync.hasValue) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        standardizedPaymentInitialization(
+          ref: ref,
+          transaction: transactionAsync.value ?? widget.transaction,
+          total: calculateTransactionTotal(
+            items: itemsAsync.value ?? [],
+            transaction: transactionAsync.value ?? widget.transaction,
+          ),
+        );
+      });
     }
 
     final alreadyPaid =
@@ -729,12 +713,12 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
     // Calculate reliable total
     double totalAmount = 0.0;
     if (itemsAsync.asData?.value != null) {
-      totalAmount = calculateTotal(itemsAsync.asData!.value);
-    } else if (transactionAsync.value != null) {
-      totalAmount = transactionAsync.value!.subTotal ?? 0.0;
-      talker.warning(
-        "BottomSheet: itemsAsync empty/loading, using transaction subTotal: $totalAmount",
+      totalAmount = calculateTransactionTotal(
+        items: itemsAsync.asData!.value,
+        transaction: transactionAsync.asData?.value ?? widget.transaction,
       );
+    } else {
+      totalAmount = widget.transaction.subTotal ?? 0.0;
     }
 
     talker.warning(
@@ -751,387 +735,6 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
       "BottomSheet: TotalAmount: $totalAmount, TotalPaid: $totalPaid, RemainingBalance: $remainingBalance",
     );
 
-    Widget _buildTransactionItem(TransactionItem transactionItem) {
-      return Container(
-        margin: EdgeInsets.only(bottom: 8),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey[200]!),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.02),
-              blurRadius: 4,
-              offset: Offset(0, 2),
-            ),
-          ],
-        ),
-        child: ListTile(
-          contentPadding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-          leading: Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: Colors.blue[50],
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(
-              Icons.inventory_2_outlined,
-              color: Colors.blue,
-              size: 20,
-            ),
-          ),
-          title: Text(
-            transactionItem.name,
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-          ),
-          subtitle: Text(
-            '${formatNumber(transactionItem.price.toDouble())} × ${transactionItem.qty}',
-            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-          ),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                (transactionItem.price * transactionItem.qty)
-                    .toCurrencyFormatted(),
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.green[700],
-                ),
-              ),
-              SizedBox(width: 8),
-              IconButton(
-                icon: Icon(Icons.edit_outlined, color: Colors.blue),
-                onPressed: () {
-                  edit(
-                    doneDelete: widget.doneDelete,
-                    context: context,
-                    ref: ref,
-                    transactionItem: transactionItem,
-                    transactionId: widget.transactionIdInt.toString(),
-                  );
-                },
-                style: IconButton.styleFrom(
-                  backgroundColor: Colors.blue[50],
-                  padding: EdgeInsets.all(8),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    Widget _buildItemsList(List<TransactionItem> items) {
-      if (items.isEmpty) {
-        return Container(
-          padding: EdgeInsets.symmetric(vertical: 40),
-          child: Column(
-            children: [
-              Icon(
-                Icons.shopping_cart_outlined,
-                size: 64,
-                color: Colors.grey[400],
-              ),
-              SizedBox(height: 16),
-              Text(
-                'No items in cart',
-                style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-              ),
-            ],
-          ),
-        );
-      }
-
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(left: 8.0),
-            child: Text(
-              'Items (${items.length})',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey[700],
-              ),
-            ),
-          ),
-          SizedBox(height: 12),
-          ...items.map((item) => _buildTransactionItem(item)).toList(),
-          PaymentMethodsCard(
-            transactionId: widget.transactionIdInt,
-            totalPayable: calculateTotal(items),
-          ),
-        ],
-      );
-    }
-
-    Widget _buildTotalSection(
-      List<TransactionItem> items, {
-      required bool isDigitalPaymentEnabled,
-      required double totalPaid,
-      required double remainingBalance,
-    }) {
-      final total = calculateTotal(items);
-
-      return Container(
-        padding: EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.grey[50],
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey[200]!),
-        ),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                FlipperButtonFlat(
-                  textColor: Colors.red[600],
-                  onPressed: items.isEmpty
-                      ? null
-                      : () {
-                          showDialog(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                              title: Text('Clear All Items'),
-                              content: Text(
-                                'Are you sure you want to remove all items from the cart?',
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context),
-                                  child: Text('Cancel'),
-                                ),
-                                TextButton(
-                                  onPressed: () async {
-                                    try {
-                                      for (TransactionItem item in items) {
-                                        await ProxyService.strategy
-                                            .deleteItemFromCart(
-                                              transactionItemId: item,
-                                              transactionId: widget
-                                                  .transactionIdInt
-                                                  .toString(),
-                                            );
-                                      }
-                                      ref.refresh(
-                                        transactionItemsStreamProvider(
-                                          transactionId:
-                                              widget.transactionIdInt,
-                                          branchId: ProxyService.box
-                                              .getBranchId()!,
-                                        ),
-                                      );
-                                      widget.doneDelete();
-                                      Navigator.pop(context);
-                                    } catch (e) {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            'Error clearing cart: ${e.toString()}',
-                                          ),
-                                        ),
-                                      );
-                                    }
-                                  },
-                                  child: Text(
-                                    'Clear All',
-                                    style: TextStyle(color: Colors.red),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                  text: 'Clear All',
-                ),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        'Total Amount',
-                        style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                      ),
-                      Text(
-                        total.toCurrencyFormatted(),
-                        style: TextStyle(
-                          fontSize: 24,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.green[700],
-                        ),
-                      ),
-                      if (alreadyPaid > 0) ...[
-                        SizedBox(height: 4),
-                        Text(
-                          'Amount Paid: ${alreadyPaid.toCurrencyFormatted()}',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.blue[700],
-                          ),
-                        ),
-                      ],
-                      Text(
-                        'Remaining Balance: ${calculateCurrentRemainder(transactionAsync.value ?? widget.transaction, total).toCurrencyFormatted()}',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.red[700],
-                        ),
-                      ),
-                      if (pendingPayment > 0) ...[
-                        SizedBox(height: 8),
-                        Divider(height: 1, color: Colors.grey[300]),
-                        SizedBox(height: 8),
-                        Text(
-                          'This Payment: ${pendingPayment.toCurrencyFormatted()}',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.blue[600],
-                          ),
-                        ),
-                        Text(
-                          remainingBalance > 0
-                              ? 'Balance after payment: ${remainingBalance.toCurrencyFormatted()}'
-                              : 'Change: ${(alreadyPaid + pendingPayment - total).toCurrencyFormatted()}',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: remainingBalance > 0
-                                ? Colors.orange[700]
-                                : Colors.green[700],
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            SizedBox(height: 20),
-            // Park Ticket Button - shown when items exist
-            if (items.isNotEmpty)
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.only(bottom: 12),
-                child: OutlinedButton.icon(
-                  onPressed: () => _showParkDialog(context),
-                  icon: Icon(Icons.save_alt),
-                  label: Text('Save Ticket (Park)'),
-                  style: OutlinedButton.styleFrom(
-                    padding: EdgeInsets.symmetric(vertical: 16),
-                    side: BorderSide(color: Colors.blue),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    foregroundColor: Colors.blue,
-                  ),
-                ),
-              ),
-            // Conditional button layout based on digital payment status
-            if (isDigitalPaymentEnabled) ...[
-              // Two-button layout when digital payment is enabled
-              SizedBox(
-                height: 56,
-                child: Row(
-                  children: [
-                    // Left button: Charge (waits for payment)
-                    Expanded(
-                      child: FlipperButton(
-                        height: 56,
-                        color: Colors.blue.shade700,
-                        text: _getButtonText(
-                          items.isEmpty,
-                          total,
-                          customerPhone,
-                          remainingBalance,
-                        ),
-                        textColor: Colors.white,
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(12),
-                          bottomLeft: Radius.circular(12),
-                        ),
-                        isLoading:
-                            !_isImmediateCompletion && _shouldShowSpinner(),
-                        onPressed:
-                            _getButtonEnabled(items.isEmpty, customerPhone)
-                            ? () => _handleCharge(
-                                widget.transactionIdInt.toString(),
-                                total,
-                                immediateCompletion: false,
-                              )
-                            : null,
-                      ),
-                    ),
-                    // Divider
-                    Container(
-                      width: 1,
-                      height: 56,
-                      color: Colors.grey.shade300,
-                    ),
-                    // Right button: Complete Now (immediate)
-                    Expanded(
-                      child: FlipperButton(
-                        height: 56,
-                        color: Colors.green,
-                        text: remainingBalance > 0.01
-                            ? 'Record Payment'
-                            : 'Complete Now',
-                        textColor: Colors.white,
-                        borderRadius: BorderRadius.only(
-                          topRight: Radius.circular(12),
-                          bottomRight: Radius.circular(12),
-                        ),
-                        isLoading:
-                            _isImmediateCompletion && _shouldShowSpinner(),
-                        onPressed:
-                            _getButtonEnabled(items.isEmpty, customerPhone)
-                            ? () => _handleCharge(
-                                widget.transactionIdInt.toString(),
-                                total,
-                                immediateCompletion: true,
-                              )
-                            : null,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ] else ...[
-              // Single button when digital payment is disabled
-              FlipperButton(
-                height: 56,
-                width: double.infinity,
-                color: Colors.green,
-                text: remainingBalance > 0.01
-                    ? 'Record Payment'
-                    : 'Complete Now',
-                textColor: Colors.white,
-                borderRadius: BorderRadius.all(Radius.circular(12)),
-                isLoading: _isImmediateCompletion && _shouldShowSpinner(),
-                onPressed: _getButtonEnabled(items.isEmpty, customerPhone)
-                    ? () => _handleCharge(
-                        widget.transactionIdInt.toString(),
-                        total,
-                        immediateCompletion: true,
-                      )
-                    : null,
-              ),
-            ],
-          ],
-        ),
-      );
-    }
-
     return itemsAsync.when(
       data: (items) {
         // Get digital payment status, defaulting to false if loading or error
@@ -1144,13 +747,20 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
             children: [
               SearchInputWithDropdown(),
               SizedBox(height: 5),
-              _buildItemsList(items),
+              _buildItemsList(
+                items,
+                transaction: transactionAsync.value ?? widget.transaction,
+              ),
               SizedBox(height: 20),
               _buildTotalSection(
                 items,
                 isDigitalPaymentEnabled: isDigitalPaymentEnabled,
                 totalPaid: totalPaid,
                 remainingBalance: remainingBalance,
+                alreadyPaid: alreadyPaid,
+                pendingPayment: pendingPayment,
+                customerPhone: customerPhone,
+                transactionAsync: transactionAsync,
               ),
             ],
           ),
@@ -1228,6 +838,384 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
       case ChargeButtonState.failed:
         return 'Payment Failed. Retry?';
     }
+  }
+
+  Widget _buildTransactionItem(TransactionItem transactionItem) {
+    return Container(
+      margin: EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[200]!),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 4,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ListTile(
+        contentPadding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+        leading: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: Colors.blue[50],
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(Icons.inventory_2_outlined, color: Colors.blue, size: 20),
+        ),
+        title: Text(
+          transactionItem.name,
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        ),
+        subtitle: Text(
+          '${formatNumber(transactionItem.price.toDouble())} × ${transactionItem.qty}',
+          style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              (transactionItem.price * transactionItem.qty)
+                  .toCurrencyFormatted(),
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.green[700],
+              ),
+            ),
+            SizedBox(width: 8),
+            IconButton(
+              icon: Icon(Icons.edit_outlined, color: Colors.blue),
+              onPressed: () {
+                edit(
+                  doneDelete: widget.doneDelete,
+                  context: context,
+                  ref: ref,
+                  transactionItem: transactionItem,
+                  transactionId: widget.transactionIdInt.toString(),
+                );
+              },
+              style: IconButton.styleFrom(
+                backgroundColor: Colors.blue[50],
+                padding: EdgeInsets.all(8),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildItemsList(
+    List<TransactionItem> items, {
+    required ITransaction transaction,
+  }) {
+    if (items.isEmpty) {
+      return Container(
+        padding: EdgeInsets.symmetric(vertical: 40),
+        child: Column(
+          children: [
+            Icon(
+              Icons.shopping_cart_outlined,
+              size: 64,
+              color: Colors.grey[400],
+            ),
+            SizedBox(height: 16),
+            Text(
+              'No items in cart',
+              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 8.0),
+          child: Text(
+            'Items (${items.length})',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[700],
+            ),
+          ),
+        ),
+        SizedBox(height: 12),
+        ...items.map((item) => _buildTransactionItem(item)).toList(),
+        PaymentMethodsCard(
+          transactionId: widget.transactionIdInt,
+          totalPayable: calculateTransactionTotal(
+            items: items,
+            transaction: transaction,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTotalSection(
+    List<TransactionItem> items, {
+    required bool isDigitalPaymentEnabled,
+    required double totalPaid,
+    required double remainingBalance,
+    required double alreadyPaid,
+    required double pendingPayment,
+    required String? customerPhone,
+    required AsyncValue<ITransaction?> transactionAsync,
+  }) {
+    final total = calculateTransactionTotal(
+      items: items,
+      transaction: transactionAsync.value ?? widget.transaction,
+    );
+
+    return Container(
+      padding: EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey[200]!),
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              FlipperButtonFlat(
+                textColor: Colors.red[600],
+                onPressed: items.isEmpty
+                    ? null
+                    : () {
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: Text('Clear All Items'),
+                            content: Text(
+                              'Are you sure you want to remove all items from the cart?',
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: Text('Cancel'),
+                              ),
+                              TextButton(
+                                onPressed: () async {
+                                  try {
+                                    for (TransactionItem item in items) {
+                                      await ProxyService.strategy
+                                          .deleteItemFromCart(
+                                            transactionItemId: item,
+                                            transactionId: widget
+                                                .transactionIdInt
+                                                .toString(),
+                                          );
+                                    }
+                                    ref.refresh(
+                                      transactionItemsStreamProvider(
+                                        transactionId: widget.transactionIdInt,
+                                        branchId: ProxyService.box
+                                            .getBranchId()!,
+                                      ),
+                                    );
+                                    widget.doneDelete();
+                                    Navigator.pop(context);
+                                  } catch (e) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          'Error clearing cart: ${e.toString()}',
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                },
+                                child: Text(
+                                  'Clear All',
+                                  style: TextStyle(color: Colors.red),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                text: 'Clear All',
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      'Total Amount',
+                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                    ),
+                    Text(
+                      total.toCurrencyFormatted(),
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green[700],
+                      ),
+                    ),
+                    if (alreadyPaid > 0) ...[
+                      SizedBox(height: 4),
+                      Text(
+                        'Already Paid: ${alreadyPaid.toCurrencyFormatted()}',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.blue[700],
+                        ),
+                      ),
+                    ],
+                    Text(
+                      'Remaining Balance: ${(total - alreadyPaid).toCurrencyFormatted()}',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.red[700],
+                      ),
+                    ),
+                    if (pendingPayment > 0) ...[
+                      SizedBox(height: 8),
+                      Divider(height: 1, color: Colors.grey[300]),
+                      SizedBox(height: 8),
+                      Text(
+                        'This Payment: ${pendingPayment.toCurrencyFormatted()}',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.blue[600],
+                        ),
+                      ),
+                      Text(
+                        remainingBalance > 0
+                            ? 'Balance after payment: ${remainingBalance.toCurrencyFormatted()}'
+                            : 'Change: ${(alreadyPaid + pendingPayment - total).toCurrencyFormatted()}',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: remainingBalance > 0
+                              ? Colors.orange[700]
+                              : Colors.green[700],
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 20),
+          // Park Ticket Button - shown when items exist
+          if (items.isNotEmpty)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.only(bottom: 12),
+              child: OutlinedButton.icon(
+                onPressed: () => _showParkDialog(context),
+                icon: Icon(Icons.save_alt),
+                label: Text('Save Ticket (Park)'),
+                style: OutlinedButton.styleFrom(
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  side: BorderSide(color: Colors.blue),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  foregroundColor: Colors.blue,
+                ),
+              ),
+            ),
+          // Conditional button layout based on digital payment status
+          if (isDigitalPaymentEnabled) ...[
+            // Two-button layout when digital payment is enabled
+            SizedBox(
+              height: 56,
+              child: Row(
+                children: [
+                  // Left button: Charge (waits for payment)
+                  Expanded(
+                    child: FlipperButton(
+                      height: 56,
+                      color: Colors.blue.shade700,
+                      text: _getButtonText(
+                        items.isEmpty,
+                        total,
+                        customerPhone,
+                        remainingBalance,
+                      ),
+                      textColor: Colors.white,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(12),
+                        bottomLeft: Radius.circular(12),
+                      ),
+                      isLoading:
+                          !_isImmediateCompletion && _shouldShowSpinner(),
+                      onPressed: _getButtonEnabled(items.isEmpty, customerPhone)
+                          ? () => _handleCharge(
+                              widget.transactionIdInt.toString(),
+                              total,
+                              immediateCompletion: false,
+                            )
+                          : null,
+                    ),
+                  ),
+                  // Divider
+                  Container(width: 1, height: 56, color: Colors.grey.shade300),
+                  // Right button: Complete Now (immediate)
+                  Expanded(
+                    child: FlipperButton(
+                      height: 56,
+                      color: Colors.green,
+                      text: remainingBalance > 0.01
+                          ? 'Record Payment'
+                          : 'Complete Now',
+                      textColor: Colors.white,
+                      borderRadius: BorderRadius.only(
+                        topRight: Radius.circular(12),
+                        bottomRight: Radius.circular(12),
+                      ),
+                      isLoading: _isImmediateCompletion && _shouldShowSpinner(),
+                      onPressed: _getButtonEnabled(items.isEmpty, customerPhone)
+                          ? () => _handleCharge(
+                              widget.transactionIdInt.toString(),
+                              total,
+                              immediateCompletion: true,
+                            )
+                          : null,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ] else ...[
+            // Single button when digital payment is disabled
+            FlipperButton(
+              height: 56,
+              width: double.infinity,
+              color: Colors.green,
+              text: remainingBalance > 0.01 ? 'Record Payment' : 'Complete Now',
+              textColor: Colors.white,
+              borderRadius: BorderRadius.all(Radius.circular(12)),
+              isLoading: _isImmediateCompletion && _shouldShowSpinner(),
+              onPressed: _getButtonEnabled(items.isEmpty, customerPhone)
+                  ? () => _handleCharge(
+                      widget.transactionIdInt.toString(),
+                      total,
+                      immediateCompletion: true,
+                    )
+                  : null,
+            ),
+          ],
+        ],
+      ),
+    );
   }
 }
 
