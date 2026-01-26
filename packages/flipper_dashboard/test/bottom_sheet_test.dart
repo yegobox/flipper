@@ -1,11 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:supabase_models/brick/models/transaction.model.dart';
-import 'package:mockito/mockito.dart';
 
 import '../lib/bottomSheet.dart';
-
-// Mock classes for testing
-class MockITransaction extends Mock implements ITransaction {}
 
 void main() {
   group('BottomSheets Tests', () {
@@ -22,6 +17,10 @@ void main() {
       expect(ChargeButtonState.waitingForPayment.toString(), 'ChargeButtonState.waitingForPayment');
       expect(ChargeButtonState.printingReceipt.toString(), 'ChargeButtonState.printingReceipt');
       expect(ChargeButtonState.failed.toString(), 'ChargeButtonState.failed');
+    });
+
+    test('BottomSheets class exists', () {
+      expect(BottomSheets, isNotNull);
     });
   });
 }
