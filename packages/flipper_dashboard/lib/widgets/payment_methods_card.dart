@@ -97,15 +97,20 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
           focusedIndex == null && !_userEditedFields.contains(0);
 
       if (shouldAutoUpdate) {
-        updatePaymentRemainder(
-          ref: ref,
-          transaction: ref.read(transactionByIdProvider(transactionId)).value!,
-          total: totalPayable,
-          lastAutoSetAmount: oldTotalPayable ?? payments[0].amount,
-          onAutoSetAmountChanged: (amount) {
-            // No local state to update here, the mixin handles the provider
-          },
-        );
+        final transaction = ref
+            .read(transactionByIdProvider(transactionId))
+            .value;
+        if (transaction != null) {
+          updatePaymentRemainder(
+            ref: ref,
+            transaction: transaction,
+            total: totalPayable,
+            lastAutoSetAmount: oldTotalPayable ?? payments[0].amount,
+            onAutoSetAmountChanged: (amount) {
+              // No local state to update here, the mixin handles the provider
+            },
+          );
+        }
       } else {
         // Manual update logic
         final newAmount = double.tryParse(payments[0].controller.text) ?? 0.0;
