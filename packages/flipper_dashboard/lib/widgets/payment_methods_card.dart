@@ -328,7 +328,7 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Payment Method ${index + 1}',
+                    'Payment ${index + 1}',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
@@ -365,7 +365,7 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
 
             // Payment method label
             Text(
-              'Payment Method',
+              'Payment',
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
@@ -901,7 +901,7 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
                           Expanded(
                             flex: 2,
                             child: Text(
-                              'Payment Method',
+                              'Payment',
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
@@ -948,7 +948,7 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
                   _addPaymentMethod(transactionId: widget.transactionId),
               icon: Icon(Icons.add, size: 18, color: Colors.blue[600]),
               label: Text(
-                'Add Payment Method',
+                'Add Payment',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,

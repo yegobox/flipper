@@ -19,7 +19,6 @@ import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
     as oldProvider;
 import 'package:flipper_dashboard/providers/customer_phone_provider.dart';
 import 'package:flipper_services/utils.dart';
-import 'package:flipper_services/constants.dart';
 import 'dart:async';
 import 'package:flipper_dashboard/utils/resume_transaction_helper.dart';
 
@@ -141,6 +140,9 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
       transaction: widget.transaction,
       model: CoreViewModel(),
     );
+    if (context.mounted) {
+      Navigator.of(context).pop();
+    }
   }
 
   static Future<void> edit({
@@ -1214,7 +1216,6 @@ class _BottomSheetHeader extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isLoan = transaction.isLoan ?? false;
     final customerPhone = ref.watch(customerPhoneNumberProvider);
     final attachedCustomerAsync = ref.watch(
       oldProvider.attachedCustomerProvider(transaction.customerId),
@@ -1265,30 +1266,6 @@ class _BottomSheetHeader extends HookConsumerWidget {
             ),
           ),
           Spacer(),
-          // Save Ticket button for loans
-          if (isLoan)
-            TextButton(
-              onPressed: () async {
-                try {
-                  await ProxyService.strategy.updateTransaction(
-                    transaction: transaction,
-                    status: PARKED,
-                    updatedAt: DateTime.now().toUtc(),
-                  );
-                  ref.read(oldProvider.loadingProvider.notifier).stopLoading();
-                  Navigator.of(context).pop();
-                } catch (e) {
-                  talker.error(e);
-                }
-              },
-              child: Text(
-                "Save Ticket",
-                style: TextStyle(
-                  color: Colors.blue,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
           IconButton(
             icon: Icon(Icons.close, color: Colors.grey[600]),
             onPressed: () {
