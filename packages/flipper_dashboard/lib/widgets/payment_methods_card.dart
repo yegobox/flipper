@@ -4,6 +4,8 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:flipper_dashboard/mixins/transaction_computation_mixin.dart';
+import 'package:flipper_models/providers/transactions_provider.dart';
 
 class PaymentMethodsCard extends StatefulHookConsumerWidget {
   const PaymentMethodsCard({
@@ -21,7 +23,8 @@ class PaymentMethodsCard extends StatefulHookConsumerWidget {
   _PaymentMethodsCardState createState() => _PaymentMethodsCardState();
 }
 
-class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
+class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
+    with TransactionComputationMixin {
   bool _showPaymentMethods = false; // Toggle state for mobile
   Set<int> _userEditedFields =
       {}; // Track which fields user has manually edited
@@ -64,12 +67,8 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
     double totalPayable = widget.totalPayable;
 
     if (totalPayable == 0) return;
-    talker.warning(
-      "PaymentMethodsCard: updatePaymentAmounts. TotalPayable: $totalPayable, OldTotal: $oldTotalPayable",
-    );
 
     if (payments.isEmpty) {
-      // Initialize with default payment method if none exists
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ref
             .read(paymentMethodsProvider.notifier)
@@ -87,64 +86,23 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
     }
 
     if (payments.length == 1) {
-      // Single payment method - auto update logic
-      final currentAmount = payments[0].amount;
-      final controllerAmount =
-          double.tryParse(payments[0].controller.text) ?? 0.0;
-
-      // Check if the current amount matches the old total (with epsilon check)
-      // If oldTotalPayable is null, it means we are initializing (e.g. BottomSheet opened).
-      // In this case, we treat it as matching (allowing auto-update) to ensure the payment
-      // reflects the current authentic total, fixing the issue where it stuck to a stale value (e.g. 80 vs 2080).
-      final bool matchesOldTotal =
-          oldTotalPayable == null ||
-          (currentAmount - oldTotalPayable).abs() < 0.01;
-
-      // Only auto-update if:
-      // 1. Amount is 0 (initial state)
-      // 2. focusedIndex is null (not currently being edited) AND
-      //    - Amount equals total (full payment) OR
-      //    - Controller text matches old total (user hasn't manually edited)
       final bool shouldAutoUpdate =
-          focusedIndex == null &&
-          !_userEditedFields.contains(0) &&
-          (currentAmount == 0 ||
-              (currentAmount == totalPayable &&
-                  controllerAmount == totalPayable) ||
-              (matchesOldTotal &&
-                  controllerAmount == (oldTotalPayable ?? totalPayable) &&
-                  oldTotalPayable != null));
-
-      talker.warning(
-        "PaymentMethodsCard: Single Payment. Current: $currentAmount, Controller: $controllerAmount, MatchesOld: $matchesOldTotal, ShouldAutoUpdate: $shouldAutoUpdate",
-      );
+          focusedIndex == null && !_userEditedFields.contains(0);
 
       if (shouldAutoUpdate) {
-        talker.warning(
-          "PaymentMethodsCard: Auto-updating single payment to $totalPayable",
+        updatePaymentRemainder(
+          ref: ref,
+          transaction: ref.read(transactionByIdProvider(transactionId)).value!,
+          total: totalPayable,
+          lastAutoSetAmount: oldTotalPayable ?? payments[0].amount,
+          onAutoSetAmountChanged: (amount) {
+            // No local state to update here, the mixin handles the provider
+          },
         );
-
-        // Update the model (Manual copy as copyWith doesn't exist)
-        ref
-            .read(paymentMethodsProvider.notifier)
-            .updatePaymentMethod(
-              0,
-              Payment(
-                amount: totalPayable,
-                method: payments[0].method,
-                controller: payments[0].controller, // Keep the same controller
-                id: payments[0].id,
-              ),
-              transactionId: transactionId,
-            );
-        // Update the UI controller
-        if (payments[0].controller.text != totalPayable.toString()) {
-          payments[0].controller.text = totalPayable.toString();
-        }
       } else {
-        // User has manually edited - update the amount from controller but don't override controller
+        // Manual update logic
         final newAmount = double.tryParse(payments[0].controller.text) ?? 0.0;
-        if (newAmount != currentAmount) {
+        if (newAmount != payments[0].amount) {
           ref
               .read(paymentMethodsProvider.notifier)
               .updatePaymentMethod(
@@ -158,31 +116,22 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
                 transactionId: transactionId,
               );
         }
-        talker.warning(
-          "PaymentMethodsCard: Manual override detected (Current: $currentAmount, Controller: $controllerAmount), preserving user input.",
-        );
       }
     } else {
-      // Multiple payment methods logic
+      // Multiple payment methods logic (still unique to the card for now as it involves multi-field coordination)
       double allocatedAmount = 0;
       int? autoFillIndex;
 
-      // If there is more than one payment, the last one is for auto-fill
       if (payments.length > 1) {
         autoFillIndex = payments.length - 1;
-        // If the user is editing the last one, we choose the first one to auto-fill
         if (focusedIndex == autoFillIndex) {
           autoFillIndex = 0;
         }
       }
 
-      // Calculate allocated amount based on user input in other fields
       for (int i = 0; i < payments.length; i++) {
         if (i == autoFillIndex) continue;
         double amount = double.tryParse(payments[i].controller.text) ?? 0.0;
-
-        // If this field is focused (being edited), trust the input
-        // Otherwise, clamp it (though mostly we trust the controller text here)
         if (i == focusedIndex) {
           payments[i].amount = amount;
         } else {
@@ -192,14 +141,12 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
         allocatedAmount += amount;
       }
 
-      // Set the amount for the auto-fill field
       if (autoFillIndex != null) {
         final remaining = (totalPayable - allocatedAmount).clamp(
           0.0,
           double.infinity,
         );
         payments[autoFillIndex].amount = remaining;
-        // Update the controller text only if it's not being edited
         if (focusedIndex != autoFillIndex) {
           final newText = remaining.toStringAsFixed(2);
           if (payments[autoFillIndex].controller.text != newText) {
@@ -207,13 +154,12 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
           }
         }
       }
-    }
 
-    // Persist changes to provider
-    for (int i = 0; i < payments.length; i++) {
-      ref
-          .read(paymentMethodsProvider.notifier)
-          .updatePaymentMethod(i, payments[i], transactionId: transactionId);
+      for (int i = 0; i < payments.length; i++) {
+        ref
+            .read(paymentMethodsProvider.notifier)
+            .updatePaymentMethod(i, payments[i], transactionId: transactionId);
+      }
     }
   }
 

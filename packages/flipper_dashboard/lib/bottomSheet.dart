@@ -21,6 +21,7 @@ import 'package:flipper_dashboard/providers/customer_phone_provider.dart';
 import 'package:flipper_services/utils.dart';
 import 'dart:async';
 import 'package:flipper_dashboard/utils/resume_transaction_helper.dart';
+import 'package:flipper_dashboard/mixins/transaction_computation_mixin.dart';
 
 enum ChargeButtonState {
   initial, // "Charge"
@@ -119,7 +120,7 @@ class _BottomSheetContent extends ConsumerStatefulWidget {
 }
 
 class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, TransactionComputationMixin {
   ChargeButtonState _chargeState = ChargeButtonState.initial;
   bool _isImmediateCompletion = false; // Track which button was clicked
 
@@ -685,28 +686,13 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
     final payments = ref.watch(oldProvider.paymentMethodsProvider);
 
     double calculateTotal(List<TransactionItem> items) {
-      double sumItems = items.fold(
-        0,
-        (sum, item) => sum + (item.price * item.qty),
+      return calculateTransactionTotal(
+        items: items,
+        transaction: transactionAsync.value,
       );
-
-      // Fallback: If transaction subTotal is greater, use it
-      if (transactionAsync.value != null) {
-        double transactionTotal = transactionAsync.value!.subTotal ?? 0.0;
-        talker.warning(
-          "BottomSheet: SumItems: $sumItems, TransactionTotal: $transactionTotal",
-        );
-        if (transactionTotal > sumItems) {
-          talker.warning(
-            "BottomSheet: Using transaction subTotal ($transactionTotal) as it is greater than sumItems ($sumItems)",
-          );
-          return transactionTotal;
-        }
-      }
-      return sumItems;
     }
 
-    final totalPaid = payments.fold<double>(0, (sum, p) => sum + p.amount);
+    final totalPaid = calculateTotalPaid(payments);
 
     // Calculate reliable total
     double totalAmount = 0.0;
@@ -723,7 +709,10 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
       "BottomSheet: Final TotalAmount passed to PaymentMethodsCard: $totalAmount",
     );
 
-    final remainingBalance = totalAmount - totalPaid;
+    final remainingBalance = calculateRemainingBalance(
+      total: totalAmount,
+      paid: totalPaid,
+    );
 
     // Debug logging
     talker.warning(

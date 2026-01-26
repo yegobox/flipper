@@ -27,6 +27,7 @@ import 'package:country_code_picker/country_code_picker.dart';
 import 'package:flipper_dashboard/providers/customer_provider.dart';
 import 'package:flipper_dashboard/providers/customer_phone_provider.dart';
 import 'package:flipper_dashboard/widgets/payment_methods_card.dart';
+import 'package:flipper_dashboard/mixins/transaction_computation_mixin.dart';
 
 class QuickSellingView extends StatefulHookConsumerWidget {
   final GlobalKey<FormState> formKey;
@@ -59,101 +60,50 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         PreviewCartMixin,
         TransactionItemTable,
         DateCoreWidget,
-        Refresh<QuickSellingView> {
+        Refresh<QuickSellingView>,
+        TransactionComputationMixin {
   double _amountToChange(double alreadyPaid) {
-    final payments = ref.watch(paymentMethodsProvider);
-    final currentReceived = payments.fold<double>(
-      0,
-      (sum, p) => sum + p.amount,
+    return calculateAmountToChange(
+      total: totalAfterDiscountAndShipping,
+      paid: alreadyPaid + calculateTotalPaid(ref.watch(paymentMethodsProvider)),
     );
-
-    final change =
-        (alreadyPaid + currentReceived) - totalAfterDiscountAndShipping;
-    return change > 0 ? change : 0.0;
   }
 
   double _remainingBalance(double alreadyPaid) {
-    final payments = ref.watch(paymentMethodsProvider);
-    final currentReceived = payments.fold<double>(
-      0,
-      (sum, p) => sum + p.amount,
+    return calculateRemainingBalance(
+      total: totalAfterDiscountAndShipping,
+      paid: alreadyPaid + calculateTotalPaid(ref.watch(paymentMethodsProvider)),
     );
-
-    final remaining =
-        totalAfterDiscountAndShipping - (alreadyPaid + currentReceived);
-    // Use a small epsilon for float comparison
-    return remaining > 0.01 ? remaining : 0.0;
   }
 
   double get totalAfterDiscountAndShipping {
+    final isExpense = ProxyService.box.isOrdering() ?? false;
+    final transaction = ref
+        .read(pendingTransactionStreamProvider(isExpense: isExpense))
+        .value;
     final discountPercent =
         double.tryParse(widget.discountController.text) ?? 0.0;
 
-    // Default to using the calculated grandTotal from the item table
-    double baseTotal = grandTotal.toDouble();
-
-    // Fallback/Validation: Check if the transaction's stored subTotal is larger (implying missing items in the UI list)
-    try {
-      final isExpense = ProxyService.box.isOrdering() ?? false;
-      final transaction = ref
-          .read(pendingTransactionStreamProvider(isExpense: isExpense))
-          .value;
-
-      if (transaction != null && (transaction.subTotal ?? 0.0) > baseTotal) {
-        talker.warning(
-          "QuickSellingView: UI grandTotal ($baseTotal) is less than Transaction subTotal (${transaction.subTotal}). Using subTotal.",
-        );
-        baseTotal = transaction.subTotal!;
-      }
-    } catch (e) {
-      talker.error("Error reading transaction subTotal: $e");
-    }
-
-    final discountAmount = (baseTotal * discountPercent) / 100;
-    return baseTotal - discountAmount;
+    return calculateTransactionTotal(
+      items: internalTransactionItems,
+      transaction: transaction,
+      discountPercent: discountPercent,
+    );
   }
 
   void _updateReceivedAmountIfNeeded(ITransaction transaction) {
     if (!mounted) return;
 
-    final alreadyPaid = transaction.cashReceived ?? 0.0;
-    final total = totalAfterDiscountAndShipping;
-    final currentRemainder = total - alreadyPaid;
-    final displayRemainder = currentRemainder > 0 ? currentRemainder : 0.0;
-
-    // Only auto-update if remainder has likely changed or field is empty.
-    if ((displayRemainder - _lastAutoSetAmount).abs() > 0.01 ||
-        widget.receivedAmountController.text.isEmpty) {
-      talker.warning(
-        "Auto-update check: Text='${widget.receivedAmountController.text}', Last='$_lastAutoSetAmount', NewRemainder='$displayRemainder'",
-      );
-
-      talker.warning("Auto-updating received amount to $displayRemainder");
-      widget.receivedAmountController.text = displayRemainder.toString();
-      _lastAutoSetAmount = displayRemainder;
-
-      ProxyService.box.writeDouble(
-        key: 'getCashReceived',
-        value: displayRemainder,
-      );
-      final payments = ref.read(paymentMethodsProvider);
-      if (payments.isNotEmpty) {
-        talker.warning("Updating payment provider with $displayRemainder");
-        ref
-            .read(paymentMethodsProvider.notifier)
-            .updatePaymentMethod(
-              0,
-              Payment(
-                amount: displayRemainder,
-                method: payments[0].method,
-                id: payments[0].id,
-                controller: payments[0].controller,
-              ),
-              transactionId: transaction.id,
-            );
-        payments[0].controller.text = displayRemainder.toString();
-      }
-    }
+    updatePaymentRemainder(
+      ref: ref,
+      transaction: transaction,
+      total: totalAfterDiscountAndShipping,
+      receivedAmountController: widget.receivedAmountController,
+      lastAutoSetAmount: _lastAutoSetAmount,
+      onAutoSetAmountChanged: (amount) {
+        _lastAutoSetAmount = amount;
+      },
+    );
   }
 
   Widget _buildInvoiceNumber() {

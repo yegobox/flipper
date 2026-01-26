@@ -93,12 +93,13 @@ class TransactionInitializationHelper {
     WidgetRef ref,
     ITransaction transaction,
   ) {
-    // Logic moved from bottomSheet.dart
+    // Logic standardized to match shared behavior
     final total = transaction.subTotal ?? 0.0;
     final paid = transaction.cashReceived ?? 0.0;
     final remainder = total - paid;
+    final displayRemainder = remainder > 0.01 ? remainder : 0.0;
 
-    if (remainder <= 0.01) return;
+    if (displayRemainder <= 0) return;
 
     final payments = ref.read(oldProvider.paymentMethodsProvider);
 
@@ -107,13 +108,16 @@ class TransactionInitializationHelper {
           .read(oldProvider.paymentMethodsProvider.notifier)
           .addPaymentMethod(
             oldProvider.Payment(
-              amount: remainder,
+              amount: displayRemainder,
               method: "Cash",
-              controller: TextEditingController(text: remainder.toString()),
+              controller: TextEditingController(
+                text: displayRemainder.toString(),
+              ),
             ),
           );
     } else {
       final firstPayment = payments[0];
+      // Sync logic matches the mixin's intent
       if (firstPayment.amount == 0 ||
           (firstPayment.amount - total).abs() < 0.01) {
         ref
@@ -121,7 +125,7 @@ class TransactionInitializationHelper {
             .updatePaymentMethod(
               0,
               oldProvider.Payment(
-                amount: remainder,
+                amount: displayRemainder,
                 method: firstPayment.method,
                 id: firstPayment.id,
                 controller: firstPayment.controller,
@@ -131,7 +135,7 @@ class TransactionInitializationHelper {
 
         if (firstPayment.controller.text.isEmpty ||
             double.tryParse(firstPayment.controller.text) == total) {
-          firstPayment.controller.text = remainder.toString();
+          firstPayment.controller.text = displayRemainder.toString();
         }
       }
     }
