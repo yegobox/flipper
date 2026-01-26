@@ -127,6 +127,7 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
     with TickerProviderStateMixin, TransactionComputationMixin {
   ChargeButtonState _chargeState = ChargeButtonState.initial;
   bool _isImmediateCompletion = false; // Track which button was clicked
+  String? _lastTransactionId; // Track the last transaction ID for payment initialization
 
   @override
   void initState() {
@@ -690,8 +691,10 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
     final payments = ref.watch(oldProvider.paymentMethodsProvider);
 
     // Standardized pre-filling initialization (ensures it happens once both items and transaction are ready)
-    if (itemsAsync.hasValue && transactionAsync.hasValue) {
+    String? currentTransactionId = (transactionAsync.value ?? widget.transaction).id;
+    if (itemsAsync.hasValue && transactionAsync.hasValue && _lastTransactionId != currentTransactionId) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        _lastTransactionId = currentTransactionId;
         standardizedPaymentInitialization(
           ref: ref,
           transaction: transactionAsync.value ?? widget.transaction,
