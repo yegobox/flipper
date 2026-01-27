@@ -144,6 +144,8 @@ const List<String> paymentTypes = [
   'BANK CHECK',
   'DEBIT&CREDIT CARD',
   'MOBILE MONEY',
+  'MTN MOMO',
+  'AIRTEL MONEY',
   'OTHER'
 ];
 
@@ -178,6 +180,7 @@ const String PARKED = 'parked';
 const String WAITING = 'waiting';
 const String PENDING = 'pending';
 const String PROCESSING = 'processing';
+const String WAITING_MOMO_COMPLETE = 'waitingMomoComplete';
 const String BARCODE = 'BARCODE';
 const String CUSTOM_PRODUCT = "Custom Amount";
 const String TEMP_PRODUCT = "temp";

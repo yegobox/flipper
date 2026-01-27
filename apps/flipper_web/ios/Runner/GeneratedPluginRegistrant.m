@@ -84,6 +84,12 @@
 @import firebase_remote_config;
 #endif
 
+#if __has_include(<flutter_contacts/FlutterContactsPlugin.h>)
+#import <flutter_contacts/FlutterContactsPlugin.h>
+#else
+@import flutter_contacts;
+#endif
+
 #if __has_include(<flutter_keyboard_visibility/FlutterKeyboardVisibilityPlugin.h>)
 #import <flutter_keyboard_visibility/FlutterKeyboardVisibilityPlugin.h>
 #else
@@ -256,6 +262,7 @@
   [FLTFirebaseCrashlyticsPlugin registerWithRegistrar:[registry registrarForPlugin:@"FLTFirebaseCrashlyticsPlugin"]];
   [FLTFirebaseMessagingPlugin registerWithRegistrar:[registry registrarForPlugin:@"FLTFirebaseMessagingPlugin"]];
   [FirebaseRemoteConfigPlugin registerWithRegistrar:[registry registrarForPlugin:@"FirebaseRemoteConfigPlugin"]];
+  [FlutterContactsPlugin registerWithRegistrar:[registry registrarForPlugin:@"FlutterContactsPlugin"]];
   [FlutterKeyboardVisibilityPlugin registerWithRegistrar:[registry registrarForPlugin:@"FlutterKeyboardVisibilityPlugin"]];
   [FlutterLocalNotificationsPlugin registerWithRegistrar:[registry registrarForPlugin:@"FlutterLocalNotificationsPlugin"]];
   [FlutterLocalizationPlugin registerWithRegistrar:[registry registrarForPlugin:@"FlutterLocalizationPlugin"]];

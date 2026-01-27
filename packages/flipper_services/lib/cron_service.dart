@@ -13,6 +13,7 @@ import 'package:flipper_services/log_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flutter/foundation.dart' hide Category;
 // ignore_for_file: invalid_use_of_visible_for_testing_member
 
@@ -494,6 +495,11 @@ class CronService {
         talker.error("Asset download failed: $e");
       }
     }));
+    // Setup auto-complete MoMo transactions timer (every 10 minutes)
+    _activeTimers
+        .add(Timer.periodic(const Duration(minutes: 10), (Timer t) async {
+      await _autoCompleteMomoTransactions();
+    }));
   }
 
   /// Synchronizes analytics and handles patching operations
@@ -709,4 +715,37 @@ class CronService {
   /// Platform detection helpers
   bool get isMacOs => defaultTargetPlatform == TargetPlatform.macOS;
   bool get isIos => defaultTargetPlatform == TargetPlatform.iOS;
+
+  /// Automatically completes MoMo transactions that have been waiting for more than 10 minutes
+  Future<void> _autoCompleteMomoTransactions() async {
+    try {
+      final branchId = ProxyService.box.getBranchId();
+      if (branchId == null) return;
+
+      talker.info("Checking for MoMo transactions to auto-complete...");
+
+      final momoTransactions =
+          await ProxyService.getStrategy(Strategy.capella).transactions(
+        branchId: branchId,
+        status: WAITING_MOMO_COMPLETE,
+      );
+
+      final now = DateTime.now();
+      for (final transaction in momoTransactions) {
+        if (transaction.createdAt != null) {
+          final difference = now.difference(transaction.createdAt!);
+          if (difference.inMinutes >= 10) {
+            talker.info(
+                "Auto-completing MoMo transaction: ${transaction.id} (Initiated at: ${transaction.createdAt})");
+            await ProxyService.strategy.updateTransaction(
+              transaction: transaction,
+              status: COMPLETE,
+            );
+          }
+        }
+      }
+    } catch (e, stackTrace) {
+      talker.error("Auto-complete MoMo transactions failed: $e", stackTrace);
+    }
+  }
 }

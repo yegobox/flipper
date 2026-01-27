@@ -155,6 +155,8 @@ PODS:
     - nanopb (~> 3.30910.0)
     - PromisesSwift (~> 2.1)
   - FirebaseSharedSwift (12.6.0)
+  - flutter_contacts (0.0.1):
+    - FlutterMacOS
   - flutter_local_notifications (0.0.1):
     - FlutterMacOS
   - flutter_localization (0.0.1):
@@ -315,6 +317,7 @@ DEPENDENCIES:
   - firebase_crashlytics (from `Flutter/ephemeral/.symlinks/plugins/firebase_crashlytics/macos`)
   - firebase_messaging (from `Flutter/ephemeral/.symlinks/plugins/firebase_messaging/macos`)
   - firebase_remote_config (from `Flutter/ephemeral/.symlinks/plugins/firebase_remote_config/macos`)
+  - flutter_contacts (from `Flutter/ephemeral/.symlinks/plugins/flutter_contacts/macos`)
   - flutter_local_notifications (from `Flutter/ephemeral/.symlinks/plugins/flutter_local_notifications/macos`)
   - flutter_localization (from `Flutter/ephemeral/.symlinks/plugins/flutter_localization/macos`)
   - flutter_soloud (from `Flutter/ephemeral/.symlinks/plugins/flutter_soloud/macos`)
@@ -409,6 +412,8 @@ EXTERNAL SOURCES:
     :path: Flutter/ephemeral/.symlinks/plugins/firebase_messaging/macos
   firebase_remote_config:
     :path: Flutter/ephemeral/.symlinks/plugins/firebase_remote_config/macos
+  flutter_contacts:
+    :path: Flutter/ephemeral/.symlinks/plugins/flutter_contacts/macos
   flutter_local_notifications:
     :path: Flutter/ephemeral/.symlinks/plugins/flutter_local_notifications/macos
   flutter_localization:
@@ -499,6 +504,7 @@ SPEC CHECKSUMS:
   FirebaseRemoteConfigInterop: 3443b8cb8fffd76bb3e03b2a84bfd3db952fcda4
   FirebaseSessions: 2e8f808347e665dff3e5843f275715f07045297d
   FirebaseSharedSwift: 79f27fff0addd15c3de19b87fba426f3cc2c964f
+  flutter_contacts: 5fef1796794563aebfcf2a0bfc5a56b4113cbc8f
   flutter_local_notifications: 4ccab5b7a22835214a6672e3f9c5e8ae207dab36
   flutter_localization: 4035848ae2ed142875d5fd3dde328250a5e81f42
   flutter_soloud: 1b9bde781de22ebd2ae8b2c213ec84ab3b531f16

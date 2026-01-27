@@ -19,6 +19,7 @@ abstract class TransactionInterface {
     bool includeZeroSubTotal = false,
     bool fetchRemote = false,
     bool includePending = false,
+    bool includeParked = false,
     bool skipOriginalTransactionCheck = false,
     bool forceRealData = true,
     List<String>? receiptNumber,
@@ -192,6 +193,7 @@ abstract class TransactionInterface {
     FilterType? filterType,
     bool includeZeroSubTotal = false,
     bool includePending = false,
+    bool includeParked = false,
     bool skipOriginalTransactionCheck = false,
   });
 

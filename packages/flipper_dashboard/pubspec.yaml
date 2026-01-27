@@ -125,6 +125,7 @@ dependencies:
   flutter_soloud: ^3.4.7
   ditto_live: ^4.14.1
   flipper_personal: any
+  flutter_contacts: ^2.0.0-beta.2
   # just_audio: ^0.10.5
 
 dependency_overrides:

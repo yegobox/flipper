@@ -3,7 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_web/features/login/signup_providers.dart';
 import 'package:flipper_web/repositories/signup_repository.dart';
 import 'package:flipper_web/models/business_type.dart';
-
+import 'package:flipper_models/ippis_service.dart';
+//flutter test test/features/login/signup_providers_test.dart
 // Manual mock implementation of SignupRepository
 class MockSignupRepository extends SignupRepository {
   bool checkUsernameResult = true;
@@ -158,6 +159,29 @@ void main() {
         tinNumber: '123456789',
         country: 'Rwanda',
         isUsernameAvailable: true,
+        tinDetails: IppisBusiness( // Add valid tinDetails to satisfy validation
+          tin: '123456789',
+          taxPayerName: 'Test Business',
+          registrationDate: '2023-01-01',
+          isicName: 'Retail Trade',
+          numberOfEmployees: 5,
+          numberOfFemaleEmployees: 2,
+          numberOfMaleEmployees: 3,
+          businessType: 'LLC',
+          province: 'Kigali',
+          district: 'Gasabo',
+          sector: 'Gisozi',
+          cell: 'Nyakabanda',
+          village: 'Ruyenzi',
+          phoneNumber: '+250788123456',
+          email: 'contact@test.com',
+          stateOfEstablishment: 'Active',
+          taxAccountStatus: 'Active',
+          statusEffectiveDate: '2023-01-01',
+          categoryOfEstablishment: 'Small Enterprise',
+          registrationAuthority: 'RRA',
+          managingDirectorId: 'MD001',
+        ),
       );
 
       expect(state.isValid, equals(true));
@@ -354,6 +378,29 @@ void main() {
           tinNumber: '123456789',
           country: 'Rwanda',
           isUsernameAvailable: true,
+          tinDetails: IppisBusiness( // Add valid tinDetails to satisfy validation
+            tin: '123456789',
+            taxPayerName: 'Test Business',
+            registrationDate: '2023-01-01',
+            isicName: 'Retail Trade',
+            numberOfEmployees: 5,
+            numberOfFemaleEmployees: 2,
+            numberOfMaleEmployees: 3,
+            businessType: 'LLC',
+            province: 'Kigali',
+            district: 'Gasabo',
+            sector: 'Gisozi',
+            cell: 'Nyakabanda',
+            village: 'Ruyenzi',
+            phoneNumber: '+250788123456',
+            email: 'contact@test.com',
+            stateOfEstablishment: 'Active',
+            taxAccountStatus: 'Active',
+            statusEffectiveDate: '2023-01-01',
+            categoryOfEstablishment: 'Small Enterprise',
+            registrationAuthority: 'RRA',
+            managingDirectorId: 'MD001',
+          ),
         );
 
         // Configure mock responses
@@ -399,7 +446,6 @@ void main() {
       final businessType = BusinessType(id: '1', typeName: 'Flipper Retailer');
 
       // Set state manually to bypass async username check
-
       final validState = SignupFormState(
         username: 'testuser',
         fullName: 'Test User',
@@ -407,6 +453,29 @@ void main() {
         tinNumber: '123456789',
         country: 'Rwanda',
         isUsernameAvailable: true,
+        tinDetails: IppisBusiness( // Add valid tinDetails to satisfy validation
+          tin: '123456789',
+          taxPayerName: 'Test Business',
+          registrationDate: '2023-01-01',
+          isicName: 'Retail Trade',
+          numberOfEmployees: 5,
+          numberOfFemaleEmployees: 2,
+          numberOfMaleEmployees: 3,
+          businessType: 'LLC',
+          province: 'Kigali',
+          district: 'Gasabo',
+          sector: 'Gisozi',
+          cell: 'Nyakabanda',
+          village: 'Ruyenzi',
+          phoneNumber: '+250788123456',
+          email: 'contact@test.com',
+          stateOfEstablishment: 'Active',
+          taxAccountStatus: 'Active',
+          statusEffectiveDate: '2023-01-01',
+          categoryOfEstablishment: 'Small Enterprise',
+          registrationAuthority: 'RRA',
+          managingDirectorId: 'MD001',
+        ),
       );
 
       // Mock an error in the repository

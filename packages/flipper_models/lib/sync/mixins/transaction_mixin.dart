@@ -69,6 +69,7 @@ mixin TransactionMixin implements TransactionInterface {
     FilterType? filterType,
     bool includeZeroSubTotal = false,
     bool includePending = false,
+    bool includeParked = false,
     bool skipOriginalTransactionCheck = false,
     bool forceRealData = true,
     List<String>? receiptNumber,
@@ -114,14 +115,22 @@ mixin TransactionMixin implements TransactionInterface {
       if (id != null)
         Where('id').isExactly(id)
       else ...[
-        Where('status').isExactly(status ?? COMPLETE), // Ensure default value
+        if (includePending && includeParked)
+          Where('status').isIn(
+              [status ?? COMPLETE, PENDING, PARKED, WAITING_MOMO_COMPLETE])
+        else if (includePending)
+          Where('status').isIn([status ?? COMPLETE, PENDING])
+        else if (includeParked)
+          Where('status')
+              .isIn([status ?? COMPLETE, PARKED, WAITING_MOMO_COMPLETE])
+        else
+          Where('status').isExactly(status ?? COMPLETE),
         if (skipOriginalTransactionCheck == false)
           Where('isOriginalTransaction').isExactly(true),
         if (!includeZeroSubTotal)
           Where('subTotal').isGreaterThan(0), // Optional condition
         if (branchId != null) Where('branchId').isExactly(branchId),
         Where('isExpense').isExactly(isExpense),
-        if (includePending) Where('status').isExactly(PENDING),
         if (filterType != null) Where('type').isExactly(filterType.name),
         if (transactionType != null)
           Where('transactionType').isExactly(transactionType),
@@ -188,6 +197,7 @@ mixin TransactionMixin implements TransactionInterface {
     FilterType? filterType,
     bool includeZeroSubTotal = false,
     bool includePending = false,
+    bool includeParked = false,
     bool skipOriginalTransactionCheck = false,
   }) async {
     // Step 1: Fetch transactions using the same logic as the transactions() method
@@ -204,6 +214,7 @@ mixin TransactionMixin implements TransactionInterface {
       filterType: filterType,
       includeZeroSubTotal: includeZeroSubTotal,
       includePending: includePending,
+      includeParked: includeParked,
       skipOriginalTransactionCheck: skipOriginalTransactionCheck,
     );
     if (transactionss.isEmpty) return [];

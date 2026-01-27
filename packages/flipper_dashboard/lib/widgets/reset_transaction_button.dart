@@ -26,7 +26,9 @@ class ResetTransactionButton extends ConsumerWidget {
         final bool isTicket =
             transaction.ticketName != null &&
             transaction.ticketName!.isNotEmpty;
-        final bool hasPayments = (transaction.cashReceived ?? 0) > 0;
+        final bool hasPayments =
+            (transaction.cashReceived ?? 0) > 0 ||
+            (transaction.payments?.isNotEmpty ?? false);
 
         if (isTicket || hasPayments) {
           return const SizedBox.shrink();

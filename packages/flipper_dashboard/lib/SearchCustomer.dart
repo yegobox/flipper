@@ -361,10 +361,12 @@ class _SearchInputWithDropdownState
                   padding: const EdgeInsets.only(bottom: 8.0),
                   child: InkWell(
                     onTap: () {
+                      final transactionValue = transaction.value;
+                      if (transactionValue == null) return;
                       setState(() {
                         _selectedCustomerId = customer.id;
                       });
-                      _addCustomerToTransaction(customer, transaction.value!);
+                      _addCustomerToTransaction(customer, transactionValue);
                     },
                     borderRadius: BorderRadius.circular(12),
                     child: Container(
