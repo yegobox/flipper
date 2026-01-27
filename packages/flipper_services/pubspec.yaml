@@ -5,7 +5,7 @@ version: 1.0.0-dev
 repository: https://github.com/yegobox/packages
 
 environment:
-  sdk: ^3.10.4
+  sdk: ^3.38.7
 
 dependencies:
   flutter:
