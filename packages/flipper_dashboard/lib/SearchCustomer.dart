@@ -143,6 +143,7 @@ class _SearchInputWithDropdownState
   String _selectedSaleType = 'Outgoing- Sale';
   List<Customer> _searchResults = [];
   Timer? _debounceTimer;
+  String? _selectedCustomerId;
 
   @override
   void initState() {
@@ -296,6 +297,7 @@ class _SearchInputWithDropdownState
       setState(() {
         _searchResults = [];
         _searchController.clear();
+        _selectedCustomerId = null;
       });
     } catch (e, s) {
       talker.warning('Error adding customer to transaction: $s');
@@ -354,18 +356,30 @@ class _SearchInputWithDropdownState
               itemCount: _searchResults.length,
               itemBuilder: (context, index) {
                 final customer = _searchResults[index];
+                final isSelected = _selectedCustomerId == customer.id;
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 8.0),
                   child: InkWell(
-                    onTap: () =>
-                        _addCustomerToTransaction(customer, transaction.value!),
+                    onTap: () {
+                      setState(() {
+                        _selectedCustomerId = customer.id;
+                      });
+                      _addCustomerToTransaction(customer, transaction.value!);
+                    },
                     borderRadius: BorderRadius.circular(12),
                     child: Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: isSelected
+                            ? kcPrimaryColor.withAlpha(15)
+                            : Colors.white,
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.grey.shade200),
+                        border: Border.all(
+                          color: isSelected
+                              ? kcPrimaryColor
+                              : Colors.grey.shade200,
+                          width: isSelected ? 2 : 1,
+                        ),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withAlpha(4),
@@ -450,9 +464,19 @@ class _SearchInputWithDropdownState
                               ],
                             ),
                           ),
-                          Icon(
-                            FluentIcons.add_circle_24_regular,
-                            color: kcPrimaryColor.withOpacity(0.8),
+                          AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 200),
+                            child: isSelected
+                                ? Icon(
+                                    FluentIcons.checkmark_circle_24_filled,
+                                    key: const ValueKey('checked'),
+                                    color: kcPrimaryColor,
+                                  )
+                                : Icon(
+                                    FluentIcons.add_circle_24_regular,
+                                    key: const ValueKey('add'),
+                                    color: kcPrimaryColor.withAlpha(80),
+                                  ),
                           ),
                         ],
                       ),
