@@ -350,20 +350,112 @@ class _SearchInputWithDropdownState
           if (_searchResults.isNotEmpty)
             ListView.builder(
               shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
               itemCount: _searchResults.length,
               itemBuilder: (context, index) {
                 final customer = _searchResults[index];
-                return GestureDetector(
-                  onTap: () =>
-                      _addCustomerToTransaction(customer, transaction.value!),
-                  child: Card(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12.0),
-                    ),
-                    child: ListTile(
-                      title: Text(customer.custNm ?? 'Unknown'),
-                      subtitle: Text(customer.custTin ?? 'No TIN'),
-                      trailing: const Icon(Icons.add_circle_outline),
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 8.0),
+                  child: InkWell(
+                    onTap: () =>
+                        _addCustomerToTransaction(customer, transaction.value!),
+                    borderRadius: BorderRadius.circular(12),
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.grey.shade200),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withAlpha(4),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 48,
+                            height: 48,
+                            decoration: BoxDecoration(
+                              color: kcPrimaryColor.withAlpha(10),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Center(
+                              child: Text(
+                                customer.custNm?.isNotEmpty == true
+                                    ? customer.custNm![0].toUpperCase()
+                                    : '?',
+                                style: const TextStyle(
+                                  color: kcPrimaryColor,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                ),
+                              ),
+                            ),
+                          ),
+                          horizontalSpaceRegular,
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  customer.custNm ?? 'Unknown',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 16,
+                                    color: Colors.black87,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Row(
+                                  children: [
+                                    if (customer.custTin?.isNotEmpty ??
+                                        false) ...[
+                                      Icon(
+                                        FluentIcons.document_text_16_regular,
+                                        size: 14,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        customer.custTin ?? "",
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: Colors.grey.shade600,
+                                        ),
+                                      ),
+                                      horizontalSpaceSmall,
+                                    ],
+                                    if (customer.telNo?.isNotEmpty ??
+                                        false) ...[
+                                      Icon(
+                                        FluentIcons.phone_16_regular,
+                                        size: 14,
+                                        color: Colors.grey.shade600,
+                                      ),
+                                      const SizedBox(width: 4),
+                                      Text(
+                                        customer.telNo ?? '',
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          color: Colors.grey.shade600,
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                          Icon(
+                            FluentIcons.add_circle_24_regular,
+                            color: kcPrimaryColor.withOpacity(0.8),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 );
