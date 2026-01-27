@@ -37,12 +37,20 @@ mixin TransactionMixin implements TransactionInterface {
     }
     return repository
         .subscribe<ITransaction>(
-          query: Query(where: [
-            Where('isExpense').isExactly(isExpense),
-            Where('transactionType').isExactly(transactionType),
-            Where('status').isExactly(PENDING),
-            if (branchId != null) Where('branchId').isExactly(branchId),
-          ]),
+          query: Query(
+            where: [
+              Where('isExpense').isExactly(isExpense),
+              Where('transactionType').isExactly(transactionType),
+              Where('status').isExactly(PENDING),
+              Where('agentId').isExactly(ProxyService.box.getUserId()!),
+              if (branchId != null) Where('branchId').isExactly(branchId),
+            ],
+            orderBy: [
+              OrderBy('subTotal',
+                  ascending: false), // Prioritize transactions with items
+              OrderBy('lastTouched', ascending: false), // Then most recent
+            ],
+          ),
         )
         .map((event) => event.first);
   }
@@ -65,6 +73,7 @@ mixin TransactionMixin implements TransactionInterface {
     bool forceRealData = true,
     List<String>? receiptNumber,
     String? customerId,
+    String? agentId,
   }) async {
     if (!forceRealData) {
       return DummyTransactionGenerator.generateDummyTransactions(
@@ -308,7 +317,7 @@ mixin TransactionMixin implements TransactionInterface {
         Where('agentId').isExactly(ProxyService.box.getUserId()!),
         Where('isExpense').isExactly(isExpense),
         Where('status').isExactly(status),
-        Where('transactionType').isExactly(transactionType),
+        Where('transactionType').isIn([transactionType, "NS"]),
         if (shiftId != null) Where('shiftId').isExactly(shiftId),
       ];
 
@@ -319,7 +328,11 @@ mixin TransactionMixin implements TransactionInterface {
             ...baseWhere,
             Where('subTotal').isGreaterThan(0),
           ],
-          orderBy: [OrderBy('lastTouched', ascending: false)],
+          orderBy: [
+            OrderBy('subTotal',
+                ascending: false), // Prioritize higher subtotals
+            OrderBy('lastTouched', ascending: false), // Then latest activity
+          ],
         );
 
         final transactionsWithSubtotal = await repository.get<ITransaction>(
@@ -336,7 +349,10 @@ mixin TransactionMixin implements TransactionInterface {
       // find any pending transaction regardless of subtotal
       final query = Query(
         where: baseWhere,
-        orderBy: [OrderBy('lastTouched', ascending: false)],
+        orderBy: [
+          OrderBy('subTotal', ascending: false), // Prioritize higher subtotals
+          OrderBy('lastTouched', ascending: false), // Then latest activity
+        ],
       );
 
       final transactions = await repository.get<ITransaction>(
@@ -445,6 +461,9 @@ mixin TransactionMixin implements TransactionInterface {
     );
     yield transaction;
 
+    // Track the current transaction ID to avoid yielding duplicates
+    String currentTransactionId = transaction.id;
+
     // Poll for updates
     while (true) {
       await Future.delayed(Duration(seconds: 1));
@@ -458,7 +477,11 @@ mixin TransactionMixin implements TransactionInterface {
       );
 
       if (updatedTransaction != null) {
-        yield updatedTransaction;
+        // Only yield if the transaction has changed
+        if (updatedTransaction.id != currentTransactionId) {
+          currentTransactionId = updatedTransaction.id;
+          yield updatedTransaction;
+        }
       } else {
         // Transaction was completed/deleted, create new one
         transaction = await _getOrCreateTransaction(
@@ -466,7 +489,10 @@ mixin TransactionMixin implements TransactionInterface {
           isExpense: isExpense,
           transactionType: transactionType,
         );
-        yield transaction;
+        if (transaction.id != currentTransactionId) {
+          currentTransactionId = transaction.id;
+          yield transaction;
+        }
       }
     }
   }
@@ -979,6 +1005,7 @@ mixin TransactionMixin implements TransactionInterface {
     DateTime? startDate,
     DateTime? endDate,
     bool forceRealData = true,
+    bool includeParked = false,
     required bool skipOriginalTransactionCheck,
   }) {
     if (!forceRealData) {
@@ -990,7 +1017,15 @@ mixin TransactionMixin implements TransactionInterface {
       ));
     }
     final List<Where> conditions = [
-      Where('status').isExactly(status ?? COMPLETE),
+      if (!includeParked)
+        Where('status').isExactly(status ?? COMPLETE)
+      else
+      // If includeParked is true, we want basically status IS COMPLETE OR status IS PARKED
+      // However, standard brick.Where list is an AND join.
+      // For simplicity, we can fetch without status filter if includeParked is true
+      // and filter in the map, OR if status is provided we respect it.
+      if (status != null)
+        Where('status').isExactly(status),
       Where('subTotal').isGreaterThan(0),
       if (!skipOriginalTransactionCheck)
         Where('isOriginalTransaction').isExactly(true),
@@ -1141,6 +1176,16 @@ mixin TransactionMixin implements TransactionInterface {
       await repository.upsert<TransactionItem>(item);
     }
 
+    // Move payment records from 'from' to 'to'
+    final paymentsToMove = await repository.get<TransactionPaymentRecord>(
+      query: Query(where: [Where('transactionId').isExactly(from.id)]),
+    );
+
+    for (final payment in paymentsToMove) {
+      payment.transactionId = to.id;
+      await repository.upsert<TransactionPaymentRecord>(payment);
+    }
+
     // Recalculate total for the 'to' transaction
     final allItems = await repository.get<TransactionItem>(
       query: Query(where: [Where('transactionId').isExactly(to.id)]),
@@ -1151,6 +1196,14 @@ mixin TransactionMixin implements TransactionInterface {
     );
 
     to.subTotal = newTotal;
+
+    // Recalculate cashReceived for the 'to' transaction
+    final totalPaid = await getTotalPaidForTransaction(
+      transactionId: to.id,
+      branchId: to.branchId!,
+    );
+    to.cashReceived = totalPaid ?? 0.0;
+
     final now = DateTime.now();
     to.updatedAt = now;
     to.lastTouched = now;
@@ -1158,5 +1211,49 @@ mixin TransactionMixin implements TransactionInterface {
 
     // Delete the 'from' transaction
     await deleteTransaction(transaction: from);
+  }
+
+  @override
+  Future<double?> getTotalPaidForTransaction({
+    required String transactionId,
+    required String branchId,
+  }) async {
+    try {
+      final paymentRecords = await repository.get<TransactionPaymentRecord>(
+        query: Query(where: [
+          Where('transactionId').isExactly(transactionId),
+        ]),
+        policy: OfflineFirstGetPolicy.localOnly,
+      );
+
+      if (paymentRecords.isEmpty) {
+        return 0.0;
+      }
+
+      return paymentRecords.fold<double>(
+        0.0,
+        (sum, record) => sum + (record.amount ?? 0.0),
+      );
+    } catch (e, s) {
+      talker.error('Error getting total paid for transaction: $e', s);
+      throw Exception('Failed to get total paid: $e');
+    }
+  }
+
+  @override
+  FutureOr<void> deletePaymentRecords({required String transactionId}) async {
+    final existingRecords = await repository.get<TransactionPaymentRecord>(
+      query: Query(where: [
+        Where('transactionId').isExactly(transactionId),
+      ]),
+    );
+
+    await Future.wait(
+      existingRecords
+          .map((record) => repository.delete<TransactionPaymentRecord>(
+                record,
+                query: Query(action: QueryAction.delete),
+              )),
+    );
   }
 }

@@ -18,7 +18,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
-import 'dart:io';
+
 import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_scanner/scanner_view.dart';
@@ -398,36 +398,35 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
 
   void _showPreviewCartBottomSheet(ITransaction transaction) {
     // Show bottom sheet like in old implementation
-    if (Platform.isAndroid || Platform.isIOS) {
-      BottomSheets.showBottom(
-        context: context,
-        ref: ref,
-        transactionId: transaction.id,
-        onCharge:
-            (
-              transactionId,
-              total,
+    print("Transaction isLoan: ${transaction.isLoan}");
+    BottomSheets.showBottom(
+      context: context,
+      ref: ref,
+      transaction: transaction,
+      onCharge:
+          (
+            transactionId,
+            total,
+            onPaymentConfirmed,
+            onPaymentFailed, [
+            bool immediateCompletion = false,
+          ]) async {
+            return await widget.onCompleteTransaction(
+              transaction,
+              immediateCompletion,
               onPaymentConfirmed,
-              onPaymentFailed, [
-              bool immediateCompletion = false,
-            ]) async {
-              return await widget.onCompleteTransaction(
-                transaction,
-                immediateCompletion,
-                onPaymentConfirmed,
-                onPaymentFailed,
-              );
-            },
-        doneDelete: () {
-          ref.refresh(
-            transactionItemsStreamProvider(
-              branchId: ProxyService.box.branchIdString()!,
-              transactionId: transaction.id,
-            ),
-          );
-        },
-      );
-    }
+              onPaymentFailed,
+            );
+          },
+      doneDelete: () {
+        ref.refresh(
+          transactionItemsStreamProvider(
+            branchId: ProxyService.box.branchIdString()!,
+            transactionId: transaction.id,
+          ),
+        );
+      },
+    );
   }
 
   Widget _buildSearchFilterBar() {

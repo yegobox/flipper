@@ -74,6 +74,16 @@ mixin DeleteMixin implements DeleteInterface {
         remainingItems[i].itemSeq = i + 1;
         await repository.upsert<TransactionItem>(remainingItems[i]);
       }
+
+      // Calculate and update the transaction's subtotal
+      double newSubTotal =
+          remainingItems.fold(0, (sum, item) => sum + (item.price * item.qty));
+      await ProxyService.strategy.updateTransaction(
+        transactionId: transactionId,
+        subTotal: newSubTotal,
+        updatedAt: DateTime.now().toUtc(),
+        lastTouched: DateTime.now().toUtc(),
+      );
     } catch (e, s) {
       talker.error(s);
       rethrow;
@@ -262,6 +272,18 @@ mixin DeleteMixin implements DeleteInterface {
           branchId: ProxyService.box.getBranchId()!,
         ));
         if (transaction != null) {
+          // Prevent deleting tickets or transactions with partial payments
+          if (transaction.ticketName != null &&
+              transaction.ticketName!.isNotEmpty) {
+            talker.warning(
+                'Attempted to delete a parked transaction (ticket): ${transaction.id}');
+            return false;
+          }
+          if ((transaction.cashReceived ?? 0) > 0) {
+            talker.warning(
+                'Attempted to delete a transaction with partial payments: ${transaction.id}');
+            return false;
+          }
           await repository.delete<ITransaction>(
             transaction,
             query: Query(

@@ -2,24 +2,30 @@
 
 import 'package:flipper_dashboard/SearchCustomer.dart';
 import 'package:flipper_dashboard/widgets/payment_methods_card.dart';
-import 'package:flipper_models/db_model_export.dart';
-import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/helperModels/extensions.dart';
+import 'package:flipper_models/providers/digital_payment_provider.dart';
+import 'package:flipper_models/providers/transactions_provider.dart';
+import 'package:flipper_models/view_models/coreViewModel.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_ui/dialogs/SharedTicketDialog.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:supabase_models/brick/models/transaction.model.dart';
+import 'package:supabase_models/brick/models/transactionItem.model.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
-import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/providers/pay_button_provider.dart';
-import 'package:flipper_models/providers/digital_payment_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
     as oldProvider;
 import 'package:flipper_dashboard/providers/customer_phone_provider.dart';
 import 'package:flipper_services/utils.dart';
-import 'package:flipper_services/constants.dart';
 import 'dart:async';
+import 'package:flipper_dashboard/utils/resume_transaction_helper.dart';
+import 'package:flipper_dashboard/mixins/transaction_computation_mixin.dart';
+
+import 'data_view_reports/DynamicDataSource.dart';
 
 enum ChargeButtonState {
   initial, // "Charge"
@@ -84,6 +90,7 @@ class BottomSheets {
                       padding: const EdgeInsets.all(20.0),
                       child: _BottomSheetContent(
                         transactionIdInt: transaction.id,
+                        transaction: transaction,
                         doneDelete: doneDelete,
                         onCharge: onCharge,
                       ),
@@ -102,10 +109,12 @@ class BottomSheets {
 class _BottomSheetContent extends ConsumerStatefulWidget {
   const _BottomSheetContent({
     required this.transactionIdInt,
+    required this.transaction,
     required this.doneDelete,
     required this.onCharge,
   });
   final String transactionIdInt;
+  final ITransaction transaction;
   final Function doneDelete;
   final Function onCharge;
 
@@ -115,13 +124,33 @@ class _BottomSheetContent extends ConsumerStatefulWidget {
 }
 
 class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
-    with TickerProviderStateMixin {
+    with TickerProviderStateMixin, TransactionComputationMixin {
   ChargeButtonState _chargeState = ChargeButtonState.initial;
   bool _isImmediateCompletion = false; // Track which button was clicked
+  String?
+  _lastTransactionId; // Track the last transaction ID for payment initialization
+  String? _itemToDeleteId; // Track which item's delete button is visible
 
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      TransactionInitializationHelper.initializeSession(
+        ref: ref,
+        transaction: widget.transaction,
+      );
+    });
+  }
+
+  Future<void> _showParkDialog(BuildContext context) async {
+    await showSharedTicketDialog(
+      context: context,
+      transaction: widget.transaction,
+      model: CoreViewModel(),
+    );
+    if (context.mounted) {
+      Navigator.of(context).pop();
+    }
   }
 
   static Future<void> edit({
@@ -130,6 +159,7 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
     required TransactionItem transactionItem,
     required Function doneDelete,
     required String transactionId,
+    required ITransaction transaction,
   }) async {
     TextEditingController newQtyController = TextEditingController();
     newQtyController.text = transactionItem.qty.toString();
@@ -470,12 +500,9 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                                       Navigator.of(context).pop();
                                   } catch (e) {
                                     completer.complete(false);
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          'Error updating item: ${e.toString()}',
-                                        ),
-                                      ),
+                                    showErrorNotification(
+                                      context,
+                                      'Error updating item: ${e.toString()}',
                                     );
                                   }
                                 }
@@ -484,28 +511,37 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                             SizedBox(height: 12),
                             FlipperIconButton(
                               icon: Icons.delete_outline,
-                              iconColor: Colors.red[400],
-                              textColor: Colors.red[400],
+                              iconColor: (transaction.cashReceived ?? 0) > 0
+                                  ? Colors.grey
+                                  : Colors.red[400],
+                              textColor: (transaction.cashReceived ?? 0) > 0
+                                  ? Colors.grey
+                                  : Colors.red[400],
                               text: 'Remove Product',
-                              onPressed: () async {
-                                try {
-                                  await ProxyService.strategy
-                                      .deleteItemFromCart(
-                                        transactionItemId: transactionItem,
-                                        transactionId: transactionId,
+                              onPressed: (transaction.cashReceived ?? 0) > 0
+                                  ? () {
+                                      showErrorNotification(
+                                        context,
+                                        'Cannot delete items from a transaction with partial payments',
                                       );
-                                  Navigator.of(context).pop();
-                                  doneDelete();
-                                } catch (e) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        'Error removing product: ${e.toString()}',
-                                      ),
-                                    ),
-                                  );
-                                }
-                              },
+                                    }
+                                  : () async {
+                                      try {
+                                        await ProxyService.strategy
+                                            .deleteItemFromCart(
+                                              transactionItemId:
+                                                  transactionItem,
+                                              transactionId: transactionId,
+                                            );
+                                        Navigator.of(context).pop();
+                                        doneDelete();
+                                      } catch (e) {
+                                        showErrorNotification(
+                                          context,
+                                          'Error removing product: ${e.toString()}',
+                                        );
+                                      }
+                                    },
                             ),
                           ],
                         );
@@ -543,11 +579,9 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
     // Validate that a customer has been added
     final customerPhone = ref.read(customerPhoneNumberProvider);
     if (customerPhone == null || customerPhone.isEmpty) {
-      showCustomSnackBarUtil(
+      showErrorNotification(
         context,
         'Please add a customer to the sale before completing',
-        backgroundColor: Colors.red[600],
-        showCloseButton: true,
       );
       return;
     }
@@ -580,12 +614,7 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
             _chargeState = ChargeButtonState.failed;
           });
           ref.read(oldProvider.loadingProvider.notifier).stopLoading();
-          showCustomSnackBarUtil(
-            context,
-            error,
-            backgroundColor: Colors.red[600],
-            showCloseButton: true,
-          );
+          showErrorNotification(context, error);
         }
       }
 
@@ -612,12 +641,7 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
           _chargeState = ChargeButtonState.failed;
         });
         ref.read(oldProvider.loadingProvider.notifier).stopLoading();
-        showCustomSnackBarUtil(
-          context,
-          "Error occurred",
-          backgroundColor: Colors.red[600],
-          showCloseButton: true,
-        );
+        showErrorNotification(context, "Error occurred");
       }
     }
   }
@@ -663,390 +687,56 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
     // Watch payment methods
     final payments = ref.watch(oldProvider.paymentMethodsProvider);
 
-    double calculateTotal(List<TransactionItem> items) {
-      double sumItems = items.fold(
-        0,
-        (sum, item) => sum + (item.price * item.qty),
-      );
-
-      // Fallback: If transaction subTotal is greater, use it
-      if (transactionAsync.value != null) {
-        double transactionTotal = transactionAsync.value!.subTotal ?? 0.0;
-        talker.warning(
-          "BottomSheet: SumItems: $sumItems, TransactionTotal: $transactionTotal",
+    // Standardized pre-filling initialization (ensures it happens once both items and transaction are ready)
+    String? currentTransactionId =
+        (transactionAsync.value ?? widget.transaction).id;
+    if (itemsAsync.hasValue &&
+        transactionAsync.hasValue &&
+        _lastTransactionId != currentTransactionId) {
+      _lastTransactionId = currentTransactionId;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        standardizedPaymentInitialization(
+          ref: ref,
+          transaction: transactionAsync.value ?? widget.transaction,
+          total: calculateTransactionTotal(
+            items: itemsAsync.value ?? [],
+            transaction: transactionAsync.value ?? widget.transaction,
+          ),
         );
-        if (transactionTotal > sumItems) {
-          talker.warning(
-            "BottomSheet: Using transaction subTotal ($transactionTotal) as it is greater than sumItems ($sumItems)",
-          );
-          return transactionTotal;
-        }
-      }
-      return sumItems;
+      });
     }
 
-    final totalPaid = payments.fold<double>(0, (sum, p) => sum + p.amount);
+    final alreadyPaid =
+        transactionAsync.value?.cashReceived ??
+        widget.transaction.cashReceived ??
+        0.0;
+    final pendingPayment = calculateTotalPaid(payments);
+    final totalPaid = alreadyPaid + pendingPayment;
 
     // Calculate reliable total
     double totalAmount = 0.0;
     if (itemsAsync.asData?.value != null) {
-      totalAmount = calculateTotal(itemsAsync.asData!.value);
-    } else if (transactionAsync.value != null) {
-      totalAmount = transactionAsync.value!.subTotal ?? 0.0;
-      talker.warning(
-        "BottomSheet: itemsAsync empty/loading, using transaction subTotal: $totalAmount",
+      totalAmount = calculateTransactionTotal(
+        items: itemsAsync.asData!.value,
+        transaction: transactionAsync.asData?.value ?? widget.transaction,
       );
+    } else {
+      totalAmount = widget.transaction.subTotal ?? 0.0;
     }
 
     talker.warning(
       "BottomSheet: Final TotalAmount passed to PaymentMethodsCard: $totalAmount",
     );
 
-    final remainingBalance = totalAmount - totalPaid;
+    final remainingBalance = calculateRemainingBalance(
+      total: totalAmount,
+      paid: totalPaid,
+    );
 
     // Debug logging
     talker.warning(
       "BottomSheet: TotalAmount: $totalAmount, TotalPaid: $totalPaid, RemainingBalance: $remainingBalance",
     );
-
-    Widget _buildTransactionItem(TransactionItem transactionItem) {
-      return Container(
-        margin: EdgeInsets.only(bottom: 8),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey[200]!),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.02),
-              blurRadius: 4,
-              offset: Offset(0, 2),
-            ),
-          ],
-        ),
-        child: ListTile(
-          contentPadding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
-          leading: Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: Colors.blue[50],
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(
-              Icons.inventory_2_outlined,
-              color: Colors.blue,
-              size: 20,
-            ),
-          ),
-          title: Text(
-            transactionItem.name,
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-          ),
-          subtitle: Text(
-            '${formatNumber(transactionItem.price.toDouble())} × ${transactionItem.qty}',
-            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-          ),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                (transactionItem.price * transactionItem.qty)
-                    .toCurrencyFormatted(),
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.green[700],
-                ),
-              ),
-              SizedBox(width: 8),
-              IconButton(
-                icon: Icon(Icons.edit_outlined, color: Colors.blue),
-                onPressed: () {
-                  edit(
-                    doneDelete: widget.doneDelete,
-                    context: context,
-                    ref: ref,
-                    transactionItem: transactionItem,
-                    transactionId: widget.transactionIdInt.toString(),
-                  );
-                },
-                style: IconButton.styleFrom(
-                  backgroundColor: Colors.blue[50],
-                  padding: EdgeInsets.all(8),
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    Widget _buildItemsList(List<TransactionItem> items) {
-      if (items.isEmpty) {
-        return Container(
-          padding: EdgeInsets.symmetric(vertical: 40),
-          child: Column(
-            children: [
-              Icon(
-                Icons.shopping_cart_outlined,
-                size: 64,
-                color: Colors.grey[400],
-              ),
-              SizedBox(height: 16),
-              Text(
-                'No items in cart',
-                style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-              ),
-            ],
-          ),
-        );
-      }
-
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(left: 8.0),
-            child: Text(
-              'Items (${items.length})',
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey[700],
-              ),
-            ),
-          ),
-          SizedBox(height: 12),
-          ...items.map((item) => _buildTransactionItem(item)).toList(),
-          PaymentMethodsCard(
-            transactionId: widget.transactionIdInt,
-            totalPayable: calculateTotal(items),
-          ),
-        ],
-      );
-    }
-
-    Widget _buildTotalSection(
-      List<TransactionItem> items, {
-      required bool isDigitalPaymentEnabled,
-      required double totalPaid,
-      required double remainingBalance,
-    }) {
-      final total = calculateTotal(items);
-
-      return Container(
-        padding: EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: Colors.grey[50],
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey[200]!),
-        ),
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                FlipperButtonFlat(
-                  textColor: Colors.red[600],
-                  onPressed: items.isEmpty
-                      ? null
-                      : () {
-                          showDialog(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                              title: Text('Clear All Items'),
-                              content: Text(
-                                'Are you sure you want to remove all items from the cart?',
-                              ),
-                              actions: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(context),
-                                  child: Text('Cancel'),
-                                ),
-                                TextButton(
-                                  onPressed: () async {
-                                    try {
-                                      for (TransactionItem item in items) {
-                                        await ProxyService.strategy
-                                            .deleteItemFromCart(
-                                              transactionItemId: item,
-                                              transactionId: widget
-                                                  .transactionIdInt
-                                                  .toString(),
-                                            );
-                                      }
-                                      ref.refresh(
-                                        transactionItemsStreamProvider(
-                                          transactionId:
-                                              widget.transactionIdInt,
-                                          branchId: ProxyService.box
-                                              .getBranchId()!,
-                                        ),
-                                      );
-                                      widget.doneDelete();
-                                      Navigator.pop(context);
-                                    } catch (e) {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            'Error clearing cart: ${e.toString()}',
-                                          ),
-                                        ),
-                                      );
-                                    }
-                                  },
-                                  child: Text(
-                                    'Clear All',
-                                    style: TextStyle(color: Colors.red),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                  text: 'Clear All',
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      'Total Amount',
-                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                    ),
-                    Text(
-                      total.toCurrencyFormatted(),
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.green[700],
-                      ),
-                    ),
-                    if (totalPaid > 0 && totalPaid != total) ...[
-                      SizedBox(height: 4),
-                      Text(
-                        'Amount Paid: ${totalPaid.toCurrencyFormatted()}',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w500,
-                          color: Colors.blue[700],
-                        ),
-                      ),
-                      SizedBox(height: 2),
-                      Text(
-                        remainingBalance > 0
-                            ? 'Remaining: ${remainingBalance.toCurrencyFormatted()}'
-                            : 'Change: ${(totalPaid - total).toCurrencyFormatted()}',
-                        style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.bold,
-                          color: remainingBalance > 0
-                              ? Colors.red[700]
-                              : Colors.orange[700],
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ],
-            ),
-            SizedBox(height: 20),
-            // Conditional button layout based on digital payment status
-            if (isDigitalPaymentEnabled) ...[
-              // Two-button layout when digital payment is enabled
-              SizedBox(
-                height: 56,
-                child: Row(
-                  children: [
-                    // Left button: Charge (waits for payment)
-                    Expanded(
-                      child: FlipperButton(
-                        height: 56,
-                        color: Colors.blue.shade700,
-                        text: _getButtonText(
-                          items.isEmpty,
-                          total,
-                          customerPhone,
-                          remainingBalance,
-                        ),
-                        textColor: Colors.white,
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(12),
-                          bottomLeft: Radius.circular(12),
-                        ),
-                        isLoading:
-                            !_isImmediateCompletion && _shouldShowSpinner(),
-                        onPressed:
-                            _getButtonEnabled(items.isEmpty, customerPhone)
-                            ? () => _handleCharge(
-                                widget.transactionIdInt.toString(),
-                                total,
-                                immediateCompletion: false,
-                              )
-                            : null,
-                      ),
-                    ),
-                    // Divider
-                    Container(
-                      width: 1,
-                      height: 56,
-                      color: Colors.grey.shade300,
-                    ),
-                    // Right button: Complete Now (immediate)
-                    Expanded(
-                      child: FlipperButton(
-                        height: 56,
-                        color: Colors.green,
-                        text: remainingBalance > 0.01
-                            ? 'Record Payment'
-                            : 'Complete Now',
-                        textColor: Colors.white,
-                        borderRadius: BorderRadius.only(
-                          topRight: Radius.circular(12),
-                          bottomRight: Radius.circular(12),
-                        ),
-                        isLoading:
-                            _isImmediateCompletion && _shouldShowSpinner(),
-                        onPressed:
-                            _getButtonEnabled(items.isEmpty, customerPhone)
-                            ? () => _handleCharge(
-                                widget.transactionIdInt.toString(),
-                                total,
-                                immediateCompletion: true,
-                              )
-                            : null,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ] else ...[
-              // Single button when digital payment is disabled
-              FlipperButton(
-                height: 56,
-                color: Colors.green,
-                text: remainingBalance > 0.01
-                    ? 'Record Payment'
-                    : 'Complete Now',
-                textColor: Colors.white,
-                borderRadius: BorderRadius.all(Radius.circular(12)),
-                isLoading: _isImmediateCompletion && _shouldShowSpinner(),
-                onPressed: _getButtonEnabled(items.isEmpty, customerPhone)
-                    ? () => _handleCharge(
-                        widget.transactionIdInt.toString(),
-                        total,
-                        immediateCompletion: true,
-                      )
-                    : null,
-              ),
-            ],
-          ],
-        ),
-      );
-    }
 
     return itemsAsync.when(
       data: (items) {
@@ -1060,13 +750,20 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
             children: [
               SearchInputWithDropdown(),
               SizedBox(height: 5),
-              _buildItemsList(items),
+              _buildItemsList(
+                items,
+                transaction: transactionAsync.value ?? widget.transaction,
+              ),
               SizedBox(height: 20),
               _buildTotalSection(
                 items,
                 isDigitalPaymentEnabled: isDigitalPaymentEnabled,
                 totalPaid: totalPaid,
                 remainingBalance: remainingBalance,
+                alreadyPaid: alreadyPaid,
+                pendingPayment: pendingPayment,
+                customerPhone: customerPhone,
+                transactionAsync: transactionAsync,
               ),
             ],
           ),
@@ -1145,6 +842,440 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
         return 'Payment Failed. Retry?';
     }
   }
+
+  Widget _buildTransactionItem(
+    TransactionItem transactionItem, {
+    required ITransaction transaction,
+  }) {
+    return Container(
+      margin: EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[200]!),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.02),
+            blurRadius: 4,
+            offset: Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ListTile(
+        contentPadding: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+        leading: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: Colors.blue[50],
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(Icons.inventory_2_outlined, color: Colors.blue, size: 20),
+        ),
+        title: Text(
+          transactionItem.name,
+          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+        ),
+        subtitle: Text(
+          '${formatNumber(transactionItem.price.toDouble())} × ${transactionItem.qty}',
+          style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              (transactionItem.price * transactionItem.qty)
+                  .toCurrencyFormatted(),
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: Colors.green[700],
+              ),
+            ),
+            SizedBox(width: 8),
+            if (_itemToDeleteId == transactionItem.id)
+              IconButton(
+                icon: Icon(Icons.delete, color: Colors.red),
+                onPressed: (transaction.cashReceived ?? 0) > 0
+                    ? () {
+                        setState(() {
+                          _itemToDeleteId = null;
+                        });
+                        showErrorNotification(
+                          context,
+                          'Cannot delete items from a transaction with partial payments',
+                        );
+                      }
+                    : () async {
+                        try {
+                          await ProxyService.strategy.deleteItemFromCart(
+                            transactionItemId: transactionItem,
+                            transactionId: widget.transactionIdInt.toString(),
+                          );
+                          setState(() {
+                            _itemToDeleteId = null;
+                          });
+                          widget.doneDelete();
+                        } catch (e) {
+                          showErrorNotification(
+                            context,
+                            'Error removing product: ${e.toString()}',
+                          );
+                        }
+                      },
+                style: IconButton.styleFrom(
+                  backgroundColor: Colors.red[50],
+                  padding: EdgeInsets.all(8),
+                ),
+              )
+            else
+              GestureDetector(
+                onLongPress: () {
+                  setState(() {
+                    _itemToDeleteId = transactionItem.id;
+                  });
+                  // Auto-hide after 5 seconds
+                  Future.delayed(Duration(seconds: 5), () {
+                    if (mounted && _itemToDeleteId == transactionItem.id) {
+                      setState(() {
+                        _itemToDeleteId = null;
+                      });
+                    }
+                  });
+                },
+                child: IconButton(
+                  icon: Icon(Icons.edit_outlined, color: Colors.blue),
+                  onPressed: () {
+                    edit(
+                      doneDelete: widget.doneDelete,
+                      context: context,
+                      ref: ref,
+                      transactionItem: transactionItem,
+                      transactionId: widget.transactionIdInt.toString(),
+                      transaction: transaction,
+                    );
+                  },
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.blue[50],
+                    padding: EdgeInsets.all(8),
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildItemsList(
+    List<TransactionItem> items, {
+    required ITransaction transaction,
+  }) {
+    if (items.isEmpty) {
+      return Container(
+        padding: EdgeInsets.symmetric(vertical: 40),
+        child: Column(
+          children: [
+            Icon(
+              Icons.shopping_cart_outlined,
+              size: 64,
+              color: Colors.grey[400],
+            ),
+            SizedBox(height: 16),
+            Text(
+              'No items in cart',
+              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(left: 8.0),
+          child: Text(
+            'Items (${items.length})',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.grey[700],
+            ),
+          ),
+        ),
+        SizedBox(height: 12),
+        ...items
+            .map(
+              (item) => _buildTransactionItem(item, transaction: transaction),
+            )
+            .toList(),
+        PaymentMethodsCard(
+          transactionId: widget.transactionIdInt,
+          totalPayable: calculateTransactionTotal(
+            items: items,
+            transaction: transaction,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTotalSection(
+    List<TransactionItem> items, {
+    required bool isDigitalPaymentEnabled,
+    required double totalPaid,
+    required double remainingBalance,
+    required double alreadyPaid,
+    required double pendingPayment,
+    required String? customerPhone,
+    required AsyncValue<ITransaction?> transactionAsync,
+  }) {
+    final total = calculateTransactionTotal(
+      items: items,
+      transaction: transactionAsync.value ?? widget.transaction,
+    );
+
+    return Container(
+      padding: EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey[200]!),
+      ),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              FlipperButtonFlat(
+                textColor:
+                    (transactionAsync.value?.cashReceived ?? 0) > 0 ||
+                        items.isEmpty
+                    ? Colors.grey
+                    : Colors.red[600],
+                onPressed: items.isEmpty
+                    ? null
+                    : () {
+                        if ((transactionAsync.value?.cashReceived ?? 0) > 0) {
+                          showErrorNotification(
+                            context,
+                            'Cannot clear items from a transaction with partial payments',
+                          );
+                          return;
+                        }
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: Text('Clear All Items'),
+                            content: Text(
+                              'Are you sure you want to remove all items from the cart?',
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: Text('Cancel'),
+                              ),
+                              TextButton(
+                                onPressed: () async {
+                                  try {
+                                    for (TransactionItem item in items) {
+                                      await ProxyService.strategy
+                                          .deleteItemFromCart(
+                                            transactionItemId: item,
+                                            transactionId: widget
+                                                .transactionIdInt
+                                                .toString(),
+                                          );
+                                    }
+                                    ref.refresh(
+                                      transactionItemsStreamProvider(
+                                        transactionId: widget.transactionIdInt,
+                                        branchId: ProxyService.box
+                                            .getBranchId()!,
+                                      ),
+                                    );
+                                    widget.doneDelete();
+                                    Navigator.pop(context);
+                                  } catch (e) {
+                                    showErrorNotification(
+                                      context,
+                                      'Error clearing cart: ${e.toString()}',
+                                    );
+                                  }
+                                },
+                                child: Text(
+                                  'Clear All',
+                                  style: TextStyle(color: Colors.red),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                text: 'Clear All',
+              ),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      'Total Amount',
+                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                    ),
+                    Text(
+                      total.toCurrencyFormatted(),
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green[700],
+                      ),
+                    ),
+                    if (alreadyPaid > 0) ...[
+                      SizedBox(height: 4),
+                      Text(
+                        'Already Paid: ${alreadyPaid.toCurrencyFormatted()}',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.blue[700],
+                        ),
+                      ),
+                    ],
+                    Text(
+                      'Remaining Balance: ${remainingBalance.toCurrencyFormatted()}',
+                      style: TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.red[700],
+                      ),
+                    ),
+                    if (pendingPayment > 0) ...[
+                      SizedBox(height: 8),
+                      Divider(height: 1, color: Colors.grey[300]),
+                      SizedBox(height: 8),
+                      Text(
+                        'This Payment: ${pendingPayment.toCurrencyFormatted()}',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.blue[600],
+                        ),
+                      ),
+                      Text(
+                        remainingBalance > 0
+                            ? 'Balance after payment: ${remainingBalance.toCurrencyFormatted()}'
+                            : 'Change: ${(alreadyPaid + pendingPayment - total).toCurrencyFormatted()}',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: remainingBalance > 0
+                              ? Colors.orange[700]
+                              : Colors.green[700],
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ],
+          ),
+          SizedBox(height: 20),
+          if (items.isNotEmpty)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.only(bottom: 12),
+              child: SaveTicketButton(
+                onPressed: () => _showParkDialog(context),
+              ),
+            ),
+          // Conditional button layout based on digital payment status
+          if (isDigitalPaymentEnabled) ...[
+            // Two-button layout when digital payment is enabled
+            SizedBox(
+              height: 56,
+              child: Row(
+                children: [
+                  // Left button: Charge (waits for payment)
+                  Expanded(
+                    child: FlipperButton(
+                      height: 56,
+                      color: Colors.blue.shade700,
+                      text: _getButtonText(
+                        items.isEmpty,
+                        total,
+                        customerPhone,
+                        remainingBalance,
+                      ),
+                      textColor: Colors.white,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(12),
+                        bottomLeft: Radius.circular(12),
+                      ),
+                      isLoading:
+                          !_isImmediateCompletion && _shouldShowSpinner(),
+                      onPressed: _getButtonEnabled(items.isEmpty, customerPhone)
+                          ? () => _handleCharge(
+                              widget.transactionIdInt.toString(),
+                              total,
+                              immediateCompletion: false,
+                            )
+                          : null,
+                    ),
+                  ),
+                  // Divider
+                  Container(width: 1, height: 56, color: Colors.grey.shade300),
+                  // Right button: Complete Now (immediate)
+                  Expanded(
+                    child: FlipperButton(
+                      height: 56,
+                      color: Colors.green,
+                      text: remainingBalance > 0.01
+                          ? 'Record Payment'
+                          : 'Complete Now',
+                      textColor: Colors.white,
+                      borderRadius: BorderRadius.only(
+                        topRight: Radius.circular(12),
+                        bottomRight: Radius.circular(12),
+                      ),
+                      isLoading: _isImmediateCompletion && _shouldShowSpinner(),
+                      onPressed: _getButtonEnabled(items.isEmpty, customerPhone)
+                          ? () => _handleCharge(
+                              widget.transactionIdInt.toString(),
+                              total,
+                              immediateCompletion: true,
+                            )
+                          : null,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ] else ...[
+            // Single button when digital payment is disabled
+            FlipperButton(
+              height: 56,
+              width: double.infinity,
+              color: Colors.green,
+              text: remainingBalance > 0.01 ? 'Record Payment' : 'Complete Now',
+              textColor: Colors.white,
+              borderRadius: BorderRadius.all(Radius.circular(12)),
+              isLoading: _isImmediateCompletion && _shouldShowSpinner(),
+              onPressed: _getButtonEnabled(items.isEmpty, customerPhone)
+                  ? () => _handleCharge(
+                      widget.transactionIdInt.toString(),
+                      total,
+                      immediateCompletion: true,
+                    )
+                  : null,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
 }
 
 class _BottomSheetHeader extends HookConsumerWidget {
@@ -1175,8 +1306,10 @@ class _BottomSheetHeader extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isLoan = transaction.isLoan ?? false;
     final customerPhone = ref.watch(customerPhoneNumberProvider);
+    final attachedCustomerAsync = ref.watch(
+      oldProvider.attachedCustomerProvider(transaction.customerId),
+    );
 
     return Container(
       padding: EdgeInsets.only(left: 20, right: 20, top: 8, bottom: 8),
@@ -1190,9 +1323,18 @@ class _BottomSheetHeader extends HookConsumerWidget {
               children: [
                 Icon(Icons.person, size: 16, color: Colors.blue),
                 SizedBox(width: 4),
-                Text(
-                  transaction.customerName ?? customerPhone ?? 'Customer',
-                  style: TextStyle(color: Colors.blue, fontSize: 14),
+                attachedCustomerAsync.maybeWhen(
+                  data: (customer) => Text(
+                    customer?.custNm ??
+                        transaction.customerName ??
+                        customerPhone ??
+                        'Customer',
+                    style: TextStyle(color: Colors.blue, fontSize: 14),
+                  ),
+                  orElse: () => Text(
+                    transaction.customerName ?? customerPhone ?? 'Customer',
+                    style: TextStyle(color: Colors.blue, fontSize: 14),
+                  ),
                 ),
               ],
             ),
@@ -1214,30 +1356,6 @@ class _BottomSheetHeader extends HookConsumerWidget {
             ),
           ),
           Spacer(),
-          // Save Ticket button for loans
-          if (isLoan)
-            TextButton(
-              onPressed: () async {
-                try {
-                  await ProxyService.strategy.updateTransaction(
-                    transaction: transaction,
-                    status: PARKED,
-                    updatedAt: DateTime.now().toUtc(),
-                  );
-                  ref.read(oldProvider.loadingProvider.notifier).stopLoading();
-                  Navigator.of(context).pop();
-                } catch (e) {
-                  talker.error(e);
-                }
-              },
-              child: Text(
-                "Save Ticket",
-                style: TextStyle(
-                  color: Colors.blue,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
           IconButton(
             icon: Icon(Icons.close, color: Colors.grey[600]),
             onPressed: () {

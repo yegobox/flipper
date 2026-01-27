@@ -8,7 +8,7 @@ import 'package:flipper_services/event_bus.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_web/core/utils/ditto_singleton.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';

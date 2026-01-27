@@ -553,10 +553,20 @@ class CoreSync extends AiStrategyImpl
       remainingItems.sort((a, b) => a.createdAt!.compareTo(b.createdAt!));
 
       // 5. Update the itemSeq for each remaining item.
+      double newSubTotal = 0.0;
       for (var i = 0; i < remainingItems.length; i++) {
         remainingItems[i].itemSeq = i + 1;
         await repository.upsert<TransactionItem>(remainingItems[i]);
+        newSubTotal += (remainingItems[i].price * remainingItems[i].qty);
       }
+
+      // 6. Update the transaction's subTotal.
+      await updateTransaction(
+        transactionId: transactionId,
+        subTotal: newSubTotal,
+        updatedAt: DateTime.now().toUtc(),
+        lastTouched: DateTime.now().toUtc(),
+      );
     } catch (e, s) {
       talker.error(s);
       rethrow;
@@ -2126,10 +2136,29 @@ class CoreSync extends AiStrategyImpl
         talker.info("collectPayment: Calculating discountAmount");
         transaction.discountAmount =
             items.fold(0, (a, b) => a! + (b.dcAmt ?? 0));
-        transaction.cashReceived = cashReceived;
+
         transaction.subTotal = items.isEmpty
             ? cashReceived
             : items.fold(0.0, (a, b) => a! + (b.price * b.qty));
+
+        if (transaction.isLoan == true) {
+          transaction.originalLoanAmount ??= transaction.subTotal;
+          // Cumulative cash received
+          double totalPaidSoFar =
+              (transaction.cashReceived ?? 0.0) + cashReceived;
+          transaction.cashReceived = totalPaidSoFar;
+          transaction.remainingBalance = transaction.subTotal! - totalPaidSoFar;
+          transaction.lastPaymentDate = DateTime.now().toUtc();
+          transaction.lastPaymentAmount = cashReceived;
+        } else {
+          // Accumulate cashReceived for non-loan transactions as well
+          // to correctly handle partial payments and subsequent full payments
+          transaction.cashReceived =
+              (transaction.cashReceived ?? 0.0) + cashReceived;
+          transaction.remainingBalance =
+              (transaction.subTotal ?? 0.0) - (transaction.cashReceived ?? 0.0);
+        }
+
         transaction.transactionType = transactionType;
         transaction.categoryId = categoryId;
         transaction.isIncome = isIncome;
@@ -2157,14 +2186,7 @@ class CoreSync extends AiStrategyImpl
             }
           }
         });
-        // Remove redundant manageTransaction call that creates a new pending sale
-        // This should be handled by the caller or a separate specific flow
-        // await ProxyService.strategy.manageTransaction(
-        //   transactionType: TransactionType.sale,
-        //   isExpense: false,
-        //   status: PENDING,
-        //   branchId: ProxyService.box.getBranchId()!,
-        // );
+
         talker.info("collectPayment: Upserting transaction");
 
         await repository.upsert<ITransaction>(transaction);
@@ -2518,27 +2540,10 @@ class CoreSync extends AiStrategyImpl
       return;
     }
 
-    // 4. Handle payment method update or creation
-    final existingPaymentRecord = await repository
-        .get<TransactionPaymentRecord>(
-          query: brick.Query(where: [
-            brick.Where('transactionId').isExactly(transactionId),
-            brick.Where('paymentMethod').isExactly(paymentMethod),
-          ]),
-        )
-        .then((records) => records.firstOrNull);
-
-    if (existingPaymentRecord != null) {
-      existingPaymentRecord
-        ..paymentMethod = paymentMethod
-        ..amount = amount;
-
-      await repository.upsert<TransactionPaymentRecord>(
-        existingPaymentRecord,
-        query: brick.Query(
-            action: QueryAction.update), // Changed from insert to update
-      );
-    } else {
+    // 4. Create a new payment record for the payment attempt
+    // This allows multiple partial payments of the same type (e.g., multiple Cash payments)
+    // to be recorded as separate entries in the history, preventing overwriting.
+    if (amount != 0) {
       final newPaymentRecord = TransactionPaymentRecord(
         createdAt: DateTime.now().toUtc(),
         amount: amount,

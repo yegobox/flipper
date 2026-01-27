@@ -563,7 +563,24 @@ mixin TransactionItemMixin implements TransactionItemInterface {
       item.quantityShipped = quantityShipped ?? item.quantityShipped;
       item.doneWithTransaction =
           doneWithTransaction ?? item.doneWithTransaction;
-      repository.upsert(policy: OfflineFirstUpsertPolicy.optimisticLocal, item);
+      await repository.upsert(
+          policy: OfflineFirstUpsertPolicy.optimisticLocal, item);
+
+      // Recalculate and update the transaction's subtotal
+      final allItems = await repository.get<TransactionItem>(
+        query: Query(
+          where: [Where('transactionId').isExactly(item.transactionId)],
+        ),
+      );
+      double newSubTotal =
+          allItems.fold(0, (sum, item) => sum + (item.price * item.qty));
+
+      await ProxyService.strategy.updateTransaction(
+        transactionId: item.transactionId,
+        subTotal: newSubTotal,
+        updatedAt: DateTime.now().toUtc(),
+        lastTouched: DateTime.now().toUtc(),
+      );
     }
   }
 }

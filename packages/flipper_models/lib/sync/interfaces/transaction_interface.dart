@@ -23,6 +23,7 @@ abstract class TransactionInterface {
     bool forceRealData = true,
     List<String>? receiptNumber,
     String? customerId,
+    String? agentId,
   });
 
   /// Merge `from` into `to`:
@@ -64,6 +65,7 @@ abstract class TransactionInterface {
     DateTime? endDate,
     required bool removeAdjustmentTransactions,
     bool forceRealData = true,
+    bool includeParked = false,
     required bool skipOriginalTransactionCheck,
   });
 
@@ -192,4 +194,13 @@ abstract class TransactionInterface {
     bool includePending = false,
     bool skipOriginalTransactionCheck = false,
   });
+
+  /// Get total amount paid for a transaction by summing all payment records
+  /// Returns null if there's an error fetching payment records
+  Future<double?> getTotalPaidForTransaction({
+    required String transactionId,
+    required String branchId,
+  });
+
+  FutureOr<void> deletePaymentRecords({required String transactionId});
 }

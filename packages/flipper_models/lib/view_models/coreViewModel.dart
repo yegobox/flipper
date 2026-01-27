@@ -626,6 +626,25 @@ class CoreViewModel extends FlipperBaseModel
       String? customerId}) async {
     // Only park if a ticket name is provided.
     if (ticketName.isNotEmpty) {
+      // Reconcile transaction.cashReceived with database records sum to handle unsaved UI edits.
+      try {
+        final totalRecordsAmount =
+            await ProxyService.getStrategy(Strategy.capella)
+                .getTotalPaidForTransaction(
+                    transactionId: transaction.id,
+                    branchId: transaction.branchId ??
+                        ProxyService.box.getBranchId()!);
+
+        // Only update cashReceived if getTotalPaidForTransaction succeeded (non-null)
+        if (totalRecordsAmount != null &&
+            transaction.cashReceived != totalRecordsAmount) {
+          transaction.cashReceived = totalRecordsAmount;
+        }
+      } catch (e) {
+        // Log error but don't fail the parking operation
+        talker
+            .error('Error reconciling cashReceived, using existing value: $e');
+      }
       // If a customer is attached, check if they already have a parked ticket.
       if (customerId != null) {
         final existingParkedTransactions =

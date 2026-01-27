@@ -2,6 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
+import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.dialogs.dart';
+import 'package:flipper_dashboard/dialog_status.dart';
+import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_services/proxy.dart';
 
 /// A button widget that allows users to reset/delete the current pending transaction
@@ -11,96 +16,54 @@ class ResetTransactionButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final transactionAsyncValue =
-        ref.watch(pendingTransactionStreamProvider(isExpense: false));
+    final transactionAsyncValue = ref.watch(
+      pendingTransactionStreamProvider(isExpense: false),
+    );
 
     return transactionAsyncValue.maybeWhen(
-      data: (transaction) => IconButton(
-        icon: const Icon(
-          FluentIcons.delete_16_regular,
-          color: Colors.red,
-          size: 20,
-        ),
-        tooltip: 'Reset Transaction',
-        onPressed: () =>
-            _showResetConfirmationDialog(context, ref, transaction),
-      ),
-      orElse: () => const SizedBox.shrink(),
-    );
-  }
+      data: (transaction) {
+        // Prevent resetting if it's a ticket (has ticketName) or has partial payments
+        final bool isTicket =
+            transaction.ticketName != null &&
+            transaction.ticketName!.isNotEmpty;
+        final bool hasPayments = (transaction.cashReceived ?? 0) > 0;
 
-  /// Shows a confirmation dialog before resetting the transaction
-  Future<void> _showResetConfirmationDialog(
-    BuildContext context,
-    WidgetRef ref,
-    dynamic transaction,
-  ) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+        if (isTicket || hasPayments) {
+          return const SizedBox.shrink();
+        }
+
+        return IconButton(
+          icon: const Icon(
+            FluentIcons.delete_16_regular,
+            color: Colors.red,
+            size: 20,
           ),
-          title: Row(
-            children: [
-              Icon(
-                Icons.warning_amber_rounded,
-                color: Colors.orange[700],
-                size: 28,
-              ),
-              const SizedBox(width: 12),
-              const Text(
-                'Reset Transaction?',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                ),
-              ),
-            ],
-          ),
-          content: const Text(
-            'This will delete the current pending transaction and all its items. This action cannot be undone.',
-            style: TextStyle(fontSize: 14),
-          ),
-          actions: [
-            TextButton(
-              child: Text(
-                'Cancel',
-                style: TextStyle(color: Colors.grey[600]),
-              ),
-              onPressed: () {
-                Navigator.of(dialogContext).pop(false);
-              },
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: const Text('Reset'),
-              onPressed: () {
-                Navigator.of(dialogContext).pop(true);
-              },
-            ),
-          ],
+          tooltip: 'Reset Transaction',
+          onPressed: () async {
+            final dialogService = locator<DialogService>();
+            final response = await dialogService.showCustomDialog(
+              variant: DialogType.info,
+              title: 'Reset Transaction?',
+              description:
+                  'This will delete the current pending transaction and all its items. This action cannot be undone.',
+              data: {'status': InfoDialogStatus.warning},
+            );
+
+            if (response?.confirmed == true && context.mounted) {
+              await _resetTransaction(context, ref, transaction);
+            }
+          },
         );
       },
+      orElse: () => const SizedBox.shrink(),
     );
-
-    if (confirmed == true && context.mounted) {
-      await _resetTransaction(context, ref, transaction);
-    }
   }
 
   /// Resets the transaction by deleting it and refreshing the stream
   Future<void> _resetTransaction(
     BuildContext context,
     WidgetRef ref,
-    dynamic transaction,
+    ITransaction transaction,
   ) async {
     try {
       // Delete the pending transaction
@@ -111,9 +74,7 @@ class ResetTransactionButton extends ConsumerWidget {
 
       // Refresh the transaction stream
       if (context.mounted) {
-        ref.invalidate(pendingTransactionStreamProvider(
-          isExpense: false,
-        ));
+        ref.invalidate(pendingTransactionStreamProvider(isExpense: false));
 
         // Show success message
         _showSuccessMessage(context);
@@ -131,19 +92,14 @@ class ResetTransactionButton extends ConsumerWidget {
       SnackBar(
         content: Row(
           children: const [
-            Icon(
-              Icons.check_circle_outline,
-              color: Colors.white,
-            ),
+            Icon(Icons.check_circle_outline, color: Colors.white),
             SizedBox(width: 8),
             Text('Transaction reset successfully'),
           ],
         ),
         backgroundColor: Colors.green[600],
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
     );
   }
@@ -154,19 +110,14 @@ class ResetTransactionButton extends ConsumerWidget {
       SnackBar(
         content: Row(
           children: [
-            const Icon(
-              Icons.error_outline,
-              color: Colors.white,
-            ),
+            const Icon(Icons.error_outline, color: Colors.white),
             const SizedBox(width: 8),
             Text('Error resetting transaction: $error'),
           ],
         ),
         backgroundColor: Colors.red[600],
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
     );
   }

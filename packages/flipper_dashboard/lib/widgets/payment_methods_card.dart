@@ -3,7 +3,10 @@ import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:flipper_dashboard/mixins/transaction_computation_mixin.dart';
+import 'package:flipper_models/providers/transactions_provider.dart';
 
 class PaymentMethodsCard extends StatefulHookConsumerWidget {
   const PaymentMethodsCard({
@@ -11,7 +14,8 @@ class PaymentMethodsCard extends StatefulHookConsumerWidget {
     required this.transactionId,
     required this.totalPayable,
     this.isCardView = true,
-  }) : super(key: key);
+  }) : assert(totalPayable >= 0, 'totalPayable must be non-negative'),
+       super(key: key);
 
   final String transactionId;
   final double totalPayable;
@@ -21,8 +25,11 @@ class PaymentMethodsCard extends StatefulHookConsumerWidget {
   _PaymentMethodsCardState createState() => _PaymentMethodsCardState();
 }
 
-class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
+class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
+    with TransactionComputationMixin {
   bool _showPaymentMethods = false; // Toggle state for mobile
+  Set<int> _userEditedFields =
+      {}; // Track which fields user has manually edited
 
   @override
   void initState() {
@@ -41,69 +48,137 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
     super.didUpdateWidget(oldWidget);
     // Auto-update payment amounts when totalPayable changes
     if (oldWidget.totalPayable != widget.totalPayable) {
+      talker.warning(
+        "PaymentMethodsCard: Total changed from ${oldWidget.totalPayable} to ${widget.totalPayable}",
+      );
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        updatePaymentAmounts(transactionId: widget.transactionId);
+        updatePaymentAmounts(
+          transactionId: widget.transactionId,
+          oldTotalPayable: oldWidget.totalPayable,
+        );
       });
     }
   }
 
-  void updatePaymentAmounts(
-      {required String transactionId, int? focusedIndex}) {
+  void updatePaymentAmounts({
+    required String transactionId,
+    int? focusedIndex,
+    double? oldTotalPayable,
+  }) {
     final payments = ref.read(paymentMethodsProvider);
-    if (payments.isEmpty) return;
-
     double totalPayable = widget.totalPayable;
-    double allocatedAmount = 0;
-    int? autoFillIndex;
 
-    // If there is more than one payment, the last one is for auto-fill
-    if (payments.length > 1) {
-      autoFillIndex = payments.length - 1;
-      // If the user is editing the last one, we choose the first one to auto-fill
-      if (focusedIndex == autoFillIndex) {
-        autoFillIndex = 0;
-      }
+    if (totalPayable == 0) return;
+
+    if (payments.isEmpty) {
+      final transaction = ref
+          .read(transactionByIdProvider(transactionId))
+          .value;
+      final initialAmount = transaction != null
+          ? calculateCurrentRemainder(transaction, totalPayable)
+          : totalPayable;
+
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref
+            .read(paymentMethodsProvider.notifier)
+            .addPaymentMethod(
+              Payment(
+                amount: initialAmount,
+                method: "Cash",
+                controller: TextEditingController(
+                  text: initialAmount.toString(),
+                ),
+              ),
+            );
+      });
+      return;
     }
 
-    // Calculate allocated amount based on user input in other fields
-    for (int i = 0; i < payments.length; i++) {
-      if (i == autoFillIndex) continue;
-      double amount = double.tryParse(payments[i].controller.text) ?? 0.0;
-      amount = amount.clamp(0.0, totalPayable - allocatedAmount);
-      payments[i].amount = amount;
-      allocatedAmount += amount;
-    }
+    if (payments.length == 1) {
+      final bool shouldAutoUpdate =
+          focusedIndex == null && !_userEditedFields.contains(0);
 
-    // Set the amount for the auto-fill field
-    if (autoFillIndex != null) {
-      final remaining =
-          (totalPayable - allocatedAmount).clamp(0.0, double.infinity);
-      payments[autoFillIndex].amount = remaining;
-      // Update the controller text only if it's not being edited
-      if (focusedIndex != autoFillIndex) {
-        final newText = remaining.toStringAsFixed(2);
-        if (payments[autoFillIndex].controller.text != newText) {
-          payments[autoFillIndex].controller.text = newText;
-        }
-      }
-    } else if (payments.length == 1) {
-      // If only one payment, it should be the total amount
-      payments[0].amount = totalPayable;
-      if (focusedIndex != 0) {
-        final newText = totalPayable.toStringAsFixed(2);
-        if (payments[0].controller.text != newText) {
-          payments[0].controller.text = newText;
-        }
-      }
-    }
-
-    // Update all payment methods in the provider
-    for (int i = 0; i < payments.length; i++) {
-      ref.read(paymentMethodsProvider.notifier).updatePaymentMethod(
-            i,
-            payments[i],
-            transactionId: transactionId,
+      if (shouldAutoUpdate) {
+        final transaction = ref
+            .read(transactionByIdProvider(transactionId))
+            .value;
+        if (transaction != null) {
+          updatePaymentRemainder(
+            ref: ref,
+            transaction: transaction,
+            total: totalPayable,
+            lastAutoSetAmount: oldTotalPayable ?? payments[0].amount,
+            onAutoSetAmountChanged: (amount) {
+              // No local state to update here, the mixin handles the provider
+            },
           );
+        }
+      } else {
+        // Manual update logic
+        final newAmount = double.tryParse(payments[0].controller.text) ?? 0.0;
+        if (newAmount != payments[0].amount) {
+          ref
+              .read(paymentMethodsProvider.notifier)
+              .updatePaymentMethod(
+                0,
+                Payment(
+                  amount: newAmount,
+                  method: payments[0].method,
+                  controller: payments[0].controller,
+                  id: payments[0].id,
+                ),
+                transactionId: transactionId,
+              );
+        }
+      }
+    } else {
+      // Multiple payment methods logic (still unique to the card for now as it involves multi-field coordination)
+      double allocatedAmount = 0;
+      int? autoFillIndex;
+
+      if (payments.length > 1) {
+        autoFillIndex = payments.length - 1;
+        if (focusedIndex == autoFillIndex) {
+          autoFillIndex = 0;
+        }
+      }
+
+      for (int i = 0; i < payments.length; i++) {
+        if (i == autoFillIndex) continue;
+        double amount = double.tryParse(payments[i].controller.text) ?? 0.0;
+        if (i == focusedIndex) {
+          payments[i].amount = amount;
+        } else {
+          amount = amount.clamp(0.0, totalPayable - allocatedAmount);
+          payments[i].amount = amount;
+          // Update the controller text to match the clamped amount to avoid UI/model mismatch
+          final newText = amount.toStringAsFixed(2);
+          if (payments[i].controller.text != newText) {
+            payments[i].controller.text = newText;
+          }
+        }
+        allocatedAmount += amount;
+      }
+
+      if (autoFillIndex != null) {
+        final remaining = (totalPayable - allocatedAmount).clamp(
+          0.0,
+          double.infinity,
+        );
+        payments[autoFillIndex].amount = remaining;
+        if (focusedIndex != autoFillIndex) {
+          final newText = remaining.toStringAsFixed(2);
+          if (payments[autoFillIndex].controller.text != newText) {
+            payments[autoFillIndex].controller.text = newText;
+          }
+        }
+      }
+
+      for (int i = 0; i < payments.length; i++) {
+        ref
+            .read(paymentMethodsProvider.notifier)
+            .updatePaymentMethod(i, payments[i], transactionId: transactionId);
+      }
     }
   }
 
@@ -184,16 +259,14 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
         color = Colors.grey[600]!;
     }
 
-    return Icon(
-      icon,
-      size: 16,
-      color: color,
-    );
+    return Icon(icon, size: 16, color: color);
   }
 
   // Mobile-optimized layout (vertical stacking)
-  Widget _buildMobilePaymentMethodRow(int index,
-      {required String transactionId}) {
+  Widget _buildMobilePaymentMethodRow(
+    int index, {
+    required String transactionId,
+  }) {
     return Container(
       margin: EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -220,7 +293,7 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Payment Method ${index + 1}',
+                    'Payment ${index + 1}',
                     style: TextStyle(
                       fontSize: 12,
                       fontWeight: FontWeight.w500,
@@ -231,8 +304,10 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
                     color: Colors.transparent,
                     child: InkWell(
                       borderRadius: BorderRadius.circular(16),
-                      onTap: () => _removePaymentMethod(index,
-                          transactionId: transactionId),
+                      onTap: () => _removePaymentMethod(
+                        index,
+                        transactionId: transactionId,
+                      ),
                       child: Container(
                         width: 32,
                         height: 32,
@@ -255,7 +330,7 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
 
             // Payment method label
             Text(
-              'Payment Method',
+              'Payment',
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
@@ -318,14 +393,21 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
                       );
                       ref
                           .read(paymentMethodsProvider.notifier)
-                          .updatePaymentMethod(index, newPayment,
-                              transactionId: transactionId);
-                      ProxyService.box
-                          .writeString(key: 'paymentType', value: newValue);
-                      final paymentMethodCode =
-                          ProxyService.box.paymentMethodCode(newValue);
+                          .updatePaymentMethod(
+                            index,
+                            newPayment,
+                            transactionId: transactionId,
+                          );
                       ProxyService.box.writeString(
-                          key: 'pmtTyCd', value: paymentMethodCode);
+                        key: 'paymentType',
+                        value: newValue,
+                      );
+                      final paymentMethodCode = ProxyService.box
+                          .paymentMethodCode(newValue);
+                      ProxyService.box.writeString(
+                        key: 'pmtTyCd',
+                        value: paymentMethodCode,
+                      );
                     }
                   },
                 ),
@@ -336,7 +418,9 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
 
             // Amount label
             Text(
-              'Amount',
+              ref.watch(paymentMethodsProvider)[index].method == 'CASH'
+                  ? 'Cash Received'
+                  : 'Amount',
               style: TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
@@ -356,8 +440,12 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
               ),
               child: TextFormField(
                 controller: ref.watch(paymentMethodsProvider)[index].controller,
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                ],
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
@@ -365,10 +453,7 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
                 ),
                 decoration: InputDecoration(
                   hintText: 'Enter amount',
-                  hintStyle: TextStyle(
-                    color: Colors.grey[400],
-                    fontSize: 14,
-                  ),
+                  hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
                   prefix: Text(
                     '${ProxyService.box.defaultCurrency()} ',
                     style: TextStyle(
@@ -384,6 +469,25 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
                   ),
                 ),
                 onChanged: (value) {
+                  // Mark this field as user-edited
+                  _userEditedFields.add(index);
+
+                  // Update the amount immediately from the text field
+                  final newAmount = double.tryParse(value) ?? 0.0;
+                  final payment = ref.read(paymentMethodsProvider)[index];
+                  ref
+                      .read(paymentMethodsProvider.notifier)
+                      .updatePaymentMethod(
+                        index,
+                        Payment(
+                          amount: newAmount,
+                          method: payment.method,
+                          controller: payment.controller,
+                          id: payment.id,
+                        ),
+                        transactionId: widget.transactionId,
+                      );
+
                   updatePaymentAmounts(
                     transactionId: widget.transactionId,
                     focusedIndex: index,
@@ -407,9 +511,11 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
   }
 
   // Desktop/tablet layout (horizontal layout)
-// Desktop/tablet layout (horizontal layout)
-  Widget _buildDesktopPaymentMethodRow(int index,
-      {required String transactionId}) {
+  // Desktop/tablet layout (horizontal layout)
+  Widget _buildDesktopPaymentMethodRow(
+    int index, {
+    required String transactionId,
+  }) {
     final isLast = index == ref.watch(paymentMethodsProvider).length - 1;
 
     return Container(
@@ -455,8 +561,9 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
                           color: Colors.grey[800],
                           fontWeight: FontWeight.w500,
                         ),
-                        items: _getAvailablePaymentMethods(index)
-                            .map((String value) {
+                        items: _getAvailablePaymentMethods(index).map((
+                          String value,
+                        ) {
                           return DropdownMenuItem<String>(
                             value: value,
                             child: Row(
@@ -476,8 +583,9 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
                         }).toList(),
                         onChanged: (String? newValue) {
                           if (newValue != null) {
-                            final payment =
-                                ref.read(paymentMethodsProvider)[index];
+                            final payment = ref.read(
+                              paymentMethodsProvider,
+                            )[index];
                             final newPayment = Payment(
                               amount: payment.amount,
                               method: newValue,
@@ -486,14 +594,21 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
                             );
                             ref
                                 .read(paymentMethodsProvider.notifier)
-                                .updatePaymentMethod(index, newPayment,
-                                    transactionId: transactionId);
+                                .updatePaymentMethod(
+                                  index,
+                                  newPayment,
+                                  transactionId: transactionId,
+                                );
                             ProxyService.box.writeString(
-                                key: 'paymentType', value: newValue);
-                            final paymentMethodCode =
-                                ProxyService.box.paymentMethodCode(newValue);
+                              key: 'paymentType',
+                              value: newValue,
+                            );
+                            final paymentMethodCode = ProxyService.box
+                                .paymentMethodCode(newValue);
                             ProxyService.box.writeString(
-                                key: 'pmtTyCd', value: paymentMethodCode);
+                              key: 'pmtTyCd',
+                              value: paymentMethodCode,
+                            );
                           }
                         },
                       ),
@@ -516,10 +631,17 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
                       color: Colors.white,
                     ),
                     child: TextFormField(
-                      controller:
-                          ref.watch(paymentMethodsProvider)[index].controller,
-                      keyboardType:
-                          const TextInputType.numberWithOptions(decimal: true),
+                      controller: ref
+                          .watch(paymentMethodsProvider)[index]
+                          .controller,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(
+                          RegExp(r'^\d*\.?\d*'),
+                        ),
+                      ],
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
@@ -546,6 +668,22 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
                         ),
                       ),
                       onChanged: (value) {
+                        // Update the amount immediately from the text field
+                        final newAmount = double.tryParse(value) ?? 0.0;
+                        final payment = ref.read(paymentMethodsProvider)[index];
+                        ref
+                            .read(paymentMethodsProvider.notifier)
+                            .updatePaymentMethod(
+                              index,
+                              Payment(
+                                amount: newAmount,
+                                method: payment.method,
+                                controller: payment.controller,
+                                id: payment.id,
+                              ),
+                              transactionId: widget.transactionId,
+                            );
+
                         updatePaymentAmounts(
                           transactionId: widget.transactionId,
                           focusedIndex: index,
@@ -575,12 +713,16 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
                       color: Colors.transparent,
                       child: InkWell(
                         borderRadius: BorderRadius.circular(16),
-                        onTap: () => _removePaymentMethod(index,
-                            transactionId: transactionId),
+                        onTap: () => _removePaymentMethod(
+                          index,
+                          transactionId: transactionId,
+                        ),
                         child: Container(
                           decoration: BoxDecoration(
-                            border:
-                                Border.all(color: Colors.red[300]!, width: 1),
+                            border: Border.all(
+                              color: Colors.red[300]!,
+                              width: 1,
+                            ),
                             borderRadius: BorderRadius.circular(16),
                             color: Colors.red[50],
                           ),
@@ -632,11 +774,7 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
                 // Wrap with Flexible
                 child: Row(
                   children: [
-                    Icon(
-                      Icons.payment,
-                      color: Colors.blue[600],
-                      size: 20,
-                    ),
+                    Icon(Icons.payment, color: Colors.blue[600], size: 20),
                     SizedBox(width: 8),
                     Flexible(
                       // Wrap text with Flexible
@@ -691,8 +829,9 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
                       _showPaymentMethods = !_showPaymentMethods;
                     });
                   },
-                  constraints:
-                      BoxConstraints(maxWidth: 40), // Constrain button size
+                  constraints: BoxConstraints(
+                    maxWidth: 40,
+                  ), // Constrain button size
                 ),
               ],
             ],
@@ -704,8 +843,10 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
             if (isMobile) ...[
               // Mobile layout - stacked vertically
               for (int i = 0; i < payments.length; i++)
-                _buildMobilePaymentMethodRow(i,
-                    transactionId: widget.transactionId),
+                _buildMobilePaymentMethodRow(
+                  i,
+                  transactionId: widget.transactionId,
+                ),
             ] else ...[
               // Desktop layout - table format
               Container(
@@ -717,8 +858,10 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
                 child: Column(
                   children: [
                     Container(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.grey[100],
                         borderRadius: BorderRadius.only(
@@ -731,7 +874,7 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
                           Expanded(
                             flex: 2,
                             child: Text(
-                              'Payment Method',
+                              'Payment',
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
@@ -758,8 +901,10 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
                       ),
                     ),
                     for (int i = 0; i < payments.length; i++)
-                      _buildDesktopPaymentMethodRow(i,
-                          transactionId: widget.transactionId),
+                      _buildDesktopPaymentMethodRow(
+                        i,
+                        transactionId: widget.transactionId,
+                      ),
                   ],
                 ),
               ),
@@ -774,13 +919,9 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
             child: OutlinedButton.icon(
               onPressed: () =>
                   _addPaymentMethod(transactionId: widget.transactionId),
-              icon: Icon(
-                Icons.add,
-                size: 18,
-                color: Colors.blue[600],
-              ),
+              icon: Icon(Icons.add, size: 18, color: Colors.blue[600]),
               label: Text(
-                'Add Payment Method',
+                'Add Payment',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
@@ -812,9 +953,9 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
           children: [
             Text(
               'Payment Methods',
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    fontWeight: FontWeight.w500,
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
             ),
             Spacer(),
             // Toggle button for mobile only in list view
@@ -838,11 +979,10 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
         Text(
           '${payments.length} method${payments.length != 1 ? 's' : ''}',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Theme.of(context)
-                    .colorScheme
-                    .onSurface
-                    .withValues(alpha: 0.6),
-              ),
+            color: Theme.of(
+              context,
+            ).colorScheme.onSurface.withValues(alpha: 0.6),
+          ),
         ),
 
         // Conditionally show payment methods on mobile
@@ -851,8 +991,10 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
           if (isMobile) ...[
             // Mobile layout - stacked vertically
             for (int i = 0; i < payments.length; i++)
-              _buildMobilePaymentMethodRow(i,
-                  transactionId: widget.transactionId),
+              _buildMobilePaymentMethodRow(
+                i,
+                transactionId: widget.transactionId,
+              ),
           ] else ...[
             // Desktop layout - table format
             Column(
@@ -864,8 +1006,8 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
                       child: Text(
                         'Payment Method',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                     Expanded(
@@ -873,16 +1015,18 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
                       child: Text(
                         'Amount',
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              fontWeight: FontWeight.w600,
-                            ),
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ],
                 ),
                 SizedBox(height: 8),
                 for (int i = 0; i < payments.length; i++)
-                  _buildDesktopPaymentMethodRow(i,
-                      transactionId: widget.transactionId),
+                  _buildDesktopPaymentMethodRow(
+                    i,
+                    transactionId: widget.transactionId,
+                  ),
               ],
             ),
           ],
@@ -895,12 +1039,10 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard> {
             onPressed: () =>
                 _addPaymentMethod(transactionId: widget.transactionId),
             icon: Icon(Icons.add, size: 18),
-            label: Text('Add Payment Method'),
+            label: Text('Add Payment'),
             style: OutlinedButton.styleFrom(
               padding: EdgeInsets.symmetric(vertical: 12),
-              side: BorderSide(
-                color: Theme.of(context).colorScheme.primary,
-              ),
+              side: BorderSide(color: Theme.of(context).colorScheme.primary),
             ),
           ),
         ),

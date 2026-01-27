@@ -4,6 +4,7 @@ library flipper_ui;
 export 'src/widgets/box_text.dart';
 export 'src/widgets/box_button.dart';
 export 'src/widgets/box_input_field.dart';
+export 'widget/buttons/fluent_button.dart';
 
 // Colors Export
 export 'src/shared/app_colors.dart';

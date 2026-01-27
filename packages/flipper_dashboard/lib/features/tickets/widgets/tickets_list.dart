@@ -1,10 +1,12 @@
-// ignore_for_file: unused_result
+import '../../../../dialog_status.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/ticket_selection_provider.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
@@ -13,21 +15,41 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper_ui/dialogs/ResumeTicketDialog.dart';
 import '../models/ticket_status.dart';
 // import 'ticket_tile.dart';
 
 mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   final _routerService = locator<RouterService>();
+  final _dialogService = locator<DialogService>();
   List<ITransaction> _currentTickets = [];
 
   List<ITransaction> getCurrentTickets() => _currentTickets;
 
+  Future<bool> canDeleteTicket(ITransaction ticket) async {
+    final totalPaid = await ProxyService.getStrategy(Strategy.capella)
+        .getTotalPaidForTransaction(
+          transactionId: ticket.id,
+          branchId: ticket.branchId ?? '',
+        );
+    return (totalPaid ?? 0.0) <= 0;
+  }
+
   Future<void> deleteSelectedTickets(Set<String> selectedIds) async {
     final List<String> failedDeletions = [];
+    final List<String> skippedTickets = [];
 
     for (final ticketId in selectedIds) {
       try {
         final ticket = _currentTickets.firstWhere((t) => t.id == ticketId);
+
+        if (!(await canDeleteTicket(ticket))) {
+          skippedTickets.add(
+            'Ticket #${ticket.reference ?? ticket.id.substring(0, 6).toUpperCase()}',
+          );
+          continue;
+        }
+
         await ProxyService.strategy.deleteTransaction(transaction: ticket);
       } catch (e) {
         talker.error('Failed to delete ticket $ticketId: $e');
@@ -38,8 +60,17 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     // Refresh the UI after deletion attempts
     if (mounted) setState(() {});
 
+    if (skippedTickets.isNotEmpty && mounted) {
+      showCustomSnackBarUtil(
+        context,
+        'Skipped ${skippedTickets.length} ticket(s) with partial payments',
+        backgroundColor: Colors.orange,
+      );
+    }
+
     // Throw error only if all deletions failed
-    if (failedDeletions.length == selectedIds.length) {
+    if (failedDeletions.length == selectedIds.length &&
+        selectedIds.length > skippedTickets.length) {
       throw Exception('Failed to delete all selected tickets');
     } else if (failedDeletions.isNotEmpty) {
       throw Exception(
@@ -204,122 +235,62 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     BuildContext context,
     ITransaction ticket,
   ) async {
-    final currentStatus = TicketStatusExtension.fromString(
-      ticket.status ?? PARKED,
-    );
-    final selectedStatus = await showDialog<TicketStatus?>(
+    await showResumeTicketDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(
-          'Update Ticket #${ticket.id.substring(0, 6).toUpperCase()}',
-          style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w600),
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _statusBadge(currentStatus.displayName, currentStatus.color),
-            const SizedBox(height: 16),
-            const Text(
-              'Select new status:',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-            ),
-            const SizedBox(height: 8),
-            SizedBox(
-              width: double.maxFinite,
-              child: Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: TicketStatus.values
-                    .where((s) => s != currentStatus)
-                    .map(
-                      (status) => FilterChip(
-                        label: Text(status.displayName),
-                        labelStyle: TextStyle(
-                          color: status.color,
-                          fontWeight: FontWeight.w500,
-                        ),
-                        selectedColor: status.color.withValues(alpha: 0.1),
-                        side: BorderSide(color: status.color, width: 1),
-                        selected: false,
-                        onSelected: (_) => Navigator.of(context).pop(status),
-                      ),
-                    )
-                    .toList(),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(null),
-            child: const Text('Cancel'),
-          ),
-          TextButton.icon(
-            onPressed: () {
-              Navigator.of(context).pop(null);
-              _resumeOrder(ticket);
-            },
-            icon: const Icon(Icons.play_arrow, size: 16),
-            label: const Text('Resume Order'),
-            style: TextButton.styleFrom(foregroundColor: Colors.green),
-          ),
-        ],
-      ),
+      ticket: ticket,
+      onResume: (t) => _resumeOrder(t),
+      onStatusChange: (newStatus) async {
+        try {
+          await ProxyService.strategy.updateTransaction(
+            transaction: ticket,
+            status: newStatus,
+            updatedAt: DateTime.now().toUtc(),
+          );
+          if (mounted) setState(() {});
+          showCustomSnackBarUtil(
+            context,
+            'Ticket status updated successfully',
+            backgroundColor: Colors.green,
+          );
+        } catch (e) {
+          talker.error('Failed to update status: $e');
+          showCustomSnackBarUtil(
+            context,
+            'Failed to update status',
+            backgroundColor: Colors.red,
+          );
+        }
+      },
     );
-
-    if (selectedStatus != null) {
-      try {
-        await ProxyService.strategy.updateTransaction(
-          transaction: ticket,
-          status: selectedStatus.statusValue,
-          updatedAt: DateTime.now().toUtc(),
-        );
-        if (mounted) setState(() {});
-        showCustomSnackBarUtil(
-          context,
-          'Ticket status updated to ${selectedStatus.displayName}',
-          backgroundColor: selectedStatus.color,
-        );
-      } catch (e) {
-        talker.error('Failed to update status: $e');
-        showCustomSnackBarUtil(
-          context,
-          'Failed to update status',
-          backgroundColor: Colors.red,
-        );
-      }
-    }
   }
 
   /// Park all pending except the one we're resuming
   Future<void> _parkExistingPendingTransactions({
     required String excludeId,
   }) async {
-    try {
-      final pending = await ProxyService.strategy.transactions(
-        branchId: ProxyService.box.getBranchId()!,
-        status: PENDING,
-        includeZeroSubTotal: true,
-      );
-      talker.debug('Pending to park: ${pending.length}');
-      for (final tx in pending) {
-        if (tx.id == excludeId) continue;
-        if (tx.subTotal != 0.0) {
-          throw Exception(
-            'Cannot resume ticket while current cart has items. Please complete or clear the current transaction first.',
+    final strategies = [Strategy.capella, Strategy.cloudSync];
+    for (final strategy in strategies) {
+      try {
+        final pending = await ProxyService.getStrategy(strategy).transactions(
+          branchId: ProxyService.box.getBranchId()!,
+          status: PENDING,
+          includeZeroSubTotal: true,
+          agentId: ProxyService.box.getUserId()!,
+        );
+        talker.debug('Pending to park ($strategy): ${pending.length}');
+        for (final tx in pending) {
+          if (tx.id == excludeId) continue;
+          await ProxyService.getStrategy(
+            strategy,
+          ).deleteTransaction(transaction: tx);
+          talker.info(
+            'Deleted pending transaction to clear cart ($strategy): ${tx.id}',
           );
         }
-        await ProxyService.strategy.updateTransaction(
-          transaction: tx,
-          status: PARKED,
-          updatedAt: DateTime.now().toUtc(),
-        );
-        talker.info('Parked zero-total pending: ${tx.id}');
+      } catch (e) {
+        talker.error('Error parking pending for $strategy: $e');
+        // Don't rethrow, just try the next strategy
       }
-    } catch (e) {
-      talker.error('Error parking pending: $e');
-      rethrow;
     }
   }
 
@@ -327,7 +298,11 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   Future<void> _resumeOrder(ITransaction ticket) async {
     try {
       await _parkExistingPendingTransactions(excludeId: ticket.id);
+
+      // Update ticket to belong to current agent and be pending
       ticket.status = PENDING;
+      ticket.agentId = ProxyService.box.getUserId();
+
       await ProxyService.strategy.updateTransaction(
         transaction: ticket,
         status: PENDING,
@@ -367,6 +342,17 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
   /// Delete a ticket with confirmation and loading
   Future<void> _deleteTicket(ITransaction ticket) async {
+    if (!(await canDeleteTicket(ticket))) {
+      await _dialogService.showCustomDialog(
+        variant: DialogType.info,
+        title: 'Error',
+        description:
+            'This ticket has partial payments and cannot be deleted.',
+        data: {'status': InfoDialogStatus.error},
+      );
+      return;
+    }
+
     bool confirmed = false;
     if (mounted) {
       confirmed =
@@ -558,26 +544,6 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           throw e;
         });
   }
-
-  /// Reusable status badge (like QuickBooks tags)
-  Widget _statusBadge(String label, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: .15),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color, width: 1),
-      ),
-      child: Text(
-        label,
-        style: GoogleFonts.inter(
-          fontSize: 12,
-          fontWeight: FontWeight.w500,
-          color: color,
-        ),
-      ),
-    );
-  }
 }
 
 class TicketCard extends StatelessWidget {
@@ -721,6 +687,43 @@ class TicketCard extends StatelessWidget {
                   ),
                 ),
 
+              if (ticket.note != null && ticket.note!.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade50,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.grey.shade200),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.note_alt_outlined,
+                          size: 14,
+                          color: Colors.grey.shade600,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            ticket.note!,
+                            style: GoogleFonts.inter(
+                              fontSize: 13,
+                              color: Colors.grey.shade800,
+                              height: 1.4,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
               const SizedBox(height: 12),
 
               // Ticket details
@@ -736,6 +739,32 @@ class TicketCard extends StatelessWidget {
                             fontSize: 16,
                             fontWeight: FontWeight.w500,
                           ),
+                        ),
+                        FutureBuilder<double?>(
+                          future: ProxyService.getStrategy(Strategy.capella)
+                              .getTotalPaidForTransaction(
+                                transactionId: ticket.id,
+                                branchId: ticket.branchId ?? '',
+                              ),
+                          builder: (context, snapshot) {
+                            if (!snapshot.hasData) {
+                              return const SizedBox.shrink();
+                            }
+                            final totalPaid = snapshot.data!;
+                            final remainingBalance =
+                                (ticket.subTotal ?? 0.0) - totalPaid;
+                            if (remainingBalance > 0) {
+                              return Text(
+                                'Remaining: ${remainingBalance.toCurrencyFormatted()}',
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.redAccent,
+                                ),
+                              );
+                            }
+                            return const SizedBox.shrink();
+                          },
                         ),
                         const SizedBox(height: 4),
                         Text(

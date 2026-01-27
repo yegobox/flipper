@@ -4,6 +4,7 @@ import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:supabase_models/brick/models/transactionItem.model.dart';
+import 'package:supabase_models/brick/models/transaction_payment_record.model.dart';
 import 'package:uuid/uuid.dart';
 import 'package:brick_ditto_generators/ditto_sync_adapter.dart';
 import 'package:flipper_services/proxy.dart';
@@ -138,6 +139,10 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
   @OfflineFirst(where: {'transactionId': 'id'})
   List<TransactionItem>? items;
 
+  @Supabase(ignore: true)
+  @OfflineFirst(where: {'transactionId': 'id'})
+  List<TransactionPaymentRecord>? payments;
+
   String? customerPhone;
   String? agentId;
 
@@ -201,6 +206,7 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
     this.numberOfItems,
     num? discountAmount,
     this.items,
+    this.payments,
     this.customerPhone,
     required this.agentId,
   })  : id = id ?? const Uuid().v4(),
@@ -286,6 +292,7 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
     int? numberOfItems,
     num? discountAmount,
     List<TransactionItem>? items,
+    List<TransactionPaymentRecord>? payments,
     String? customerPhone,
   }) {
     return ITransaction(

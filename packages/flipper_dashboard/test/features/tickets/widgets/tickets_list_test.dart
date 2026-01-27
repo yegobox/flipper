@@ -27,8 +27,11 @@ class _TestTicketsListWidgetState extends ConsumerState<TestTicketsListWidget>
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  late TestEnvironment env;
 
-  setUpAll(() {
+  setUpAll(() async {
+    env = TestEnvironment();
+    await env.init();
     registerFallbackValue(DateTime.now());
     registerFallbackValue(
       ITransaction(
@@ -46,12 +49,19 @@ void main() {
     );
   });
 
-  Widget buildTestWidget() {
-    return ProviderScope(
-      child: MaterialApp(home: const TestTicketsListWidget()),
-    );
-  }
-
+  setUp(() {
+    env.injectMocks();
+    env.stubCommonMethods();
+    when(
+      () => env.mockSyncStrategy.getStrategy(any()),
+    ).thenReturn(env.mockDbSync);
+    when(
+      () => env.mockDbSync.getTotalPaidForTransaction(
+        transactionId: any(named: 'transactionId'),
+        branchId: any(named: 'branchId'),
+      ),
+    ).thenAnswer((_) async => 0.0);
+  });
   group('TicketsListMixin Tests', () {
     testWidgets('TicketCard shows correct information', (tester) async {
       final ticket = ITransaction(

@@ -324,6 +324,25 @@ final currentTransactionsByIdStream =
   return transactionsStream;
 });
 
+final transactionTotalPaidProvider = FutureProvider.autoDispose
+    .family<double, String>((ref, transactionId) async {
+  if (transactionId.isEmpty) return 0.0;
+  final branchId = ProxyService.box.getBranchId();
+  if (branchId == null) return 0.0;
+
+  try {
+    final totalPaid = await ProxyService.getStrategy(Strategy.capella)
+        .getTotalPaidForTransaction(
+      transactionId: transactionId,
+      branchId: branchId,
+    );
+    return totalPaid ?? 0.0;
+  } catch (e) {
+    talker.error('Error getting total paid for transaction: $e');
+    return 0.0;
+  }
+});
+
 final selectImportItemsProvider = FutureProvider.autoDispose
     .family<List<Variant>, int?>((ref, productId) async {
   // Fetch the list of variants from a remote service.
@@ -685,6 +704,10 @@ class Payment {
   })  : controller = controller ??
             TextEditingController(text: amount.toStringAsFixed(2)),
         id = id ?? UniqueKey().toString();
+
+  void dispose() {
+    controller.dispose();
+  }
 }
 
 final paymentMethodsProvider =
@@ -696,8 +719,16 @@ class PaymentMethodsNotifier extends Notifier<List<Payment>> {
   PaymentMethodsNotifier([this.initialPayments]);
 
   @override
-  List<Payment> build() =>
-      initialPayments ?? [Payment(amount: 0.0, method: 'CASH')];
+  List<Payment> build() {
+    return initialPayments ?? [Payment(amount: 0.0, method: 'CASH')];
+  }
+
+  void _safeDispose(Payment payment) {
+    final controller = payment.controller;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.dispose();
+    });
+  }
 
   // Method to add a payment method
   void addPaymentMethod(Payment method) {
@@ -705,38 +736,63 @@ class PaymentMethodsNotifier extends Notifier<List<Payment>> {
       final existingIndex = state.indexWhere(
           (existingMethod) => existingMethod.method == method.method);
       if (existingIndex != -1) {
-        state[existingIndex] = method;
+        final oldPayment = state[existingIndex];
+        // Only dispose if we are NOT reusing the same controller
+        if (oldPayment.controller != method.controller) {
+          _safeDispose(oldPayment);
+        }
+        final updatedList = List<Payment>.from(state);
+        updatedList[existingIndex] = method;
+        state = updatedList;
       } else {
         state = [...state, method];
       }
-    } catch (e) {}
+    } catch (e) {
+      talker.error('Error adding payment method: $e');
+    }
   }
 
   void updatePaymentMethod(int index, Payment payment,
-      {required String transactionId}) {
+      {String? transactionId}) {
+    if (index < 0 || index >= state.length) {
+      talker.error(
+          "Invalid index $index for updatePaymentMethod. List length: ${state.length}");
+      return; // Early return if index is out of bounds
+    }
+
+    final oldPayment = state[index];
+    // Only dispose if we are NOT reusing the same controller
+    if (oldPayment.controller != payment.controller) {
+      _safeDispose(oldPayment);
+    }
+
     final updatedList = List<Payment>.from(state);
     updatedList[index] = payment;
     state = updatedList;
 
-    talker.warning("Payment Lenght:${state.length}");
-
-    ProxyService.strategy.savePaymentType(
-        amount: payment.amount,
-        singlePaymentOnly: state.length == 1,
-        paymentMethod: payment.method,
-        transactionId: transactionId);
+    talker.warning("Payment Length:${state.length}");
   }
 
-  // Method to remove a payment method
   void removePaymentMethod(int index) {
+    if (index >= 0 && index < state.length) {
+      _safeDispose(state[index]);
+    }
     state = [
       for (int i = 0; i < state.length; i++)
         if (i != index) state[i]
     ];
   }
 
-  // Method to update payment methods
   void setPaymentMethods(List<Payment> methods) {
+    // Collect controllers that are being kept
+    final newControllers = methods.map((p) => p.controller).toSet();
+
+    // Dispose only those that are NOT in the new list
+    for (final oldPayment in state) {
+      if (!newControllers.contains(oldPayment.controller)) {
+        _safeDispose(oldPayment);
+      }
+    }
     state = methods;
   }
 }

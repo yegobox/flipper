@@ -271,6 +271,16 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         if (item.itemTyCd == "3") {
           continue;
         }
+
+        // SKIP items that have already had their stock deducted for this transaction
+        // We use quantityShipped as a flag for "stock deduction completed for this item"
+        if (item.quantityShipped == item.qty.toInt()) {
+          talker.info(
+            "Skipping stock deduction for item ${item.name} as it was already processed.",
+          );
+          continue;
+        }
+
         final variant = await ProxyService.getStrategy(
           Strategy.capella,
         ).getVariant(id: item.variantId!);
@@ -291,6 +301,14 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
             currentStock: newStock,
             rsdQty: newStock,
           );
+          // Mark the item as processed for stock deduction
+          // This prevents double-deduction on subsequent partial payments
+          item.quantityShipped = item.qty.toInt();
+          await ProxyService.strategy.updateTransactionItem(
+            transactionItemId: item.id,
+            quantityShipped: item.quantityShipped,
+            ignoreForReport: false,
+          );
         }
       }
 
@@ -300,6 +318,9 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         0,
         (sum, item) => sum + (item.price * item.qty),
       );
+
+      // Ensure transaction subTotal is updated for correct isFullyPaid check downstream
+      transaction.subTotal = finalSubTotal;
 
       final amount = double.tryParse(receivedAmountController.text) ?? 0;
       final discount = double.tryParse(discountController.text) ?? 0;
@@ -323,6 +344,10 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                 (Platform.isAndroid || Platform.isIOS || Platform.isMacOS),
           );
 
+      final String? ticketName =
+          customer?.custNm ??
+          (mounted ? ref.read(customerNameControllerProvider).text : null);
+
       if (isDigitalPaymentEnabled && !immediateCompletion) {
         // Process digital payment only if immediateCompletion is false
         await _processDigitalPayment(
@@ -336,6 +361,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           paymentType: paymentType,
           onPaymentConfirmed: onPaymentConfirmed,
           onPaymentFailed: onPaymentFailed,
+          ticketName: ticketName,
         );
         // Return true to indicate we're waiting for payment confirmation
         // Bottom sheet should NOT close yet
@@ -349,18 +375,24 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
           paymentMethods: paymentMethods,
           discount: discount,
           paymentType: paymentType,
-
+          ticketName: ticketName,
           completeTransaction: () async {
+            // Update the local transaction object with the payment amount we just processed.
+            // This ensures markTransactionAsCompleted sees the correct total paid, avoiding race conditions
+            // with the database fetch.
+            transaction.cashReceived = (transaction.cashReceived ?? 0) + amount;
+
             // Show success confirmation before completing
             await markTransactionAsCompleted(
-              transaction,
-              finalSubTotal,
-              paymentMethods,
+              transaction: transaction,
+              finalSubTotal: finalSubTotal,
+              paymentMethods: paymentMethods,
+              ticketName: ticketName,
             );
             if (mounted && context.mounted) {
               showCustomSnackBarUtil(
                 context,
-                "Payment Successful — Amount: ${transaction.subTotal!.toCurrencyFormatted()}",
+                "Payment Successful",
                 backgroundColor: Colors.green,
                 showCloseButton: true,
               );
@@ -407,24 +439,47 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     }
   }
 
-  Future<void> markTransactionAsCompleted(
-    ITransaction transaction,
-    double finalSubTotal,
-    List<Payment> paymentMethods,
-  ) async {
+  Future<void> markTransactionAsCompleted({
+    required ITransaction transaction,
+    required double finalSubTotal,
+    required List<Payment> paymentMethods,
+    String? ticketName,
+  }) async {
+    // Fetch fresh transaction to ensure we have the accumulated cashReceived
+    // from the database, which was updated in collectPayment.
+    // However, also fallback to the local transaction object's cashReceived if it's greater,
+    // to handle cases where the DB update hasn't propagated or returned yet.
+    final freshTransaction = await ProxyService.strategy.getTransaction(
+      id: transaction.id,
+      branchId: ProxyService.box.getBranchId()!,
+    );
+
+    final dbCashReceived = freshTransaction?.cashReceived ?? 0;
+    final localCashReceived = transaction.cashReceived ?? 0;
+    final effectiveCashReceived = dbCashReceived > localCashReceived
+        ? dbCashReceived
+        : localCashReceived;
+
+    final isFullyPaid = effectiveCashReceived >= (transaction.subTotal ?? 0);
+    final status = isFullyPaid ? COMPLETE : PARKED;
+
     await ProxyService.strategy.updateTransaction(
       transaction: transaction,
-      status: COMPLETE,
-      cashReceived: ProxyService.box.getCashReceived(),
+      status: status,
+      cashReceived: effectiveCashReceived,
       subTotal: finalSubTotal,
       lastTouched: DateTime.now(),
+      ticketName:
+          (transaction.ticketName == null || transaction.ticketName!.isEmpty)
+          ? ticketName
+          : transaction.ticketName,
     );
     transaction.subTotal = finalSubTotal; // Update the local object's subTotal
     transaction.lastTouched = DateTime.now();
     // Save payment methods
     for (var payment in paymentMethods) {
       await ProxyService.strategy.savePaymentType(
-        singlePaymentOnly: paymentMethods.length == 1,
+        singlePaymentOnly: false, // Support multiple partial payments
         amount: payment.amount,
         transactionId: transaction.id,
         paymentMethod: payment.method,
@@ -475,6 +530,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     Function? onPaymentConfirmed,
     Function(String)? onPaymentFailed,
     required List<Payment> paymentMethods,
+    String? ticketName,
   }) async {
     try {
       // customer.telNo from database already has country code (e.g., "+250783054874")
@@ -614,6 +670,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
                   discount: discount,
                   paymentMethods: paymentMethods,
                   paymentType: paymentType,
+                  ticketName: ticketName,
                   completeTransaction: () {
                     // For digital payments, don't call completeTransaction yet
                     // We'll call it after this succeeds
@@ -685,6 +742,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     required String paymentType,
     required Function completeTransaction,
     required List<Payment> paymentMethods,
+    String? ticketName,
   }) async {
     try {
       // Check if widget is still mounted before using ref
