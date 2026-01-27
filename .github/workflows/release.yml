@@ -52,7 +52,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.38.1"
+          flutter-version: "3.38.7"
           channel: "stable"
       - run: |
           git submodule update --init
@@ -116,7 +116,7 @@ jobs:
       - name: Clone Flutter repository with stable channel
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.38.1" # Consider using a more recent stable Flutter version if possible/needed
+          flutter-version: "3.38.7" # Consider using a more recent stable Flutter version if possible/needed
           channel: stable
       - run: flutter doctor -v
 
@@ -214,7 +214,7 @@ jobs:
       - name: Clone Flutter repository with stable channel
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.38.1"
+          flutter-version: "3.38.7"
           channel: stable
       - run: flutter doctor -v
 
@@ -269,7 +269,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.38.1"
+          flutter-version: "3.38.7"
           channel: stable
           cache: true
 
@@ -341,7 +341,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.38.1"
+          flutter-version: "3.38.7"
           channel: stable
           cache: true
 
@@ -422,7 +422,7 @@ jobs:
       - name: Clone Flutter repository with stable channel
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.38.1" #firebase_auth_desktop is broken with  3.10.6
+          flutter-version: "3.38.7" #firebase_auth_desktop is broken with  3.10.6
           channel: stable
       - run: flutter doctor -v
 
