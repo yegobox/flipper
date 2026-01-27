@@ -12,7 +12,6 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:synchronized/synchronized.dart';
 
@@ -49,6 +48,7 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
 
   MomoPaymentType _paymentType = MomoPaymentType.phoneNumber;
   bool _isBusy = false;
+  late final _ussdPreviewNotifier = ValueNotifier<String>('');
 
   @override
   void initState() {
@@ -56,9 +56,12 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
     _amountController.addListener(_updateUssdPreview);
     _phoneController.addListener(_updateUssdPreview);
     _momoCodeController.addListener(_updateUssdPreview);
+    _updateUssdPreview(); // Initialize the notifier
   }
 
   void _updateUssdPreview() {
+    _ussdPreviewNotifier.value = _amountController
+        .text; // Use amount text as the value to trigger updates
     setState(() {});
   }
 
@@ -184,14 +187,12 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
               const SizedBox(height: 16),
 
               // USSD Preview (for user reference)
-              ValueListenableBuilder(
-                valueListenable: Listenable.merge([
-                  _amountController,
-                  _phoneController,
-                  _momoCodeController,
-                ]),
+              ValueListenableBuilder<String>(
+                valueListenable: _ussdPreviewNotifier,
                 builder: (context, _, __) {
-                  return _amountController.text.isNotEmpty ? _buildUssdPreview() : const SizedBox.shrink();
+                  return _amountController.text.isNotEmpty
+                      ? _buildUssdPreview()
+                      : const SizedBox.shrink();
                 },
               ),
               const SizedBox(height: 16),
