@@ -1,5 +1,6 @@
 import 'dart:core';
 
+import 'package:flipper_services/locator.dart';
 import 'package:flipper_dashboard/Purchases.dart';
 import 'package:flipper_dashboard/PurchaseTable.dart';
 import 'package:flipper_models/providers/variants_provider.dart';
@@ -54,7 +55,6 @@ void main() {
       await initializeDependenciesForTest();
     });
     tearDownAll(() async {
-      // ignore: undefined_function
       await resetDependencies();
     });
     setUp(() {
