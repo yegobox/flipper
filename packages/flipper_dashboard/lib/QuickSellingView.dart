@@ -1,5 +1,5 @@
-// ignore_for_file: unused_result
 import 'dart:async';
+
 import 'package:flipper_dashboard/DateCoreWidget.dart';
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
 import 'package:flipper_dashboard/TransactionItemTable.dart';
@@ -757,23 +757,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
             const SizedBox(height: 16),
             if (transactionAsyncValue.value != null &&
                 internalTransactionItems.isNotEmpty)
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: () =>
-                      _showParkDialog(transactionAsyncValue.value!, model),
-                  icon: const Icon(Icons.save_alt),
-                  label: const Text('Save Ticket (Park)'),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    side: BorderSide(
-                      color: Theme.of(context).colorScheme.onPrimaryContainer,
-                    ),
-                    foregroundColor: Theme.of(
-                      context,
-                    ).colorScheme.onPrimaryContainer,
-                  ),
-                ),
+              SaveTicketButton(
+                onPressed: () =>
+                    _showParkDialog(transactionAsyncValue.value!, model),
               ),
           ],
         ),
@@ -1438,7 +1424,10 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     String transactionId,
     double alreadyPaid,
   ) {
-    final finalPayable = (totalAfterDiscountAndShipping - alreadyPaid).clamp(0.0, double.infinity);
+    final finalPayable = (totalAfterDiscountAndShipping - alreadyPaid).clamp(
+      0.0,
+      double.infinity,
+    );
     return Row(
       children: [
         // Payment Method Field
@@ -1973,49 +1962,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           ),
           const SizedBox(height: 12.0),
           if (transaction != null && internalTransactionItems.isNotEmpty)
-            Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: () => _showParkDialog(transaction, model),
-                borderRadius: BorderRadius.circular(8.0),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 12.0,
-                    horizontal: 16.0,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Theme.of(
-                      context,
-                    ).colorScheme.secondaryContainer.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(8.0),
-                    border: Border.all(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.outline.withValues(alpha: 0.3),
-                      width: 1.0,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.save_alt,
-                        size: 18.0,
-                        color: Theme.of(context).colorScheme.primary,
-                      ),
-                      const SizedBox(width: 8.0),
-                      Text(
-                        'Save Ticket (Park)',
-                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: Theme.of(context).colorScheme.primary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+            SaveTicketButton(
+              onPressed: () => _showParkDialog(transaction, model),
             ),
         ],
       ),

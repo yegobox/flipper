@@ -1,5 +1,3 @@
-// ignore_for_file: unused_result
-
 import 'package:flipper_dashboard/SearchCustomer.dart';
 import 'package:flipper_dashboard/widgets/payment_methods_card.dart';
 import 'package:flipper_models/helperModels/extensions.dart';
@@ -1183,23 +1181,12 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
             ],
           ),
           SizedBox(height: 20),
-          // Park Ticket Button - shown when items exist
           if (items.isNotEmpty)
             Container(
               width: double.infinity,
               padding: const EdgeInsets.only(bottom: 12),
-              child: OutlinedButton.icon(
+              child: SaveTicketButton(
                 onPressed: () => _showParkDialog(context),
-                icon: Icon(Icons.save_alt),
-                label: Text('Save Ticket (Park)'),
-                style: OutlinedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  side: BorderSide(color: Colors.blue),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  foregroundColor: Colors.blue,
-                ),
               ),
             ),
           // Conditional button layout based on digital payment status

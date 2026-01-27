@@ -8,7 +8,6 @@ import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_dashboard/dialog_status.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:supabase_models/brick/models/transaction.model.dart';
 
 /// A button widget that allows users to reset/delete the current pending transaction
 /// with a confirmation dialog to prevent accidental deletions.
