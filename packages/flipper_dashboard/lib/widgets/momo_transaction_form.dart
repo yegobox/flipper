@@ -1,7 +1,8 @@
 // ignore_for_file: unused_result
 import 'package:flipper_dashboard/create/category_selector.dart';
 import 'package:flipper_dashboard/widgets/contact_picker_button.dart';
-import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/db_model_export.dart' hide Category;
+import 'package:supabase_models/brick/models/category.model.dart' show Category;
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
