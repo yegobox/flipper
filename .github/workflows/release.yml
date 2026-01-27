@@ -34,6 +34,8 @@ jobs:
   unit-testing:
     name: Unit Testing
     runs-on: ubuntu-latest
+    env:
+      FLUTTER_TEST_CI: true
     # needs: [supabase-init] # Requires Supabase to be initialized
     steps:
       - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
@@ -85,11 +87,6 @@ jobs:
 
       - name: Install LCOV
         run: sudo apt-get update && sudo apt-get install -y lcov
-
-      - name: Setup CI Environment for Tests
-        run: |
-          echo "FLUTTER_TEST_CI=true" >> $GITHUB_ENV
-          export FLUTTER_TEST_CI=true
 
       - name: Run tests with coverage
         run: |
@@ -406,7 +403,9 @@ jobs:
     if: github.ref != 'refs/heads/main' # Skip this job on main branch
     runs-on: ubuntu-latest
     continue-on-error: true
-  
+    env:
+      FLUTTER_TEST_CI: true
+
     strategy:
       fail-fast: false
       matrix:
