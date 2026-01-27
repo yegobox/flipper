@@ -1,6 +1,7 @@
 // services.dart
 import 'package:get_it/get_it.dart';
 import 'package:injectable/injectable.dart';
+import 'package:supabase_models/brick/repository.dart';
 import 'locator.config.dart';
 
 final GetIt getIt = GetIt.instance;
@@ -15,14 +16,12 @@ Future<void> initDependencies({
   String? env,
   EnvironmentFilter? environmentFilter,
 }) async {
-  await getIt.init(
-    environmentFilter: environmentFilter,
-    environment: env,
-  );
+  await getIt.init(environmentFilter: environmentFilter, environment: env);
 }
 
 // Add the reset method
 Future<void> resetDependencies({bool dispose = true}) async {
+  await Repository.dispose();
   await getIt.reset(dispose: dispose);
 }
 

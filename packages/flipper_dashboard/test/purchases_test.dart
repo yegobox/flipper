@@ -53,6 +53,10 @@ void main() {
     setUpAll(() async {
       await initializeDependenciesForTest();
     });
+    tearDownAll(() async {
+      // ignore: undefined_function
+      await resetDependencies();
+    });
     setUp(() {
       mockFormKey = MockGlobalKey();
       mockNameController = MockTextEditingController();
