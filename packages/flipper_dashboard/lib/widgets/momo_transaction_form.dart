@@ -12,6 +12,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:synchronized/synchronized.dart';
 
@@ -50,7 +51,22 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
   bool _isBusy = false;
 
   @override
+  void initState() {
+    super.initState();
+    _amountController.addListener(_updateUssdPreview);
+    _phoneController.addListener(_updateUssdPreview);
+    _momoCodeController.addListener(_updateUssdPreview);
+  }
+
+  void _updateUssdPreview() {
+    setState(() {});
+  }
+
+  @override
   void dispose() {
+    _amountController.removeListener(_updateUssdPreview);
+    _phoneController.removeListener(_updateUssdPreview);
+    _momoCodeController.removeListener(_updateUssdPreview);
     _phoneController.dispose();
     _momoCodeController.dispose();
     _amountController.dispose();
@@ -168,7 +184,16 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
               const SizedBox(height: 16),
 
               // USSD Preview (for user reference)
-              if (_amountController.text.isNotEmpty) _buildUssdPreview(),
+              ValueListenableBuilder(
+                valueListenable: Listenable.merge([
+                  _amountController,
+                  _phoneController,
+                  _momoCodeController,
+                ]),
+                builder: (context, _, __) {
+                  return _amountController.text.isNotEmpty ? _buildUssdPreview() : const SizedBox.shrink();
+                },
+              ),
               const SizedBox(height: 16),
 
               // Action buttons
@@ -424,8 +449,10 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
       );
 
       if (category == null) {
-        showWarningNotification(context, 'Please select a category first');
-        setState(() => _isBusy = false);
+        if (mounted) {
+          showWarningNotification(context, 'Please select a category first');
+          setState(() => _isBusy = false);
+        }
         return;
       }
 

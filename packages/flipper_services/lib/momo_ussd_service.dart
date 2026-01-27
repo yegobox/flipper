@@ -169,7 +169,8 @@ class MomoUssdService {
     if (amount == amount.roundToDouble()) {
       return amount.toInt().toString();
     }
-    return amount.toStringAsFixed(0);
+    // For non-integer amounts, truncate instead of rounding to avoid overcharging
+    return amount.truncate().toString();
   }
 
   /// Get a display-friendly version of the USSD code
