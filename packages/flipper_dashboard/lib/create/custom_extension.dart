@@ -8,7 +8,7 @@ extension TextEditingControllerExtensions on TextEditingController {
   }
 }
 
-extension StringExtension on String {
+extension StringDashboardExtension on String {
   String toLower() {
     return this.toLowerCase();
   }

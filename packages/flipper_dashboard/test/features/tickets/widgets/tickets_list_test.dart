@@ -49,6 +49,10 @@ void main() {
     );
   });
 
+  tearDownAll(() async {
+    await env.dispose();
+  });
+
   setUp(() {
     env.injectMocks();
     env.stubCommonMethods();

@@ -18,6 +18,10 @@ import 'package:supabase_models/brick/repository/storage.dart';
 import 'package:flipper_models/view_models/startup_viewmodel.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_models/view_models/ScannViewModel.dart';
+import 'package:flipper_models/Supabase.dart';
+import 'package:flipper_models/whatsapp.dart';
+import 'package:flipper_services/event_interface.dart';
+import 'package:flipper_services/sentry_service.dart';
 
 class MockScannViewModel extends Mock implements ScannViewModel {}
 
@@ -71,6 +75,14 @@ class MockProxyService extends Mock implements DatabaseSyncInterface {
 class MockRouterService extends Mock implements RouterService {}
 
 class MockStartupViewModel extends Mock implements StartupViewModel {}
+
+class MockSupabase extends Mock implements SupabaseInterface {}
+
+class MockWhatsApp extends Mock implements WhatsApp {}
+
+class MockSentry extends Mock implements SentryServiceInterface {}
+
+class MockEvent extends Mock implements EventInterface {}
 
 class MockUser extends Mock implements IUser {}
 

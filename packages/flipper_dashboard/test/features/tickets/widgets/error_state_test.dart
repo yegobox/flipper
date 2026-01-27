@@ -19,9 +19,7 @@ class _TestErrorStateWidgetState extends ConsumerState<TestErrorStateWidget>
     with TicketsListMixin {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: buildTicketSection(context),
-    );
+    return Scaffold(body: buildTicketSection(context));
   }
 }
 
@@ -35,6 +33,10 @@ void main() {
     await env.init();
   });
 
+  tearDownAll(() async {
+    await env.dispose();
+  });
+
   setUp(() {
     env.injectMocks();
     env.stubCommonMethods();
@@ -42,25 +44,24 @@ void main() {
 
   group('TicketsListMixin State Tests', () {
     testWidgets('displays loading state initially', (tester) async {
-      when(() => env.mockDbSync.transactionsStream(
-                status: any(named: 'status'),
-                branchId: any(named: 'branchId'),
-                removeAdjustmentTransactions:
-                    any(named: 'removeAdjustmentTransactions'),
-                forceRealData: any(named: 'forceRealData'),
-                skipOriginalTransactionCheck:
-                    any(named: 'skipOriginalTransactionCheck'),
-              ))
-          .thenAnswer((_) => Stream.value([]));
-
-      await tester.pumpWidget(
-        ProviderScope(
-          child: MaterialApp(
-            home: const TestErrorStateWidget(),
+      when(
+        () => env.mockDbSync.transactionsStream(
+          status: any(named: 'status'),
+          branchId: any(named: 'branchId'),
+          removeAdjustmentTransactions: any(
+            named: 'removeAdjustmentTransactions',
+          ),
+          forceRealData: any(named: 'forceRealData'),
+          skipOriginalTransactionCheck: any(
+            named: 'skipOriginalTransactionCheck',
           ),
         ),
+      ).thenAnswer((_) => Stream.value([]));
+
+      await tester.pumpWidget(
+        ProviderScope(child: MaterialApp(home: const TestErrorStateWidget())),
       );
-      
+
       await tester.pump();
 
       expect(find.byIcon(Icons.receipt_long_outlined), findsOneWidget);
@@ -68,22 +69,22 @@ void main() {
     });
 
     testWidgets('shows empty state when no data', (tester) async {
-      when(() => env.mockDbSync.transactionsStream(
-            status: any(named: 'status'),
-            branchId: any(named: 'branchId'),
-            removeAdjustmentTransactions:
-                any(named: 'removeAdjustmentTransactions'),
-            forceRealData: any(named: 'forceRealData'),
-            skipOriginalTransactionCheck:
-                any(named: 'skipOriginalTransactionCheck'),
-          )).thenAnswer((_) => Stream.value([]));
-
-      await tester.pumpWidget(
-        ProviderScope(
-          child: MaterialApp(
-            home: const TestErrorStateWidget(),
+      when(
+        () => env.mockDbSync.transactionsStream(
+          status: any(named: 'status'),
+          branchId: any(named: 'branchId'),
+          removeAdjustmentTransactions: any(
+            named: 'removeAdjustmentTransactions',
+          ),
+          forceRealData: any(named: 'forceRealData'),
+          skipOriginalTransactionCheck: any(
+            named: 'skipOriginalTransactionCheck',
           ),
         ),
+      ).thenAnswer((_) => Stream.value([]));
+
+      await tester.pumpWidget(
+        ProviderScope(child: MaterialApp(home: const TestErrorStateWidget())),
       );
 
       await tester.pumpAndSettle();
@@ -94,20 +95,22 @@ void main() {
     });
 
     testWidgets('shows error state when stream errors', (tester) async {
-      when(() => env.mockDbSync.transactionsStream(
-        status: any(named: 'status'),
-        branchId: any(named: 'branchId'),
-        removeAdjustmentTransactions: any(named: 'removeAdjustmentTransactions'),
-        forceRealData: any(named: 'forceRealData'),
-        skipOriginalTransactionCheck: any(named: 'skipOriginalTransactionCheck'),
-      )).thenAnswer((_) => Stream.error('Database timeout'));
-
-      await tester.pumpWidget(
-        ProviderScope(
-          child: MaterialApp(
-            home: const TestErrorStateWidget(),
+      when(
+        () => env.mockDbSync.transactionsStream(
+          status: any(named: 'status'),
+          branchId: any(named: 'branchId'),
+          removeAdjustmentTransactions: any(
+            named: 'removeAdjustmentTransactions',
+          ),
+          forceRealData: any(named: 'forceRealData'),
+          skipOriginalTransactionCheck: any(
+            named: 'skipOriginalTransactionCheck',
           ),
         ),
+      ).thenAnswer((_) => Stream.error('Database timeout'));
+
+      await tester.pumpWidget(
+        ProviderScope(child: MaterialApp(home: const TestErrorStateWidget())),
       );
 
       await tester.pumpAndSettle();

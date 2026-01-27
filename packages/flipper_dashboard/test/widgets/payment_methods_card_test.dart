@@ -20,6 +20,10 @@ void main() {
     await env.init();
   });
 
+  tearDownAll(() async {
+    await env.dispose();
+  });
+
   setUp(() {
     env.injectMocks();
     env.stubCommonMethods();

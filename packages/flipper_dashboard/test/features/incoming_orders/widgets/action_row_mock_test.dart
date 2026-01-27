@@ -15,6 +15,10 @@ void main() {
     await env.init();
   });
 
+  tearDownAll(() async {
+    await env.dispose();
+  });
+
   group('ActionRow Tests', () {
     late InventoryRequest mockRequest;
     late Branch mockBranch;

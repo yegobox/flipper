@@ -1,4 +1,4 @@
-import '../../../../dialog_status.dart';
+import 'package:flipper_dashboard/dialog_status.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -346,8 +346,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       await _dialogService.showCustomDialog(
         variant: DialogType.info,
         title: 'Error',
-        description:
-            'This ticket has partial payments and cannot be deleted.',
+        description: 'This ticket has partial payments and cannot be deleted.',
         data: {'status': InfoDialogStatus.error},
       );
       return;

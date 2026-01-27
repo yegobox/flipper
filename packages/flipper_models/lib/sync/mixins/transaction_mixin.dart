@@ -12,7 +12,7 @@ import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:synchronized/synchronized.dart';
 
-extension DateOnly on DateTime {
+extension DateOnlyConversion on DateTime {
   DateTime get toDateOnly => DateTime(year, month, day);
 }
 

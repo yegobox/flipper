@@ -50,6 +50,10 @@ void main() {
     );
   });
 
+  tearDownAll(() async {
+    await env.dispose();
+  });
+
   final branchId = "1";
   final businessId = "1";
   final variant = Variant(

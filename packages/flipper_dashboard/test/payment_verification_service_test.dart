@@ -2,10 +2,10 @@ import 'package:flipper_models/services/payment_verification_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:fake_async/fake_async.dart';
-import 'package:flipper_services/proxy.dart';
-
 import 'test_helpers/mocks.dart';
 import 'test_helpers/setup.dart';
+// No longer need direct ProxyService, GetIt or HttpClient imports here
+// as they are handled by env.injectMocks()
 
 // flutter test test/payment_verification_service_test.dart  --no-test-assets --dart-define=FLUTTER_TEST_ENV=true
 void main() {
@@ -28,21 +28,20 @@ void main() {
       registerFallbackValue(Uri());
     });
 
+    tearDownAll(() async {
+      await env.dispose();
+    });
+
     setUp(() {
+      env.injectMocks();
+      env.stubCommonMethods();
+
       // Create a fresh service instance for each test
       service = PaymentVerificationService();
 
       // Reset all mocks before each test
       reset(mockDatabaseSync);
       reset(mockHttpClient);
-
-      // Override ProxyService with mocks
-      ProxyService.http = mockHttpClient;
-    });
-
-    setUp(() {
-      env.injectMocks();
-      env.stubCommonMethods();
     });
 
     tearDown(() {
@@ -52,8 +51,9 @@ void main() {
     group('verifyPaymentStatus', () {
       test('returns error when no active business is found', () async {
         // Arrange
-        when(() => mockDatabaseSync.activeBusiness())
-            .thenAnswer((_) async => null);
+        when(
+          () => mockDatabaseSync.activeBusiness(),
+        ).thenAnswer((_) async => null);
 
         // Act
         final response = await service.verifyPaymentStatus();
@@ -68,12 +68,15 @@ void main() {
         // Arrange
         final mockBusiness = MockBusiness();
         when(() => mockBusiness.id).thenReturn('1');
-        when(() => mockDatabaseSync.activeBusiness())
-            .thenAnswer((_) async => mockBusiness);
-        when(() => mockDatabaseSync.getPaymentPlan(
-              businessId: '1',
-              fetchOnline: true,
-            )).thenAnswer((_) async => null);
+        when(
+          () => mockDatabaseSync.activeBusiness(),
+        ).thenAnswer((_) async => mockBusiness);
+        when(
+          () => mockDatabaseSync.getPaymentPlan(
+            businessId: '1',
+            fetchOnline: true,
+          ),
+        ).thenAnswer((_) async => null);
 
         // Act
         final response = await service.verifyPaymentStatus();
@@ -81,22 +84,28 @@ void main() {
         // Assert
         expect(response.result, PaymentVerificationResult.noPlan);
         expect(
-            response.errorMessage, 'No payment plan exists for this business');
+          response.errorMessage,
+          'No payment plan exists for this business',
+        );
         expect(response.requiresPaymentSetup, isTrue);
 
         // Verify the methods were called in the expected order
         verify(() => mockDatabaseSync.activeBusiness()).called(1);
-        verify(() => mockDatabaseSync.getPaymentPlan(
-              businessId: '1',
-              fetchOnline: true,
-            )).called(1);
+        verify(
+          () => mockDatabaseSync.getPaymentPlan(
+            businessId: '1',
+            fetchOnline: true,
+          ),
+        ).called(1);
 
         // Verify hasActiveSubscription was never called since plan was null
-        verifyNever(() => mockDatabaseSync.hasActiveSubscription(
-              businessId: any(named: 'businessId'),
-              flipperHttpClient: any(named: 'flipperHttpClient'),
-              fetchRemote: any(named: 'fetchRemote'),
-            ));
+        verifyNever(
+          () => mockDatabaseSync.hasActiveSubscription(
+            businessId: any(named: 'businessId'),
+            flipperHttpClient: any(named: 'flipperHttpClient'),
+            fetchRemote: any(named: 'fetchRemote'),
+          ),
+        );
       });
 
       test('returns active when subscription is valid', () async {
@@ -104,17 +113,22 @@ void main() {
         final mockBusiness = MockBusiness();
         final mockPlan = MockPlan();
         when(() => mockBusiness.id).thenReturn('1');
-        when(() => mockDatabaseSync.activeBusiness())
-            .thenAnswer((_) async => mockBusiness);
-        when(() => mockDatabaseSync.getPaymentPlan(
-              businessId: '1',
-              fetchOnline: true,
-            )).thenAnswer((_) async => mockPlan);
-        when(() => mockDatabaseSync.hasActiveSubscription(
-              businessId: '1',
-              flipperHttpClient: mockHttpClient,
-              fetchRemote: true,
-            )).thenAnswer((_) async => true);
+        when(
+          () => mockDatabaseSync.activeBusiness(),
+        ).thenAnswer((_) async => mockBusiness);
+        when(
+          () => mockDatabaseSync.getPaymentPlan(
+            businessId: '1',
+            fetchOnline: true,
+          ),
+        ).thenAnswer((_) async => mockPlan);
+        when(
+          () => mockDatabaseSync.hasActiveSubscription(
+            businessId: '1',
+            flipperHttpClient: mockHttpClient,
+            fetchRemote: true,
+          ),
+        ).thenAnswer((_) async => true);
 
         // Act
         final response = await service.verifyPaymentStatus();
@@ -126,96 +140,121 @@ void main() {
 
         // Verify all methods were called in the expected order
         verify(() => mockDatabaseSync.activeBusiness()).called(1);
-        verify(() => mockDatabaseSync.getPaymentPlan(
-              businessId: '1',
-              fetchOnline: true,
-            )).called(1);
-        verify(() => mockDatabaseSync.hasActiveSubscription(
-              businessId: '1',
-              flipperHttpClient: mockHttpClient,
-              fetchRemote: true,
-            )).called(1);
+        verify(
+          () => mockDatabaseSync.getPaymentPlan(
+            businessId: '1',
+            fetchOnline: true,
+          ),
+        ).called(1);
+        verify(
+          () => mockDatabaseSync.hasActiveSubscription(
+            businessId: '1',
+            flipperHttpClient: mockHttpClient,
+            fetchRemote: true,
+          ),
+        ).called(1);
       });
 
       test(
-          'returns planExistsButInactive when hasActiveSubscription throws PaymentIncompleteException',
-          () async {
-        // Arrange
-        final mockBusiness = MockBusiness();
-        final mockPlan = MockPlan();
-        final exception = PaymentIncompleteException('Payment failed');
-        when(() => mockBusiness.id).thenReturn('1');
-        when(() => mockDatabaseSync.activeBusiness())
-            .thenAnswer((_) async => mockBusiness);
-        when(() => mockDatabaseSync.getPaymentPlan(
+        'returns planExistsButInactive when hasActiveSubscription throws PaymentIncompleteException',
+        () async {
+          // Arrange
+          final mockBusiness = MockBusiness();
+          final mockPlan = MockPlan();
+          final exception = PaymentIncompleteException('Payment failed');
+          when(() => mockBusiness.id).thenReturn('1');
+          when(
+            () => mockDatabaseSync.activeBusiness(),
+          ).thenAnswer((_) async => mockBusiness);
+          when(
+            () => mockDatabaseSync.getPaymentPlan(
               businessId: '1',
               fetchOnline: true,
-            )).thenAnswer((_) async => mockPlan);
-        when(() => mockDatabaseSync.hasActiveSubscription(
+            ),
+          ).thenAnswer((_) async => mockPlan);
+          when(
+            () => mockDatabaseSync.hasActiveSubscription(
               businessId: '1',
               flipperHttpClient: mockHttpClient,
               fetchRemote: true,
-            )).thenThrow(exception);
+            ),
+          ).thenThrow(exception);
 
-        // Act
-        final response = await service.verifyPaymentStatus();
+          // Act
+          final response = await service.verifyPaymentStatus();
 
-        // Assert
-        expect(
-            response.result, PaymentVerificationResult.planExistsButInactive);
-        expect(response.requiresPaymentResolution, isTrue);
-        expect(response.errorMessage, 'Payment incomplete: Payment failed');
-        expect(response.plan, mockPlan);
-        expect(response.exception, exception);
+          // Assert
+          expect(
+            response.result,
+            PaymentVerificationResult.planExistsButInactive,
+          );
+          expect(response.requiresPaymentResolution, isTrue);
+          expect(response.errorMessage, 'Payment incomplete: Payment failed');
+          expect(response.plan, mockPlan);
+          expect(response.exception, exception);
 
-        // Verify all methods were called
-        verify(() => mockDatabaseSync.activeBusiness()).called(1);
-        verify(() => mockDatabaseSync.getPaymentPlan(
+          // Verify all methods were called
+          verify(() => mockDatabaseSync.activeBusiness()).called(1);
+          verify(
+            () => mockDatabaseSync.getPaymentPlan(
               businessId: '1',
               fetchOnline: true,
-            )).called(1);
-        verify(() => mockDatabaseSync.hasActiveSubscription(
+            ),
+          ).called(1);
+          verify(
+            () => mockDatabaseSync.hasActiveSubscription(
               businessId: '1',
               flipperHttpClient: mockHttpClient,
               fetchRemote: true,
-            )).called(1);
-      });
+            ),
+          ).called(1);
+        },
+      );
 
       test(
-          'returns planExistsButInactive when hasActiveSubscription throws other exception',
-          () async {
-        // Arrange
-        final mockBusiness = MockBusiness();
-        final mockPlan = MockPlan();
-        final exception = Exception('Network error');
-        when(() => mockBusiness.id).thenReturn('1');
-        when(() => mockDatabaseSync.activeBusiness())
-            .thenAnswer((_) async => mockBusiness);
-        when(() => mockDatabaseSync.getPaymentPlan(
+        'returns planExistsButInactive when hasActiveSubscription throws other exception',
+        () async {
+          // Arrange
+          final mockBusiness = MockBusiness();
+          final mockPlan = MockPlan();
+          final exception = Exception('Network error');
+          when(() => mockBusiness.id).thenReturn('1');
+          when(
+            () => mockDatabaseSync.activeBusiness(),
+          ).thenAnswer((_) async => mockBusiness);
+          when(
+            () => mockDatabaseSync.getPaymentPlan(
               businessId: '1',
               fetchOnline: true,
-            )).thenAnswer((_) async => mockPlan);
-        when(() => mockDatabaseSync.hasActiveSubscription(
+            ),
+          ).thenAnswer((_) async => mockPlan);
+          when(
+            () => mockDatabaseSync.hasActiveSubscription(
               businessId: '1',
               flipperHttpClient: mockHttpClient,
               fetchRemote: true,
-            )).thenThrow(exception);
+            ),
+          ).thenThrow(exception);
 
-        // Act
-        final response = await service.verifyPaymentStatus();
+          // Act
+          final response = await service.verifyPaymentStatus();
 
-        // Assert
-        expect(
-            response.result, PaymentVerificationResult.planExistsButInactive);
-        expect(response.requiresPaymentResolution, isTrue);
-        expect(response.errorMessage,
-            'Error checking subscription status: Exception: Network error');
-        expect(response.plan, mockPlan);
-        expect(response.exception, isA<Exception>());
-      });
+          // Assert
+          expect(
+            response.result,
+            PaymentVerificationResult.planExistsButInactive,
+          );
+          expect(response.requiresPaymentResolution, isTrue);
+          expect(
+            response.errorMessage,
+            'Error checking subscription status: Exception: Network error',
+          );
+          expect(response.plan, mockPlan);
+          expect(response.exception, isA<Exception>());
+        },
+      );
 
-      test('returns error on a generic exception from activeBusiness',
-          () async {
+      test('returns error on a generic exception from activeBusiness', () async {
         // Arrange
         final exception = Exception('Database connection failed');
         when(() => mockDatabaseSync.activeBusiness()).thenThrow(exception);
@@ -226,8 +265,10 @@ void main() {
         // Assert
         expect(response.result, PaymentVerificationResult.error);
         expect(response.hasError, isTrue);
-        expect(response.errorMessage,
-            'Failed to verify payment status: Exception: Database connection failed');
+        expect(
+          response.errorMessage,
+          'Failed to verify payment status: Exception: Database connection failed',
+        );
         expect(response.exception, isA<Exception>());
       });
     });
@@ -262,12 +303,15 @@ void main() {
 
           final mockBusiness = MockBusiness();
           when(() => mockBusiness.id).thenReturn('1');
-          when(() => mockDatabaseSync.activeBusiness())
-              .thenAnswer((_) async => mockBusiness);
-          when(() => mockDatabaseSync.getPaymentPlan(
-                businessId: '1',
-                fetchOnline: true,
-              )).thenAnswer((_) async => null);
+          when(
+            () => mockDatabaseSync.activeBusiness(),
+          ).thenAnswer((_) async => mockBusiness);
+          when(
+            () => mockDatabaseSync.getPaymentPlan(
+              businessId: '1',
+              fetchOnline: true,
+            ),
+          ).thenAnswer((_) async => null);
 
           // Act - Start periodic verification with 1 minute interval
           service.startPeriodicVerification(intervalMinutes: 1);
@@ -282,11 +326,16 @@ void main() {
           async.flushMicrotasks();
 
           // Assert
-          expect(capturedResponse, isNotNull,
-              reason: 'Callback should have been called after timer elapsed');
+          expect(
+            capturedResponse,
+            isNotNull,
+            reason: 'Callback should have been called after timer elapsed',
+          );
           expect(capturedResponse!.result, PaymentVerificationResult.noPlan);
-          expect(capturedResponse!.errorMessage,
-              'No payment plan exists for this business');
+          expect(
+            capturedResponse!.errorMessage,
+            'No payment plan exists for this business',
+          );
 
           // Cleanup
           service.stopPeriodicVerification();
@@ -303,8 +352,9 @@ void main() {
           });
 
           // Mock an exception to be thrown
-          when(() => mockDatabaseSync.activeBusiness())
-              .thenThrow(Exception('Database error'));
+          when(
+            () => mockDatabaseSync.activeBusiness(),
+          ).thenThrow(Exception('Database error'));
 
           // Act
           service.startPeriodicVerification(intervalMinutes: 1);
@@ -313,8 +363,11 @@ void main() {
           async.flushMicrotasks();
 
           // Assert
-          expect(capturedResponse, isNotNull,
-              reason: 'Callback should have been called even with errors');
+          expect(
+            capturedResponse,
+            isNotNull,
+            reason: 'Callback should have been called even with errors',
+          );
           expect(capturedResponse!.result, PaymentVerificationResult.error);
           expect(capturedResponse!.hasError, isTrue);
 
@@ -329,12 +382,15 @@ void main() {
         // Arrange
         final mockBusiness = MockBusiness();
         when(() => mockBusiness.id).thenReturn('1');
-        when(() => mockDatabaseSync.activeBusiness())
-            .thenAnswer((_) async => mockBusiness);
-        when(() => mockDatabaseSync.getPaymentPlan(
-              businessId: '1',
-              fetchOnline: true,
-            )).thenAnswer((_) async => null);
+        when(
+          () => mockDatabaseSync.activeBusiness(),
+        ).thenAnswer((_) async => mockBusiness);
+        when(
+          () => mockDatabaseSync.getPaymentPlan(
+            businessId: '1',
+            fetchOnline: true,
+          ),
+        ).thenAnswer((_) async => null);
 
         // Act
         final result = await service.isPaymentRequired();
@@ -344,48 +400,59 @@ void main() {
       });
 
       test(
-          'returns true when status is not active (e.g., planExistsButInactive)',
-          () async {
-        // Arrange
-        final mockBusiness = MockBusiness();
-        final mockPlan = MockPlan();
-        final exception = PaymentIncompleteException('Payment failed');
-        when(() => mockBusiness.id).thenReturn('1');
-        when(() => mockDatabaseSync.activeBusiness())
-            .thenAnswer((_) async => mockBusiness);
-        when(() => mockDatabaseSync.getPaymentPlan(
+        'returns true when status is not active (e.g., planExistsButInactive)',
+        () async {
+          // Arrange
+          final mockBusiness = MockBusiness();
+          final mockPlan = MockPlan();
+          final exception = PaymentIncompleteException('Payment failed');
+          when(() => mockBusiness.id).thenReturn('1');
+          when(
+            () => mockDatabaseSync.activeBusiness(),
+          ).thenAnswer((_) async => mockBusiness);
+          when(
+            () => mockDatabaseSync.getPaymentPlan(
               businessId: '1',
               fetchOnline: true,
-            )).thenAnswer((_) async => mockPlan);
-        when(() => mockDatabaseSync.hasActiveSubscription(
+            ),
+          ).thenAnswer((_) async => mockPlan);
+          when(
+            () => mockDatabaseSync.hasActiveSubscription(
               businessId: '1',
               flipperHttpClient: mockHttpClient,
               fetchRemote: true,
-            )).thenThrow(exception);
+            ),
+          ).thenThrow(exception);
 
-        // Act
-        final result = await service.isPaymentRequired();
+          // Act
+          final result = await service.isPaymentRequired();
 
-        // Assert
-        expect(result, isTrue);
-      });
+          // Assert
+          expect(result, isTrue);
+        },
+      );
 
       test('returns false when status is active', () async {
         // Arrange
         final mockBusiness = MockBusiness();
         final mockPlan = MockPlan();
         when(() => mockBusiness.id).thenReturn('1');
-        when(() => mockDatabaseSync.activeBusiness())
-            .thenAnswer((_) async => mockBusiness);
-        when(() => mockDatabaseSync.getPaymentPlan(
-              businessId: '1',
-              fetchOnline: true,
-            )).thenAnswer((_) async => mockPlan);
-        when(() => mockDatabaseSync.hasActiveSubscription(
-              businessId: '1',
-              flipperHttpClient: mockHttpClient,
-              fetchRemote: true,
-            )).thenAnswer((_) async => true);
+        when(
+          () => mockDatabaseSync.activeBusiness(),
+        ).thenAnswer((_) async => mockBusiness);
+        when(
+          () => mockDatabaseSync.getPaymentPlan(
+            businessId: '1',
+            fetchOnline: true,
+          ),
+        ).thenAnswer((_) async => mockPlan);
+        when(
+          () => mockDatabaseSync.hasActiveSubscription(
+            businessId: '1',
+            flipperHttpClient: mockHttpClient,
+            fetchRemote: true,
+          ),
+        ).thenAnswer((_) async => true);
 
         // Act
         final result = await service.isPaymentRequired();
@@ -396,8 +463,9 @@ void main() {
 
       test('returns true when an error occurs', () async {
         // Arrange
-        when(() => mockDatabaseSync.activeBusiness())
-            .thenThrow(Exception('Database error'));
+        when(
+          () => mockDatabaseSync.activeBusiness(),
+        ).thenThrow(Exception('Database error'));
 
         // Act
         final result = await service.isPaymentRequired();
@@ -409,42 +477,51 @@ void main() {
 
     group('forcePaymentVerification', () {
       test(
-          'returns verification response and logs warning for non-active status',
-          () async {
-        // Arrange
-        final mockBusiness = MockBusiness();
-        when(() => mockBusiness.id).thenReturn('1');
-        when(() => mockDatabaseSync.activeBusiness())
-            .thenAnswer((_) async => mockBusiness);
-        when(() => mockDatabaseSync.getPaymentPlan(
+        'returns verification response and logs warning for non-active status',
+        () async {
+          // Arrange
+          final mockBusiness = MockBusiness();
+          when(() => mockBusiness.id).thenReturn('1');
+          when(
+            () => mockDatabaseSync.activeBusiness(),
+          ).thenAnswer((_) async => mockBusiness);
+          when(
+            () => mockDatabaseSync.getPaymentPlan(
               businessId: '1',
               fetchOnline: true,
-            )).thenAnswer((_) async => null);
+            ),
+          ).thenAnswer((_) async => null);
 
-        // Act
-        final response = await service.forcePaymentVerification();
+          // Act
+          final response = await service.forcePaymentVerification();
 
-        // Assert
-        expect(response.result, PaymentVerificationResult.noPlan);
-        expect(response.isActive, isFalse);
-      });
+          // Assert
+          expect(response.result, PaymentVerificationResult.noPlan);
+          expect(response.isActive, isFalse);
+        },
+      );
 
       test('returns active response for valid subscription', () async {
         // Arrange
         final mockBusiness = MockBusiness();
         final mockPlan = MockPlan();
         when(() => mockBusiness.id).thenReturn('1');
-        when(() => mockDatabaseSync.activeBusiness())
-            .thenAnswer((_) async => mockBusiness);
-        when(() => mockDatabaseSync.getPaymentPlan(
-              businessId: '1',
-              fetchOnline: true,
-            )).thenAnswer((_) async => mockPlan);
-        when(() => mockDatabaseSync.hasActiveSubscription(
-              businessId: '1',
-              flipperHttpClient: mockHttpClient,
-              fetchRemote: true,
-            )).thenAnswer((_) async => true);
+        when(
+          () => mockDatabaseSync.activeBusiness(),
+        ).thenAnswer((_) async => mockBusiness);
+        when(
+          () => mockDatabaseSync.getPaymentPlan(
+            businessId: '1',
+            fetchOnline: true,
+          ),
+        ).thenAnswer((_) async => mockPlan);
+        when(
+          () => mockDatabaseSync.hasActiveSubscription(
+            businessId: '1',
+            flipperHttpClient: mockHttpClient,
+            fetchRemote: true,
+          ),
+        ).thenAnswer((_) async => true);
 
         // Act
         final response = await service.forcePaymentVerification();

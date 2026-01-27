@@ -15,6 +15,10 @@ void main() {
     await env.init();
   });
 
+  tearDownAll(() async {
+    await env.dispose();
+  });
+
   group('OrderColumn Tests', () {
     late List<ITransaction> mockOrders;
     late Function(ITransaction, OrderStatus, OrderStatus) mockOnOrderAccepted;

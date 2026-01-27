@@ -19,7 +19,7 @@ void main() {
       mockCrash = MockCrash();
       // Mock log to avoid errors when talker is used
       when(() => mockCrash.log(any())).thenAnswer((_) async {});
-      ProxyService.crash = mockCrash;
+      // ProxyService.crash = mockCrash;
 
       testFilePath = 'test_financials.xlsx';
       final excel = Excel.createExcel();

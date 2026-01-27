@@ -25,7 +25,10 @@ class PlatformHelpers {
 
   /// Initializes platform-specific database requirements
   static void initializePlatform() {
-    if (!kIsWeb && (Platform.isWindows || Platform.isLinux)) {
+    if (!kIsWeb &&
+        (Platform.isWindows ||
+            Platform.isLinux ||
+            DatabasePath.isTestEnvironment())) {
       sqfliteFfiInit();
       _logger.info('Initialized SQLite FFI for ${Platform.operatingSystem}');
     }

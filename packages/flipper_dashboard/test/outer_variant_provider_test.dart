@@ -107,13 +107,13 @@ void main() {
     reset(env.mockSyncStrategy);
 
     // Set up ProxyService mocks directly
-    try {
-      ProxyService.strategyLink = env.mockSyncStrategy;
-      ProxyService.box = mockBox;
-      ProxyService.tax = env.mockTaxApi;
-    } catch (e) {
-      // Ignore ProxyService setup errors in test environment
-    }
+    // try {
+    //   ProxyService.strategyLink = env.mockSyncStrategy;
+    //   ProxyService.box = mockBox;
+    //   ProxyService.tax = env.mockTaxApi;
+    // } catch (e) {
+    //   // Ignore ProxyService setup errors in test environment
+    // }
 
     when(() => env.mockSyncStrategy.current).thenReturn(mockDbSync);
 
@@ -258,7 +258,9 @@ void main() {
       await container.read(outerVariantsProvider("1").future);
 
       // Assert: First search results (should contain variants with "Apple" in name and valid taxTyCd)
-      final firstSearchResult = container.read(outerVariantsProvider("1")).value;
+      final firstSearchResult = container
+          .read(outerVariantsProvider("1"))
+          .value;
       expect(firstSearchResult, isNotNull);
       expect(
         firstSearchResult,

@@ -12,6 +12,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
+import 'package:get_it/get_it.dart';
 
 import 'test_helpers/mocks.dart';
 import 'test_helpers/setup.dart';
@@ -170,7 +171,14 @@ void main() {
       ),
     ).thenAnswer((_) async => true);
 
-    ProxyService.box = mockBoxService;
+    if (GetIt.instance.isRegistered<LocalStorage>()) {
+      GetIt.instance.unregister<LocalStorage>();
+    }
+    GetIt.instance.registerSingleton<LocalStorage>(mockBoxService);
+  });
+
+  tearDownAll(() async {
+    await env.dispose();
   });
 
   tearDown(() {
