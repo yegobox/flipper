@@ -5,7 +5,7 @@ description: "A new Flutter project."
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
 
-version: 1.0.0+789
+version: 1.0.0+790
 
 environment:
   sdk: ^3.9.2
