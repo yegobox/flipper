@@ -69,7 +69,7 @@ class BulkAddProductViewModel extends ChangeNotifier {
           size: await file.length(),
         );
       } else {
-        result = await FilePicker.pickFiles(
+        result = await FilePicker.platform.pickFiles(
           type: FileType.custom,
           allowedExtensions: ['xlsx', 'xls'],
         );

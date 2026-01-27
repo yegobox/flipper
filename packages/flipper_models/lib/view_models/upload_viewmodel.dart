@@ -42,7 +42,7 @@ class UploadViewModel extends ProductViewModel {
     required URLTYPE urlType,
   }) async {
     final talker = TalkerFlutter.init();
-    FilePickerResult? result = await FilePicker.pickFiles(
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       withData: false,
       withReadStream: false,

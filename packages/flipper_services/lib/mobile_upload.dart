@@ -95,7 +95,7 @@ class MobileUpload implements UploadT {
     required dynamic uploader,
   }) async {
     try {
-      final FilePickerResult? result = await FilePicker.pickFiles(
+      final FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.image,
         allowMultiple: false,
       );
@@ -135,7 +135,7 @@ class MobileUpload implements UploadT {
     required dynamic uploader,
   }) async {
     try {
-      final FilePickerResult? result = await FilePicker.pickFiles(
+      final FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.image,
         allowMultiple: false,
       );

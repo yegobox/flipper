@@ -547,7 +547,7 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
     if (widget.onAttachFile == null) return;
 
     try {
-      FilePickerResult? result = await FilePicker.pickFiles(
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['pdf', 'xlsx', 'xls'], // Allow PDF and Excel files
       );
