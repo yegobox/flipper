@@ -137,19 +137,20 @@ class PDesktop extends StatelessWidget with CoreMiscellaneous {
             }
           },
           itemBuilder: (BuildContext context) => [
-            PopupMenuItem<String>(
-              value: 'personal',
-              child: Row(
-                children: [
-                  const Icon(Icons.person, color: Colors.black),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Personal',
-                    style: primaryTextStyle,
-                  ),
-                ],
-              ),
-            ),
+            // TODO: resume this feature later.
+            // PopupMenuItem<String>(
+            //   value: 'personal',
+            //   child: Row(
+            //     children: [
+            //       const Icon(Icons.person, color: Colors.black),
+            //       const SizedBox(width: 8),
+            //       Text(
+            //         'Personal',
+            //         style: primaryTextStyle,
+            //       ),
+            //     ],
+            //   ),
+            // ),
             PopupMenuItem<String>(
               value: 'logOut',
               child: Row(
