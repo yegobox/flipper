@@ -720,11 +720,6 @@ class PaymentMethodsNotifier extends Notifier<List<Payment>> {
 
   @override
   List<Payment> build() {
-    ref.onDispose(() {
-      for (var payment in state) {
-        payment.dispose();
-      }
-    });
     return initialPayments ?? [Payment(amount: 0.0, method: 'CASH')];
   }
 
@@ -760,7 +755,8 @@ class PaymentMethodsNotifier extends Notifier<List<Payment>> {
   void updatePaymentMethod(int index, Payment payment,
       {String? transactionId}) {
     if (index < 0 || index >= state.length) {
-      talker.error("Invalid index $index for updatePaymentMethod. List length: ${state.length}");
+      talker.error(
+          "Invalid index $index for updatePaymentMethod. List length: ${state.length}");
       return; // Early return if index is out of bounds
     }
 
@@ -774,7 +770,7 @@ class PaymentMethodsNotifier extends Notifier<List<Payment>> {
     updatedList[index] = payment;
     state = updatedList;
 
-    talker.warning("Payment Lenght:${state.length}");
+    talker.warning("Payment Length:${state.length}");
   }
 
   void removePaymentMethod(int index) {

@@ -3,6 +3,7 @@ import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_dashboard/mixins/transaction_computation_mixin.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
@@ -13,7 +14,8 @@ class PaymentMethodsCard extends StatefulHookConsumerWidget {
     required this.transactionId,
     required this.totalPayable,
     this.isCardView = true,
-  }) : super(key: key);
+  }) : assert(totalPayable >= 0, 'totalPayable must be non-negative'),
+       super(key: key);
 
   final String transactionId;
   final double totalPayable;
@@ -441,6 +443,9 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
                 ),
+                inputFormatters: [
+                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
+                ],
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
@@ -632,6 +637,11 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
                       ),
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(
+                          RegExp(r'^\d*\.?\d*'),
+                        ),
+                      ],
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w500,
