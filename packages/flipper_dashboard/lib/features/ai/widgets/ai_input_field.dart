@@ -22,7 +22,7 @@ class AiInputField extends ConsumerStatefulWidget {
   final Function(String)? onAttachFile; // New callback for file attachments
   final String? attachedFilePath; // New parameter to display attached file
   final VoidCallback?
-      onClearAttachedFile; // New callback to clear attached file
+  onClearAttachedFile; // New callback to clear attached file
   final String? hintText;
   final bool enabled;
 
@@ -248,7 +248,8 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
 
   KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
     if (event is KeyDownEvent) {
-      final isModifierPressed = HardwareKeyboard.instance.isControlPressed ||
+      final isModifierPressed =
+          HardwareKeyboard.instance.isControlPressed ||
           HardwareKeyboard.instance.isMetaPressed;
 
       if (event.logicalKey == LogicalKeyboardKey.enter && !isModifierPressed) {
@@ -314,8 +315,9 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
         setState(() => _recordingDuration++);
       });
 
-      _waveformTimer =
-          Timer.periodic(const Duration(milliseconds: 100), (timer) {
+      _waveformTimer = Timer.periodic(const Duration(milliseconds: 100), (
+        timer,
+      ) {
         if (!_isRecording) timer.cancel();
         _updateWaveform();
       });
@@ -523,8 +525,11 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
       SnackBar(
         content: Row(
           children: [
-            const Icon(Icons.check_circle_outline,
-                color: Colors.white, size: 20),
+            const Icon(
+              Icons.check_circle_outline,
+              color: Colors.white,
+              size: 20,
+            ),
             const SizedBox(width: 8),
             Text(message),
           ],
@@ -542,7 +547,7 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
     if (widget.onAttachFile == null) return;
 
     try {
-      FilePickerResult? result = await FilePicker.platform.pickFiles(
+      FilePickerResult? result = await FilePicker.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['pdf', 'xlsx', 'xls'], // Allow PDF and Excel files
       );
@@ -616,8 +621,9 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
           children: [
             // Normal interface
             AnimatedSlide(
-              offset:
-                  _isRecording && !_isLocked ? const Offset(0, 1) : Offset.zero,
+              offset: _isRecording && !_isLocked
+                  ? const Offset(0, 1)
+                  : Offset.zero,
               duration: _animationDuration,
               child: AnimatedOpacity(
                 opacity: _isRecording && !_isLocked ? 0.0 : 1.0,
@@ -673,10 +679,7 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
       transitionBuilder: (child, animation) {
         return ScaleTransition(
           scale: animation,
-          child: RotationTransition(
-            turns: animation,
-            child: child,
-          ),
+          child: RotationTransition(turns: animation, child: child),
         );
       },
       child: _isRecording && _isLocked
@@ -720,7 +723,7 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
                   gradient: LinearGradient(
                     colors: [
                       AiTheme.primaryColor,
-                      AiTheme.primaryColor.withValues(alpha: 0.8)
+                      AiTheme.primaryColor.withValues(alpha: 0.8),
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -734,11 +737,7 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
                     ),
                   ],
                 ),
-                child: const Icon(
-                  Icons.add,
-                  color: Colors.white,
-                  size: 22,
-                ),
+                child: const Icon(Icons.add, color: Colors.white, size: 22),
               ),
             ),
     );
@@ -882,7 +881,7 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
                   gradient: LinearGradient(
                     colors: [
                       AiTheme.primaryColor,
-                      AiTheme.primaryColor.withValues(alpha: 0.8)
+                      AiTheme.primaryColor.withValues(alpha: 0.8),
                     ],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
@@ -904,8 +903,11 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
       );
     } else {
       button = AnimatedBuilder(
-        animation: Listenable.merge(
-            [_micScaleAnimation, _breathingAnimation, _rippleAnimation]),
+        animation: Listenable.merge([
+          _micScaleAnimation,
+          _breathingAnimation,
+          _rippleAnimation,
+        ]),
         builder: (context, child) {
           return Transform.scale(
             scale: _micScaleAnimation.value * _breathingAnimation.value,
@@ -934,7 +936,7 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
                     gradient: LinearGradient(
                       colors: [
                         AiTheme.primaryColor,
-                        AiTheme.primaryColor.withValues(alpha: 0.8)
+                        AiTheme.primaryColor.withValues(alpha: 0.8),
                       ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
@@ -948,11 +950,7 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
                       ),
                     ],
                   ),
-                  child: const Icon(
-                    Icons.mic,
-                    color: Colors.white,
-                    size: 22,
-                  ),
+                  child: const Icon(Icons.mic, color: Colors.white, size: 22),
                 ),
               ],
             ),
@@ -994,7 +992,7 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
                   ? LinearGradient(
                       colors: [
                         AiTheme.primaryColor.withValues(alpha: 0.2),
-                        AiTheme.primaryColor.withValues(alpha: 0.1)
+                        AiTheme.primaryColor.withValues(alpha: 0.1),
                       ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
@@ -1044,18 +1042,22 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
           return Opacity(
             opacity: _cancelAnimation.value * 0.85,
             child: Transform.translate(
-              offset: Offset(-20 * (1 - _cancelAnimation.value),
-                  15 * (1 - _cancelAnimation.value)),
+              offset: Offset(
+                -20 * (1 - _cancelAnimation.value),
+                15 * (1 - _cancelAnimation.value),
+              ),
               child: Transform.scale(
                 scale: 0.8 + (_cancelAnimation.value * 0.2),
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
                         Colors.black.withValues(alpha: 0.8),
-                        Colors.black.withValues(alpha: 0.7)
+                        Colors.black.withValues(alpha: 0.7),
                       ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
@@ -1107,18 +1109,22 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
           return Opacity(
             opacity: _lockHintAnimation.value * 0.85,
             child: Transform.translate(
-              offset: Offset(20 * (1 - _lockHintAnimation.value),
-                  15 * (1 - _lockHintAnimation.value)),
+              offset: Offset(
+                20 * (1 - _lockHintAnimation.value),
+                15 * (1 - _lockHintAnimation.value),
+              ),
               child: Transform.scale(
                 scale: 0.8 + (_lockHintAnimation.value * 0.2),
                 child: Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
                         Colors.black.withValues(alpha: 0.8),
-                        Colors.black.withValues(alpha: 0.7)
+                        Colors.black.withValues(alpha: 0.7),
                       ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
@@ -1177,12 +1183,14 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
                 child: Center(
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 20, vertical: 12),
+                      horizontal: 20,
+                      vertical: 12,
+                    ),
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
                           AiTheme.primaryColor.withValues(alpha: 0.9),
-                          AiTheme.primaryColor.withValues(alpha: 0.8)
+                          AiTheme.primaryColor.withValues(alpha: 0.8),
                         ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
@@ -1246,8 +1254,8 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
           color: _focusNode.hasFocus
               ? AiTheme.primaryColor.withValues(alpha: 0.3)
               : (Theme.of(context).brightness == Brightness.dark
-                  ? Colors.grey[600]!
-                  : Colors.grey[300]!),
+                    ? Colors.grey[600]!
+                    : Colors.grey[300]!),
           width: _focusNode.hasFocus ? 1.5 : 1,
         ),
         boxShadow: _focusNode.hasFocus
@@ -1273,10 +1281,7 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
         maxLines: null,
         decoration: InputDecoration(
           hintText: widget.hintText,
-          hintStyle: TextStyle(
-            color: Colors.grey[500],
-            fontSize: 16,
-          ),
+          hintStyle: TextStyle(color: Colors.grey[500], fontSize: 16),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 18,
@@ -1300,24 +1305,27 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
             onLongPressStart: _hasText || widget.isLoading
                 ? null
                 : (details) => _startRecording(),
-            onLongPressMoveUpdate: _hasText ||
-                    widget.isLoading ||
-                    !_isRecording ||
-                    _isLocked
+            onLongPressMoveUpdate:
+                _hasText || widget.isLoading || !_isRecording || _isLocked
                 ? null
                 : (details) {
                     final RenderBox renderBox =
                         context.findRenderObject() as RenderBox;
-                    final localPosition =
-                        renderBox.globalToLocal(details.globalPosition);
+                    final localPosition = renderBox.globalToLocal(
+                      details.globalPosition,
+                    );
                     final buttonCenterX =
                         renderBox.size.width - _micButtonSize / 2;
                     final buttonCenterY = _micButtonSize / 2;
 
-                    final newSlideX =
-                        (localPosition.dx - buttonCenterX).clamp(-250.0, 0.0);
-                    final newSlideY =
-                        (localPosition.dy - buttonCenterY).clamp(-150.0, 50.0);
+                    final newSlideX = (localPosition.dx - buttonCenterX).clamp(
+                      -250.0,
+                      0.0,
+                    );
+                    final newSlideY = (localPosition.dy - buttonCenterY).clamp(
+                      -150.0,
+                      50.0,
+                    );
 
                     setState(() {
                       _slideX = newSlideX;
@@ -1354,7 +1362,7 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
                 gradient: LinearGradient(
                   colors: [
                     AiTheme.primaryColor,
-                    AiTheme.primaryColor.withValues(alpha: 0.8)
+                    AiTheme.primaryColor.withValues(alpha: 0.8),
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,

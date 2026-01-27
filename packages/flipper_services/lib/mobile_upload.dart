@@ -79,8 +79,9 @@ class MobileUpload implements UploadT {
   @override
   Future<bool> isInternetAvailable() async {
     try {
-      final List<InternetAddress> result =
-          await InternetAddress.lookup('google.com');
+      final List<InternetAddress> result = await InternetAddress.lookup(
+        'google.com',
+      );
       return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
     } catch (e) {
       return false;
@@ -94,7 +95,7 @@ class MobileUpload implements UploadT {
     required dynamic uploader,
   }) async {
     try {
-      final FilePickerResult? result = await FilePicker.platform.pickFiles(
+      final FilePickerResult? result = await FilePicker.pickFiles(
         type: FileType.image,
         allowMultiple: false,
       );
@@ -134,7 +135,7 @@ class MobileUpload implements UploadT {
     required dynamic uploader,
   }) async {
     try {
-      final FilePickerResult? result = await FilePicker.platform.pickFiles(
+      final FilePickerResult? result = await FilePicker.pickFiles(
         type: FileType.image,
         allowMultiple: false,
       );

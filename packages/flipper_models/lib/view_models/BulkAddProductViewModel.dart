@@ -69,7 +69,7 @@ class BulkAddProductViewModel extends ChangeNotifier {
           size: await file.length(),
         );
       } else {
-        result = await FilePicker.platform.pickFiles(
+        result = await FilePicker.pickFiles(
           type: FileType.custom,
           allowedExtensions: ['xlsx', 'xls'],
         );
@@ -125,7 +125,7 @@ class BulkAddProductViewModel extends ChangeNotifier {
           'Category',
           'Price',
           'Quantity',
-          'bcdU'
+          'bcdU',
         ];
 
         // Find header row
@@ -179,8 +179,9 @@ class BulkAddProductViewModel extends ChangeNotifier {
   }
 
   void updatePrice(String barCode, String newPrice) {
-    final index =
-        _excelData!.indexWhere((product) => product['BarCode'] == barCode);
+    final index = _excelData!.indexWhere(
+      (product) => product['BarCode'] == barCode,
+    );
     if (index != -1) {
       _excelData![index]['Price'] = newPrice;
       notifyListeners();
@@ -196,7 +197,8 @@ class BulkAddProductViewModel extends ChangeNotifier {
       if (finalCategoryId.isEmpty) {
         final category = await ProxyService.strategy
             .ensureUncategorizedCategory(
-                branchId: ProxyService.box.getBranchId()!);
+              branchId: ProxyService.box.getBranchId()!,
+            );
         finalCategoryId = category.id;
       }
 
@@ -228,8 +230,9 @@ class BulkAddProductViewModel extends ChangeNotifier {
       try {
         await ProxyService.strategy.processItem(
           item: item,
-          quantitis: _quantityControllers
-              .map((barCode, controller) => MapEntry(barCode, controller.text)),
+          quantitis: _quantityControllers.map(
+            (barCode, controller) => MapEntry(barCode, controller.text),
+          ),
           taxTypes: _selectedTaxTypes,
           itemClasses: _selectedItemClasses,
           itemTypes: _selectedProductTypes,
@@ -242,7 +245,8 @@ class BulkAddProductViewModel extends ChangeNotifier {
   }
 
   Future<void> saveAllWithProgress(
-      ValueNotifier<ProgressData> progressNotifier) async {
+    ValueNotifier<ProgressData> progressNotifier,
+  ) async {
     String orgnNatCd = "RW"; // Define the variable
     List<Future<brick.Variant>> itemFutures = _excelData!.map((product) async {
       String barCode = product['BarCode'] ?? '';
@@ -250,7 +254,8 @@ class BulkAddProductViewModel extends ChangeNotifier {
       if (finalCategoryId.isEmpty) {
         final category = await ProxyService.strategy
             .ensureUncategorizedCategory(
-                branchId: ProxyService.box.getBranchId()!);
+              branchId: ProxyService.box.getBranchId()!,
+            );
         finalCategoryId = category.id;
       }
 
@@ -321,7 +326,8 @@ class BulkAddProductViewModel extends ChangeNotifier {
           await ProxyService.strategy.processItem(
             item: items[i],
             quantitis: _quantityControllers.map(
-                (barCode, controller) => MapEntry(barCode, controller.text)),
+              (barCode, controller) => MapEntry(barCode, controller.text),
+            ),
             taxTypes: _selectedTaxTypes,
             itemClasses: _selectedItemClasses,
             itemTypes: _selectedProductTypes,
@@ -365,8 +371,9 @@ class BulkAddProductViewModel extends ChangeNotifier {
     if (newValue == null) return;
 
     if (_excelData != null) {
-      final rowIndex =
-          _excelData!.indexWhere((row) => row['BarCode'] == barCode);
+      final rowIndex = _excelData!.indexWhere(
+        (row) => row['BarCode'] == barCode,
+      );
       if (rowIndex != -1) {
         _selectedTaxTypes[barCode] = newValue;
         _excelData![rowIndex]['TaxType'] = newValue;
@@ -410,4 +417,5 @@ class BulkAddProductViewModel extends ChangeNotifier {
 
 final bulkAddProductViewModelProvider =
     ChangeNotifierProvider.autoDispose<BulkAddProductViewModel>(
-        (ref) => BulkAddProductViewModel());
+      (ref) => BulkAddProductViewModel(),
+    );

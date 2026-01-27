@@ -155,7 +155,7 @@ class _AdminControlState extends State<AdminControl> {
         isUpdatingReceiptLogo = true;
       });
 
-      FilePickerResult? result = await FilePicker.platform.pickFiles(
+      FilePickerResult? result = await FilePicker.pickFiles(
         type: FileType.custom,
         allowedExtensions: const ['png', 'jpg', 'jpeg'],
         withData: false,

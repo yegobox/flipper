@@ -35,7 +35,7 @@ class _TinInputFieldState extends State<TinInputField> {
       });
 
       // Show file picker
-      final result = await FilePicker.platform.pickFiles(
+      final result = await FilePicker.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['pdf'],
       );
