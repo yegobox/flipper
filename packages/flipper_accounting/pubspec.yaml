@@ -3,7 +3,8 @@ description: A new Flutter package.
 version: 0.0.1
 # homepage: 
 
-
+environment:
+  sdk: ^3.38.1
 
 dependencies:
   flutter:
