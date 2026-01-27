@@ -86,6 +86,11 @@ jobs:
       - name: Install LCOV
         run: sudo apt-get update && sudo apt-get install -y lcov
 
+      - name: Setup CI Environment for Tests
+        run: |
+          echo "FLUTTER_TEST_CI=true" >> $GITHUB_ENV
+          export FLUTTER_TEST_CI=true
+
       - name: Run tests with coverage
         run: |
           cd packages/flipper_dashboard
