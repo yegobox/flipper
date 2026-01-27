@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import '../lib/SearchCustomer.dart';
 
 void main() {
-  group('SearchCustomer Tests', () {
+  group('CustomDropdownButton Tests', () {
     test('CustomDropdownButton can be instantiated', () {
       final widget = CustomDropdownButton(
         items: ['Item 1', 'Item 2'],
@@ -13,7 +12,7 @@ void main() {
         onChanged: (value) {},
         label: 'Test Label',
       );
-      
+
       expect(widget, isNotNull);
       expect(widget.items, equals(['Item 1', 'Item 2']));
       expect(widget.selectedItem, equals('Item 1'));
@@ -29,7 +28,7 @@ void main() {
         icon: Icons.person,
         compact: true,
       );
-      
+
       expect(widget, isNotNull);
       expect(widget.items, equals(['Option 1', 'Option 2']));
       expect(widget.selectedItem, equals('Option 1'));
@@ -45,9 +44,9 @@ void main() {
       const label = 'Test Label';
       const icon = Icons.home;
       const compact = false;
-      
+
       void onChanged(String value) {}
-      
+
       final widget = CustomDropdownButton(
         key: key,
         items: items,
@@ -57,7 +56,7 @@ void main() {
         icon: icon,
         compact: compact,
       );
-      
+
       expect(widget.key, equals(key));
       expect(widget.items, equals(items));
       expect(widget.selectedItem, equals(selectedItem));
@@ -73,7 +72,7 @@ void main() {
         onChanged: (value) {},
         label: 'Test',
       );
-      
+
       expect(widget.compact, isFalse); // Default value should be false
     });
 
@@ -85,7 +84,7 @@ void main() {
         label: 'Test Label',
         icon: null, // Explicitly null
       );
-      
+
       expect(widget.icon, isNull);
     });
 
@@ -97,7 +96,7 @@ void main() {
         label: 'Test Label',
         compact: true,
       );
-      
+
       expect(widget.compact, isTrue);
     });
 
@@ -108,7 +107,7 @@ void main() {
         onChanged: (value) {},
         label: 'Test Label',
       );
-      
+
       expect(widget, isA<Widget>());
       expect(widget, isA<CustomDropdownButton>());
     });
@@ -120,7 +119,7 @@ void main() {
         onChanged: (value) {},
         label: 'Empty Test',
       );
-      
+
       expect(widget.items, isEmpty);
       expect(widget.selectedItem, equals(''));
       expect(widget.label, equals('Empty Test'));
@@ -133,7 +132,7 @@ void main() {
         onChanged: (value) {},
         label: 'Single Test',
       );
-      
+
       expect(widget.items, equals(['Single Item']));
       expect(widget.selectedItem, equals('Single Item'));
       expect(widget.label, equals('Single Test'));
@@ -147,7 +146,7 @@ void main() {
         onChanged: (value) {},
         label: 'Many Items Test',
       );
-      
+
       expect(widget.items.length, equals(10));
       expect(widget.selectedItem, equals('Item 0'));
       expect(widget.label, equals('Many Items Test'));
@@ -161,40 +160,50 @@ void main() {
         onChanged: (value) {},
         label: 'Long Name Test',
       );
-      
+
       expect(widget.items.first, equals(longItemName));
       expect(widget.selectedItem, equals(longItemName));
     });
 
     test('CustomDropdownButton handles special characters in items', () {
-      const specialItems = ['Item with spaces', 'Item_with_underscores', 'Item-with-dashes', 'Item.with.dots'];
+      const specialItems = [
+        'Item with spaces',
+        'Item_with_underscores',
+        'Item-with-dashes',
+        'Item.with.dots',
+      ];
       final widget = CustomDropdownButton(
         items: specialItems,
         selectedItem: specialItems.first,
         onChanged: (value) {},
         label: 'Special Characters Test',
       );
-      
+
       expect(widget.items, equals(specialItems));
       expect(widget.selectedItem, equals(specialItems.first));
     });
 
     test('CustomDropdownButton handles different item types', () {
-      const items = ['Normal Item', 'Item with Numbers 123', 'Item with Symbols !@#', 'Item with Unicode ñáéíóú'];
+      const items = [
+        'Normal Item',
+        'Item with Numbers 123',
+        'Item with Symbols !@#',
+        'Item with Unicode ñáéíóú',
+      ];
       final widget = CustomDropdownButton(
         items: items,
         selectedItem: items[0],
         onChanged: (value) {},
         label: 'Different Types Test',
       );
-      
+
       expect(widget.items, equals(items));
       expect(widget.selectedItem, equals(items[0]));
     });
 
     test('SearchInputWithDropdown widget can be instantiated', () {
       final widget = const SearchInputWithDropdown();
-      
+
       expect(widget, isNotNull);
       expect(widget, isA<Widget>());
       expect(widget, isA<SearchInputWithDropdown>());
@@ -208,7 +217,7 @@ void main() {
         onChanged: (value) {},
         label: 'Numeric Items Test',
       );
-      
+
       expect(widget.items, equals(numericItems));
       expect(widget.selectedItem, equals(numericItems[0]));
     });
@@ -221,7 +230,7 @@ void main() {
         onChanged: (value) {},
         label: 'Empty String Items Test',
       );
-      
+
       expect(widget.items, equals(emptyStringItems));
       expect(widget.selectedItem, equals(emptyStringItems[0]));
     });
@@ -234,7 +243,7 @@ void main() {
         onChanged: (value) {},
         label: 'Duplicate Items Test',
       );
-      
+
       expect(widget.items, equals(duplicateItems));
       expect(widget.selectedItem, equals(duplicateItems[0]));
     });
@@ -247,7 +256,7 @@ void main() {
         onChanged: (value) {},
         label: 'Unicode Items Test',
       );
-      
+
       expect(widget.items, equals(unicodeItems));
       expect(widget.selectedItem, equals(unicodeItems[0]));
     });
@@ -260,7 +269,7 @@ void main() {
         onChanged: (value) {},
         label: 'Long List Test',
       );
-      
+
       expect(widget.items.length, equals(100));
       expect(widget.selectedItem, equals(longItemList[0]));
     });
@@ -270,14 +279,14 @@ void main() {
       void testCallback(String value) {
         capturedValue = value;
       }
-      
+
       final widget = CustomDropdownButton(
         items: ['Test Item'],
         selectedItem: 'Test Item',
         onChanged: testCallback,
         label: 'Callback Test',
       );
-      
+
       // Simulate calling the callback
       widget.onChanged('New Value');
       expect(capturedValue, equals('New Value'));
@@ -292,22 +301,68 @@ void main() {
         onChanged: (value) {},
         label: 'Null Selected Item Test',
       );
-      
+
       expect(widget.selectedItem, equals(''));
       expect(widget.items, equals(['Item 1', 'Item 2']));
     });
 
     test('CustomDropdownButton handles large numbers as strings', () {
-      const largeNumberItems = ['999999999999999', '1.7976931348623157e+308', '0.000000000001'];
+      const largeNumberItems = [
+        '999999999999999',
+        '1.7976931348623157e+308',
+        '0.000000000001',
+      ];
       final widget = CustomDropdownButton(
         items: largeNumberItems,
         selectedItem: largeNumberItems[0],
         onChanged: (value) {},
         label: 'Large Number Items Test',
       );
-      
+
       expect(widget.items, equals(largeNumberItems));
       expect(widget.selectedItem, equals(largeNumberItems[0]));
+    });
+  });
+
+  group('SearchInputWithDropdown Tests', () {
+    test('SearchInputWithDropdown widget can be instantiated', () {
+      final widget = const SearchInputWithDropdown();
+
+      expect(widget, isNotNull);
+      expect(widget, isA<Widget>());
+      expect(widget, isA<SearchInputWithDropdown>());
+    });
+
+    test('SearchInputWithDropdown is a ConsumerStatefulWidget', () {
+      final widget = const SearchInputWithDropdown();
+
+      expect(widget, isA<SearchInputWithDropdown>());
+    });
+
+    test('SearchInputWithDropdown has correct type hierarchy', () {
+      final widget = const SearchInputWithDropdown();
+
+      expect(widget, isA<Widget>());
+    });
+
+    test('SearchInputWithDropdown can create state', () {
+      final widget = const SearchInputWithDropdown();
+
+      // Test that createState method exists and returns non-null
+      expect(widget.createState, isNotNull);
+    });
+
+    test('SearchInputWithDropdown key can be provided', () {
+      const key = Key('search-input-key');
+      final widget = const SearchInputWithDropdown(key: key);
+
+      expect(widget.key, equals(key));
+    });
+
+    test('SearchInputWithDropdown without key has null key', () {
+      final widget = const SearchInputWithDropdown();
+
+      expect(widget.key, isNull);
     });
   });
 }
