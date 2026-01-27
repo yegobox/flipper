@@ -127,7 +127,9 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
     with TickerProviderStateMixin, TransactionComputationMixin {
   ChargeButtonState _chargeState = ChargeButtonState.initial;
   bool _isImmediateCompletion = false; // Track which button was clicked
-  String? _lastTransactionId; // Track the last transaction ID for payment initialization
+  String?
+  _lastTransactionId; // Track the last transaction ID for payment initialization
+  String? _itemToDeleteId; // Track which item's delete button is visible
 
   @override
   void initState() {
@@ -157,6 +159,7 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
     required TransactionItem transactionItem,
     required Function doneDelete,
     required String transactionId,
+    required ITransaction transaction,
   }) async {
     TextEditingController newQtyController = TextEditingController();
     newQtyController.text = transactionItem.qty.toString();
@@ -497,12 +500,9 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                                       Navigator.of(context).pop();
                                   } catch (e) {
                                     completer.complete(false);
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          'Error updating item: ${e.toString()}',
-                                        ),
-                                      ),
+                                    showErrorNotification(
+                                      context,
+                                      'Error updating item: ${e.toString()}',
                                     );
                                   }
                                 }
@@ -511,28 +511,37 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                             SizedBox(height: 12),
                             FlipperIconButton(
                               icon: Icons.delete_outline,
-                              iconColor: Colors.red[400],
-                              textColor: Colors.red[400],
+                              iconColor: (transaction.cashReceived ?? 0) > 0
+                                  ? Colors.grey
+                                  : Colors.red[400],
+                              textColor: (transaction.cashReceived ?? 0) > 0
+                                  ? Colors.grey
+                                  : Colors.red[400],
                               text: 'Remove Product',
-                              onPressed: () async {
-                                try {
-                                  await ProxyService.strategy
-                                      .deleteItemFromCart(
-                                        transactionItemId: transactionItem,
-                                        transactionId: transactionId,
+                              onPressed: (transaction.cashReceived ?? 0) > 0
+                                  ? () {
+                                      showErrorNotification(
+                                        context,
+                                        'Cannot delete items from a transaction with partial payments',
                                       );
-                                  Navigator.of(context).pop();
-                                  doneDelete();
-                                } catch (e) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        'Error removing product: ${e.toString()}',
-                                      ),
-                                    ),
-                                  );
-                                }
-                              },
+                                    }
+                                  : () async {
+                                      try {
+                                        await ProxyService.strategy
+                                            .deleteItemFromCart(
+                                              transactionItemId:
+                                                  transactionItem,
+                                              transactionId: transactionId,
+                                            );
+                                        Navigator.of(context).pop();
+                                        doneDelete();
+                                      } catch (e) {
+                                        showErrorNotification(
+                                          context,
+                                          'Error removing product: ${e.toString()}',
+                                        );
+                                      }
+                                    },
                             ),
                           ],
                         );
@@ -570,11 +579,9 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
     // Validate that a customer has been added
     final customerPhone = ref.read(customerPhoneNumberProvider);
     if (customerPhone == null || customerPhone.isEmpty) {
-      showCustomSnackBarUtil(
+      showErrorNotification(
         context,
         'Please add a customer to the sale before completing',
-        backgroundColor: Colors.red[600],
-        showCloseButton: true,
       );
       return;
     }
@@ -607,12 +614,7 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
             _chargeState = ChargeButtonState.failed;
           });
           ref.read(oldProvider.loadingProvider.notifier).stopLoading();
-          showCustomSnackBarUtil(
-            context,
-            error,
-            backgroundColor: Colors.red[600],
-            showCloseButton: true,
-          );
+          showErrorNotification(context, error);
         }
       }
 
@@ -639,12 +641,7 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
           _chargeState = ChargeButtonState.failed;
         });
         ref.read(oldProvider.loadingProvider.notifier).stopLoading();
-        showCustomSnackBarUtil(
-          context,
-          "Error occurred",
-          backgroundColor: Colors.red[600],
-          showCloseButton: true,
-        );
+        showErrorNotification(context, "Error occurred");
       }
     }
   }
@@ -691,8 +688,11 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
     final payments = ref.watch(oldProvider.paymentMethodsProvider);
 
     // Standardized pre-filling initialization (ensures it happens once both items and transaction are ready)
-    String? currentTransactionId = (transactionAsync.value ?? widget.transaction).id;
-    if (itemsAsync.hasValue && transactionAsync.hasValue && _lastTransactionId != currentTransactionId) {
+    String? currentTransactionId =
+        (transactionAsync.value ?? widget.transaction).id;
+    if (itemsAsync.hasValue &&
+        transactionAsync.hasValue &&
+        _lastTransactionId != currentTransactionId) {
       _lastTransactionId = currentTransactionId;
       WidgetsBinding.instance.addPostFrameCallback((_) {
         standardizedPaymentInitialization(
@@ -843,7 +843,10 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
     }
   }
 
-  Widget _buildTransactionItem(TransactionItem transactionItem) {
+  Widget _buildTransactionItem(
+    TransactionItem transactionItem, {
+    required ITransaction transaction,
+  }) {
     return Container(
       margin: EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
@@ -890,22 +893,74 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
               ),
             ),
             SizedBox(width: 8),
-            IconButton(
-              icon: Icon(Icons.edit_outlined, color: Colors.blue),
-              onPressed: () {
-                edit(
-                  doneDelete: widget.doneDelete,
-                  context: context,
-                  ref: ref,
-                  transactionItem: transactionItem,
-                  transactionId: widget.transactionIdInt.toString(),
-                );
-              },
-              style: IconButton.styleFrom(
-                backgroundColor: Colors.blue[50],
-                padding: EdgeInsets.all(8),
+            if (_itemToDeleteId == transactionItem.id)
+              IconButton(
+                icon: Icon(Icons.delete, color: Colors.red),
+                onPressed: (transaction.cashReceived ?? 0) > 0
+                    ? () {
+                        setState(() {
+                          _itemToDeleteId = null;
+                        });
+                        showErrorNotification(
+                          context,
+                          'Cannot delete items from a transaction with partial payments',
+                        );
+                      }
+                    : () async {
+                        try {
+                          await ProxyService.strategy.deleteItemFromCart(
+                            transactionItemId: transactionItem,
+                            transactionId: widget.transactionIdInt.toString(),
+                          );
+                          setState(() {
+                            _itemToDeleteId = null;
+                          });
+                          widget.doneDelete();
+                        } catch (e) {
+                          showErrorNotification(
+                            context,
+                            'Error removing product: ${e.toString()}',
+                          );
+                        }
+                      },
+                style: IconButton.styleFrom(
+                  backgroundColor: Colors.red[50],
+                  padding: EdgeInsets.all(8),
+                ),
+              )
+            else
+              GestureDetector(
+                onLongPress: () {
+                  setState(() {
+                    _itemToDeleteId = transactionItem.id;
+                  });
+                  // Auto-hide after 5 seconds
+                  Future.delayed(Duration(seconds: 5), () {
+                    if (mounted && _itemToDeleteId == transactionItem.id) {
+                      setState(() {
+                        _itemToDeleteId = null;
+                      });
+                    }
+                  });
+                },
+                child: IconButton(
+                  icon: Icon(Icons.edit_outlined, color: Colors.blue),
+                  onPressed: () {
+                    edit(
+                      doneDelete: widget.doneDelete,
+                      context: context,
+                      ref: ref,
+                      transactionItem: transactionItem,
+                      transactionId: widget.transactionIdInt.toString(),
+                      transaction: transaction,
+                    );
+                  },
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.blue[50],
+                    padding: EdgeInsets.all(8),
+                  ),
+                ),
               ),
-            ),
           ],
         ),
       ),
@@ -951,7 +1006,11 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
           ),
         ),
         SizedBox(height: 12),
-        ...items.map((item) => _buildTransactionItem(item)).toList(),
+        ...items
+            .map(
+              (item) => _buildTransactionItem(item, transaction: transaction),
+            )
+            .toList(),
         PaymentMethodsCard(
           transactionId: widget.transactionIdInt,
           totalPayable: calculateTransactionTotal(
@@ -992,10 +1051,21 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               FlipperButtonFlat(
-                textColor: Colors.red[600],
+                textColor:
+                    (transactionAsync.value?.cashReceived ?? 0) > 0 ||
+                        items.isEmpty
+                    ? Colors.grey
+                    : Colors.red[600],
                 onPressed: items.isEmpty
                     ? null
                     : () {
+                        if ((transactionAsync.value?.cashReceived ?? 0) > 0) {
+                          showErrorNotification(
+                            context,
+                            'Cannot clear items from a transaction with partial payments',
+                          );
+                          return;
+                        }
                         showDialog(
                           context: context,
                           builder: (context) => AlertDialog(
@@ -1030,12 +1100,9 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                                     widget.doneDelete();
                                     Navigator.pop(context);
                                   } catch (e) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          'Error clearing cart: ${e.toString()}',
-                                        ),
-                                      ),
+                                    showErrorNotification(
+                                      context,
+                                      'Error clearing cart: ${e.toString()}',
                                     );
                                   }
                                 },
