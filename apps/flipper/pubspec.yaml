@@ -4,7 +4,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # 1.170.4252223234854+1755779343
 # 1.180.4252223234901+1756527939
 
-version: 1.180.4252223234901+1756528799
+version: 1.180.4252223234901+1756528800
 
 
 environment:
@@ -32,7 +32,7 @@ dependencies:
   feather_icons: ^1.1.0-nullsafety.0
   flex_color_scheme: ^4.2.0
   image_picker: ^1.2.1
-  file_picker: 10.3.9
+  file_picker: 10.3.7
   firebase_ui_auth: ^3.0.0
   azlistview: ^2.0.0
   cached_network_image: ^3.2.1
