@@ -272,6 +272,18 @@ mixin DeleteMixin implements DeleteInterface {
           branchId: ProxyService.box.getBranchId()!,
         ));
         if (transaction != null) {
+          // Prevent deleting tickets or transactions with partial payments
+          if (transaction.ticketName != null &&
+              transaction.ticketName!.isNotEmpty) {
+            talker.warning(
+                'Attempted to delete a parked transaction (ticket): ${transaction.id}');
+            return false;
+          }
+          if ((transaction.cashReceived ?? 0) > 0) {
+            talker.warning(
+                'Attempted to delete a transaction with partial payments: ${transaction.id}');
+            return false;
+          }
           await repository.delete<ITransaction>(
             transaction,
             query: Query(
