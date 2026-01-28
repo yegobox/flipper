@@ -376,6 +376,29 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     );
   }
 
+  /// Disposes of the repository and its resources.
+  /// This closes all database connections and resets the singleton instance.
+  static Future<void> dispose() async {
+    if (_singleton == null) return;
+
+    _logger.info('Disposing Repository and closing connections...');
+    try {
+      // 1. Stop the offline request queue
+      _singleton!.offlineRequestQueue.stop();
+
+      // 2. Close all database connections
+      await _singleton!._databaseManager.closeAllConnections();
+
+      _logger.info('Repository disposed successfully');
+    } catch (e) {
+      _logger.warning('Error during Repository disposal: $e');
+    } finally {
+      // 3. Reset the singleton and mark as disposed
+      _singleton = null;
+      _isDisposed = true;
+    }
+  }
+
   /// Initializes the Supabase client and configures the Repository.
   /// This method should be called once at the start of the application.
   /// It prevents concurrent initialization and handles re-initialization after disposal.

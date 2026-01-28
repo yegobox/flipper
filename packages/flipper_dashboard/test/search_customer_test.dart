@@ -3,7 +3,20 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../lib/SearchCustomer.dart';
 
+import 'test_helpers/setup.dart';
+
 void main() {
+  late TestEnvironment env;
+
+  setUpAll(() async {
+    env = TestEnvironment();
+    await env.init();
+  });
+
+  tearDownAll(() async {
+    await env.dispose();
+  });
+
   group('CustomDropdownButton Tests', () {
     test('CustomDropdownButton can be instantiated', () {
       final widget = CustomDropdownButton(

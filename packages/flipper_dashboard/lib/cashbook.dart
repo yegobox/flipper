@@ -1,6 +1,7 @@
 // ignore_for_file: unused_result
 
 import 'package:flipper_dashboard/DateCoreWidget.dart';
+import 'package:flipper_dashboard/widgets/momo_transaction_form.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_services/constants.dart';
@@ -31,6 +32,10 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
   final _amountController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _lock = Lock();
+
+  /// Track if MoMo transaction form is active
+  bool _isMomoMode = false;
+  String _momoTransactionType = TransactionType.cashIn;
 
   @override
   void dispose() {
@@ -74,9 +79,28 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
   }
 
   Widget _buildMainContent(CoreViewModel model) {
+    if (_isMomoMode) {
+      return _buildMomoTransactionContent();
+    }
     return model.newTransactionPressed
         ? _buildTransactionForm(model)
         : _buildTransactionList(model);
+  }
+
+  Widget _buildMomoTransactionContent() {
+    return MomoTransactionForm(
+      transactionType: _momoTransactionType,
+      onCancel: () {
+        setState(() {
+          _isMomoMode = false;
+        });
+      },
+      onComplete: () {
+        setState(() {
+          _isMomoMode = false;
+        });
+      },
+    );
   }
 
   Widget _buildTransactionList(CoreViewModel model) {
@@ -104,23 +128,114 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
   Widget _buildActionButtons(CoreViewModel model) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          _buildTransactionButton(
-            text: TransactionType.cashIn,
-            color: Colors.green,
-            onPressed: () =>
-                _startNewTransaction(model, TransactionType.cashIn),
+          // Cash In/Out buttons row
+          Row(
+            children: [
+              _buildTransactionButton(
+                text: TransactionType.cashIn,
+                color: Colors.green,
+                onPressed: () =>
+                    _startNewTransaction(model, TransactionType.cashIn),
+              ),
+              _buildTransactionButton(
+                text: TransactionType.cashOut,
+                color: const Color(0xFFFF0331),
+                onPressed: () =>
+                    _startNewTransaction(model, TransactionType.cashOut),
+              ),
+            ],
           ),
-          _buildTransactionButton(
-            text: TransactionType.cashOut,
-            color: const Color(0xFFFF0331),
-            onPressed: () =>
-                _startNewTransaction(model, TransactionType.cashOut),
-          ),
+          const SizedBox(height: 8),
+          // MoMo Payment button
+          _buildMomoPaymentButton(),
         ],
       ),
     );
+  }
+
+  Widget _buildMomoPaymentButton() {
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        onPressed: () => _showMomoTypeSelector(),
+        style: OutlinedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          side: const BorderSide(color: Color(0xFFFFCC00), width: 2),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+        icon: const Icon(Icons.phone_android, color: Color(0xFFFFCC00)),
+        label: const Text(
+          'MoMo/Airtel Payment',
+          style: TextStyle(
+            color: Color(0xFFFFCC00),
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showMomoTypeSelector() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Select Transaction Type',
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              ListTile(
+                leading: const CircleAvatar(
+                  backgroundColor: Colors.green,
+                  child: Icon(Icons.arrow_downward, color: Colors.white),
+                ),
+                title: const Text('MoMo Cash In'),
+                subtitle: const Text('Receive money via mobile money'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _startMomoTransaction(TransactionType.cashIn);
+                },
+              ),
+              const Divider(),
+              ListTile(
+                leading: const CircleAvatar(
+                  backgroundColor: Color(0xFFFF0331),
+                  child: Icon(Icons.arrow_upward, color: Colors.white),
+                ),
+                title: const Text('MoMo Cash Out'),
+                subtitle: const Text('Send money via mobile money'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _startMomoTransaction(TransactionType.cashOut);
+                },
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _startMomoTransaction(String transactionType) {
+    setState(() {
+      _isMomoMode = true;
+      _momoTransactionType = transactionType;
+    });
+    HapticFeedback.lightImpact();
   }
 
   Widget _buildTransactionButton({

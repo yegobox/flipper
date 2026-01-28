@@ -66,10 +66,11 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       arguments['agentId'] = agentId;
       if (includePending && includeParked) {
         whereClauses.add(
-            '(status = :status OR status = :pendingStatus OR status = :parkedStatus)');
+            '(status = :status OR status = :pendingStatus OR status = :parkedStatus OR status = :waitingMomoStatus)');
         arguments['status'] = status ?? COMPLETE;
         arguments['pendingStatus'] = PENDING;
         arguments['parkedStatus'] = PARKED;
+        arguments['waitingMomoStatus'] = WAITING_MOMO_COMPLETE;
       } else if (includePending) {
         // Include both COMPLETE and PENDING statuses
         whereClauses.add('(status = :status OR status = :pendingStatus)');
@@ -77,9 +78,11 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         arguments['pendingStatus'] = PENDING;
       } else if (includeParked) {
         // Include both COMPLETE and PARKED statuses
-        whereClauses.add('(status = :status OR status = :parkedStatus)');
+        whereClauses.add(
+            '(status = :status OR status = :parkedStatus OR status = :waitingMomoStatus)');
         arguments['status'] = status ?? COMPLETE;
         arguments['parkedStatus'] = PARKED;
+        arguments['waitingMomoStatus'] = WAITING_MOMO_COMPLETE;
       } else {
         // Only include the specified status (default COMPLETE)
         whereClauses.add('status = :status');
@@ -306,6 +309,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     bool forceRealData = true,
     bool includeZeroSubTotal = false,
     bool includePending = false,
+    bool includeParked = false,
     bool skipOriginalTransactionCheck = false,
     List<String>? receiptNumber,
     String? customerId,
@@ -346,10 +350,23 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         arguments['id'] = id;
       } else {
         // Status filter - conditional based on includePending
-        if (includePending) {
+        if (includePending && includeParked) {
+          whereClauses.add(
+              '(status = :status OR status = :pendingStatus OR status = :parkedStatus OR status = :waitingMomoStatus)');
+          arguments['status'] = status ?? COMPLETE;
+          arguments['pendingStatus'] = PENDING;
+          arguments['parkedStatus'] = PARKED;
+          arguments['waitingMomoStatus'] = WAITING_MOMO_COMPLETE;
+        } else if (includePending) {
           whereClauses.add('(status = :status OR status = :pendingStatus)');
           arguments['status'] = status ?? COMPLETE;
           arguments['pendingStatus'] = PENDING;
+        } else if (includeParked) {
+          whereClauses.add(
+              '(status = :status OR status = :parkedStatus OR status = :waitingMomoStatus)');
+          arguments['status'] = status ?? COMPLETE;
+          arguments['parkedStatus'] = PARKED;
+          arguments['waitingMomoStatus'] = WAITING_MOMO_COMPLETE;
         } else {
           whereClauses.add('status = :status');
           arguments['status'] = status ?? COMPLETE;
@@ -791,6 +808,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     FilterType? filterType,
     bool includeZeroSubTotal = false,
     bool includePending = false,
+    bool includeParked = false,
     bool skipOriginalTransactionCheck = false,
   }) async {
     throw UnimplementedError(

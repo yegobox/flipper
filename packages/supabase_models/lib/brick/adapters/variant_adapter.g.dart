@@ -517,7 +517,7 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
     'stock': const RuntimeSupabaseColumnDefinition(
       association: true,
       columnName: 'stock',
-      associationType: Stock,
+      associationType: Map,
       associationIsNullable: true,
     ),
     'stockId': const RuntimeSupabaseColumnDefinition(
@@ -837,7 +837,7 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
       association: true,
       columnName: 'stock_Stock_brick_id',
       iterable: false,
-      type: Stock,
+      type: Map,
     ),
     'stockId': const RuntimeSqliteColumnDefinition(
       association: false,

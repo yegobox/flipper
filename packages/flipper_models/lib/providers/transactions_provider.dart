@@ -69,6 +69,7 @@ Stream<List<ITransaction>> transactionList(
       final filtered = transactions.where((tx) {
         if (tx.status == COMPLETE) return true;
         if (tx.status == PARKED && (tx.cashReceived ?? 0) > 0) return true;
+        if (tx.status == WAITING_MOMO_COMPLETE) return true;
         return false;
       }).toList();
       return Stream.value(filtered);

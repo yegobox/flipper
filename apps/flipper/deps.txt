@@ -1,4 +1,4 @@
-Dart SDK 3.10.0
+Dart SDK 3.10.4
 Flutter SDK 3.38.2
 flipper_rw 1.180.4252223234901+1756528392
 ├── amplify_api 2.7.1

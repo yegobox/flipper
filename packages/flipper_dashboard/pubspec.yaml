@@ -4,7 +4,7 @@ version: 0.0.1-dev.7
 publish_to: "none"
 repository: https://github.com/yegobox
 environment:
-  sdk: '^3.10.0'
+  sdk: '>=3.10.4 <4.0.0'
 dependencies:
   get: ^4.6.1
   flipper_models: any
@@ -17,7 +17,7 @@ dependencies:
   
   feather_icons: ^1.1.0-nullsafety.0
   flex_color_scheme: ^4.2.0
-  file_picker: ^10.3.7
+  file_picker: 10.3.7
   firebase_ui_auth: ^3.0.0
   stacked: ^3.5.0
   azlistview: ^2.0.0
@@ -125,6 +125,7 @@ dependencies:
   flutter_soloud: ^3.4.7
   ditto_live: ^4.14.1
   flipper_personal: any
+  flutter_contacts: ^2.0.0-beta.2
   # just_audio: ^0.10.5
 
 dependency_overrides:

@@ -79,8 +79,9 @@ class MobileUpload implements UploadT {
   @override
   Future<bool> isInternetAvailable() async {
     try {
-      final List<InternetAddress> result =
-          await InternetAddress.lookup('google.com');
+      final List<InternetAddress> result = await InternetAddress.lookup(
+        'google.com',
+      );
       return result.isNotEmpty && result[0].rawAddress.isNotEmpty;
     } catch (e) {
       return false;

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'widgets/analytics_gauge/flipper_analytic.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_services/constants.dart';
 
 Widget BuildGaugeOrList({
   required BuildContext context,
@@ -426,18 +427,45 @@ Widget _buildModernTransactionItem({
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      transaction.transactionType
-                          .toString()
-                          .split('.')
-                          .last
-                          .replaceAll(RegExp(r'([a-z])([A-Z])'), r'$1 $2')
-                          .toUpperCase(),
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF374151),
-                      ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          transaction.transactionType
+                              .toString()
+                              .split('.')
+                              .last
+                              .replaceAll(RegExp(r'([a-z])([A-Z])'), r'$1 $2')
+                              .toUpperCase(),
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF374151),
+                          ),
+                        ),
+                        if (transaction.status == WAITING_MOMO_COMPLETE) ...[
+                          const SizedBox(height: 4),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.orange.shade50,
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(color: Colors.orange.shade200),
+                            ),
+                            child: Text(
+                              'WAITING MOMO',
+                              style: TextStyle(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.orange.shade800,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                     Text(
                       '${isIncome ? '+' : '-'}$amount RWF',

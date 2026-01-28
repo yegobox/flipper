@@ -82,6 +82,8 @@
 
 		<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 		<string>We need your location to support background functionality and notifications.</string>
+		<key>NSContactsUsageDescription</key>
+		<string>We need access to your contacts to select recipients for mobile money payments.</string>
 
 		<key>NSBluetoothAlwaysUsageDescription</key>
 		<string>This app requires Bluetooth access to function properly with external devices.</string>	

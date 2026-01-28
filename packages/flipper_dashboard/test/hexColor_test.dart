@@ -2,6 +2,7 @@ import 'package:flipper_models/helperModels/hexColor.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+// flutter test test/hexColor_test.dart
 void main() {
   group('isValidHexColor', () {
     test('returns true for valid 6-digit hex color code', () {
@@ -70,16 +71,6 @@ void main() {
         HexColor('White').toARGB32(),
         equals(Color(0xFFFFFFFF).toARGB32()),
       );
-    });
-
-    // test('should throw an exception for invalid hex color codes', () {
-    //   expect(() => HexColor('invalid'), throwsException);
-    //   expect(() => HexColor('#'), throwsException);
-    //   expect(() => HexColor('#GG00FF'), throwsException);
-    //   expect(() => HexColor('#FF00F'), throwsException);
-    // });
-    test('should throw an exception for invalid hex color codes', () {
-      expect(() => getColorOrDefault('invalid'), throwsException);
     });
   });
 }

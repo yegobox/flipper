@@ -1,66 +1,15 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20260121124148.migration.dart';
-part '20251206093643.migration.dart';
-part '20251212042542.migration.dart';
-part '20251212052427.migration.dart';
-part '20251223113831.migration.dart';
-part '20251227183153.migration.dart';
-part '20251227184119.migration.dart';
-part '20251227184758.migration.dart';
-part '20251227184946.migration.dart';
-part '20251227185249.migration.dart';
-part '20251227195512.migration.dart';
-part '20251227200851.migration.dart';
-part '20251227202731.migration.dart';
-part '20251227205309.migration.dart';
-part '20251228163424.migration.dart';
-part '20251228164607.migration.dart';
-part '20251228185846.migration.dart';
-part '20251231090733.migration.dart';
-part '20251231094858.migration.dart';
-part '20260101131413.migration.dart';
-part '20260106104847.migration.dart';
-part '20260107143027.migration.dart';
-part '20260115095918.migration.dart';
-part '20260121083953.migration.dart';
-part '20260121104832.migration.dart';
-part '20260121123900.migration.dart';
+part '20260127123921.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20260121124148(),
-  const Migration20251206093643(),
-  const Migration20251212042542(),
-  const Migration20251212052427(),
-  const Migration20251223113831(),
-  const Migration20251227183153(),
-  const Migration20251227184119(),
-  const Migration20251227184758(),
-  const Migration20251227184946(),
-  const Migration20251227185249(),
-  const Migration20251227195512(),
-  const Migration20251227200851(),
-  const Migration20251227202731(),
-  const Migration20251227205309(),
-  const Migration20251228163424(),
-  const Migration20251228164607(),
-  const Migration20251228185846(),
-  const Migration20251231090733(),
-  const Migration20251231094858(),
-  const Migration20260101131413(),
-  const Migration20260106104847(),
-  const Migration20260107143027(),
-  const Migration20260115095918(),
-  const Migration20260121083953(),
-  const Migration20260121104832(),
-  const Migration20260121123900(),
-};
+  const Migration20260127123921(),};
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
-  20260121123900,
+  0,
   generatorVersion: 1,
   tables: <SchemaTable>{
     SchemaTable(

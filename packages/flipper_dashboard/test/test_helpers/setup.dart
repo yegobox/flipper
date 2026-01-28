@@ -1,7 +1,8 @@
 import 'package:flipper_models/db_model_export.dart';
-import 'package:flipper_services/proxy.dart';
+import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_rw/dependency_initializer.dart';
+import 'package:flipper_services/locator.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
@@ -16,9 +17,7 @@ class TestEnvironment {
   late MockFlipperHttpClient mockFlipperHttpClient;
   late MockTaxApi mockTaxApi;
 
-  late SyncStrategy originalStrategyLink;
-  late LocalStorage originalBox;
-  late TaxApi originalTaxApi;
+  // No longer need to store originals as we'll use getIt.reset() or allowReassignment
 
   Future<void> init() async {
     await initializeDependenciesForTest();
@@ -94,23 +93,38 @@ class TestEnvironment {
   }
 
   void injectMocks() {
-    // Store original
-    originalStrategyLink = ProxyService.strategyLink;
-    originalBox = ProxyService.box;
-    originalTaxApi = ProxyService.tax;
+    // Inject mocks into GetIt
+    if (getIt.isRegistered<SyncStrategy>(instanceName: 'strategy')) {
+      getIt.unregister<SyncStrategy>(instanceName: 'strategy');
+    }
+    getIt.registerSingleton<SyncStrategy>(
+      mockSyncStrategy,
+      instanceName: 'strategy',
+    );
 
-    // Inject mocks
-    ProxyService.strategyLink = mockSyncStrategy;
-    ProxyService.box = mockBox;
-    ProxyService.tax = mockTaxApi;
+    if (getIt.isRegistered<LocalStorage>()) {
+      getIt.unregister<LocalStorage>();
+    }
+    getIt.registerSingleton<LocalStorage>(mockBox);
+
+    if (getIt.isRegistered<TaxApi>()) {
+      getIt.unregister<TaxApi>();
+    }
+    getIt.registerSingleton<TaxApi>(mockTaxApi);
+
+    // Also inject HttpClient into ProxyService directly as it's a getter now too
+    if (getIt.isRegistered<HttpClientInterface>()) {
+      getIt.unregister<HttpClientInterface>();
+    }
+    getIt.registerSingleton<HttpClientInterface>(mockFlipperHttpClient);
 
     when(() => mockSyncStrategy.current).thenReturn(mockDbSync);
   }
 
   void restore() {
-    ProxyService.strategyLink = originalStrategyLink;
-    ProxyService.box = originalBox;
-    ProxyService.tax = originalTaxApi;
+    // In the new architecture, we rely on GetIt.reset() in initializeDependenciesForTest
+    // which is called in each test's setUpAll via env.init().
+    // If we need per-test restoration, we would need to re-run the locators init.
   }
 
   void stubCommonMethods() {
@@ -154,5 +168,9 @@ class TestEnvironment {
         branchId: any(named: 'branchId'),
       ),
     ).thenAnswer((_) async => "ITEM123");
+  }
+
+  Future<void> dispose() async {
+    await resetDependencies();
   }
 }

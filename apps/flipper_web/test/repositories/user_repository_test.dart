@@ -7,7 +7,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:flipper_web/models/user_profile.dart';
 import 'package:flipper_web/repositories/user_repository.dart';
 import 'package:flipper_web/services/ditto_service.dart';
-
+// flutter test test/repositories/user_repository_test.dart 
 // Create mocks
 class MockDittoService extends Mock implements DittoService {}
 
@@ -58,7 +58,7 @@ void main() {
             "name": "Muri",
             "longitude": "1",
             "latitude": "1",
-            "businessId": 24862400,
+            "businessId": "24862400",
             "serverId": 24862400,
           },
         ],
@@ -84,7 +84,7 @@ void main() {
             "lastSubscriptionPaymentSucceeded": false,
           },
         ],
-        "businessId": 24862400,
+        "businessId": "24862400",
         "nfcEnabled": false,
         "userId": 75060,
         "pin": 75060,
@@ -129,7 +129,7 @@ void main() {
 
       when(
         () => mockDittoService.saveUserProfile(any()),
-      ).thenAnswer((_) async => Future.value(null));
+      ).thenAnswer((_) async {});
 
       when(
         () => mockHttpClient.post(

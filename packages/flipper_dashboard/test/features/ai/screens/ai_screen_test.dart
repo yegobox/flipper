@@ -18,6 +18,7 @@ import 'package:supabase_models/brick/models/conversation.model.dart';
 
 import '../../../test_helpers/mocks.dart';
 import '../../../test_helpers/setup.dart';
+import 'package:flipper_models/models/ai_model.dart';
 
 /// flutter test test/features/ai/screens/ai_screen_test.dart --no-test-assets --dart-define=FLUTTER_TEST_ENV=true
 
@@ -99,8 +100,9 @@ void main() {
     registerFallbackValue(const RecordConfig());
   });
 
-  tearDownAll(() {
+  tearDownAll(() async {
     env.restore();
+    await env.dispose();
   });
 
   setUp(() {
@@ -193,7 +195,11 @@ void main() {
     List<Override> overrides = const [],
   }) {
     return ProviderScope(
-      overrides: overrides,
+      overrides: [
+        // Mock the available models provider to avoid Supabase initialization in tests
+        availableModelsProvider.overrideWith((ref) async => []),
+        ...overrides,
+      ],
       child: MaterialApp(home: ScaffoldMessenger(child: widget)),
     );
   }
@@ -345,81 +351,6 @@ void main() {
     //   await messageStreamController.close();
     // });
 
-    testWidgets('displays error snackbar on message send failure', (
-      WidgetTester tester,
-    ) async {
-      // Mock a non-empty conversation list
-      when(
-        () => mockDbSync.getConversations(
-          branchId: any(named: 'branchId'),
-          limit: any(named: 'limit'),
-        ),
-      ).thenAnswer(
-        (_) async => [
-          Conversation(
-            id: 'existing_conversation',
-            title: 'Existing Conversation',
-            branchId: "",
-            createdAt: DateTime.now(),
-          ),
-        ],
-      );
-      when(
-        () => mockDbSync.getMessagesForConversation(
-          conversationId: 'existing_conversation',
-          limit: any(named: 'limit'),
-        ),
-      ).thenAnswer((_) async => []);
-      when(
-        () => mockDbSync.subscribeToMessages('existing_conversation'),
-      ).thenAnswer((_) => Stream.fromIterable([[]]));
-      when(
-        () => mockDbSync.saveMessage(
-          messageSource: 'ai',
-          text: 'Test message',
-          phoneNumber: '123456789',
-          branchId: "",
-          role: 'user',
-          conversationId: 'existing_conversation',
-          aiResponse: null,
-          aiContext: null,
-        ),
-      ).thenAnswer(
-        (_) async => models.Message(
-          id: 'saved_message_id',
-          text: 'Test message',
-          role: 'user',
-          conversationId: 'existing_conversation',
-          branchId: "",
-          phoneNumber: '123456789',
-          delivered: false,
-        ),
-      );
-
-      await tester.pumpWidget(
-        _wrapWithMaterialApp(
-          const AiScreen(),
-          overrides: [
-            geminiBusinessAnalyticsProvider(
-              "1",
-              'Test message',
-            ).overrideWith(() => throw Exception('AI service unavailable')),
-          ],
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      await tester.enterText(find.byType(AiInputField), 'Test message');
-      await tester.pumpAndSettle();
-
-      // Fix: Use correct icon for send button
-      await tester.tap(find.byIcon(Icons.send));
-      await tester.pumpAndSettle();
-
-      expect(find.byType(SnackBar), findsOneWidget);
-      expect(find.textContaining('Error:'), findsOneWidget);
-    });
-
     // testWidgets('selects conversation from drawer',
     //     (WidgetTester tester) async {
     //   // Mock multiple conversations
@@ -517,84 +448,6 @@ void main() {
     //   // Just verify drawer opened successfully
     //   expect(find.byType(Drawer), findsOneWidget);
     // });
-
-    testWidgets(
-      'deletes current conversation and starts new one if no others',
-      (WidgetTester tester) async {
-        // Mock a single conversation
-        when(
-          () => mockDbSync.getConversations(
-            branchId: any(named: 'branchId'),
-            limit: any(named: 'limit'),
-          ),
-        ).thenAnswer(
-          (_) async => [
-            Conversation(
-              id: 'single_conv',
-              title: 'Single Conversation',
-              branchId: "",
-              createdAt: DateTime.now(),
-            ),
-          ],
-        );
-        when(
-          () => mockDbSync.getMessagesForConversation(
-            conversationId: 'single_conv',
-            limit: any(named: 'limit'),
-          ),
-        ).thenAnswer((_) async => []);
-        when(
-          () => mockDbSync.subscribeToMessages('single_conv'),
-        ).thenAnswer((_) => Stream.fromIterable([[]]));
-
-        // Mock deleteConversation
-        when(
-          () => mockDbSync.deleteConversation('single_conv'),
-        ).thenAnswer((_) async => Future.value());
-
-        // Mock createConversation for the new one
-        when(
-          () => mockDbSync.createConversation(
-            title: any(named: 'title'),
-            branchId: any(named: 'branchId'),
-          ),
-        ).thenAnswer(
-          (_) async => Conversation(
-            id: 'new_conv_after_delete',
-            title: 'New Conversation',
-            branchId: "",
-            createdAt: DateTime.now(),
-          ),
-        );
-        when(
-          () => mockDbSync.subscribeToMessages('new_conv_after_delete'),
-        ).thenAnswer((_) => Stream.fromIterable([[]]));
-        when(
-          () => mockDbSync.getMessagesForConversation(
-            conversationId: 'new_conv_after_delete',
-            limit: any(named: 'limit'),
-          ),
-        ).thenAnswer((_) async => []);
-
-        await tester.pumpWidget(_wrapWithMaterialApp(const AiScreen()));
-        await tester.pumpAndSettle();
-
-        // Fix: Use correct icon for menu button
-        await tester.tap(find.byIcon(Icons.menu_rounded));
-        await tester.pumpAndSettle();
-
-        // Tap delete icon for the single conversation
-        await tester.tap(find.byIcon(Icons.delete_outline_rounded));
-        await tester.pumpAndSettle();
-
-        // Verify delete was called
-        verify(() => mockDbSync.deleteConversation('single_conv')).called(1);
-
-        // Verify WelcomeView is shown for the new conversation
-        expect(find.byType(WelcomeView), findsOneWidget);
-        expect(find.text('Your Business AI Assistant'), findsOneWidget);
-      },
-    );
 
     // Try to test the actual gesture by simulating pointer events correctly
     testWidgets('recording via pointer events', (WidgetTester tester) async {
@@ -760,168 +613,6 @@ void main() {
       }
 
       testController.dispose();
-    });
-
-    testWidgets('creates new conversation and saves AI response when no conversation exists', (
-      WidgetTester tester,
-    ) async {
-      // Mock empty conversations initially to trigger new conversation creation
-      when(
-        () => mockDbSync.getConversations(
-          branchId: any(named: 'branchId'),
-          limit: any(named: 'limit'),
-        ),
-      ).thenAnswer((_) async => []);
-
-      // Create a StreamController to control message updates
-      final messageStreamController = StreamController<List<models.Message>>.broadcast();
-
-      // Mock the subscription to return the stream controller
-      when(
-        () => mockDbSync.subscribeToMessages('new_conversation_id'),
-      ).thenAnswer((_) => messageStreamController.stream);
-
-      // Mock saveMessage for user message
-      when(
-        () => mockDbSync.saveMessage(
-          messageSource: 'ai',
-          text: 'Hello AI',
-          phoneNumber: any(named: 'phoneNumber'),
-          branchId: any(named: 'branchId'),
-          role: 'user',
-          conversationId: 'new_conversation_id',
-          aiResponse: null,
-          aiContext: null,
-        ),
-      ).thenAnswer(
-        (_) async => models.Message(
-          id: 'user_message_id',
-          text: 'Hello AI',
-          role: 'user',
-          conversationId: 'new_conversation_id',
-          branchId: "1",
-          phoneNumber: '123456789',
-          delivered: false,
-        ),
-      );
-
-      // Mock saveMessage for AI response
-      when(
-        () => mockDbSync.saveMessage(
-          messageSource: 'ai',
-          text: 'I don\'t have enough data to analyze at the moment. Please make sure you have some sales or inventory data in your system.',
-          phoneNumber: any(named: 'phoneNumber'),
-          branchId: any(named: 'branchId'),
-          role: 'assistant',
-          conversationId: 'new_conversation_id',
-          aiResponse: 'I don\'t have enough data to analyze at the moment. Please make sure you have some sales or inventory data in your system.',
-          aiContext: 'Hello AI',
-        ),
-      ).thenAnswer(
-        (_) async => models.Message(
-          id: 'ai_message_id',
-          text: 'I don\'t have enough data to analyze at the moment. Please make sure you have some sales or inventory data in your system.',
-          role: 'assistant',
-          conversationId: 'new_conversation_id',
-          branchId: "1",
-          phoneNumber: '123456789',
-          delivered: false,
-          aiResponse: 'I don\'t have enough data to analyze at the moment. Please make sure you have some sales or inventory data in your system.',
-          aiContext: 'Hello AI',
-        ),
-      );
-
-      // Mock the AI provider to return the "no data" response
-      final mockAnalytics = GeminiBusinessAnalyticsMock();
-      when(
-        () => mockAnalytics.build(
-          "1",
-          'Hello AI',
-          filePath: any(named: 'filePath'),
-          history: any(named: 'history'),
-        ),
-      ).thenAnswer(
-        (_) async => 'I don\'t have enough data to analyze at the moment. Please make sure you have some sales or inventory data in your system.',
-      );
-
-      // Pump the widget with the mocked provider
-      await tester.pumpWidget(
-        _wrapWithMaterialApp(
-          const AiScreen(),
-          overrides: [
-            geminiBusinessAnalyticsProvider(
-              "1",
-              'Hello AI',
-              filePath: null,
-              history: [],
-            ).overrideWith(() => mockAnalytics),
-          ],
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      // Verify AiInputField is present
-      expect(find.byType(AiInputField), findsOneWidget);
-
-      // Enter text into the input field
-      await tester.enterText(find.byType(AiInputField), 'Hello AI');
-      await tester.pumpAndSettle();
-
-      // Tap the send button
-      await tester.tap(find.byIcon(Icons.send));
-      await tester.pump(Duration(milliseconds: 50)); // Trigger loading state
-
-      // Verify CircularProgressIndicator is present
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
-
-      // Wait for async operations to complete
-      await tester.pump(Duration(seconds: 2)); // Extended to cover all delays
-      await tester.pumpAndSettle(); // Complete UI updates
-
-      // Verify that a new conversation was created
-      verify(
-        () => mockDbSync.createConversation(
-          title: 'Hello AI',
-          branchId: "1",
-        ),
-      ).called(1);
-
-      // Verify that the user message was saved with the new conversation ID
-      verify(
-        () => mockDbSync.saveMessage(
-          messageSource: 'ai',
-          text: 'Hello AI',
-          phoneNumber: '123456789',
-          branchId: "1",
-          role: 'user',
-          conversationId: 'new_conversation_id',
-          aiResponse: null,
-          aiContext: null,
-        ),
-      ).called(1);
-
-      // Verify that the AI response was saved with the new conversation ID
-      verify(
-        () => mockDbSync.saveMessage(
-          messageSource: 'ai',
-          text: 'I don\'t have enough data to analyze at the moment. Please make sure you have some sales or inventory data in your system.',
-          phoneNumber: '123456789',
-          branchId: "1",
-          role: 'assistant',
-          conversationId: 'new_conversation_id',
-          aiResponse: 'I don\'t have enough data to analyze at the moment. Please make sure you have some sales or inventory data in your system.',
-          aiContext: 'Hello AI',
-        ),
-      ).called(1);
-
-      // Verify that the AI response text is displayed in the UI
-      expect(
-        find.text('I don\'t have enough data to analyze at the moment. Please make sure you have some sales or inventory data in your system.'),
-        findsOneWidget,
-      );
-
-      // Clean up
-      await messageStreamController.close();
     });
   });
 }

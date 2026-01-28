@@ -330,7 +330,7 @@ extension PercentageFormatter on double {
   }
 }
 
-extension StringExtension on String {
+extension ModelStringExtension on String {
   String toFlipperEmail() {
     if (this.contains('@')) {
       return this;
