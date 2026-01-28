@@ -50,8 +50,7 @@ class PaymentIncompleteException implements Exception {
 /// Service responsible for verifying payment status throughout the app lifecycle.
 /// This service only handles verification logic - navigation is handled by callers.
 class PaymentVerificationService {
-  static final PaymentVerificationService _instance =
-      PaymentVerificationService._internal();
+  static PaymentVerificationService? _instance;
 
   Timer? _verificationTimer;
 
@@ -60,14 +59,23 @@ class PaymentVerificationService {
 
   /// Singleton instance
   factory PaymentVerificationService() {
-    return _instance;
+    _instance ??= PaymentVerificationService._internal();
+    return _instance!;
   }
 
   PaymentVerificationService._internal();
 
+  /// For testing purposes only - resets the singleton instance
+  @visibleForTesting
+  static void resetInstance() {
+    _instance?.dispose(); // Ensure proper cleanup before resetting
+    _instance = null;
+  }
+
   /// Sets up a callback to be notified when payment status changes
   void setPaymentStatusChangeCallback(
-      Function(PaymentVerificationResponse) callback) {
+    Function(PaymentVerificationResponse) callback,
+  ) {
     onPaymentStatusChanged = callback;
   }
 
@@ -76,16 +84,16 @@ class PaymentVerificationService {
   void startPeriodicVerification({int intervalMinutes = 30}) {
     stopPeriodicVerification();
 
-    _verificationTimer = Timer.periodic(
-      Duration(minutes: intervalMinutes),
-      (_) async {
-        final response = await verifyPaymentStatus();
-        onPaymentStatusChanged?.call(response);
-      },
-    );
+    _verificationTimer = Timer.periodic(Duration(minutes: intervalMinutes), (
+      _,
+    ) async {
+      final response = await verifyPaymentStatus();
+      onPaymentStatusChanged?.call(response);
+    });
 
     talker.info(
-        'Payment verification service started with interval of $intervalMinutes minutes');
+      'Payment verification service started with interval of $intervalMinutes minutes',
+    );
   }
 
   /// Stops periodic payment verification
@@ -111,7 +119,8 @@ class PaymentVerificationService {
 
       final businessId = business!.id;
       talker.info(
-          'Payment verification: Checking plan for business: $businessId');
+        'Payment verification: Checking plan for business: $businessId',
+      );
 
       // First check if a payment plan exists at all
       // fetchOnline: true ensures we check remote, crucial for new devices
@@ -122,7 +131,8 @@ class PaymentVerificationService {
 
       if (plan == null) {
         talker.warning(
-            'Payment verification: No payment plan found for business: $businessId (checked remote)');
+          'Payment verification: No payment plan found for business: $businessId (checked remote)',
+        );
         return PaymentVerificationResponse(
           result: PaymentVerificationResult.noPlan,
           errorMessage: 'No payment plan exists for this business',
@@ -130,7 +140,8 @@ class PaymentVerificationService {
       }
 
       talker.info(
-          'Payment verification: Found plan ${plan.id} for business $businessId, checking subscription status');
+        'Payment verification: Found plan ${plan.id} for business $businessId, checking subscription status',
+      );
 
       // A plan exists, now check if it's active
       try {
@@ -141,8 +152,9 @@ class PaymentVerificationService {
         );
 
         if (isActive) {
-          talker
-              .info('Payment verification successful: Subscription is active');
+          talker.info(
+            'Payment verification successful: Subscription is active',
+          );
           return PaymentVerificationResponse(
             result: PaymentVerificationResult.active,
             plan: plan,
@@ -190,7 +202,8 @@ class PaymentVerificationService {
 
     if (!response.isActive) {
       talker.warning(
-          'Forced payment verification failed: ${response.errorMessage}');
+        'Forced payment verification failed: ${response.errorMessage}',
+      );
     }
 
     return response;
@@ -206,6 +219,7 @@ class PaymentVerificationService {
   /// Dispose method to clean up resources
   void dispose() {
     stopPeriodicVerification();
+    _verificationTimer = null; // Explicitly set to null
     onPaymentStatusChanged = null;
   }
 

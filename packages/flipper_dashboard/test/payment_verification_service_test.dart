@@ -2,6 +2,7 @@ import 'package:flipper_models/services/payment_verification_service.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:fake_async/fake_async.dart';
+import 'package:meta/meta.dart';
 import 'test_helpers/mocks.dart';
 import 'test_helpers/setup.dart';
 // No longer need direct ProxyService, GetIt or HttpClient imports here
@@ -36,6 +37,9 @@ void main() {
       env.injectMocks();
       env.stubCommonMethods();
 
+      // Reset the singleton instance to ensure it picks up the mocked dependencies
+      PaymentVerificationService.resetInstance();
+
       // Create a fresh service instance for each test
       service = PaymentVerificationService();
 
@@ -45,7 +49,9 @@ void main() {
     });
 
     tearDown(() {
-      service.dispose();
+      // Reset the singleton instance after each test to ensure clean state
+      // This will also call dispose() internally
+      PaymentVerificationService.resetInstance();
     });
 
     group('verifyPaymentStatus', () {
