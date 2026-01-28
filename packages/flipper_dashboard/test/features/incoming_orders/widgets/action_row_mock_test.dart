@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/features/incoming_orders/widgets/action_row.dart';
+import 'package:flipper_dashboard/features/incoming_orders/providers/incoming_orders_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -49,6 +50,9 @@ void main() {
     testWidgets('displays action buttons', (tester) async {
       await tester.pumpWidget(
         ProviderScope(
+          overrides: [
+            transactionItemsProvider(mockRequest.id).overrideWithValue(AsyncValue.data([])),
+          ],
           child: MaterialApp(
             home: Scaffold(body: ActionRow(request: mockRequest)),
           ),
@@ -66,6 +70,9 @@ void main() {
     testWidgets('has correct button structure', (tester) async {
       await tester.pumpWidget(
         ProviderScope(
+          overrides: [
+            transactionItemsProvider(mockRequest.id).overrideWithValue(AsyncValue.data([])),
+          ],
           child: MaterialApp(
             home: Scaffold(body: ActionRow(request: mockRequest)),
           ),
@@ -74,7 +81,7 @@ void main() {
 
       await tester.pump();
 
-      expect(find.byType(Row), findsNWidgets(3)); // Main row + 2 button rows
+      expect(find.byType(Row), findsNWidgets(3)); // Main row + internal rows
       expect(find.byType(Material), findsNWidgets(3)); // Scaffold + 2 buttons
       expect(find.byType(InkWell), findsNWidgets(2));
     });
@@ -82,6 +89,9 @@ void main() {
     testWidgets('buttons are aligned to the end', (tester) async {
       await tester.pumpWidget(
         ProviderScope(
+          overrides: [
+            transactionItemsProvider(mockRequest.id).overrideWithValue(AsyncValue.data([])),
+          ],
           child: MaterialApp(
             home: Scaffold(body: ActionRow(request: mockRequest)),
           ),
@@ -108,6 +118,9 @@ void main() {
 
       await tester.pumpWidget(
         ProviderScope(
+          overrides: [
+            transactionItemsProvider(approvedRequest.id).overrideWithValue(AsyncValue.data([])),
+          ],
           child: MaterialApp(
             home: Scaffold(body: ActionRow(request: approvedRequest)),
           ),
@@ -123,13 +136,16 @@ void main() {
     testWidgets('shows loading state initially', (tester) async {
       await tester.pumpWidget(
         ProviderScope(
+          overrides: [
+            transactionItemsProvider(mockRequest.id).overrideWithValue(AsyncValue.loading()),
+          ],
           child: MaterialApp(
             home: Scaffold(body: ActionRow(request: mockRequest)),
           ),
         ),
       );
 
-      // Don't pump, check initial loading state
+      // Check loading state - should show disabled buttons
       expect(find.text('Approve'), findsOneWidget);
       expect(find.text('Void'), findsOneWidget);
     });
