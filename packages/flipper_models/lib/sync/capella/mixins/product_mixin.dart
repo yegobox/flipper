@@ -1,10 +1,14 @@
 import 'dart:async';
 import 'package:flipper_models/sync/interfaces/product_interface.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_services/log_service.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:flipper_web/services/ditto_service.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:talker/talker.dart';
 
 mixin CapellaProductMixin implements ProductInterface {
+  DittoService get dittoService => DittoService.instance;
   Repository get repository;
   Talker get talker;
 
@@ -16,7 +20,8 @@ mixin CapellaProductMixin implements ProductInterface {
   @override
   Stream<List<Product>> productStreams({String? prodIndex}) {
     throw UnimplementedError(
-        'productStreams needs to be implemented for Capella');
+      'productStreams needs to be implemented for Capella',
+    );
   }
 
   @override
@@ -27,7 +32,8 @@ mixin CapellaProductMixin implements ProductInterface {
   @override
   Stream<double> wholeStockValue({required String branchId}) {
     throw UnimplementedError(
-        'wholeStockValue needs to be implemented for Capella');
+      'wholeStockValue needs to be implemented for Capella',
+    );
   }
 
   @override
@@ -49,12 +55,129 @@ mixin CapellaProductMixin implements ProductInterface {
     String? name,
     required String businessId,
   }) async {
-    throw UnimplementedError('getProduct needs to be implemented for Capella');
+    final logService = LogService();
+    try {
+      if (ProxyService.box.getUserLoggingEnabled() ?? false) {
+        await logService.logException(
+          'Starting getProduct fetch',
+          type: 'business_fetch',
+          tags: {
+            'userId':
+                (ProxyService.box
+                    .getUserId()
+                    ?.toString()
+                    .hashCode
+                    .toString()) ??
+                'unknown',
+            'method': 'getProduct',
+            'branchId': branchId,
+            'businessId': businessId,
+            'id': id ?? 'null',
+            'barCode': barCode ?? 'null',
+            'name': name ?? 'null',
+          },
+        );
+      }
+
+      final ditto = dittoService.dittoInstance;
+      if (ditto == null) {
+        talker.error('Ditto not initialized:19');
+        return null;
+      }
+
+      /// a work around to first register to whole data instead of subset
+      /// this is because after test on new device, it can't pull data using complex query
+      /// there is open issue on ditto https://support.ditto.live/hc/en-us/requests/2648?page=1
+      ///
+      ditto.sync.registerSubscription(
+        "SELECT * FROM products WHERE branchId = :branchId",
+        arguments: {'branchId': branchId},
+      );
+      ditto.store.registerObserver(
+        "SELECT * FROM products WHERE branchId = :branchId",
+        arguments: {'branchId': branchId},
+      );
+      // Workaround for initial sync
+      ditto.sync.registerSubscription(
+        "SELECT * FROM products WHERE branchId = :branchId AND businessId = :businessId",
+        arguments: {'branchId': branchId, 'businessId': businessId},
+      );
+      ditto.store.registerObserver(
+        "SELECT * FROM products WHERE branchId = :branchId AND businessId = :businessId",
+        arguments: {'branchId': branchId, 'businessId': businessId},
+      );
+
+      final List<String> whereClauses = [
+        'branchId = :branchId',
+        'businessId = :businessId',
+      ];
+      final Map<String, dynamic> arguments = {
+        'branchId': branchId,
+        'businessId': businessId,
+      };
+
+      if (id != null) {
+        whereClauses.add('id = :id');
+        arguments['id'] = id;
+      }
+      if (barCode != null) {
+        whereClauses.add('barCode = :barCode');
+        arguments['barCode'] = barCode;
+      }
+      if (name != null) {
+        whereClauses.add('name = :name');
+        arguments['name'] = name;
+      }
+
+      final query =
+          "SELECT * FROM products WHERE ${whereClauses.join(' AND ')}";
+
+      await ditto.sync.registerSubscription(query, arguments: arguments);
+
+      final completer = Completer<Product?>();
+      final observer = ditto.store.registerObserver(
+        query,
+        arguments: arguments,
+        onChange: (result) {
+          if (!completer.isCompleted) {
+            if (result.items.isNotEmpty) {
+              completer.complete(
+                Product.fromJson(
+                  Map<String, dynamic>.from(result.items.first.value),
+                ),
+              );
+            } else {
+              // We don't complete with null immediately to allow sync to catch up
+              // unless we want to timeout.
+            }
+          }
+        },
+      );
+
+      try {
+        return await completer.future.timeout(
+          const Duration(seconds: 10),
+          onTimeout: () {
+            if (!completer.isCompleted) {
+              completer.complete(null);
+            }
+            return null;
+          },
+        );
+      } finally {
+        observer.cancel();
+      }
+    } catch (e, st) {
+      talker.error('Error in getProduct: $e\n$st');
+      return null;
+    }
   }
 
   @override
-  FutureOr<SKU> getSku(
-      {required String branchId, required String businessId}) async {
+  FutureOr<SKU> getSku({
+    required String branchId,
+    required String businessId,
+  }) async {
     throw UnimplementedError('getSku needs to be implemented for Capella');
   }
 
@@ -107,23 +230,26 @@ mixin CapellaProductMixin implements ProductInterface {
     String? itemCd,
   }) async {
     throw UnimplementedError(
-        'createProduct needs to be implemented for Capella');
+      'createProduct needs to be implemented for Capella',
+    );
   }
 
   @override
-  FutureOr<void> updateProduct(
-      {String? productId,
-      String? name,
-      bool? isComposite,
-      String? unit,
-      String? color,
-      required String branchId,
-      required String businessId,
-      String? imageUrl,
-      String? expiryDate,
-      String? categoryId}) {
+  FutureOr<void> updateProduct({
+    String? productId,
+    String? name,
+    bool? isComposite,
+    String? unit,
+    String? color,
+    required String branchId,
+    required String businessId,
+    String? imageUrl,
+    String? expiryDate,
+    String? categoryId,
+  }) {
     throw UnimplementedError(
-        'updateProduct needs to be implemented for Capella');
+      'updateProduct needs to be implemented for Capella',
+    );
   }
 
   @override

@@ -46,11 +46,12 @@ class TransactionItemAdder {
       );
 
       // Fetch product details
-      final product = await ProxyService.strategy.getProduct(
-        businessId: businessId,
-        id: variant.productId!,
-        branchId: branchId,
-      );
+      final product = await ProxyService.getStrategy(Strategy.capella)
+          .getProduct(
+            businessId: businessId,
+            id: variant.productId!,
+            branchId: branchId,
+          );
 
       // Only check stock if we're not in ordering mode
       if (!isOrdering) {

@@ -13,7 +13,9 @@ Future<double> StockValue(Ref ref, {required String branchId}) async {
 
     // Sum up stock values from the latest analytics records
     return analytics.fold<double>(
-        0, (sum, analytic) => sum + analytic.stockValue!);
+      0,
+      (sum, analytic) => sum + analytic.stockValue!,
+    );
   } catch (e) {
     return 0.0;
   }

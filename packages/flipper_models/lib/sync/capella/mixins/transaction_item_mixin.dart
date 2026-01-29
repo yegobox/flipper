@@ -4,6 +4,7 @@ import 'package:flipper_models/sync/interfaces/transaction_item_interface.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:flipper_web/services/ditto_service.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:talker/talker.dart';
 
 mixin CapellaTransactionItemMixin implements TransactionItemInterface {
@@ -11,20 +12,21 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
   Talker get talker;
   DittoService get dittoService => DittoService.instance;
   @override
-  Future<void> addTransactionItem(
-      {ITransaction? transaction,
-      required bool partOfComposite,
-      required bool ignoreForReport,
-      required DateTime lastTouched,
-      required double discount,
-      double? compositePrice,
-      bool? doneWithTransaction,
-      required double quantity,
-      required double currentStock,
-      Variant? variation,
-      required double amountTotal,
-      required String name,
-      TransactionItem? item}) {
+  Future<void> addTransactionItem({
+    ITransaction? transaction,
+    required bool partOfComposite,
+    required bool ignoreForReport,
+    required DateTime lastTouched,
+    required double discount,
+    double? compositePrice,
+    bool? doneWithTransaction,
+    required double quantity,
+    required double currentStock,
+    Variant? variation,
+    required double amountTotal,
+    required String name,
+    TransactionItem? item,
+  }) {
     // TODO: implement addTransactionItem
     throw UnimplementedError();
   }
@@ -161,10 +163,12 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
       ebmSynced: data['ebmSynced'],
       isRefunded: data['isRefunded'],
       ttCatCd: data['ttCatCd'],
-      createdAt:
-          data['createdAt'] != null ? DateTime.parse(data['createdAt']) : null,
-      updatedAt:
-          data['updatedAt'] != null ? DateTime.parse(data['updatedAt']) : null,
+      createdAt: data['createdAt'] != null
+          ? DateTime.parse(data['createdAt'])
+          : null,
+      updatedAt: data['updatedAt'] != null
+          ? DateTime.parse(data['updatedAt'])
+          : null,
     );
   }
 
@@ -218,15 +222,17 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
         conditions.add('createdAt >= :startDate');
         conditions.add('createdAt <= :endDate');
         arguments['startDate'] = startDate.toIso8601String();
-        arguments['endDate'] =
-            endDate.add(const Duration(days: 1)).toIso8601String();
+        arguments['endDate'] = endDate
+            .add(const Duration(days: 1))
+            .toIso8601String();
       } else if (startDate != null) {
         conditions.add('createdAt >= :startDate');
         arguments['startDate'] = startDate.toIso8601String();
       } else if (endDate != null) {
         conditions.add('createdAt <= :endDate');
-        arguments['endDate'] =
-            endDate.add(const Duration(days: 1)).toIso8601String();
+        arguments['endDate'] = endDate
+            .add(const Duration(days: 1))
+            .toIso8601String();
       }
     }
 
@@ -238,14 +244,17 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
     /// this is because after test on new device, it can't pull data using complex query
     /// there is open issue on ditto https://support.ditto.live/hc/en-us/requests/2648?page=1
     ///
-    ditto.sync.registerSubscription(
-      "SELECT * FROM transaction_items WHERE branchId = :branchId",
-      arguments: {'branchId': branchId},
-    );
-    ditto.store.registerObserver(
-      "SELECT * FROM transaction_items WHERE branchId = :branchId",
-      arguments: {'branchId': branchId},
-    );
+    final syncBranchId = branchId ?? ProxyService.box.getBranchId();
+    if (syncBranchId != null) {
+      ditto.sync.registerSubscription(
+        "SELECT * FROM transaction_items WHERE branchId = :branchId",
+        arguments: {'branchId': syncBranchId},
+      );
+      ditto.store.registerObserver(
+        "SELECT * FROM transaction_items WHERE branchId = :branchId",
+        arguments: {'branchId': syncBranchId},
+      );
+    }
     // Register subscription to sync data
     ditto.sync.registerSubscription(query, arguments: arguments);
 
@@ -279,27 +288,28 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
     return controller.stream;
   }
 
-  Future<void> updateTransactionItem(
-      {double? qty,
-      required String transactionItemId,
-      double? discount,
-      bool? active,
-      bool? ignoreForReport,
-      double? taxAmt,
-      int? quantityApproved,
-      int? quantityRequested,
-      bool? ebmSynced,
-      bool? isRefunded,
-      bool? incrementQty,
-      double? price,
-      double? prc,
-      double? splyAmt,
-      bool? doneWithTransaction,
-      int? quantityShipped,
-      double? taxblAmt,
-      double? totAmt,
-      double? dcRt,
-      double? dcAmt}) async {
+  Future<void> updateTransactionItem({
+    double? qty,
+    required String transactionItemId,
+    double? discount,
+    bool? active,
+    bool? ignoreForReport,
+    double? taxAmt,
+    int? quantityApproved,
+    int? quantityRequested,
+    bool? ebmSynced,
+    bool? isRefunded,
+    bool? incrementQty,
+    double? price,
+    double? prc,
+    double? splyAmt,
+    bool? doneWithTransaction,
+    int? quantityShipped,
+    double? taxblAmt,
+    double? totAmt,
+    double? dcRt,
+    double? dcAmt,
+  }) async {
     try {
       final ditto = dittoService.dittoInstance;
       if (ditto == null) {
@@ -330,9 +340,11 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
       updates['updatedAt'] = DateTime.now().toIso8601String();
 
       final setClause = updates.keys
-          .map((key) => key == 'qty' && incrementQty == true
-              ? '$key = $key + :qty'
-              : '$key = :$key')
+          .map(
+            (key) => key == 'qty' && incrementQty == true
+                ? '$key = $key + :qty'
+                : '$key = :$key',
+          )
           .join(', ');
 
       final query =
