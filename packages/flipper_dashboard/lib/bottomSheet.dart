@@ -1013,9 +1013,12 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
             .toList(),
         PaymentMethodsCard(
           transactionId: widget.transactionIdInt,
-          totalPayable: calculateTransactionTotal(
-            items: items,
-            transaction: transaction,
+          totalPayable: calculateRemainingBalance(
+            total: calculateTransactionTotal(
+              items: items,
+              transaction: transaction,
+            ),
+            paid: transaction.cashReceived ?? 0.0,
           ),
         ),
       ],
