@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_contacts/flutter_contacts.dart';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_services/momo_ussd_service.dart';
 
 /// A button that opens the device's contact picker and returns the selected phone number
 class ContactPickerButton extends StatelessWidget {
@@ -40,9 +41,12 @@ class ContactPickerButton extends StatelessWidget {
           );
 
           if (fullContact != null && fullContact.phones.isNotEmpty) {
-            // Get the first phone number
-            final phone = fullContact.phones.first.number;
-            onPhoneSelected(phone);
+            // Get the first phone number and normalize it
+            final rawPhone = fullContact.phones.first.number;
+            // Normalize phone number to remove country codes, spaces, and special characters
+            // This converts numbers like "+2507830 54 874" to "0783054874"
+            final normalizedPhone = MomoUssdService.cleanPhoneNumber(rawPhone);
+            onPhoneSelected(normalizedPhone);
             HapticFeedback.lightImpact();
           } else {
             if (context.mounted) {

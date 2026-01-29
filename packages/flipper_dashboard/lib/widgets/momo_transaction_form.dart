@@ -93,35 +93,71 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Header
-              Row(
-                children: [
-                  Icon(
-                    Icons.phone_android,
-                    color: isIncome ? Colors.green : const Color(0xFFFF0331),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    isIncome ? 'MoMo Cash In' : 'MoMo Cash Out',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: isIncome ? Colors.green : const Color(0xFFFF0331),
-                      fontWeight: FontWeight.bold,
+              // Header with Icon and Title
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: (isIncome ? Colors.green : const Color(0xFFFF0331))
+                      .withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: isIncome
+                            ? Colors.green
+                            : const Color(0xFFFF0331),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(
+                        Icons.phone_android,
+                        color: Colors.white,
+                        size: 28,
+                      ),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            isIncome ? 'MoMo Cash In' : 'MoMo Cash Out',
+                            style: Theme.of(context).textTheme.titleLarge
+                                ?.copyWith(
+                                  color: isIncome
+                                      ? Colors.green
+                                      : const Color(0xFFFF0331),
+                                  fontWeight: FontWeight.bold,
+                                ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            isIncome
+                                ? 'Receive money via MTN MoMo'
+                                : 'Send money via MTN MoMo',
+                            style: Theme.of(context).textTheme.bodySmall
+                                ?.copyWith(color: Colors.black54),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 24),
 
               // Payment Type Selector
               _buildPaymentTypeSelector(),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
 
               // Phone Number or MoMo Code Input
               if (_paymentType == MomoPaymentType.phoneNumber)
                 _buildPhoneNumberField()
               else
                 _buildMomoCodeField(),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
 
               // Amount field
               TextFormField(
@@ -130,9 +166,13 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
                   labelText: 'Amount',
                   prefixText: '${ProxyService.box.defaultCurrency()} ',
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(12),
                   ),
+                  filled: true,
+                  fillColor: Colors.grey.shade50,
                   prefixIcon: const Icon(Icons.attach_money),
+                  helperText:
+                      'Enter the amount to ${isIncome ? "receive" : "send"}',
                 ),
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
@@ -152,25 +192,46 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
                   }
                   return null;
                 },
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
 
               // Category selector
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    isIncome ? 'Cash in for' : 'Cash out for',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: Colors.black54,
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey.shade300),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          isIncome ? 'Cash in for' : 'Cash out for',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.black54,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          'Select category',
+                          style: TextStyle(fontSize: 12, color: Colors.black38),
+                        ),
+                      ],
                     ),
-                  ),
-                  const CategorySelector.transactionMode(),
-                ],
+                    const CategorySelector.transactionMode(),
+                  ],
+                ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
 
               // Description field
               TextFormField(
@@ -178,14 +239,17 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
                 decoration: InputDecoration(
                   labelText: 'Description (Optional)',
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(12),
                   ),
+                  filled: true,
+                  fillColor: Colors.grey.shade50,
                   prefixIcon: const Icon(Icons.notes),
+                  helperText: 'Add any additional notes about this transaction',
                 ),
                 maxLines: 2,
               ),
 
-              const SizedBox(height: 16),
+              const SizedBox(height: 20),
 
               // USSD Preview (for user reference)
               ValueListenableBuilder<String>(
@@ -196,7 +260,37 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
                       : const SizedBox.shrink();
                 },
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 24),
+
+              // Info banner
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue.shade50,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.blue.shade200),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.info_outline,
+                      color: Colors.blue.shade700,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        'The USSD code will be dialed automatically. Confirm the transaction on your phone.',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.blue.shade900,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 24),
 
               // Action buttons
               Row(
@@ -206,9 +300,18 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
                       onPressed: _isBusy ? null : widget.onCancel,
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 16),
-                        side: BorderSide(color: colorScheme.primary),
+                        side: BorderSide(
+                          color: colorScheme.primary,
+                          width: 1.5,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
-                      child: const Text('Cancel'),
+                      child: const Text(
+                        'Cancel',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -217,21 +320,33 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
                     child: ElevatedButton.icon(
                       onPressed: _isBusy ? null : _handleDialAndSave,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: colorScheme.primary,
-                        foregroundColor: colorScheme.onPrimary,
+                        backgroundColor: isIncome
+                            ? Colors.green
+                            : const Color(0xFFFF0331),
+                        foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 16),
+                        elevation: 2,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                       icon: _isBusy
                           ? const SizedBox(
                               height: 20,
                               width: 20,
                               child: CircularProgressIndicator(
-                                strokeWidth: 2,
+                                strokeWidth: 2.5,
                                 color: Colors.white,
                               ),
                             )
-                          : const Icon(Icons.phone),
-                      label: Text(_isBusy ? 'Processing...' : 'Dial & Save'),
+                          : const Icon(Icons.phone, size: 22),
+                      label: Text(
+                        _isBusy ? 'Processing...' : 'Dial & Save',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -322,13 +437,19 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
     return TextFormField(
       controller: _phoneController,
       decoration: InputDecoration(
-        labelText: 'Phone Number',
+        labelText: 'Recipient Phone Number',
         hintText: '0788 123 456',
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+        helperText: 'MTN or Airtel number',
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        filled: true,
+        fillColor: Colors.grey.shade50,
         prefixIcon: const Icon(Icons.phone),
         suffixIcon: ContactPickerButton(
           onPhoneSelected: (phone) {
-            _phoneController.text = phone;
+            setState(() {
+              _phoneController.text = phone;
+            });
+            HapticFeedback.lightImpact();
           },
         ),
       ),
@@ -341,7 +462,7 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
           return 'Please enter a phone number';
         }
         if (!MomoUssdService.isValidPhoneNumber(value)) {
-          return 'Please enter a valid Rwandan phone number';
+          return 'Please enter a valid Rwandan phone number (07x or 08x)';
         }
         return null;
       },
@@ -352,9 +473,12 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
     return TextFormField(
       controller: _momoCodeController,
       decoration: InputDecoration(
-        labelText: 'MoMo Code',
-        hintText: 'Enter the payment code',
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+        labelText: 'MoMo Payment Code',
+        hintText: 'Enter code from recipient',
+        helperText: 'Usually 6-10 digits',
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        filled: true,
+        fillColor: Colors.grey.shade50,
         prefixIcon: const Icon(Icons.qr_code),
       ),
       keyboardType: TextInputType.number,
@@ -364,7 +488,7 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
           return 'Please enter a MoMo code';
         }
         if (!MomoUssdService.isValidMomoCode(value)) {
-          return 'Please enter a valid MoMo code (6-10 digits)';
+          return 'Code must be 6-10 digits';
         }
         return null;
       },
@@ -394,37 +518,93 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
     if (ussdCode.isEmpty) return const SizedBox.shrink();
 
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade300),
+        gradient: LinearGradient(
+          colors: [
+            const Color(0xFFFFCC00).withValues(alpha: 0.1),
+            const Color(0xFFFFCC00).withValues(alpha: 0.05),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFFFCC00), width: 1.5),
       ),
-      child: Row(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.dialpad, size: 20, color: Colors.grey),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFFCC00),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: const Icon(
+                  Icons.dialpad,
+                  size: 20,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Text(
+                  'USSD Code Preview',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.black87,
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.copy, size: 20),
+                tooltip: 'Copy to clipboard',
+                style: IconButton.styleFrom(
+                  backgroundColor: const Color(
+                    0xFFFFCC00,
+                  ).withValues(alpha: 0.2),
+                ),
+                onPressed: () {
+                  Clipboard.setData(ClipboardData(text: ussdCode));
+                  HapticFeedback.lightImpact();
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: const Row(
+                        children: [
+                          Icon(Icons.check_circle, color: Colors.white),
+                          SizedBox(width: 8),
+                          Text('USSD code copied!'),
+                        ],
+                      ),
+                      backgroundColor: Colors.green,
+                      behavior: SnackBarBehavior.floating,
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: SelectableText(
               ussdCode,
               style: const TextStyle(
                 fontFamily: 'monospace',
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
+                color: Colors.black87,
+                letterSpacing: 1.2,
               ),
             ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.copy, size: 20),
-            tooltip: 'Copy to clipboard',
-            onPressed: () {
-              Clipboard.setData(ClipboardData(text: ussdCode));
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('USSD code copied to clipboard'),
-                  duration: Duration(seconds: 1),
-                ),
-              );
-            },
           ),
         ],
       ),
