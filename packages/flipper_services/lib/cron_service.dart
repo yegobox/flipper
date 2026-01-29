@@ -545,7 +545,7 @@ class CronService {
     );
     // Setup auto-complete MoMo transactions timer (every 10 minutes)
     _activeTimers.add(
-      Timer.periodic(const Duration(minutes: 10), (Timer t) async {
+      Timer.periodic(const Duration(minutes: 1), (Timer t) async {
         await _autoCompleteMomoTransactions();
       }),
     );
@@ -783,6 +783,9 @@ class CronService {
       final momoTransactions = await ProxyService.strategy.transactions(
         branchId: branchId,
         status: WAITING_MOMO_COMPLETE,
+        isExpense: null,
+        skipOriginalTransactionCheck: true,
+        includeZeroSubTotal: true,
       );
 
       if (momoTransactions.isEmpty) {
@@ -802,7 +805,7 @@ class CronService {
           final difference = now.difference(transaction.createdAt!);
           final waitingMinutes = difference.inMinutes;
 
-          if (waitingMinutes >= 10) {
+          if (waitingMinutes >= 1) {
             talker.info(
               "Auto-completing MoMo transaction: ${transaction.id} "
               "(Initiated at: ${transaction.createdAt}, waited: $waitingMinutes minutes)",

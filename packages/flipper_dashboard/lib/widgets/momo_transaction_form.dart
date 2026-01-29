@@ -170,7 +170,6 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
                   ),
                   filled: true,
                   fillColor: Colors.grey.shade50,
-                  prefixIcon: const Icon(Icons.attach_money),
                   helperText:
                       'Enter the amount to ${isIncome ? "receive" : "send"}',
                 ),

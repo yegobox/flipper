@@ -32,12 +32,14 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     required bool skipOriginalTransactionCheck,
   }) {
     if (!forceRealData) {
-      return Stream.value(DummyTransactionGenerator.generateDummyTransactions(
-        count: 100,
-        branchId: branchId ?? "1",
-        status: status,
-        transactionType: transactionType,
-      ));
+      return Stream.value(
+        DummyTransactionGenerator.generateDummyTransactions(
+          count: 100,
+          branchId: branchId ?? "1",
+          status: status,
+          transactionType: transactionType,
+        ),
+      );
     }
 
     try {
@@ -66,7 +68,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       arguments['agentId'] = agentId;
       if (includePending && includeParked) {
         whereClauses.add(
-            '(status = :status OR status = :pendingStatus OR status = :parkedStatus OR status = :waitingMomoStatus)');
+          '(status = :status OR status = :pendingStatus OR status = :parkedStatus OR status = :waitingMomoStatus)',
+        );
         arguments['status'] = status ?? COMPLETE;
         arguments['pendingStatus'] = PENDING;
         arguments['parkedStatus'] = PARKED;
@@ -79,7 +82,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       } else if (includeParked) {
         // Include both COMPLETE and PARKED statuses
         whereClauses.add(
-            '(status = :status OR status = :parkedStatus OR status = :waitingMomoStatus)');
+          '(status = :status OR status = :parkedStatus OR status = :waitingMomoStatus)',
+        );
         arguments['status'] = status ?? COMPLETE;
         arguments['parkedStatus'] = PARKED;
         arguments['waitingMomoStatus'] = WAITING_MOMO_COMPLETE;
@@ -136,22 +140,43 @@ mixin CapellaTransactionMixin implements TransactionInterface {
 
       // Date filtering
       if (startDate != null && endDate != null) {
-        final localStartDate =
-            DateTime(startDate.year, startDate.month, startDate.day);
-        final localEndDate =
-            DateTime(endDate.year, endDate.month, endDate.day, 23, 59, 59, 999);
-        whereClauses
-            .add('lastTouched >= :startDate AND lastTouched <= :endDate');
+        final localStartDate = DateTime(
+          startDate.year,
+          startDate.month,
+          startDate.day,
+        );
+        final localEndDate = DateTime(
+          endDate.year,
+          endDate.month,
+          endDate.day,
+          23,
+          59,
+          59,
+          999,
+        );
+        whereClauses.add(
+          'lastTouched >= :startDate AND lastTouched <= :endDate',
+        );
         arguments['startDate'] = localStartDate.toIso8601String();
         arguments['endDate'] = localEndDate.toIso8601String();
       } else if (startDate != null) {
-        final localStartDate =
-            DateTime(startDate.year, startDate.month, startDate.day);
+        final localStartDate = DateTime(
+          startDate.year,
+          startDate.month,
+          startDate.day,
+        );
         whereClauses.add('lastTouched >= :startDate');
         arguments['startDate'] = localStartDate.toIso8601String();
       } else if (endDate != null) {
-        final localEndDate =
-            DateTime(endDate.year, endDate.month, endDate.day, 23, 59, 59, 999);
+        final localEndDate = DateTime(
+          endDate.year,
+          endDate.month,
+          endDate.day,
+          23,
+          59,
+          59,
+          999,
+        );
         whereClauses.add('lastTouched <= :endDate');
         arguments['endDate'] = localEndDate.toIso8601String();
       }
@@ -184,7 +209,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
           }
 
           talker.info(
-              'Capella Transaction stream returned: ${transactions.length} records');
+            'Capella Transaction stream returned: ${transactions.length} records',
+          );
           controller.add(transactions);
         },
       );
@@ -305,7 +331,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     bool fetchRemote = false,
     FilterType? filterType,
     String? branchId,
-    bool isExpense = false,
+    bool? isExpense,
     bool forceRealData = true,
     bool includeZeroSubTotal = false,
     bool includePending = false,
@@ -352,7 +378,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         // Status filter - conditional based on includePending
         if (includePending && includeParked) {
           whereClauses.add(
-              '(status = :status OR status = :pendingStatus OR status = :parkedStatus OR status = :waitingMomoStatus)');
+            '(status = :status OR status = :pendingStatus OR status = :parkedStatus OR status = :waitingMomoStatus)',
+          );
           arguments['status'] = status ?? COMPLETE;
           arguments['pendingStatus'] = PENDING;
           arguments['parkedStatus'] = PARKED;
@@ -363,7 +390,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
           arguments['pendingStatus'] = PENDING;
         } else if (includeParked) {
           whereClauses.add(
-              '(status = :status OR status = :parkedStatus OR status = :waitingMomoStatus)');
+            '(status = :status OR status = :parkedStatus OR status = :waitingMomoStatus)',
+          );
           arguments['status'] = status ?? COMPLETE;
           arguments['parkedStatus'] = PARKED;
           arguments['waitingMomoStatus'] = WAITING_MOMO_COMPLETE;
@@ -390,7 +418,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         }
 
         // Cash out / expense filter
-        if (isCashOut || isExpense) {
+        if (isCashOut || (isExpense ?? false)) {
           whereClauses.add('isExpense = :isExpense');
           arguments['isExpense'] = true;
         }
@@ -434,7 +462,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
 
           // Match either invoiceNumber OR receiptNumber
           whereClauses.add(
-              '(invoiceNumber IN ($invoicePlaceholders) OR receiptNumber IN ($receiptPlaceholders))');
+            '(invoiceNumber IN ($invoicePlaceholders) OR receiptNumber IN ($receiptPlaceholders))',
+          );
 
           // Bind values for both placeholders
           for (var i = 0; i < receiptNumber.length; i++) {
@@ -445,22 +474,43 @@ mixin CapellaTransactionMixin implements TransactionInterface {
 
         // Date filtering
         if (startDate != null && endDate != null) {
-          final localStartDate =
-              DateTime(startDate.year, startDate.month, startDate.day);
+          final localStartDate = DateTime(
+            startDate.year,
+            startDate.month,
+            startDate.day,
+          );
           final localEndDate = DateTime(
-              endDate.year, endDate.month, endDate.day, 23, 59, 59, 999);
-          whereClauses
-              .add('lastTouched >= :startDate AND lastTouched <= :endDate');
+            endDate.year,
+            endDate.month,
+            endDate.day,
+            23,
+            59,
+            59,
+            999,
+          );
+          whereClauses.add(
+            'lastTouched >= :startDate AND lastTouched <= :endDate',
+          );
           arguments['startDate'] = localStartDate.toIso8601String();
           arguments['endDate'] = localEndDate.toIso8601String();
         } else if (startDate != null) {
-          final localStartDate =
-              DateTime(startDate.year, startDate.month, startDate.day);
+          final localStartDate = DateTime(
+            startDate.year,
+            startDate.month,
+            startDate.day,
+          );
           whereClauses.add('lastTouched >= :startDate');
           arguments['startDate'] = localStartDate.toIso8601String();
         } else if (endDate != null) {
           final localEndDate = DateTime(
-              endDate.year, endDate.month, endDate.day, 23, 59, 59, 999);
+            endDate.year,
+            endDate.month,
+            endDate.day,
+            23,
+            59,
+            59,
+            999,
+          );
           whereClauses.add('lastTouched <= :endDate');
           arguments['endDate'] = localEndDate.toIso8601String();
         }
@@ -492,7 +542,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       }
 
       talker.info(
-          'Capella transactions() returned: ${transactions.length} records');
+        'Capella transactions() returned: ${transactions.length} records',
+      );
       return transactions;
     } catch (e, stackTrace) {
       talker.error('Error in transactions(): $e', stackTrace);
@@ -503,7 +554,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
   @override
   FutureOr<void> addTransaction({required ITransaction transaction}) {
     throw UnimplementedError(
-        'addTransaction needs to be implemented for Capella');
+      'addTransaction needs to be implemented for Capella',
+    );
   }
 
   @override
@@ -522,7 +574,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
   @override
   FutureOr<Configurations?> getByTaxType({required String taxtype}) async {
     throw UnimplementedError(
-        'getByTaxType needs to be implemented for Capella');
+      'getByTaxType needs to be implemented for Capella',
+    );
   }
 
   @override
@@ -535,7 +588,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     bool includeSubTotalCheck = false,
   }) async {
     throw UnimplementedError(
-        'manageTransaction needs to be implemented for Capella');
+      'manageTransaction needs to be implemented for Capella',
+    );
   }
 
   @override
@@ -546,14 +600,17 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     bool includeSubTotalCheck = false,
   }) {
     throw UnimplementedError(
-        'manageTransactionStream needs to be implemented for Capella');
+      'manageTransactionStream needs to be implemented for Capella',
+    );
   }
 
   @override
-  FutureOr<void> removeCustomerFromTransaction(
-      {required ITransaction transaction}) async {
+  FutureOr<void> removeCustomerFromTransaction({
+    required ITransaction transaction,
+  }) async {
     throw UnimplementedError(
-        'removeCustomerFromTransaction needs to be implemented for Capella');
+      'removeCustomerFromTransaction needs to be implemented for Capella',
+    );
   }
 
   @override
@@ -574,37 +631,42 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     TransactionItem? item,
   }) {
     throw UnimplementedError(
-        'assignTransaction needs to be implemented for Capella');
+      'assignTransaction needs to be implemented for Capella',
+    );
   }
 
   @override
-  Future<bool> saveTransactionItem(
-      {double? compositePrice,
-      bool? ignoreForReport,
-      double? updatableQty,
-      required Variant variation,
-      required bool doneWithTransaction,
-      required double amountTotal,
-      required bool customItem,
-      required ITransaction pendingTransaction,
-      int? invoiceNumber,
-      required double currentStock,
-      bool useTransactionItemForQty = false,
-      required bool partOfComposite,
-      TransactionItem? item,
-      String? sarTyCd}) {
+  Future<bool> saveTransactionItem({
+    double? compositePrice,
+    bool? ignoreForReport,
+    double? updatableQty,
+    required Variant variation,
+    required bool doneWithTransaction,
+    required double amountTotal,
+    required bool customItem,
+    required ITransaction pendingTransaction,
+    int? invoiceNumber,
+    required double currentStock,
+    bool useTransactionItemForQty = false,
+    required bool partOfComposite,
+    TransactionItem? item,
+    String? sarTyCd,
+  }) {
     throw UnimplementedError(
-        'saveTransaction needs to be implemented for Capella');
+      'saveTransaction needs to be implemented for Capella',
+    );
   }
 
   @override
-  Future<void> markItemAsDoneWithTransaction(
-      {required List<TransactionItem> inactiveItems,
-      bool? ignoreForReport,
-      required ITransaction pendingTransaction,
-      bool isDoneWithTransaction = false}) {
+  Future<void> markItemAsDoneWithTransaction({
+    required List<TransactionItem> inactiveItems,
+    bool? ignoreForReport,
+    required ITransaction pendingTransaction,
+    bool isDoneWithTransaction = false,
+  }) {
     throw UnimplementedError(
-        'markItemAsDoneWithTransaction needs to be implemented for Capella');
+      'markItemAsDoneWithTransaction needs to be implemented for Capella',
+    );
   }
 
   /// Updates a transaction with the provided details.
@@ -674,9 +736,13 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     addUpdate('status', status ?? transaction?.status);
     addUpdate('subTotal', subTotal ?? transaction?.subTotal);
     addUpdate(
-        'updatedAt', updatedAt ?? transaction?.updatedAt ?? DateTime.now());
-    addUpdate('lastTouched',
-        lastTouched ?? transaction?.lastTouched ?? DateTime.now());
+      'updatedAt',
+      updatedAt ?? transaction?.updatedAt ?? DateTime.now(),
+    );
+    addUpdate(
+      'lastTouched',
+      lastTouched ?? transaction?.lastTouched ?? DateTime.now(),
+    );
     addUpdate('cashReceived', cashReceived ?? transaction?.cashReceived);
     addUpdate('customerPhone', customerPhone ?? transaction?.customerPhone);
     addUpdate('note', note ?? transaction?.note);
@@ -717,8 +783,9 @@ mixin CapellaTransactionMixin implements TransactionInterface {
 
     try {
       await ditto.store.execute(query, arguments: arguments);
-      talker
-          .info('Updated transaction $targetId with ${updates.length} fields');
+      talker.info(
+        'Updated transaction $targetId with ${updates.length} fields',
+      );
     } catch (e) {
       talker.error('Error updating transaction: $e');
       rethrow;
@@ -726,13 +793,15 @@ mixin CapellaTransactionMixin implements TransactionInterface {
   }
 
   @override
-  Future<ITransaction?> getTransaction(
-      {String? sarNo,
-      required String branchId,
-      String? id,
-      bool awaitRemote = false}) {
+  Future<ITransaction?> getTransaction({
+    String? sarNo,
+    required String branchId,
+    String? id,
+    bool awaitRemote = false,
+  }) {
     throw UnimplementedError(
-        'getTransaction needs to be implemented for Capella');
+      'getTransaction needs to be implemented for Capella',
+    );
   }
 
   @override
@@ -748,12 +817,14 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       if (transaction.ticketName != null &&
           transaction.ticketName!.isNotEmpty) {
         talker.warning(
-            'Attempted to delete a parked transaction (ticket): ${transaction.id}');
+          'Attempted to delete a parked transaction (ticket): ${transaction.id}',
+        );
         return false;
       }
       if ((transaction.cashReceived ?? 0) > 0) {
         talker.warning(
-            'Attempted to delete a transaction with partial payments: ${transaction.id}');
+          'Attempted to delete a transaction with partial payments: ${transaction.id}',
+        );
         return false;
       }
 
@@ -770,7 +841,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       );
 
       talker.info(
-          'Successfully deleted transaction and items: ${transaction.id}');
+        'Successfully deleted transaction and items: ${transaction.id}',
+      );
       return true;
     } catch (e) {
       talker.error('Error deleting transaction: $e');
@@ -785,13 +857,15 @@ mixin CapellaTransactionMixin implements TransactionInterface {
   }
 
   @override
-  Future<ITransaction?> pendingTransactionFuture(
-      {String? branchId,
-      required String transactionType,
-      bool forceRealData = true,
-      required bool isExpense}) {
+  Future<ITransaction?> pendingTransactionFuture({
+    String? branchId,
+    required String transactionType,
+    bool forceRealData = true,
+    required bool isExpense,
+  }) {
     throw UnimplementedError(
-        'pendingTransactionFuture needs to be implemented for Capella');
+      'pendingTransactionFuture needs to be implemented for Capella',
+    );
   }
 
   @override
@@ -804,7 +878,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     bool isCashOut = false,
     bool fetchRemote = false,
     String? id,
-    bool isExpense = false,
+    bool? isExpense,
     FilterType? filterType,
     bool includeZeroSubTotal = false,
     bool includePending = false,
@@ -812,7 +886,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     bool skipOriginalTransactionCheck = false,
   }) async {
     throw UnimplementedError(
-        'transactions needs to be implemented for Capella');
+      'transactions needs to be implemented for Capella',
+    );
   }
 
   @override
@@ -836,8 +911,10 @@ mixin CapellaTransactionMixin implements TransactionInterface {
           'SELECT * FROM transaction_payment_records WHERE transactionId = :transactionId';
       final arguments = {'transactionId': transactionId};
 
-      final queryResult =
-          await ditto.store.execute(query, arguments: arguments);
+      final queryResult = await ditto.store.execute(
+        query,
+        arguments: arguments,
+      );
 
       if (queryResult.items.isEmpty) {
         return 0.0;
@@ -892,7 +969,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     bool forceRealData = true,
   }) {
     throw UnimplementedError(
-        'pendingTransaction needs to be implemented for Capella');
+      'pendingTransaction needs to be implemented for Capella',
+    );
   }
 
   @override
