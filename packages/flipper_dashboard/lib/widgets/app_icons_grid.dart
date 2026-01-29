@@ -158,7 +158,7 @@ class AppIconsGrid extends ConsumerWidget {
         crossAxisCount: isBigScreen ? 6 : 3,
         crossAxisSpacing: 16,
         mainAxisSpacing: 16,
-        childAspectRatio: 0.85,
+        childAspectRatio: 0.75,
       ),
       padding: const EdgeInsets.symmetric(horizontal: 16),
       shrinkWrap: true,
