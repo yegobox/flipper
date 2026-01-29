@@ -304,37 +304,91 @@ Widget _buildModernTransactionList({
           ),
           child: Row(
             children: [
-              Icon(
-                Icons.receipt_long_outlined,
-                color: const Color(0xFF0077C5), // QuickBooks blue
-                size: 24,
-              ),
-              const SizedBox(width: 12),
-              Text(
-                'Recent Transactions',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: Color(0xFF1A1A1A),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      const Color(0xFF0078D4), // Microsoft Blue
+                      const Color(0xFF106EBE),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF0078D4).withValues(alpha: 0.2),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: const Icon(
+                  Icons.receipt_long_outlined,
+                  color: Colors.white,
+                  size: 20,
                 ),
               ),
-              const Spacer(),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text(
+                      'Recent Transactions',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF1F1F1F),
+                        letterSpacing: -0.3,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      'Last 30 days',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                        color: const Color(0xFF605E5C),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
+                  horizontal: 14,
+                  vertical: 8,
                 ),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF0077C5).withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(16),
+                  color: const Color(
+                    0xFFF3F2F1,
+                  ), // Microsoft neutral background
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: const Color(0xFFE1DFDD), width: 1),
                 ),
-                child: Text(
-                  '${transactions.length}',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF0077C5),
-                  ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFF0078D4),
+                        shape: BoxShape.circle,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      '${transactions.length}',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF323130),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
