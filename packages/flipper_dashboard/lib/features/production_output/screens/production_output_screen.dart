@@ -10,6 +10,7 @@ import '../widgets/work_order_table.dart';
 import '../widgets/work_order_form.dart';
 import '../widgets/variance_reason_dialog.dart';
 import '../widgets/work_order_bottom_sheet.dart';
+import 'package:flipper_ui/dialogs/WorkOrderDetailsDialog.dart';
 
 /// Main screen for Production Output feature
 ///
@@ -422,29 +423,12 @@ class _ProductionOutputScreenState
   }
 
   void _showWorkOrderDetails(dynamic workOrder) {
-    showDialog(
+    showWorkOrderDetailsDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Work Order: ${workOrder.variantName ?? 'Unknown'}'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('ID: ${workOrder.id.substring(0, 8)}'),
-            Text('Planned: ${workOrder.plannedQuantity.toStringAsFixed(0)}'),
-            Text('Actual: ${workOrder.actualQuantity.toStringAsFixed(0)}'),
-            Text('Variance: ${workOrder.variance.toStringAsFixed(0)}'),
-            Text('Efficiency: ${workOrder.efficiency.toStringAsFixed(1)}%'),
-            Text('Status: ${workOrder.status}'),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Close'),
-          ),
-        ],
-      ),
+      workOrder: workOrder,
+      onStart: () => _startWorkOrder(workOrder),
+      onRecordOutput: () => _showRecordOutputDialog(workOrder),
+      onComplete: () => _completeWorkOrder(workOrder),
     );
   }
 
