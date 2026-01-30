@@ -20,6 +20,7 @@ import 'package:flipper_models/sync/mixins/delegation_mixin.dart';
 import 'package:flipper_models/sync/mixins/delete_mixin.dart';
 import 'package:flipper_models/sync/mixins/ebm_mixin.dart';
 import 'package:flipper_models/sync/mixins/log_mixin.dart';
+import 'package:flipper_models/sync/mixins/production_output_mixin.dart';
 import 'package:flipper_models/sync/mixins/shift_mixin.dart';
 import 'package:flipper_models/sync/mixins/product_mixin.dart';
 
@@ -92,6 +93,7 @@ class CoreSync extends AiStrategyImpl
         CategoryMixin,
         CounterMixin,
         DelegationMixin,
+        ProductionOutputMixin,
         DiscountMixin
     implements DatabaseSyncInterface {
   final String apihub = AppSecrets.apihubProd;
@@ -4107,99 +4109,8 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Future<dynamic> createWorkOrder({
-    required String branchId,
-    required String businessId,
-    required String variantId,
-    required double plannedQuantity,
-    required DateTime targetDate,
-    String? shiftId,
-    String? notes,
-  }) {
-    // TODO: implement createWorkOrder
-    throw UnimplementedError();
-  }
-
-  @override
   Future<void> deleteWorkOrder({required String workOrderId}) {
     // TODO: implement deleteWorkOrder
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<List<dynamic>> getActualOutputs({
-    required String branchId,
-    DateTime? startDate,
-    DateTime? endDate,
-    String? workOrderId,
-  }) {
-    // TODO: implement getActualOutputs
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<Map<String, dynamic>> getVarianceSummary({
-    required String branchId,
-    required DateTime startDate,
-    required DateTime endDate,
-  }) {
-    // TODO: implement getVarianceSummary
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<List<dynamic>> getWorkOrders({
-    required String branchId,
-    DateTime? startDate,
-    DateTime? endDate,
-    String? status,
-  }) {
-    // TODO: implement getWorkOrders
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<dynamic> recordActualOutput({
-    required String workOrderId,
-    required String branchId,
-    required double actualQuantity,
-    required String userId,
-    String? varianceReason,
-    String? notes,
-  }) {
-    // TODO: implement recordActualOutput
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> updateActualOutput({
-    required String outputId,
-    double? actualQuantity,
-    String? varianceReason,
-    String? notes,
-  }) {
-    // TODO: implement updateActualOutput
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> updateWorkOrder({
-    required String workOrderId,
-    double? plannedQuantity,
-    String? status,
-    String? notes,
-  }) {
-    // TODO: implement updateWorkOrder
-    throw UnimplementedError();
-  }
-
-  @override
-  Stream<List<dynamic>> workOrdersStream({
-    required String branchId,
-    DateTime? startDate,
-    DateTime? endDate,
-  }) {
-    // TODO: implement workOrdersStream
     throw UnimplementedError();
   }
 }
