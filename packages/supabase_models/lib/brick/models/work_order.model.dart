@@ -162,6 +162,16 @@ class WorkOrder extends OfflineFirstWithSupabaseModel {
           : json['created_at'] != null
               ? DateTime.parse(json['created_at'] as String)
               : null,
+      startedAt: json['startedAt'] != null
+          ? DateTime.parse(json['startedAt'] as String)
+          : json['started_at'] != null
+              ? DateTime.parse(json['started_at'] as String)
+              : null,
+      completedAt: json['completedAt'] != null
+          ? DateTime.parse(json['completedAt'] as String)
+          : json['completed_at'] != null
+              ? DateTime.parse(json['completed_at'] as String)
+              : null,
       lastTouched: json['lastTouched'] != null
           ? DateTime.parse(json['lastTouched'] as String)
           : json['last_touched'] != null
@@ -187,6 +197,8 @@ class WorkOrder extends OfflineFirstWithSupabaseModel {
       'notes': notes,
       'created_by': createdBy,
       'created_at': createdAt?.toIso8601String(),
+      'started_at': startedAt?.toIso8601String(),
+      'completed_at': completedAt?.toIso8601String(),
       'last_touched': lastTouched?.toIso8601String(),
     };
   }

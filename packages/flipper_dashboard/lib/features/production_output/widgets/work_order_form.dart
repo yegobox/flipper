@@ -11,7 +11,7 @@ import 'package:flipper_models/SyncStrategy.dart';
 /// planned quantity, target date, and notes.
 class WorkOrderForm extends ConsumerStatefulWidget {
   final String? workOrderId;
-  final Function(Map<String, dynamic>)? onSubmit;
+  final Future<void> Function(Map<String, dynamic>)? onSubmit;
   final VoidCallback? onCancel;
 
   const WorkOrderForm({
@@ -593,7 +593,7 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
     }
   }
 
-  void _handleSubmit() {
+  Future<void> _handleSubmit() async {
     if (_formKey.currentState!.validate() && _selectedVariantId != null) {
       setState(() {
         _isSubmitting = true;
@@ -610,11 +610,18 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
             : null,
       };
 
-      widget.onSubmit?.call(data);
-
-      setState(() {
-        _isSubmitting = false;
-      });
+      try {
+        await widget.onSubmit?.call(data);
+      } catch (e) {
+        // Optionally handle/report errors here
+        print('Error submitting work order: $e');
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isSubmitting = false;
+          });
+        }
+      }
     }
   }
 }

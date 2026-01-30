@@ -217,15 +217,24 @@ mixin ProductionOutputMixin implements ProductionOutputInterface {
 
       await repository.upsert<ActualOutput>(output);
 
-      // Update work order total
+      // Recalculate total from all ActualOutput records to avoid race conditions
+      final actualOutputs = await repository.get<ActualOutput>(
+        query: Query(where: [Where('workOrderId').isExactly(workOrderId)]),
+      );
+
+      final totalActualQuantity = actualOutputs.fold<double>(
+        0.0,
+        (sum, actualOutput) => sum + actualOutput.actualQuantity,
+      );
+
+      // Update work order total with recalculated value
       final workOrders = await repository.get<WorkOrder>(
         query: Query(where: [Where('id').isExactly(workOrderId)]),
       );
       if (workOrders.isNotEmpty) {
         final wo = workOrders.first;
-        final newTotal = (wo.actualQuantity) + actualQuantity;
         final updatedWo = wo.copyWith(
-          actualQuantity: newTotal,
+          actualQuantity: totalActualQuantity,
           lastTouched: DateTime.now().toUtc(),
         );
         await repository.upsert<WorkOrder>(updatedWo);

@@ -247,15 +247,24 @@ mixin CapellaProductionOutputMixin implements ProductionOutputInterface {
       // 1. Write to Brick
       await repository.upsert<ActualOutput>(output);
 
-      // Update WorkOrder in Brick (simple addition for now, ideally transaction)
+      // Recalculate total from all ActualOutput records to avoid race conditions
+      final actualOutputs = await repository.get<ActualOutput>(
+        query: Query(where: [Where('workOrderId').isExactly(workOrderId)]),
+      );
+
+      final totalActualQuantity = actualOutputs.fold<double>(
+        0.0,
+        (sum, actualOutput) => sum + actualOutput.actualQuantity,
+      );
+
+      // Update WorkOrder in Brick with recalculated total
       final workOrderList = await repository.get<WorkOrder>(
         query: Query(where: [Where('id').isExactly(workOrderId)]),
       );
       if (workOrderList.isNotEmpty) {
         final wo = workOrderList.first;
-        final newQty = (wo.actualQuantity) + actualQuantity;
         final updatedWo = wo.copyWith(
-          actualQuantity: newQty,
+          actualQuantity: totalActualQuantity,
           lastTouched: DateTime.now().toUtc(),
         );
         await repository.upsert<WorkOrder>(updatedWo);

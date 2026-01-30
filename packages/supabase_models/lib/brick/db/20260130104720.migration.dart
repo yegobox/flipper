@@ -40,6 +40,8 @@ const List<MigrationCommand> _migration_20260130104720_up = [
   InsertColumn('notes', Column.varchar, onTable: 'WorkOrder'),
   InsertColumn('created_by', Column.varchar, onTable: 'WorkOrder'),
   InsertColumn('created_at', Column.datetime, onTable: 'WorkOrder'),
+  InsertColumn('started_at', Column.datetime, onTable: 'WorkOrder'),
+  InsertColumn('completed_at', Column.datetime, onTable: 'WorkOrder'),
   InsertColumn('last_touched', Column.datetime, onTable: 'WorkOrder'),
   CreateIndex(columns: ['id'], onTable: 'ActualOutput', unique: true),
   CreateIndex(columns: ['work_order_id'], onTable: 'ActualOutput', unique: false),
