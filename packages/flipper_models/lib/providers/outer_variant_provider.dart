@@ -29,8 +29,8 @@ class OuterVariants extends _$OuterVariants {
     final int? prefIpp = ProxyService.box.itemPerPage();
     _itemsPerPage ??=
         (prefIpp != null && prefIpp > 0 && prefIpp <= _maxPageSize)
-            ? prefIpp
-            : _defaultPageSize;
+        ? prefIpp
+        : _defaultPageSize;
 
     // Fetch VAT enabled status from EBM and cache it
     _isVatEnabled = await getVatEnabledFromEbm();
@@ -51,9 +51,13 @@ class OuterVariants extends _$OuterVariants {
   }
 
   Future<PagedVariants> _fetchVariants(
-      String branchId, int page, String searchString) async {
+    String branchId,
+    int page,
+    String searchString,
+  ) async {
     talker.info(
-        'OuterVariants: _fetchVariants called (page=$page, itemsPerPage=${_itemsPerPage ?? 'null'}, searchString="$searchString")');
+      'OuterVariants: _fetchVariants called (page=$page, itemsPerPage=${_itemsPerPage ?? 'null'}, searchString="$searchString")',
+    );
 
     final taxTyCds = _isVatEnabled ? ['A', 'B', 'C', 'TT'] : ['D', 'TT'];
     final currentScanMode = ref.read(scanningModeProvider);
@@ -77,7 +81,8 @@ class OuterVariants extends _$OuterVariants {
     );
 
     talker.info(
-        'OuterVariants: _fetchVariants returned ${paged.variants.length} items (totalCount=${paged.totalCount ?? 'null'})');
+      'OuterVariants: _fetchVariants returned ${paged.variants.length} items (totalCount=${paged.totalCount ?? 'null'})',
+    );
 
     return paged;
   }
@@ -85,10 +90,14 @@ class OuterVariants extends _$OuterVariants {
   /// Loads the next page of variants for pagination.
   Future<void> loadMore() async {
     if (_totalCount == null ||
-        (_currentPage + 1) * _itemsPerPage! >= _totalCount!) return;
+        (_currentPage + 1) * _itemsPerPage! >= _totalCount!)
+      return;
 
-    final paged =
-        await _fetchVariants(branchId, _currentPage + 1, _currentSearch);
+    final paged = await _fetchVariants(
+      branchId,
+      _currentPage + 1,
+      _currentSearch,
+    );
     _currentPage++;
     final newList = [...state.value!, ...List<Variant>.from(paged.variants)];
     state = AsyncValue.data(newList);
@@ -118,8 +127,9 @@ class OuterVariants extends _$OuterVariants {
     final newVariantIds = newVariants.map((v) => v.id).toSet();
 
     // Filter out existing variants that match the new IDs to prevent duplicates
-    final filteredExisting =
-        state.value!.where((v) => !newVariantIds.contains(v.id)).toList();
+    final filteredExisting = state.value!
+        .where((v) => !newVariantIds.contains(v.id))
+        .toList();
 
     // Prepend the new/updated variants to the list
     final newList = [...newVariants, ...filteredExisting];
@@ -193,8 +203,9 @@ class Products extends _$Products {
     required bool scanMode,
   }) async {
     try {
-      List<Product> products =
-          await ProxyService.strategy.productsFuture(branchId: branchId);
+      List<Product> products = await ProxyService.strategy.productsFuture(
+        branchId: branchId,
+      );
 
       if (searchString.isNotEmpty) {
         final additionalProduct = await ProxyService.strategy.getProduct(
@@ -209,8 +220,10 @@ class Products extends _$Products {
       }
 
       final matchingProducts = products
-          .where((product) =>
-              product.name.toLowerCase().contains(searchString.toLowerCase()))
+          .where(
+            (product) =>
+                product.name.toLowerCase().contains(searchString.toLowerCase()),
+          )
           .toList();
 
       state = AsyncData(matchingProducts);
@@ -248,8 +261,9 @@ class Products extends _$Products {
 
   void deleteProduct(int productId) {
     state.whenData((currentData) {
-      final updatedProducts =
-          currentData.where((product) => product.id != productId).toList();
+      final updatedProducts = currentData
+          .where((product) => product.id != productId)
+          .toList();
       state = AsyncData(updatedProducts);
     });
   }

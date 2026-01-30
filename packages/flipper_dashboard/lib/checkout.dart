@@ -285,7 +285,10 @@ class CheckOutState extends ConsumerState<CheckOut>
   String getCartText({required String transactionId}) {
     // Get the latest count with a fresh watch to ensure reactivity
     final itemsAsync = ref.watch(
-      transactionItemsStreamProvider(transactionId: transactionId),
+      transactionItemsStreamProvider(
+        transactionId: transactionId,
+        branchId: ProxyService.box.getBranchId()!,
+      ),
     );
 
     // Get the count from the async value

@@ -1,4 +1,3 @@
-import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -23,7 +22,7 @@ final dashboardTransactionsProvider = StreamProvider<List<ITransaction>>((ref) {
   // Only log once when this provider is created
   talker.debug('Dashboard transactions provider initialized with 30-day range');
 
-  return ProxyService.getStrategy(Strategy.capella).transactionsStream(
+  return ProxyService.strategy.transactionsStream(
     status: COMPLETE,
     includeParked: true,
     branchId: branchId,
@@ -142,28 +141,34 @@ Stream<List<TransactionItem>> transactionItemList(Ref ref) {
   ref.keepAlive();
 
   talker.debug(
-      'Fetching transactions from $startDate to $endDate for branch $branchId');
+    'Fetching transactions from $startDate to $endDate for branch $branchId',
+  );
 
-  return ProxyService.getStrategy(Strategy.capella)
+  return ProxyService.strategy
       .transactionItemsStreams(
-          startDate: startDate,
-          endDate: endDate,
-          branchId: branchId,
-          branchIdString: branchIdString,
-          fetchRemote: true)
+        startDate: startDate,
+        endDate: endDate,
+        branchId: branchId,
+        branchIdString: branchIdString,
+        fetchRemote: true,
+      )
       .map((transactions) {
-    talker.debug('Received ${transactions.length} transactions items');
-    return transactions;
-  }).handleError((error, stackTrace) {
-    talker.error('Error loading transaction items: $error');
-    talker.error(stackTrace);
-    throw error;
-  });
+        talker.debug('Received ${transactions.length} transactions items');
+        return transactions;
+      })
+      .handleError((error, stackTrace) {
+        talker.error('Error loading transaction items: $error');
+        talker.error(stackTrace);
+        throw error;
+      });
 }
 
 @riverpod
-Stream<ITransaction> pendingTransactionStream(Ref ref,
-    {required bool isExpense, bool forceRealData = true}) async* {
+Stream<ITransaction> pendingTransactionStream(
+  Ref ref, {
+  required bool isExpense,
+  bool forceRealData = true,
+}) async* {
   String? branchId = ProxyService.box.getBranchId();
 
   // If branch ID is null, wait a bit and retry
@@ -173,14 +178,16 @@ Stream<ITransaction> pendingTransactionStream(Ref ref,
 
     if (branchId == null) {
       throw StateError(
-          'No default branch selected. Please select a branch first.');
+        'No default branch selected. Please select a branch first.',
+      );
     }
   }
 
   // First, check if there's already a pending transaction
   yield* ProxyService.strategy.manageTransactionStream(
-    transactionType:
-        isExpense ? TransactionType.purchase : TransactionType.sale,
+    transactionType: isExpense
+        ? TransactionType.purchase
+        : TransactionType.sale,
     isExpense: isExpense,
     branchId: branchId,
   );
@@ -202,7 +209,8 @@ Stream<List<ITransaction>> expensesStream(
 
   ref.keepAlive();
   talker.debug(
-      'Fetching expenses from $startDate to $endDate for branch $branchId');
+    'Fetching expenses from $startDate to $endDate for branch $branchId',
+  );
   return ProxyService.strategy
       .transactionsStream(
         skipOriginalTransactionCheck: true,
@@ -215,10 +223,10 @@ Stream<List<ITransaction>> expensesStream(
       )
       .map((transactions) => transactions.cast<ITransaction>())
       .handleError((error, stackTrace) {
-    talker.error('Error loading expense items: $error');
-    talker.error(stackTrace);
-    throw error;
-  });
+        talker.error('Error loading expense items: $error');
+        talker.error(stackTrace);
+        throw error;
+      });
 }
 
 @riverpod
@@ -264,11 +272,13 @@ Stream<double> netProfitStream(
   await for (final incomeTransactions in incomeStream) {
     // Log the number of income transactions for debugging
     talker.debug(
-        'Net Profit: Found ${incomeTransactions.length} income transactions');
+      'Net Profit: Found ${incomeTransactions.length} income transactions',
+    );
 
     final expenseTransactions = await expensesStream.first;
     talker.debug(
-        'Net Profit: Found ${expenseTransactions.length} expense transactions');
+      'Net Profit: Found ${expenseTransactions.length} expense transactions',
+    );
 
     // Filter out any transactions that are marked as expenses or refunded in the income stream
     final filteredIncome = incomeTransactions
@@ -331,7 +341,8 @@ Stream<double> netProfitStream(
     talker.debug('  Total Expenses: $totalExpenses');
     talker.debug('  Total Tax Payable: $totalTaxPayable');
     talker.debug(
-        '  Net Profit = $totalIncome - $totalCOGS - $totalExpenses - $totalTaxPayable = $netProfit');
+      '  Net Profit = $totalIncome - $totalCOGS - $totalExpenses - $totalTaxPayable = $netProfit',
+    );
 
     yield netProfit;
   }
@@ -408,8 +419,9 @@ Stream<double> totalIncomeStream(
 
   await for (final transactions in transactionsStream) {
     // Filter out any expense transactions directly
-    final incomeTransactions =
-        transactions.where((tx) => !(tx.isExpense ?? false)).toList();
+    final incomeTransactions = transactions
+        .where((tx) => !(tx.isExpense ?? false))
+        .toList();
 
     // Calculate total income only from non-expense transactions
     final totalIncome = incomeTransactions.fold<double>(
@@ -427,10 +439,14 @@ Stream<double> totalIncomeStream(
 
 @riverpod
 Stream<ITransaction?> transactionById(Ref ref, String transactionId) {
-  return ProxyService.getStrategy(Strategy.capella)
+  return ProxyService.strategy
       .transactionsStream(
-          id: transactionId,
-          skipOriginalTransactionCheck: true,
-          removeAdjustmentTransactions: true)
+        id: transactionId,
+        includePending: true,
+        includeParked: true,
+        includeZeroSubTotal: true,
+        skipOriginalTransactionCheck: true,
+        removeAdjustmentTransactions: true,
+      )
       .map((list) => list.firstOrNull);
 }

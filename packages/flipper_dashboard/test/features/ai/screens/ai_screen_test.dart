@@ -18,7 +18,6 @@ import 'package:supabase_models/brick/models/conversation.model.dart';
 
 import '../../../test_helpers/mocks.dart';
 import '../../../test_helpers/setup.dart';
-import 'package:flipper_models/models/ai_model.dart';
 
 /// flutter test test/features/ai/screens/ai_screen_test.dart --no-test-assets --dart-define=FLUTTER_TEST_ENV=true
 

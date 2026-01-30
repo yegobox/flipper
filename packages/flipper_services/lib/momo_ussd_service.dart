@@ -35,7 +35,7 @@ class MomoUssdService {
   ///
   /// Returns the complete USSD string ready for dialing
   static String generatePhonePaymentCode(String phoneNumber, double amount) {
-    final cleanPhone = _cleanPhoneNumber(phoneNumber);
+    final cleanPhone = cleanPhoneNumber(phoneNumber);
     final formattedAmount = _formatAmount(amount);
     return '$_mtnBaseCode*$_phonePaymentService*$cleanPhone*$formattedAmount#';
   }
@@ -118,10 +118,17 @@ class MomoUssdService {
     return codePattern.hasMatch(cleanCode);
   }
 
-  /// Clean and normalize a phone number
+  /// Clean and normalize a phone number for display and USSD dialing
   ///
-  /// Removes country code and leading zeros to get the 9-digit local format
-  static String _cleanPhoneNumber(String phone) {
+  /// Removes country code, spaces, and special characters, then formats to local format
+  /// Examples:
+  /// - "+250 783 054 874" -> "0783054874"
+  /// - "+2507830 54 874" -> "0783054874"
+  /// - "783054874" -> "0783054874"
+  /// - "0783054874" -> "0783054874"
+  ///
+  /// Returns the normalized phone number in local format (10 digits starting with 0)
+  static String cleanPhoneNumber(String phone) {
     String cleaned = phone.replaceAll(RegExp(r'[\s\-\(\)\+\.]'), '');
 
     // Remove country code if present (250)

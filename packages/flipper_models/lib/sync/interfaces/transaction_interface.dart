@@ -14,7 +14,7 @@ abstract class TransactionInterface {
     String? branchId,
     bool isCashOut = false,
     String? id,
-    bool isExpense = false,
+    bool? isExpense = false,
     FilterType? filterType,
     bool includeZeroSubTotal = false,
     bool fetchRemote = false,
@@ -68,6 +68,7 @@ abstract class TransactionInterface {
     bool forceRealData = true,
     bool includeParked = false,
     required bool skipOriginalTransactionCheck,
+    bool includeZeroSubTotal = false,
   });
 
   Future<List<Configurations>> taxes({required String branchId});
@@ -95,8 +96,9 @@ abstract class TransactionInterface {
     bool includeSubTotalCheck = false,
   });
 
-  FutureOr<void> removeCustomerFromTransaction(
-      {required ITransaction transaction});
+  FutureOr<void> removeCustomerFromTransaction({
+    required ITransaction transaction,
+  });
 
   Future<ITransaction> assignTransaction({
     double? updatableQty,
@@ -115,27 +117,29 @@ abstract class TransactionInterface {
     int? invoiceNumber,
   });
 
-  Future<bool> saveTransactionItem(
-      {double? compositePrice,
-      required Variant variation,
-      required double amountTotal,
-      required bool ignoreForReport,
-      required bool customItem,
-      required bool doneWithTransaction,
-      required ITransaction pendingTransaction,
-      required double currentStock,
-      bool useTransactionItemForQty = false,
-      required bool partOfComposite,
-      double? updatableQty,
-      TransactionItem? item,
-      int? invoiceNumber,
-      String? sarTyCd});
+  Future<bool> saveTransactionItem({
+    double? compositePrice,
+    required Variant variation,
+    required double amountTotal,
+    required bool ignoreForReport,
+    required bool customItem,
+    required bool doneWithTransaction,
+    required ITransaction pendingTransaction,
+    required double currentStock,
+    bool useTransactionItemForQty = false,
+    required bool partOfComposite,
+    double? updatableQty,
+    TransactionItem? item,
+    int? invoiceNumber,
+    String? sarTyCd,
+  });
 
-  Future<void> markItemAsDoneWithTransaction(
-      {required List<TransactionItem> inactiveItems,
-      required ITransaction pendingTransaction,
-      required bool ignoreForReport,
-      bool isDoneWithTransaction = false});
+  Future<void> markItemAsDoneWithTransaction({
+    required List<TransactionItem> inactiveItems,
+    required ITransaction pendingTransaction,
+    required bool ignoreForReport,
+    bool isDoneWithTransaction = false,
+  });
   Future<void> updateTransaction({
     ITransaction? transaction,
     String? receiptType,
@@ -172,11 +176,12 @@ abstract class TransactionInterface {
     bool? receiptPrinted,
     String? customerPhone,
   });
-  Future<ITransaction?> getTransaction(
-      {String? sarNo,
-      required String branchId,
-      String? id,
-      bool awaitRemote = false});
+  Future<ITransaction?> getTransaction({
+    String? sarNo,
+    required String branchId,
+    String? id,
+    bool awaitRemote = false,
+  });
   Future<bool> deleteTransaction({required ITransaction transaction});
 
   Future<bool> migrateToNewDateTime({required String branchId});
@@ -189,7 +194,7 @@ abstract class TransactionInterface {
     bool isCashOut = false,
     bool fetchRemote = false,
     String? id,
-    bool isExpense = false,
+    bool? isExpense = false,
     FilterType? filterType,
     bool includeZeroSubTotal = false,
     bool includePending = false,

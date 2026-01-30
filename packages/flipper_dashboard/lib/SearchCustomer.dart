@@ -200,9 +200,17 @@ class _SearchInputWithDropdownState
     );
     ProxyService.box.remove(key: 'customerTin');
     if (transaction.value?.id != null) {
+      // Store the old customer ID before removal
+      final oldCustomerId = transaction.value!.customerId;
+
       await ProxyService.strategy.removeCustomerFromTransaction(
         transaction: transaction.value!,
       );
+
+      // Invalidate the old customer provider to clear cache
+      if (oldCustomerId != null) {
+        ref.invalidate(attachedCustomerProvider(oldCustomerId));
+      }
 
       ref.refresh(pendingTransactionStreamProvider(isExpense: false));
 
@@ -282,6 +290,9 @@ class _SearchInputWithDropdownState
 
       // Update the Riverpod provider for customer phone number
       ref.read(customerPhoneNumberProvider.notifier).state = customer.telNo;
+
+      // Invalidate the attached customer provider to force refresh
+      ref.invalidate(attachedCustomerProvider(customer.id));
 
       // Show success alert
       await _dialogService.showCustomDialog(

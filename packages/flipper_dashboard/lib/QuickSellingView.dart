@@ -1,3 +1,4 @@
+// ignore_for_file: unused_result
 import 'dart:async';
 
 import 'package:flipper_dashboard/DateCoreWidget.dart';
@@ -348,7 +349,12 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     }
 
     // Clear stale cart items for the completed transaction.
-    ref.refresh(transactionItemsStreamProvider(transactionId: transaction.id));
+    ref.refresh(
+      transactionItemsStreamProvider(
+        transactionId: transaction.id,
+        branchId: ProxyService.box.getBranchId()!,
+      ),
+    );
 
     await newTransaction(
       typeOfThisTransactionIsExpense: ProxyService.box.isOrdering() ?? false,
@@ -400,21 +406,24 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         .value
         ?.id;
     if (transactionId != null) {
-      ref.listen(transactionItemsStreamProvider(transactionId: transactionId), (
-        previous,
-        next,
-      ) {
-        final transaction = ref
-            .read(
-              pendingTransactionStreamProvider(
-                isExpense: ProxyService.box.isOrdering() ?? false,
-              ),
-            )
-            .value;
-        if (transaction != null) {
-          _updateReceivedAmountIfNeeded(transaction);
-        }
-      });
+      ref.listen(
+        transactionItemsStreamProvider(
+          transactionId: transactionId,
+          branchId: ProxyService.box.getBranchId()!,
+        ),
+        (previous, next) {
+          final transaction = ref
+              .read(
+                pendingTransactionStreamProvider(
+                  isExpense: ProxyService.box.isOrdering() ?? false,
+                ),
+              )
+              .value;
+          if (transaction != null) {
+            _updateReceivedAmountIfNeeded(transaction);
+          }
+        },
+      );
     }
 
     // Check for branch changes and refresh transaction if needed
@@ -508,7 +517,10 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
               transactionAsyncValue.value!.id.isNotEmpty) {
             final transactionId = transactionAsyncValue.value!.id;
             final transactionItemsAsync = ref.watch(
-              transactionItemsStreamProvider(transactionId: transactionId),
+              transactionItemsStreamProvider(
+                transactionId: transactionId,
+                branchId: ProxyService.box.getBranchId()!,
+              ),
             );
 
             // Properly handle AsyncValue states instead of accessing .value directly
@@ -797,6 +809,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     final transactionItemsAsync = ref.watch(
       transactionItemsStreamProvider(
         transactionId: transactionAsyncValue.value?.id ?? "",
+        branchId: ProxyService.box.getBranchId()!,
       ),
     );
     return transactionItemsAsync.when(

@@ -138,47 +138,25 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
                 text: TransactionType.cashIn,
                 color: Colors.green,
                 onPressed: () =>
-                    _startNewTransaction(model, TransactionType.cashIn),
+                    _showPaymentMethodSelector(model, TransactionType.cashIn),
               ),
               _buildTransactionButton(
                 text: TransactionType.cashOut,
                 color: const Color(0xFFFF0331),
                 onPressed: () =>
-                    _startNewTransaction(model, TransactionType.cashOut),
+                    _showPaymentMethodSelector(model, TransactionType.cashOut),
               ),
             ],
           ),
-          const SizedBox(height: 8),
-          // MoMo Payment button
-          _buildMomoPaymentButton(),
         ],
       ),
     );
   }
 
-  Widget _buildMomoPaymentButton() {
-    return SizedBox(
-      width: double.infinity,
-      child: OutlinedButton.icon(
-        onPressed: () => _showMomoTypeSelector(),
-        style: OutlinedButton.styleFrom(
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          side: const BorderSide(color: Color(0xFFFFCC00), width: 2),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        ),
-        icon: const Icon(Icons.phone_android, color: Color(0xFFFFCC00)),
-        label: const Text(
-          'MoMo/Airtel Payment',
-          style: TextStyle(
-            color: Color(0xFFFFCC00),
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-      ),
-    );
-  }
+  void _showPaymentMethodSelector(CoreViewModel model, String transactionType) {
+    final isIncome = transactionType == TransactionType.cashIn;
+    final color = isIncome ? Colors.green : const Color(0xFFFF0331);
 
-  void _showMomoTypeSelector() {
     showModalBottomSheet(
       context: context,
       shape: const RoundedRectangleBorder(
@@ -192,35 +170,35 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Select Transaction Type',
+                'Select Payment Method',
                 style: Theme.of(
                   context,
                 ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
               ListTile(
-                leading: const CircleAvatar(
-                  backgroundColor: Colors.green,
-                  child: Icon(Icons.arrow_downward, color: Colors.white),
+                leading: CircleAvatar(
+                  backgroundColor: color.withValues(alpha: 0.1),
+                  child: Icon(Icons.money, color: color),
                 ),
-                title: const Text('MoMo Cash In'),
-                subtitle: const Text('Receive money via mobile money'),
+                title: const Text('Cash'),
+                subtitle: const Text('Regular cash transaction'),
                 onTap: () {
                   Navigator.pop(context);
-                  _startMomoTransaction(TransactionType.cashIn);
+                  _startNewTransaction(model, transactionType);
                 },
               ),
               const Divider(),
               ListTile(
-                leading: const CircleAvatar(
-                  backgroundColor: Color(0xFFFF0331),
-                  child: Icon(Icons.arrow_upward, color: Colors.white),
+                leading: CircleAvatar(
+                  backgroundColor: color.withValues(alpha: 0.1),
+                  child: Icon(Icons.phone_android, color: color),
                 ),
-                title: const Text('MoMo Cash Out'),
-                subtitle: const Text('Send money via mobile money'),
+                title: const Text('MoMo/Airtel'),
+                subtitle: const Text('Mobile money transaction'),
                 onTap: () {
                   Navigator.pop(context);
-                  _startMomoTransaction(TransactionType.cashOut);
+                  _startMomoTransaction(transactionType);
                 },
               ),
             ],
