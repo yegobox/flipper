@@ -99,7 +99,7 @@ class SaveTicketButton extends StatelessWidget {
   const SaveTicketButton({
     super.key,
     required this.onPressed,
-    this.label = 'Save Ticket (Park)',
+    this.label = 'Save Ticket',
   });
 
   final VoidCallback? onPressed;
