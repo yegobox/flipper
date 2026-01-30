@@ -75,6 +75,7 @@ class _ProductionOutputScreenState
           slivers: [
             // App bar
             SliverAppBar(
+              automaticallyImplyLeading: isMobile,
               floating: true,
               backgroundColor: Colors.white,
               elevation: 1,
