@@ -1,7 +1,16 @@
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
+import 'package:brick_ditto_generators/ditto_sync_adapter.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:flutter/foundation.dart' hide Category;
+import 'package:supabase_models/sync/ditto_sync_adapter.dart';
+import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
+import 'package:supabase_models/sync/ditto_sync_generated.dart';
+import 'package:supabase_models/brick/repository.dart';
 import 'package:uuid/uuid.dart';
+import 'package:brick_offline_first/brick_offline_first.dart';
+part 'work_order.model.ditto_sync_adapter.g.dart';
 
 /// Work Order model for production planning (SAP-inspired)
 ///
@@ -9,6 +18,10 @@ import 'package:uuid/uuid.dart';
 /// on a target date. This is the "planned output" in planned vs actual tracking.
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'work_orders'),
+)
+@DittoAdapter(
+  'work_orders',
+  syncDirection: SyncDirection.bidirectional,
 )
 class WorkOrder extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)

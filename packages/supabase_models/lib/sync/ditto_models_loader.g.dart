@@ -3,6 +3,7 @@
 
 // ignore_for_file: unused_import, depend_on_referenced_packages
 
+import 'package:supabase_models/brick/models/actual_output.model.dart' as actual_output_model;
 import 'package:supabase_models/brick/models/branch.model.dart' as branch_model;
 import 'package:supabase_models/brick/models/business.model.dart' as business_model;
 import 'package:supabase_models/brick/models/business_analytic.model.dart' as business_analytic_model;
@@ -21,11 +22,13 @@ import 'package:supabase_models/brick/models/transactionItem.model.dart' as tran
 import 'package:supabase_models/brick/models/transaction_delegation.model.dart' as transaction_delegation_model;
 import 'package:supabase_models/brick/models/transaction_payment_record.model.dart' as transaction_payment_record_model;
 import 'package:supabase_models/brick/models/variant.model.dart' as variant_model;
+import 'package:supabase_models/brick/models/work_order.model.dart' as work_order_model;
 
 /// Forces all Ditto adapter static initializers to run.
 /// Call this before using DittoSyncRegistry.
 void ensureDittoAdaptersLoaded() {
   // Access registryToken getter to force static field init
+  actual_output_model.ActualOutputDittoAdapter.registryToken; // ignore: unnecessary_statements
   branch_model.BranchDittoAdapter.registryToken; // ignore: unnecessary_statements
   business_model.BusinessDittoAdapter.registryToken; // ignore: unnecessary_statements
   business_analytic_model.BusinessAnalyticDittoAdapter.registryToken; // ignore: unnecessary_statements
@@ -44,4 +47,5 @@ void ensureDittoAdaptersLoaded() {
   transaction_delegation_model.TransactionDelegationDittoAdapter.registryToken; // ignore: unnecessary_statements
   transaction_payment_record_model.TransactionPaymentRecordDittoAdapter.registryToken; // ignore: unnecessary_statements
   variant_model.VariantDittoAdapter.registryToken; // ignore: unnecessary_statements
+  work_order_model.WorkOrderDittoAdapter.registryToken; // ignore: unnecessary_statements
 }

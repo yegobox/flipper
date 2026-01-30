@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_typeahead/flutter_typeahead.dart';
+import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_services/proxy.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import '../models/production_output_models.dart';
 
 /// SAP Fiori-inspired Smart Form widget for work orders
@@ -26,8 +30,10 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
   final _formKey = GlobalKey<FormState>();
   final _plannedQtyController = TextEditingController();
   final _notesController = TextEditingController();
+  TextEditingController? _typeAheadController;
 
   String? _selectedVariantId;
+  Variant? _selectedVariant;
   DateTime _targetDate = DateTime.now();
   String? _selectedShift;
   bool _isSubmitting = false;
@@ -146,25 +152,108 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
   }
 
   Widget _buildProductField() {
-    return TextFormField(
-      decoration: InputDecoration(
-        labelText: 'Product/Material *',
-        hintText: 'Search or select product',
-        prefixIcon: const Icon(Icons.inventory_2_outlined),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-        filled: true,
-        fillColor: Colors.grey[50],
-      ),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Please select a product';
+    return TypeAheadField<Variant>(
+      suggestionsCallback: (search) async {
+        if (search.isEmpty) return [];
+        final branchId = ProxyService.box.getBranchId();
+        if (branchId == null) return [];
+
+        final paged = await ProxyService.getStrategy(Strategy.capella).variants(
+          name: search.toLowerCase(),
+          fetchRemote: true,
+          branchId: branchId,
+          page: 0,
+          itemsPerPage: 50,
+          taxTyCds: ['A', 'B', 'C', 'D', 'TT'],
+        );
+        return paged.variants.cast<Variant>().toList();
+      },
+      itemBuilder: (context, Variant variant) {
+        return ListTile(
+          title: Text(variant.name),
+          subtitle: Text('SKU: ${variant.sku ?? 'N/A'}'),
+          dense: true,
+        );
+      },
+      onSelected: (Variant variant) {
+        setState(() {
+          _typeAheadController?.text = variant.name;
+          _selectedVariantId = variant.id;
+          _selectedVariant = variant;
+        });
+      },
+      builder: (context, controller, focusNode) {
+        _typeAheadController = controller;
+        if (_selectedVariant != null) {
+          return InkWell(
+            onTap: () {
+              // Optional: expand if needed, but chip usually implies selection is done
+            },
+            child: InputDecorator(
+              decoration: InputDecoration(
+                labelText: 'Product/Material *',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                filled: true,
+                fillColor: Colors.grey[50],
+                contentPadding: EdgeInsets.fromLTRB(12, 4, 12, 4),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Wrap(
+                      children: [
+                        Chip(
+                          label: Text(_selectedVariant!.name),
+                          backgroundColor: Colors.blue.shade100,
+                          deleteIcon: Icon(Icons.close, size: 18),
+                          onDeleted: () {
+                            setState(() {
+                              _selectedVariant = null;
+                              _selectedVariantId = null;
+                              controller.text = '';
+                            });
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
         }
-        return null;
+
+        return TextFormField(
+          controller: controller,
+          focusNode: focusNode,
+          onChanged: (text) {
+            setState(() {
+              _selectedVariantId = null;
+              _selectedVariant = null;
+            });
+          },
+          decoration: InputDecoration(
+            labelText: 'Product/Material *',
+            hintText: 'Search product',
+            prefixIcon: const Icon(Icons.inventory_2_outlined),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+            filled: true,
+            fillColor: Colors.grey[50],
+          ),
+          validator: (value) {
+            if (_selectedVariantId == null) {
+              return 'Please select a product';
+            }
+            return null;
+          },
+        );
       },
-      onChanged: (value) {
-        // In a real implementation, this would search products
-        _selectedVariantId = value;
-      },
+      emptyBuilder: (context) => const Padding(
+        padding: EdgeInsets.all(8.0),
+        child: Text('No products found', style: TextStyle(color: Colors.grey)),
+      ),
     );
   }
 
@@ -213,7 +302,7 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
 
   Widget _buildShiftField() {
     return DropdownButtonFormField<String>(
-      value: _selectedShift,
+      initialValue: _selectedShift,
       decoration: InputDecoration(
         labelText: 'Shift (Optional)',
         prefixIcon: const Icon(Icons.access_time),
@@ -267,7 +356,7 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
   }
 
   void _handleSubmit() {
-    if (_formKey.currentState!.validate()) {
+    if (_formKey.currentState!.validate() && _selectedVariantId != null) {
       setState(() {
         _isSubmitting = true;
       });
