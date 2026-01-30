@@ -190,15 +190,6 @@ class EnhancedSideMenu extends ConsumerWidget {
       child: Column(
         children: [
           // Header
-          Container(
-            padding: const EdgeInsets.all(16),
-            child: Image.asset(
-              'assets/logo.png',
-              package: 'flipper_dashboard',
-              width: 40,
-              height: 40,
-            ),
-          ),
 
           // Menu Items
           Expanded(

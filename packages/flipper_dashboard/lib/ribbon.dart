@@ -39,37 +39,34 @@ class IconText extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
 
     return Container(
       key: key,
-      width: 80.0,
-      height: 70.0,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: isSelected ? theme.primaryColor : colorScheme.surface,
+        color: isSelected
+            ? theme.primaryColor.withValues(alpha: 0.1)
+            : Colors.transparent,
+        borderRadius: BorderRadius.circular(4),
+        border: isSelected
+            ? Border(bottom: BorderSide(color: theme.primaryColor, width: 2))
+            : null,
       ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+      child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Padding(
-            padding: const EdgeInsets.all(6.0),
-            child: Icon(
-              icon,
-              color: isSelected ? Colors.white : Colors.black,
-              size: 18.0,
-            ),
+          Icon(
+            icon,
+            color: isSelected ? theme.primaryColor : Colors.black54,
+            size: 20.0,
           ),
-          Flexible(
-            child: Text(
-              text,
-              style: TextStyle(
-                color: isSelected ? Colors.white : Colors.black,
-                fontSize: 11.0,
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
+          const SizedBox(width: 8),
+          Text(
+            text,
+            style: TextStyle(
+              color: isSelected ? theme.primaryColor : Colors.black87,
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+              fontSize: 13.0,
             ),
           ),
         ],
@@ -97,61 +94,92 @@ class IconRowState extends ConsumerState<IconRow>
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final colorScheme = theme.colorScheme;
-
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          ToggleButtons(
-            selectedColor: Colors.red,
-            children: [
-              _buildIconText(context, Icons.home_outlined, 'Home', 0,
-                  const Key('home_desktop'), () {
-                _showTaxDialog(context);
-              }),
-              _buildIconText(context, Icons.sync_outlined, 'Transactions', 1,
-                  const Key('transactions_desktop')),
-              _buildIconText(context, Icons.payment_outlined, 'EOD', 2,
-                  const Key('eod_desktop')),
-              _buildIconText(context, Icons.dashboard_outlined, 'Analytics', 3,
-                  const Key('analytics_desktop')),
-              _buildIconText(context, Icons.maps_home_work_outlined,
-                  'Locations', 4, const Key('locations'), () {
-                final deviceType = _getDeviceType(context);
-                if (deviceType == 'Phone' || deviceType == 'Phablet') {
-                  ref.read(selectedBranchProvider.notifier).state = null;
-                  _showBranchPerformanceMobile(context);
-                } else {
-                  _showBranchPerformance(context);
-                }
-              }),
-              _buildIconText(context, Icons.inventory_2_outlined, 'Items', 5,
-                  const Key('items_desktop'), () {
-                final dialogService = locator<DialogService>();
-                dialogService.showCustomDialog(
-                  variant: DialogType.items,
-                );
-              }),
-            ],
-            onPressed: _onTogglePressed,
-            isSelected: _isSelected,
-            color: colorScheme.surface,
-            fillColor: colorScheme.surface,
+          _buildIconText(
+            context,
+            Icons.home_outlined,
+            'Home',
+            0,
+            const Key('home_desktop'),
+            () {
+              _showTaxDialog(context);
+            },
+          ),
+          const SizedBox(width: 4),
+          _buildIconText(
+            context,
+            Icons.sync_outlined,
+            'Transactions',
+            1,
+            const Key('transactions_desktop'),
+          ),
+          const SizedBox(width: 4),
+          _buildIconText(
+            context,
+            Icons.payment_outlined,
+            'EOD',
+            2,
+            const Key('eod_desktop'),
+          ),
+          const SizedBox(width: 4),
+          _buildIconText(
+            context,
+            Icons.dashboard_outlined,
+            'Analytics',
+            3,
+            const Key('analytics_desktop'),
+          ),
+          const SizedBox(width: 4),
+          _buildIconText(
+            context,
+            Icons.maps_home_work_outlined,
+            'Locations',
+            4,
+            const Key('locations'),
+            () {
+              final deviceType = _getDeviceType(context);
+              if (deviceType == 'Phone' || deviceType == 'Phablet') {
+                ref.read(selectedBranchProvider.notifier).state = null;
+                _showBranchPerformanceMobile(context);
+              } else {
+                _showBranchPerformance(context);
+              }
+            },
+          ),
+          const SizedBox(width: 4),
+          _buildIconText(
+            context,
+            Icons.inventory_2_outlined,
+            'Items',
+            5,
+            const Key('items_desktop'),
+            () {
+              final dialogService = locator<DialogService>();
+              dialogService.showCustomDialog(variant: DialogType.items);
+            },
           ),
         ],
       ),
     );
   }
 
-  GestureDetector _buildIconText(
-      BuildContext context, IconData icon, String text, int index, Key key,
-      [VoidCallback? onDoubleTap]) {
-    return GestureDetector(
+  Widget _buildIconText(
+    BuildContext context,
+    IconData icon,
+    String text,
+    int index,
+    Key key, [
+    VoidCallback? onDoubleTap,
+  ]) {
+    return InkWell(
+      onTap: () => _onTogglePressed(index),
       onDoubleTap: onDoubleTap,
+      borderRadius: BorderRadius.circular(4),
       child: IconText(
         icon: icon,
         text: text,
@@ -219,9 +247,7 @@ class IconRowState extends ConsumerState<IconRow>
         },
         handleBranchSelection: handleBranchSelection, // Pass required argument
         onLogout: () async {
-          await showLogoutConfirmationDialog(
-            context,
-          );
+          await showLogoutConfirmationDialog(context);
         },
         setLoadingState: (String? id) {
           setState(() {
@@ -256,8 +282,9 @@ class IconRowState extends ConsumerState<IconRow>
               padding: const EdgeInsets.all(16),
               child: ConstrainedBox(
                 constraints: BoxConstraints(
-                    maxHeight: MediaQuery.of(context).size.height * 0.8,
-                    maxWidth: double.infinity),
+                  maxHeight: MediaQuery.of(context).size.height * 0.8,
+                  maxWidth: double.infinity,
+                ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -333,9 +360,7 @@ class IconRowState extends ConsumerState<IconRow>
       barrierDismissible: true,
       context: context,
       builder: (_) => Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         child: ConstrainedBox(
           constraints: BoxConstraints(
             maxHeight: MediaQuery.of(context).size.height * 0.8,

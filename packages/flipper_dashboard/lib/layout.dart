@@ -10,6 +10,7 @@ import 'package:flipper_dashboard/delegation_list_screen.dart';
 import 'package:flipper_dashboard/features/incoming_orders/screens/incoming_orders_screen.dart';
 import 'package:flipper_dashboard/features/production_output/production_output_app.dart';
 import 'package:flipper_dashboard/shift_history_content.dart';
+import 'package:flipper_dashboard/widgets/unified_top_bar.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -87,15 +88,23 @@ class DashboardLayout extends HookConsumerWidget {
                   model: model,
                 );
               }
-              return Scaffold(
-                body: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    if (ProxyService.remoteConfig.isMultiUserEnabled())
-                      const EnhancedSideMenu(),
-                    Expanded(child: selectedPageWidget),
-                  ],
-                ),
+              // Desktop layout with unified top bar
+              return Column(
+                children: [
+                  // SAP-style top bar with search, ribbon, and user info
+                  UnifiedTopBar(searchController: searchController),
+                  // Main content area
+                  Expanded(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        if (ProxyService.remoteConfig.isMultiUserEnabled())
+                          const EnhancedSideMenu(),
+                        Expanded(child: selectedPageWidget),
+                      ],
+                    ),
+                  ),
+                ],
               );
             },
           ),

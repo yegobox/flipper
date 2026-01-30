@@ -14,7 +14,6 @@ import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_dashboard/QuickSellingView.dart';
 import 'package:flipper_dashboard/SearchCustomer.dart';
 import 'package:flipper_dashboard/functions.dart';
-import 'package:flipper_dashboard/ribbon.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
     as oldImplementationOfRiverpod;
@@ -162,14 +161,7 @@ class CheckOutState extends ConsumerState<CheckOut>
               child: Card(
                 color: Colors.white,
                 surfaceTintColor: Colors.white,
-                child: Column(
-                  children: [
-                    _buildIconRow().eligibleToSeeIfYouAre(ref, [
-                      UserType.ADMIN,
-                    ]),
-                    SearchInputWithDropdown(),
-                  ],
-                ),
+                child: Column(children: [SearchInputWithDropdown()]),
               ),
             ),
           ],
@@ -268,17 +260,6 @@ class CheckOutState extends ConsumerState<CheckOut>
       receivedAmountController: receivedAmountController,
       customerPhoneNumberController: customerPhoneNumberController,
       paymentTypeController: paymentTypeController,
-    );
-  }
-
-  Widget _buildIconRow() {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          return Padding(padding: EdgeInsets.all(8.0), child: IconRow());
-        },
-      ),
     );
   }
 
