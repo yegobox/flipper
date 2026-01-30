@@ -68,30 +68,35 @@ mixin CapellaProductionOutputMixin implements ProductionOutputInterface {
     required String branchId,
     required String businessId,
     required String variantId,
+    String? variantName,
     required double plannedQuantity,
     required DateTime targetDate,
     String? shiftId,
     String? notes,
   }) async {
     try {
-      // Fetch variant to get name and unit
-      // We use repository but could also use ProxyService if needed
-      String? variantName;
+      // Use provided variantName if available, otherwise fetch variant
+      String? effectiveVariantName = variantName;
       String? unitOfMeasure;
 
-      final variants = await repository.get<Variant>(
-        query: Query(where: [Where('id').isExactly(variantId)]),
-      );
+      if (effectiveVariantName == null) {
+        final variants = await repository.get<Variant>(
+          query: Query(where: [Where('id').isExactly(variantId)]),
+        );
 
-      if (variants.isNotEmpty) {
-        final variant = variants.first;
-        variantName = variant.name;
-        // variant.unit might be the field for unit of measure?
-        // Checking Variant model from memory/standard flipper models
-        // Assuming 'unit' property exists or similar.
-        // If not readily available in Mixin context without import, we'll check.
-        // Variant Model typically has 'unit'.
-        unitOfMeasure = variant.unit;
+        if (variants.isNotEmpty) {
+          final variant = variants.first;
+          effectiveVariantName = variant.name;
+          unitOfMeasure = variant.unit;
+        }
+      } else {
+        // If variantName is provided, still fetch unit if needed
+        final variants = await repository.get<Variant>(
+          query: Query(where: [Where('id').isExactly(variantId)]),
+        );
+        if (variants.isNotEmpty) {
+          unitOfMeasure = variants.first.unit;
+        }
       }
 
       final userId = ProxyService.box.getUserId();
@@ -101,7 +106,7 @@ mixin CapellaProductionOutputMixin implements ProductionOutputInterface {
         branchId: branchId,
         businessId: businessId,
         variantId: variantId,
-        variantName: variantName,
+        variantName: effectiveVariantName,
         plannedQuantity: plannedQuantity,
         targetDate: targetDate,
         shiftId: shiftId,

@@ -18,6 +18,7 @@ abstract class ProductionOutputInterface {
     required String branchId,
     required String businessId,
     required String variantId,
+    String? variantName,
     required double plannedQuantity,
     required DateTime targetDate,
     String? shiftId,

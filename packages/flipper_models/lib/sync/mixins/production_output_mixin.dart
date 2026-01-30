@@ -60,6 +60,7 @@ mixin ProductionOutputMixin implements ProductionOutputInterface {
     required String branchId,
     required String businessId,
     required String variantId,
+    String? variantName,
     required double plannedQuantity,
     required DateTime targetDate,
     String? shiftId,
@@ -71,6 +72,7 @@ mixin ProductionOutputMixin implements ProductionOutputInterface {
         branchId: branchId,
         businessId: businessId,
         variantId: variantId,
+        variantName: variantName,
         plannedQuantity: plannedQuantity,
         targetDate: targetDate, // DateTime
         shiftId: shiftId,

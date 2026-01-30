@@ -210,6 +210,7 @@ class ProductionOutputService {
   /// Uses strategy to allow dual write logic in CapellaSync
   Future<WorkOrder?> createWorkOrder({
     required String variantId,
+    String? variantName,
     required double plannedQuantity,
     required DateTime targetDate,
     String? shiftId,
@@ -225,6 +226,7 @@ class ProductionOutputService {
         branchId: branchId,
         businessId: businessId,
         variantId: variantId,
+        variantName: variantName,
         plannedQuantity: plannedQuantity,
         targetDate: targetDate,
         shiftId: shiftId,

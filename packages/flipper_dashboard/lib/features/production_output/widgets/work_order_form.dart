@@ -601,6 +601,7 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
 
       final data = {
         'variantId': _selectedVariantId,
+        'variantName': _selectedVariant?.name,
         'plannedQuantity': double.parse(_plannedQtyController.text),
         'targetDate': _targetDate,
         'shiftId': _selectedShift,

@@ -114,6 +114,7 @@ class _ProductionOutputScreenState
                         onSubmit: (data) async {
                           await _service.createWorkOrder(
                             variantId: data['variantId'] as String,
+                            variantName: data['variantName'] as String?,
                             plannedQuantity: data['plannedQuantity'] as double,
                             targetDate: data['targetDate'] as DateTime,
                             shiftId: data['shiftId'] as String?,
@@ -145,6 +146,7 @@ class _ProductionOutputScreenState
                       onSubmit: (data) async {
                         await _service.createWorkOrder(
                           variantId: data['variantId'] as String,
+                          variantName: data['variantName'] as String?,
                           plannedQuantity: data['plannedQuantity'] as double,
                           targetDate: data['targetDate'] as DateTime,
                           shiftId: data['shiftId'] as String?,
