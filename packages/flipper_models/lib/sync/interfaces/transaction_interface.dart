@@ -68,6 +68,7 @@ abstract class TransactionInterface {
     bool forceRealData = true,
     bool includeParked = false,
     required bool skipOriginalTransactionCheck,
+    bool includeZeroSubTotal = false,
   });
 
   Future<List<Configurations>> taxes({required String branchId});

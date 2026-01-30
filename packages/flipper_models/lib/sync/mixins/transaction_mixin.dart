@@ -599,6 +599,10 @@ mixin TransactionMixin implements TransactionInterface {
     required ITransaction transaction,
   }) {
     transaction.customerId = null;
+    transaction.customerName = null;
+    transaction.customerTin = null;
+    transaction.customerPhone = null;
+    transaction.currentSaleCustomerPhoneNumber = null;
     repository.upsert(transaction);
   }
 
@@ -1063,6 +1067,7 @@ mixin TransactionMixin implements TransactionInterface {
     bool forceRealData = true,
     bool includeParked = false,
     required bool skipOriginalTransactionCheck,
+    bool includeZeroSubTotal = false,
   }) {
     if (!forceRealData) {
       return Stream.value(
@@ -1087,7 +1092,7 @@ mixin TransactionMixin implements TransactionInterface {
         ).isIn([status ?? COMPLETE, PARKED, WAITING_MOMO_COMPLETE])
       else
         Where('status').isExactly(status ?? COMPLETE),
-      Where('subTotal').isGreaterThan(0),
+      if (!includeZeroSubTotal) Where('subTotal').isGreaterThan(0),
       if (!skipOriginalTransactionCheck)
         Where('isOriginalTransaction').isExactly(true),
       if (id != null) Where('id').isExactly(id),

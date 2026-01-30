@@ -30,6 +30,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     bool forceRealData = true,
     bool includeParked = false,
     required bool skipOriginalTransactionCheck,
+    bool includeZeroSubTotal = false,
   }) {
     if (!forceRealData) {
       return Stream.value(
@@ -94,7 +95,9 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       }
 
       // SubTotal filter
-      whereClauses.add('subTotal > 0');
+      if (!includeZeroSubTotal) {
+        whereClauses.add('subTotal > 0');
+      }
 
       // Original transaction check
       if (!skipOriginalTransactionCheck) {

@@ -1310,8 +1310,17 @@ class _BottomSheetHeader extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final customerPhone = ref.watch(customerPhoneNumberProvider);
+
+    // Watch the transaction provider to get live updates
+    final transactionAsync = ref.watch(
+      transactionByIdProvider(transaction.id.toString()),
+    );
+
+    // Use the latest transaction data or fall back to the passed transaction
+    final currentTransaction = transactionAsync.value ?? transaction;
+
     final attachedCustomerAsync = ref.watch(
-      oldProvider.attachedCustomerProvider(transaction.customerId),
+      oldProvider.attachedCustomerProvider(currentTransaction.customerId),
     );
 
     return Container(
@@ -1319,7 +1328,7 @@ class _BottomSheetHeader extends HookConsumerWidget {
       child: Row(
         children: [
           // Customer info
-          if (transaction.customerId != null ||
+          if (currentTransaction.customerId != null ||
               (customerPhone != null && customerPhone.isNotEmpty))
             Row(
               mainAxisSize: MainAxisSize.min,
@@ -1329,13 +1338,15 @@ class _BottomSheetHeader extends HookConsumerWidget {
                 attachedCustomerAsync.maybeWhen(
                   data: (customer) => Text(
                     customer?.custNm ??
-                        transaction.customerName ??
+                        currentTransaction.customerName ??
                         customerPhone ??
                         'Customer',
                     style: TextStyle(color: Colors.blue, fontSize: 14),
                   ),
                   orElse: () => Text(
-                    transaction.customerName ?? customerPhone ?? 'Customer',
+                    currentTransaction.customerName ??
+                        customerPhone ??
+                        'Customer',
                     style: TextStyle(color: Colors.blue, fontSize: 14),
                   ),
                 ),
@@ -1346,11 +1357,11 @@ class _BottomSheetHeader extends HookConsumerWidget {
           Container(
             padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              color: _getStatusColor(transaction.status),
+              color: _getStatusColor(currentTransaction.status),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
-              transaction.status?.toUpperCase() ?? 'PENDING',
+              currentTransaction.status?.toUpperCase() ?? 'PENDING',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 12,

@@ -442,6 +442,9 @@ Stream<ITransaction?> transactionById(Ref ref, String transactionId) {
   return ProxyService.strategy
       .transactionsStream(
         id: transactionId,
+        includePending: true,
+        includeParked: true,
+        includeZeroSubTotal: true,
         skipOriginalTransactionCheck: true,
         removeAdjustmentTransactions: true,
       )
