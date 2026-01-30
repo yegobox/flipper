@@ -101,11 +101,26 @@ mixin ProductionOutputMixin implements ProductionOutputInterface {
 
       if (workOrders.isNotEmpty) {
         final current = workOrders.first;
+        final now = DateTime.now().toUtc();
+
+        // Set timestamps based on status changes
+        DateTime? startedAt = current.startedAt;
+        DateTime? completedAt = current.completedAt;
+
+        if (status == 'in_progress' && current.status != 'in_progress') {
+          startedAt = now;
+        }
+        if (status == 'completed' && current.status != 'completed') {
+          completedAt = now;
+        }
+
         final updated = current.copyWith(
           plannedQuantity: plannedQuantity,
           status: status,
           notes: notes,
-          lastTouched: DateTime.now().toUtc(),
+          startedAt: startedAt,
+          completedAt: completedAt,
+          lastTouched: now,
         );
         await repository.upsert<WorkOrder>(updated);
       }

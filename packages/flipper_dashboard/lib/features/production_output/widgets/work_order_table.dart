@@ -11,6 +11,7 @@ class WorkOrderTable extends StatefulWidget {
   final bool isLoading;
   final Function(WorkOrder)? onRowTap;
   final Function(WorkOrder)? onRecordOutput;
+  final Function(WorkOrder)? onStart;
   final Function(WorkOrder)? onComplete;
 
   const WorkOrderTable({
@@ -19,6 +20,7 @@ class WorkOrderTable extends StatefulWidget {
     this.isLoading = false,
     this.onRowTap,
     this.onRecordOutput,
+    this.onStart,
     this.onComplete,
   }) : super(key: key);
 
@@ -243,6 +245,15 @@ class _WorkOrderTableState extends State<WorkOrderTable> {
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
+              // Start button (only for pending orders)
+              if (status == WorkOrderStatus.planned && widget.onStart != null)
+                IconButton(
+                  icon: const Icon(Icons.play_arrow, size: 20),
+                  tooltip: 'Start',
+                  onPressed: () => widget.onStart!(order),
+                  color: Colors.blue[700],
+                ),
+              // Record output button (for in-progress and pending)
               if (!order.isCompleted && widget.onRecordOutput != null)
                 IconButton(
                   icon: const Icon(Icons.add_circle_outline, size: 20),
@@ -250,7 +261,9 @@ class _WorkOrderTableState extends State<WorkOrderTable> {
                   onPressed: () => widget.onRecordOutput!(order),
                   color: Color(VarianceColors.neutral),
                 ),
-              if (!order.isCompleted && widget.onComplete != null)
+              // Complete button (for in-progress orders)
+              if (status == WorkOrderStatus.inProgress &&
+                  widget.onComplete != null)
                 IconButton(
                   icon: const Icon(Icons.check_circle_outline, size: 20),
                   tooltip: 'Complete',

@@ -198,6 +198,7 @@ class _ProductionOutputScreenState
                           isLoading: false,
                           onRowTap: (wo) => _showWorkOrderDetails(wo),
                           onRecordOutput: (wo) => _showRecordOutputDialog(wo),
+                          onStart: (wo) => _startWorkOrder(wo),
                           onComplete: (wo) => _completeWorkOrder(wo),
                         ),
                         loading: () => const WorkOrderTable(
@@ -448,26 +449,17 @@ class _ProductionOutputScreenState
   }
 
   void _showRecordOutputDialog(dynamic workOrder) async {
-    String? varianceReason;
-    String? notes;
-
-    final result = await VarianceReasonDialog.show(context);
-    if (result != null) {
-      varianceReason = result['reason'];
-      notes = result['notes'];
-    }
-
-    final quantity = await showDialog<double>(
+    final result = await showDialog<Map<String, dynamic>>(
       context: context,
       builder: (context) => _RecordOutputDialog(workOrder: workOrder),
     );
 
-    if (quantity != null) {
+    if (result != null) {
       await _service.recordActualOutput(
         workOrderId: workOrder.id as String,
-        actualQuantity: quantity,
-        varianceReason: varianceReason,
-        notes: notes,
+        actualQuantity: result['quantity'] as double,
+        varianceReason: result['varianceReason'] as String?,
+        notes: null,
       );
       _loadData();
       ref.invalidate(todayWorkOrdersProvider);
@@ -498,6 +490,33 @@ class _ProductionOutputScreenState
 
     if (confirm == true) {
       await _service.completeWorkOrder(workOrder.id as String);
+      _loadData();
+      ref.invalidate(todayWorkOrdersProvider);
+    }
+  }
+
+  Future<void> _startWorkOrder(dynamic workOrder) async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Start Work Order?'),
+        content: Text('Begin production for "${workOrder.variantName}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.blue[700]),
+            child: const Text('Start'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm == true) {
+      await _service.startWorkOrder(workOrder.id as String);
       _loadData();
       ref.invalidate(todayWorkOrdersProvider);
     }
@@ -559,10 +578,26 @@ class _RecordOutputDialogState extends State<_RecordOutputDialog> {
           child: const Text('Cancel'),
         ),
         ElevatedButton(
-          onPressed: () {
+          onPressed: () async {
             final quantity = double.tryParse(_controller.text);
             if (quantity != null && quantity > 0) {
-              Navigator.of(context).pop(quantity);
+              // Calculate variance
+              final planned = widget.workOrder.plannedQuantity;
+              final variance = ((quantity - planned) / planned * 100).abs();
+
+              String? varianceReason;
+
+              // Show variance reason dialog if variance is significant (>10%)
+              if (variance > 10) {
+                final result = await VarianceReasonDialog.show(context);
+                if (result != null) {
+                  varianceReason = result['reason'];
+                }
+              }
+
+              Navigator.of(
+                context,
+              ).pop({'quantity': quantity, 'varianceReason': varianceReason});
             }
           },
           child: const Text('Record'),

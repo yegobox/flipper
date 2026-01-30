@@ -313,6 +313,14 @@ class ProductionOutputService {
     }
   }
 
+  /// Start a work order (change status to in_progress)
+  Future<void> startWorkOrder(String workOrderId) async {
+    await updateWorkOrderStatus(
+      workOrderId: workOrderId,
+      status: 'in_progress',
+    );
+  }
+
   /// Complete a work order
   Future<void> completeWorkOrder(String workOrderId) async {
     await updateWorkOrderStatus(workOrderId: workOrderId, status: 'completed');

@@ -74,6 +74,12 @@ class WorkOrder extends OfflineFirstWithSupabaseModel {
   /// Creation timestamp
   DateTime? createdAt;
 
+  /// Timestamp when work order was started (status changed to in_progress)
+  DateTime? startedAt;
+
+  /// Timestamp when work order was completed (status changed to completed)
+  DateTime? completedAt;
+
   /// Last modification timestamp
   DateTime? lastTouched;
 
@@ -114,6 +120,8 @@ class WorkOrder extends OfflineFirstWithSupabaseModel {
     this.notes,
     this.createdBy,
     DateTime? createdAt,
+    this.startedAt,
+    this.completedAt,
     this.lastTouched,
   })  : id = id ?? const Uuid().v4(),
         actualQuantity = actualQuantity ?? 0.0,
@@ -199,6 +207,8 @@ class WorkOrder extends OfflineFirstWithSupabaseModel {
     String? notes,
     String? createdBy,
     DateTime? createdAt,
+    DateTime? startedAt,
+    DateTime? completedAt,
     DateTime? lastTouched,
   }) {
     return WorkOrder(
@@ -216,6 +226,8 @@ class WorkOrder extends OfflineFirstWithSupabaseModel {
       notes: notes ?? this.notes,
       createdBy: createdBy ?? this.createdBy,
       createdAt: createdAt ?? this.createdAt,
+      startedAt: startedAt ?? this.startedAt,
+      completedAt: completedAt ?? this.completedAt,
       lastTouched: lastTouched ?? this.lastTouched,
     );
   }
