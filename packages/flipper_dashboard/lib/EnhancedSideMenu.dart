@@ -96,6 +96,16 @@ class EnhancedSideMenu extends ConsumerWidget {
         },
         tooltip: 'Incoming Orders',
       ),
+      _SideMenuItem(
+        icon: Icons.factory_outlined,
+        isSelected: selectedItem == 9,
+        onTap: () {
+          ref.read(selectedMenuItemProvider.notifier).state = 9;
+          ref.read(selectedPageProvider.notifier).state =
+              DashboardPage.productionOutput;
+        },
+        tooltip: 'Production Output',
+      ),
       if (isAdminAsyncValue.value == true)
         _SideMenuItem(
           icon: Icons.history,
