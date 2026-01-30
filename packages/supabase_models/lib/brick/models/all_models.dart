@@ -55,3 +55,7 @@ export 'business_analytic.model.dart';
 export 'Metric.dart';
 export 'BusinessInfo.dart';
 export 'shift.model.dart';
+
+// Production output models
+export 'work_order.model.dart';
+export 'actual_output.model.dart';

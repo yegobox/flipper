@@ -8,6 +8,7 @@ import 'package:flipper_dashboard/mobile_view.dart';
 import 'package:flipper_dashboard/stock_recount_list_screen.dart';
 import 'package:flipper_dashboard/delegation_list_screen.dart';
 import 'package:flipper_dashboard/features/incoming_orders/screens/incoming_orders_screen.dart';
+import 'package:flipper_dashboard/features/production_output/production_output_app.dart';
 import 'package:flipper_dashboard/shift_history_content.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -28,6 +29,7 @@ enum DashboardPage {
   delegations,
   incomingOrders,
   shiftHistory,
+  productionOutput,
 }
 
 final selectedPageProvider = StateProvider<DashboardPage>(
@@ -126,6 +128,8 @@ class DashboardLayout extends HookConsumerWidget {
         return const IncomingOrdersScreen();
       case DashboardPage.shiftHistory:
         return const ShiftHistoryContent();
+      case DashboardPage.productionOutput:
+        return const ProductionOutputApp();
     }
   }
 }
