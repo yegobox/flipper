@@ -9,6 +9,7 @@ import '../widgets/variance_chart.dart';
 import '../widgets/work_order_table.dart';
 import '../widgets/work_order_form.dart';
 import '../widgets/variance_reason_dialog.dart';
+import '../widgets/work_order_bottom_sheet.dart';
 
 /// Main screen for Production Output feature
 ///
@@ -104,9 +105,29 @@ class _ProductionOutputScreenState
                     color: Colors.black54,
                   ),
                   onPressed: () {
-                    setState(() {
-                      _showCreateForm = !_showCreateForm;
-                    });
+                    if (isMobile) {
+                      // Show bottom sheet on mobile
+                      WorkOrderBottomSheet.show(
+                        context: context,
+                        ref: ref,
+                        onSubmit: (data) async {
+                          await _service.createWorkOrder(
+                            variantId: data['variantId'] as String,
+                            plannedQuantity: data['plannedQuantity'] as double,
+                            targetDate: data['targetDate'] as DateTime,
+                            shiftId: data['shiftId'] as String?,
+                            notes: data['notes'] as String?,
+                          );
+                          _loadData();
+                          ref.invalidate(todayWorkOrdersProvider);
+                        },
+                      );
+                    } else {
+                      // Toggle inline form on desktop
+                      setState(() {
+                        _showCreateForm = !_showCreateForm;
+                      });
+                    }
                   },
                   tooltip: 'Create Work Order',
                 ),
