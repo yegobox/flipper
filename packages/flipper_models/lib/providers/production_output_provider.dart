@@ -1,7 +1,7 @@
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/models/work_order.model.dart';
-import 'package:supabase_models/brick/models/actual_output.model.dart';
 
 /// Parameters for fetching work orders
 class WorkOrdersParams {
@@ -62,22 +62,19 @@ class VarianceSummaryParams {
 
 /// Provider for today's work orders
 final todayWorkOrdersProvider = FutureProvider<List<WorkOrder>>((ref) async {
-  // ignore: unused_local_variable
   final branchId = ProxyService.box.getBranchId() ?? '';
-  // ignore: unused_local_variable
   final now = DateTime.now();
-  // ignore: unused_local_variable
   final startOfDay = DateTime(now.year, now.month, now.day);
-  // ignore: unused_local_variable
   final endOfDay = startOfDay.add(const Duration(days: 1));
 
-  // Use the service-level production output methods
-  // These are mixed into the strategy via ProductionOutputMixin
   try {
-    // ignore: unused_local_variable
-    final strategy = ProxyService.strategy;
-    // For now, return empty list until interface is fully connected
-    return <WorkOrder>[];
+    final workOrders = await ProxyService.getStrategy(Strategy.capella)
+        .getWorkOrders(
+          branchId: branchId,
+          startDate: startOfDay,
+          endDate: endOfDay,
+        );
+    return workOrders.cast<WorkOrder>().toList();
   } catch (e) {
     return <WorkOrder>[];
   }
@@ -87,12 +84,18 @@ final todayWorkOrdersProvider = FutureProvider<List<WorkOrder>>((ref) async {
 final weeklyVarianceSummaryProvider = FutureProvider<Map<String, dynamic>>((
   ref,
 ) async {
+  final branchId = ProxyService.box.getBranchId() ?? '';
   final now = DateTime.now();
   final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
   final endOfWeek = startOfWeek.add(const Duration(days: 7));
 
   try {
-    // For now, return empty map until interface is fully connected
+    return await ProxyService.getStrategy(Strategy.capella).getVarianceSummary(
+      branchId: branchId,
+      startDate: DateTime(startOfWeek.year, startOfWeek.month, startOfWeek.day),
+      endDate: DateTime(endOfWeek.year, endOfWeek.month, endOfWeek.day),
+    );
+  } catch (e) {
     return <String, dynamic>{
       'totalPlanned': 0.0,
       'totalActual': 0.0,
@@ -104,7 +107,5 @@ final weeklyVarianceSummaryProvider = FutureProvider<Map<String, dynamic>>((
       'completionRate': 0.0,
       'varianceByReason': <String, double>{},
     };
-  } catch (e) {
-    return <String, dynamic>{};
   }
 });

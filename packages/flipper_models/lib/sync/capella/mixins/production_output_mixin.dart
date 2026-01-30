@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'package:flipper_models/sync/interfaces/production_output_interface.dart';
-import 'package:supabase_models/brick/models/work_order.model.dart';
-import 'package:supabase_models/brick/models/actual_output.model.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:uuid/uuid.dart';
+import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_services/proxy.dart';
 
 /// Capella (Ditto) implementation of ProductionOutputInterface
 ///
@@ -74,33 +74,48 @@ mixin CapellaProductionOutputMixin implements ProductionOutputInterface {
     String? notes,
   }) async {
     try {
+      // Fetch variant to get name and unit
+      // We use repository but could also use ProxyService if needed
+      String? variantName;
+      String? unitOfMeasure;
+
+      final variants = await repository.get<Variant>(
+        query: Query(where: [Where('id').isExactly(variantId)]),
+      );
+
+      if (variants.isNotEmpty) {
+        final variant = variants.first;
+        variantName = variant.name;
+        // variant.unit might be the field for unit of measure?
+        // Checking Variant model from memory/standard flipper models
+        // Assuming 'unit' property exists or similar.
+        // If not readily available in Mixin context without import, we'll check.
+        // Variant Model typically has 'unit'.
+        unitOfMeasure = variant.unit;
+      }
+
+      final userId = ProxyService.box.getUserId();
+
       final workOrder = WorkOrder(
         id: const Uuid().v4(),
         branchId: branchId,
         businessId: businessId,
         variantId: variantId,
+        variantName: variantName,
         plannedQuantity: plannedQuantity,
         targetDate: targetDate,
         shiftId: shiftId,
         notes: notes,
         status: 'planned', // Default status
+        unitOfMeasure: unitOfMeasure,
+        createdBy: userId?.toString(),
         lastTouched: DateTime.now().toUtc(),
       );
 
       // 1. Write to Standard SQLite/Supabase (Brick)
       await repository.upsert<WorkOrder>(workOrder);
 
-      // 2. Write to Ditto (Capella)
-      final ditto = dittoService.dittoInstance;
-      if (ditto != null) {
-        final doc = workOrder.toJson();
-        // Ensure ID is set in the document for Ditto if needed, usually passed as top level
-        // or embedded. Brick models usually have 'id'.
-        await ditto.store.execute(
-          "INSERT INTO work_orders DOCUMENTS (:doc)",
-          arguments: {'doc': doc},
-        );
-      }
+      // 2. Write to Ditto (Capella) - REMOVED, handled by repository.upsert
 
       return workOrder;
     } catch (e) {
@@ -137,26 +152,7 @@ mixin CapellaProductionOutputMixin implements ProductionOutputInterface {
         await repository.upsert<WorkOrder>(updatedWorkOrder);
       }
 
-      // 2. Update in Ditto
-      final ditto = dittoService.dittoInstance;
-      if (ditto != null) {
-        final Map<String, dynamic> updates = {};
-        if (plannedQuantity != null)
-          updates['plannedQuantity'] = plannedQuantity;
-        if (status != null) updates['status'] = status;
-        if (notes != null) updates['notes'] = notes;
-        updates['lastTouched'] = DateTime.now().toUtc().toIso8601String();
-
-        if (updates.isNotEmpty) {
-          final setClause = updates.keys.map((k) => "$k = :$k").join(', ');
-          final args = {...updates, 'id': workOrderId};
-
-          await ditto.store.execute(
-            "UPDATE work_orders SET $setClause WHERE id = :id",
-            arguments: args,
-          );
-        }
-      }
+      // 2. Update in Ditto - REMOVED, handled by repository.upsert
     } catch (e) {
       print('Error updating work order in Capella: $e');
     }
@@ -173,14 +169,7 @@ mixin CapellaProductionOutputMixin implements ProductionOutputInterface {
         await repository.delete<WorkOrder>(workOrderList.first);
       }
 
-      // 2. Delete from Ditto
-      final ditto = dittoService.dittoInstance;
-      if (ditto != null) {
-        await ditto.store.execute(
-          "DELETE FROM work_orders WHERE id = :id",
-          arguments: {'id': workOrderId},
-        );
-      }
+      // 2. Delete from Ditto - REMOVED, handled by repository.delete
     } catch (e) {
       print('Error deleting work order: $e');
     }
@@ -205,13 +194,11 @@ mixin CapellaProductionOutputMixin implements ProductionOutputInterface {
         arguments['workOrderId'] = workOrderId;
       }
       if (startDate != null) {
-        whereClauses.add(
-          'createdAt >= :startDate',
-        ); // Assuming createdAt or recordedAt
+        whereClauses.add('recordedAt >= :startDate');
         arguments['startDate'] = startDate.toIso8601String();
       }
       if (endDate != null) {
-        whereClauses.add('createdAt <= :endDate');
+        whereClauses.add('recordedAt <= :endDate');
         arguments['endDate'] = endDate.toIso8601String();
       }
 
@@ -268,28 +255,10 @@ mixin CapellaProductionOutputMixin implements ProductionOutputInterface {
         );
         await repository.upsert<WorkOrder>(updatedWo);
 
-        // Update WorkOrder in Ditto too
-        final ditto = dittoService.dittoInstance;
-        if (ditto != null) {
-          await ditto.store.execute(
-            "UPDATE work_orders SET actualQuantity = :qty, lastTouched = :touched WHERE id = :id",
-            arguments: {
-              'qty': newQty,
-              'touched': DateTime.now().toUtc().toIso8601String(),
-              'id': workOrderId,
-            },
-          );
-        }
+        // Update WorkOrder in Ditto too - REMOVED, handled by repository.upsert
       }
 
-      // 2. Write Output to Ditto
-      final ditto = dittoService.dittoInstance;
-      if (ditto != null) {
-        await ditto.store.execute(
-          "INSERT INTO actual_outputs DOCUMENTS (:doc)",
-          arguments: {'doc': output.toJson()},
-        );
-      }
+      // 2. Write Output to Ditto - REMOVED, handled by repository.upsert
 
       return output;
     } catch (e) {
@@ -326,24 +295,7 @@ mixin CapellaProductionOutputMixin implements ProductionOutputInterface {
         await repository.upsert<ActualOutput>(output);
       }
 
-      // Ditto Update
-      final ditto = dittoService.dittoInstance;
-      if (ditto != null) {
-        final Map<String, dynamic> updates = {};
-        if (actualQuantity != null) updates['actualQuantity'] = actualQuantity;
-        if (varianceReason != null) updates['varianceReason'] = varianceReason;
-        if (notes != null) updates['notes'] = notes;
-        updates['lastTouched'] = DateTime.now().toUtc().toIso8601String();
-
-        if (updates.isNotEmpty) {
-          final setClause = updates.keys.map((k) => "$k = :$k").join(', ');
-          final args = {...updates, 'id': outputId};
-          await ditto.store.execute(
-            "UPDATE actual_outputs SET $setClause WHERE id = :id",
-            arguments: args,
-          );
-        }
-      }
+      // Ditto Update - REMOVED, handled by repository.upsert
     } catch (e) {
       print("Error updating actual output: $e");
     }

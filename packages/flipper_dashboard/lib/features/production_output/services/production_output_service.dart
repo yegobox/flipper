@@ -115,11 +115,11 @@ class ProductionOutputService {
       final Map<String, dynamic> arguments = {'branchId': bId};
 
       if (startDate != null) {
-        whereClauses.add('createdAt >= :startDate');
+        whereClauses.add('recordedAt >= :startDate');
         arguments['startDate'] = startDate.toIso8601String();
       }
       if (endDate != null) {
-        whereClauses.add('createdAt <= :endDate');
+        whereClauses.add('recordedAt <= :endDate');
         arguments['endDate'] = endDate.toIso8601String();
       }
 
