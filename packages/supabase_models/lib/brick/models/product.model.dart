@@ -100,4 +100,29 @@ class Product extends OfflineFirstWithSupabaseModel {
       isComposite: json['isComposite'] as bool?,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'description': description,
+      'taxId': taxId,
+      'color': color,
+      'businessId': businessId,
+      'branchId': branchId,
+      'supplierId': supplierId,
+      'categoryId': categoryId,
+      'createdAt': createdAt?.toIso8601String(),
+      'unit': unit,
+      'imageUrl': imageUrl,
+      'expiryDate': expiryDate,
+      'barCode': barCode,
+      'nfcEnabled': nfcEnabled,
+      'bindedToTenantId': bindedToTenantId,
+      'isFavorite': isFavorite,
+      'lastTouched': lastTouched?.toIso8601String(),
+      'spplrNm': spplrNm,
+      'isComposite': isComposite,
+    };
+  }
 }

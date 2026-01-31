@@ -553,20 +553,20 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     }
     try {
       try {
-        if (instance is ITransaction) {
-          instance.items ??= [];
-        }
+        // if (instance is ITransaction) {
+        //   instance.items ??= [];
+        // }
         instance = await super.upsert(instance, policy: policy, query: query);
         // Notify Ditto for all models
         if (instance is Stock) {
           debugPrint('New Current Stock: ${instance.currentStock}');
         }
+        if (instance is TransactionItem) {
+          debugPrint('We got item to save: ${instance.toString()}');
+        }
         unawaited(
           DittoSyncCoordinator.instance.notifyLocalUpsert(instance),
         );
-        if (instance is Customer) {
-          EventBus().fire(CustomerUpserted(instance));
-        }
       } catch (e, stackTrace) {
         _logger.warning(
             'Error notifying Ditto of local change: $e', stackTrace);

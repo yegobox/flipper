@@ -31,6 +31,16 @@ Future<WorkOrder> _$WorkOrderFromSupabase(
         : data['created_at'] == null
         ? null
         : DateTime.tryParse(data['created_at'] as String),
+    startedAt: data['started_at'] == null
+        ? null
+        : data['started_at'] == null
+        ? null
+        : DateTime.tryParse(data['started_at'] as String),
+    completedAt: data['completed_at'] == null
+        ? null
+        : data['completed_at'] == null
+        ? null
+        : DateTime.tryParse(data['completed_at'] as String),
     lastTouched: data['last_touched'] == null
         ? null
         : data['last_touched'] == null
@@ -59,6 +69,8 @@ Future<Map<String, dynamic>> _$WorkOrderToSupabase(
     'notes': instance.notes,
     'created_by': instance.createdBy,
     'created_at': instance.createdAt?.toIso8601String(),
+    'started_at': instance.startedAt?.toIso8601String(),
+    'completed_at': instance.completedAt?.toIso8601String(),
     'last_touched': instance.lastTouched?.toIso8601String(),
   };
 }
@@ -93,6 +105,16 @@ Future<WorkOrder> _$WorkOrderFromSqlite(
         : data['created_at'] == null
         ? null
         : DateTime.tryParse(data['created_at'] as String),
+    startedAt: data['started_at'] == null
+        ? null
+        : data['started_at'] == null
+        ? null
+        : DateTime.tryParse(data['started_at'] as String),
+    completedAt: data['completed_at'] == null
+        ? null
+        : data['completed_at'] == null
+        ? null
+        : DateTime.tryParse(data['completed_at'] as String),
     lastTouched: data['last_touched'] == null
         ? null
         : data['last_touched'] == null
@@ -121,6 +143,8 @@ Future<Map<String, dynamic>> _$WorkOrderToSqlite(
     'notes': instance.notes,
     'created_by': instance.createdBy,
     'created_at': instance.createdAt?.toIso8601String(),
+    'started_at': instance.startedAt?.toIso8601String(),
+    'completed_at': instance.completedAt?.toIso8601String(),
     'last_touched': instance.lastTouched?.toIso8601String(),
   };
 }
@@ -190,6 +214,14 @@ class WorkOrderAdapter extends OfflineFirstWithSupabaseAdapter<WorkOrder> {
     'createdAt': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'created_at',
+    ),
+    'startedAt': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'started_at',
+    ),
+    'completedAt': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'completed_at',
     ),
     'lastTouched': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -289,6 +321,18 @@ class WorkOrderAdapter extends OfflineFirstWithSupabaseAdapter<WorkOrder> {
     'createdAt': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'created_at',
+      iterable: false,
+      type: DateTime,
+    ),
+    'startedAt': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'started_at',
+      iterable: false,
+      type: DateTime,
+    ),
+    'completedAt': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'completed_at',
       iterable: false,
       type: DateTime,
     ),

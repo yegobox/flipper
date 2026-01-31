@@ -40,6 +40,7 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
       fireOnViewModelReadyOnce: true,
       viewModelBuilder: () => LoginViewModel(),
       onViewModelReady: (model) async {
+        await ProxyService.box.clear();
         final appService = locator<AppService>();
         // Initialize Ditto if not ready, using the login code as temp credentials
         if (!ProxyService.ditto.isReady()) {

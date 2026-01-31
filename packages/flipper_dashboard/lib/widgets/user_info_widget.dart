@@ -94,13 +94,16 @@ class _UserInfoWidgetState extends ConsumerState<UserInfoWidget> {
   }
 
   String _getInitials(String name) {
+    name = name.trim();
     if (name.isEmpty) return 'U';
 
-    final parts = name.split(' ');
+    final parts = name.split(' ').where((p) => p.isNotEmpty).toList();
     if (parts.length >= 2) {
       return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+    } else if (parts.length == 1) {
+      return parts[0][0].toUpperCase();
     }
-    return name[0].toUpperCase();
+    return 'U';
   }
 
   String _formatName(String emailName) {

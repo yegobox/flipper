@@ -17,8 +17,8 @@ class InventoryApp extends HookConsumerWidget {
     : super(key: key);
 
   Widget buildProductSection(WidgetRef ref) {
-    return Flexible(
-      child: Expanded(child: ProductView.normalMode()),
+    return Expanded(
+      child: ProductView.normalMode(),
     ).shouldSeeTheApp(ref, featureName: AppFeature.Sales);
   }
 

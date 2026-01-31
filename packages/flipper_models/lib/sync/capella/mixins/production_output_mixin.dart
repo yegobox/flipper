@@ -288,24 +288,48 @@ mixin CapellaProductionOutputMixin implements ProductionOutputInterface {
     String? varianceReason,
     String? notes,
   }) async {
-    // Implementation for updating actual output would follow similar pattern
-    // Fetch, calculate diff (if quantity changed) to update WorkOrder, save both
-    // For brevity, basic implementation:
     try {
       // Brick Update
       final list = await repository.get<ActualOutput>(
         query: Query(where: [Where('id').isExactly(outputId)]),
       );
       if (list.isNotEmpty) {
-        var output = list.first;
-        // Logic to update WorkOrder total would be needed if quantity changes
-        // ...
-        output = output.copyWith(
+        final current = list.first;
+
+        // Calculate the delta if actualQuantity is changing
+        double delta = 0.0;
+        if (actualQuantity != null && current.actualQuantity != actualQuantity) {
+          delta = (actualQuantity - current.actualQuantity).toDouble();
+        }
+
+        var output = current.copyWith(
           actualQuantity: actualQuantity,
           varianceReason: varianceReason,
           notes: notes,
           lastTouched: DateTime.now().toUtc(),
         );
+
+        // Only update the parent WorkOrder if there's a quantity change
+        if (delta != 0.0) {
+          // Fetch the parent WorkOrder
+          final workOrders = await repository.get<WorkOrder>(
+            query: Query(where: [Where('id').isExactly(current.workOrderId)]),
+          );
+
+          if (workOrders.isNotEmpty) {
+            final workOrder = workOrders.first;
+            // Add the delta to the current actualQuantity, handling nulls as 0
+            final newActualQuantity = (workOrder.actualQuantity ?? 0.0) + delta;
+
+            final updatedWorkOrder = workOrder.copyWith(
+              actualQuantity: newActualQuantity,
+              lastTouched: DateTime.now().toUtc(),
+            );
+
+            await repository.upsert<WorkOrder>(updatedWorkOrder);
+          }
+        }
+
         await repository.upsert<ActualOutput>(output);
       }
 

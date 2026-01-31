@@ -187,6 +187,8 @@ class WorkOrderDittoAdapter extends DittoSyncAdapter<WorkOrder> {
       "notes": model.notes,
       "createdBy": model.createdBy,
       "createdAt": model.createdAt?.toIso8601String(),
+      "startedAt": model.startedAt?.toIso8601String(),
+      "completedAt": model.completedAt?.toIso8601String(),
       "lastTouched": model.lastTouched?.toIso8601String(),
     };
   }
@@ -235,6 +237,8 @@ class WorkOrderDittoAdapter extends DittoSyncAdapter<WorkOrder> {
       notes: document["notes"],
       createdBy: document["createdBy"],
       createdAt: DateTime.tryParse(document["createdAt"]?.toString() ?? ""),
+      startedAt: DateTime.tryParse(document["startedAt"]?.toString() ?? ""),
+      completedAt: DateTime.tryParse(document["completedAt"]?.toString() ?? ""),
       lastTouched: DateTime.tryParse(document["lastTouched"]?.toString() ?? ""),
     );
   }

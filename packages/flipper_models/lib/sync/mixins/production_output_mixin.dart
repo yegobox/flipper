@@ -261,6 +261,11 @@ mixin ProductionOutputMixin implements ProductionOutputInterface {
 
       if (outputs.isNotEmpty) {
         final current = outputs.first;
+
+        // Check if actualQuantity is changing
+        final actualQuantityChanged = actualQuantity != null &&
+            current.actualQuantity != actualQuantity;
+
         final updated = current.copyWith(
           actualQuantity: actualQuantity,
           varianceReason: varianceReason,
@@ -268,6 +273,34 @@ mixin ProductionOutputMixin implements ProductionOutputInterface {
           lastTouched: DateTime.now().toUtc(),
         );
         await repository.upsert<ActualOutput>(updated);
+
+        // If actualQuantity changed, recalculate the parent WorkOrder total
+        if (actualQuantityChanged) {
+          final workOrderId = current.workOrderId;
+
+          // Recalculate total from all ActualOutput records for this work order
+          final actualOutputs = await repository.get<ActualOutput>(
+            query: Query(where: [Where('workOrderId').isExactly(workOrderId)]),
+          );
+
+          final totalActualQuantity = actualOutputs.fold<double>(
+            0.0,
+            (sum, actualOutput) => sum + actualOutput.actualQuantity,
+          );
+
+          // Update work order total with recalculated value
+          final workOrders = await repository.get<WorkOrder>(
+            query: Query(where: [Where('id').isExactly(workOrderId)]),
+          );
+          if (workOrders.isNotEmpty) {
+            final wo = workOrders.first;
+            final updatedWo = wo.copyWith(
+              actualQuantity: totalActualQuantity,
+              lastTouched: DateTime.now().toUtc(),
+            );
+            await repository.upsert<WorkOrder>(updatedWo);
+          }
+        }
       }
     } catch (e) {
       print('Error updating actual output (Brick): $e');
@@ -281,47 +314,53 @@ mixin ProductionOutputMixin implements ProductionOutputInterface {
     DateTime? endDate,
   }) {
     // Create a broadcast stream controller to allow multiple listeners
-    final controller = StreamController<List<WorkOrder>>();
+    final controller = StreamController<List<WorkOrder>>.broadcast();
 
     Timer? _timer;
 
-    // Immediately fetch and add the initial results
-    getWorkOrders(
-      branchId: branchId,
-      startDate: startDate,
-      endDate: endDate,
-    ).then((workOrders) {
-      if (!controller.isClosed) {
-        controller.add(workOrders);
-      }
-    });
-
-    // Start periodic polling
-    _timer = Timer.periodic(const Duration(seconds: 5), (_) async {
-      if (!controller.isClosed) {
-        try {
-          final workOrders = await getWorkOrders(
-            branchId: branchId,
-            startDate: startDate,
-            endDate: endDate,
-          );
-          if (!controller.isClosed) {
-            controller.add(workOrders);
-          }
-        } catch (e) {
-          if (!controller.isClosed) {
-            controller.addError(e);
-          }
+    void startPolling() {
+      // Immediately fetch and add the initial results
+      getWorkOrders(
+        branchId: branchId,
+        startDate: startDate,
+        endDate: endDate,
+      ).then((workOrders) {
+        if (!controller.isClosed) {
+          controller.add(workOrders);
         }
-      } else {
-        // If controller is closed, cancel the timer
-        _timer?.cancel();
-      }
-    });
+      });
 
-    // Handle cancellation to clean up resources
+      // Start periodic polling
+      _timer = Timer.periodic(const Duration(seconds: 5), (_) async {
+        if (!controller.isClosed) {
+          try {
+            final workOrders = await getWorkOrders(
+              branchId: branchId,
+              startDate: startDate,
+              endDate: endDate,
+            );
+            if (!controller.isClosed) {
+              controller.add(workOrders);
+            }
+          } catch (e) {
+            if (!controller.isClosed) {
+              controller.addError(e);
+            }
+          }
+        } else {
+          // If controller is closed, cancel the timer
+          _timer?.cancel();
+        }
+      });
+    }
+
+    // Start polling when the first listener subscribes
+    controller.onListen = startPolling;
+
+    // Handle cancellation to clean up resources when all listeners are gone
     controller.onCancel = () {
       _timer?.cancel();
+      _timer = null;
     };
 
     return controller.stream;
