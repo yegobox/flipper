@@ -280,16 +280,51 @@ mixin ProductionOutputMixin implements ProductionOutputInterface {
     DateTime? startDate,
     DateTime? endDate,
   }) {
-    // Brick doesn't have a simple 'watch' query exposed via Repository in this mixin usually
-    // Standard practice is to return a Stream that polls or uses repository.subscribe if available.
-    // For now, simpler polling stream or just return a future as stream.
-    return Stream.periodic(const Duration(seconds: 5), (_) async {
-      return await getWorkOrders(
-        branchId: branchId,
-        startDate: startDate,
-        endDate: endDate,
-      );
-    }).asyncMap((event) => event);
+    // Create a broadcast stream controller to allow multiple listeners
+    final controller = StreamController<List<WorkOrder>>();
+
+    Timer? _timer;
+
+    // Immediately fetch and add the initial results
+    getWorkOrders(
+      branchId: branchId,
+      startDate: startDate,
+      endDate: endDate,
+    ).then((workOrders) {
+      if (!controller.isClosed) {
+        controller.add(workOrders);
+      }
+    });
+
+    // Start periodic polling
+    _timer = Timer.periodic(const Duration(seconds: 5), (_) async {
+      if (!controller.isClosed) {
+        try {
+          final workOrders = await getWorkOrders(
+            branchId: branchId,
+            startDate: startDate,
+            endDate: endDate,
+          );
+          if (!controller.isClosed) {
+            controller.add(workOrders);
+          }
+        } catch (e) {
+          if (!controller.isClosed) {
+            controller.addError(e);
+          }
+        }
+      } else {
+        // If controller is closed, cancel the timer
+        _timer?.cancel();
+      }
+    });
+
+    // Handle cancellation to clean up resources
+    controller.onCancel = () {
+      _timer?.cancel();
+    };
+
+    return controller.stream;
   }
 
   @override

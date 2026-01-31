@@ -14,6 +14,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/desktop_login_status.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flipper_services/app_service.dart';
 
 // Once open time someone else solved issue: https://github.com/ente-io/ente/commit/be7f4b71073c8a1086d654c01f61925ffbf6abe5#diff-5ca3a4f36b6e5b25b9776be6945ade02382219f8f0a7c8ec1ecd1ccc018c73aaR19
 //
@@ -38,7 +39,13 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
     return ViewModelBuilder<LoginViewModel>.reactive(
       fireOnViewModelReadyOnce: true,
       viewModelBuilder: () => LoginViewModel(),
-      onViewModelReady: (model) {
+      onViewModelReady: (model) async {
+        final appService = locator<AppService>();
+        // Initialize Ditto if not ready, using the login code as temp credentials
+        if (!ProxyService.ditto.isReady()) {
+          await appService.initDittoForLogin(loginCode);
+        }
+
         ProxyService.event
             .subscribeLoginEvent(channel: loginCode.split('-')[1]);
 
@@ -63,15 +70,20 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                     child: Stack(
                       alignment: Alignment.center,
                       children: [
-                        QrImageView(
-                          data: loginCode,
-                          version: QrVersions.auto,
-                          // embeddedImage:
-                          //     AssetImage(logoAsset, package: "flipper_login"),
-                          embeddedImageStyle: QrEmbeddedImageStyle(
-                            size: Size(logoSize, logoSize),
+                        // Added padding to prevent corner alignment patterns from being cut off
+                        // See: https://github.com/ente-io/ente/commit/be7f4b71073c8a1086d654c01f61925ffbf6abe5
+                        Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: QrImageView(
+                            data: loginCode,
+                            version: QrVersions.auto,
+                            // embeddedImage:
+                            //     AssetImage(logoAsset, package: "flipper_login"),
+                            embeddedImageStyle: QrEmbeddedImageStyle(
+                              size: Size(logoSize, logoSize),
+                            ),
+                            size: 200.0,
                           ),
-                          size: 200.0,
                         ),
                         StreamBuilder<DesktopLoginStatus>(
                           stream: ProxyService.event.desktopLoginStatusStream(),

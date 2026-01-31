@@ -10,6 +10,9 @@ mixin SyncMixin on DittoCore {
   Timer? _observationTimer;
   final List<void Function(Ditto?)> _dittoListeners = [];
   StreamController<List<UserProfile>>? _userProfilesController;
+  // Track the last Ditto instance we successfully set up to prevent duplicate setup
+  // but allow setup when the instance actually changes
+  Ditto? _lastSetupDitto;
 
   /// Register a listener that will be notified whenever the underlying Ditto
   /// instance changes. The listener is invoked immediately with the current
@@ -44,11 +47,13 @@ mixin SyncMixin on DittoCore {
     }
 
     // Only set if we don't already have the same instance
-    if (dittoInstance == ditto) {
-      debugPrint('Same Ditto instance already set, skipping');
+    if (_lastSetupDitto == ditto) {
+      debugPrint('Same Ditto instance already set up, skipping');
       startSync();
       return;
     }
+
+    _lastSetupDitto = ditto;
 
     _notifyDittoListeners();
 
