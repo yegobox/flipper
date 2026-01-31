@@ -352,7 +352,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     ref.refresh(
       transactionItemsStreamProvider(
         transactionId: transaction.id,
-        branchId: ProxyService.box.getBranchId()!,
+        branchId: ProxyService.box.getBranchId() ?? '0',
       ),
     );
 
@@ -409,7 +409,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       ref.listen(
         transactionItemsStreamProvider(
           transactionId: transactionId,
-          branchId: ProxyService.box.getBranchId()!,
+          branchId: ProxyService.box.getBranchId() ?? '0',
         ),
         (previous, next) {
           final transaction = ref
@@ -519,7 +519,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
             final transactionItemsAsync = ref.watch(
               transactionItemsStreamProvider(
                 transactionId: transactionId,
-                branchId: ProxyService.box.getBranchId()!,
+                branchId: ProxyService.box.getBranchId() ?? '0',
               ),
             );
 

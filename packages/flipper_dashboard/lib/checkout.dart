@@ -268,7 +268,7 @@ class CheckOutState extends ConsumerState<CheckOut>
     final itemsAsync = ref.watch(
       transactionItemsStreamProvider(
         transactionId: transactionId,
-        branchId: ProxyService.box.getBranchId()!,
+        branchId: ProxyService.box.getBranchId() ?? '0',
       ),
     );
 

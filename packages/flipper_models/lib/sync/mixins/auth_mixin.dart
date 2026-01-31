@@ -53,12 +53,17 @@ mixin AuthMixin implements AuthInterface {
       await ProxyService.strategy.savePin(pin: thePin);
       await loc.getIt<AppService>().appInit();
       final defaultApp = ProxyService.box.getDefaultApp();
+      final branchId = ProxyService.box.getBranchId() ?? thePin.branchId;
 
       if (defaultApp == "2") {
         final routerService = locator<RouterService>();
         routerService.navigateTo(SocialHomeViewRoute());
       } else {
-        locator<RouterService>().navigateTo(FlipperAppRoute());
+        if (branchId == null) {
+          locator<RouterService>().navigateTo(LoginChoicesRoute());
+        } else {
+          locator<RouterService>().navigateTo(FlipperAppRoute());
+        }
       }
     } catch (e) {
       print(e); // Log or handle error during login completion
@@ -70,8 +75,11 @@ mixin AuthMixin implements AuthInterface {
   /// Returns a tuple with (errorMessage, shouldNavigateToLoginChoices, isPinError)
   /// UI-specific handling should be done by the caller
   @override
-  Future<Map<String, dynamic>> handleLoginError(dynamic e, StackTrace s,
-      {String? responseChannel}) async {
+  Future<Map<String, dynamic>> handleLoginError(
+    dynamic e,
+    StackTrace s, {
+    String? responseChannel,
+  }) async {
     String errorMessage = '';
     bool shouldNavigateToLoginChoices = false;
     bool isPinError = false;
@@ -123,8 +131,9 @@ mixin AuthMixin implements AuthInterface {
         //   'status': 'failure',
         //   'message': errorMessage.isEmpty ? 'Login failed' : errorMessage,
         // });
-        talker
-            .debug("Sent login failure response to channel: $responseChannel");
+        talker.debug(
+          "Sent login failure response to channel: $responseChannel",
+        );
       } catch (responseError) {
         talker.error('Failed to send login response: $responseError');
       }
@@ -142,7 +151,7 @@ mixin AuthMixin implements AuthInterface {
     return {
       'errorMessage': errorMessage,
       'shouldNavigateToLoginChoices': shouldNavigateToLoginChoices,
-      'isPinError': isPinError
+      'isPinError': isPinError,
     };
   }
 
@@ -151,8 +160,11 @@ mixin AuthMixin implements AuthInterface {
 
   // Required methods that should be provided by other mixins
   @override
-  Future<List<Business>> businesses(
-      {String? userId, bool fetchOnline = false, bool active = false});
+  Future<List<Business>> businesses({
+    String? userId,
+    bool fetchOnline = false,
+    bool active = false,
+  });
 
   @override
   Future<bool> firebaseLogin({String? token}) async {
@@ -160,8 +172,10 @@ mixin AuthMixin implements AuthInterface {
     if (userId == null) return false;
 
     // Get the existing PIN for this user ID
-    final pinLocal = await ProxyService.strategy
-        .getPinLocal(userId: userId, alwaysHydrate: true);
+    final pinLocal = await ProxyService.strategy.getPinLocal(
+      userId: userId,
+      alwaysHydrate: true,
+    );
 
     try {
       token ??= pinLocal?.tokenUid;
@@ -174,9 +188,10 @@ mixin AuthMixin implements AuthInterface {
         if (pinLocal != null && pinLocal.tokenUid != token) {
           talker.debug("Updating PIN with new token for userId: $userId");
           ProxyService.strategy.updatePin(
-              userId: userId,
-              phoneNumber: pinLocal.phoneNumber,
-              tokenUid: token);
+            userId: userId,
+            phoneNumber: pinLocal.phoneNumber,
+            tokenUid: token,
+          );
         }
 
         return true;
@@ -200,9 +215,10 @@ mixin AuthMixin implements AuthInterface {
 
             // Update the existing PIN with the new token
             ProxyService.strategy.updatePin(
-                userId: user.id,
-                phoneNumber: pinLocal.phoneNumber,
-                tokenUid: user.uid);
+              userId: user.id,
+              phoneNumber: pinLocal.phoneNumber,
+              tokenUid: user.uid,
+            );
           }
         } catch (requestError) {
           talker.error("Error getting new token: $requestError");
@@ -220,15 +236,18 @@ mixin AuthMixin implements AuthInterface {
     required bool fetchRemote,
   }) async {
     // if (isTestEnvironment()) return true;
-    final Plan? plan = await ProxyService.strategy
-        .getPaymentPlan(businessId: businessId, fetchOnline: true);
+    final Plan? plan = await ProxyService.strategy.getPaymentPlan(
+      businessId: businessId,
+      fetchOnline: true,
+    );
 
     // there might be cases where plan is not in supabase
     // so we need to check if plan is null
 
     if (plan == null) {
       throw NoPaymentPlanFound(
-          "No payment plan found for businessId: $businessId");
+        "No payment plan found for businessId: $businessId",
+      );
     }
     ProxyService.strategy.upsertPlan(
       businessId: businessId,
@@ -264,16 +283,20 @@ mixin AuthMixin implements AuthInterface {
   Future<void> _hasActiveSubscription({bool fetchRemote = false}) async {
     final id = (await ProxyService.strategy.activeBusiness())?.id ?? "";
     await hasActiveSubscription(
-        businessId: id,
-        flipperHttpClient: ProxyService.http,
-        fetchRemote: fetchRemote);
+      businessId: id,
+      flipperHttpClient: ProxyService.http,
+      fetchRemote: fetchRemote,
+    );
   }
 
   Future<IUser> _authenticateUser(
-      String phoneNumber, Pin pin, HttpClientInterface flipperHttpClient,
-      {bool forceOffline = false,
-      bool freshUser = false,
-      required bool isInSignUpProgress}) async {
+    String phoneNumber,
+    Pin pin,
+    HttpClientInterface flipperHttpClient, {
+    bool forceOffline = false,
+    bool freshUser = false,
+    required bool isInSignUpProgress,
+  }) async {
     final userId = pin.userId ?? ProxyService.box.getUserId();
     final userAccess = await ProxyService.ditto.getUserAccess(userId!);
     List<Business> businessesE = [];
@@ -294,7 +317,8 @@ mixin AuthMixin implements AuthInterface {
       }
     }
 
-    final bool shouldEnableOfflineLogin = forceOffline ||
+    final bool shouldEnableOfflineLogin =
+        forceOffline ||
         (businessesE.isNotEmpty &&
             branchesE.isNotEmpty &&
             !(await ProxyService.status.isInternetAvailable()));
@@ -305,13 +329,18 @@ mixin AuthMixin implements AuthInterface {
     talker.debug("- branchesE not empty: ${branchesE.isNotEmpty}");
     talker.debug("- kDebugMode: ${foundation.kDebugMode}");
     talker.debug(
-        "- Internet available: ${await ProxyService.status.isInternetAvailable()}");
+      "- Internet available: ${await ProxyService.status.isInternetAvailable()}",
+    );
     talker.debug("Final shouldEnableOfflineLogin: $shouldEnableOfflineLogin");
 
     if (shouldEnableOfflineLogin) {
       offlineLogin = true;
-      final offlineUser =
-          _createOfflineUser(phoneNumber, pin, businessesE, branchesE);
+      final offlineUser = _createOfflineUser(
+        phoneNumber,
+        pin,
+        businessesE,
+        branchesE,
+      );
 
       return offlineUser;
     }
@@ -343,8 +372,11 @@ mixin AuthMixin implements AuthInterface {
 
     // Otherwise, proceed with normal authentication flow
     talker.debug("Performing full authentication flow");
-    final http.Response response =
-        await sendLoginRequest(phoneNumber, flipperHttpClient, apihub);
+    final http.Response response = await sendLoginRequest(
+      phoneNumber,
+      flipperHttpClient,
+      apihub,
+    );
 
     if (response.statusCode == 200 && response.body.isNotEmpty) {
       // Parse the user from the response
@@ -353,8 +385,9 @@ mixin AuthMixin implements AuthInterface {
       // Make PIN patching non-blocking for the login flow
       try {
         final ownerName = 'Default Tenant';
-        unawaited(_patchPin(user.pin!, flipperHttpClient, apihub,
-            ownerName: ownerName));
+        unawaited(
+          _patchPin(user.pin!, flipperHttpClient, apihub, ownerName: ownerName),
+        );
       } catch (e) {
         // Log the error but don't block login
         talker.warning("Failed to patch PIN, but continuing login: $e");
@@ -379,25 +412,33 @@ mixin AuthMixin implements AuthInterface {
   }
 
   @override
-  Future<IUser> login(
-      {required String userPhone,
-      required bool skipDefaultAppSetup,
-      bool stopAfterConfigure = false,
-      required Pin pin,
-      required bool isInSignUpProgress,
-      bool freshUser = false,
-      required HttpClientInterface flipperHttpClient,
-      IUser? existingUser}) async {
-    final flipperWatch? w =
-        foundation.kDebugMode ? flipperWatch("callLoginApi") : null;
+  Future<IUser> login({
+    required String userPhone,
+    required bool skipDefaultAppSetup,
+    bool stopAfterConfigure = false,
+    required Pin pin,
+    required bool isInSignUpProgress,
+    bool freshUser = false,
+    required HttpClientInterface flipperHttpClient,
+    IUser? existingUser,
+  }) async {
+    final flipperWatch? w = foundation.kDebugMode
+        ? flipperWatch("callLoginApi")
+        : null;
     w?.start();
     final String phoneNumber = _formatPhoneNumber(userPhone);
 
     // Use existing user data if provided, otherwise make the API call
     print('Before _authenticateUser');
-    final IUser user = existingUser ??
-        await _authenticateUser(phoneNumber, pin, flipperHttpClient,
-            freshUser: freshUser, isInSignUpProgress: isInSignUpProgress);
+    final IUser user =
+        existingUser ??
+        await _authenticateUser(
+          phoneNumber,
+          pin,
+          flipperHttpClient,
+          freshUser: freshUser,
+          isInSignUpProgress: isInSignUpProgress,
+        );
     print('After _authenticateUser');
 
     await configureSystem(userPhone, user, offlineLogin: offlineLogin);
@@ -411,8 +452,10 @@ mixin AuthMixin implements AuthInterface {
       // This is critical for when a user logs in again
       if (pin.businessId != null) {
         talker.debug("Setting businessId to ${pin.businessId}");
-        await ProxyService.box
-            .writeString(key: 'businessId', value: pin.businessId!);
+        await ProxyService.box.writeString(
+          key: 'businessId',
+          value: pin.businessId!,
+        );
 
         // Also set business preferences
         try {
@@ -435,9 +478,12 @@ mixin AuthMixin implements AuthInterface {
 
           if (selectedBusiness != null) {
             talker.debug(
-                "Setting business preferences for ${selectedBusiness.name}");
+              "Setting business preferences for ${selectedBusiness.name}",
+            );
             await ProxyService.box.writeString(
-                key: 'bhfId', value: (await ProxyService.box.bhfId()) ?? "00");
+              key: 'bhfId',
+              value: (await ProxyService.box.bhfId()) ?? "00",
+            );
 
             // Get existing tin value if available
             final existingTin = ProxyService.box.readInt(key: 'tin');
@@ -445,17 +491,21 @@ mixin AuthMixin implements AuthInterface {
             // Resolve effective TIN (prefer Ebm) and update box if needed
             final resolvedTin = await effectiveTin(business: selectedBusiness);
             if (resolvedTin != null || existingTin == null) {
-              await ProxyService.box
-                  .writeInt(key: 'tin', value: resolvedTin ?? existingTin ?? 0);
+              await ProxyService.box.writeInt(
+                key: 'tin',
+                value: resolvedTin ?? existingTin ?? 0,
+              );
               talker.debug(
-                  'Setting tin to ${resolvedTin ?? existingTin ?? 0} (from ${resolvedTin != null ? 'ebm/business' : 'existing value'})');
+                'Setting tin to ${resolvedTin ?? existingTin ?? 0} (from ${resolvedTin != null ? 'ebm/business' : 'existing value'})',
+              );
             } else {
               talker.debug('Preserving existing tin value: $existingTin');
             }
 
             await ProxyService.box.writeString(
-                key: 'encryptionKey',
-                value: selectedBusiness.encryptionKey ?? "");
+              key: 'encryptionKey',
+              value: selectedBusiness.encryptionKey ?? "",
+            );
 
             // Don't automatically set business as active and default during PIN login
             // The business's active/default status should only be changed when:
@@ -480,13 +530,16 @@ mixin AuthMixin implements AuthInterface {
       // Handle the case where pin already has a branchId (for backward compatibility)
       if (pin.branchId != null && pin.businessId != null) {
         talker.debug("Setting branchId to ${pin.branchId}");
-        await ProxyService.box
-            .writeString(key: 'branchId', value: pin.branchId!);
+        await ProxyService.box.writeString(
+          key: 'branchId',
+          value: pin.branchId!,
+        );
 
         try {
           // Get the branch ID string if available
-          final branches =
-              await ProxyService.strategy.branches(businessId: pin.businessId!);
+          final branches = await ProxyService.strategy.branches(
+            businessId: pin.businessId!,
+          );
           Branch? selectedBranch;
 
           // Find the matching branch or use the first one if none matches
@@ -505,8 +558,10 @@ mixin AuthMixin implements AuthInterface {
 
           if (selectedBranch != null) {
             talker.debug("Setting branchIdString to ${selectedBranch.id}");
-            await ProxyService.box
-                .writeString(key: 'branchIdString', value: selectedBranch.id);
+            await ProxyService.box.writeString(
+              key: 'branchIdString',
+              value: selectedBranch.id,
+            );
 
             // Don't automatically set branch as active and default during PIN login
             // The branch's active/default status should only be changed when:
@@ -560,13 +615,18 @@ mixin AuthMixin implements AuthInterface {
 
   @override
   Future<http.Response> sendLoginRequest(
-      String phoneNumber, HttpClientInterface flipperHttpClient, String apihub,
-      {String? uid}) async {
+    String phoneNumber,
+    HttpClientInterface flipperHttpClient,
+    String apihub, {
+    String? uid,
+  }) async {
     uid = uid ?? FirebaseAuth.instance.currentUser?.uid;
 
     // get userId of the user that is trying to log in
-    final savedLocalPinForThis = await ProxyService.strategy
-        .getPinLocal(phoneNumber: phoneNumber, alwaysHydrate: false);
+    final savedLocalPinForThis = await ProxyService.strategy.getPinLocal(
+      phoneNumber: phoneNumber,
+      alwaysHydrate: false,
+    );
     uid ??= savedLocalPinForThis?.uid;
 
     // If local data is not sufficient, proceed with the actual API call
@@ -578,9 +638,7 @@ mixin AuthMixin implements AuthInterface {
       }
       final response = await flipperHttpClient.post(
         Uri.parse(apihub + '/v2/api/user'),
-        body: jsonEncode(<String, String?>{
-          'phoneNumber': phoneNumber,
-        }),
+        body: jsonEncode(<String, String?>{'phoneNumber': phoneNumber}),
       );
 
       // Check for 401 Unauthorized response
@@ -592,9 +650,11 @@ mixin AuthMixin implements AuthInterface {
       // Check for error response
       if (response.statusCode != 200) {
         talker.error(
-            "Authentication failed with status code ${response.statusCode}: ${response.body}");
+          "Authentication failed with status code ${response.statusCode}: ${response.body}",
+        );
         throw Exception(
-            "Authentication failed with status code ${response.statusCode}");
+          "Authentication failed with status code ${response.statusCode}",
+        );
       }
       //
 
@@ -611,7 +671,8 @@ mixin AuthMixin implements AuthInterface {
           responseBody['details'] is String &&
           responseBody['details'].toString().startsWith('Error id')) {
         talker.error(
-            "Error response from login request: ${responseBody['details']}");
+          "Error response from login request: ${responseBody['details']}",
+        );
         throw Exception("Server error: ${responseBody['details']}");
       }
 
@@ -622,8 +683,10 @@ mixin AuthMixin implements AuthInterface {
       // Handle userId which could now be a string or int
       if (responseBody['id'] is String) {
         // Store the original string ID for reference
-        ProxyService.box
-            .writeString(key: 'userIdString', value: responseBody['id']);
+        ProxyService.box.writeString(
+          key: 'userIdString',
+          value: responseBody['id'],
+        );
         // Convert string ID to integer for backward compatibility
         final String userId = responseBody['id'];
         ProxyService.box.writeString(key: 'userId', value: userId);
@@ -641,8 +704,10 @@ mixin AuthMixin implements AuthInterface {
       for (var businessData in businessesData) {
         final iBusiness = IBusiness.fromJson(businessData);
         // Save business locally
-        await ProxyService.strategy
-            .getBusinessById(businessId: iBusiness.id, fetchOnline: true);
+        await ProxyService.strategy.getBusinessById(
+          businessId: iBusiness.id,
+          fetchOnline: true,
+        );
 
         // Process branches if they are nested in the business (new structure)
         final List<dynamic> branchesData = businessData['branches'] ?? [];
@@ -667,7 +732,8 @@ mixin AuthMixin implements AuthInterface {
           );
           await repository.upsert<Branch>(branch);
           talker.debug(
-              "Saved branch locally: ${branch.name} (isDefault: ${branch.isDefault})");
+            "Saved branch locally: ${branch.name} (isDefault: ${branch.isDefault})",
+          );
         }
       }
 
@@ -700,8 +766,11 @@ mixin AuthMixin implements AuthInterface {
   }
 
   Future<http.Response> _patchPin(
-      int pin, HttpClientInterface flipperHttpClient, String apihub,
-      {required String ownerName}) async {
+    int pin,
+    HttpClientInterface flipperHttpClient,
+    String apihub, {
+    required String ownerName,
+  }) async {
     return await flipperHttpClient.patch(
       Uri.parse(apihub + '/v2/api/pin/${pin}'),
       body: jsonEncode(<String, String?>{
@@ -716,8 +785,10 @@ mixin AuthMixin implements AuthInterface {
     return businesses.map((e) {
       // Store the string ID for reference if needed
       // The id field is non-nullable, so we don't need to check for null
-      ProxyService.box
-          .writeString(key: 'business_${e.serverId}_uuid', value: e.id);
+      ProxyService.box.writeString(
+        key: 'business_${e.serverId}_uuid',
+        value: e.id,
+      );
 
       return IBusiness(
         phoneNumber: e.phoneNumber,
@@ -744,8 +815,12 @@ mixin AuthMixin implements AuthInterface {
     }).toList();
   }
 
-  IUser _createOfflineUser(String phoneNumber, Pin pin,
-      List<Business> businesses, List<Branch> branches) {
+  IUser _createOfflineUser(
+    String phoneNumber,
+    Pin pin,
+    List<Business> businesses,
+    List<Branch> branches,
+  ) {
     // For businessId, convert to int if it's a string for backward compatibility
 
     return IUser(
@@ -807,20 +882,23 @@ mixin AuthMixin implements AuthInterface {
       await ProxyService.box.writeString(key: 'userId', value: userId);
 
       if (businessId != null) {
-        await ProxyService.box
-            .writeString(key: 'businessIdString', value: businessId);
+        await ProxyService.box.writeString(
+          key: 'businessIdString',
+          value: businessId,
+        );
       }
       // Fetch the user details using the new token
       final user = await login(
         userPhone: phoneNumber,
         skipDefaultAppSetup: false,
         pin: Pin(
-            userId: userId,
-            pin: pin!.pin,
-            businessId: businessId ?? serverId.toString(),
-            branchId: "", // Will be determined in the login flow
-            ownerName: responseData['businessName'] ?? '',
-            phoneNumber: phoneNumber),
+          userId: userId,
+          pin: pin!.pin,
+          businessId: businessId ?? serverId.toString(),
+          branchId: "", // Will be determined in the login flow
+          ownerName: responseData['businessName'] ?? '',
+          phoneNumber: phoneNumber,
+        ),
         isInSignUpProgress: false,
         flipperHttpClient: ProxyService.http,
       );
@@ -852,7 +930,10 @@ mixin AuthMixin implements AuthInterface {
   }
 
   @override
-  Future<Map<String, dynamic>> verifyOtpForSignup(String contact, String otp) async {
+  Future<Map<String, dynamic>> verifyOtpForSignup(
+    String contact,
+    String otp,
+  ) async {
     final response = await ProxyService.http.post(
       Uri.parse(apihub + '/v2/api/login/verify-otp-signup'),
       body: jsonEncode({'contact': contact, 'otp': otp}),
@@ -877,14 +958,12 @@ mixin AuthMixin implements AuthInterface {
       return;
     }
 
-    final appID =
-        foundation.kDebugMode ? AppSecrets.appIdDebug : AppSecrets.appId;
+    final appID = foundation.kDebugMode
+        ? AppSecrets.appIdDebug
+        : AppSecrets.appId;
     print("User id set to $userId and Ditto initializing now");
     try {
-      await DittoSingleton.instance.initialize(
-        appId: appID,
-        userId: userId,
-      );
+      await DittoSingleton.instance.initialize(appId: appID, userId: userId);
       DittoSyncCoordinator.instance.setDitto(
         DittoSingleton.instance.ditto,
         skipInitialFetch:
