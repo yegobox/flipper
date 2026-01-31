@@ -324,13 +324,7 @@ class AppService with ListenableServiceMixin {
     }
 
     // After successful business/branch selection, check for active shift
-
-    if (userId != null) {
-      await checkAndStartShift(userId: userId);
-    } else {
-      // User ID is null, this should ideally not happen at this stage
-      throw Exception('User not logged in. Cannot start shift.');
-    }
+    await checkAndStartShift(userId: userId);
   }
 
   Future<void> checkAndStartShift({required String userId}) async {
