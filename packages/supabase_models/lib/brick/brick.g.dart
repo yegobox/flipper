@@ -45,13 +45,25 @@ import 'package:flipper_models/helperModels/random.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
 import 'package:supabase_models/brick/models/transaction_payment_record.model.dart';
 // ignore: unused_import, unused_shown_name, unnecessary_import
-import 'package:supabase_models/brick/models/stock.model.dart';// GENERATED CODE DO NOT EDIT
+import 'package:supabase_models/brick/models/stock.model.dart'; // GENERATED CODE DO NOT EDIT
 // ignore: unused_import
 import 'dart:convert';
-import 'package:brick_sqlite/brick_sqlite.dart' show SqliteModel, SqliteAdapter, SqliteModelDictionary, RuntimeSqliteColumnDefinition, SqliteProvider;
-import 'package:brick_supabase/brick_supabase.dart' show SupabaseProvider, SupabaseModel, SupabaseAdapter, SupabaseModelDictionary;
+import 'package:brick_sqlite/brick_sqlite.dart'
+    show
+        SqliteModel,
+        SqliteAdapter,
+        SqliteModelDictionary,
+        RuntimeSqliteColumnDefinition,
+        SqliteProvider;
+import 'package:brick_supabase/brick_supabase.dart'
+    show
+        SupabaseProvider,
+        SupabaseModel,
+        SupabaseAdapter,
+        SupabaseModelDictionary;
 // ignore: unused_import, unused_shown_name
-import 'package:brick_offline_first/brick_offline_first.dart' show RuntimeOfflineFirstDefinition;
+import 'package:brick_offline_first/brick_offline_first.dart'
+    show RuntimeOfflineFirstDefinition;
 // ignore: unused_import, unused_shown_name
 import 'package:sqflite_common/sqlite_api.dart' show DatabaseExecutor;
 
@@ -107,8 +119,8 @@ import '../brick/models/stock_recount.model.dart';
 import '../brick/models/stock_recount_item.model.dart';
 import '../brick/models/tenant.model.dart';
 import '../brick/models/token.model.dart';
-import '../brick/models/transaction.model.dart';
-import '../brick/models/transactionItem.model.dart';
+import 'package:supabase_models/brick/models/transaction.model.dart';
+import 'package:supabase_models/brick/models/transactionItem.model.dart';
 import '../brick/models/transaction_delegation.model.dart';
 import '../brick/models/transaction_payment_record.model.dart';
 import '../brick/models/unit.model.dart';

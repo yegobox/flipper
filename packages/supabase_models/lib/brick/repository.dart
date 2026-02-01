@@ -553,9 +553,9 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     }
     try {
       try {
-        // if (instance is ITransaction) {
-        //   instance.items ??= [];
-        // }
+        if (instance is ITransaction) {
+          instance.items ??= [];
+        }
         instance = await super.upsert(instance, policy: policy, query: query);
         // Notify Ditto for all models
         if (instance is Stock) {

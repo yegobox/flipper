@@ -12,17 +12,24 @@ mixin TransactionItemMixin implements TransactionItemInterface {
   Repository get repository;
 
   @override
-  Future<TransactionItem?> getTransactionItem(
-      {required String variantId, String? transactionId}) async {
+  Future<TransactionItem?> getTransactionItem({
+    required String variantId,
+    String? transactionId,
+  }) async {
     return (await repository.get<TransactionItem>(
-            policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
-            query: Query(where: [
-              Where('variantId', value: variantId, compare: Compare.exact),
-              if (transactionId != null)
-                Where('transactionId',
-                    value: transactionId, compare: Compare.exact),
-            ])))
-        .firstOrNull;
+      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+      query: Query(
+        where: [
+          Where('variantId', value: variantId, compare: Compare.exact),
+          if (transactionId != null)
+            Where(
+              'transactionId',
+              value: transactionId,
+              compare: Compare.exact,
+            ),
+        ],
+      ),
+    )).firstOrNull;
   }
 
   @override
@@ -56,8 +63,7 @@ mixin TransactionItemMixin implements TransactionItemInterface {
       ITransaction? committedTransaction = (await repository.get<ITransaction>(
         query: Query(where: [Where('id').isExactly(transaction.id)]),
         policy: OfflineFirstGetPolicy.localOnly,
-      ))
-          .firstOrNull;
+      )).firstOrNull;
 
       if (committedTransaction == null) {
         // If not found, try to upsert it to ensure it exists and is committed
@@ -65,14 +71,15 @@ mixin TransactionItemMixin implements TransactionItemInterface {
         committedTransaction = (await repository.get<ITransaction>(
           query: Query(where: [Where('id').isExactly(transaction.id)]),
           policy: OfflineFirstGetPolicy.localOnly,
-        ))
-            .firstOrNull;
+        )).firstOrNull;
 
         if (committedTransaction == null) {
           talker.warning(
-              'Parent transaction with ID ${transaction.id} could not be committed or found. Cannot add item.');
+            'Parent transaction with ID ${transaction.id} could not be committed or found. Cannot add item.',
+          );
           throw Exception(
-              'Parent transaction not found or could not be committed for item insertion.');
+            'Parent transaction not found or could not be committed for item insertion.',
+          );
         }
       }
       // Use the committedTransaction for further operations
@@ -100,7 +107,8 @@ mixin TransactionItemMixin implements TransactionItemInterface {
         } else {
           // Handle the case where retailPrice is null
           throw ArgumentError(
-              'Retail price is required for transaction item calculations');
+            'Retail price is required for transaction item calculations',
+          );
         }
       } else {
         // Create a new `TransactionItem` from the `variation` object
@@ -134,30 +142,35 @@ mixin TransactionItemMixin implements TransactionItemInterface {
         if (variation.taxTyCd == 'B') {
           // For taxTyCd == 'B', tax is included in the price
           taxAmt = double.parse(
-              (priceAfterDiscount * taxPercentage / (100 + taxPercentage))
-                  .toStringAsFixed(2));
+            (priceAfterDiscount * taxPercentage / (100 + taxPercentage))
+                .toStringAsFixed(2),
+          );
           taxblAmt = priceAfterDiscount - taxAmt;
           totAmt = priceAfterDiscount;
 
           talker.info('  TAX CALCULATION - TYPE B (with discount):');
           talker.info(
-              '    Formula: priceAfterDiscount * $taxPercentage / ${100 + taxPercentage}');
+            '    Formula: priceAfterDiscount * $taxPercentage / ${100 + taxPercentage}',
+          );
           talker.info(
-              '    Calculation: $priceAfterDiscount * $taxPercentage / ${100 + taxPercentage} = $taxAmt');
+            '    Calculation: $priceAfterDiscount * $taxPercentage / ${100 + taxPercentage} = $taxAmt',
+          );
           talker.info('    taxblAmt = priceAfterDiscount - taxAmt = $taxblAmt');
           talker.info('    totAmt = priceAfterDiscount = $totAmt');
         } else {
           // For other tax types, tax is added to the price
           taxblAmt = priceAfterDiscount;
           taxAmt = double.parse(
-              (taxblAmt * taxPercentage / (100)).toStringAsFixed(2));
+            (taxblAmt * taxPercentage / (100)).toStringAsFixed(2),
+          );
           totAmt = taxblAmt + taxAmt;
 
           talker.info('  TAX CALCULATION - OTHER TYPE (with discount):');
           talker.info('    taxblAmt = priceAfterDiscount = $taxblAmt');
           talker.info('    Formula: taxblAmt * $taxPercentage / 100');
           talker.info(
-              '    Calculation: $taxblAmt * $taxPercentage / 100 = $taxAmt');
+            '    Calculation: $taxblAmt * $taxPercentage / 100 = $taxAmt',
+          );
           talker.info('    totAmt = taxblAmt + taxAmt = $totAmt');
         }
 
@@ -226,9 +239,9 @@ mixin TransactionItemMixin implements TransactionItemInterface {
 
           modrId: variation.modrId,
           modrNm: variation.modrNm,
-          branchId: (await ProxyService.strategy
-                  .activeBranch(branchId: ProxyService.box.getBranchId()!))
-              .id,
+          branchId: (await ProxyService.strategy.activeBranch(
+            branchId: ProxyService.box.getBranchId()!,
+          )).id,
           ebmSynced: false, // Assuming default value
           partOfComposite: partOfComposite,
           compositePrice: compositePrice,
@@ -265,20 +278,18 @@ mixin TransactionItemMixin implements TransactionItemInterface {
       final committedTransactionItem = (await repository.get<TransactionItem>(
         query: Query(where: [Where('id').isExactly(transactionItem.id)]),
         policy: OfflineFirstGetPolicy.localOnly,
-      ))
-          .firstOrNull;
+      )).firstOrNull;
 
       if (committedTransactionItem == null) {
         throw Exception(
-            'Failed to retrieve committed TransactionItem after upsert.');
+          'Failed to retrieve committed TransactionItem after upsert.',
+        );
       }
       transactionItem = committedTransactionItem; // Use the committed version
 
       // Fetch all items for the transaction and update their `itemSeq`
       final allItems = await repository.get<TransactionItem>(
-        query: Query(
-          where: [Where('transactionId').isExactly(transaction.id)],
-        ),
+        query: Query(where: [Where('transactionId').isExactly(transaction.id)]),
       );
 
       // Sort items by `createdAt`
@@ -291,20 +302,22 @@ mixin TransactionItemMixin implements TransactionItemInterface {
       }
 
       // Calculate and update the transaction's subtotal
-      double newSubTotal =
-          allItems.fold(0, (sum, item) => sum + (item.price * item.qty));
+      double newSubTotal = allItems.fold(
+        0,
+        (sum, item) => sum + (item.price * item.qty),
+      );
 
       // Re-fetch the transaction to ensure we have the latest, fully-persisted version
       // before updating its items list and upserting it.
       final latestTransaction = (await repository.get<ITransaction>(
         query: Query(where: [Where('id').isExactly(transaction.id)]),
         policy: OfflineFirstGetPolicy.localOnly,
-      ))
-          .firstOrNull;
+      )).firstOrNull;
 
       if (latestTransaction == null) {
         throw Exception(
-            'Failed to retrieve latest ITransaction before final upsert.');
+          'Failed to retrieve latest ITransaction before final upsert.',
+        );
       }
 
       // Only update if the subtotal has changed or is zero
@@ -356,34 +369,50 @@ mixin TransactionItemMixin implements TransactionItemInterface {
         // Case 1: Both dates provided (date range)
         if (startDate != null && endDate != null) {
           talker.info(
-              'Date Range: \x1B[35m${startDate.toIso8601String()} to ${endDate.toIso8601String()}\x1B[0m');
+            'Date Range: \x1B[35m${startDate.toIso8601String()} to ${endDate.toIso8601String()}\x1B[0m',
+          );
 
           // startDate is the lower bound (inclusive)
-          conditions.add(Where('createdAt')
-              .isGreaterThanOrEqualTo(startDate.toIso8601String()));
+          conditions.add(
+            Where(
+              'createdAt',
+            ).isGreaterThanOrEqualTo(startDate.toIso8601String()),
+          );
 
           // endDate + 1 day is the upper bound (inclusive) to include all entries on the end date
-          conditions.add(Where('createdAt').isLessThanOrEqualTo(
-              endDate.add(const Duration(days: 1)).toIso8601String()));
+          conditions.add(
+            Where('createdAt').isLessThanOrEqualTo(
+              endDate.add(const Duration(days: 1)).toIso8601String(),
+            ),
+          );
         }
         // Case 2: Only startDate provided (everything from this date onwards)
         else if (startDate != null) {
           talker.info(
-              'From Date: \x1B[35m${startDate.toIso8601String()}\x1B[0m onwards');
-          conditions.add(Where('createdAt')
-              .isGreaterThanOrEqualTo(startDate.toIso8601String()));
+            'From Date: \x1B[35m${startDate.toIso8601String()}\x1B[0m onwards',
+          );
+          conditions.add(
+            Where(
+              'createdAt',
+            ).isGreaterThanOrEqualTo(startDate.toIso8601String()),
+          );
         }
         // Case 3: Only endDate provided (everything up to this date)
         else if (endDate != null) {
-          talker
-              .info('Until Date: \x1B[35m${endDate.toIso8601String()}\x1B[0m');
-          conditions.add(Where('createdAt').isLessThanOrEqualTo(
-              endDate.add(const Duration(days: 1)).toIso8601String()));
+          talker.info(
+            'Until Date: \x1B[35m${endDate.toIso8601String()}\x1B[0m',
+          );
+          conditions.add(
+            Where('createdAt').isLessThanOrEqualTo(
+              endDate.add(const Duration(days: 1)).toIso8601String(),
+            ),
+          );
         }
       }
       if (doneWithTransaction != null) {
-        conditions
-            .add(Where('doneWithTransaction').isExactly(doneWithTransaction));
+        conditions.add(
+          Where('doneWithTransaction').isExactly(doneWithTransaction),
+        );
       }
       if (active != null) {
         conditions.add(Where('active').isExactly(active));
@@ -391,14 +420,17 @@ mixin TransactionItemMixin implements TransactionItemInterface {
       return conditions;
     }
 
-    Stream<List<TransactionItem>> _branchStream(dynamic branchIdValue,
-        {bool forceRealData = true}) {
+    Stream<List<TransactionItem>> _branchStream(
+      dynamic branchIdValue, {
+      bool forceRealData = true,
+    }) {
       if ((ProxyService.box.enableDebug() ?? false) && !forceRealData) {
         return Stream.value(
-            DummyTransactionGenerator.generateDummyTransactionItems(
-          transactionId: transactionId ?? "",
-          branchId: branchIdValue.toString(),
-        ));
+          DummyTransactionGenerator.generateDummyTransactionItems(
+            transactionId: transactionId ?? "",
+            branchId: branchIdValue.toString(),
+          ),
+        );
       }
       final query = Query(
         where: _buildConditions(branchIdValue),
@@ -418,7 +450,8 @@ mixin TransactionItemMixin implements TransactionItemInterface {
       if (branchId != null) {
         final intStream = _branchStream(branchId);
         return stringStream.asyncExpand(
-            (items) => items.isNotEmpty ? Stream.value(items) : intStream);
+          (items) => items.isNotEmpty ? Stream.value(items) : intStream,
+        );
       }
       return stringStream;
     }
@@ -450,10 +483,11 @@ mixin TransactionItemMixin implements TransactionItemInterface {
       );
     }
     final items = await repository.get<TransactionItem>(
-        policy: fetchRemote
-            ? OfflineFirstGetPolicy.awaitRemoteWhenNoneExist
-            : OfflineFirstGetPolicy.localOnly,
-        query: Query(where: [
+      policy: fetchRemote
+          ? OfflineFirstGetPolicy.awaitRemoteWhenNoneExist
+          : OfflineFirstGetPolicy.localOnly,
+      query: Query(
+        where: [
           if (itemIds != null && itemIds.isNotEmpty)
             Where('id').isIn(itemIds)
           else ...[
@@ -467,37 +501,40 @@ mixin TransactionItemMixin implements TransactionItemInterface {
             if (variantId != null) Where('variantId').isExactly(variantId),
             if (requestId != null)
               Where('inventoryRequestId').isExactly(requestId),
-          ]
-        ]));
+          ],
+        ],
+      ),
+    );
     return items;
   }
 
   @override
-  Future<void> updateTransactionItem(
-      {double? qty,
-      bool? ignoreForReport,
-      required String transactionItemId,
-      double? discount,
-      bool? active,
-      double? taxAmt,
-      int? quantityApproved,
-      int? quantityRequested,
-      bool? ebmSynced,
-      bool? isRefunded,
-      bool? incrementQty,
-      double? price,
-      double? prc,
-      bool? doneWithTransaction,
-      int? quantityShipped,
-      double? taxblAmt,
-      double? totAmt,
-      double? dcRt,
-      double? dcAmt}) async {
+  Future<void> updateTransactionItem({
+    double? qty,
+    bool? ignoreForReport,
+    required String transactionItemId,
+    double? discount,
+    bool? active,
+    double? taxAmt,
+    int? quantityApproved,
+    int? quantityRequested,
+    bool? ebmSynced,
+    bool? isRefunded,
+    bool? incrementQty,
+    double? price,
+    double? prc,
+    bool? doneWithTransaction,
+    int? quantityShipped,
+    double? taxblAmt,
+    double? totAmt,
+    double? dcRt,
+    double? dcAmt,
+  }) async {
     TransactionItem? item = (await repository.get<TransactionItem>(
-            query: Query(where: [
-      Where('id', value: transactionItemId, compare: Compare.exact),
-    ])))
-        .firstOrNull;
+      query: Query(
+        where: [Where('id', value: transactionItemId, compare: Compare.exact)],
+      ),
+    )).firstOrNull;
     if (item != null) {
       item.qty = incrementQty == true ? item.qty + 1 : qty ?? item.qty;
       item.discount = discount ?? item.discount;
@@ -531,18 +568,20 @@ mixin TransactionItemMixin implements TransactionItemInterface {
 
       if (currentTaxTyCd == 'B') {
         // Tax is included in the price
-        calculatedTaxAmt = double.parse((priceAfterDiscount *
-                currentTaxPercentage /
-                (100 + currentTaxPercentage))
-            .toStringAsFixed(2));
+        calculatedTaxAmt = double.parse(
+          (priceAfterDiscount *
+                  currentTaxPercentage /
+                  (100 + currentTaxPercentage))
+              .toStringAsFixed(2),
+        );
         calculatedTaxblAmt = priceAfterDiscount - calculatedTaxAmt;
         calculatedTotAmt = priceAfterDiscount;
       } else {
         // Tax is added to the price
         calculatedTaxblAmt = priceAfterDiscount;
         calculatedTaxAmt = double.parse(
-            (calculatedTaxblAmt * currentTaxPercentage / 100)
-                .toStringAsFixed(2));
+          (calculatedTaxblAmt * currentTaxPercentage / 100).toStringAsFixed(2),
+        );
         calculatedTotAmt = calculatedTaxblAmt + calculatedTaxAmt;
       }
 
@@ -550,12 +589,14 @@ mixin TransactionItemMixin implements TransactionItemInterface {
       item.taxblAmt = taxblAmt ?? calculatedTaxblAmt;
       item.totAmt = totAmt ?? calculatedTotAmt;
       item.dcAmt = dcAmt ?? calculatedDcAmt;
-      item.remainingStock =
-          item.remainingStock != null ? item.remainingStock! - item.qty : 0;
+      item.remainingStock = item.remainingStock != null
+          ? item.remainingStock! - item.qty
+          : 0;
 
       // Update splyAmt if variant is available
-      Variant? variant =
-          await ProxyService.strategy.getVariant(id: item.variantId);
+      Variant? variant = await ProxyService.strategy.getVariant(
+        id: item.variantId,
+      );
 
       item.splyAmt =
           (item.supplyPriceAtSale ?? variant?.supplyPrice ?? 1) * currentQty;
@@ -564,7 +605,9 @@ mixin TransactionItemMixin implements TransactionItemInterface {
       item.doneWithTransaction =
           doneWithTransaction ?? item.doneWithTransaction;
       await repository.upsert(
-          policy: OfflineFirstUpsertPolicy.optimisticLocal, item);
+        policy: OfflineFirstUpsertPolicy.optimisticLocal,
+        item,
+      );
 
       // Recalculate and update the transaction's subtotal
       final allItems = await repository.get<TransactionItem>(
@@ -572,8 +615,10 @@ mixin TransactionItemMixin implements TransactionItemInterface {
           where: [Where('transactionId').isExactly(item.transactionId)],
         ),
       );
-      double newSubTotal =
-          allItems.fold(0, (sum, item) => sum + (item.price * item.qty));
+      double newSubTotal = allItems.fold(
+        0,
+        (sum, item) => sum + (item.price * item.qty),
+      );
 
       await ProxyService.strategy.updateTransaction(
         transactionId: item.transactionId,
