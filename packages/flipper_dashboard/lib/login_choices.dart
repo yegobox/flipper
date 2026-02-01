@@ -49,6 +49,15 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     _validateUserId();
     // Request Ditto sync permissions on Android
     _requestDittoPermissions();
+    // Invalidate providers to ensure fresh data is loaded for the current user
+    // This is especially important when logging in with a different user
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        ref.invalidate(businessesProvider);
+        // Reset selected business to ensure no stale selection from previous user
+        ref.read(selectedBusinessIdProvider.notifier).state = null;
+      }
+    });
   }
 
   /// Requests all permissions required for Ditto sync on Android
