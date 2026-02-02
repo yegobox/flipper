@@ -106,16 +106,16 @@ class Branch extends OfflineFirstWithSupabaseModel {
       serverId: (map['serverId'] ?? map['server_id']) as int?,
       location: map['location'] as String?,
       description: map['description'] as String?,
-      businessId: map['businessId'] as String?,
+      businessId: (map['businessId'] ?? map['business_id']) as String?,
       latitude: map['latitude'],
       longitude: map['longitude'],
-      isDefault: map['isDefault'] as bool? ?? false,
-      isOnline: map['isOnline'] as bool? ?? false,
-      deletedAt: map['deletedAt'] != null
-          ? DateTime.tryParse(map['deletedAt'] as String)
+      isDefault: (map['isDefault'] ?? map['is_default']) as bool? ?? false,
+      isOnline: (map['isOnline'] ?? map['is_online']) as bool? ?? false,
+      deletedAt: (map['deletedAt'] ?? map['deleted_at']) != null
+          ? DateTime.tryParse((map['deletedAt'] ?? map['deleted_at']) as String)
           : null,
-      updatedAt: map['updatedAt'] != null
-          ? DateTime.tryParse(map['updatedAt'] as String)
+      updatedAt: (map['updatedAt'] ?? map['updated_at']) != null
+          ? DateTime.tryParse((map['updatedAt'] ?? map['updated_at']) as String)
           : null,
     );
   }

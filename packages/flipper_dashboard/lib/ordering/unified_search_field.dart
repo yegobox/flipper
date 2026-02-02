@@ -1,6 +1,5 @@
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/all_providers.dart';
-import 'package:flipper_models/providers/branch_business_provider.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
@@ -18,10 +17,10 @@ class UnifiedSearchField extends HookConsumerWidget {
     final focusNode = useFocusNode();
 
     // Watch suppliers for typeahead
-    final suppliersAsync = ref.watch(
-      branchesProvider(businessId: ProxyService.box.getBusinessId()),
-    );
-    final suppliers = suppliersAsync.value ?? [];
+    // final suppliersAsync = ref.watch(
+    //   branchesProvider(businessId: ProxyService.box.getBusinessId()),
+    // );
+    // final suppliers = suppliersAsync.value ?? [];
     final currentBranchId = ProxyService.box.getBranchId();
 
     final theme = Theme.of(context);
@@ -38,20 +37,24 @@ class UnifiedSearchField extends HookConsumerWidget {
     return TypeAheadField<Branch>(
       controller: controller,
       focusNode: focusNode,
-      suggestionsCallback: (search) {
+      suggestionsCallback: (search) async {
         // Only show supplier suggestions if no supplier is selected
         if (selectedSupplier != null) {
           return [];
         }
 
+        if (search.isEmpty) {
+          return [];
+        }
+
+        List<Branch> suppliers = await ProxyService.app.searchSuppliers(search);
+
         return suppliers.where((supplier) {
-          // Filter out current branch
+          // Filter out current branch just in case
           if (currentBranchId != null && supplier.id == currentBranchId) {
             return false;
           }
-          // Safely handle null names
-          return supplier.name?.toLowerCase().contains(search.toLowerCase()) ??
-              false;
+          return true;
         }).toList();
       },
       builder: (context, controller, focusNode) {

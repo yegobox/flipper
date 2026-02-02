@@ -13,6 +13,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flipper_web/core/secrets.dart';
 import 'package:flipper_models/ebm_helper.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 const socialApp = "socials";
 
@@ -374,14 +375,16 @@ class AppService with ListenableServiceMixin {
     listenToReactiveValues([_categories, _business, _contacts]);
   }
 
-  Future<bool> isSocialLoggedin() async {
-    if (ProxyService.box.getDefaultApp() == "2") {
-      // String businessId = ProxyService.box.getBusinessId()!;
-      // return await ProxyService.strategy
-      //     .isTokenValid(businessId: businessId, tokenType: socialApp);
+  Future<List<Branch>> searchSuppliers(String query) async {
+    if (query.isEmpty) {
+      return [];
     }
 
-    /// should return true if the app is not 2 by default this is because otherwise it will keep pinging the server to log in
-    return true;
+    final List<dynamic> data = await Supabase.instance.client
+        .from('branches')
+        .select()
+        .ilike('name', '%$query%');
+
+    return data.map<Branch>((item) => Branch.fromMap(item)).toList();
   }
 }
