@@ -8,31 +8,31 @@ part of 'conversation.dart';
 
 IConversation _$IConversationFromJson(Map<String, dynamic> json) =>
     IConversation(
-      userName: json['userName'] as String? ?? 'Awesome Richie',
-      body: json['body'] as String,
-      avatar: json['avatar'] as String?,
-      channelType: json['channelType'] as String?,
-      fromNumber: json['fromNumber'] as String?,
-      toNumber: json['toNumber'] as String?,
-      businessId: json['businessId'] as String?,
-      createdAt: json['createdAt'] == null
-          ? null
-          : DateTime.parse(json['createdAt'] as String),
-      respondedBy: json['respondedBy'] as String?,
-      messageType: json['messageType'] as String?,
-      phoneNumberId: json['phoneNumberId'] as String?,
-      conversationId: json['conversationId'] as String?,
-      businessPhoneNumber: json['businessPhoneNumber'] as String?,
-      scheduledAt: json['scheduledAt'] == null
-          ? null
-          : DateTime.parse(json['scheduledAt'] as String),
-      delivered: json['delivered'] as bool?,
-      messageId: json['messageId'] as String?,
-      deletedAt: json['deletedAt'] == null
-          ? null
-          : DateTime.parse(json['deletedAt'] as String),
-      id: json['id'] as String? ?? "0",
-    )
+        userName: json['userName'] as String? ?? 'Awesome Richie',
+        body: json['body'] as String,
+        avatar: json['avatar'] as String?,
+        channelType: json['channelType'] as String?,
+        fromNumber: json['fromNumber'] as String?,
+        toNumber: json['toNumber'] as String?,
+        businessId: json['businessId'] as String?,
+        createdAt: json['createdAt'] == null
+            ? null
+            : DateTime.parse(json['createdAt'] as String),
+        respondedBy: json['respondedBy'] as String?,
+        messageType: json['messageType'] as String?,
+        phoneNumberId: json['phoneNumberId'] as String?,
+        conversationId: json['conversationId'] as String?,
+        businessPhoneNumber: json['businessPhoneNumber'] as String?,
+        scheduledAt: json['scheduledAt'] == null
+            ? null
+            : DateTime.parse(json['scheduledAt'] as String),
+        delivered: json['delivered'] as bool?,
+        messageId: json['messageId'] as String?,
+        deletedAt: json['deletedAt'] == null
+            ? null
+            : DateTime.parse(json['deletedAt'] as String),
+        id: json['id'] as String? ?? "0",
+      )
       ..action = json['action'] as String
       ..lastTouched = json['lastTouched'] == null
           ? null

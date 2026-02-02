@@ -6,25 +6,26 @@ part of 'branch.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-IBranch _$IBranchFromJson(Map<String, dynamic> json) => IBranch(
-      id: json['id'] as String?,
-      serverId: (json['serverId'] as num?)?.toInt(),
-      description: json['description'] as String?,
-      name: json['name'] as String?,
-      businessId: json['businessId'] as String?,
-      longitude: json['longitude'] as num?,
-      latitude: json['latitude'] as num?,
-      createdAt: json['createdAt'] == null
-          ? null
-          : DateTime.parse(json['createdAt'] as String),
-      updatedAt: json['updatedAt'],
-      location: IBranch._parseStringField(json['location']),
-      isDefault: json['isDefault'] as bool?,
-      branchDefault: json['branchDefault'] as bool?,
-      accesses: (json['accesses'] as List<dynamic>?)
-          ?.map((e) => IAccess.fromJson(e as Map<String, dynamic>))
-          .toList(),
-    )
+IBranch _$IBranchFromJson(Map<String, dynamic> json) =>
+    IBranch(
+        id: json['id'] as String?,
+        serverId: (json['serverId'] as num?)?.toInt(),
+        description: json['description'] as String?,
+        name: json['name'] as String?,
+        businessId: json['businessId'] as String?,
+        longitude: json['longitude'] as num?,
+        latitude: json['latitude'] as num?,
+        createdAt: json['createdAt'] == null
+            ? null
+            : DateTime.parse(json['createdAt'] as String),
+        updatedAt: json['updatedAt'],
+        location: IBranch._parseStringField(json['location']),
+        isDefault: json['isDefault'] as bool?,
+        branchDefault: json['branchDefault'] as bool?,
+        accesses: (json['accesses'] as List<dynamic>?)
+            ?.map((e) => IAccess.fromJson(e as Map<String, dynamic>))
+            .toList(),
+      )
       ..lastTouched = json['lastTouched'] == null
           ? null
           : DateTime.parse(json['lastTouched'] as String)
@@ -34,20 +35,20 @@ IBranch _$IBranchFromJson(Map<String, dynamic> json) => IBranch(
       ..action = json['action'] as String;
 
 Map<String, dynamic> _$IBranchToJson(IBranch instance) => <String, dynamic>{
-      'lastTouched': instance.lastTouched?.toIso8601String(),
-      'deletedAt': instance.deletedAt?.toIso8601String(),
-      'action': instance.action,
-      'id': instance.id,
-      'serverId': instance.serverId,
-      'description': instance.description,
-      'name': instance.name,
-      'businessId': instance.businessId,
-      'longitude': instance.longitude,
-      'latitude': instance.latitude,
-      'createdAt': instance.createdAt?.toIso8601String(),
-      'updatedAt': instance.updatedAt,
-      'location': instance.location,
-      'isDefault': instance.isDefault,
-      'branchDefault': instance.branchDefault,
-      'accesses': instance.accesses,
-    };
+  'lastTouched': instance.lastTouched?.toIso8601String(),
+  'deletedAt': instance.deletedAt?.toIso8601String(),
+  'action': instance.action,
+  'id': instance.id,
+  'serverId': instance.serverId,
+  'description': instance.description,
+  'name': instance.name,
+  'businessId': instance.businessId,
+  'longitude': instance.longitude,
+  'latitude': instance.latitude,
+  'createdAt': instance.createdAt?.toIso8601String(),
+  'updatedAt': instance.updatedAt,
+  'location': instance.location,
+  'isDefault': instance.isDefault,
+  'branchDefault': instance.branchDefault,
+  'accesses': instance.accesses,
+};

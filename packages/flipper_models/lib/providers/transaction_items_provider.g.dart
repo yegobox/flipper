@@ -12,30 +12,33 @@ part of 'transaction_items_provider.dart';
 @ProviderFor(transactionItems)
 const transactionItemsProvider = TransactionItemsFamily._();
 
-final class TransactionItemsProvider extends $FunctionalProvider<
-        AsyncValue<List<TransactionItem>>,
-        List<TransactionItem>,
-        FutureOr<List<TransactionItem>>>
+final class TransactionItemsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<TransactionItem>>,
+          List<TransactionItem>,
+          FutureOr<List<TransactionItem>>
+        >
     with
         $FutureModifier<List<TransactionItem>>,
         $FutureProvider<List<TransactionItem>> {
-  const TransactionItemsProvider._(
-      {required TransactionItemsFamily super.from,
-      required ({
-        String? transactionId,
-        String? requestId,
-        String? branchId,
-        bool fetchRemote,
-        bool doneWithTransaction,
-      })
-          super.argument})
-      : super(
-          retry: null,
-          name: r'transactionItemsProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+  const TransactionItemsProvider._({
+    required TransactionItemsFamily super.from,
+    required ({
+      String? transactionId,
+      String? requestId,
+      String? branchId,
+      bool fetchRemote,
+      bool doneWithTransaction,
+    })
+    super.argument,
+  }) : super(
+         retry: null,
+         name: r'transactionItemsProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
   @override
   String debugGetCreateSourceHash() => _$transactionItemsHash();
@@ -50,18 +53,20 @@ final class TransactionItemsProvider extends $FunctionalProvider<
   @$internal
   @override
   $FutureProviderElement<List<TransactionItem>> $createElement(
-          $ProviderPointer pointer) =>
-      $FutureProviderElement(pointer);
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
 
   @override
   FutureOr<List<TransactionItem>> create(Ref ref) {
-    final argument = this.argument as ({
-      String? transactionId,
-      String? requestId,
-      String? branchId,
-      bool fetchRemote,
-      bool doneWithTransaction,
-    });
+    final argument =
+        this.argument
+            as ({
+              String? transactionId,
+              String? requestId,
+              String? branchId,
+              bool fetchRemote,
+              bool doneWithTransaction,
+            });
     return transactionItems(
       ref,
       transactionId: argument.transactionId,
@@ -83,27 +88,28 @@ final class TransactionItemsProvider extends $FunctionalProvider<
   }
 }
 
-String _$transactionItemsHash() => r'5c68f2bfa302821fafde633b23f6238e2fbc43fa';
+String _$transactionItemsHash() => r'04903b5d92ad2d1858b4848f9daae07518a04af8';
 
 final class TransactionItemsFamily extends $Family
     with
         $FunctionalFamilyOverride<
-            FutureOr<List<TransactionItem>>,
-            ({
-              String? transactionId,
-              String? requestId,
-              String? branchId,
-              bool fetchRemote,
-              bool doneWithTransaction,
-            })> {
+          FutureOr<List<TransactionItem>>,
+          ({
+            String? transactionId,
+            String? requestId,
+            String? branchId,
+            bool fetchRemote,
+            bool doneWithTransaction,
+          })
+        > {
   const TransactionItemsFamily._()
-      : super(
-          retry: null,
-          name: r'transactionItemsProvider',
-          dependencies: null,
-          $allTransitiveDependencies: null,
-          isAutoDispose: true,
-        );
+    : super(
+        retry: null,
+        name: r'transactionItemsProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
 
   TransactionItemsProvider call({
     String? transactionId,
@@ -111,14 +117,16 @@ final class TransactionItemsFamily extends $Family
     String? branchId,
     bool fetchRemote = false,
     bool doneWithTransaction = false,
-  }) =>
-      TransactionItemsProvider._(argument: (
-        transactionId: transactionId,
-        requestId: requestId,
-        branchId: branchId,
-        fetchRemote: fetchRemote,
-        doneWithTransaction: doneWithTransaction,
-      ), from: this);
+  }) => TransactionItemsProvider._(
+    argument: (
+      transactionId: transactionId,
+      requestId: requestId,
+      branchId: branchId,
+      fetchRemote: fetchRemote,
+      doneWithTransaction: doneWithTransaction,
+    ),
+    from: this,
+  );
 
   @override
   String toString() => r'transactionItemsProvider';
@@ -127,31 +135,34 @@ final class TransactionItemsFamily extends $Family
 @ProviderFor(transactionItemsStream)
 const transactionItemsStreamProvider = TransactionItemsStreamFamily._();
 
-final class TransactionItemsStreamProvider extends $FunctionalProvider<
-        AsyncValue<List<TransactionItem>>,
-        List<TransactionItem>,
-        Stream<List<TransactionItem>>>
+final class TransactionItemsStreamProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<TransactionItem>>,
+          List<TransactionItem>,
+          Stream<List<TransactionItem>>
+        >
     with
         $FutureModifier<List<TransactionItem>>,
         $StreamProvider<List<TransactionItem>> {
-  const TransactionItemsStreamProvider._(
-      {required TransactionItemsStreamFamily super.from,
-      required ({
-        String? transactionId,
-        String? branchId,
-        String? requestId,
-        bool fetchRemote,
-        bool doneWithTransaction,
-        bool forceRealData,
-      })
-          super.argument})
-      : super(
-          retry: null,
-          name: r'transactionItemsStreamProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+  const TransactionItemsStreamProvider._({
+    required TransactionItemsStreamFamily super.from,
+    required ({
+      String? transactionId,
+      String? branchId,
+      String? requestId,
+      bool fetchRemote,
+      bool doneWithTransaction,
+      bool forceRealData,
+    })
+    super.argument,
+  }) : super(
+         retry: null,
+         name: r'transactionItemsStreamProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
   @override
   String debugGetCreateSourceHash() => _$transactionItemsStreamHash();
@@ -166,19 +177,21 @@ final class TransactionItemsStreamProvider extends $FunctionalProvider<
   @$internal
   @override
   $StreamProviderElement<List<TransactionItem>> $createElement(
-          $ProviderPointer pointer) =>
-      $StreamProviderElement(pointer);
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
 
   @override
   Stream<List<TransactionItem>> create(Ref ref) {
-    final argument = this.argument as ({
-      String? transactionId,
-      String? branchId,
-      String? requestId,
-      bool fetchRemote,
-      bool doneWithTransaction,
-      bool forceRealData,
-    });
+    final argument =
+        this.argument
+            as ({
+              String? transactionId,
+              String? branchId,
+              String? requestId,
+              bool fetchRemote,
+              bool doneWithTransaction,
+              bool forceRealData,
+            });
     return transactionItemsStream(
       ref,
       transactionId: argument.transactionId,
@@ -203,28 +216,29 @@ final class TransactionItemsStreamProvider extends $FunctionalProvider<
 }
 
 String _$transactionItemsStreamHash() =>
-    r'9a317f53bb4bec2f945091d0e7cec79af1f85907';
+    r'59c4d020adeda7ba407bb49d63d01b5b42d5de28';
 
 final class TransactionItemsStreamFamily extends $Family
     with
         $FunctionalFamilyOverride<
-            Stream<List<TransactionItem>>,
-            ({
-              String? transactionId,
-              String? branchId,
-              String? requestId,
-              bool fetchRemote,
-              bool doneWithTransaction,
-              bool forceRealData,
-            })> {
+          Stream<List<TransactionItem>>,
+          ({
+            String? transactionId,
+            String? branchId,
+            String? requestId,
+            bool fetchRemote,
+            bool doneWithTransaction,
+            bool forceRealData,
+          })
+        > {
   const TransactionItemsStreamFamily._()
-      : super(
-          retry: null,
-          name: r'transactionItemsStreamProvider',
-          dependencies: null,
-          $allTransitiveDependencies: null,
-          isAutoDispose: true,
-        );
+    : super(
+        retry: null,
+        name: r'transactionItemsStreamProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
 
   TransactionItemsStreamProvider call({
     String? transactionId,
@@ -233,15 +247,17 @@ final class TransactionItemsStreamFamily extends $Family
     bool fetchRemote = false,
     bool doneWithTransaction = false,
     bool forceRealData = true,
-  }) =>
-      TransactionItemsStreamProvider._(argument: (
-        transactionId: transactionId,
-        branchId: branchId,
-        requestId: requestId,
-        fetchRemote: fetchRemote,
-        doneWithTransaction: doneWithTransaction,
-        forceRealData: forceRealData,
-      ), from: this);
+  }) => TransactionItemsStreamProvider._(
+    argument: (
+      transactionId: transactionId,
+      branchId: branchId,
+      requestId: requestId,
+      fetchRemote: fetchRemote,
+      doneWithTransaction: doneWithTransaction,
+      forceRealData: forceRealData,
+    ),
+    from: this,
+  );
 
   @override
   String toString() => r'transactionItemsStreamProvider';

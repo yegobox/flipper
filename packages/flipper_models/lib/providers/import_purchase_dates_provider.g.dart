@@ -15,24 +15,25 @@ const importPurchaseDatesProvider = ImportPurchaseDatesFamily._();
 
 /// Provider to fetch the last import/purchase date for a given branch and request type
 
-final class ImportPurchaseDatesProvider extends $FunctionalProvider<
-        AsyncValue<DateTime?>, DateTime?, FutureOr<DateTime?>>
+final class ImportPurchaseDatesProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<DateTime?>,
+          DateTime?,
+          FutureOr<DateTime?>
+        >
     with $FutureModifier<DateTime?>, $FutureProvider<DateTime?> {
   /// Provider to fetch the last import/purchase date for a given branch and request type
-  const ImportPurchaseDatesProvider._(
-      {required ImportPurchaseDatesFamily super.from,
-      required ({
-        String branchId,
-        String requestType,
-      })
-          super.argument})
-      : super(
-          retry: null,
-          name: r'importPurchaseDatesProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+  const ImportPurchaseDatesProvider._({
+    required ImportPurchaseDatesFamily super.from,
+    required ({String branchId, String requestType}) super.argument,
+  }) : super(
+         retry: null,
+         name: r'importPurchaseDatesProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
   @override
   String debugGetCreateSourceHash() => _$importPurchaseDatesHash();
@@ -51,10 +52,7 @@ final class ImportPurchaseDatesProvider extends $FunctionalProvider<
 
   @override
   FutureOr<DateTime?> create(Ref ref) {
-    final argument = this.argument as ({
-      String branchId,
-      String requestType,
-    });
+    final argument = this.argument as ({String branchId, String requestType});
     return importPurchaseDates(
       ref,
       branchId: argument.branchId,
@@ -81,30 +79,27 @@ String _$importPurchaseDatesHash() =>
 final class ImportPurchaseDatesFamily extends $Family
     with
         $FunctionalFamilyOverride<
-            FutureOr<DateTime?>,
-            ({
-              String branchId,
-              String requestType,
-            })> {
+          FutureOr<DateTime?>,
+          ({String branchId, String requestType})
+        > {
   const ImportPurchaseDatesFamily._()
-      : super(
-          retry: null,
-          name: r'importPurchaseDatesProvider',
-          dependencies: null,
-          $allTransitiveDependencies: null,
-          isAutoDispose: true,
-        );
+    : super(
+        retry: null,
+        name: r'importPurchaseDatesProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
 
   /// Provider to fetch the last import/purchase date for a given branch and request type
 
   ImportPurchaseDatesProvider call({
     required String branchId,
     required String requestType,
-  }) =>
-      ImportPurchaseDatesProvider._(argument: (
-        branchId: branchId,
-        requestType: requestType,
-      ), from: this);
+  }) => ImportPurchaseDatesProvider._(
+    argument: (branchId: branchId, requestType: requestType),
+    from: this,
+  );
 
   @override
   String toString() => r'importPurchaseDatesProvider';

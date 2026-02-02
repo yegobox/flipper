@@ -12,19 +12,24 @@ part of 'device_provider.dart';
 @ProviderFor(devicesForBranch)
 const devicesForBranchProvider = DevicesForBranchFamily._();
 
-final class DevicesForBranchProvider extends $FunctionalProvider<
-        AsyncValue<List<Device>>, List<Device>, FutureOr<List<Device>>>
+final class DevicesForBranchProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<Device>>,
+          List<Device>,
+          FutureOr<List<Device>>
+        >
     with $FutureModifier<List<Device>>, $FutureProvider<List<Device>> {
-  const DevicesForBranchProvider._(
-      {required DevicesForBranchFamily super.from,
-      required String super.argument})
-      : super(
-          retry: null,
-          name: r'devicesForBranchProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+  const DevicesForBranchProvider._({
+    required DevicesForBranchFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'devicesForBranchProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
   @override
   String debugGetCreateSourceHash() => _$devicesForBranchHash();
@@ -39,16 +44,13 @@ final class DevicesForBranchProvider extends $FunctionalProvider<
   @$internal
   @override
   $FutureProviderElement<List<Device>> $createElement(
-          $ProviderPointer pointer) =>
-      $FutureProviderElement(pointer);
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
 
   @override
   FutureOr<List<Device>> create(Ref ref) {
     final argument = this.argument as String;
-    return devicesForBranch(
-      ref,
-      branchId: argument,
-    );
+    return devicesForBranch(ref, branchId: argument);
   }
 
   @override
@@ -67,17 +69,15 @@ String _$devicesForBranchHash() => r'bcb6fbb9c9a7f398df7ccc8d7f7561c8c9fed68b';
 final class DevicesForBranchFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<List<Device>>, String> {
   const DevicesForBranchFamily._()
-      : super(
-          retry: null,
-          name: r'devicesForBranchProvider',
-          dependencies: null,
-          $allTransitiveDependencies: null,
-          isAutoDispose: true,
-        );
+    : super(
+        retry: null,
+        name: r'devicesForBranchProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
 
-  DevicesForBranchProvider call({
-    required String branchId,
-  }) =>
+  DevicesForBranchProvider call({required String branchId}) =>
       DevicesForBranchProvider._(argument: branchId, from: this);
 
   @override

@@ -15,21 +15,25 @@ const paymentVerificationProvider = PaymentVerificationProvider._();
 
 /// Provider for the payment verification service
 
-final class PaymentVerificationProvider extends $FunctionalProvider<
-    PaymentVerificationService,
-    PaymentVerificationService,
-    PaymentVerificationService> with $Provider<PaymentVerificationService> {
+final class PaymentVerificationProvider
+    extends
+        $FunctionalProvider<
+          PaymentVerificationService,
+          PaymentVerificationService,
+          PaymentVerificationService
+        >
+    with $Provider<PaymentVerificationService> {
   /// Provider for the payment verification service
   const PaymentVerificationProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'paymentVerificationProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'paymentVerificationProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$paymentVerificationHash();
@@ -37,8 +41,8 @@ final class PaymentVerificationProvider extends $FunctionalProvider<
   @$internal
   @override
   $ProviderElement<PaymentVerificationService> $createElement(
-          $ProviderPointer pointer) =>
-      $ProviderElement(pointer);
+    $ProviderPointer pointer,
+  ) => $ProviderElement(pointer);
 
   @override
   PaymentVerificationService create(Ref ref) {
@@ -64,24 +68,27 @@ const verifyPaymentProvider = VerifyPaymentProvider._();
 
 /// Provider for manually triggering payment verification
 
-final class VerifyPaymentProvider extends $FunctionalProvider<
-        AsyncValue<PaymentVerificationResponse>,
-        PaymentVerificationResponse,
-        FutureOr<PaymentVerificationResponse>>
+final class VerifyPaymentProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<PaymentVerificationResponse>,
+          PaymentVerificationResponse,
+          FutureOr<PaymentVerificationResponse>
+        >
     with
         $FutureModifier<PaymentVerificationResponse>,
         $FutureProvider<PaymentVerificationResponse> {
   /// Provider for manually triggering payment verification
   const VerifyPaymentProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'verifyPaymentProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'verifyPaymentProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$verifyPaymentHash();
@@ -89,8 +96,8 @@ final class VerifyPaymentProvider extends $FunctionalProvider<
   @$internal
   @override
   $FutureProviderElement<PaymentVerificationResponse> $createElement(
-          $ProviderPointer pointer) =>
-      $FutureProviderElement(pointer);
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
 
   @override
   FutureOr<PaymentVerificationResponse> create(Ref ref) {
@@ -112,15 +119,15 @@ final class ForcePaymentVerificationProvider
     with $FutureModifier<void>, $FutureProvider<void> {
   /// Provider for forcing payment verification
   const ForcePaymentVerificationProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'forcePaymentVerificationProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'forcePaymentVerificationProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$forcePaymentVerificationHash();

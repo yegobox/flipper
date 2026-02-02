@@ -12,19 +12,24 @@ part of 'notice_provider.dart';
 @ProviderFor(notices)
 const noticesProvider = NoticesProvider._();
 
-final class NoticesProvider extends $FunctionalProvider<
-        AsyncValue<List<Notice>>, List<Notice>, FutureOr<List<Notice>>>
+final class NoticesProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<Notice>>,
+          List<Notice>,
+          FutureOr<List<Notice>>
+        >
     with $FutureModifier<List<Notice>>, $FutureProvider<List<Notice>> {
   const NoticesProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'noticesProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'noticesProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$noticesHash();
@@ -32,8 +37,8 @@ final class NoticesProvider extends $FunctionalProvider<
   @$internal
   @override
   $FutureProviderElement<List<Notice>> $createElement(
-          $ProviderPointer pointer) =>
-      $FutureProviderElement(pointer);
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
 
   @override
   FutureOr<List<Notice>> create(Ref ref) {

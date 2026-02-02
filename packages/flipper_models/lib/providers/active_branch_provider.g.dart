@@ -16,15 +16,15 @@ final class ActiveBranchProvider
     extends $FunctionalProvider<AsyncValue<Branch>, Branch, Stream<Branch>>
     with $FutureModifier<Branch>, $StreamProvider<Branch> {
   const ActiveBranchProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'activeBranchProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'activeBranchProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$activeBranchHash();

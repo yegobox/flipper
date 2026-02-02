@@ -18,15 +18,15 @@ final class DateRangeProvider
     extends $NotifierProvider<DateRange, DateRangeModel> {
   /// A provider for managing date range state.
   const DateRangeProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'dateRangeProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'dateRangeProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$dateRangeHash();
@@ -55,11 +55,14 @@ abstract class _$DateRange extends $Notifier<DateRangeModel> {
   void runBuild() {
     final created = build();
     final ref = this.ref as $Ref<DateRangeModel, DateRangeModel>;
-    final element = ref.element as $ClassProviderElement<
-        AnyNotifier<DateRangeModel, DateRangeModel>,
-        DateRangeModel,
-        Object?,
-        Object?>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<DateRangeModel, DateRangeModel>,
+              DateRangeModel,
+              Object?,
+              Object?
+            >;
     element.handleValue(ref, created);
   }
 }

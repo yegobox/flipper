@@ -15,15 +15,16 @@ const stockValueProvider = StockValueFamily._();
 final class StockValueProvider
     extends $FunctionalProvider<AsyncValue<double>, double, FutureOr<double>>
     with $FutureModifier<double>, $FutureProvider<double> {
-  const StockValueProvider._(
-      {required StockValueFamily super.from, required String super.argument})
-      : super(
-          retry: null,
-          name: r'stockValueProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+  const StockValueProvider._({
+    required StockValueFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'stockValueProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
   @override
   String debugGetCreateSourceHash() => _$stockValueHash();
@@ -43,10 +44,7 @@ final class StockValueProvider
   @override
   FutureOr<double> create(Ref ref) {
     final argument = this.argument as String;
-    return StockValue(
-      ref,
-      branchId: argument,
-    );
+    return StockValue(ref, branchId: argument);
   }
 
   @override
@@ -65,17 +63,15 @@ String _$stockValueHash() => r'0abf0dde6b1eb11f79faa1efc61b1bfc98599676';
 final class StockValueFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<double>, String> {
   const StockValueFamily._()
-      : super(
-          retry: null,
-          name: r'stockValueProvider',
-          dependencies: null,
-          $allTransitiveDependencies: null,
-          isAutoDispose: true,
-        );
+    : super(
+        retry: null,
+        name: r'stockValueProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
 
-  StockValueProvider call({
-    required String branchId,
-  }) =>
+  StockValueProvider call({required String branchId}) =>
       StockValueProvider._(argument: branchId, from: this);
 
   @override

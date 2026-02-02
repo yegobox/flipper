@@ -15,15 +15,15 @@ const productSortProvider = ProductSortProvider._();
 final class ProductSortProvider
     extends $NotifierProvider<ProductSort, ProductSortOption> {
   const ProductSortProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'productSortProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'productSortProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$productSortHash();
@@ -50,11 +50,14 @@ abstract class _$ProductSort extends $Notifier<ProductSortOption> {
   void runBuild() {
     final created = build();
     final ref = this.ref as $Ref<ProductSortOption, ProductSortOption>;
-    final element = ref.element as $ClassProviderElement<
-        AnyNotifier<ProductSortOption, ProductSortOption>,
-        ProductSortOption,
-        Object?,
-        Object?>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<ProductSortOption, ProductSortOption>,
+              ProductSortOption,
+              Object?,
+              Object?
+            >;
     element.handleValue(ref, created);
   }
 }

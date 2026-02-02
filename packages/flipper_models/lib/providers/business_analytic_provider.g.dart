@@ -12,23 +12,26 @@ part of 'business_analytic_provider.dart';
 @ProviderFor(fetchStockPerformance)
 const fetchStockPerformanceProvider = FetchStockPerformanceFamily._();
 
-final class FetchStockPerformanceProvider extends $FunctionalProvider<
-        AsyncValue<List<BusinessAnalytic>>,
-        List<BusinessAnalytic>,
-        FutureOr<List<BusinessAnalytic>>>
+final class FetchStockPerformanceProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<BusinessAnalytic>>,
+          List<BusinessAnalytic>,
+          FutureOr<List<BusinessAnalytic>>
+        >
     with
         $FutureModifier<List<BusinessAnalytic>>,
         $FutureProvider<List<BusinessAnalytic>> {
-  const FetchStockPerformanceProvider._(
-      {required FetchStockPerformanceFamily super.from,
-      required String super.argument})
-      : super(
-          retry: null,
-          name: r'fetchStockPerformanceProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+  const FetchStockPerformanceProvider._({
+    required FetchStockPerformanceFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'fetchStockPerformanceProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
   @override
   String debugGetCreateSourceHash() => _$fetchStockPerformanceHash();
@@ -43,16 +46,13 @@ final class FetchStockPerformanceProvider extends $FunctionalProvider<
   @$internal
   @override
   $FutureProviderElement<List<BusinessAnalytic>> $createElement(
-          $ProviderPointer pointer) =>
-      $FutureProviderElement(pointer);
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
 
   @override
   FutureOr<List<BusinessAnalytic>> create(Ref ref) {
     final argument = this.argument as String;
-    return fetchStockPerformance(
-      ref,
-      argument,
-    );
+    return fetchStockPerformance(ref, argument);
   }
 
   @override
@@ -72,17 +72,15 @@ String _$fetchStockPerformanceHash() =>
 final class FetchStockPerformanceFamily extends $Family
     with $FunctionalFamilyOverride<FutureOr<List<BusinessAnalytic>>, String> {
   const FetchStockPerformanceFamily._()
-      : super(
-          retry: null,
-          name: r'fetchStockPerformanceProvider',
-          dependencies: null,
-          $allTransitiveDependencies: null,
-          isAutoDispose: true,
-        );
+    : super(
+        retry: null,
+        name: r'fetchStockPerformanceProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
 
-  FetchStockPerformanceProvider call(
-    String branchId,
-  ) =>
+  FetchStockPerformanceProvider call(String branchId) =>
       FetchStockPerformanceProvider._(argument: branchId, from: this);
 
   @override

@@ -15,21 +15,25 @@ const inventoryServiceProvider = InventoryServiceProvider._();
 
 /// Service provider for inventory operations
 
-final class InventoryServiceProvider extends $FunctionalProvider<
-    InventoryService,
-    InventoryService,
-    InventoryService> with $Provider<InventoryService> {
+final class InventoryServiceProvider
+    extends
+        $FunctionalProvider<
+          InventoryService,
+          InventoryService,
+          InventoryService
+        >
+    with $Provider<InventoryService> {
   /// Service provider for inventory operations
   const InventoryServiceProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'inventoryServiceProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'inventoryServiceProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$inventoryServiceHash();
@@ -62,24 +66,27 @@ const expiredItemsProvider = ExpiredItemsFamily._();
 
 /// Provider for expired items
 
-final class ExpiredItemsProvider extends $FunctionalProvider<
-        AsyncValue<List<InventoryItem>>,
-        List<InventoryItem>,
-        FutureOr<List<InventoryItem>>>
+final class ExpiredItemsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<InventoryItem>>,
+          List<InventoryItem>,
+          FutureOr<List<InventoryItem>>
+        >
     with
         $FutureModifier<List<InventoryItem>>,
         $FutureProvider<List<InventoryItem>> {
   /// Provider for expired items
-  const ExpiredItemsProvider._(
-      {required ExpiredItemsFamily super.from,
-      required ExpiredItemsParams super.argument})
-      : super(
-          retry: null,
-          name: r'expiredItemsProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+  const ExpiredItemsProvider._({
+    required ExpiredItemsFamily super.from,
+    required ExpiredItemsParams super.argument,
+  }) : super(
+         retry: null,
+         name: r'expiredItemsProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
   @override
   String debugGetCreateSourceHash() => _$expiredItemsHash();
@@ -94,16 +101,13 @@ final class ExpiredItemsProvider extends $FunctionalProvider<
   @$internal
   @override
   $FutureProviderElement<List<InventoryItem>> $createElement(
-          $ProviderPointer pointer) =>
-      $FutureProviderElement(pointer);
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
 
   @override
   FutureOr<List<InventoryItem>> create(Ref ref) {
     final argument = this.argument as ExpiredItemsParams;
-    return expiredItems(
-      ref,
-      argument,
-    );
+    return expiredItems(ref, argument);
   }
 
   @override
@@ -123,22 +127,22 @@ String _$expiredItemsHash() => r'0850b2818a5761395f64de4b34391db5bbadeaaa';
 
 final class ExpiredItemsFamily extends $Family
     with
-        $FunctionalFamilyOverride<FutureOr<List<InventoryItem>>,
-            ExpiredItemsParams> {
+        $FunctionalFamilyOverride<
+          FutureOr<List<InventoryItem>>,
+          ExpiredItemsParams
+        > {
   const ExpiredItemsFamily._()
-      : super(
-          retry: null,
-          name: r'expiredItemsProvider',
-          dependencies: null,
-          $allTransitiveDependencies: null,
-          isAutoDispose: true,
-        );
+    : super(
+        retry: null,
+        name: r'expiredItemsProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
 
   /// Provider for expired items
 
-  ExpiredItemsProvider call(
-    ExpiredItemsParams params,
-  ) =>
+  ExpiredItemsProvider call(ExpiredItemsParams params) =>
       ExpiredItemsProvider._(argument: params, from: this);
 
   @override
@@ -152,24 +156,27 @@ const nearExpiryItemsProvider = NearExpiryItemsFamily._();
 
 /// Provider for near expiry items
 
-final class NearExpiryItemsProvider extends $FunctionalProvider<
-        AsyncValue<List<InventoryItem>>,
-        List<InventoryItem>,
-        FutureOr<List<InventoryItem>>>
+final class NearExpiryItemsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<InventoryItem>>,
+          List<InventoryItem>,
+          FutureOr<List<InventoryItem>>
+        >
     with
         $FutureModifier<List<InventoryItem>>,
         $FutureProvider<List<InventoryItem>> {
   /// Provider for near expiry items
-  const NearExpiryItemsProvider._(
-      {required NearExpiryItemsFamily super.from,
-      required NearExpiryItemsParams super.argument})
-      : super(
-          retry: null,
-          name: r'nearExpiryItemsProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+  const NearExpiryItemsProvider._({
+    required NearExpiryItemsFamily super.from,
+    required NearExpiryItemsParams super.argument,
+  }) : super(
+         retry: null,
+         name: r'nearExpiryItemsProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
   @override
   String debugGetCreateSourceHash() => _$nearExpiryItemsHash();
@@ -184,16 +191,13 @@ final class NearExpiryItemsProvider extends $FunctionalProvider<
   @$internal
   @override
   $FutureProviderElement<List<InventoryItem>> $createElement(
-          $ProviderPointer pointer) =>
-      $FutureProviderElement(pointer);
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
 
   @override
   FutureOr<List<InventoryItem>> create(Ref ref) {
     final argument = this.argument as NearExpiryItemsParams;
-    return nearExpiryItems(
-      ref,
-      argument,
-    );
+    return nearExpiryItems(ref, argument);
   }
 
   @override
@@ -213,22 +217,22 @@ String _$nearExpiryItemsHash() => r'3fa2a658c3f54461b31e4412385305496b051ea9';
 
 final class NearExpiryItemsFamily extends $Family
     with
-        $FunctionalFamilyOverride<FutureOr<List<InventoryItem>>,
-            NearExpiryItemsParams> {
+        $FunctionalFamilyOverride<
+          FutureOr<List<InventoryItem>>,
+          NearExpiryItemsParams
+        > {
   const NearExpiryItemsFamily._()
-      : super(
-          retry: null,
-          name: r'nearExpiryItemsProvider',
-          dependencies: null,
-          $allTransitiveDependencies: null,
-          isAutoDispose: true,
-        );
+    : super(
+        retry: null,
+        name: r'nearExpiryItemsProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
 
   /// Provider for near expiry items
 
-  NearExpiryItemsProvider call(
-    NearExpiryItemsParams params,
-  ) =>
+  NearExpiryItemsProvider call(NearExpiryItemsParams params) =>
       NearExpiryItemsProvider._(argument: params, from: this);
 
   @override
@@ -242,20 +246,25 @@ const totalItemsProvider = TotalItemsProvider._();
 
 /// Provider for total items count and trend
 
-final class TotalItemsProvider extends $FunctionalProvider<
-        AsyncValue<TotalItemsData>, TotalItemsData, FutureOr<TotalItemsData>>
+final class TotalItemsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<TotalItemsData>,
+          TotalItemsData,
+          FutureOr<TotalItemsData>
+        >
     with $FutureModifier<TotalItemsData>, $FutureProvider<TotalItemsData> {
   /// Provider for total items count and trend
   const TotalItemsProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'totalItemsProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'totalItemsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$totalItemsHash();
@@ -263,8 +272,8 @@ final class TotalItemsProvider extends $FunctionalProvider<
   @$internal
   @override
   $FutureProviderElement<TotalItemsData> $createElement(
-          $ProviderPointer pointer) =>
-      $FutureProviderElement(pointer);
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
 
   @override
   FutureOr<TotalItemsData> create(Ref ref) {
@@ -281,20 +290,25 @@ const lowStockItemsProvider = LowStockItemsProvider._();
 
 /// Provider for low stock items count and trend
 
-final class LowStockItemsProvider extends $FunctionalProvider<
-        AsyncValue<TotalItemsData>, TotalItemsData, FutureOr<TotalItemsData>>
+final class LowStockItemsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<TotalItemsData>,
+          TotalItemsData,
+          FutureOr<TotalItemsData>
+        >
     with $FutureModifier<TotalItemsData>, $FutureProvider<TotalItemsData> {
   /// Provider for low stock items count and trend
   const LowStockItemsProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'lowStockItemsProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'lowStockItemsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$lowStockItemsHash();
@@ -302,8 +316,8 @@ final class LowStockItemsProvider extends $FunctionalProvider<
   @$internal
   @override
   $FutureProviderElement<TotalItemsData> $createElement(
-          $ProviderPointer pointer) =>
-      $FutureProviderElement(pointer);
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
 
   @override
   FutureOr<TotalItemsData> create(Ref ref) {
@@ -320,20 +334,25 @@ const pendingOrdersProvider = PendingOrdersProvider._();
 
 /// Provider for pending orders count and trend
 
-final class PendingOrdersProvider extends $FunctionalProvider<
-        AsyncValue<TotalItemsData>, TotalItemsData, FutureOr<TotalItemsData>>
+final class PendingOrdersProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<TotalItemsData>,
+          TotalItemsData,
+          FutureOr<TotalItemsData>
+        >
     with $FutureModifier<TotalItemsData>, $FutureProvider<TotalItemsData> {
   /// Provider for pending orders count and trend
   const PendingOrdersProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'pendingOrdersProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'pendingOrdersProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$pendingOrdersHash();
@@ -341,8 +360,8 @@ final class PendingOrdersProvider extends $FunctionalProvider<
   @$internal
   @override
   $FutureProviderElement<TotalItemsData> $createElement(
-          $ProviderPointer pointer) =>
-      $FutureProviderElement(pointer);
+    $ProviderPointer pointer,
+  ) => $FutureProviderElement(pointer);
 
   @override
   FutureOr<TotalItemsData> create(Ref ref) {

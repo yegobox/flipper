@@ -14,15 +14,15 @@ const scanningModeProvider = ScanningModeProvider._();
 
 final class ScanningModeProvider extends $NotifierProvider<ScanningMode, bool> {
   const ScanningModeProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'scanningModeProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'scanningModeProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$scanningModeHash();
@@ -49,8 +49,14 @@ abstract class _$ScanningMode extends $Notifier<bool> {
   void runBuild() {
     final created = build();
     final ref = this.ref as $Ref<bool, bool>;
-    final element = ref.element as $ClassProviderElement<
-        AnyNotifier<bool, bool>, bool, Object?, Object?>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<bool, bool>,
+              bool,
+              Object?,
+              Object?
+            >;
     element.handleValue(ref, created);
   }
 }
@@ -61,15 +67,15 @@ const searchStringProvider = SearchStringProvider._();
 final class SearchStringProvider
     extends $NotifierProvider<SearchString, String> {
   const SearchStringProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'searchStringProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'searchStringProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$searchStringHash();
@@ -96,8 +102,14 @@ abstract class _$SearchString extends $Notifier<String> {
   void runBuild() {
     final created = build();
     final ref = this.ref as $Ref<String, String>;
-    final element = ref.element as $ClassProviderElement<
-        AnyNotifier<String, String>, String, Object?, Object?>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<String, String>,
+              String,
+              Object?,
+              Object?
+            >;
     element.handleValue(ref, created);
   }
 }

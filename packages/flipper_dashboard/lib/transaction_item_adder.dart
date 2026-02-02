@@ -12,6 +12,7 @@ import 'package:synchronized/synchronized.dart';
 import 'package:flipper_services/GlobalLogError.dart';
 import 'package:flipper_models/helperModels/flipperWatch.dart';
 import 'package:flutter/foundation.dart' hide Category;
+import 'package:flipper_models/providers/optimistic_order_count_provider.dart';
 
 class TransactionItemAdder {
   final BuildContext context;
@@ -32,6 +33,10 @@ class TransactionItemAdder {
     w?.start();
 
     try {
+      // Increment optimistic count IMMEDIATELY for instant UI feedback
+      // This happens before any async operations
+      ref.read(optimisticOrderCountProvider.notifier).increment();
+
       // Show immediate visual feedback to indicate the item is being processed
       if (context.mounted) {
         // showCustomSnackBarUtil(context, 'Adding item to cart...');
@@ -155,6 +160,9 @@ class TransactionItemAdder {
 
       w?.log("ItemAddedToTransactionSuccess"); // Log success
     } catch (e, s) {
+      // Rollback optimistic increment on failure
+      ref.read(optimisticOrderCountProvider.notifier).decrement();
+
       if (!context.mounted) return;
 
       // Hide the loading indicator if there was an error

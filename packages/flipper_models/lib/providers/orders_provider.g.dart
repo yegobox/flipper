@@ -12,27 +12,26 @@ part of 'orders_provider.dart';
 @ProviderFor(stockRequests)
 const stockRequestsProvider = StockRequestsFamily._();
 
-final class StockRequestsProvider extends $FunctionalProvider<
-        AsyncValue<List<InventoryRequest>>,
-        List<InventoryRequest>,
-        Stream<List<InventoryRequest>>>
+final class StockRequestsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<InventoryRequest>>,
+          List<InventoryRequest>,
+          Stream<List<InventoryRequest>>
+        >
     with
         $FutureModifier<List<InventoryRequest>>,
         $StreamProvider<List<InventoryRequest>> {
-  const StockRequestsProvider._(
-      {required StockRequestsFamily super.from,
-      required ({
-        String status,
-        String? search,
-      })
-          super.argument})
-      : super(
-          retry: null,
-          name: r'stockRequestsProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+  const StockRequestsProvider._({
+    required StockRequestsFamily super.from,
+    required ({String status, String? search}) super.argument,
+  }) : super(
+         retry: null,
+         name: r'stockRequestsProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
   @override
   String debugGetCreateSourceHash() => _$stockRequestsHash();
@@ -47,20 +46,13 @@ final class StockRequestsProvider extends $FunctionalProvider<
   @$internal
   @override
   $StreamProviderElement<List<InventoryRequest>> $createElement(
-          $ProviderPointer pointer) =>
-      $StreamProviderElement(pointer);
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
 
   @override
   Stream<List<InventoryRequest>> create(Ref ref) {
-    final argument = this.argument as ({
-      String status,
-      String? search,
-    });
-    return stockRequests(
-      ref,
-      status: argument.status,
-      search: argument.search,
-    );
+    final argument = this.argument as ({String status, String? search});
+    return stockRequests(ref, status: argument.status, search: argument.search);
   }
 
   @override
@@ -79,28 +71,23 @@ String _$stockRequestsHash() => r'acd9dbd0d8999808bec5f8463c4f324880d16362';
 final class StockRequestsFamily extends $Family
     with
         $FunctionalFamilyOverride<
-            Stream<List<InventoryRequest>>,
-            ({
-              String status,
-              String? search,
-            })> {
+          Stream<List<InventoryRequest>>,
+          ({String status, String? search})
+        > {
   const StockRequestsFamily._()
-      : super(
-          retry: null,
-          name: r'stockRequestsProvider',
-          dependencies: null,
-          $allTransitiveDependencies: null,
-          isAutoDispose: true,
-        );
+    : super(
+        retry: null,
+        name: r'stockRequestsProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
 
-  StockRequestsProvider call({
-    required String status,
-    String? search,
-  }) =>
-      StockRequestsProvider._(argument: (
-        status: status,
-        search: search,
-      ), from: this);
+  StockRequestsProvider call({required String status, String? search}) =>
+      StockRequestsProvider._(
+        argument: (status: status, search: search),
+        from: this,
+      );
 
   @override
   String toString() => r'stockRequestsProvider';

@@ -16,15 +16,15 @@ final class IsDigitalPaymentEnabledProvider
     extends $FunctionalProvider<AsyncValue<bool>, bool, FutureOr<bool>>
     with $FutureModifier<bool>, $FutureProvider<bool> {
   const IsDigitalPaymentEnabledProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'isDigitalPaymentEnabledProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'isDigitalPaymentEnabledProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$isDigitalPaymentEnabledHash();
