@@ -3,8 +3,8 @@ import 'package:flipper_models/db_model_export.dart';
 
 class TransactionItemDataSource extends DynamicDataSource<TransactionItem> {
   TransactionItemDataSource(
-      List<TransactionItem> transactionItems, int rowsPerPage, bool showPluReport)
-      : super(transactionItems, rowsPerPage) {
-    this.showPluReport = showPluReport;
-  }
+    List<TransactionItem> transactionItems,
+    int rowsPerPage,
+    bool showPluReport,
+  ) : super(transactionItems, rowsPerPage, showPluReport: showPluReport);
 }

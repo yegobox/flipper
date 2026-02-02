@@ -1272,6 +1272,11 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                   transactionId: transactionAsyncValue.value?.id ?? "",
                 ),
               );
+              ref.invalidate(
+                pendingTransactionStreamProvider(
+                  isExpense: ProxyService.box.isOrdering() ?? false,
+                ),
+              );
             },
             child: Text('Remove'),
           ),
@@ -1293,6 +1298,11 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     ref.invalidate(
       transactionItemsStreamProvider(
         transactionId: transactionAsyncValue.value?.id ?? "",
+      ),
+    );
+    ref.invalidate(
+      pendingTransactionStreamProvider(
+        isExpense: ProxyService.box.isOrdering() ?? false,
       ),
     );
   }

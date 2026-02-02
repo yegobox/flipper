@@ -16,10 +16,13 @@ mixin TransactionComputationMixin {
       (sum, item) => sum + (item.price * item.qty),
     );
 
-    // Fallback/Validation: Check if the transaction's stored subTotal is larger (implying missing items in the UI list)
-    if (transaction != null && (transaction.subTotal ?? 0.0) > baseTotal) {
-      baseTotal = transaction.subTotal!;
-    }
+    // Fallback/Validation: REMOVED
+    // We strictly use the sum of items because relying on transaction.subTotal
+    // can lead to stale totals when items are deleted but the transaction
+    // object hasn't been updated/refreshed yet.
+    // if (transaction != null && (transaction.subTotal ?? 0.0) > baseTotal) {
+    //   baseTotal = transaction.subTotal!;
+    // }
 
     if (discountPercent > 0) {
       final discountAmount = (baseTotal * discountPercent) / 100;

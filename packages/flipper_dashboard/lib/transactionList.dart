@@ -313,18 +313,33 @@ class TransactionListState extends ConsumerState<TransactionList>
     return dataProvider.when(
       data: (data) {
         if (data.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.receipt_long, size: 60, color: Colors.grey[400]),
-                const SizedBox(height: 16),
-                Text(
-                  'No transactions found for the selected period.',
-                  style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+          return Column(
+            children: [
+              if (widget.hideHeader)
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: _buildReportTypeSwitch(showDetailed),
                 ),
-              ],
-            ),
+              Expanded(
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.receipt_long,
+                        size: 60,
+                        color: Colors.grey[400],
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'No transactions found for the selected period.',
+                        style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           );
         }
 
