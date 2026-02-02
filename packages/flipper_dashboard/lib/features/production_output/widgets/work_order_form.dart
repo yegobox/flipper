@@ -268,8 +268,8 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
           page: 0,
           itemsPerPage: 50,
           // only deal with raw material
-          // itemTyCd: '1',
-          taxTyCds: ['A', 'B', 'C', 'D', 'TT'],
+          itemTyCd: '1',
+          // taxTyCds: ['A', 'B', 'C', 'D', 'TT'],
         );
         return paged.variants.cast<Variant>().toList();
       },

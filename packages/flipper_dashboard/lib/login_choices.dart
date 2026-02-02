@@ -392,12 +392,15 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     } catch (e) {
       talker.error('Error handling branch selection: $e');
       if (!mounted) return;
+      // Reset loading state so user can try again
+      setState(() {
+        _isLoading = false;
+      });
       ErrorHandler.showErrorSnackBar(context, e);
     } finally {
       if (mounted) {
         setState(() {
           _loadingItemId = null;
-          // Do not set _isLoading to false here if a navigation is happening
         });
       }
     }

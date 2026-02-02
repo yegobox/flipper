@@ -428,8 +428,6 @@ class _PinLoginState extends State<PinLogin>
                                           SizedBox(
                                               height:
                                                   screenHeight < 600 ? 24 : 40),
-                                          _buildSecurityNote(
-                                              isDark, screenHeight),
                                         ],
                                       ),
                                     );
@@ -791,37 +789,6 @@ class _PinLoginState extends State<PinLogin>
             fontWeight: FontWeight.w600,
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildSecurityNote(bool isDark, double screenHeight) {
-    return Container(
-      padding: EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isDark ? Color(0xFF2d2d2d) : Color(0xFFF9FAFB),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            Icons.verified_user_outlined,
-            color: Color(0xFF10B981),
-            size: 20,
-          ),
-          SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              'End-to-end encrypted login. Your security is our top priority.',
-              style: TextStyle(
-                color: isDark ? Colors.white60 : Color(0xFF374151),
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-                height: 1.4,
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

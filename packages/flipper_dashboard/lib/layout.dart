@@ -81,6 +81,10 @@ class DashboardLayout extends HookConsumerWidget {
           },
           child: LayoutBuilder(
             builder: (context, constraints) {
+              // Handle the case when constraints are not yet available
+              if (constraints.maxWidth == 0 || constraints.maxHeight == 0) {
+                return const SizedBox.shrink();
+              }
               if (constraints.maxWidth < 600) {
                 return MobileView(
                   isBigScreen: false,

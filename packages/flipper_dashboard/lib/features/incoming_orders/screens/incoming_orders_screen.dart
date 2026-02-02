@@ -49,108 +49,120 @@ class IncomingOrdersScreen extends HookConsumerWidget {
       return null;
     }, [stockRequests, refreshedOnce.value]);
 
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Handle the case when constraints are not yet available
+        if (constraints.maxWidth == 0 || constraints.maxHeight == 0) {
+          return const SizedBox.shrink();
+        }
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Incoming Orders',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.black,
-                ),
-              ),
-              OrderStatusSelector(
-                selectedStatus: ref.watch(orderStatusProvider),
-                onStatusChanged: (newStatus) {
-                  ref.read(orderStatusProvider.notifier).state = newStatus;
-                  ref.read(requestStatusProvider.notifier).state =
-                      newStatus == OrderStatus.approved
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Incoming Orders',
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black,
+                    ),
+                  ),
+                  OrderStatusSelector(
+                    selectedStatus: ref.watch(orderStatusProvider),
+                    onStatusChanged: (newStatus) {
+                      ref.read(orderStatusProvider.notifier).state = newStatus;
+                      ref
+                          .read(requestStatusProvider.notifier)
+                          .state = newStatus == OrderStatus.approved
                           ? RequestStatus.approved
                           : RequestStatus.pending;
-                },
+                    },
+                  ),
+                ],
               ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Expanded(
-            child: stockRequests.when(
-              data: (requests) {
-                if (requests.isEmpty) {
-                  return _buildEmptyState(ref);
-                }
+              const SizedBox(height: 20),
+              Expanded(
+                child: stockRequests.when(
+                  data: (requests) {
+                    if (requests.isEmpty) {
+                      return _buildEmptyState(ref);
+                    }
 
-                return incomingBranchAsync.when(
-                  data: (incomingBranch) {
-                    return SingleChildScrollView(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildStatsCard(requests.length),
-                          const SizedBox(height: 20),
-                          const Text(
-                            'Recent Orders',
-                            style: TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF1A1A1A),
-                            ),
-                          ),
-                          const SizedBox(height: 16),
-                          ListView.separated(
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            itemCount: requests.length,
-                            separatorBuilder: (context, index) =>
-                                const SizedBox(height: 12),
-                            itemBuilder: (context, index) => Container(
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(12),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withOpacity(0.04),
-                                    blurRadius: 15,
-                                    offset: const Offset(0, 2),
+                    return incomingBranchAsync.when(
+                      data: (incomingBranch) {
+                        return SingleChildScrollView(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildStatsCard(requests.length),
+                              const SizedBox(height: 20),
+                              const Text(
+                                'Recent Orders',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w600,
+                                  color: Color(0xFF1A1A1A),
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              ListView.separated(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                itemCount: requests.length,
+                                separatorBuilder: (context, index) =>
+                                    const SizedBox(height: 12),
+                                itemBuilder: (context, index) => Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(12),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withOpacity(0.04),
+                                        blurRadius: 15,
+                                        offset: const Offset(0, 2),
+                                      ),
+                                    ],
                                   ),
-                                ],
+                                  child: RequestCard(
+                                    request: requests[index],
+                                    incomingBranch: incomingBranch,
+                                  ),
+                                ),
                               ),
-                              child: RequestCard(
-                                request: requests[index],
-                                incomingBranch: incomingBranch,
-                              ),
-                            ),
+                            ],
                           ),
-                        ],
+                        );
+                      },
+                      loading: _buildLoadingState,
+                      error: (err, stack) => _buildErrorState(
+                        'Error loading branch',
+                        err.toString(),
+                        Icons.business_center_outlined,
+                        () => ref.refresh(activeBranchProvider),
                       ),
                     );
                   },
                   loading: _buildLoadingState,
                   error: (err, stack) => _buildErrorState(
-                    'Error loading branch',
+                    'Error loading requests',
                     err.toString(),
-                    Icons.business_center_outlined,
-                    () => ref.refresh(activeBranchProvider),
+                    Icons.error_outline,
+                    () {
+                      ref.refresh(
+                        stockRequestsProvider(status: status, search: search),
+                      );
+                    },
                   ),
-                );
-              },
-              loading: _buildLoadingState,
-              error: (err, stack) => _buildErrorState(
-                  'Error loading requests', err.toString(), Icons.error_outline,
-                  () {
-                ref.refresh(
-                  stockRequestsProvider(status: status, search: search),
-                );
-              }),
-            ),
+                ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -304,7 +316,11 @@ class IncomingOrdersScreen extends HookConsumerWidget {
   }
 
   Widget _buildErrorState(
-      String title, String message, IconData icon, VoidCallback onRetry) {
+    String title,
+    String message,
+    IconData icon,
+    VoidCallback onRetry,
+  ) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -345,8 +361,7 @@ class IncomingOrdersScreen extends HookConsumerWidget {
               backgroundColor: const Color(0xFF0078D4),
               foregroundColor: Colors.white,
               elevation: 0,
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),

@@ -295,19 +295,17 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                       }
                     },
                   ),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 120.0),
-                    child: SizedBox(
-                        width: 450,
-                        child: Text(
-                          'Log in to Flipper by QR Code',
-                          style: GoogleFonts.poppins(
-                              fontWeight: FontWeight.w400,
-                              fontSize: 20,
-                              color: Colors.black),
-                        )),
+                  SizedBox(
+                    width: 380,
+                    child: Text(
+                      'Log in to Flipper by QR Code',
+                      style: GoogleFonts.poppins(
+                          fontWeight: FontWeight.w400,
+                          fontSize: 20,
+                          color: Colors.black),
+                    ),
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   SizedBox(
                     width: 380,
                     child: Text('1. Open Flipper on your phone',
@@ -334,7 +332,7 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                   SizedBox(height: 30),
                   // Companion app download section
                   SizedBox(
-                    width: 380,
+                    width: 340,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -348,6 +346,7 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                         ),
                         SizedBox(height: 8),
                         Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             // App Store button with visual feedback
                             MouseRegion(
@@ -427,8 +426,7 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                   ),
                   SizedBox(height: 30),
                   SizedBox(
-                    height: 40,
-                    width: 350,
+                    width: 380,
                     child: OutlinedButton(
                       key: Key('pinLogin_desktop'),
                       child: Text(
@@ -438,7 +436,7 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                       style: ButtonStyle(
                         shape: WidgetStateProperty.resolveWith<OutlinedBorder>(
                             (states) => RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(0))),
+                                borderRadius: BorderRadius.circular(8))),
                         side: WidgetStateProperty.resolveWith<BorderSide>(
                             (states) => BorderSide(
                                   color: const Color(0xff006AFE)
@@ -470,7 +468,7 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                     stream: Connectivity().onConnectivityChanged,
                     builder: (context, snapshot) {
                       if (snapshot.hasData && snapshot.data != null) {
-                        if (snapshot.data == ConnectivityResult.none) {
+                        if (snapshot.data!.contains(ConnectivityResult.none)) {
                           return const Text(
                             'Device is offline',
                             style: TextStyle(color: Colors.red),
