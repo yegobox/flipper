@@ -137,41 +137,15 @@ mixin CapellaProductMixin implements ProductInterface {
       final query =
           "SELECT * FROM products WHERE ${whereClauses.join(' AND ')}";
 
-      await ditto.sync.registerSubscription(query, arguments: arguments);
+      // Use direct execution for immediate results
+      final result = await ditto.store.execute(query, arguments: arguments);
 
-      final completer = Completer<Product?>();
-      final observer = ditto.store.registerObserver(
-        query,
-        arguments: arguments,
-        onChange: (result) {
-          if (!completer.isCompleted) {
-            if (result.items.isNotEmpty) {
-              completer.complete(
-                Product.fromJson(
-                  Map<String, dynamic>.from(result.items.first.value),
-                ),
-              );
-            } else {
-              // We don't complete with null immediately to allow sync to catch up
-              // unless we want to timeout.
-            }
-          }
-        },
-      );
-
-      try {
-        return await completer.future.timeout(
-          const Duration(seconds: 10),
-          onTimeout: () {
-            if (!completer.isCompleted) {
-              completer.complete(null);
-            }
-            return null;
-          },
+      if (result.items.isNotEmpty) {
+        return Product.fromJson(
+          Map<String, dynamic>.from(result.items.first.value),
         );
-      } finally {
-        observer.cancel();
       }
+      return null;
     } catch (e, st) {
       talker.error('Error in getProduct: $e\n$st');
       return null;

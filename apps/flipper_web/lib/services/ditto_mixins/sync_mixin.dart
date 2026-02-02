@@ -285,9 +285,7 @@ mixin SyncMixin on DittoCore {
 
   /// Placeholder method to be implemented by the class using this mixin
   Future<List<UserProfile>> getAllUserProfiles() async {
-    debugPrint(
-      '⚠️ getAllUserProfiles() not implemented in the class using this mixin',
-    );
+    // TODO: implement
     return [];
   }
 }

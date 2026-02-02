@@ -782,6 +782,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     String? sarTyCd,
   }) async {
     try {
+      final s = Stopwatch()..start();
       final ditto = dittoService.dittoInstance;
       if (ditto == null) {
         talker.error('Ditto not initialized for saveTransactionItem');
@@ -797,6 +798,13 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       };
 
       final result = await ditto.store.execute(query, arguments: args);
+      talker.warning(
+        "saveTransactionItem: CheckExists took ${s.elapsedMilliseconds}ms",
+      );
+      s.reset();
+
+      // Optimize SubTotal calculation by avoiding full re-fetch of items
+      double delta = 0.0;
 
       if (result.items.isNotEmpty) {
         // Update existing item
@@ -805,9 +813,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         );
         final double currentQty = (existingItemData['qty'] as num).toDouble();
         final double newQty = updatableQty ?? (currentQty + 1);
-        final double newTotal =
-            amountTotal *
-            newQty; // Assuming amountTotal is unit price here, or re-calculate
+        final double newTotal = amountTotal * newQty;
 
         await ditto.store.execute(
           "UPDATE transaction_items SET qty = :qty, totAmt = :totAmt, updatedAt = :updatedAt WHERE _id = :id",
@@ -818,22 +824,26 @@ mixin CapellaTransactionMixin implements TransactionInterface {
             'id': existingItemData['_id'] ?? existingItemData['id'],
           },
         );
+
+        // Delta caused by this update
+        // We assume amountTotal is the current price per unit
+        delta = (newQty - currentQty) * amountTotal;
       } else {
         // Insert new item
+        final double qty = updatableQty ?? 1.0;
+        final double itemTotal = amountTotal * qty;
+
         final newItem = TransactionItem(
           id: DateTime.now().millisecondsSinceEpoch.toString(), // Generate ID
           name: variation.name,
           transactionId: pendingTransaction.id,
           variantId: variation.id,
-          qty: updatableQty ?? 1.0,
+          qty: qty,
           price: amountTotal, // Unit price
-          totAmt: amountTotal * (updatableQty ?? 1.0),
+          totAmt: itemTotal,
           discount: 0.0,
-          // type: "REGULAR", // Removed
           createdAt: DateTime.now().toUtc(),
           updatedAt: DateTime.now().toUtc(),
-          // isCustom: customItem, // Removed
-          // isTaxExempted: false, // Removed
           isRefunded: false,
           doneWithTransaction: doneWithTransaction,
           active: true,
@@ -882,19 +892,16 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         );
         // Ensure we pass the created item to background sync to prevent duplicates
         item = newItem;
-      }
-      // Update Transaction Totals (SubTotal)
-      // Recalculate everything for safety
-      final itemsResult = await ditto.store.execute(
-        "SELECT * FROM transaction_items WHERE transactionId = :tid",
-        arguments: {'tid': pendingTransaction.id},
-      );
 
-      double newSubTotal = 0.0;
-      for (final item in itemsResult.items) {
-        final data = Map<String, dynamic>.from(item.value);
-        newSubTotal += (data['totAmt'] as num).toDouble();
+        delta = itemTotal;
       }
+      talker.warning(
+        "saveTransactionItem: Insert/Update took ${s.elapsedMilliseconds}ms",
+      );
+      s.reset();
+
+      // Update Transaction SubTotal incrementally
+      final double newSubTotal = (pendingTransaction.subTotal ?? 0.0) + delta;
 
       await updateTransaction(
         transaction: pendingTransaction,
@@ -902,27 +909,10 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         updatedAt: DateTime.now(),
         lastTouched: DateTime.now(),
       );
-
-      // Background Sync
-      talker.info('Background sync triggered for item: ${item?.id}');
-      _backgroundSync(
-        (strategy) => strategy.saveTransactionItem(
-          compositePrice: compositePrice,
-          ignoreForReport: ignoreForReport,
-          updatableQty: updatableQty,
-          variation: variation,
-          doneWithTransaction: doneWithTransaction,
-          amountTotal: amountTotal,
-          customItem: customItem,
-          pendingTransaction: pendingTransaction,
-          invoiceNumber: invoiceNumber,
-          currentStock: currentStock,
-          useTransactionItemForQty: useTransactionItemForQty,
-          partOfComposite: partOfComposite,
-          item: item,
-          sarTyCd: sarTyCd,
-        ),
+      talker.warning(
+        "saveTransactionItem: UpdateTransaction took ${s.elapsedMilliseconds}ms",
       );
+      s.reset();
 
       return true;
     } catch (e, s) {
@@ -1040,29 +1030,29 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       }
 
       // Background Sync
-      _backgroundSync(
-        (strategy) => strategy.updateTransactionItem(
-          qty: qty,
-          transactionItemId: transactionItemId,
-          discount: discount,
-          active: active,
-          taxAmt: taxAmt,
-          quantityApproved: quantityApproved,
-          quantityRequested: quantityRequested,
-          ebmSynced: ebmSynced,
-          isRefunded: isRefunded,
-          incrementQty: incrementQty,
-          price: price,
-          prc: prc,
-          doneWithTransaction: doneWithTransaction,
-          quantityShipped: quantityShipped,
-          taxblAmt: taxblAmt,
-          totAmt: totAmt,
-          dcRt: dcRt,
-          dcAmt: dcAmt,
-          ignoreForReport: ignoreForReport,
-        ),
-      );
+      // _backgroundSync(
+      //   (strategy) => strategy.updateTransactionItem(
+      //     qty: qty,
+      //     transactionItemId: transactionItemId,
+      //     discount: discount,
+      //     active: active,
+      //     taxAmt: taxAmt,
+      //     quantityApproved: quantityApproved,
+      //     quantityRequested: quantityRequested,
+      //     ebmSynced: ebmSynced,
+      //     isRefunded: isRefunded,
+      //     incrementQty: incrementQty,
+      //     price: price,
+      //     prc: prc,
+      //     doneWithTransaction: doneWithTransaction,
+      //     quantityShipped: quantityShipped,
+      //     taxblAmt: taxblAmt,
+      //     totAmt: totAmt,
+      //     dcRt: dcRt,
+      //     dcAmt: dcAmt,
+      //     ignoreForReport: ignoreForReport,
+      //   ),
+      // );
     } catch (e, s) {
       talker.error('Error in updateTransactionItem: $e', s);
     }
@@ -1216,39 +1206,39 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     }
 
     // Background Sync
-    _backgroundSync(
-      (strategy) => strategy.updateTransaction(
-        transaction: transaction,
-        receiptType: receiptType,
-        subTotal: subTotal,
-        note: note,
-        status: status,
-        customerId: customerId,
-        ebmSynced: ebmSynced,
-        sarTyCd: sarTyCd,
-        reference: reference,
-        customerTin: customerTin,
-        customerBhfId: customerBhfId,
-        cashReceived: cashReceived,
-        isRefunded: isRefunded,
-        customerName: customerName,
-        ticketName: ticketName,
-        updatedAt: updatedAt,
-        invoiceNumber: invoiceNumber,
-        lastTouched: lastTouched,
-        supplierId: supplierId,
-        receiptNumber: receiptNumber,
-        totalReceiptNumber: totalReceiptNumber,
-        isProformaMode: isProformaMode,
-        sarNo: sarNo,
-        orgSarNo: orgSarNo,
-        receiptPrinted: receiptPrinted,
-        isUnclassfied: isUnclassfied,
-        isTrainingMode: isTrainingMode,
-        transactionId: transactionId,
-        customerPhone: customerPhone,
-      ),
-    );
+    // _backgroundSync(
+    //   (strategy) => strategy.updateTransaction(
+    //     transaction: transaction,
+    //     receiptType: receiptType,
+    //     subTotal: subTotal,
+    //     note: note,
+    //     status: status,
+    //     customerId: customerId,
+    //     ebmSynced: ebmSynced,
+    //     sarTyCd: sarTyCd,
+    //     reference: reference,
+    //     customerTin: customerTin,
+    //     customerBhfId: customerBhfId,
+    //     cashReceived: cashReceived,
+    //     isRefunded: isRefunded,
+    //     customerName: customerName,
+    //     ticketName: ticketName,
+    //     updatedAt: updatedAt,
+    //     invoiceNumber: invoiceNumber,
+    //     lastTouched: lastTouched,
+    //     supplierId: supplierId,
+    //     receiptNumber: receiptNumber,
+    //     totalReceiptNumber: totalReceiptNumber,
+    //     isProformaMode: isProformaMode,
+    //     sarNo: sarNo,
+    //     orgSarNo: orgSarNo,
+    //     receiptPrinted: receiptPrinted,
+    //     isUnclassfied: isUnclassfied,
+    //     isTrainingMode: isTrainingMode,
+    //     transactionId: transactionId,
+    //     customerPhone: customerPhone,
+    //   ),
+    // );
   }
 
   @override
@@ -1304,9 +1294,9 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       );
 
       // Background Sync
-      _backgroundSync(
-        (strategy) => strategy.deleteTransaction(transaction: transaction),
-      );
+      // _backgroundSync(
+      //   (strategy) => strategy.deleteTransaction(transaction: transaction),
+      // );
 
       return true;
     } catch (e) {

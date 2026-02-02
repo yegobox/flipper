@@ -46,10 +46,13 @@ class TransactionItemAdder {
       final businessId = ProxyService.box.getBusinessId()!;
 
       // Manage transaction
+      w?.log("Pre-PendingTransaction");
       final pendingTransaction = await ref.read(
         pendingTransactionStreamProvider(isExpense: isOrdering).future,
       );
+      w?.log("Post-PendingTransaction");
 
+      w?.log("Pre-GetProduct");
       // Fetch product details
       final product = await ProxyService.getStrategy(Strategy.capella)
           .getProduct(
@@ -57,15 +60,18 @@ class TransactionItemAdder {
             id: variant.productId!,
             branchId: branchId,
           );
+      w?.log("Post-GetProduct");
 
+      // Get the latest stock from cache
+      Stock? cachedStock;
       // Only check stock if we're not in ordering mode
       if (!isOrdering) {
-        // Get the latest stock from cache
-        Stock? cachedStock;
         if (variant.id.isNotEmpty) {
+          w?.log("Pre-CacheStock");
           cachedStock = await ProxyService.getStrategy(
             Strategy.capella,
           ).getStockById(id: variant.stockId!);
+          w?.log("Post-CacheStock");
         }
 
         // Use cached stock if available, otherwise fall back to variant.stock
@@ -93,11 +99,23 @@ class TransactionItemAdder {
         }
       }
 
+      w?.log("Pre-Lock");
       // Use a lock to prevent multiple simultaneous operations
       await _lock.synchronized(() async {
-        Stock stock = await ProxyService.getStrategy(
-          Strategy.capella,
-        ).getStockById(id: variant.stockId!);
+        w?.log("Post-Lock");
+        // Use the stock we already fetched above if available
+        // If not, fetch it now (only if we didn't fetch it before)
+        Stock? stock;
+        if (!isOrdering && cachedStock != null) {
+          stock = cachedStock;
+        } else {
+          w?.log("Pre-FetchStock-InLock");
+          stock = await ProxyService.getStrategy(
+            Strategy.capella,
+          ).getStockById(id: variant.stockId!);
+          w?.log("Post-FetchStock-InLock");
+        }
+
         if (product != null && product.isComposite == true) {
           // Handle composite product
           final composites = await ProxyService.strategy.composites(
@@ -124,6 +142,7 @@ class TransactionItemAdder {
           }
         } else {
           // Handle non-composite product
+          w?.log("Pre-SaveItem");
           await ProxyService.strategy.saveTransactionItem(
             variation: variant,
             doneWithTransaction: false,
@@ -134,8 +153,10 @@ class TransactionItemAdder {
             pendingTransaction: pendingTransaction,
             partOfComposite: false,
           );
+          w?.log("Post-SaveItem");
         }
       });
+      w?.log("Post-Lock-Release");
 
       // Hide the loading indicator
       if (context.mounted) {
@@ -149,6 +170,8 @@ class TransactionItemAdder {
       //await Future.delayed(const Duration(milliseconds: 100));
 
       // Immediately refresh the transaction items
+
+      w?.log("Pre-Refresh");
       ref.refresh(
         transactionItemsStreamProvider(
           transactionId: pendingTransaction.id,
@@ -157,6 +180,7 @@ class TransactionItemAdder {
           )).id,
         ),
       );
+      w?.log("Post-Refresh");
 
       w?.log("ItemAddedToTransactionSuccess"); // Log success
     } catch (e, s) {
