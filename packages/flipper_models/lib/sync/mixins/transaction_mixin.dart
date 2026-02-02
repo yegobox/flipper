@@ -772,25 +772,34 @@ mixin TransactionMixin implements TransactionInterface {
   }) async {
     try {
       // Update existing item if found and not custom
+      // Update existing item if found and not custom
       if (item != null && !isCustom) {
-        await _updateExistingTransactionItem(
-          item: item,
-          ignoreForReport: ignoreForReport,
+        // Check if it exists in local DB
+        final existing = await repository.get<TransactionItem>(
+          query: Query(where: [Where('id').isExactly(item.id)]),
+          policy: OfflineFirstGetPolicy.localOnly,
+        );
 
-          /// 02 is when we are dealing with purchase whereas 01 is when we are dealing with import
-          quantity: updatableQty != null
-              ? updatableQty
-              : sarTyCd == "02" || sarTyCd == "01"
-              ? variation.stock!.currentStock!
-              : item.qty + 1,
-          variation: variation,
-          amountTotal: amountTotal,
-        );
-        await updatePendingTransactionTotals(
-          pendingTransaction,
-          sarTyCd: sarTyCd ?? "11",
-        );
-        return;
+        if (existing.isNotEmpty) {
+          await _updateExistingTransactionItem(
+            item: item,
+            ignoreForReport: ignoreForReport,
+
+            /// 02 is when we are dealing with purchase whereas 01 is when we are dealing with import
+            quantity: updatableQty != null
+                ? updatableQty
+                : sarTyCd == "02" || sarTyCd == "01"
+                ? variation.stock!.currentStock!
+                : item.qty + 1,
+            variation: variation,
+            amountTotal: amountTotal,
+          );
+          await updatePendingTransactionTotals(
+            pendingTransaction,
+            sarTyCd: sarTyCd ?? "11",
+          );
+          return;
+        }
       }
 
       // Add a new item
@@ -823,6 +832,7 @@ mixin TransactionMixin implements TransactionInterface {
         variation: variation,
         name: name,
         amountTotal: amountTotal,
+        item: item,
       );
 
       await updatePendingTransactionTotals(

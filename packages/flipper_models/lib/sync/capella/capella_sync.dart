@@ -228,39 +228,6 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  Future<ITransaction?> manageTransaction({
-    required String transactionType,
-    required String branchId,
-    String status = PENDING,
-    required bool isExpense,
-    bool includeSubTotalCheck = false,
-    String? shiftId,
-  }) {
-    // TODO: implement manageTransaction
-    throw UnimplementedError();
-  }
-
-  @override
-  Stream<ITransaction> pendingTransaction({
-    String? branchId,
-    required String transactionType,
-    bool forceRealData = true,
-    required bool isExpense,
-  }) {
-    // TODO: implement pendingTransaction
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<void> mergeTransactions({
-    required ITransaction from,
-    required ITransaction to,
-  }) {
-    // TODO: implement mergeTransactions
-    throw UnimplementedError();
-  }
-
-  @override
   ReceivePort? receivePort;
 
   @override
@@ -642,16 +609,6 @@ class CapellaSync extends AiStrategyImpl
   @override
   Future<List<FinanceProvider>> financeProviders() {
     // TODO: implement financeProviders
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<bool> flipperDelete({
-    required String id,
-    String? endPoint,
-    HttpClientInterface? flipperHttpClient,
-  }) {
-    // TODO: implement flipperDelete
     throw UnimplementedError();
   }
 
