@@ -176,6 +176,19 @@ mixin TransactionItemMixin implements TransactionItemInterface {
 
         final qtyUnitCd = variation.qtyUnitCd;
 
+        // Calculate itemSeq efficiently
+        final existingItems = await repository.get<TransactionItem>(
+          query: Query(
+            where: [Where('transactionId').isExactly(transaction.id)],
+            orderBy: [OrderBy('itemSeq', ascending: false)],
+            limit: 1,
+          ),
+          policy: OfflineFirstGetPolicy.localOnly,
+        );
+        final int nextItemSeq = (existingItems.isEmpty)
+            ? 1
+            : (existingItems.first.itemSeq ?? 0) + 1;
+
         transactionItem = TransactionItem(
           ttCatCd: variation.ttCatCd,
           itemNm: variation.itemNm ?? variation.name, // Required
@@ -261,7 +274,7 @@ mixin TransactionItemMixin implements TransactionItemInterface {
           taxblAmt: taxblAmt.toDouble(),
           taxAmt: taxAmt.toDouble(),
           totAmt: totAmt.toDouble(),
-          itemSeq: variation.itemSeq,
+          itemSeq: nextItemSeq,
           isrccCd: variation.isrccCd,
           isrccNm: variation.isrccNm,
           isrcRt: variation.isrcRt,
@@ -287,19 +300,13 @@ mixin TransactionItemMixin implements TransactionItemInterface {
       }
       transactionItem = committedTransactionItem; // Use the committed version
 
-      // Fetch all items for the transaction and update their `itemSeq`
+      // Optimization: Removed O(N) re-sequencing loop.
+      // We only calculate the new subtotal and update the transaction.
+
       final allItems = await repository.get<TransactionItem>(
         query: Query(where: [Where('transactionId').isExactly(transaction.id)]),
+        policy: OfflineFirstGetPolicy.localOnly,
       );
-
-      // Sort items by `createdAt`
-      allItems.sort((a, b) => a.createdAt!.compareTo(b.createdAt!));
-
-      // Update `itemSeq` for each item
-      for (var i = 0; i < allItems.length; i++) {
-        allItems[i].itemSeq = i + 1; // itemSeq should start from 1
-        await repository.upsert<TransactionItem>(allItems[i]);
-      }
 
       // Calculate and update the transaction's subtotal
       double newSubTotal = allItems.fold(
@@ -307,32 +314,13 @@ mixin TransactionItemMixin implements TransactionItemInterface {
         (sum, item) => sum + (item.price * item.qty),
       );
 
-      // Re-fetch the transaction to ensure we have the latest, fully-persisted version
-      // before updating its items list and upserting it.
-      final latestTransaction = (await repository.get<ITransaction>(
-        query: Query(where: [Where('id').isExactly(transaction.id)]),
-        policy: OfflineFirstGetPolicy.localOnly,
-      )).firstOrNull;
-
-      if (latestTransaction == null) {
-        throw Exception(
-          'Failed to retrieve latest ITransaction before final upsert.',
-        );
-      }
-
-      // Only update if the subtotal has changed or is zero
-      if (latestTransaction.subTotal == 0 ||
-          latestTransaction.subTotal != newSubTotal) {
-        await ProxyService.strategy.updateTransaction(
-          transaction: latestTransaction,
-          subTotal: newSubTotal,
-          cashReceived: ProxyService.box.getCashReceived(),
-          updatedAt: DateTime.now(),
-          lastTouched: DateTime.now(),
-        );
-      }
-      latestTransaction.items = allItems;
-      await repository.upsert<ITransaction>(latestTransaction);
+      await ProxyService.strategy.updateTransaction(
+        transaction: transaction,
+        subTotal: newSubTotal,
+        cashReceived: ProxyService.box.getCashReceived(),
+        updatedAt: DateTime.now(),
+        lastTouched: DateTime.now(),
+      );
     } catch (e, s) {
       talker.error(s);
       rethrow;
