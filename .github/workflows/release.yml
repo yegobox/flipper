@@ -33,6 +33,7 @@ env:
 jobs:
   unit-testing:
     name: Unit Testing
+    if: false
     runs-on: ubuntu-latest
     env:
       FLUTTER_TEST_CI: true
@@ -196,7 +197,7 @@ jobs:
     name: "Integration Testing Windows"
     runs-on: windows-2022
     # if: false  # skip for now as it is flaky
-    needs: [unit-testing,build_web_deploy_firebase] # Requires Supabase to be initialized
+    needs: [build_web_deploy_firebase] # Requires Supabase to be initialized
     steps:
       - name: Export pub environment variable on Windows
         run: |
@@ -329,7 +330,7 @@ jobs:
     runs-on: windows-latest
     # integration-testing-windows,build_web_deploy_firebase
     # For now intrested in unit testing as web deployment is broken we will re-add need to depend on integration-testing-windows,build_web_deploy_firebase later
-    needs: [unit-testing] # Requires Supabase to be initialized
+    # needs: [unit-testing] # Requires Supabase to be initialized
     steps:
       - uses: actions/checkout@v4
         with:

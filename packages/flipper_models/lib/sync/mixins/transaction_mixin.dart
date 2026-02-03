@@ -835,10 +835,11 @@ mixin TransactionMixin implements TransactionInterface {
         item: item,
       );
 
-      await updatePendingTransactionTotals(
-        pendingTransaction,
-        sarTyCd: sarTyCd ?? "11",
-      );
+      // Redundant update removed. `ProxyService.strategy.addTransactionItem` already updates the transaction.
+      // await updatePendingTransactionTotals(
+      //   pendingTransaction,
+      //   sarTyCd: sarTyCd ?? "11",
+      // );
     } catch (e, s) {
       talker.warning(e);
       talker.error(s);
