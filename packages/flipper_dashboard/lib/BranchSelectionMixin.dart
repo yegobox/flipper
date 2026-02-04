@@ -16,6 +16,7 @@ import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flipper_services/locator.dart' as loc;
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_routing/app.locator.dart' show locator;
+import 'package:flipper_models/providers/active_branch_provider.dart';
 import 'dart:async'; // Add missing import for Timer
 
 mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
@@ -104,7 +105,7 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
 
     try {
       // Store the current branch ID before making changes
-      final currentBranchId = ProxyService.box.readInt(key: 'branchId');
+      final currentBranchId = ProxyService.box.getBranchId();
 
       // Only update if we're actually changing branches
       if (currentBranchId != branch.id) {
@@ -170,6 +171,7 @@ mixin BranchSelectionMixin<T extends ConsumerStatefulWidget>
       ref.invalidate(
         branchesProvider(businessId: ProxyService.box.getBusinessId()),
       );
+      ref.invalidate(activeBranchProvider);
 
       // Add a small delay to ensure branch ID is fully set before invalidating transaction providers
       await Future.delayed(Duration(milliseconds: 100));
