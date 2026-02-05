@@ -27,6 +27,7 @@ import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/notifications/notification_manager.dart';
 import 'package:flipper_services/locator.dart';
+import 'package:flipper_services/notifications/notification_handler.dart';
 
 import 'new_relic.dart' if (dart.library.html) 'new_relic_web.dart';
 
@@ -139,6 +140,9 @@ Future<void> _configurePlatformServices() async {
     await NotificationManager.create(
       flutterLocalNotificationsPlugin: FlutterLocalNotificationsPlugin(),
     );
+
+    // Initialize the notification handler to listen for notification taps
+    NotificationHandler().initialize();
   }
 }
 

@@ -21,7 +21,6 @@ class IncomingOrdersScreen extends HookConsumerWidget {
     final status = ref.watch(requestStatusProvider);
     final search = stringValue?.isNotEmpty == true ? stringValue : null;
 
-    // Providers for Received and Sent orders
     final incomingRequestsAsync = ref.watch(
       stockRequestsProvider(status: status, search: search),
     );
@@ -36,103 +35,227 @@ class IncomingOrdersScreen extends HookConsumerWidget {
         if (constraints.maxWidth == 0 || constraints.maxHeight == 0) {
           return const SizedBox.shrink();
         }
+        final isMobile = constraints.maxWidth < 600;
+        final isTablet =
+            constraints.maxWidth >= 600 && constraints.maxWidth < 1024;
+
         return DefaultTabController(
           length: 2,
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          child: Column(
+            children: [
+              _buildHeader(context, ref, isMobile, isTablet),
+              Expanded(
+                child: TabBarView(
                   children: [
-                    if (MediaQuery.of(context).size.width < 600)
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back),
-                        onPressed: () {
-                          Navigator.maybePop(context);
-                        },
-                      ),
-                    const Text(
-                      'Orders',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.black,
-                      ),
+                    _buildOrdersList(
+                      ref,
+                      incomingRequestsAsync,
+                      incomingBranchAsync,
+                      isIncoming: true,
+                      status: status,
+                      search: search,
+                    ),
+                    _buildOrdersList(
+                      ref,
+                      outgoingRequestsAsync,
+                      incomingBranchAsync,
+                      isIncoming: false,
+                      status: status,
+                      search: search,
                     ),
                   ],
                 ),
-                const SizedBox(height: 16),
-                Container(
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: Colors.grey[200],
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: TabBar(
-                    indicator: BoxDecoration(
-                      color: const Color(0xFF0078D4),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    indicatorSize: TabBarIndicatorSize.tab,
-                    labelColor: Colors.white,
-                    unselectedLabelColor: Colors.grey[700],
-                    labelStyle: const TextStyle(fontWeight: FontWeight.w600),
-                    tabs: const [
-                      Tab(text: "Incoming (Received)"),
-                      Tab(text: "Outgoing (Sent)"),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    OrderStatusSelector(
-                      selectedStatus: ref.watch(orderStatusProvider),
-                      onStatusChanged: (newStatus) {
-                        ref.read(orderStatusProvider.notifier).state =
-                            newStatus;
-                        ref
-                            .read(requestStatusProvider.notifier)
-                            .state = newStatus == OrderStatus.approved
-                            ? RequestStatus.approved
-                            : RequestStatus.pending;
-                      },
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Expanded(
-                  child: TabBarView(
-                    children: [
-                      // TAB 1: Received Orders (Existing Logic)
-                      _buildOrdersList(
-                        ref,
-                        incomingRequestsAsync,
-                        incomingBranchAsync,
-                        isIncoming: true,
-                        status: status,
-                        search: search,
-                      ),
-                      // TAB 2: Sent Orders (New Logic)
-                      _buildOrdersList(
-                        ref,
-                        outgoingRequestsAsync,
-                        incomingBranchAsync, // Using same branch context for now
-                        isIncoming: false,
-                        status: status,
-                        search: search,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         );
       },
+    );
+  }
+
+  Widget _buildHeader(
+    BuildContext context,
+    WidgetRef ref,
+    bool isMobile,
+    bool isTablet,
+  ) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Padding(
+            padding: EdgeInsets.fromLTRB(
+              isMobile ? 12 : 24,
+              isMobile ? 12 : 20,
+              isMobile ? 12 : 24,
+              isMobile ? 8 : 16,
+            ),
+            child: Row(
+              children: [
+                if (isMobile)
+                  IconButton(
+                    icon: const Icon(Icons.arrow_back),
+                    onPressed: () => Navigator.maybePop(context),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                if (isMobile) const SizedBox(width: 8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Orders Management',
+                        style: TextStyle(
+                          fontSize: isMobile ? 20 : 28,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF1A1A1A),
+                        ),
+                      ),
+                      if (!isMobile) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          'Track and manage incoming and outgoing orders',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[600],
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                if (!isMobile) ...[
+                  const SizedBox(width: 16),
+                  OrderStatusSelector(
+                    selectedStatus: ref.watch(orderStatusProvider),
+                    onStatusChanged: (newStatus) {
+                      ref.read(orderStatusProvider.notifier).state = newStatus;
+                      ref
+                          .read(requestStatusProvider.notifier)
+                          .state = newStatus == OrderStatus.approved
+                          ? RequestStatus.approved
+                          : RequestStatus.pending;
+                    },
+                  ),
+                ],
+              ],
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.symmetric(
+              horizontal: isMobile ? 12 : 24,
+              vertical: isMobile ? 8 : 12,
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Container(
+                    height: isMobile ? 44 : 48,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[100],
+                      borderRadius: BorderRadius.circular(isMobile ? 22 : 24),
+                    ),
+                    child: TabBar(
+                      indicator: BoxDecoration(
+                        color: const Color(0xFF0078D4),
+                        borderRadius: BorderRadius.circular(isMobile ? 22 : 24),
+                      ),
+                      indicatorSize: TabBarIndicatorSize.tab,
+                      labelColor: Colors.white,
+                      unselectedLabelColor: Colors.grey[700],
+                      labelStyle: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: isMobile ? 13 : 15,
+                      ),
+                      dividerColor: Colors.transparent,
+                      tabs: [
+                        Tab(
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.move_to_inbox, size: 18),
+                              if (!isMobile) ...[
+                                const SizedBox(width: 8),
+                                const Text('Incoming'),
+                              ],
+                            ],
+                          ),
+                        ),
+                        Tab(
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.outbox, size: 18),
+                              if (!isMobile) ...[
+                                const SizedBox(width: 8),
+                                const Text('Outgoing'),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                if (isMobile) ...[
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: const Icon(Icons.filter_list),
+                    onPressed: () => _showMobileFilterSheet(context, ref),
+                    style: IconButton.styleFrom(
+                      backgroundColor: Colors.grey[100],
+                      foregroundColor: Colors.grey[700],
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showMobileFilterSheet(BuildContext context, WidgetRef ref) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Filter Orders',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 16),
+            OrderStatusSelector(
+              selectedStatus: ref.watch(orderStatusProvider),
+              onStatusChanged: (newStatus) {
+                ref.read(orderStatusProvider.notifier).state = newStatus;
+                ref
+                    .read(requestStatusProvider.notifier)
+                    .state = newStatus == OrderStatus.approved
+                    ? RequestStatus.approved
+                    : RequestStatus.pending;
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -160,48 +283,54 @@ class IncomingOrdersScreen extends HookConsumerWidget {
                 () => ref.refresh(activeBranchProvider),
               );
             }
-            return SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildStatsCard(requests.length, isIncoming),
-                  const SizedBox(height: 20),
-                  Text(
-                    isIncoming ? 'Received Orders' : 'My Requests',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF1A1A1A),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  ListView.separated(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: requests.length,
-                    separatorBuilder: (context, index) =>
-                        const SizedBox(height: 12),
-                    itemBuilder: (context, index) => Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(12),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withOpacity(0.04),
-                            blurRadius: 15,
-                            offset: const Offset(0, 2),
+            return LayoutBuilder(
+              builder: (context, constraints) {
+                final isMobile = constraints.maxWidth < 600;
+                return SingleChildScrollView(
+                  padding: EdgeInsets.all(isMobile ? 12 : 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildStatsCard(requests.length, isIncoming, isMobile),
+                      const SizedBox(height: 20),
+                      Text(
+                        isIncoming ? 'Received Orders' : 'My Requests',
+                        style: TextStyle(
+                          fontSize: isMobile ? 16 : 18,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF1A1A1A),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      ListView.separated(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: requests.length,
+                        separatorBuilder: (context, index) =>
+                            SizedBox(height: isMobile ? 8 : 12),
+                        itemBuilder: (context, index) => Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.04),
+                                blurRadius: 15,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
                           ),
-                        ],
+                          child: RequestCard(
+                            request: requests[index],
+                            incomingBranch: currentBranch,
+                            isIncoming: isIncoming,
+                          ),
+                        ),
                       ),
-                      child: RequestCard(
-                        request: requests[index],
-                        incomingBranch: currentBranch,
-                        isIncoming: isIncoming,
-                      ),
-                    ),
+                    ],
                   ),
-                ],
-              ),
+                );
+              },
             );
           },
           loading: _buildLoadingState,
@@ -229,46 +358,50 @@ class IncomingOrdersScreen extends HookConsumerWidget {
     );
   }
 
-  Widget _buildStatsCard(int orderCount, bool isIncoming) {
+  Widget _buildStatsCard(int orderCount, bool isIncoming, bool isMobile) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(isMobile ? 16 : 20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            const Color(0xFF0078D4).withOpacity(0.05),
+            const Color(0xFF0078D4).withOpacity(0.02),
+          ],
+        ),
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        border: Border.all(
+          color: const Color(0xFF0078D4).withOpacity(0.1),
+          width: 1,
+        ),
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(14),
+            padding: EdgeInsets.all(isMobile ? 12 : 14),
             decoration: BoxDecoration(
-              color: const Color(0xFF0078D4).withValues(alpha: 0.1),
+              color: const Color(0xFF0078D4),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
               isIncoming ? Icons.move_to_inbox : Icons.outbox,
-              color: const Color(0xFF0078D4),
-              size: 24,
+              color: Colors.white,
+              size: isMobile ? 20 : 24,
             ),
           ),
-          const SizedBox(width: 16),
+          SizedBox(width: isMobile ? 12 : 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   '$orderCount',
-                  style: const TextStyle(
-                    fontSize: 28,
+                  style: TextStyle(
+                    fontSize: isMobile ? 24 : 28,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF1A1A1A),
+                    color: const Color(0xFF1A1A1A),
                   ),
                 ),
                 Text(
@@ -276,7 +409,7 @@ class IncomingOrdersScreen extends HookConsumerWidget {
                       ? (isIncoming ? 'Pending Request' : 'Sent Request')
                       : (isIncoming ? 'Pending Requests' : 'Sent Requests'),
                   style: TextStyle(
-                    fontSize: 14,
+                    fontSize: isMobile ? 12 : 14,
                     color: Colors.grey[600],
                     fontWeight: FontWeight.w500,
                   ),
@@ -285,7 +418,10 @@ class IncomingOrdersScreen extends HookConsumerWidget {
             ),
           ),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding: EdgeInsets.symmetric(
+              horizontal: isMobile ? 10 : 12,
+              vertical: isMobile ? 5 : 6,
+            ),
             decoration: BoxDecoration(
               color: orderCount > 0
                   ? const Color(0xFF58D68D)
@@ -293,11 +429,11 @@ class IncomingOrdersScreen extends HookConsumerWidget {
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text(
-              orderCount > 0 ? 'Active' : 'No Orders',
+              orderCount > 0 ? 'Active' : 'Idle',
               style: TextStyle(
                 color: orderCount > 0 ? Colors.white : Colors.grey[600],
                 fontWeight: FontWeight.w600,
-                fontSize: 12,
+                fontSize: isMobile ? 11 : 12,
               ),
             ),
           ),

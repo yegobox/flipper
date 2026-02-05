@@ -166,4 +166,10 @@ class WindowsNotifications extends BaseNotifications {
       windows: WindowsNotificationDetails(),
     );
   }
+
+  @override
+  Future<void> showOrderNotification(InventoryRequest order) async {
+    // Use the base implementation from BaseNotifications
+    await super.showOrderNotification(order);
+  }
 }

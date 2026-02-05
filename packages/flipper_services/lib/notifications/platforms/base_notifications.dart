@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:flipper_models/db_model_export.dart';
@@ -28,6 +29,31 @@ abstract class BaseNotifications implements NotificationInterface {
   @override
   Future<void> cancelNotification(int id) async {
     await notificationsPlugin.cancel(id);
+  }
+
+  @override
+  Future<void> showOrderNotification(InventoryRequest order) async {
+    final payload = jsonEncode({
+      'type': 'inventory_request',
+      'id': order.id,
+      'branchId': order.branchId,
+      'mainBranchId': order.mainBranchId,
+      'subBranchId': order.subBranchId,
+    });
+
+    String requesterInfo = "Unknown";
+    if (order.branch != null && order.branch!.name != null) {
+      requesterInfo = order.branch!.name!;
+    } else if (order.subBranchId != null) {
+      requesterInfo = "Branch ${order.subBranchId}";
+    }
+
+    await showNotification(
+      id: order.id.hashCode,
+      title: 'New Order Request',
+      body: 'You have a new order request from $requesterInfo',
+      payload: payload,
+    );
   }
 
   @override
