@@ -10,11 +10,13 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 class RequestCard extends ConsumerWidget {
   final InventoryRequest request;
   final Branch incomingBranch;
+  final bool isIncoming;
 
   const RequestCard({
     Key? key,
     required this.request,
     required this.incomingBranch,
+    this.isIncoming = true,
   }) : super(key: key);
 
   @override
@@ -36,8 +38,9 @@ class RequestCard extends ConsumerWidget {
             Container(
               decoration: BoxDecoration(
                 color: Colors.grey[50],
-                borderRadius:
-                    BorderRadius.vertical(bottom: Radius.circular(12)),
+                borderRadius: BorderRadius.vertical(
+                  bottom: Radius.circular(12),
+                ),
               ),
               padding: EdgeInsets.all(20.0),
               child: Column(
@@ -53,7 +56,7 @@ class RequestCard extends ConsumerWidget {
                     OrderNote(request: request),
                   ],
                   SizedBox(height: 20.0),
-                  ActionRow(request: request),
+                  if (isIncoming) ActionRow(request: request),
                 ],
               ),
             ),

@@ -88,6 +88,16 @@ mixin StockMixin implements StockInterface {
   }
 
   @override
+  Stream<List<InventoryRequest>> requestsStreamOutgoing({
+    required String branchId,
+    String filter = RequestStatus.pending,
+    String? search,
+  }) {
+    // This should be implemented by specific sync strategies (e.g., Capella)
+    throw UnimplementedError();
+  }
+
+  @override
   Future<List<InventoryRequest>> requests({
     String? branchId,
     String? requestId,

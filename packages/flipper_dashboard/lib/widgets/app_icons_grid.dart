@@ -87,6 +87,9 @@ class AppIconsGrid extends ConsumerWidget {
           MaterialPageRoute(builder: (context) => const ProductionOutputApp()),
         );
         break;
+      case "Orders":
+        await _routerService.navigateTo(InventoryRequestMobileViewRoute());
+        break;
       default:
         await _routerService.navigateTo(
           CheckOutRoute(isBigScreen: isBigScreen),
@@ -154,10 +157,19 @@ class AppIconsGrid extends ConsumerWidget {
         'label': "Production",
         'feature': 'ProductionOutput',
       },
+      if (!isBigScreen)
+        {
+          'icon': FluentIcons.clipboard_letter_24_regular,
+          'color': Colors.blue,
+          'page': "Orders",
+          'label': "Orders",
+          'feature': 'Orders',
+        },
     ];
 
     // Filtering out apps the user does not have access to
     final filteredApps = rippleApps.where((app) {
+      if (app['feature'] == 'Orders') return true;
       final hasAccess = ref.watch(
         featureAccessProvider(
           featureName: app['feature'],

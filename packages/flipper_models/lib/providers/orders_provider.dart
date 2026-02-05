@@ -24,3 +24,25 @@ Stream<List<InventoryRequest>> stockRequests(
       .requestsStream(branchId: branchId, filter: status, search: search)
       .distinct(const ListEquality().equals);
 }
+
+@riverpod
+Stream<List<InventoryRequest>> outgoingStockRequests(
+  Ref ref, {
+  required String status,
+  String? search,
+}) async* {
+  final branchId = ProxyService.box.getBranchId();
+
+  if (branchId == null) {
+    yield const [];
+    return;
+  }
+
+  yield* ProxyService.getStrategy(Strategy.capella)
+      .requestsStreamOutgoing(
+        branchId: branchId,
+        filter: status,
+        search: search,
+      )
+      .distinct(const ListEquality().equals);
+}

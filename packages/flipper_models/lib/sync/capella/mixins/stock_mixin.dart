@@ -453,6 +453,7 @@ mixin CapellaStockMixin implements StockInterface {
       return _convertInventoryRequestFromDitto(data);
     }).toList();
   }
+
   @override
   Stream<List<InventoryRequest>> requestsStream({
     required String branchId,
@@ -522,6 +523,81 @@ mixin CapellaStockMixin implements StockInterface {
           controller.add(requests);
         } catch (e) {
           talker.error('Error processing requests stream: $e');
+        }
+      },
+    );
+
+    controller.onCancel = () async {
+      await observer?.cancel();
+      await controller.close();
+    };
+
+    return controller.stream;
+  }
+
+  @override
+  Stream<List<InventoryRequest>> requestsStreamOutgoing({
+    required String branchId,
+    String filter = RequestStatus.pending,
+    String? search,
+  }) {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      talker.error('Ditto not initialized');
+      return Stream.value([]);
+    }
+
+    final controller = StreamController<List<InventoryRequest>>.broadcast();
+    dynamic observer;
+
+    // Query for requests where we are the subBranch (requester)
+    String query = 'SELECT * FROM stock_requests WHERE subBranchId = :branchId';
+    // Note: 'status' isn't in arguments yet, need to add it conditionally or always
+    final arguments = {'branchId': branchId, 'status': filter};
+
+    // Add status filter if provided
+    if (filter != 'all') {
+      query += ' AND status = :status';
+    }
+
+    // Register subscription
+    ditto.sync.registerSubscription(query, arguments: arguments);
+
+    observer = ditto.store.registerObserver(
+      query,
+      arguments: arguments,
+      onChange: (queryResult) async {
+        if (controller.isClosed) return;
+
+        try {
+          final requests = <InventoryRequest>[];
+          for (final item in queryResult.items) {
+            final data = Map<String, dynamic>.from(item.value);
+            final request = _convertInventoryRequestFromDitto(data);
+
+            // Fetch supplier branch details (mainBranchId)
+            if (request.mainBranchId != null) {
+              // Ensure subscription
+              ditto.sync.registerSubscription(
+                "SELECT * FROM branches WHERE _id = '${request.mainBranchId}'",
+              );
+
+              final branchResult = await ditto.store.execute(
+                'SELECT * FROM branches WHERE _id = :id',
+                arguments: {'id': request.mainBranchId},
+              );
+
+              if (branchResult.items.isNotEmpty) {
+                request.branch = Branch.fromMap(
+                  Map<String, dynamic>.from(branchResult.items.first.value),
+                );
+              }
+            }
+            requests.add(request);
+          }
+          controller.add(requests);
+        } catch (e) {
+          talker.error('Error processing outgoing requests stream: $e');
         }
       },
     );
