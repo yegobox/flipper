@@ -19,9 +19,15 @@ mixin StockRequestApprovalLogic {
     try {
       _showLoadingDialog(context);
 
-      final List<TransactionItem> items = await ProxyService.getStrategy(
+      List<TransactionItem> items = await ProxyService.getStrategy(
         Strategy.capella,
       ).transactionItems(requestId: request.id);
+
+      if (items.isEmpty &&
+          request.transactionItems != null &&
+          request.transactionItems!.isNotEmpty) {
+        items = request.transactionItems!;
+      }
 
       if (items.isEmpty) {
         Navigator.of(context).pop();
