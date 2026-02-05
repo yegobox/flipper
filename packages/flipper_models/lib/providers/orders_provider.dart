@@ -5,6 +5,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_models/brick/models/inventory_request.model.dart';
 import 'package:flipper_services/notifications/notification_handler.dart';
+import 'package:flipper_services/storage/seen_requests_storage.dart';
 
 part 'orders_provider.g.dart';
 
@@ -23,45 +24,47 @@ Stream<List<InventoryRequest>> stockRequests(
   // Create a broadcast stream controller to handle notifications
   final controller = StreamController<List<InventoryRequest>>.broadcast();
 
-  // Keep track of seen request IDs to avoid duplicate notifications
-  final seenRequestIds = <String>{};
+  // Initialize with an async task to load seen request IDs from persistent storage
+  () async {
+    // Load previously seen request IDs from persistent storage
+    Set<String> seenRequestIds = await SeenRequestsStorage.getSeenRequests();
 
-  // Listen to the Ditto stream
-  final streamSubscription = ProxyService.getStrategy(Strategy.capella)
-      .requestsStream(branchId: branchId, filter: status, search: search)
-      .distinct(const ListEquality().equals)
-      .listen(
-    (requests) {
-      // Check for new requests and trigger notifications
-      for (final request in requests) {
-        if (!seenRequestIds.contains(request.id)) {
-          // This is a new request, trigger notification
-          // Only notify for pending requests (new orders)
-          if (status == 'pending' || request.status == 'pending') {
-            // Use a microtask to ensure the notification is triggered after
-            // the UI has had a chance to process the update
-            Future.microtask(() {
-              NotificationHandler().showOrderNotification(request);
-            });
+    // Listen to the Ditto stream
+    final streamSubscription = ProxyService.getStrategy(Strategy.capella)
+        .requestsStream(branchId: branchId, filter: status, search: search)
+        .distinct(const ListEquality().equals)
+        .listen(
+      (requests) {
+        // Check for new requests and trigger notifications
+        for (final request in requests) {
+          if (!seenRequestIds.contains(request.id)) {
+            // This is a new request, trigger notification
+            // Only notify for pending requests (new orders)
+            if (status == 'pending' || request.status == 'pending') {
+              // Use a microtask to ensure the notification is triggered after
+              // the UI has had a chance to process the update
+              Future.microtask(() async {
+                await NotificationHandler().showOrderNotification(request);
+                // Mark this request as seen to prevent duplicate notifications
+                await SeenRequestsStorage.markAsSeen(request.id);
+              });
+            }
+            seenRequestIds.add(request.id);
           }
-          seenRequestIds.add(request.id);
         }
-      }
 
-      // Clean up seen IDs that are no longer in the current list
-      seenRequestIds.removeWhere((id) => !requests.any((req) => req.id == id));
+        controller.add(requests);
+      },
+      onError: (error) {
+        controller.addError(error);
+      },
+    );
 
-      controller.add(requests);
-    },
-    onError: (error) {
-      controller.addError(error);
-    },
-  );
-
-  // Cancel subscription when the controller is closed
-  controller.onCancel = () {
-    streamSubscription.cancel();
-  };
+    // Cancel subscription when the controller is closed
+    controller.onCancel = () {
+      streamSubscription.cancel();
+    };
+  }();
 
   return controller.stream;
 }
