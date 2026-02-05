@@ -22,7 +22,10 @@ class ActionRow extends ConsumerWidget
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final itemsAsync = ref.watch(transactionItemsProvider(request.id));
+    final itemsAsync =
+        request.transactionItems != null && request.transactionItems!.isNotEmpty
+        ? AsyncValue.data(request.transactionItems!)
+        : ref.watch(transactionItemsProvider(request.id));
 
     return itemsAsync.when(
       loading: () => Row(
@@ -189,7 +192,7 @@ class ActionRow extends ConsumerWidget
     if (confirmApprove == true) {
       try {
         await approveRequest(request: request, context: context);
-        final stringValue = ref.watch(stringProvider);
+        final stringValue = ref.read(stringProvider);
         ref.refresh(
           stockRequestsProvider(
             status: RequestStatus.pending,
@@ -292,7 +295,7 @@ class ActionRow extends ConsumerWidget
                     // Don't show error to user as the main operation succeeded
                   }
 
-                  final stringValue = ref.watch(stringProvider);
+                  final stringValue = ref.read(stringProvider);
                   ref.refresh(
                     stockRequestsProvider(
                       status: RequestStatus.voided,

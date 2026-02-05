@@ -172,20 +172,24 @@ class TransactionItemAdder {
       // Immediately refresh the transaction items
 
       w?.log("Pre-Refresh");
-      ref.refresh(
-        transactionItemsStreamProvider(
-          transactionId: pendingTransaction.id,
-          branchId: (await ProxyService.strategy.activeBranch(
-            branchId: ProxyService.box.getBranchId()!,
-          )).id,
-        ),
-      );
+      if (context.mounted) {
+        ref.refresh(
+          transactionItemsStreamProvider(
+            transactionId: pendingTransaction.id,
+            branchId: (await ProxyService.strategy.activeBranch(
+              branchId: ProxyService.box.getBranchId()!,
+            )).id,
+          ),
+        );
+      }
       w?.log("Post-Refresh");
 
       w?.log("ItemAddedToTransactionSuccess"); // Log success
     } catch (e, s) {
       // Rollback optimistic increment on failure
-      ref.read(optimisticOrderCountProvider.notifier).decrement();
+      if (context.mounted) {
+        ref.read(optimisticOrderCountProvider.notifier).decrement();
+      }
 
       if (!context.mounted) return;
 

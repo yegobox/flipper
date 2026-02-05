@@ -1,4 +1,5 @@
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_services/constants.dart';
 
 abstract class StockInterface {
   Future<Stock?> getStockById({required String id});
@@ -14,13 +15,27 @@ abstract class StockInterface {
     DateTime? lastTouched,
   });
   Future<List<InventoryRequest>> requests({required String requestId});
-  Future<Stock> saveStock(
-      {Variant? variant,
-      required double rsdQty,
-      required String productId,
-      required String variantId,
-      required String branchId,
-      required double currentStock,
-      required double value});
+  Future<Stock> saveStock({
+    Variant? variant,
+    required double rsdQty,
+    required String productId,
+    required String variantId,
+    required String branchId,
+    required double currentStock,
+    required double value,
+  });
+  Stream<List<InventoryRequest>> requestsStream({
+    required String branchId,
+    String filter = RequestStatus.pending,
+    String? search,
+  });
   Stream<Stock?> watchStockByVariantId({required String stockId});
+  Future<String> createStockRequest(
+    List<TransactionItem> items, {
+    required String mainBranchId,
+    required String subBranchId,
+    String? deliveryNote,
+    String? orderNote,
+    String? financingId,
+  });
 }

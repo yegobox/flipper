@@ -18,7 +18,7 @@ import 'package:http/src/streamed_response.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:supabase_models/brick/models/credit.model.dart';
 import 'package:supabase_models/brick/models/log.model.dart';
-import 'package:flipper_services/constants.dart';
+
 import 'package:talker/talker.dart';
 import 'package:flipper_models/sync/capella/mixins/auth_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/branch_mixin.dart';
@@ -503,19 +503,6 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  Future<String> createStockRequest(
-    List<TransactionItem> items, {
-    required String mainBranchId,
-    required String subBranchId,
-    String? deliveryNote,
-    String? orderNote,
-    String? financingId,
-  }) {
-    // TODO: implement createStockRequest
-    throw UnimplementedError();
-  }
-
-  @override
   Future<Variant> createVariant({
     required String barCode,
     required int sku,
@@ -948,16 +935,6 @@ class CapellaSync extends AiStrategyImpl
   @override
   Stream<List<Report>> reports({required String branchId}) {
     // TODO: implement reports
-    throw UnimplementedError();
-  }
-
-  @override
-  Stream<List<InventoryRequest>> requestsStream({
-    required String branchId,
-    String filter = RequestStatus.pending,
-    String? search,
-  }) {
-    // TODO: implement requestsStream
     throw UnimplementedError();
   }
 

@@ -18,7 +18,10 @@ class ItemsList extends ConsumerWidget
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final itemsAsync = ref.watch(transactionItemsProvider(request.id));
+    final itemsAsync =
+        request.transactionItems != null && request.transactionItems!.isNotEmpty
+        ? AsyncValue.data(request.transactionItems!)
+        : ref.watch(transactionItemsProvider(request.id));
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -39,14 +42,10 @@ class ItemsList extends ConsumerWidget
                   child: Center(child: Text('No items in this request')),
                 )
               : Column(children: _buildItemList(items, context, ref)),
-          loading: () => Center(
-            child: CircularProgressIndicator(),
-          ),
+          loading: () => Center(child: CircularProgressIndicator()),
           error: (error, stack) => Padding(
             padding: EdgeInsets.symmetric(vertical: 20),
-            child: Center(
-              child: Text('Error loading items: $error'),
-            ),
+            child: Center(child: Text('Error loading items: $error')),
           ),
         ),
       ],

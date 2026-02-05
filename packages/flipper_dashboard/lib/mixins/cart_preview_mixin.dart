@@ -65,7 +65,7 @@ mixin CartPreviewMixin<T extends ConsumerStatefulWidget>
       );
       return; // Return void to match the expected return type
     }
-    await ProxyService.strategy.createStockRequest(
+    await ProxyService.getStrategy(Strategy.capella).createStockRequest(
       items,
       mainBranchId: supplier.id,
       subBranchId: ProxyService.box.getBranchId()!,

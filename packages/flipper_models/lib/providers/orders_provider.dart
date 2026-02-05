@@ -1,6 +1,7 @@
 import 'dart:async';
+import 'package:collection/collection.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_models/brick/models/inventory_request.model.dart';
 
@@ -19,13 +20,7 @@ Stream<List<InventoryRequest>> stockRequests(
     return;
   }
 
-  yield* ProxyService.strategy
-      .requestsStream(
-        branchId: branchId,
-        filter: status,
-        search: search,
-      )
-      .map((requests) =>
-          requests.where((req) => req.branch?.id != req.subBranchId).toList())
-      .distinct();
+  yield* ProxyService.getStrategy(Strategy.capella)
+      .requestsStream(branchId: branchId, filter: status, search: search)
+      .distinct(const ListEquality().equals);
 }
