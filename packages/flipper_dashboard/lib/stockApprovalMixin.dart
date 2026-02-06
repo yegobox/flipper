@@ -104,6 +104,7 @@ mixin StockRequestApprovalLogic {
     required InventoryRequest request,
     required TransactionItem item,
     required BuildContext context,
+    double? quantity,
   }) async {
     try {
       _showLoadingDialog(context);
@@ -138,9 +139,21 @@ mixin StockRequestApprovalLogic {
 
       final double availableStock = variant.stock?.currentStock ?? 0;
       final int requestedQuantity = item.quantityRequested ?? 0;
-      final int approvedQuantity = availableStock >= requestedQuantity
-          ? requestedQuantity
-          : availableStock.toInt();
+
+      int approvedQuantity;
+      if (quantity != null) {
+        approvedQuantity = quantity.toInt();
+        if (approvedQuantity > availableStock) {
+          approvedQuantity = availableStock.toInt();
+          if (context.mounted) {
+            toast('Quantity adjusted to available stock: $approvedQuantity');
+          }
+        }
+      } else {
+        approvedQuantity = availableStock >= requestedQuantity
+            ? requestedQuantity
+            : availableStock.toInt();
+      }
 
       await _processPartialApprovalItem(
         item: item,
@@ -317,6 +330,10 @@ mixin StockRequestApprovalLogic {
         status: isFullyApproved
             ? RequestStatus.approved
             : RequestStatus.partiallyApproved,
+        approvedBy: ProxyService.box
+            .getUserId()
+            .toString(), // Assuming userId for now, will refine
+        approvedAt: DateTime.now().toUtc(),
       );
 
       // Send SMS notification to requester

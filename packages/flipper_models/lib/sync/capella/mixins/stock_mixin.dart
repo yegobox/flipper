@@ -688,6 +688,10 @@ mixin CapellaStockMixin implements StockInterface {
       tinNumber: data['tinNumber'],
       financingId: data['financingId'],
       transactionItems: items,
+      approvedBy: data['approvedBy'],
+      approvedAt: data['approvedAt'] != null
+          ? DateTime.tryParse(data['approvedAt'])
+          : null,
     );
   }
 
@@ -733,6 +737,50 @@ mixin CapellaStockMixin implements StockInterface {
     } catch (e) {
       talker.error('Error watching stock by variant ID: $e');
       return Stream.value(null);
+    }
+  }
+
+  @override
+  FutureOr<void> updateStockRequest({
+    required String stockRequestId,
+    DateTime? updatedAt,
+    String? status,
+    String? approvedBy,
+    DateTime? approvedAt,
+    String? deliveryNote,
+    String? orderNote,
+  }) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      talker.error('Ditto not initialized:9');
+      return;
+    }
+
+    final updateData = <String, dynamic>{};
+    if (updatedAt != null) {
+      updateData['updatedAt'] = updatedAt.toIso8601String();
+    }
+    if (status != null) {
+      updateData['status'] = status;
+    }
+    if (approvedBy != null) {
+      updateData['approvedBy'] = approvedBy;
+    }
+    if (approvedAt != null) {
+      updateData['approvedAt'] = approvedAt.toIso8601String();
+    }
+    if (deliveryNote != null) {
+      updateData['deliveryNote'] = deliveryNote;
+    }
+    if (orderNote != null) {
+      updateData['orderNote'] = orderNote;
+    }
+
+    if (updateData.isNotEmpty) {
+      await ditto.store.execute(
+        'UPDATE stock_requests SET ${updateData.keys.map((key) => '$key = :$key').join(', ')} WHERE _id = :id',
+        arguments: {...updateData, 'id': stockRequestId},
+      );
     }
   }
 }

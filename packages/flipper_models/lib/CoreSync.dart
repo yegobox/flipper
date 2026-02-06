@@ -1380,11 +1380,6 @@ class CoreSync extends AiStrategyImpl
     );
   }
 
-
-
-  
-
-
   @override
   FutureOr<Plan?> saveOrUpdatePaymentPlan({
     required String businessId,
@@ -2682,6 +2677,10 @@ class CoreSync extends AiStrategyImpl
     required String stockRequestId,
     DateTime? updatedAt,
     String? status,
+    String? approvedBy,
+    DateTime? approvedAt,
+    String? deliveryNote,
+    String? orderNote,
   }) async {
     final ditto = dittoService.dittoInstance;
     if (ditto == null) {
@@ -2694,6 +2693,18 @@ class CoreSync extends AiStrategyImpl
     }
     if (status != null) {
       updateData['status'] = status;
+    }
+    if (approvedBy != null) {
+      updateData['approvedBy'] = approvedBy;
+    }
+    if (approvedAt != null) {
+      updateData['approvedAt'] = approvedAt.toIso8601String();
+    }
+    if (deliveryNote != null) {
+      updateData['deliveryNote'] = deliveryNote;
+    }
+    if (orderNote != null) {
+      updateData['orderNote'] = orderNote;
     }
 
     if (updateData.isNotEmpty) {

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
 
@@ -44,5 +45,14 @@ abstract class StockInterface {
     String? deliveryNote,
     String? orderNote,
     String? financingId,
+  });
+  FutureOr<void> updateStockRequest({
+    required String stockRequestId,
+    DateTime? updatedAt,
+    String? status,
+    String? approvedBy,
+    DateTime? approvedAt,
+    String? deliveryNote,
+    String? orderNote,
   });
 }

@@ -562,6 +562,10 @@ abstract class DatabaseSyncInterface extends AiStrategy
     required String stockRequestId,
     DateTime? updatedAt,
     String? status,
+    String? approvedBy,
+    DateTime? approvedAt,
+    String? deliveryNote,
+    String? orderNote,
   });
 
   FutureOr<void> updateAcess({

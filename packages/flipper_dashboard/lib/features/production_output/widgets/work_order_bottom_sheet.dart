@@ -13,6 +13,9 @@ class WorkOrderBottomSheet {
     required WidgetRef ref,
     required Future<void> Function(Map<String, dynamic>) onSubmit,
     String? workOrderId,
+    String? initialVariantId,
+    String? initialVariantName,
+    double? initialPlannedQuantity,
   }) {
     WoltModalSheet.show<void>(
       context: context,
@@ -51,6 +54,9 @@ class WorkOrderBottomSheet {
                       padding: const EdgeInsets.all(20.0),
                       child: WorkOrderForm(
                         workOrderId: workOrderId,
+                        initialVariantId: initialVariantId,
+                        initialVariantName: initialVariantName,
+                        initialPlannedQuantity: initialPlannedQuantity,
                         onSubmit: (data) async {
                           await onSubmit(data);
                           if (context.mounted) {

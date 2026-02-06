@@ -10,16 +10,22 @@ import 'package:flipper_models/SyncStrategy.dart';
 /// A form to create or edit work orders with material selection,
 /// planned quantity, target date, and notes.
 class WorkOrderForm extends ConsumerStatefulWidget {
-  final String? workOrderId;
-  final Future<void> Function(Map<String, dynamic>)? onSubmit;
-  final VoidCallback? onCancel;
-
   const WorkOrderForm({
     Key? key,
     this.workOrderId,
     this.onSubmit,
     this.onCancel,
+    this.initialVariantId,
+    this.initialVariantName,
+    this.initialPlannedQuantity,
   }) : super(key: key);
+
+  final String? workOrderId;
+  final Future<void> Function(Map<String, dynamic>)? onSubmit;
+  final VoidCallback? onCancel;
+  final String? initialVariantId;
+  final String? initialVariantName;
+  final double? initialPlannedQuantity;
 
   @override
   ConsumerState<WorkOrderForm> createState() => _WorkOrderFormState();
@@ -38,9 +44,58 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
   bool _isSubmitting = false;
 
   @override
+  void initState() {
+    super.initState();
+    if (widget.initialVariantId != null) {
+      _selectedVariantId = widget.initialVariantId;
+      _typeAheadController = TextEditingController(
+        text: widget.initialVariantName ?? '',
+      );
+      // Create a temporary variant object for display if we have the name
+      if (widget.initialVariantName != null) {
+        _selectedVariant = Variant(
+          id: widget.initialVariantId!,
+          name: widget.initialVariantName!,
+          sku: 'Loading...',
+          productId: 'temp',
+          supplyPrice: 0,
+          retailPrice: 0,
+          branchId: 'temp',
+        );
+        // Attempt to fetch full variant details in background
+        _fetchFullVariantDetails();
+      }
+    }
+    if (widget.initialPlannedQuantity != null) {
+      _plannedQtyController.text = widget.initialPlannedQuantity!
+          .toStringAsFixed(0);
+    }
+  }
+
+  Future<void> _fetchFullVariantDetails() async {
+    if (_selectedVariantId == null) return;
+    try {
+      final variant = await ProxyService.strategy.getVariant(
+        id: _selectedVariantId!,
+      );
+      if (variant != null && mounted) {
+        setState(() {
+          _selectedVariant = variant;
+        });
+      }
+    } catch (e) {
+      print('Error fetching variant details: $e');
+    }
+  }
+
+  @override
   void dispose() {
     _plannedQtyController.dispose();
     _notesController.dispose();
+    // Only dispose if we created it locally in initState
+    if (widget.initialVariantId != null) {
+      _typeAheadController?.dispose();
+    }
     super.dispose();
   }
 
@@ -273,6 +328,7 @@ class _WorkOrderFormState extends ConsumerState<WorkOrderForm> {
         );
         return paged.variants.cast<Variant>().toList();
       },
+      controller: _typeAheadController, // Use the controller if initialized
       itemBuilder: (context, Variant variant) {
         return Container(
           decoration: BoxDecoration(

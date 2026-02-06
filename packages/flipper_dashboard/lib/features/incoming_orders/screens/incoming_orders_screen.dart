@@ -13,7 +13,6 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 import 'package:flipper_dashboard/features/incoming_orders/widgets/bulk_action_bar.dart';
-import 'package:flipper_models/providers/selection_provider.dart';
 
 class IncomingOrdersScreen extends HookConsumerWidget {
   const IncomingOrdersScreen({Key? key}) : super(key: key);

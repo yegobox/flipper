@@ -1245,16 +1245,6 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  FutureOr<void> updateStockRequest({
-    required String stockRequestId,
-    DateTime? updatedAt,
-    String? status,
-  }) {
-    // TODO: implement updateStockRequest
-    throw UnimplementedError();
-  }
-
-  @override
   Future<void> updateStockRequestItem({
     required String requestId,
     required String transactionItemId,

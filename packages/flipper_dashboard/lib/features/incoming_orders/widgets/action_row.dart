@@ -13,6 +13,9 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/sms/sms_notification_service.dart';
 import '../providers/incoming_orders_provider.dart';
+import 'package:flipper_dashboard/features/production_output/widgets/work_order_bottom_sheet.dart';
+import 'package:flipper_dashboard/features/production_output/services/production_output_service.dart';
+import 'package:supabase_models/brick/models/all_models.dart' as models;
 
 class ActionRow extends ConsumerWidget
     with StockRequestApprovalLogic, SnackBarMixin {
@@ -58,6 +61,14 @@ class ActionRow extends ConsumerWidget
         return Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
+            _buildActionButton(
+              onPressed: () => _handleProduce(context, ref, items),
+              icon: Icons.factory,
+              label: 'Produce',
+              color: Colors.blue[600]!,
+              isDisabled: false,
+            ),
+            SizedBox(width: 12),
             _buildActionButton(
               onPressed: isFullyApproved
                   ? null
@@ -337,5 +348,63 @@ class ActionRow extends ConsumerWidget
         );
       },
     );
+  }
+
+  Future<void> _handleProduce(
+    BuildContext context,
+    WidgetRef ref,
+    List<models.TransactionItem> items,
+  ) async {
+    if (items.isEmpty) return;
+
+    models.TransactionItem? selectedItem;
+
+    if (items.length == 1) {
+      selectedItem = items.first;
+    } else {
+      // Show dialog to select item
+      selectedItem = await showDialog<models.TransactionItem>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('Select Item to Produce'),
+          content: Container(
+            width: double.maxFinite,
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: items.length,
+              itemBuilder: (context, index) {
+                final item = items[index];
+                return ListTile(
+                  title: Text(item.name),
+                  subtitle: Text('Qty: ${item.qty}'),
+                  onTap: () => Navigator.pop(context, item),
+                );
+              },
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (selectedItem != null && context.mounted) {
+      WorkOrderBottomSheet.show(
+        context: context,
+        ref: ref,
+        workOrderId: null,
+        initialVariantId: selectedItem.variantId,
+        initialVariantName: selectedItem.name,
+        initialPlannedQuantity: selectedItem.qty.toDouble(),
+        onSubmit: (data) async {
+          await ProductionOutputService().createWorkOrder(
+            variantId: data['variantId'] as String,
+            variantName: data['variantName'] as String?,
+            plannedQuantity: data['plannedQuantity'] as double,
+            targetDate: data['targetDate'] as DateTime,
+            shiftId: data['shiftId'] as String?,
+            notes: data['notes'] as String?,
+          );
+        },
+      );
+    }
   }
 }

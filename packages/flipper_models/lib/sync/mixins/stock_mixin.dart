@@ -140,4 +140,17 @@ mixin StockMixin implements StockInterface {
   }) async {
     throw UnimplementedError();
   }
+
+  @override
+  FutureOr<void> updateStockRequest({
+    required String stockRequestId,
+    DateTime? updatedAt,
+    String? status,
+    String? approvedBy,
+    DateTime? approvedAt,
+    String? deliveryNote,
+    String? orderNote,
+  }) {
+    throw UnimplementedError();
+  }
 }
