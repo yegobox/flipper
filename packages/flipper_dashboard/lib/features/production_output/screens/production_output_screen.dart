@@ -78,7 +78,7 @@ class _ProductionOutputScreenState
             // App bar
             SliverAppBar(
               automaticallyImplyLeading: isMobile,
-              floating: true,
+              pinned: true,
               backgroundColor: Colors.white,
               elevation: 1,
               title: Row(
@@ -95,43 +95,75 @@ class _ProductionOutputScreenState
                 ],
               ),
               actions: [
-                IconButton(
-                  icon: const Icon(Icons.refresh, color: Colors.black54),
-                  onPressed: _loadData,
-                  tooltip: 'Refresh',
-                ),
-                IconButton(
-                  icon: const Icon(
-                    Icons.add_circle_outline,
-                    color: Colors.black54,
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 8.0,
+                    horizontal: 4.0,
                   ),
-                  onPressed: () {
-                    if (isMobile) {
-                      // Show bottom sheet on mobile
-                      WorkOrderBottomSheet.show(
-                        context: context,
-                        ref: ref,
-                        onSubmit: (data) async {
-                          await _service.createWorkOrder(
-                            variantId: data['variantId'] as String,
-                            variantName: data['variantName'] as String?,
-                            plannedQuantity: data['plannedQuantity'] as double,
-                            targetDate: data['targetDate'] as DateTime,
-                            shiftId: data['shiftId'] as String?,
-                            notes: data['notes'] as String?,
-                          );
-                          _loadData();
-                          ref.invalidate(todayWorkOrdersProvider);
-                        },
-                      );
-                    } else {
-                      // Toggle inline form on desktop
-                      setState(() {
-                        _showCreateForm = !_showCreateForm;
-                      });
-                    }
-                  },
-                  tooltip: 'Create Work Order',
+                  child: IconButton(
+                    icon: const Icon(
+                      Icons.refresh,
+                      color: Colors.black54,
+                      size: 20,
+                    ),
+                    onPressed: _loadData,
+                    tooltip: 'Refresh',
+                    style: IconButton.styleFrom(
+                      backgroundColor: Colors.grey[50],
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        side: BorderSide(color: Colors.grey[300]!),
+                      ),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(
+                    right: 16.0,
+                    top: 8,
+                    bottom: 8,
+                    left: 4,
+                  ),
+                  child: ElevatedButton.icon(
+                    onPressed: () {
+                      if (isMobile) {
+                        // Show bottom sheet on mobile
+                        WorkOrderBottomSheet.show(
+                          context: context,
+                          ref: ref,
+                          onSubmit: (data) async {
+                            await _service.createWorkOrder(
+                              variantId: data['variantId'] as String,
+                              variantName: data['variantName'] as String?,
+                              plannedQuantity:
+                                  data['plannedQuantity'] as double,
+                              targetDate: data['targetDate'] as DateTime,
+                              shiftId: data['shiftId'] as String?,
+                              notes: data['notes'] as String?,
+                            );
+                            _loadData();
+                            ref.invalidate(todayWorkOrdersProvider);
+                          },
+                        );
+                      } else {
+                        // Toggle inline form on desktop
+                        setState(() {
+                          _showCreateForm = !_showCreateForm;
+                        });
+                      }
+                    },
+                    icon: const Icon(Icons.add, size: 18),
+                    label: Text(isMobile ? 'New' : 'New Order'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue[600],
+                      foregroundColor: Colors.white,
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                    ),
+                  ),
                 ),
               ],
             ),

@@ -7,6 +7,7 @@ import '../widgets/summary_cards.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 // import '../widgets/recent_orders_section.dart';
 import 'package:intl/intl.dart';
+import '../widgets/running_low_section.dart';
 
 class InventoryDashboardScreen extends ConsumerStatefulWidget {
   const InventoryDashboardScreen({Key? key}) : super(key: key);
@@ -79,7 +80,8 @@ class _InventoryDashboardScreenState
               Text('Quantity: ${item.quantity}'),
               Text('Location: ${item.location}'),
               Text(
-                  'Expiry Date: ${DateFormat('MMM dd, yyyy').format(item.expiryDate)}'),
+                'Expiry Date: ${DateFormat('MMM dd, yyyy').format(item.expiryDate)}',
+              ),
             ],
           ),
           actions: <Widget>[
@@ -97,9 +99,7 @@ class _InventoryDashboardScreenState
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: _buildDashboard(),
-    );
+    return Scaffold(body: _buildDashboard());
   }
 
   Widget _buildDashboard() {
@@ -112,18 +112,22 @@ class _InventoryDashboardScreenState
             // Dashboard header with summary cards
             Consumer(
               builder: (context, ref, child) {
-                final expiredItemsAsync =
-                    ref.watch(expiredItemsProvider(const ExpiredItemsParams()));
+                final expiredItemsAsync = ref.watch(
+                  expiredItemsProvider(const ExpiredItemsParams()),
+                );
 
                 return expiredItemsAsync.when(
-                  data: (expiredItems) => SummaryCards(
-                    expiredItemsCount: expiredItems.length,
-                  ),
+                  data: (expiredItems) =>
+                      SummaryCards(expiredItemsCount: expiredItems.length),
                   loading: () => SummaryCards(expiredItemsCount: 0),
                   error: (_, __) => SummaryCards(expiredItemsCount: 0),
                 );
               },
             ),
+            const SizedBox(height: 24),
+
+            // Running Low Section
+            const RunningLowSection(),
             const SizedBox(height: 24),
 
             // Expired items and Near Expiry items in a row
@@ -141,7 +145,8 @@ class _InventoryDashboardScreenState
                       builder: (context, ref, child) {
                         // Using default parameters since custom parameters cause loading issues
                         final expiredItemsAsync = ref.watch(
-                            expiredItemsProvider(const ExpiredItemsParams()));
+                          expiredItemsProvider(const ExpiredItemsParams()),
+                        );
 
                         return expiredItemsAsync.when(
                           data: (expiredItems) => ExpiredItemsSection(
@@ -166,20 +171,19 @@ class _InventoryDashboardScreenState
                   child: Consumer(
                     builder: (context, ref, child) {
                       // Using default parameters since custom parameters cause loading issues
-                      final nearExpiryItemsAsync =
-                          ref.watch(nearExpiryItemsProvider(
-                        const NearExpiryItemsParams(),
-                      ));
+                      final nearExpiryItemsAsync = ref.watch(
+                        nearExpiryItemsProvider(const NearExpiryItemsParams()),
+                      );
 
                       return nearExpiryItemsAsync.when(
-                        data: (nearExpiryItems) => NearExpirySection(
-                          nearExpiryItems: nearExpiryItems,
-                        ),
+                        data: (nearExpiryItems) =>
+                            NearExpirySection(nearExpiryItems: nearExpiryItems),
                         loading: () =>
                             const Center(child: CircularProgressIndicator()),
                         error: (error, stackTrace) => Center(
-                          child:
-                              Text('Error loading near expiry items: $error'),
+                          child: Text(
+                            'Error loading near expiry items: $error',
+                          ),
                         ),
                       );
                     },

@@ -23,7 +23,6 @@ class ActionRow extends ConsumerWidget
 
   const ActionRow({Key? key, required this.request}) : super(key: key);
 
-  @override
   Widget build(BuildContext context, WidgetRef ref) {
     final itemsAsync =
         request.transactionItems != null && request.transactionItems!.isNotEmpty
@@ -57,36 +56,39 @@ class ActionRow extends ConsumerWidget
           (item) => (item.quantityApproved ?? 0) > 0,
         );
         final bool isFullyApproved = request.status == RequestStatus.approved;
+        final bool isProcessing = request.status == RequestStatus.processing;
 
         return Row(
           mainAxisAlignment: MainAxisAlignment.end,
           children: [
             _buildActionButton(
-              onPressed: () => _handleProduce(context, ref, items),
-              icon: Icons.factory,
-              label: 'Produce',
-              color: Colors.blue[600]!,
+              onPressed: isProcessing
+                  ? () => _handleFinishProduction(context, ref)
+                  : () => _handleProduce(context, ref, items),
+              icon: isProcessing ? Icons.check : Icons.factory,
+              label: isProcessing ? 'Finish Production' : 'Produce',
+              color: isProcessing ? Colors.orange[600]! : Colors.blue[600]!,
               isDisabled: false,
             ),
             SizedBox(width: 12),
             _buildActionButton(
-              onPressed: isFullyApproved
+              onPressed: (isFullyApproved || isProcessing)
                   ? null
                   : () => _handleApproveRequest(context, ref, request),
               icon: Icons.check_circle_outline,
-              label: 'Approve',
+              label: isProcessing ? 'In Production' : 'Approve',
               color: Colors.green[600]!,
-              isDisabled: isFullyApproved,
+              isDisabled: (isFullyApproved || isProcessing),
             ),
             SizedBox(width: 12),
             _buildActionButton(
-              onPressed: hasApprovedItems
+              onPressed: (hasApprovedItems || isProcessing)
                   ? null
                   : () => _voidRequest(context, ref),
               icon: Icons.cancel_outlined,
               label: 'Void',
               color: Colors.red[600]!,
-              isDisabled: hasApprovedItems,
+              isDisabled: (hasApprovedItems || isProcessing),
             ),
           ],
         );
@@ -350,6 +352,45 @@ class ActionRow extends ConsumerWidget
     );
   }
 
+  Future<void> _handleFinishProduction(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    try {
+      await ProxyService.strategy.updateStockRequest(
+        stockRequestId: request.id,
+        status: RequestStatus.pending,
+      );
+
+      final stringValue = ref.read(stringProvider);
+      ref.refresh(
+        stockRequestsProvider(
+          status: RequestStatus.processing,
+          search: stringValue?.isNotEmpty == true ? stringValue : null,
+        ),
+      );
+      ref.refresh(
+        stockRequestsProvider(
+          status: RequestStatus.pending,
+          search: stringValue?.isNotEmpty == true ? stringValue : null,
+        ),
+      );
+
+      showCustomSnackBar(
+        context,
+        'Production marked as finished. Ready for approval.',
+        type: NotificationType.success,
+      );
+    } catch (e) {
+      talker.error('Error finishing production: $e');
+      showCustomSnackBar(
+        context,
+        'Failed to finish production',
+        type: NotificationType.error,
+      );
+    }
+  }
+
   Future<void> _handleProduce(
     BuildContext context,
     WidgetRef ref,
@@ -402,6 +443,20 @@ class ActionRow extends ConsumerWidget
             targetDate: data['targetDate'] as DateTime,
             shiftId: data['shiftId'] as String?,
             notes: data['notes'] as String?,
+          );
+
+          // Set status to processing
+          await ProxyService.strategy.updateStockRequest(
+            stockRequestId: request.id,
+            status: RequestStatus.processing,
+          );
+
+          final stringValue = ref.read(stringProvider);
+          ref.refresh(
+            stockRequestsProvider(
+              status: RequestStatus.pending,
+              search: stringValue?.isNotEmpty == true ? stringValue : null,
+            ),
           );
         },
       );
