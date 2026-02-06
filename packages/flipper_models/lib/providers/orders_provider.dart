@@ -6,67 +6,91 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_models/brick/models/inventory_request.model.dart';
 import 'package:flipper_services/notifications/notification_handler.dart';
 import 'package:flipper_services/storage/seen_requests_storage.dart';
+import 'package:flipper_services/constants.dart';
+import 'package:flipper_models/db_model_export.dart';
 
 part 'orders_provider.g.dart';
 
 @riverpod
-Stream<List<InventoryRequest>> stockRequests(
-  Ref ref, {
-  required String status,
-  String? search,
-}) {
-  final branchId = ProxyService.box.getBranchId();
+class StockRequests extends _$StockRequests {
+  int _limit = 50;
+  String _status = RequestStatus.pending;
+  String? _search;
+  StreamSubscription<List<InventoryRequest>>? _subscription;
+  StreamController<List<InventoryRequest>>? _controller;
 
-  if (branchId == null) {
-    return const Stream.empty();
+  @override
+  Stream<List<InventoryRequest>> build({
+    required String status,
+    String? search,
+  }) {
+    _status = status;
+    _search = search;
+
+    final branchId = ProxyService.box.getBranchId();
+    if (branchId == null) {
+      return const Stream.empty();
+    }
+
+    _controller = StreamController<List<InventoryRequest>>.broadcast();
+
+    _setupSubscription(branchId);
+
+    // Cancel subscription when provider is disposed
+    ref.onDispose(() {
+      _subscription?.cancel();
+      _controller?.close();
+    });
+
+    return _controller!.stream;
   }
 
-  // Create a broadcast stream controller to handle notifications
-  final controller = StreamController<List<InventoryRequest>>.broadcast();
+  Future<void> _setupSubscription(String branchId) async {
+    await _subscription?.cancel();
 
-  // Initialize with an async task to load seen request IDs from persistent storage
-  () async {
-    // Load previously seen request IDs from persistent storage
+    // Load previously seen request IDs
     Set<String> seenRequestIds = await SeenRequestsStorage.getSeenRequests();
 
-    // Listen to the Ditto stream
-    final streamSubscription = ProxyService.getStrategy(Strategy.capella)
-        .requestsStream(branchId: branchId, filter: status, search: search)
+    _subscription = ProxyService.getStrategy(Strategy.capella)
+        .requestsStream(
+          branchId: branchId,
+          filter: _status,
+          search: _search,
+          limit: _limit,
+        )
         .distinct(const ListEquality().equals)
         .listen(
-      (requests) {
-        // Check for new requests and trigger notifications
-        for (final request in requests) {
-          if (!seenRequestIds.contains(request.id)) {
-            // This is a new request, trigger notification
-            // Only notify for pending requests (new orders)
-            if (status == 'pending' || request.status == 'pending') {
-              // Use a microtask to ensure the notification is triggered after
-              // the UI has had a chance to process the update
-              Future.microtask(() async {
-                await NotificationHandler().showOrderNotification(request);
-                // Mark this request as seen to prevent duplicate notifications
-                await SeenRequestsStorage.markAsSeen(request.id);
-              });
+          (requests) {
+            if (_controller == null || _controller!.isClosed) return;
+
+            // Notification logic
+            for (final request in requests) {
+              if (!seenRequestIds.contains(request.id)) {
+                if (_status == 'pending' || request.status == 'pending') {
+                  Future.microtask(() async {
+                    await NotificationHandler().showOrderNotification(request);
+                    await SeenRequestsStorage.markAsSeen(request.id);
+                  });
+                }
+                seenRequestIds.add(request.id);
+              }
             }
-            seenRequestIds.add(request.id);
-          }
-        }
+            _controller!.add(requests);
+          },
+          onError: (error) {
+            if (_controller == null || _controller!.isClosed) return;
+            _controller!.addError(error);
+          },
+        );
+  }
 
-        controller.add(requests);
-      },
-      onError: (error) {
-        controller.addError(error);
-      },
-    );
-
-    // Cancel subscription when the controller is closed
-    controller.onCancel = () {
-      streamSubscription.cancel();
-    };
-  }();
-
-  return controller.stream;
+  void loadMore() {
+    _limit += 50;
+    final branchId = ProxyService.box.getBranchId();
+    if (branchId != null) {
+      _setupSubscription(branchId);
+    }
+  }
 }
 
 @riverpod

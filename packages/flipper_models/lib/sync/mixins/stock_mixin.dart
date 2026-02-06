@@ -82,6 +82,7 @@ mixin StockMixin implements StockInterface {
     required String branchId,
     String filter = RequestStatus.pending,
     String? search,
+    int limit = 50,
   }) {
     // This should be implemented by specific sync strategies (e.g., Capella)
     throw UnimplementedError();
@@ -92,6 +93,7 @@ mixin StockMixin implements StockInterface {
     required String branchId,
     String filter = RequestStatus.pending,
     String? search,
+    int limit = 50,
   }) {
     // This should be implemented by specific sync strategies (e.g., Capella)
     throw UnimplementedError();

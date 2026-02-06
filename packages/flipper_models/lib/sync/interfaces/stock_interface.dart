@@ -28,11 +28,13 @@ abstract class StockInterface {
     required String branchId,
     String filter = RequestStatus.pending,
     String? search,
+    int limit = 50,
   });
   Stream<List<InventoryRequest>> requestsStreamOutgoing({
     required String branchId,
     String filter = RequestStatus.pending,
     String? search,
+    int limit = 50,
   });
   Stream<Stock?> watchStockByVariantId({required String stockId});
   Future<String> createStockRequest(

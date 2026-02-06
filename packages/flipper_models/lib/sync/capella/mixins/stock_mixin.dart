@@ -459,6 +459,7 @@ mixin CapellaStockMixin implements StockInterface {
     required String branchId,
     String filter = RequestStatus.pending,
     String? search,
+    int limit = 50,
   }) {
     final ditto = dittoService.dittoInstance;
     if (ditto == null) {
@@ -472,12 +473,15 @@ mixin CapellaStockMixin implements StockInterface {
     // Use a basic query for stock requests where we are the main branch (supplier)
     String query =
         'SELECT * FROM stock_requests WHERE mainBranchId = :branchId';
-    final arguments = {'branchId': branchId, 'status': filter};
+    final arguments = {'branchId': branchId, 'status': filter, 'limit': limit};
 
     // Add status filter if provided
     if (filter != 'all') {
       query += ' AND status = :status';
     }
+
+    // Add ordering and limit
+    query += ' ORDER BY createdAt DESC LIMIT :limit';
 
     // Register subscription
     ditto.sync.registerSubscription(query, arguments: arguments);
@@ -540,6 +544,7 @@ mixin CapellaStockMixin implements StockInterface {
     required String branchId,
     String filter = RequestStatus.pending,
     String? search,
+    int limit = 50,
   }) {
     final ditto = dittoService.dittoInstance;
     if (ditto == null) {
@@ -553,12 +558,15 @@ mixin CapellaStockMixin implements StockInterface {
     // Query for requests where we are the subBranch (requester)
     String query = 'SELECT * FROM stock_requests WHERE subBranchId = :branchId';
     // Note: 'status' isn't in arguments yet, need to add it conditionally or always
-    final arguments = {'branchId': branchId, 'status': filter};
+    final arguments = {'branchId': branchId, 'status': filter, 'limit': limit};
 
     // Add status filter if provided
     if (filter != 'all') {
       query += ' AND status = :status';
     }
+
+    // Add ordering and limit
+    query += ' ORDER BY createdAt DESC LIMIT :limit';
 
     // Register subscription
     ditto.sync.registerSubscription(query, arguments: arguments);

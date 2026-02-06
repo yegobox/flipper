@@ -9,19 +9,11 @@ part of 'orders_provider.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
-@ProviderFor(stockRequests)
+@ProviderFor(StockRequests)
 const stockRequestsProvider = StockRequestsFamily._();
 
 final class StockRequestsProvider
-    extends
-        $FunctionalProvider<
-          AsyncValue<List<InventoryRequest>>,
-          List<InventoryRequest>,
-          Stream<List<InventoryRequest>>
-        >
-    with
-        $FutureModifier<List<InventoryRequest>>,
-        $StreamProvider<List<InventoryRequest>> {
+    extends $StreamNotifierProvider<StockRequests, List<InventoryRequest>> {
   const StockRequestsProvider._({
     required StockRequestsFamily super.from,
     required ({String status, String? search}) super.argument,
@@ -45,15 +37,7 @@ final class StockRequestsProvider
 
   @$internal
   @override
-  $StreamProviderElement<List<InventoryRequest>> $createElement(
-    $ProviderPointer pointer,
-  ) => $StreamProviderElement(pointer);
-
-  @override
-  Stream<List<InventoryRequest>> create(Ref ref) {
-    final argument = this.argument as ({String status, String? search});
-    return stockRequests(ref, status: argument.status, search: argument.search);
-  }
+  StockRequests create() => StockRequests();
 
   @override
   bool operator ==(Object other) {
@@ -66,11 +50,14 @@ final class StockRequestsProvider
   }
 }
 
-String _$stockRequestsHash() => r'eab983354f4c94abbc8a3e3a3eb2ec1017bd5a22';
+String _$stockRequestsHash() => r'3edaa277bb52d4122a36fc384b00b873a129101f';
 
 final class StockRequestsFamily extends $Family
     with
-        $FunctionalFamilyOverride<
+        $ClassFamilyOverride<
+          StockRequests,
+          AsyncValue<List<InventoryRequest>>,
+          List<InventoryRequest>,
           Stream<List<InventoryRequest>>,
           ({String status, String? search})
         > {
@@ -91,6 +78,37 @@ final class StockRequestsFamily extends $Family
 
   @override
   String toString() => r'stockRequestsProvider';
+}
+
+abstract class _$StockRequests extends $StreamNotifier<List<InventoryRequest>> {
+  late final _$args = ref.$arg as ({String status, String? search});
+  String get status => _$args.status;
+  String? get search => _$args.search;
+
+  Stream<List<InventoryRequest>> build({
+    required String status,
+    String? search,
+  });
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build(status: _$args.status, search: _$args.search);
+    final ref =
+        this.ref
+            as $Ref<AsyncValue<List<InventoryRequest>>, List<InventoryRequest>>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<
+                AsyncValue<List<InventoryRequest>>,
+                List<InventoryRequest>
+              >,
+              AsyncValue<List<InventoryRequest>>,
+              Object?,
+              Object?
+            >;
+    element.handleValue(ref, created);
+  }
 }
 
 @ProviderFor(outgoingStockRequests)

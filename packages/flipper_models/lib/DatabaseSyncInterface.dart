@@ -397,6 +397,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
     required String branchId,
     String filter = RequestStatus.pending,
     String? search,
+    int limit = 50,
   });
   FutureOr<Tenant?> getTenant({String? userId, int? pin});
 

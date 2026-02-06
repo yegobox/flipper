@@ -1,3 +1,4 @@
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_dashboard/features/incoming_orders/widgets/request_header.dart';
 import 'package:flipper_dashboard/features/incoming_orders/widgets/branch_info.dart';
 import 'package:flipper_dashboard/features/incoming_orders/widgets/items_list.dart';
@@ -5,9 +6,9 @@ import 'package:flipper_dashboard/features/incoming_orders/widgets/status_delive
 import 'package:flipper_dashboard/features/incoming_orders/widgets/action_row.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/material.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:flipper_models/providers/selection_provider.dart';
 
-class RequestCard extends ConsumerWidget {
+class RequestCard extends HookConsumerWidget {
   final InventoryRequest request;
   final Branch incomingBranch;
   final bool isIncoming;
@@ -21,6 +22,9 @@ class RequestCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final selectedIds = ref.watch(selectionProvider);
+    final isSelected = selectedIds.contains(request.id);
+
     return Card(
       elevation: 2,
       shadowColor: Colors.black26,
@@ -33,31 +37,52 @@ class RequestCard extends ConsumerWidget {
         data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
         child: ExpansionTile(
           tilePadding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          title: RequestHeader(request: request),
+          leading: selectedIds.isNotEmpty
+              ? Checkbox(
+                  value: isSelected,
+                  onChanged: (value) {
+                    ref.read(selectionProvider.notifier).toggle(request.id);
+                  },
+                )
+              : null,
+          title: GestureDetector(
+            onLongPress: () {
+              ref.read(selectionProvider.notifier).toggle(request.id);
+            },
+            child: RequestHeader(request: request),
+          ),
           children: [
-            Container(
-              decoration: BoxDecoration(
-                color: Colors.grey[50],
-                borderRadius: BorderRadius.vertical(
-                  bottom: Radius.circular(12),
+            GestureDetector(
+              onLongPress: () {
+                ref.read(selectionProvider.notifier).toggle(request.id);
+              },
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.grey[50],
+                  borderRadius: BorderRadius.vertical(
+                    bottom: Radius.circular(12),
+                  ),
                 ),
-              ),
-              padding: EdgeInsets.all(20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  BranchInfo(request: request, incomingBranch: incomingBranch),
-                  SizedBox(height: 16.0),
-                  ItemsList(request: request),
-                  SizedBox(height: 16.0),
-                  StatusDeliveryInfo(request: request),
-                  if (request.orderNote?.isNotEmpty ?? false) ...[
+                padding: EdgeInsets.all(20.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    BranchInfo(
+                      request: request,
+                      incomingBranch: incomingBranch,
+                    ),
                     SizedBox(height: 16.0),
-                    OrderNote(request: request),
+                    ItemsList(request: request),
+                    SizedBox(height: 16.0),
+                    StatusDeliveryInfo(request: request),
+                    if (request.orderNote?.isNotEmpty ?? false) ...[
+                      SizedBox(height: 16.0),
+                      OrderNote(request: request),
+                    ],
+                    SizedBox(height: 20.0),
+                    if (isIncoming) ActionRow(request: request),
                   ],
-                  SizedBox(height: 20.0),
-                  if (isIncoming) ActionRow(request: request),
-                ],
+                ),
               ),
             ),
           ],

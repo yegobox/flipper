@@ -12,6 +12,9 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
+import 'package:flipper_dashboard/features/incoming_orders/widgets/bulk_action_bar.dart';
+import 'package:flipper_models/providers/selection_provider.dart';
+
 class IncomingOrdersScreen extends HookConsumerWidget {
   const IncomingOrdersScreen({Key? key}) : super(key: key);
 
@@ -41,31 +44,36 @@ class IncomingOrdersScreen extends HookConsumerWidget {
 
         return DefaultTabController(
           length: 2,
-          child: Column(
+          child: Stack(
             children: [
-              _buildHeader(context, ref, isMobile, isTablet),
-              Expanded(
-                child: TabBarView(
-                  children: [
-                    _buildOrdersList(
-                      ref,
-                      incomingRequestsAsync,
-                      incomingBranchAsync,
-                      isIncoming: true,
-                      status: status,
-                      search: search,
+              Column(
+                children: [
+                  _buildHeader(context, ref, isMobile, isTablet),
+                  Expanded(
+                    child: TabBarView(
+                      children: [
+                        _buildOrdersList(
+                          ref,
+                          incomingRequestsAsync,
+                          incomingBranchAsync,
+                          isIncoming: true,
+                          status: status,
+                          search: search,
+                        ),
+                        _buildOrdersList(
+                          ref,
+                          outgoingRequestsAsync,
+                          incomingBranchAsync,
+                          isIncoming: false,
+                          status: status,
+                          search: search,
+                        ),
+                      ],
                     ),
-                    _buildOrdersList(
-                      ref,
-                      outgoingRequestsAsync,
-                      incomingBranchAsync,
-                      isIncoming: false,
-                      status: status,
-                      search: search,
-                    ),
-                  ],
-                ),
+                  ),
+                ],
               ),
+              Positioned(bottom: 0, left: 0, right: 0, child: BulkActionBar()),
             ],
           ),
         );
@@ -286,48 +294,65 @@ class IncomingOrdersScreen extends HookConsumerWidget {
             return LayoutBuilder(
               builder: (context, constraints) {
                 final isMobile = constraints.maxWidth < 600;
-                return SingleChildScrollView(
-                  padding: EdgeInsets.all(isMobile ? 12 : 24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildStatsCard(requests.length, isIncoming, isMobile),
-                      const SizedBox(height: 20),
-                      Text(
-                        isIncoming ? 'Received Orders' : 'My Requests',
-                        style: TextStyle(
-                          fontSize: isMobile ? 16 : 18,
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFF1A1A1A),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      ListView.separated(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: requests.length,
-                        separatorBuilder: (context, index) =>
-                            SizedBox(height: isMobile ? 8 : 12),
-                        itemBuilder: (context, index) => Container(
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.04),
-                                blurRadius: 15,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: RequestCard(
-                            request: requests[index],
-                            incomingBranch: currentBranch,
-                            isIncoming: isIncoming,
+                return NotificationListener<ScrollNotification>(
+                  onNotification: (ScrollNotification scrollInfo) {
+                    if (isIncoming &&
+                        scrollInfo.metrics.pixels ==
+                            scrollInfo.metrics.maxScrollExtent) {
+                      ref
+                          .read(
+                            stockRequestsProvider(
+                              status: status,
+                              search: search,
+                            ).notifier,
+                          )
+                          .loadMore();
+                    }
+                    return false;
+                  },
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.all(isMobile ? 12 : 24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildStatsCard(requests.length, isIncoming, isMobile),
+                        const SizedBox(height: 20),
+                        Text(
+                          isIncoming ? 'Received Orders' : 'My Requests',
+                          style: TextStyle(
+                            fontSize: isMobile ? 16 : 18,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFF1A1A1A),
                           ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 16),
+                        ListView.separated(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: requests.length,
+                          separatorBuilder: (context, index) =>
+                              SizedBox(height: isMobile ? 8 : 12),
+                          itemBuilder: (context, index) => Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(0.04),
+                                  blurRadius: 15,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
+                            ),
+                            child: RequestCard(
+                              request: requests[index],
+                              incomingBranch: currentBranch,
+                              isIncoming: isIncoming,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },
