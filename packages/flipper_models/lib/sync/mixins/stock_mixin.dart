@@ -150,8 +150,16 @@ mixin StockMixin implements StockInterface {
     DateTime? approvedAt,
     String? deliveryNote,
     String? orderNote,
-  }) {
-    throw UnimplementedError();
+  }) async {
+    return ProxyService.getStrategy(Strategy.capella).updateStockRequest(
+      stockRequestId: stockRequestId,
+      updatedAt: updatedAt,
+      status: status,
+      approvedBy: approvedBy,
+      approvedAt: approvedAt,
+      deliveryNote: deliveryNote,
+      orderNote: orderNote,
+    );
   }
 
   @override
@@ -161,7 +169,13 @@ mixin StockMixin implements StockInterface {
     int? quantityApproved,
     int? quantityRequested,
     bool? ignoreForReport,
-  }) {
-    throw UnimplementedError();
+  }) async {
+    return ProxyService.getStrategy(Strategy.capella).updateStockRequestItem(
+      requestId: requestId,
+      transactionItemId: transactionItemId,
+      quantityApproved: quantityApproved,
+      quantityRequested: quantityRequested,
+      ignoreForReport: ignoreForReport,
+    );
   }
 }

@@ -266,10 +266,10 @@ class _ItemCard extends HookWidget {
                     ],
                   ),
                 ),
-                // Show action buttons if status is pending
+                // Show action buttons only if status is pending
                 // For outgoing: always show edit/update if pending
-                // For incoming: show if not fully approved
-                if (request.status != RequestStatus.approved &&
+                // For incoming: show if not fully approved and not in processing
+                if (request.status == RequestStatus.pending &&
                     (!isIncoming ||
                         (item.quantityApproved ?? 0) <
                             (item.quantityRequested ?? 0)))

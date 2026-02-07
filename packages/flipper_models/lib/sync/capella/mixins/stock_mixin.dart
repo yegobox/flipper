@@ -476,7 +476,12 @@ mixin CapellaStockMixin implements StockInterface {
     final arguments = {'branchId': branchId, 'status': filter, 'limit': limit};
 
     // Add status filter if provided
-    if (filter != 'all') {
+    // When 'pending' is selected, include both 'pending' and 'processing' orders
+    // so that orders in production remain visible (with modified UI)
+    if (filter == RequestStatus.pending) {
+      query +=
+          " AND (status = '${RequestStatus.pending}' OR status = '${RequestStatus.processing}')";
+    } else if (filter != 'all') {
       query += ' AND status = :status';
     }
 
@@ -561,7 +566,11 @@ mixin CapellaStockMixin implements StockInterface {
     final arguments = {'branchId': branchId, 'status': filter, 'limit': limit};
 
     // Add status filter if provided
-    if (filter != 'all') {
+    // When 'pending' is selected, include both 'pending' and 'processing' orders
+    if (filter == RequestStatus.pending) {
+      query +=
+          " AND (status = '${RequestStatus.pending}' OR status = '${RequestStatus.processing}')";
+    } else if (filter != 'all') {
       query += ' AND status = :status';
     }
 
