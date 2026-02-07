@@ -783,4 +783,75 @@ mixin CapellaStockMixin implements StockInterface {
       );
     }
   }
+
+  @override
+  Future<void> updateStockRequestItem({
+    required String requestId,
+    required String transactionItemId,
+    int? quantityApproved,
+    int? quantityRequested,
+    bool? ignoreForReport,
+  }) async {
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      talker.error('Ditto not initialized:10');
+      throw Exception('Ditto not initialized:10');
+    }
+
+    try {
+      // 1. Fetch the stock request
+      final result = await ditto.store.execute(
+        'SELECT * FROM stock_requests WHERE _id = :id',
+        arguments: {'id': requestId},
+      );
+
+      if (result.items.isEmpty) {
+        talker.error('Stock request not found: $requestId');
+        return;
+      }
+
+      final requestData = Map<String, dynamic>.from(result.items.first.value);
+      final List<dynamic> transactionItems = List.from(
+        requestData['transactionItems'] ?? [],
+      );
+
+      bool itemFound = false;
+      final updatedItems = transactionItems.map((item) {
+        final itemMap = Map<String, dynamic>.from(item);
+        if (itemMap['id'] == transactionItemId) {
+          itemFound = true;
+          if (quantityApproved != null) {
+            itemMap['quantityApproved'] = quantityApproved;
+          }
+          if (quantityRequested != null) {
+            itemMap['qty'] = quantityRequested;
+            itemMap['quantityRequested'] = quantityRequested;
+          }
+        }
+        return itemMap;
+      }).toList();
+
+      if (!itemFound) {
+        talker.warning('Item not found in stock request: $transactionItemId');
+        return;
+      }
+
+      // 2. Update stock request with modified items
+      await ditto.store.execute(
+        'UPDATE stock_requests SET transactionItems = :items WHERE _id = :id',
+        arguments: {'items': updatedItems, 'id': requestId},
+      );
+
+      // 3. Update the actual transaction item in the table
+      if (quantityRequested != null) {
+        await ditto.store.execute(
+          'UPDATE transaction_items SET qty = :qty, quantityRequested = :qty WHERE _id = :id',
+          arguments: {'qty': quantityRequested, 'id': transactionItemId},
+        );
+      }
+    } catch (e) {
+      talker.error('Error updating stock request item: $e');
+      rethrow;
+    }
+  }
 }

@@ -16,6 +16,8 @@ import '../providers/incoming_orders_provider.dart';
 import 'package:flipper_dashboard/features/production_output/widgets/work_order_bottom_sheet.dart';
 import 'package:flipper_dashboard/features/production_output/services/production_output_service.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as models;
+import 'package:flipper_ui/dialogs/ProduceSelectionDialog.dart';
+import 'package:flipper_dashboard/features/production_output/widgets/work_order_form.dart';
 
 class ActionRow extends ConsumerWidget
     with StockRequestApprovalLogic, SnackBarMixin {
@@ -398,43 +400,18 @@ class ActionRow extends ConsumerWidget
   ) async {
     if (items.isEmpty) return;
 
-    models.TransactionItem? selectedItem;
-
+    // For single item, go directly to bottom sheet
     if (items.length == 1) {
-      selectedItem = items.first;
-    } else {
-      // Show dialog to select item
-      selectedItem = await showDialog<models.TransactionItem>(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: Text('Select Item to Produce'),
-          content: Container(
-            width: double.maxFinite,
-            child: ListView.builder(
-              shrinkWrap: true,
-              itemCount: items.length,
-              itemBuilder: (context, index) {
-                final item = items[index];
-                return ListTile(
-                  title: Text(item.name),
-                  subtitle: Text('Qty: ${item.qty}'),
-                  onTap: () => Navigator.pop(context, item),
-                );
-              },
-            ),
-          ),
-        ),
-      );
-    }
+      final item = items.first;
+      if (!context.mounted) return;
 
-    if (selectedItem != null && context.mounted) {
       WorkOrderBottomSheet.show(
         context: context,
         ref: ref,
         workOrderId: null,
-        initialVariantId: selectedItem.variantId,
-        initialVariantName: selectedItem.name,
-        initialPlannedQuantity: selectedItem.qty.toDouble(),
+        initialVariantId: item.variantId,
+        initialVariantName: item.name,
+        initialPlannedQuantity: item.qty.toDouble(),
         onSubmit: (data) async {
           await ProductionOutputService().createWorkOrder(
             variantId: data['variantId'] as String,
@@ -460,6 +437,60 @@ class ActionRow extends ConsumerWidget
           );
         },
       );
+      return;
     }
+
+    // For multiple items, use master-detail dialog with inline form
+    bool isFirstSubmission = true;
+
+    await showProduceSelectionDialog(
+      context: context,
+      items: items,
+      onProduce: (item, formData) async {
+        // Create work order for this item
+        await ProductionOutputService().createWorkOrder(
+          variantId: formData['variantId'] as String,
+          variantName: formData['variantName'] as String?,
+          plannedQuantity: formData['plannedQuantity'] as double,
+          targetDate: formData['targetDate'] as DateTime,
+          shiftId: formData['shiftId'] as String?,
+          notes: formData['notes'] as String?,
+        );
+
+        // Set status to processing on first submission
+        if (isFirstSubmission) {
+          await ProxyService.strategy.updateStockRequest(
+            stockRequestId: request.id,
+            status: RequestStatus.processing,
+          );
+          isFirstSubmission = false;
+        }
+      },
+      formBuilder:
+          ({
+            String? initialVariantId,
+            String? initialVariantName,
+            double? initialPlannedQuantity,
+            Future<void> Function(Map<String, dynamic>)? onSubmit,
+            VoidCallback? onCancel,
+          }) {
+            return WorkOrderForm(
+              initialVariantId: initialVariantId,
+              initialVariantName: initialVariantName,
+              initialPlannedQuantity: initialPlannedQuantity,
+              onSubmit: onSubmit,
+              onCancel: onCancel,
+            );
+          },
+    );
+
+    // Refresh after dialog closes
+    final stringValue = ref.read(stringProvider);
+    ref.refresh(
+      stockRequestsProvider(
+        status: RequestStatus.pending,
+        search: stringValue?.isNotEmpty == true ? stringValue : null,
+      ),
+    );
   }
 }

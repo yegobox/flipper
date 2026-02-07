@@ -100,6 +100,42 @@ mixin StockRequestApprovalLogic {
     }
   }
 
+  Future<void> updateRequestedQuantity({
+    required InventoryRequest request,
+    required TransactionItem item,
+    required int newQuantity,
+    required BuildContext context,
+  }) async {
+    try {
+      _showLoadingDialog(context);
+
+      await ProxyService.strategy.updateStockRequestItem(
+        requestId: request.id,
+        transactionItemId: item.id,
+        quantityRequested: newQuantity,
+        // We don't change approval status here
+      );
+
+      if (context.mounted) {
+        Navigator.of(context).pop();
+        _showSnackBar(
+          message: 'Quantity updated successfully',
+          context: context,
+        );
+      }
+    } catch (e, s) {
+      talker.error('Error in updateRequestedQuantity', e, s);
+      if (context.mounted) {
+        Navigator.of(context).pop();
+        _showSnackBar(
+          message: 'Failed to update quantity',
+          context: context,
+          isError: true,
+        );
+      }
+    }
+  }
+
   Future<void> approveSingleItem({
     required InventoryRequest request,
     required TransactionItem item,

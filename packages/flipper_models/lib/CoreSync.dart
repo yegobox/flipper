@@ -2715,59 +2715,6 @@ class CoreSync extends AiStrategyImpl
     }
   }
 
-  @override
-  Future<void> updateStockRequestItem({
-    required String requestId,
-    required String transactionItemId,
-    int? quantityApproved,
-    bool? ignoreForReport,
-  }) async {
-    final ditto = dittoService.dittoInstance;
-    if (ditto == null) {
-      throw Exception('Ditto not initialized:003');
-    }
-
-    // Get the request
-    final result = await ditto.store.execute(
-      'SELECT * FROM stock_requests WHERE _id = :requestId LIMIT 1',
-      arguments: {'requestId': requestId},
-    );
-
-    if (result.items.isEmpty) {
-      talker.error('Stock request with ID $requestId not found');
-      throw Exception('Stock request with ID $requestId not found');
-    }
-
-    final requestData = Map<String, dynamic>.from(result.items.first.value);
-    final transactionItems = requestData['transactionItems'] as List?;
-
-    if (transactionItems != null) {
-      // Find and update the item
-      final itemIndex = transactionItems.indexWhere(
-        (item) => item['id'] == transactionItemId,
-      );
-
-      if (itemIndex != -1) {
-        final item = Map<String, dynamic>.from(transactionItems[itemIndex]);
-
-        if (quantityApproved != null) {
-          item['quantityApproved'] =
-              (item['quantityApproved'] ?? 0) + quantityApproved;
-        }
-        if (ignoreForReport != null) {
-          item['ignoreForReport'] = ignoreForReport;
-        }
-
-        transactionItems[itemIndex] = item;
-
-        // Update the request with modified items
-        await ditto.store.execute(
-          'UPDATE stock_requests SET transactionItems = :items WHERE _id = :requestId',
-          arguments: {'items': transactionItems, 'requestId': requestId},
-        );
-      }
-    }
-  }
 
   @override
   Future<void> createNewStock({

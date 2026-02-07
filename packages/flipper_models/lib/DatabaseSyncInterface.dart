@@ -682,6 +682,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
     required String requestId,
     required String transactionItemId,
     int? quantityApproved,
+    int? quantityRequested,
     bool? ignoreForReport,
   });
 }

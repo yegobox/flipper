@@ -153,4 +153,15 @@ mixin StockMixin implements StockInterface {
   }) {
     throw UnimplementedError();
   }
+
+  @override
+  Future<void> updateStockRequestItem({
+    required String requestId,
+    required String transactionItemId,
+    int? quantityApproved,
+    int? quantityRequested,
+    bool? ignoreForReport,
+  }) {
+    throw UnimplementedError();
+  }
 }

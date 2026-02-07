@@ -15,8 +15,10 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 class ItemsList extends HookConsumerWidget
     with StockRequestApprovalLogic, SnackBarMixin {
   final InventoryRequest request;
+  final bool isIncoming;
 
-  const ItemsList({Key? key, required this.request}) : super(key: key);
+  const ItemsList({Key? key, required this.request, this.isIncoming = true})
+    : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -75,26 +77,15 @@ class ItemsList extends HookConsumerWidget
     // We also only allow edit if status is pending.
     final canEdit = !isBulkMode && request.status == RequestStatus.pending;
 
-    // We use a local state to toggle edit mode for this specific item if needed,
-    // but usually partial approval implies changing the quantity *then* approving.
-    // Or do we want an "Edit" button that turns the text into a field?
-    // Let's use a Hook for inline editing state if we want toggle.
-    // Since this is inside a map, we need a separate widget for the card to use hooks properly,
-    // OR we just use a simple stateful approach.
-    // Given ItemsList is HookConsumerWidget, we can't easily use hooks inside the map iteration
-    // unless we extract ItemCard to a Widget.
-
     return _ItemCard(
       item: item,
       request: request,
       canEdit: canEdit,
+      isIncoming: isIncoming,
       onApprove: (item, qty) =>
           _handleSingleItemApproval(context, ref, item, qty),
     );
   }
-
-  // Moved _buildItemCard logic to _ItemCard class below to separate concerns and allow hooks if needed
-  // ... but for now let's keep it simple.
 
   void _handleSingleItemApproval(
     BuildContext context,
@@ -103,22 +94,22 @@ class ItemsList extends HookConsumerWidget
     double quantity,
   ) {
     try {
-      // Logic to approve with specific quantity
-      // We need to update existing mixin to support quantity if not supported
-      // But verify if approveSingleItem supports it.
-      // Looking at mixin usage, it seems it might not.
-      // So we will need to update StockRequestApprovalLogic too.
-      // For now passing item as is, but we need to update item.quantityApproved likely?
+      if (isIncoming) {
+        approveSingleItem(
+          request: request,
+          item: item,
+          context: context,
+          quantity: quantity,
+        );
+      } else {
+        updateRequestedQuantity(
+          request: request,
+          item: item,
+          newQuantity: quantity.toInt(),
+          context: context,
+        );
+      }
 
-      // Actually we should call a method that updates the item in backend.
-      // Let's assume approveSingleItem is what we have.
-
-      approveSingleItem(
-        request: request,
-        item: item,
-        context: context,
-        quantity: quantity,
-      );
       final stringValue = ref.read(stringProvider);
       ref.refresh(
         stockRequestsProvider(
@@ -129,7 +120,7 @@ class ItemsList extends HookConsumerWidget
     } catch (e) {
       showCustomSnackBar(
         context,
-        'Failed to approve item: ${e.toString()}',
+        'Failed to ${isIncoming ? "approve" : "update"} item: ${e.toString()}',
         backgroundColor: Colors.red[600],
       );
     }
@@ -140,22 +131,42 @@ class _ItemCard extends HookWidget {
   final TransactionItem item;
   final InventoryRequest request;
   final bool canEdit;
+  final bool isIncoming;
   final Function(TransactionItem, double) onApprove;
 
   const _ItemCard({
     required this.item,
     required this.request,
     required this.canEdit,
+    this.isIncoming = true,
     required this.onApprove,
   });
 
   @override
   Widget build(BuildContext context) {
     final isEditing = useState(false);
+
+    // For incoming: default to remaining (Requested - Approved)
+    // For outgoing: default to Requested (since we are editing request)
+    final initialQty = isIncoming
+        ? ((item.quantityRequested ?? 0) - (item.quantityApproved ?? 0))
+        : (item.quantityRequested ?? 0);
+
     final quantityController = useTextEditingController(
-      text: ((item.quantityRequested ?? 0) - (item.quantityApproved ?? 0))
-          .toString(),
+      text: initialQty.toString(),
     );
+
+    // Reset controller text when isEditing changes to false (cancel)
+    // or when we assume the initial value might have changed from props (less likely here without key)
+    useEffect(() {
+      if (!isEditing.value) {
+        final currentQty = isIncoming
+            ? ((item.quantityRequested ?? 0) - (item.quantityApproved ?? 0))
+            : (item.quantityRequested ?? 0);
+        quantityController.text = currentQty.toString();
+      }
+      return null;
+    }, [isEditing.value, item.quantityRequested, item.quantityApproved]);
 
     Color _getQuantityColor(TransactionItem item) {
       final approved = item.quantityApproved ?? 0;
@@ -193,14 +204,16 @@ class _ItemCard extends HookWidget {
                         Row(
                           children: [
                             Text(
-                              'Approved: ',
+                              isIncoming ? 'Approved: ' : 'Requested: ',
                               style: TextStyle(
                                 fontSize: 14,
                                 color: Colors.grey[600],
                               ),
                             ),
                             Text(
-                              '${item.quantityApproved ?? 0}/${item.quantityRequested ?? 0}',
+                              isIncoming
+                                  ? '${item.quantityApproved ?? 0}/${item.quantityRequested ?? 0}'
+                                  : '${item.quantityRequested ?? 0}',
                               style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w600,
@@ -209,8 +222,9 @@ class _ItemCard extends HookWidget {
                             ),
                           ],
                         ),
-                        if ((item.quantityRequested ?? 0) >
-                            (item.quantityApproved ?? 0))
+                        if (isIncoming &&
+                            (item.quantityRequested ?? 0) >
+                                (item.quantityApproved ?? 0))
                           Padding(
                             padding: EdgeInsets.only(top: 2),
                             child: Text(
@@ -227,7 +241,7 @@ class _ItemCard extends HookWidget {
                         Row(
                           children: [
                             Text(
-                              'Approve Qty: ',
+                              isIncoming ? 'Approve Qty: ' : 'Update Qty: ',
                               style: TextStyle(fontSize: 14),
                             ),
                             SizedBox(width: 8),
@@ -252,9 +266,13 @@ class _ItemCard extends HookWidget {
                     ],
                   ),
                 ),
+                // Show action buttons if status is pending
+                // For outgoing: always show edit/update if pending
+                // For incoming: show if not fully approved
                 if (request.status != RequestStatus.approved &&
-                    (item.quantityApproved ?? 0) <
-                        (item.quantityRequested ?? 0))
+                    (!isIncoming ||
+                        (item.quantityApproved ?? 0) <
+                            (item.quantityRequested ?? 0)))
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -267,36 +285,30 @@ class _ItemCard extends HookWidget {
                           ),
                           onPressed: () {
                             isEditing.value = !isEditing.value;
-                            if (!isEditing.value) {
-                              // Reset text if cancelled
-                              quantityController.text =
-                                  ((item.quantityRequested ?? 0) -
-                                          (item.quantityApproved ?? 0))
-                                      .toString();
-                            }
                           },
                         ),
                       TextButton.icon(
                         onPressed: () {
+                          final qty =
+                              double.tryParse(quantityController.text) ?? 0;
+
                           if (isEditing.value) {
-                            final qty =
-                                double.tryParse(quantityController.text) ?? 0;
                             onApprove(item, qty);
                             isEditing.value = false;
                           } else {
-                            // Default full remaining approval
-                            onApprove(
-                              item,
-                              ((item.quantityRequested ?? 0) -
-                                      (item.quantityApproved ?? 0))
-                                  .toDouble(),
-                            );
+                            // If not editing, use the current controller value (which is default)
+                            onApprove(item, qty);
                           }
                         },
-                        icon: Icon(Icons.check_circle_outline, size: 18),
-                        label: Text('Approve'),
+                        icon: Icon(
+                          isIncoming ? Icons.check_circle_outline : Icons.save,
+                          size: 18,
+                        ),
+                        label: Text(isIncoming ? 'Approve' : 'Update'),
                         style: TextButton.styleFrom(
-                          foregroundColor: Colors.green[600],
+                          foregroundColor: isIncoming
+                              ? Colors.green[600]
+                              : Colors.blue[600],
                         ),
                       ),
                     ],

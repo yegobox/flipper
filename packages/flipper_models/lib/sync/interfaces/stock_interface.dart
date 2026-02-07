@@ -55,4 +55,11 @@ abstract class StockInterface {
     String? deliveryNote,
     String? orderNote,
   });
+  Future<void> updateStockRequestItem({
+    required String requestId,
+    required String transactionItemId,
+    int? quantityApproved,
+    int? quantityRequested,
+    bool? ignoreForReport,
+  });
 }

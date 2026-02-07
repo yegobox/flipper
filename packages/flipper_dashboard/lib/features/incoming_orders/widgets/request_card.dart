@@ -72,7 +72,7 @@ class RequestCard extends HookConsumerWidget {
                       incomingBranch: incomingBranch,
                     ),
                     SizedBox(height: 16.0),
-                    ItemsList(request: request),
+                    ItemsList(request: request, isIncoming: isIncoming),
                     SizedBox(height: 16.0),
                     StatusDeliveryInfo(request: request),
                     if (request.orderNote?.isNotEmpty ?? false) ...[
