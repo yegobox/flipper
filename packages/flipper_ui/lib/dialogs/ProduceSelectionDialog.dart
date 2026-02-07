@@ -796,16 +796,19 @@ class _DetailPanel extends StatelessWidget {
             ),
           ),
 
-          // Form content
+          // Form content - use Key to force rebuild when item changes
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(20),
-              child: formBuilder(
-                initialVariantId: item.variantId,
-                initialVariantName: item.name,
-                initialPlannedQuantity: item.qty.toDouble(),
-                onSubmit: onSubmit,
-                onCancel: onBack,
+              child: KeyedSubtree(
+                key: ValueKey(item.id),
+                child: formBuilder(
+                  initialVariantId: item.variantId,
+                  initialVariantName: item.name,
+                  initialPlannedQuantity: item.qty.toDouble(),
+                  onSubmit: onSubmit,
+                  onCancel: onBack,
+                ),
               ),
             ),
           ),
