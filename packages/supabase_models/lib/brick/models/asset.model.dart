@@ -23,6 +23,9 @@ class Assets extends OfflineFirstWithSupabaseModel {
   /// Local file path for offline storage
   String? localPath;
 
+  /// Sub-path for storage organization (e.g., 'branch', 'reports')
+  String? subPath;
+
   Assets({
     String? id,
     this.branchId,
@@ -31,5 +34,6 @@ class Assets extends OfflineFirstWithSupabaseModel {
     this.productId,
     this.isUploaded = false,
     this.localPath,
+    this.subPath,
   }) : id = id ?? const Uuid().v4();
 }

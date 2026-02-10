@@ -38,6 +38,7 @@ abstract class AssetInterface {
     required String productId,
     required String branchId,
     required String businessId,
+    String subPath = 'branch',
   });
 
   /// Synchronize offline assets by uploading them to cloud storage
@@ -346,6 +347,7 @@ mixin AssetMixin implements AssetInterface {
     required String productId,
     required String branchId,
     required String businessId,
+    String subPath = 'branch',
   }) async {
     try {
       // Generate a unique filename using UUID
@@ -369,6 +371,7 @@ mixin AssetMixin implements AssetInterface {
         businessId: businessId,
         isUploaded: false,
         localPath: localPath,
+        subPath: subPath,
       );
 
       // Save the asset to the repository
@@ -419,9 +422,8 @@ mixin AssetMixin implements AssetInterface {
             final file = File(asset.localPath!);
             if (await file.exists()) {
               // Upload to S3 using same path pattern as downloadAsset
-              // Default to 'branch' subPath to match most common download usage
-              final subPath =
-                  'branch'; // Could be made configurable or stored on Assets model
+              // Use stored subPath if available, otherwise default to 'branch'
+              final subPath = asset.subPath ?? 'branch';
               final storagePath = amplify.StoragePath.fromString(
                 'public/$subPath-${asset.branchId}/${asset.assetName}',
               );

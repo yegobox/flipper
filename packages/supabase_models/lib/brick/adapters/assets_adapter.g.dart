@@ -22,6 +22,7 @@ Future<Assets> _$AssetsFromSupabase(
     localPath: data['local_path'] == null
         ? null
         : data['local_path'] as String?,
+    subPath: data['sub_path'] == null ? null : data['sub_path'] as String?,
   );
 }
 
@@ -38,6 +39,7 @@ Future<Map<String, dynamic>> _$AssetsToSupabase(
     'product_id': instance.productId,
     'is_uploaded': instance.isUploaded,
     'local_path': instance.localPath,
+    'sub_path': instance.subPath,
   };
 }
 
@@ -62,6 +64,7 @@ Future<Assets> _$AssetsFromSqlite(
     localPath: data['local_path'] == null
         ? null
         : data['local_path'] as String?,
+    subPath: data['sub_path'] == null ? null : data['sub_path'] as String?,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -78,6 +81,7 @@ Future<Map<String, dynamic>> _$AssetsToSqlite(
     'product_id': instance.productId,
     'is_uploaded': instance.isUploaded ? 1 : 0,
     'local_path': instance.localPath,
+    'sub_path': instance.subPath,
   };
 }
 
@@ -118,6 +122,10 @@ class AssetsAdapter extends OfflineFirstWithSupabaseAdapter<Assets> {
     'localPath': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'local_path',
+    ),
+    'subPath': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'sub_path',
     ),
   };
   @override
@@ -171,6 +179,12 @@ class AssetsAdapter extends OfflineFirstWithSupabaseAdapter<Assets> {
     'localPath': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'local_path',
+      iterable: false,
+      type: String,
+    ),
+    'subPath': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'sub_path',
       iterable: false,
       type: String,
     ),
