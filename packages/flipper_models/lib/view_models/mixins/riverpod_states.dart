@@ -589,6 +589,14 @@ final businessesProvider = FutureProvider<List<Business>>((ref) async {
     final userId = ProxyService.box.getUserId();
     if (userId == null) return [];
 
+    // Check if Ditto is ready before calling getUserAccess
+    if (!ProxyService.ditto.isReady()) {
+      debugPrint(
+        '⚠️ businessesProvider: Ditto not ready yet, returning empty list',
+      );
+      return [];
+    }
+
     final userAccess = await ProxyService.ditto.getUserAccess(userId);
     if (userAccess != null && userAccess.containsKey('businesses')) {
       final List<dynamic> businessesJson = userAccess['businesses'];

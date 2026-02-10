@@ -6,14 +6,17 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 part 'branch_business_provider.g.dart';
 
 @riverpod
-Future<List<Branch>> branches(
-  Ref ref, {
-  String? businessId,
-}) async {
+Future<List<Branch>> branches(Ref ref, {String? businessId}) async {
   if (businessId == null) return [];
 
   final userId = ProxyService.box.getUserId();
   if (userId == null) return [];
+
+  // Check if Ditto is ready before calling getUserAccess
+  if (!ProxyService.ditto.isReady()) {
+    return []; // Return empty list if Ditto not ready yet
+  }
+
   // this refresh the user access from time to time to have fresh business and branches a user
   // is allowed to access
   ProxyService.strategy.sendLoginRequest(

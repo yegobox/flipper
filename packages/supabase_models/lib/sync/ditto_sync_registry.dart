@@ -80,7 +80,10 @@ class DittoSyncRegistry {
     };
 
     debugPrint('➕ Adding Ditto listener to DittoService...');
+    // Listener will be invoked automatically when setDitto is called on DittoService
+    // The coordinator will initialize when Ditto becomes available
     DittoService.instance.addDittoListener(_dittoListener!);
+
     debugPrint('✅ DittoSyncRegistry.registerDefaults completed');
   }
 

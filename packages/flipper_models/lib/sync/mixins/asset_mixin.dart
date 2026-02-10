@@ -26,7 +26,7 @@ abstract class AssetInterface {
   FutureOr<Assets?> getAsset({String? assetName, String? productId});
   FutureOr<void> addAsset({
     required String productId,
-    required assetName,
+    required String assetName,
     required String branchId,
     required String businessId,
   });
@@ -291,7 +291,7 @@ mixin AssetMixin implements AssetInterface {
   @override
   Future<void> addAsset({
     required String productId,
-    required assetName,
+    required String assetName,
     required String branchId,
     required String businessId,
   }) async {

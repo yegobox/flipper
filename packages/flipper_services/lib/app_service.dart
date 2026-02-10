@@ -263,18 +263,50 @@ class AppService with ListenableServiceMixin {
       throw Exception('User not logged in. Cannot initialize app.');
     }
 
-    // Initialize Ditto with the authenticated user ID
-    final appID = kDebugMode ? AppSecrets.appIdDebug : AppSecrets.appId;
+    // Initialize Ditto — non-blocking: if it fails (e.g., no internet),
+    // the app continues with locally cached data.
+    bool dittoAvailable = false;
+    try {
+      final appID = kDebugMode ? AppSecrets.appIdDebug : AppSecrets.appId;
+      await DittoSingleton.instance.initialize(appId: appID, userId: userId);
+      DittoSyncCoordinator.instance.setDitto(
+        DittoSingleton.instance.ditto,
+        skipInitialFetch: true,
+      );
+      dittoAvailable = DittoSingleton.instance.isReady;
+      print("User id set to $userId and Ditto initialized: $dittoAvailable");
 
-    await DittoSingleton.instance.initialize(appId: appID, userId: userId);
-    DittoSyncCoordinator.instance.setDitto(
-      DittoSingleton.instance.ditto,
-      skipInitialFetch:
-          true, // Skip initial fetch to prevent upserting all models on startup
-    );
-    print("User id set to ${userId} and Ditto initialized");
+      // Safety net: ensure DittoService (used by ProxyService.ditto) has the instance
+      if (dittoAvailable && !ProxyService.ditto.isReady()) {
+        print("⚠️ Bridging DittoSingleton → DittoService manually");
+        ProxyService.ditto.setDitto(DittoSingleton.instance.ditto!);
+      }
+    } catch (e) {
+      print("⚠️ Ditto initialization failed (app will continue offline): $e");
+    }
 
-    final userAccess = await ProxyService.ditto.getUserAccess(userId);
+    // Try to get user access from Ditto if available
+    Map<String, dynamic>? userAccess;
+    if (dittoAvailable) {
+      int retries = 0;
+      while (retries < 3) {
+        try {
+          userAccess = await ProxyService.ditto.getUserAccess(userId);
+          break;
+        } catch (e) {
+          print("getUserAccess failed (attempt ${retries + 1}): $e");
+          retries++;
+          if (retries < 3) {
+            await Future.delayed(const Duration(milliseconds: 500));
+          }
+        }
+      }
+    } else {
+      print(
+        "⚠️ Ditto not available — using locally cached business/branch data",
+      );
+    }
+
     List<Business> businesses = [];
     List<Branch> branches = [];
 
@@ -298,13 +330,28 @@ class AppService with ListenableServiceMixin {
               .toList();
         }
       }
+    } else {
+      // Fallback: use locally stored business/branch IDs
+      final businessId = ProxyService.box.getBusinessId();
+      final branchId = ProxyService.box.getBranchId();
+      if (businessId != null && branchId != null) {
+        print(
+          "✅ Using locally cached businessId=$businessId, branchId=$branchId",
+        );
+        await checkAndStartShift(userId: userId);
+        return;
+      } else {
+        // No local data and no Ditto — user must be online for first setup
+        throw Exception(
+          'No cached data available. Please connect to the internet for initial setup.',
+        );
+      }
     }
 
     bool hasMultipleBusinesses = businesses.length > 1;
     bool hasMultipleBranches = branches.length > 1;
 
     if (businesses.length == 1) {
-      // set it as default
       await ProxyService.strategy.updateBusiness(
         businessId: businesses.first.id,
         active: true,
@@ -312,7 +359,6 @@ class AppService with ListenableServiceMixin {
       );
     }
     if (branches.length == 1) {
-      // set it as default directly
       await ProxyService.strategy.updateBranch(
         branchId: branches.first.id,
         active: true,

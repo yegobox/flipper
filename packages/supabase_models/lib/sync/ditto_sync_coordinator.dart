@@ -21,6 +21,7 @@ class DittoSyncCoordinator {
   bool _isObserving = false;
   bool _skipInitialFetch = false;
   Timer? _upsertDebouncer;
+  Ditto? get ditto => _ditto;
 
   /// Set the Ditto instance to be used for sync operations.
   /// Passing `null` tears down existing observers.

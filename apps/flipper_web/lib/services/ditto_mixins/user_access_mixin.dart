@@ -27,6 +27,14 @@ mixin UserAccessMixin on DittoCore {
 
   /// Retrieve the user access object from Ditto.
   Future<Map<String, dynamic>?> getUserAccess(String userId) async {
+    debugPrint('🔍 getUserAccess called for userId: $userId');
+    debugPrint(
+      '🔍 dittoInstance state: ${dittoInstance != null ? "SET (${dittoInstance.hashCode})" : "NULL"}',
+    );
+    debugPrint(
+      '🔍 Call stack: ${StackTrace.current.toString().split('\n').take(5).join('\n')}',
+    );
+
     if (dittoInstance == null)
       return handleNotInitializedAndReturn('getUserAccess', null);
 
