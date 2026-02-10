@@ -12,20 +12,24 @@ import 'package:supabase_models/brick/repository.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
 abstract class AssetInterface {
-  Future<Stream<double>> downloadAssetSave(
-      {String? assetName, String? subPath = "branch"});
-  Future<Stream<double>> downloadAsset(
-      {required String branchId,
-      required String assetName,
-      required String subPath});
+  Future<Stream<double>> downloadAssetSave({
+    String? assetName,
+    String? subPath = "branch",
+  });
+  Future<Stream<double>> downloadAsset({
+    required String branchId,
+    required String assetName,
+    required String subPath,
+  });
 
   Future<void> reDownloadAsset();
   FutureOr<Assets?> getAsset({String? assetName, String? productId});
-  FutureOr<void> addAsset(
-      {required String productId,
-      required assetName,
-      required String branchId,
-      required String businessId});
+  FutureOr<void> addAsset({
+    required String productId,
+    required String assetName,
+    required String branchId,
+    required String businessId,
+  });
 
   /// Save an image file locally and create an asset record
   /// Returns the asset record with local path information
@@ -34,6 +38,7 @@ abstract class AssetInterface {
     required String productId,
     required String branchId,
     required String businessId,
+    String subPath = 'branch',
   });
 
   /// Synchronize offline assets by uploading them to cloud storage
@@ -51,8 +56,10 @@ mixin AssetMixin implements AssetInterface {
   final List<String> _pendingUploads = [];
 
   @override
-  Future<Stream<double>> downloadAssetSave(
-      {String? assetName, String? subPath = "branch"}) async {
+  Future<Stream<double>> downloadAssetSave({
+    String? assetName,
+    String? subPath = "branch",
+  }) async {
     try {
       talker.info("Starting downloadAssetSave");
       String branchId = ProxyService.box.getBranchId()!;
@@ -61,14 +68,19 @@ mixin AssetMixin implements AssetInterface {
       if (assetName != null) {
         talker.info("Downloading single asset: $assetName");
         return downloadAsset(
-            branchId: branchId, assetName: assetName, subPath: subPath!);
+          branchId: branchId,
+          assetName: assetName,
+          subPath: subPath ?? "branch",
+        );
       }
 
       // Case 2: Multiple assets download
       talker.info("Fetching assets for branch: $branchId");
       List<Assets> assets = await repository.get(
-          query: brick.Query(
-              where: [brick.Where('branchId').isExactly(branchId)]));
+        query: brick.Query(
+          where: [brick.Where('branchId').isExactly(branchId)],
+        ),
+      );
 
       talker.info("Found ${assets.length} assets for branch: $branchId");
 
@@ -118,6 +130,16 @@ mixin AssetMixin implements AssetInterface {
         return progressController.stream;
       }
 
+      // Track subscriptions for cleanup
+      final subscriptions = <StreamSubscription<double>>[];
+
+      // Cleanup subscriptions when controller is closed
+      progressController.onCancel = () {
+        for (final sub in subscriptions) {
+          sub.cancel();
+        }
+      };
+
       // Download assets that need downloading
       int completedDownloads = 0;
       for (Assets asset in assetsToDownload) {
@@ -125,42 +147,55 @@ mixin AssetMixin implements AssetInterface {
 
         // Get the download stream
         Stream<double> downloadStream = await downloadAsset(
-            branchId: branchId, assetName: asset.assetName!, subPath: subPath!);
+          branchId: branchId,
+          assetName: asset.assetName!,
+          subPath: subPath ?? "branch",
+        );
 
         // Listen to the download stream and add its events to the main controller
-        downloadStream.listen((progress) {
-          talker.info('Download progress for ${asset.assetName}: $progress');
-          progressController.add(progress);
+        final subscription = downloadStream.listen(
+          (progress) async {
+            talker.info('Download progress for ${asset.assetName}: $progress');
+            progressController.add(progress);
 
-          // If this download completes, update the asset record
-          if (progress >= 100.0) {
-            // Update the asset record with the local path when download completes
-            getSupportDir().then((dir) {
-              final filePath = path.join(dir.path, asset.assetName!);
-              asset.localPath = filePath;
-              repository.upsert<Assets>(asset);
-            });
+            // If this download completes, update the asset record
+            if (progress >= 100.0) {
+              // Update the asset record with the local path when download completes
+              try {
+                final dir = await getSupportDir();
+                final filePath = path.join(dir.path, asset.assetName!);
+                asset.localPath = filePath;
+                await repository.upsert<Assets>(asset);
+              } catch (e, st) {
+                talker.error(
+                  'Failed to upsert asset ${asset.assetName}: $e\n$st',
+                );
+              }
 
-            // If all downloads are complete, close the controller
+              // If all downloads are complete, close the controller
+              completedDownloads++;
+              if (completedDownloads >= assetsToDownload.length) {
+                talker.info('All downloads completed');
+                progressController.close();
+              }
+            }
+          },
+          onError: (error) {
+            talker.error('Error downloading ${asset.assetName}: $error');
+            progressController.addError(error);
+
+            // Count as completed even if there's an error
             completedDownloads++;
             if (completedDownloads >= assetsToDownload.length) {
-              talker.info('All downloads completed');
+              talker.info('All downloads completed (with some errors)');
               progressController.close();
             }
-          }
-        }, onError: (error) {
-          talker.error('Error downloading ${asset.assetName}: $error');
-          progressController.addError(error);
-
-          // Count as completed even if there's an error
-          completedDownloads++;
-          if (completedDownloads >= assetsToDownload.length) {
-            talker.info('All downloads completed (with some errors)');
-            progressController.close();
-          }
-        }, onDone: () {
-          talker.info('Download completed for: ${asset.assetName}');
-        });
+          },
+          onDone: () {
+            talker.info('Download completed for: ${asset.assetName}');
+          },
+        );
+        subscriptions.add(subscription);
       }
 
       return progressController.stream;
@@ -171,10 +206,11 @@ mixin AssetMixin implements AssetInterface {
     }
   }
 
-  Future<Stream<double>> downloadAsset(
-      {required String branchId,
-      required String assetName,
-      required String subPath}) async {
+  Future<Stream<double>> downloadAsset({
+    required String branchId,
+    required String assetName,
+    required String subPath,
+  }) async {
     Directory directoryPath = await getSupportDir();
 
     final filePath = path.join(directoryPath.path, assetName);
@@ -192,7 +228,8 @@ mixin AssetMixin implements AssetInterface {
       }
     }
     final storagePath = amplify.StoragePath.fromString(
-        'public/${subPath}-$branchId/$assetName');
+      'public/${subPath}-$branchId/$assetName',
+    );
     try {
       // Create a stream controller to manage the progress
       final progressController = StreamController<double>();
@@ -202,20 +239,26 @@ mixin AssetMixin implements AssetInterface {
         localFile: amplify.AWSFile.fromPath(filePath),
         onProgress: (progress) {
           // Calculate the progress percentage
-          final percentageCompleted =
-              (progress.fractionCompleted * 100).toInt();
+          final percentageCompleted = (progress.fractionCompleted * 100)
+              .toInt();
           // Add the progress to the stream
           progressController.sink.add(percentageCompleted.toDouble());
         },
       );
       // Listen for the download completion
-      operation.result.then((_) {
-        progressController.close();
-        talker.info("Downloaded file at path ${storagePath}");
-      }).catchError((error) async {
-        progressController.addError(error);
-        progressController.close();
-      });
+      () async {
+        try {
+          await operation.result;
+          progressController.close();
+          talker.info("Downloaded file at path ${storagePath}");
+        } catch (error, stackTrace) {
+          progressController.addError(error);
+          progressController.close();
+          talker.error(
+            "Error downloading file at path $storagePath: $error\n$stackTrace",
+          );
+        }
+      }();
       return progressController.stream;
     } catch (e) {
       talker.error('Error downloading file: $e');
@@ -225,52 +268,73 @@ mixin AssetMixin implements AssetInterface {
 
   @override
   Future<void> reDownloadAsset() async {
+    final branchId = ProxyService.box.getBranchId();
+    if (branchId == null) {
+      talker.warning("Skipping reDownloadAsset: Branch ID is null");
+      return;
+    }
     // get list of assets
     final assets = await repository.get<Assets>(
-        query: brick.Query(where: [
-      brick.Where('branchId').isExactly(ProxyService.box.getBranchId()!)
-    ]));
+      query: brick.Query(where: [brick.Where('branchId').isExactly(branchId)]),
+    );
     for (Assets asset in assets) {
-      downloadAsset(
-          branchId: asset.branchId!,
-          assetName: asset.assetName!,
-          subPath: "branch");
+      if (asset.branchId != null && asset.assetName != null) {
+        try {
+          await downloadAsset(
+            branchId: asset.branchId!,
+            assetName: asset.assetName!,
+            subPath: "branch",
+          );
+        } catch (e, stackTrace) {
+          talker.error(
+            'Failed to download asset ${asset.assetName} for branch ${asset.branchId}: $e\n$stackTrace',
+          );
+          // Continue to next asset
+        }
+      }
     }
   }
 
   @override
   FutureOr<Assets?> getAsset({String? assetName, String? productId}) async {
-    final repository = Repository();
     final query = brick.Query(
-        where: assetName != null
-            ? [brick.Where('assetName').isExactly(assetName)]
-            : productId != null
-                ? [brick.Where('productId').isExactly(productId)]
-                : throw Exception("no asset"));
+      where: assetName != null
+          ? [brick.Where('assetName').isExactly(assetName)]
+          : productId != null
+          ? [brick.Where('productId').isExactly(productId)]
+          : throw Exception("no asset"),
+    );
     final result = await repository.get<Assets>(
-        query: query,
-        policy: brick.OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+      query: query,
+      policy: brick.OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+    );
     return result.firstOrNull;
   }
 
   @override
-  Future<void> addAsset(
-      {required String productId,
-      required assetName,
-      required String branchId,
-      required String businessId}) async {
+  Future<void> addAsset({
+    required String productId,
+    required String assetName,
+    required String branchId,
+    required String businessId,
+  }) async {
     final asset = await repository.get<Assets>(
-        query: brick.Query(where: [
-      brick.Where('productId').isExactly(productId),
-      brick.Where('assetName').isExactly(assetName),
-    ]));
+      query: brick.Query(
+        where: [
+          brick.Where('productId').isExactly(productId),
+          brick.Where('assetName').isExactly(assetName),
+        ],
+      ),
+    );
     if (asset.firstOrNull == null) {
-      await repository.upsert<Assets>(Assets(
-        assetName: assetName,
-        productId: productId,
-        branchId: branchId,
-        businessId: businessId,
-      ));
+      await repository.upsert<Assets>(
+        Assets(
+          assetName: assetName,
+          productId: productId,
+          branchId: branchId,
+          businessId: businessId,
+        ),
+      );
     }
   }
 
@@ -287,6 +351,7 @@ mixin AssetMixin implements AssetInterface {
     required String productId,
     required String branchId,
     required String businessId,
+    String subPath = 'branch',
   }) async {
     try {
       // Generate a unique filename using UUID
@@ -310,6 +375,7 @@ mixin AssetMixin implements AssetInterface {
         businessId: businessId,
         isUploaded: false,
         localPath: localPath,
+        subPath: subPath,
       );
 
       // Save the asset to the repository
@@ -348,8 +414,8 @@ mixin AssetMixin implements AssetInterface {
 
       // Get all assets that haven't been uploaded yet
       final assets = await repository.get<Assets>(
-          query:
-              brick.Query(where: [brick.Where('isUploaded').isExactly(false)]));
+        query: brick.Query(where: [brick.Where('isUploaded').isExactly(false)]),
+      );
 
       for (final asset in assets) {
         if (asset.localPath != null &&
@@ -359,9 +425,12 @@ mixin AssetMixin implements AssetInterface {
             // Create the file reference
             final file = File(asset.localPath!);
             if (await file.exists()) {
-              // Upload to S3
+              // Upload to S3 using same path pattern as downloadAsset
+              // Use stored subPath if available, otherwise default to 'branch'
+              final subPath = asset.subPath ?? 'branch';
               final storagePath = amplify.StoragePath.fromString(
-                  'public/branch-${asset.branchId}/${asset.assetName}');
+                'public/$subPath-${asset.branchId}/${asset.assetName}',
+              );
 
               await amplify.Amplify.Storage
                   .uploadFile(
@@ -402,8 +471,8 @@ mixin AssetMixin implements AssetInterface {
   Future<bool> hasOfflineAssets() async {
     try {
       final assets = await repository.get<Assets>(
-          query:
-              brick.Query(where: [brick.Where('isUploaded').isExactly(false)]));
+        query: brick.Query(where: [brick.Where('isUploaded').isExactly(false)]),
+      );
       return assets.isNotEmpty;
     } catch (e) {
       talker.error('Error checking for offline assets: $e');

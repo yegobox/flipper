@@ -41,7 +41,7 @@ mixin StockRequestApprovalLogic {
             item: item,
             request: request,
             subBranchId: request.subBranchId!,
-            sourceBranchId: request.branch!.id,
+            sourceBranchId: request.subBranchId!,
           ),
         ),
       );
@@ -775,7 +775,7 @@ mixin StockRequestApprovalLogic {
     VariantBranch? existingVariantBranch = await ProxyService.strategy
         .variantBranch(
           variantId: variant.id,
-          destinationBranchId: request.branch!.id,
+          destinationBranchId: request.subBranchId!,
         );
 
     if (existingVariantBranch != null) {
@@ -802,7 +802,7 @@ mixin StockRequestApprovalLogic {
           final stock = await _createNewStockForSharedVariant(
             item: item,
             variant: existingVariant,
-            destinationBranchId: request.branch!.id,
+            destinationBranchId: request.subBranchId!,
           );
           existingVariant.stock = stock;
           existingVariant.stockId = stock.id;

@@ -58,6 +58,26 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       talker.warning("StartupViewModel runStartupLogic");
       // ------------------------------------------------------
 
+      // Initialize Ditto early if user is logged in
+      // This ensures Ditto is available for LoginChoices screen to fetch businesses
+      final userId = ProxyService.box.getUserId();
+      if (userId != null) {
+        try {
+          print(
+            '🔧 [StartupViewModel] Initializing Ditto early for userId: $userId',
+          );
+          await appService.initDittoForLogin(userId);
+          print(
+            '✅ [StartupViewModel] Ditto initialized and ready for providers',
+          );
+        } catch (e) {
+          print(
+            '⚠️ [StartupViewModel] Failed to initialize Ditto early: $e (will continue)',
+          );
+          // Don't throw - app can still work in offline mode with cached data
+        }
+      }
+
       print('⏳ [StartupViewModel] Checking requirements...');
       // Ensure db is initialized before proceeding.
       await _allRequirementsMeets();

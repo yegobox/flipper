@@ -52,66 +52,70 @@ class DittoSingleton {
     required String appId,
     required String userId,
   }) async {
-    print('Initializing Ditto...');
+    print(
+      '🚀 [INIT START] Initializing Ditto for userId: $userId, appId: $appId',
+    );
     if (appId.isEmpty) {
-      print('❌ Ditto initialization failed: appId is empty');
+      print('❌ [INIT FAIL] Ditto initialization failed: appId is empty');
       return null;
     }
 
     // Detect user mismatch and force logout/reset to prevent silent user swaps
-    // If a non-null userId is passed that differs from the currently stored _userId,
-    // we perform a logout and set _ditto to null to force a fresh initialization.
     if (_userId != null && userId != _userId) {
       print(
-        '⚠️ User mismatch detected ($userId != $_userId). Forcing logout and re-initialization.',
+        '⚠️ [INIT] User mismatch detected ($userId != $_userId). Forcing logout and re-initialization.',
       );
       await logout();
       await dispose();
     }
 
     _userId = userId;
+    print('✅ [INIT] UserId set to: $_userId');
 
     // Prevent multiple simultaneous initializations
     if (_isInitializing) {
-      print(
-        '⏳ Ditto initialization already in progress, waiting for result...',
-      );
+      print('⏳ [INIT] Already initializing, waiting for result...');
       return _initCompleter?.future;
     }
 
     // Return existing instance if available and properly initialized
     if (_ditto != null && _lockAcquired) {
-      print('✅ Using existing Ditto instance with active lock');
+      print(
+        '✅ [INIT] Using existing Ditto instance (hashCode: ${_ditto.hashCode}) with active lock',
+      );
       return _ditto;
     }
 
     _isInitializing = true;
     _initCompleter = Completer<Ditto?>();
+    print('🔄 [INIT] Set _isInitializing = true');
 
     try {
       // Get the persistence directory first
+      print('📂 [INIT] Getting persistence directory...');
       final persistenceDirectory = await DatabasePath.getDatabaseDirectory(
         subDirectory: 'db2',
       );
-      print('📂 Using persistence directory: $persistenceDirectory');
+      print('📂 [INIT] Persistence directory: $persistenceDirectory');
 
       if (persistenceDirectory.isEmpty) {
-        print('❌ Ditto initialization failed: persistenceDirectory is empty');
+        print('❌ [INIT FAIL] persistenceDirectory is empty');
         _isInitializing = false;
         _initCompleter?.complete(null);
         _initCompleter = null;
         return null;
       }
 
-      // Create and acquire lock file before initializing Ditto
+      // Create and acquire lock file
+      print('🔒 [INIT] Attempting to acquire lock...');
       final lockFilePath = '$persistenceDirectory/.ditto_lock';
       _lockMechanism = getLockMechanism();
 
-      // Attempt to acquire the lock atomically
       final lockAcquired = await _lockMechanism!.acquire(lockFilePath);
+      print('🔒 [INIT] Lock acquisition result: $lockAcquired');
       if (!lockAcquired) {
         print(
-          '❌ Failed to acquire Ditto lock - another instance may be running',
+          '❌ [INIT FAIL] Failed to acquire Ditto lock - another instance may be running',
         );
         _isInitializing = false;
         _initCompleter?.complete(null);
@@ -119,50 +123,72 @@ class DittoSingleton {
         return null;
       }
       _lockAcquired = true;
+      print('✅ [INIT] Lock acquired successfully');
 
       // Initialize Ditto
-      print('Initializing Ditto...');
+      print('🔧 [INIT] Calling Ditto.init()...');
       await Ditto.init();
-      print('Initializing Ditto Done');
+      print('✅ [INIT] Ditto.init() completed');
 
+      print('🔧 [INIT] Creating AuthenticationHandler...');
       final authHandler = AuthenticationHandler(
         authenticationRequired: (authenticator) =>
             _performAuthentication(authenticator, appId),
         authenticationExpiringSoon: (authenticator, secondsRemaining) =>
             _performAuthentication(authenticator, appId),
       );
-      print('Initializing AuthenticationHandler Done');
+      print('✅ [INIT] AuthenticationHandler created');
 
+      print('🔧 [INIT] Creating OnlineWithAuthenticationIdentity...');
       final identity = OnlineWithAuthenticationIdentity(
         appID: appId,
         authenticationHandler: authHandler,
       );
-      print('Initializing OnlineWithAuthenticationIdentity Done');
+      print('✅ [INIT] OnlineWithAuthenticationIdentity created');
 
       // isAndroid ? "ditto" :
+      print('🔧 [INIT] Calling Ditto.open()...');
       _ditto = await Ditto.open(
         identity: identity,
         persistenceDirectory: persistenceDirectory,
       );
-      print('✅ Ditto singleton initialized successfully with lock');
+      print(
+        '✅ [INIT] Ditto.open() completed, instance hashCode: ${_ditto.hashCode}',
+      );
 
       try {
-        print('Setting DQL_STRICT_MODE to false');
+        print('🔧 [INIT] Setting DQL_STRICT_MODE to false...');
         await _ditto!.store.execute("ALTER SYSTEM SET DQL_STRICT_MODE = false");
+        print('✅ [INIT] DQL_STRICT_MODE set successfully');
       } catch (e) {
         print(
-          '⚠️ Could not set DQL_STRICT_MODE: $e (this might be normal depending on Ditto version)',
+          '⚠️ [INIT] Could not set DQL_STRICT_MODE: $e (this might be normal depending on Ditto version)',
         );
       }
-      print('Setting DQL_STRICT_MODE to false Done');
+
+      // Set DittoService instance BEFORE starting sync.
+      // This ensures ProxyService.ditto.getUserAccess works even if sync setup fails.
+      print(
+        '📌 [INIT] About to call DittoService().setDitto(_ditto!) with instance: ${_ditto.hashCode}',
+      );
+      try {
+        DittoService().setDitto(_ditto!);
+        print('✅ [INIT] DittoService().setDitto() completed successfully');
+        print(
+          '✅ [INIT] DittoService.instance.dittoInstance is now: ${DittoService.instance.dittoInstance != null ? "SET (${DittoService.instance.dittoInstance!.hashCode})" : "NULL"}',
+        );
+      } catch (e, stack) {
+        print('❌ [INIT ERROR] calling DittoService().setDitto(): $e');
+        print('Stack: $stack');
+      }
 
       try {
+        print('🔧 [INIT] Configuring transports and starting sync...');
         // Configure transports manually for the web/cloud sync
         _ditto!.updateTransportConfig((config) {
           // Note: this will not enable peer-to-peer sync on the web platform
           config.setAllPeerToPeerEnabled(true);
         });
-        print('Configuring transports manually for the web/cloud sync Done');
 
         // Start sync to connect to Ditto cloud
         final userName = platformUserName;
@@ -170,15 +196,15 @@ class DittoSingleton {
         _ditto!.deviceName = '$userName-$platform-$userId';
         _ditto!.startSync();
 
-        DittoService().setDitto(_ditto!);
-
-        print("is sync active: ${_ditto!.isSyncActive}");
-        print("auth status: ${_ditto!.auth.status}");
+        print("✅ [INIT] Sync started. is sync active: ${_ditto!.isSyncActive}");
+        print("✅ [INIT] Auth status: ${_ditto!.auth.status}");
       } catch (e) {
-        print('⚠️ Error starting Ditto sync: $e');
+        print('⚠️ [INIT] Error starting Ditto sync: $e');
       }
 
-      print('✅ Ditto singleton initialized successfully with lock');
+      print(
+        '✅ [INIT COMPLETE] Ditto singleton initialized successfully with lock',
+      );
       _initCompleter?.complete(_ditto);
       return _ditto;
     } catch (e) {
