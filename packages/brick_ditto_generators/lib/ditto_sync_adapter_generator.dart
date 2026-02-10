@@ -36,8 +36,9 @@ class DittoSyncAdapterGenerator extends GeneratorForAnnotation<DittoAdapter> {
       }
     }
 
-    final fields =
-        classElement.fields.where((field) => !field.isStatic).toList();
+    final fields = classElement.fields
+        .where((field) => !field.isStatic && !field.isSynthetic)
+        .toList();
     final hasBranchId = fields.any((field) => field.name == 'branchId');
     final enableBackupPull =
         annotation.peek('enableBackupPull')?.boolValue ?? false;

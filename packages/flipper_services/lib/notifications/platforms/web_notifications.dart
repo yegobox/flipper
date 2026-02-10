@@ -60,4 +60,10 @@ class WebNotifications extends BaseNotifications {
     // Web doesn't use NotificationDetails
     return const NotificationDetails();
   }
+
+  @override
+  Future<void> showOrderNotification(InventoryRequest order) async {
+    // Use the base implementation from BaseNotifications
+    await super.showOrderNotification(order);
+  }
 }

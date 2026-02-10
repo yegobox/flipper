@@ -35,6 +35,7 @@ import '../mixins/asset_mixin.dart';
 import '../mixins/collection_mixin.dart';
 import '../mixins/purchase_mixin.dart';
 import '../mixins/log_mixin.dart';
+import '../mixins/production_output_mixin.dart';
 
 class CoreSync extends CoreSyncBase
     with
@@ -64,6 +65,7 @@ class CoreSync extends CoreSyncBase
         PurchaseMixin,
         CategoryMixin,
         LogMixin,
+        ProductionOutputMixin,
         StockRecountMixin {
   CoreSync() : super(AppSecrets.apihubProd);
 
@@ -117,10 +119,7 @@ class CoreSync extends CoreSyncBase
     String? subPath = "branch",
   }) async {
     // Delegate to AssetMixin
-    return super.downloadAssetSave(
-      assetName: assetName,
-      subPath: subPath,
-    );
+    return super.downloadAssetSave(assetName: assetName, subPath: subPath);
   }
 
   @override
@@ -130,23 +129,29 @@ class CoreSync extends CoreSyncBase
   }
 
   @override
-  Future<BaseSyncInterface> configureCapella(
-      {required bool useInMemory, required LocalStorage box}) {
+  Future<BaseSyncInterface> configureCapella({
+    required bool useInMemory,
+    required LocalStorage box,
+  }) {
     // TODO: implement configureCapella
     throw UnimplementedError();
   }
 
   @override
-  Future<IPin?> getPin(
-      {required String pinString,
-      required HttpClientInterface flipperHttpClient}) {
+  Future<IPin?> getPin({
+    required String pinString,
+    required HttpClientInterface flipperHttpClient,
+  }) {
     // TODO: implement getPin
     throw UnimplementedError();
   }
 
   @override
-  FutureOr<Pin?> getPinLocal(
-      {String? userId, String? phoneNumber, required bool alwaysHydrate}) {
+  FutureOr<Pin?> getPinLocal({
+    String? userId,
+    String? phoneNumber,
+    required bool alwaysHydrate,
+  }) {
     // TODO: implement getPinLocal
     throw UnimplementedError();
   }

@@ -245,6 +245,12 @@ class AndroidNotifications extends BaseNotifications {
   }
 
   @override
+  Future<void> showOrderNotification(InventoryRequest order) async {
+    // Use the base implementation from BaseNotifications
+    await super.showOrderNotification(order);
+  }
+
+  @override
   NotificationDetails createPlatformNotificationDetails() {
     return NotificationDetails(
       android: _buildAndroidDetails(''),

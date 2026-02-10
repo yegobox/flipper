@@ -7,14 +7,14 @@ part of 'subscription.dart';
 // **************************************************************************
 
 Subscription _$SubscriptionFromJson(Map<String, dynamic> json) => Subscription(
-      id: (json['id'] as num?)?.toInt(),
-      interval: (json['interval'] as num).toInt(),
-      lastBillingDate: json['lastBillingDate'] as String,
-      nextBillingDate: json['nextBillingDate'] as String,
-      userId: (json['userId'] as num).toInt(),
-      recurring: (json['recurring'] as num).toDouble(),
-      descriptor: json['descriptor'] as String,
-    );
+  id: (json['id'] as num?)?.toInt(),
+  interval: (json['interval'] as num).toInt(),
+  lastBillingDate: json['lastBillingDate'] as String,
+  nextBillingDate: json['nextBillingDate'] as String,
+  userId: (json['userId'] as num).toInt(),
+  recurring: (json['recurring'] as num).toDouble(),
+  descriptor: json['descriptor'] as String,
+);
 
 Map<String, dynamic> _$SubscriptionToJson(Subscription instance) =>
     <String, dynamic>{

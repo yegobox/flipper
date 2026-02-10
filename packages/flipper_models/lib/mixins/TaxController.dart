@@ -19,24 +19,28 @@ class TaxController<OBJ> {
 
   OBJ? object;
 
-  Future<({RwApiResponse response, Uint8List? bytes})> handleReceipt(
-      {bool skiGenerateRRAReceiptSignature = false,
-      String? purchaseCode,
-      void Function()? onSuccess,
-      required FilterType filterType}) async {
+  Future<({RwApiResponse response, Uint8List? bytes})> handleReceipt({
+    bool skiGenerateRRAReceiptSignature = false,
+    String? purchaseCode,
+    void Function()? onSuccess,
+    required FilterType filterType,
+  }) async {
     if (object is ITransaction) {
       ITransaction transaction = object as ITransaction;
       Customer? customer;
       try {
-        customer =
-            await ProxyService.strategy.customerById(transaction.customerId!);
+        customer = await ProxyService.strategy.customerById(
+          transaction.customerId!,
+        );
         talker.info('Resolved customer from id: ${customer?.id}');
       } catch (e) {
         talker.warning(
-            'Failed to resolve customer for id ${transaction.customerId}: $e');
+          'Failed to resolve customer for id ${transaction.customerId}: $e',
+        );
       }
       // Resolve phone number with normalization and null safety
-      String? rawPhone = transaction.customerPhone ??
+      String? rawPhone =
+          transaction.customerPhone ??
           ProxyService.box.currentSaleCustomerPhoneNumber();
       String? custMblNo;
       if (rawPhone != null) {
@@ -47,7 +51,8 @@ class TaxController<OBJ> {
       }
 
       // Resolve customer name with fallback and whitespace guard
-      var name = transaction.customerName ??
+      var name =
+          transaction.customerName ??
           ProxyService.box.customerName() ??
           customer?.custNm ??
           '';
@@ -190,9 +195,7 @@ class TaxController<OBJ> {
     if (startIndex != -1) {
       errorMessage = errorMessage.substring(startIndex + 2);
     }
-    ProxyService.notie.sendData(
-      errorMessage,
-    );
+    ProxyService.notie.sendData(errorMessage);
   }
 
   double calculateTotalTax(double tax, Configurations config) {
@@ -244,13 +247,13 @@ class TaxController<OBJ> {
 
     if (transactionItems.isEmpty) {
       try {
-        transactionItems =
-            await ProxyService.getStrategy(Strategy.capella).transactionItems(
-          transactionId: transaction.id,
-          branchId: (await ProxyService.strategy
-                  .activeBranch(branchId: ProxyService.box.getBranchId()!))
-              .id,
-        );
+        transactionItems = await ProxyService.getStrategy(Strategy.capella)
+            .transactionItems(
+              transactionId: transaction.id,
+              branchId: (await ProxyService.strategy.activeBranch(
+                branchId: ProxyService.box.getBranchId()!,
+              )).id,
+            );
       } catch (e) {
         // If we can't fetch items, continue with empty list for delegation
         talker.warning('Could not fetch transaction items: $e');
@@ -301,12 +304,15 @@ class TaxController<OBJ> {
           // fetch same transaction
 
           if (responses.resultCd == "000") {
-            Business? business = await ProxyService.strategy
-                .getBusiness(businessId: ProxyService.box.getBusinessId()!);
-            Ebm? ebm = await ProxyService.strategy
-                .ebm(branchId: ProxyService.box.getBranchId()!);
-            Receipt? receipt = await ProxyService.strategy
-                .getReceipt(transactionId: transaction.id);
+            Business? business = await ProxyService.strategy.getBusiness(
+              businessId: ProxyService.box.getBusinessId()!,
+            );
+            Ebm? ebm = await ProxyService.strategy.ebm(
+              branchId: ProxyService.box.getBranchId()!,
+            );
+            Receipt? receipt = await ProxyService.strategy.getReceipt(
+              transactionId: transaction.id,
+            );
 
             double totalB = 0;
             double totalC = 0;
@@ -353,22 +359,23 @@ class TaxController<OBJ> {
               rethrow;
             }
 
-            Configurations? taxConfigTaxB =
-                await ProxyService.strategy.getByTaxType(taxtype: "B");
-            Configurations? taxConfigTaxA =
-                await ProxyService.strategy.getByTaxType(taxtype: "A");
-            Configurations? taxConfigTaxC =
-                await ProxyService.strategy.getByTaxType(taxtype: "C");
-            Configurations? taxConfigTaxD =
-                await ProxyService.strategy.getByTaxType(taxtype: "D");
-            Configurations? taxConfigTaxTT =
-                await ProxyService.strategy.getByTaxType(taxtype: "TT");
+            Configurations? taxConfigTaxB = await ProxyService.strategy
+                .getByTaxType(taxtype: "B");
+            Configurations? taxConfigTaxA = await ProxyService.strategy
+                .getByTaxType(taxtype: "A");
+            Configurations? taxConfigTaxC = await ProxyService.strategy
+                .getByTaxType(taxtype: "C");
+            Configurations? taxConfigTaxD = await ProxyService.strategy
+                .getByTaxType(taxtype: "D");
+            Configurations? taxConfigTaxTT = await ProxyService.strategy
+                .getByTaxType(taxtype: "TT");
 
             Print print = Print();
 
             final List<TransactionPaymentRecord> paymentTypes =
-                await ProxyService.strategy
-                    .getPaymentType(transactionId: transaction.id);
+                await ProxyService.strategy.getPaymentType(
+                  transactionId: transaction.id,
+                );
             await print.print(
               vatEnabled: ebm!.vatEnabled ?? false,
               taxTT: totalTT,
@@ -380,7 +387,7 @@ class TaxController<OBJ> {
               whenCreated: receipt!.whenCreated!,
               timeFromServer:
                   responses.data?.vsdcRcptPbctDate?.toCompactDateTime() ??
-                      receipt.timeReceivedFromserver!,
+                  receipt.timeReceivedFromserver!,
               taxB: totalB,
               taxC: totalC,
               taxA: totalA,
@@ -402,7 +409,7 @@ class TaxController<OBJ> {
               payMode: paymentTypes.isEmpty
                   ? "CASH".toPaymentType()
                   : paymentTypes.last.paymentMethod?.toPaymentType() ??
-                      "CASH".toPaymentType(),
+                        "CASH".toPaymentType(),
               mrc: receipt.mrcNo ?? "",
               internalData: receipt.intrlData ?? "",
               receiptQrCode: receipt.qrCode ?? "",
@@ -476,18 +483,22 @@ class TaxController<OBJ> {
       String branchId = ProxyService.box.getBranchId()!;
       List<brick.Counter> counters =
           await ProxyService.getStrategy(Strategy.capella).getCounters(
-              branchId: ProxyService.box.getBranchId()!,
-              fetchRemote: !Platform.isWindows);
+            branchId: ProxyService.box.getBranchId()!,
+            fetchRemote: !Platform.isWindows,
+          );
       // Determine the highest invoice number across all counters and use that
       // when assigning invoiceNumber. We still pass the specific `counter`
       // instance to the external tax service, but persist the highest value
       // as the invoiceNumber so it reflects the latest counter globally.
-      final int highestInvcNo =
-          counters.fold<int>(0, (prev, c) => math.max(prev, c.invcNo ?? 0));
+      final int highestInvcNo = counters.fold<int>(
+        0,
+        (prev, c) => math.max(prev, c.invcNo ?? 0),
+      );
 
       if (counters.isEmpty) {
         throw Exception(
-            'Counter not found for receiptType: $receiptType, branchId: $branchId. Counter must be properly initialized.');
+          'Counter not found for receiptType: $receiptType, branchId: $branchId. Counter must be properly initialized.',
+        );
       }
 
       /// check if counter.curRcptNo or counter.totRcptNo is zero increment it first
@@ -495,8 +506,9 @@ class TaxController<OBJ> {
       // increment the counter before we pass it in
       // this is because if we don't then the EBM counter will give us the
 
-      Ebm? ebm = await ProxyService.strategy
-          .ebm(branchId: ProxyService.box.getBranchId()!);
+      Ebm? ebm = await ProxyService.strategy.ebm(
+        branchId: ProxyService.box.getBranchId()!,
+      );
       DateTime now = DateTime.now();
 
       String? serverUrl = await ProxyService.box.getServerUrl();
@@ -510,32 +522,37 @@ class TaxController<OBJ> {
         serverUrl = ebm?.remoteServerUrl ?? serverUrl;
       }
 
-      RwApiResponse receiptSignature =
-          await ProxyService.tax.generateReceiptSignature(
-        custMblNo: custMblNo,
-        customerName: customerName,
-        customer: customer,
-        transaction: transaction,
-        receiptType: receiptType,
-        salesSttsCd: salesSttsCd,
-        originalInvoiceNumber: originalInvoiceNumber,
-        URI: serverUrl ?? "",
-        purchaseCode: purchaseCode,
-        timeToUser: now,
-        sarTyCd: sarTyCd,
-      );
+      RwApiResponse receiptSignature = await ProxyService.tax
+          .generateReceiptSignature(
+            custMblNo: custMblNo,
+            customerName: customerName,
+            customer: customer,
+            transaction: transaction,
+            receiptType: receiptType,
+            salesSttsCd: salesSttsCd,
+            originalInvoiceNumber: originalInvoiceNumber,
+            URI: serverUrl ?? "",
+            purchaseCode: purchaseCode,
+            timeToUser: now,
+            sarTyCd: sarTyCd,
+          );
 
       if (receiptSignature.resultCd == "000" && !transaction.isExpense!) {
         String receiptNumber =
             "${receiptSignature.data?.rcptNo}/${receiptSignature.data?.totRcptNo}";
         // Convert the date string to DateTime first, then format it properly
-        final dateTime =
-            receiptSignature.data?.vsdcRcptPbctDate?.toCompactDateTime();
-        final formattedDate =
-            dateTime != null ? dateTime.toFormattedDateTime() : "";
+        final dateTime = receiptSignature.data?.vsdcRcptPbctDate
+            ?.toCompactDateTime();
+        final formattedDate = dateTime != null
+            ? dateTime.toFormattedDateTime()
+            : "";
 
-        String qrCode = generateQRCode(formattedDate, receiptSignature,
-            receiptType: receiptType, whenCreated: formattedDate);
+        String qrCode = generateQRCode(
+          formattedDate,
+          receiptSignature,
+          receiptType: receiptType,
+          whenCreated: formattedDate,
+        );
 
         /// update transaction with receipt number and total receipt number
 
@@ -589,17 +606,17 @@ class TaxController<OBJ> {
             sarTyCd: transaction.sarTyCd,
             taxAmount: transaction.taxAmount,
           );
-          await ProxyService.strategy
-              .addTransaction(transaction: newTransaction);
+          await ProxyService.strategy.addTransaction(
+            transaction: newTransaction,
+          );
           //query item and re-assign
           final List<TransactionItem> items =
               await ProxyService.getStrategy(Strategy.capella).transactionItems(
-            branchId: (await ProxyService.strategy.activeBranch(
-              branchId: ProxyService.box.getBranchId()!,
-            ))
-                .id,
-            transactionId: transaction.id,
-          );
+                branchId: (await ProxyService.strategy.activeBranch(
+                  branchId: ProxyService.box.getBranchId()!,
+                )).id,
+                transactionId: transaction.id,
+              );
           // copy TransactionItem
           for (TransactionItem item in items) {
             final copy = item.copyWith(
@@ -609,8 +626,9 @@ class TaxController<OBJ> {
               variantId: transaction.id, // Update variantId
             );
             // get variant
-            Variant? variant =
-                await ProxyService.strategy.getVariant(id: item.variantId);
+            Variant? variant = await ProxyService.strategy.getVariant(
+              id: item.variantId,
+            );
 
             await ProxyService.strategy.addTransactionItem(
               transaction: newTransaction,
@@ -645,8 +663,14 @@ class TaxController<OBJ> {
         }
 
         await saveReceipt(
-            receiptSignature, transaction, qrCode, highestInvcNo, receiptNumber,
-            whenCreated: now, invoiceNumber: highestInvcNo);
+          receiptSignature,
+          transaction,
+          qrCode,
+          highestInvcNo,
+          receiptNumber,
+          whenCreated: now,
+          invoiceNumber: highestInvcNo,
+        );
 
         /// Ensure all counters of the same branch are synchronized
         await ProxyService.strategy.updateCounters(
@@ -663,13 +687,14 @@ class TaxController<OBJ> {
   }
 
   Future<void> saveReceipt(
-      RwApiResponse receiptSignature,
-      ITransaction transaction,
-      String qrCode,
-      int highestInvcNo,
-      String receiptType,
-      {required DateTime whenCreated,
-      required int invoiceNumber}) async {
+    RwApiResponse receiptSignature,
+    ITransaction transaction,
+    String qrCode,
+    int highestInvcNo,
+    String receiptType, {
+    required DateTime whenCreated,
+    required int invoiceNumber,
+  }) async {
     try {
       await ProxyService.strategy.createReceipt(
         signature: receiptSignature,
@@ -686,8 +711,12 @@ class TaxController<OBJ> {
     }
   }
 
-  String generateQRCode(String formattedDate, RwApiResponse receiptSignature,
-      {required String receiptType, required String whenCreated}) {
+  String generateQRCode(
+    String formattedDate,
+    RwApiResponse receiptSignature, {
+    required String receiptType,
+    required String whenCreated,
+  }) {
     // No need to parse the date again, we already have it formatted correctly
 
     final data = receiptSignature.data;
@@ -714,7 +743,7 @@ class TaxController<OBJ> {
   /// Returns a placeholder response if delegation succeeds, or rethrows the
   /// original error if delegation is not available or fails.
   Future<({RwApiResponse response, Uint8List? bytes})>
-      _handleDelegationFallback({
+  _handleDelegationFallback({
     required ITransaction transaction,
     required String receiptType,
     String? purchaseCode,
@@ -736,8 +765,8 @@ class TaxController<OBJ> {
         await ProxyService.getStrategy(Strategy.capella).createDelegation(
           transactionId: transaction.id,
           branchId: transaction.branchId!,
-          selectedDelegationDeviceId:
-              ProxyService.box.selectedDelegationDeviceId(),
+          selectedDelegationDeviceId: ProxyService.box
+              .selectedDelegationDeviceId(),
           receiptType: receiptType,
           customerName: transaction.customerName,
           customerTin: transaction.customerTin,
@@ -760,7 +789,7 @@ class TaxController<OBJ> {
         onSuccess?.call();
         return (
           response: RwApiResponse(resultCd: "000", resultMsg: "Delegated"),
-          bytes: bytes
+          bytes: bytes,
         );
       } catch (delegationError) {
         throw delegationError;

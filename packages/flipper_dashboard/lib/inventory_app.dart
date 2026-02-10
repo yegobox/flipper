@@ -1,4 +1,3 @@
-import 'package:flipper_dashboard/SearchFieldWidget.dart';
 import 'package:flipper_dashboard/product_view.dart';
 import 'package:flipper_dashboard/checkout.dart';
 import 'package:flipper_dashboard/Ai.dart';
@@ -14,21 +13,12 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 class InventoryApp extends HookConsumerWidget {
   final TextEditingController searchController;
 
-  const InventoryApp({
-    Key? key,
-    required this.searchController,
-  }) : super(key: key);
+  const InventoryApp({Key? key, required this.searchController})
+    : super(key: key);
 
   Widget buildProductSection(WidgetRef ref) {
-    return Flexible(
-      child: Column(
-        children: [
-          SearchFieldWidget(controller: searchController),
-          Expanded(
-            child: ProductView.normalMode(),
-          ),
-        ],
-      ),
+    return Expanded(
+      child: ProductView.normalMode(),
     ).shouldSeeTheApp(ref, featureName: AppFeature.Sales);
   }
 
@@ -38,24 +28,26 @@ class InventoryApp extends HookConsumerWidget {
     switch (selectedMenuItem) {
       case 0: // Sales
         return isScanningMode
-            ? buildReceiptUI()
-                .shouldSeeTheApp(ref, featureName: AppFeature.Sales)
+            ? buildReceiptUI().shouldSeeTheApp(
+                ref,
+                featureName: AppFeature.Sales,
+              )
             : CheckOut(isBigScreen: true)
-                .shouldSeeTheApp(ref, featureName: AppFeature.Sales)
-                .shouldSeeTheApp(ref, featureName: AppFeature.Inventory);
+                  .shouldSeeTheApp(ref, featureName: AppFeature.Sales)
+                  .shouldSeeTheApp(ref, featureName: AppFeature.Inventory);
       case 1: // Inventory
-        return Center(
-          child: Ai(),
-        );
+        return Center(child: Ai());
       case 2: // Tickets
         return const TransactionWidget();
       default:
         return isScanningMode
-            ? buildReceiptUI()
-                .shouldSeeTheApp(ref, featureName: AppFeature.Sales)
+            ? buildReceiptUI().shouldSeeTheApp(
+                ref,
+                featureName: AppFeature.Sales,
+              )
             : CheckOut(isBigScreen: true)
-                .shouldSeeTheApp(ref, featureName: AppFeature.Sales)
-                .shouldSeeTheApp(ref, featureName: AppFeature.Inventory);
+                  .shouldSeeTheApp(ref, featureName: AppFeature.Sales)
+                  .shouldSeeTheApp(ref, featureName: AppFeature.Inventory);
     }
   }
 
@@ -64,9 +56,7 @@ class InventoryApp extends HookConsumerWidget {
       padding: const EdgeInsets.all(8.0),
       child: SizedBox(
         width: 400,
-        child: PreviewSaleBottomSheet(
-          reverse: false,
-        ),
+        child: PreviewSaleBottomSheet(reverse: false),
       ),
     );
   }
@@ -78,9 +68,7 @@ class InventoryApp extends HookConsumerWidget {
       mainAxisAlignment: MainAxisAlignment.start,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Expanded(
-          child: buildMainContent(isScanningMode, ref),
-        ),
+        Expanded(child: buildMainContent(isScanningMode, ref)),
         if (ref.read(selectedMenuItemProvider.notifier).state != 1)
           buildProductSection(ref),
       ],

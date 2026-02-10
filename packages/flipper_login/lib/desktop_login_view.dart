@@ -14,6 +14,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/desktop_login_status.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flipper_services/app_service.dart';
 
 // Once open time someone else solved issue: https://github.com/ente-io/ente/commit/be7f4b71073c8a1086d654c01f61925ffbf6abe5#diff-5ca3a4f36b6e5b25b9776be6945ade02382219f8f0a7c8ec1ecd1ccc018c73aaR19
 //
@@ -38,7 +39,14 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
     return ViewModelBuilder<LoginViewModel>.reactive(
       fireOnViewModelReadyOnce: true,
       viewModelBuilder: () => LoginViewModel(),
-      onViewModelReady: (model) {
+      onViewModelReady: (model) async {
+        await ProxyService.box.clear();
+        final appService = locator<AppService>();
+        // Initialize Ditto if not ready, using the login code as temp credentials
+        if (!ProxyService.ditto.isReady()) {
+          await appService.initDittoForLogin(loginCode);
+        }
+
         ProxyService.event
             .subscribeLoginEvent(channel: loginCode.split('-')[1]);
 
@@ -63,15 +71,20 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                     child: Stack(
                       alignment: Alignment.center,
                       children: [
-                        QrImageView(
-                          data: loginCode,
-                          version: QrVersions.auto,
-                          // embeddedImage:
-                          //     AssetImage(logoAsset, package: "flipper_login"),
-                          embeddedImageStyle: QrEmbeddedImageStyle(
-                            size: Size(logoSize, logoSize),
+                        // Added padding to prevent corner alignment patterns from being cut off
+                        // See: https://github.com/ente-io/ente/commit/be7f4b71073c8a1086d654c01f61925ffbf6abe5
+                        Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: QrImageView(
+                            data: loginCode,
+                            version: QrVersions.auto,
+                            // embeddedImage:
+                            //     AssetImage(logoAsset, package: "flipper_login"),
+                            embeddedImageStyle: QrEmbeddedImageStyle(
+                              size: Size(logoSize, logoSize),
+                            ),
+                            size: 200.0,
                           ),
-                          size: 200.0,
                         ),
                         StreamBuilder<DesktopLoginStatus>(
                           stream: ProxyService.event.desktopLoginStatusStream(),
@@ -282,19 +295,17 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                       }
                     },
                   ),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 120.0),
-                    child: SizedBox(
-                        width: 450,
-                        child: Text(
-                          'Log in to Flipper by QR Code',
-                          style: GoogleFonts.poppins(
-                              fontWeight: FontWeight.w400,
-                              fontSize: 20,
-                              color: Colors.black),
-                        )),
+                  SizedBox(
+                    width: 380,
+                    child: Text(
+                      'Log in to Flipper by QR Code',
+                      style: GoogleFonts.poppins(
+                          fontWeight: FontWeight.w400,
+                          fontSize: 20,
+                          color: Colors.black),
+                    ),
                   ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 10),
                   SizedBox(
                     width: 380,
                     child: Text('1. Open Flipper on your phone',
@@ -321,7 +332,7 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                   SizedBox(height: 30),
                   // Companion app download section
                   SizedBox(
-                    width: 380,
+                    width: 340,
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -335,6 +346,7 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                         ),
                         SizedBox(height: 8),
                         Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             // App Store button with visual feedback
                             MouseRegion(
@@ -414,8 +426,7 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                   ),
                   SizedBox(height: 30),
                   SizedBox(
-                    height: 40,
-                    width: 350,
+                    width: 380,
                     child: OutlinedButton(
                       key: Key('pinLogin_desktop'),
                       child: Text(
@@ -425,7 +436,7 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                       style: ButtonStyle(
                         shape: WidgetStateProperty.resolveWith<OutlinedBorder>(
                             (states) => RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(0))),
+                                borderRadius: BorderRadius.circular(8))),
                         side: WidgetStateProperty.resolveWith<BorderSide>(
                             (states) => BorderSide(
                                   color: const Color(0xff006AFE)
@@ -457,7 +468,7 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                     stream: Connectivity().onConnectivityChanged,
                     builder: (context, snapshot) {
                       if (snapshot.hasData && snapshot.data != null) {
-                        if (snapshot.data == ConnectivityResult.none) {
+                        if (snapshot.data!.contains(ConnectivityResult.none)) {
                           return const Text(
                             'Device is offline',
                             style: TextStyle(color: Colors.red),

@@ -1,4 +1,4 @@
-import 'package:flipper_dashboard/PaymentModeModal.dart';
+import 'package:flipper_ui/dialogs/payment_mode_modal.dart';
 import 'package:flipper_dashboard/PreviewSaleButton.dart';
 import 'package:flipper_dashboard/view_models/ordering_view_model.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -43,16 +43,19 @@ class PreviewSaleButtonWrapper extends ConsumerWidget {
         previewCart: () async {
           if (isPreviewing && orderCount > 0) {
             // If already previewing and has items, show payment modal
-            await showPaymentModeModal(context, (provider) async {
-              // NOTE: Do NOT pop the payment mode modal here!
-              await model.handleOrderPlacement(
-                ref,
-                transaction,
-                isOrdering,
-                provider,
-                context,
-              );
-            });
+            await showPaymentModeModal(
+              context: context,
+              onPaymentModeSelected: (provider) async {
+                // NOTE: Do NOT pop the payment mode modal here!
+                await model.handleOrderPlacement(
+                  ref,
+                  transaction,
+                  isOrdering,
+                  provider,
+                  context,
+                );
+              },
+            );
           } else {
             // Otherwise handle preview logic (toggle preview or show error)
             await model.handlePreviewCart(

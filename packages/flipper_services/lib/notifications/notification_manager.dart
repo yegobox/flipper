@@ -111,6 +111,11 @@ class NotificationManager implements NotificationInterface {
   }
 
   @override
+  Future<void> showOrderNotification(InventoryRequest order) async {
+    await _platformNotifications.showOrderNotification(order);
+  }
+
+  @override
   Future<void> initialize() async {
     // Already initialized in the static initialize method
   }

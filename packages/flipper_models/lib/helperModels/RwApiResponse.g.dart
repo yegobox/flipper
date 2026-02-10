@@ -25,33 +25,31 @@ Map<String, dynamic> _$RwApiResponseToJson(RwApiResponse instance) =>
     };
 
 Data _$DataFromJson(Map<String, dynamic> json) => Data(
-      rcptNo: (json['rcptNo'] as num?)?.toInt(),
-      intrlData: json['intrlData'] as String?,
-      rcptSign: json['rcptSign'] as String?,
-      totRcptNo: (json['totRcptNo'] as num?)?.toInt(),
-      vsdcRcptPbctDate: json['vsdcRcptPbctDate'] as String?,
-      sdcId: json['sdcId'] as String?,
-      mrcNo: json['mrcNo'] as String?,
-      itemList: (json['itemList'] as List<dynamic>?)
-          ?.map((e) =>
-              const VariantConverter().fromJson(e as Map<String, dynamic>))
-          .toList(),
-      saleList: (json['saleList'] as List<dynamic>?)
-          ?.map((e) =>
-              const PurchaseConverter().fromJson(e as Map<String, dynamic>))
-          .toList(),
-    );
+  rcptNo: (json['rcptNo'] as num?)?.toInt(),
+  intrlData: json['intrlData'] as String?,
+  rcptSign: json['rcptSign'] as String?,
+  totRcptNo: (json['totRcptNo'] as num?)?.toInt(),
+  vsdcRcptPbctDate: json['vsdcRcptPbctDate'] as String?,
+  sdcId: json['sdcId'] as String?,
+  mrcNo: json['mrcNo'] as String?,
+  itemList: (json['itemList'] as List<dynamic>?)
+      ?.map((e) => const VariantConverter().fromJson(e as Map<String, dynamic>))
+      .toList(),
+  saleList: (json['saleList'] as List<dynamic>?)
+      ?.map(
+        (e) => const PurchaseConverter().fromJson(e as Map<String, dynamic>),
+      )
+      .toList(),
+);
 
 Map<String, dynamic> _$DataToJson(Data instance) => <String, dynamic>{
-      'rcptNo': instance.rcptNo,
-      'intrlData': instance.intrlData,
-      'rcptSign': instance.rcptSign,
-      'totRcptNo': instance.totRcptNo,
-      'vsdcRcptPbctDate': instance.vsdcRcptPbctDate,
-      'sdcId': instance.sdcId,
-      'mrcNo': instance.mrcNo,
-      'itemList':
-          instance.itemList?.map(const VariantConverter().toJson).toList(),
-      'saleList':
-          instance.saleList?.map(const PurchaseConverter().toJson).toList(),
-    };
+  'rcptNo': instance.rcptNo,
+  'intrlData': instance.intrlData,
+  'rcptSign': instance.rcptSign,
+  'totRcptNo': instance.totRcptNo,
+  'vsdcRcptPbctDate': instance.vsdcRcptPbctDate,
+  'sdcId': instance.sdcId,
+  'mrcNo': instance.mrcNo,
+  'itemList': instance.itemList?.map(const VariantConverter().toJson).toList(),
+  'saleList': instance.saleList?.map(const PurchaseConverter().toJson).toList(),
+};

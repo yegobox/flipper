@@ -22,35 +22,39 @@ mixin TransactionMixinOld {
 
   final talker = Talker();
 
-  Future<RwApiResponse> finalizePayment(
-      {String? purchaseCode,
-      required String paymentType,
-      required ITransaction transaction,
-      String? categoryId,
-      required String transactionType,
-      required double amount,
-      required BuildContext context,
-      required GlobalKey<FormState> formKey,
-      required TextEditingController customerNameController,
-      required Function onComplete,
-      required TextEditingController countryCodeController,
-      void Function()? onSuccess,
-      required double discount}) async {
+  Future<RwApiResponse> finalizePayment({
+    String? purchaseCode,
+    required String paymentType,
+    required ITransaction transaction,
+    String? categoryId,
+    required String transactionType,
+    required double amount,
+    required BuildContext context,
+    required GlobalKey<FormState> formKey,
+    required TextEditingController customerNameController,
+    required Function onComplete,
+    required TextEditingController countryCodeController,
+    void Function()? onSuccess,
+    required double discount,
+  }) async {
     try {
       final businessId = ProxyService.box.getBusinessId();
       final branchId = ProxyService.box.getBranchId();
       if (businessId == null || branchId == null) {
         throw Exception('Business ID or Branch ID not found');
       }
-      final taxEnabled = await ProxyService.strategy
-          .isTaxEnabled(businessId: businessId, branchId: branchId);
+      final taxEnabled = await ProxyService.strategy.isTaxEnabled(
+        businessId: businessId,
+        branchId: branchId,
+      );
       RwApiResponse? response;
       final ebm = await ProxyService.strategy.ebm(branchId: branchId);
       final hasUser = (await ProxyService.box.bhfId()) != null;
       final isTaxServiceStoped = ProxyService.box.stopTaxService() ?? false;
 
       final isLoan = transaction.isLoan == true;
-      final isFullyPaid = ((transaction.cashReceived ?? 0) + amount) >=
+      final isFullyPaid =
+          ((transaction.cashReceived ?? 0) + amount) >=
           (transaction.subTotal ?? 0);
       final shouldComplete = !isLoan || isFullyPaid;
 
@@ -66,10 +70,7 @@ mixin TransactionMixinOld {
           key: "getServerUrl",
           value: ebm!.taxServerUrl,
         );
-        ProxyService.box.writeString(
-          key: "bhfId",
-          value: ebm.bhfId,
-        );
+        ProxyService.box.writeString(key: "bhfId", value: ebm.bhfId);
         // Collect payment and complete transaction details before generating receipt
 
         response = await handleReceiptGeneration(
@@ -82,9 +83,11 @@ mixin TransactionMixinOld {
         if (response.resultCd != "000") {
           throw Exception(response.resultMsg);
         } else {
-          await _completeTransactionAfterTaxValidation(transaction,
-              customerName: customerNameController.text,
-              countryCode: countryCodeController.text);
+          await _completeTransactionAfterTaxValidation(
+            transaction,
+            customerName: customerNameController.text,
+            countryCode: countryCodeController.text,
+          );
         }
       } else {
         // For non-tax enabled scenarios OR partial loan payments, complete the transaction data update
@@ -100,15 +103,38 @@ mixin TransactionMixinOld {
       if (response == null) {
         onComplete();
         return RwApiResponse(
-            resultCd: "001",
-            resultMsg:
-                isLoan && !isFullyPaid ? "Payment recorded" : "Sale completed");
+          resultCd: "001",
+          resultMsg: isLoan && !isFullyPaid
+              ? "Payment recorded"
+              : "Sale completed",
+        );
       }
 
       // Only call onComplete on success, not on error
       onComplete();
 
-      return response;
+      // Fire and forget receipt generation
+      handleReceiptGeneration(
+            formKey: formKey,
+            context: context,
+            transaction: transaction,
+            purchaseCode: purchaseCode,
+            onSuccess: onSuccess,
+          )
+          .then((_) {
+            talker.info(
+              "Receipt generation and printing completed in background",
+            );
+          })
+          .catchError((e) {
+            talker.error("Background receipt generation failed: $e");
+          });
+
+      // Return "Processing" status immediately to unblock UI
+      return RwApiResponse(
+        resultCd: "000",
+        resultMsg: "Processing in background",
+      );
     } catch (e) {
       talker.error('Error in finalizePayment: $e');
       rethrow;
@@ -120,16 +146,68 @@ mixin TransactionMixinOld {
       print("can't direct pring on ios, android using direct printer.");
     } else {
       final printers = await Printing.listPrinters();
-      //
+
       if (printers.isNotEmpty) {
-        Printer? pri = await Printing.pickPrinter(
-            context: context, title: "List of printers");
-        if (bytes == null) {
-          return;
+        Printer? selectedPrinter;
+
+        // Try to find default printer
+        final String? savedPrinterName = ProxyService.box.readString(
+          key: 'defaultPrinter',
+        );
+        if (savedPrinterName != null) {
+          try {
+            // Find by name
+            selectedPrinter = printers.firstWhere(
+              (p) => p.name == savedPrinterName,
+            );
+            talker.info("Using default printer: ${selectedPrinter.name}");
+          } catch (e) {
+            talker.warning("Default printer not found in available printers");
+          }
         }
 
-        await Printing.directPrintPdf(
-            printer: pri!, onLayout: (PdfPageFormat format) async => bytes);
+        if (selectedPrinter == null) {
+          // If only one printer is available, use it by default
+          if (printers.length == 1) {
+            selectedPrinter = printers.first;
+            talker.info(
+              "Auto-selecting single available printer: ${selectedPrinter.name}",
+            );
+            ProxyService.box.writeString(
+              key: 'defaultPrinter',
+              value: selectedPrinter.name,
+            );
+          }
+        }
+
+        if (selectedPrinter == null) {
+          // If we have context and it's mounted, ask user
+          if (context.mounted) {
+            selectedPrinter = await Printing.pickPrinter(
+              context: context,
+              title: "List of printers",
+            );
+            // Save as default if selected
+            if (selectedPrinter != null) {
+              ProxyService.box.writeString(
+                key: 'defaultPrinter',
+                value: selectedPrinter.name,
+              );
+            }
+          } else {
+            talker.warning(
+              "Cannot pick printer: Context not mounted and no default printer.",
+            );
+            return;
+          }
+        }
+
+        if (selectedPrinter != null && bytes != null) {
+          await Printing.directPrintPdf(
+            printer: selectedPrinter,
+            onLayout: (PdfPageFormat format) async => bytes,
+          );
+        }
       }
     }
   }
@@ -156,24 +234,34 @@ mixin TransactionMixinOld {
     }
   }
 
-  Future<RwApiResponse> handleReceiptGeneration(
-      {String? purchaseCode,
-      ITransaction? transaction,
-      required GlobalKey<FormState> formKey,
-      void Function()? onSuccess,
-      required BuildContext context}) async {
+  Future<RwApiResponse> handleReceiptGeneration({
+    String? purchaseCode,
+    ITransaction? transaction,
+    required GlobalKey<FormState> formKey,
+    void Function()? onSuccess,
+    required BuildContext context,
+  }) async {
     try {
-      final responseFrom =
-          await TaxController(object: transaction!).handleReceipt(
-        purchaseCode: purchaseCode,
-        filterType: getFilterType(transactionType: transaction.receiptType),
-        onSuccess: onSuccess,
-      );
+      // Note: This method is now called unawaited by finalizePayment.
+      // We perform the heavy listing here (signing, printing).
+      // If context unmounts, we try to handle gracefully.
+
+      final responseFrom = await TaxController(object: transaction!)
+          .handleReceipt(
+            purchaseCode: purchaseCode,
+            filterType: getFilterType(transactionType: transaction.receiptType),
+            onSuccess: onSuccess,
+          );
       final (:response, :bytes) = responseFrom;
 
-      formKey.currentState?.reset();
+      try {
+        formKey.currentState?.reset();
+      } catch (e) {
+        // Ignore form reset error if unmounted
+      }
 
       if (bytes != null) {
+        // Run printing
         await printing(bytes, context);
       }
       return response;
@@ -190,7 +278,9 @@ mixin TransactionMixinOld {
     String? sarTyCd,
   }) async {
     await _completeTransaction(
-        pendingTransaction: pendingTransaction, sarTyCd: sarTyCd);
+      pendingTransaction: pendingTransaction,
+      sarTyCd: sarTyCd,
+    );
   }
 
   Future<void> _completeTransaction({
@@ -203,19 +293,23 @@ mixin TransactionMixinOld {
       throw Exception('Business ID or Branch ID not found');
     }
 
-    Business? business =
-        await ProxyService.strategy.getBusiness(businessId: businessId);
+    Business? business = await ProxyService.strategy.getBusiness(
+      businessId: businessId,
+    );
 
-    final bool isEbmEnabled = await ProxyService.strategy
-        .isTaxEnabled(businessId: business!.id, branchId: branchId);
+    final bool isEbmEnabled = await ProxyService.strategy.isTaxEnabled(
+      businessId: business!.id,
+      branchId: branchId,
+    );
     if (isEbmEnabled) {
       try {
         ProxyService.strategy.updateTransaction(
-            sarTyCd: sarTyCd,
-            isUnclassfied: true,
-            transaction: pendingTransaction,
-            status: COMPLETE,
-            ebmSynced: false);
+          sarTyCd: sarTyCd,
+          isUnclassfied: true,
+          transaction: pendingTransaction,
+          status: COMPLETE,
+          ebmSynced: false,
+        );
       } catch (e) {
         // Rethrow the error instead of silently catching it
         // This ensures the transaction isn't marked as complete when there's an error
@@ -228,8 +322,11 @@ mixin TransactionMixinOld {
   /// Completes the transaction after tax validation has succeeded
   /// This ensures we only mark the transaction as complete after we've received
   /// a successful response from the tax service
-  Future<void> _completeTransactionAfterTaxValidation(ITransaction transaction,
-      {required String customerName, required String countryCode}) async {
+  Future<void> _completeTransactionAfterTaxValidation(
+    ITransaction transaction, {
+    required String customerName,
+    required String countryCode,
+  }) async {
     try {
       final branchId = ProxyService.box.getBranchId();
       if (branchId == null) {
@@ -237,11 +334,15 @@ mixin TransactionMixinOld {
       }
 
       final bhfId = (await ProxyService.box.bhfId()) ?? "00";
-      final amount = double.tryParse(
-              ProxyService.box.readString(key: 'receivedAmount') ?? "0") ??
+      final amount =
+          double.tryParse(
+            ProxyService.box.readString(key: 'receivedAmount') ?? "0",
+          ) ??
           0;
-      final discount = double.tryParse(
-              ProxyService.box.readString(key: 'discountRate') ?? "0") ??
+      final discount =
+          double.tryParse(
+            ProxyService.box.readString(key: 'discountRate') ?? "0",
+          ) ??
           0;
       final paymentType = ProxyService.box.paymentType() ?? "CASH";
       final transactionType = transaction.receiptType ?? TransactionType.sale;
@@ -249,20 +350,18 @@ mixin TransactionMixinOld {
       // Only fetch customer from DB if transaction has a valid customerId
       if (transaction.customerId != null &&
           transaction.customerId!.isNotEmpty) {
-        customer = (await ProxyService.getStrategy(Strategy.capella).customers(
-          id: transaction.customerId,
-        ))
-            .firstOrNull;
+        customer = (await ProxyService.getStrategy(
+          Strategy.capella,
+        ).customers(id: transaction.customerId)).firstOrNull;
       }
 
       // Prioritize ProxyService.box.customerName() over other sources
       final finalCustomerName =
           ProxyService.box.customerName() ?? customer?.custNm ?? customerName;
       // Calculate and update tax amount before finalizing payment
-      final items =
-          await ProxyService.getStrategy(Strategy.capella).transactionItems(
-        transactionId: transaction.id,
-      );
+      final items = await ProxyService.getStrategy(
+        Strategy.capella,
+      ).transactionItems(transactionId: transaction.id);
       double totalTax = 0.0;
       for (final item in items) {
         totalTax += item.taxAmt?.toDouble() ?? 0.0;
@@ -287,7 +386,8 @@ mixin TransactionMixinOld {
         paymentType: paymentType,
         discount: discount,
         directlyHandleReceipt: false,
-        customerPhone: customer?.telNo ??
+        customerPhone:
+            customer?.telNo ??
             ProxyService.box.currentSaleCustomerPhoneNumber(),
       );
       // Clean up temporary storage
@@ -295,7 +395,8 @@ mixin TransactionMixinOld {
       ProxyService.box.remove(key: 'pendingCustomerTin');
 
       talker.debug(
-          'Transaction ${transaction.id} completed successfully after tax validation');
+        'Transaction ${transaction.id} completed successfully after tax validation',
+      );
     } catch (e) {
       talker.error('Error in _completeTransactionAfterTaxValidation: $e');
       rethrow;

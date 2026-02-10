@@ -152,4 +152,10 @@ class DarwinNotifications extends BaseNotifications {
       macOS: darwinNotificationDetails,
     );
   }
+
+  @override
+  Future<void> showOrderNotification(InventoryRequest order) async {
+    // Use the base implementation from BaseNotifications
+    await super.showOrderNotification(order);
+  }
 }

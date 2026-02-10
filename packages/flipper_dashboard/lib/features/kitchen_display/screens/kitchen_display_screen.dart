@@ -22,9 +22,15 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
     ref,
   ) {
     // Create a single broadcast stream for each status (shared across all consumers)
+    final branchId = ProxyService.box.getBranchId();
+    if (branchId == null) {
+      return Stream.value([]);
+    }
+
     final parkedStream = ProxyService.strategy
         .transactionsStream(
           status: PARKED,
+          branchId: branchId,
           removeAdjustmentTransactions: true,
           skipOriginalTransactionCheck: true,
           forceRealData: true,
@@ -34,6 +40,7 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
         .transactionsStream(
           skipOriginalTransactionCheck: true,
           status: IN_PROGRESS,
+          branchId: branchId,
           removeAdjustmentTransactions: true,
           forceRealData: true,
         )
@@ -42,6 +49,7 @@ class _KitchenDisplayScreenState extends ConsumerState<KitchenDisplayScreen> {
         .transactionsStream(
           skipOriginalTransactionCheck: true,
           status: WAITING,
+          branchId: branchId,
           removeAdjustmentTransactions: true,
           forceRealData: true,
         )

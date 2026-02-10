@@ -39,12 +39,16 @@ class DittoCore {
     String docId,
     Map<String, dynamic> data,
   ) async {
-    await dittoInstance!.store.execute(
-      "INSERT INTO $collection DOCUMENTS (:data) ON ID CONFLICT DO UPDATE",
-      arguments: {
-        "data": {"_id": docId, ...data},
-      },
-    );
+    try {
+      await dittoInstance!.store.execute(
+        "INSERT INTO $collection DOCUMENTS (:data) ON ID CONFLICT DO UPDATE",
+        arguments: {
+          "data": {"_id": docId, ...data},
+        },
+      );
+    } catch (e) {
+      debugPrint('Error executing upsert: $e');
+    }
   }
 
   /// Helper method to execute update operation

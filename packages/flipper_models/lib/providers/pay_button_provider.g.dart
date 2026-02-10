@@ -15,15 +15,15 @@ const payButtonStateProvider = PayButtonStateProvider._();
 final class PayButtonStateProvider
     extends $NotifierProvider<PayButtonState, Map<ButtonType, bool>> {
   const PayButtonStateProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'payButtonStateProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'payButtonStateProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$payButtonStateHash();
@@ -50,11 +50,14 @@ abstract class _$PayButtonState extends $Notifier<Map<ButtonType, bool>> {
   void runBuild() {
     final created = build();
     final ref = this.ref as $Ref<Map<ButtonType, bool>, Map<ButtonType, bool>>;
-    final element = ref.element as $ClassProviderElement<
-        AnyNotifier<Map<ButtonType, bool>, Map<ButtonType, bool>>,
-        Map<ButtonType, bool>,
-        Object?,
-        Object?>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<Map<ButtonType, bool>, Map<ButtonType, bool>>,
+              Map<ButtonType, bool>,
+              Object?,
+              Object?
+            >;
     element.handleValue(ref, created);
   }
 }
@@ -65,15 +68,15 @@ const selectedButtonTypeProvider = SelectedButtonTypeProvider._();
 final class SelectedButtonTypeProvider
     extends $NotifierProvider<SelectedButtonType, ButtonType> {
   const SelectedButtonTypeProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'selectedButtonTypeProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'selectedButtonTypeProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$selectedButtonTypeHash();
@@ -101,8 +104,14 @@ abstract class _$SelectedButtonType extends $Notifier<ButtonType> {
   void runBuild() {
     final created = build();
     final ref = this.ref as $Ref<ButtonType, ButtonType>;
-    final element = ref.element as $ClassProviderElement<
-        AnyNotifier<ButtonType, ButtonType>, ButtonType, Object?, Object?>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<ButtonType, ButtonType>,
+              ButtonType,
+              Object?,
+              Object?
+            >;
     element.handleValue(ref, created);
   }
 }

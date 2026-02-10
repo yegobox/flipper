@@ -25,11 +25,11 @@ export 'report.model.dart';
 export 'setting.model.dart';
 export 'sku.model.dart';
 export 'tenant.model.dart';
-export 'transaction.model.dart';
+export 'package:supabase_models/brick/models/transaction.model.dart';
 export 'transaction_delegation.model.dart';
 export 'unit.model.dart';
 export 'universalProduct.model.dart';
-export 'transactionItem.model.dart';
+export 'package:supabase_models/brick/models/transactionItem.model.dart';
 // export 'access.model.dart';
 export 'inventory_request.model.dart';
 export 'transaction_payment_record.model.dart';
@@ -55,3 +55,7 @@ export 'business_analytic.model.dart';
 export 'Metric.dart';
 export 'BusinessInfo.dart';
 export 'shift.model.dart';
+
+// Production output models
+export 'work_order.model.dart';
+export 'actual_output.model.dart';

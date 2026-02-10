@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/helperModels/business_type.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flutter/material.dart';
@@ -96,7 +97,8 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
   @override
   Widget build(BuildContext context) {
     return ViewModelBuilder<SignupViewModel>.reactive(
-      onViewModelReady: (model) {
+      onViewModelReady: (model) async {
+        await ProxyService.box.clear();
         model.context = context;
         model.registerLocation();
       },

@@ -561,12 +561,12 @@ class Repository extends OfflineFirstWithSupabaseRepository {
         if (instance is Stock) {
           debugPrint('New Current Stock: ${instance.currentStock}');
         }
+        if (instance is TransactionItem) {
+          debugPrint('We got item to save: ${instance.toString()}');
+        }
         unawaited(
           DittoSyncCoordinator.instance.notifyLocalUpsert(instance),
         );
-        if (instance is Customer) {
-          EventBus().fire(CustomerUpserted(instance));
-        }
       } catch (e, stackTrace) {
         _logger.warning(
             'Error notifying Ditto of local change: $e', stackTrace);

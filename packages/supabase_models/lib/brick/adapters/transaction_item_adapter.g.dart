@@ -807,7 +807,7 @@ class TransactionItemAdapter
     'stock': const RuntimeSupabaseColumnDefinition(
       association: true,
       columnName: 'stock',
-      associationType: Map,
+      associationType: Stock,
       associationIsNullable: true,
     ),
     'taxPercentage': const RuntimeSupabaseColumnDefinition(

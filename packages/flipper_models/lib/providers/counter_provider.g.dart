@@ -12,18 +12,24 @@ part of 'counter_provider.dart';
 @ProviderFor(counters)
 const countersProvider = CountersFamily._();
 
-final class CountersProvider extends $FunctionalProvider<
-        AsyncValue<List<Counter>>, List<Counter>, Stream<List<Counter>>>
+final class CountersProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<Counter>>,
+          List<Counter>,
+          Stream<List<Counter>>
+        >
     with $FutureModifier<List<Counter>>, $StreamProvider<List<Counter>> {
-  const CountersProvider._(
-      {required CountersFamily super.from, required String super.argument})
-      : super(
-          retry: null,
-          name: r'countersProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+  const CountersProvider._({
+    required CountersFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'countersProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
   @override
   String debugGetCreateSourceHash() => _$countersHash();
@@ -38,16 +44,13 @@ final class CountersProvider extends $FunctionalProvider<
   @$internal
   @override
   $StreamProviderElement<List<Counter>> $createElement(
-          $ProviderPointer pointer) =>
-      $StreamProviderElement(pointer);
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
 
   @override
   Stream<List<Counter>> create(Ref ref) {
     final argument = this.argument as String;
-    return counters(
-      ref,
-      argument,
-    );
+    return counters(ref, argument);
   }
 
   @override
@@ -66,17 +69,15 @@ String _$countersHash() => r'26d951ec86bc6daa2bcede94bf201b3f39e90d9f';
 final class CountersFamily extends $Family
     with $FunctionalFamilyOverride<Stream<List<Counter>>, String> {
   const CountersFamily._()
-      : super(
-          retry: null,
-          name: r'countersProvider',
-          dependencies: null,
-          $allTransitiveDependencies: null,
-          isAutoDispose: true,
-        );
+    : super(
+        retry: null,
+        name: r'countersProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
 
-  CountersProvider call(
-    String branchId,
-  ) =>
+  CountersProvider call(String branchId) =>
       CountersProvider._(argument: branchId, from: this);
 
   @override
@@ -88,16 +89,16 @@ const highestCounterProvider = HighestCounterFamily._();
 
 final class HighestCounterProvider extends $FunctionalProvider<int, int, int>
     with $Provider<int> {
-  const HighestCounterProvider._(
-      {required HighestCounterFamily super.from,
-      required String super.argument})
-      : super(
-          retry: null,
-          name: r'highestCounterProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+  const HighestCounterProvider._({
+    required HighestCounterFamily super.from,
+    required String super.argument,
+  }) : super(
+         retry: null,
+         name: r'highestCounterProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
 
   @override
   String debugGetCreateSourceHash() => _$highestCounterHash();
@@ -117,10 +118,7 @@ final class HighestCounterProvider extends $FunctionalProvider<int, int, int>
   @override
   int create(Ref ref) {
     final argument = this.argument as String;
-    return highestCounter(
-      ref,
-      argument,
-    );
+    return highestCounter(ref, argument);
   }
 
   /// {@macro riverpod.override_with_value}
@@ -147,17 +145,15 @@ String _$highestCounterHash() => r'6ce633bf4243d74650b3f11a48a9ef16c05fad03';
 final class HighestCounterFamily extends $Family
     with $FunctionalFamilyOverride<int, String> {
   const HighestCounterFamily._()
-      : super(
-          retry: null,
-          name: r'highestCounterProvider',
-          dependencies: null,
-          $allTransitiveDependencies: null,
-          isAutoDispose: true,
-        );
+    : super(
+        retry: null,
+        name: r'highestCounterProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
 
-  HighestCounterProvider call(
-    String branchId,
-  ) =>
+  HighestCounterProvider call(String branchId) =>
       HighestCounterProvider._(argument: branchId, from: this);
 
   @override

@@ -1,7 +1,9 @@
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/providers/branch_by_id_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-class BranchInfo extends StatelessWidget {
+class BranchInfo extends ConsumerWidget {
   final InventoryRequest request;
   final Branch incomingBranch;
 
@@ -12,7 +14,10 @@ class BranchInfo extends StatelessWidget {
   }) : super(key: key);
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    if (request.subBranchId == null) {
+      return SizedBox.shrink();
+    }
     return Container(
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -42,11 +47,25 @@ class BranchInfo extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildBranchInfoRow(
-                    'From', "${request.branch?.name}", Colors.green[700]!),
+                ref
+                    .watch(branchByIdProvider(branchId: request.subBranchId))
+                    .when(
+                      data: (branch) {
+                        return _buildBranchInfoRow(
+                          'From',
+                          "${branch?.name ?? request.branch?.name}",
+                          Colors.green[700]!,
+                        );
+                      },
+                      loading: () => Text("Loading..."),
+                      error: (error, stack) => Text("Error: $error"),
+                    ),
                 SizedBox(height: 8),
                 _buildBranchInfoRow(
-                    'To', "${incomingBranch.name}", Colors.blue[700]!),
+                  'To',
+                  "${incomingBranch.name}",
+                  Colors.blue[700]!,
+                ),
               ],
             ),
           ),

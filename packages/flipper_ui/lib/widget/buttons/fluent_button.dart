@@ -54,7 +54,6 @@ class _FluentButtonBaseState extends State<FluentButtonBase> {
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 140),
         curve: Curves.easeOutCubic,
-        padding: widget.padding,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(widget.borderRadius),
           color: backgroundColor(),
@@ -87,7 +86,10 @@ class _FluentButtonBaseState extends State<FluentButtonBase> {
                 ? accentColor.withValues(alpha: 0.12)
                 : Colors.transparent,
             highlightColor: Colors.transparent,
-            child: widget.child,
+            child: Padding(
+              padding: widget.padding,
+              child: widget.child,
+            ),
           ),
         ),
       ),

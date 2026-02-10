@@ -66,7 +66,7 @@ class DittoSingleton {
         '⚠️ User mismatch detected ($userId != $_userId). Forcing logout and re-initialization.',
       );
       await logout();
-      _ditto = null;
+      await dispose();
     }
 
     _userId = userId;
@@ -228,6 +228,12 @@ class DittoSingleton {
       try {
         print('🛑 Stopping Ditto sync and disposing singleton...');
         _ditto!.stopSync();
+        try {
+          // Explicitly close the Ditto instance to release internal locks
+          _ditto!.close();
+        } catch (e) {
+          print('⚠️ Error closing Ditto instance: $e');
+        }
         await Future.delayed(const Duration(milliseconds: 500));
         _ditto = null;
         await _releaseLock();

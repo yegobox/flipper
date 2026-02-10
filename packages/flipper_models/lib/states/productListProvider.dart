@@ -9,8 +9,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 final productColorsProvider =
     StateNotifierProvider<ProductColorsNotifier, List<Color>>((ref) {
-  return ProductColorsNotifier();
-});
+      return ProductColorsNotifier();
+    });
 
 class ProductColorsNotifier extends StateNotifier<List<Color>> {
   ProductColorsNotifier() : super([]);
@@ -70,7 +70,8 @@ class ProductColorsNotifier extends StateNotifier<List<Color>> {
 }
 
 final cartListProvider = StateNotifierProvider<CartListNotifier, List<Variant>>(
-    (ref) => CartListNotifier());
+  (ref) => CartListNotifier(),
+);
 
 class CartListNotifier extends StateNotifier<List<Variant>> {
   CartListNotifier() : super([]);
@@ -88,75 +89,79 @@ final searchStringProvider = StateProvider<String>((ref) => '');
 
 // Create a family provider to cache results by supplier and search parameters
 final productFromSupplier = FutureProvider.autoDispose
-    .family<List<Variant>, ({int? supplierId, String searchString})>(
-        (ref, params) async {
-  if (params.supplierId == null) throw Exception("Select a supplier");
+    .family<List<Variant>, ({String? supplierId, String searchString})>((
+      ref,
+      params,
+    ) async {
+      if (params.supplierId == null) throw Exception("Select a supplier");
 
-  talker.warning("Supplier Id: ${params.supplierId}");
+      talker.warning("Supplier Id: ${params.supplierId}");
 
-  // Get the Supabase URL and headers
-  var headers = {
-    'Content-Type': 'application/json',
-    'apikey': AppSecrets.supabaseAnonKey,
-  };
+      // Get the Supabase URL and headers
+      var headers = {
+        'Content-Type': 'application/json',
+        'apikey': AppSecrets.supabaseAnonKey,
+      };
 
-  // Construct the Supabase URL with query parameters
-  String supabaseUrl =
-      '${AppSecrets.newApiEndPoints}${params.supplierId}&limit=100&or=(pchs_stts_cd.is.null,pchs_stts_cd.not.in.(01,04))&or=(impt_item_stts_cd.is.null,impt_item_stts_cd.not.in.(2,4))';
+      // Construct the Supabase URL with query parameters
+      String supabaseUrl =
+          '${AppSecrets.newApiEndPoints}${params.supplierId}&limit=100&or=(pchs_stts_cd.is.null,pchs_stts_cd.not.in.("01","04"))&or=(impt_item_stts_cd.is.null,impt_item_stts_cd.not.in.("2","4"))';
 
-  if (params.searchString.isNotEmpty) {
-    supabaseUrl +=
-        '&name=ilike.*${Uri.encodeQueryComponent(params.searchString)}*';
-  }
+      if (params.searchString.isNotEmpty) {
+        supabaseUrl +=
+            '&name=ilike.*${Uri.encodeQueryComponent(params.searchString)}*';
+      }
 
-  var dio = Dio();
-  try {
-    // Make the GET request to Supabase
-    var response = await dio.get(
-      supabaseUrl,
-      options: Options(headers: headers),
-    );
+      var dio = Dio();
+      try {
+        // Make the GET request to Supabase
+        var response = await dio.get(
+          supabaseUrl,
+          options: Options(headers: headers),
+        );
 
-    // Parse the response data
-    final List<dynamic> data = response.data ?? [];
+        // Parse the response data
+        final List<dynamic> data = response.data ?? [];
 
-    // Map the data to the Variant model
-    List<Variant> variants = data.map<Variant>((item) {
-      return Variant(
-        itemCd: item['item_cd'],
-        id: item['id']?.toString() ?? '',
-        name: item['name'] ?? 'Unknown',
-        productName: item['product_name'] ?? 'Unknown',
-        productId: item['product_id']?.toString() ?? '',
-        branchId: item['branch_id'] ?? 0,
-        color: item['color'] ?? '#FFFFFF',
-        stockId: item['stock_id'] ?? 0,
-        retailPrice: (item['retail_price'] as num?)?.toDouble() ?? 0.0,
-        supplyPrice: (item['supply_price'] as num?)?.toDouble() ?? 0.0,
-        // Add other fields as needed
-      );
-    }).toList();
+        // Map the data to the Variant model
+        List<Variant> variants = data.map<Variant>((item) {
+          return Variant(
+            itemCd: item['item_cd'],
+            id: item['id']?.toString() ?? '',
+            name: item['name'] ?? 'Unknown',
+            productName: item['product_name'] ?? 'Unknown',
+            productId: item['product_id']?.toString() ?? '',
+            branchId: item['branch_id']?.toString() ?? '0',
+            color: item['color'] ?? '#FFFFFF',
+            stockId: item['stock_id']?.toString() ?? "",
+            retailPrice: (item['retail_price'] as num?)?.toDouble() ?? 0.0,
+            supplyPrice: (item['supply_price'] as num?)?.toDouble() ?? 0.0,
+            // Add other fields as needed
+          );
+        }).toList();
 
-    return variants;
-  } on DioException catch (e) {
-    talker.error('DioException in productFromSupplier: ${e.message}');
-    return []; // Return an empty list on error
-  } catch (e, s) {
-    talker.error('Error in productFromSupplier: $e');
-    talker.error('Stack trace: $s');
-    return []; // Return an empty list for any other errors
-  }
-});
+        return variants;
+      } on DioException catch (e) {
+        talker.error('DioException in productFromSupplier: ${e.message}');
+        return []; // Return an empty list on error
+      } catch (e, s) {
+        talker.error('Error in productFromSupplier: $e');
+        talker.error('Stack trace: $s');
+        return []; // Return an empty list for any other errors
+      }
+    });
 
 // Create a wrapper provider that gets supplier and search string and calls the family provider
-final productFromSupplierWrapper =
-    FutureProvider.autoDispose<List<Variant>>((ref) async {
+final productFromSupplierWrapper = FutureProvider.autoDispose<List<Variant>>((
+  ref,
+) async {
   final supplier = ref.watch(selectedSupplierProvider);
   final searchString = ref.watch(searchStringProvider);
 
   return await ref.watch(
-    productFromSupplier(
-      (supplierId: supplier?.serverId, searchString: searchString),
-    ).future,
+    productFromSupplier((
+      supplierId: supplier?.id,
+      searchString: searchString,
+    )).future,
   );
 });

@@ -74,36 +74,39 @@ class IBusiness extends IJsonSerializable {
     this.isOwner,
   });
 
-  IBusiness.copy(IBusiness original,
-      {bool? active, String? encryptionKey, String? name})
-      : id = original.id,
-        serverId = original.serverId,
-        name = name ?? original.name,
-        encryptionKey = encryptionKey ?? original.encryptionKey,
-        backUpEnabled = original.backUpEnabled,
-        businessDefault = original.businessDefault,
-        businessTypeId = original.businessTypeId,
-        country = original.country,
-        createdAt = original.createdAt,
-        currency = original.currency,
-        fullName = original.fullName,
-        isDefault = original.isDefault,
-        isLastSubscriptionPaymentSucceeded =
-            original.isLastSubscriptionPaymentSucceeded,
-        lastSeen = original.lastSeen,
-        lastSubscriptionPaymentSucceeded =
-            original.lastSubscriptionPaymentSucceeded,
-        latitude = original.latitude,
-        longitude = original.longitude,
-        phoneNumber = original.phoneNumber,
-        referredBy = original.referredBy,
-        taxEnabled = original.taxEnabled,
-        tinNumber = original.tinNumber,
-        type = original.type,
-        branches = original.branches,
-        isOwner = original.isOwner,
-        userId = original.userId,
-        validCurrency = original.validCurrency;
+  IBusiness.copy(
+    IBusiness original, {
+    bool? active,
+    String? encryptionKey,
+    String? name,
+  }) : id = original.id,
+       serverId = original.serverId,
+       name = name ?? original.name,
+       encryptionKey = encryptionKey ?? original.encryptionKey,
+       backUpEnabled = original.backUpEnabled,
+       businessDefault = original.businessDefault,
+       businessTypeId = original.businessTypeId,
+       country = original.country,
+       createdAt = original.createdAt,
+       currency = original.currency,
+       fullName = original.fullName,
+       isDefault = original.isDefault,
+       isLastSubscriptionPaymentSucceeded =
+           original.isLastSubscriptionPaymentSucceeded,
+       lastSeen = original.lastSeen,
+       lastSubscriptionPaymentSucceeded =
+           original.lastSubscriptionPaymentSucceeded,
+       latitude = original.latitude,
+       longitude = original.longitude,
+       phoneNumber = original.phoneNumber,
+       referredBy = original.referredBy,
+       taxEnabled = original.taxEnabled,
+       tinNumber = original.tinNumber,
+       type = original.type,
+       branches = original.branches,
+       isOwner = original.isOwner,
+       userId = original.userId,
+       validCurrency = original.validCurrency;
   String id;
   int? serverId;
   String? name;
@@ -174,11 +177,28 @@ class IBusiness extends IJsonSerializable {
     // Ensure lastTouched is an ISO-8601 string, setting it if null or empty
     json['lastTouched'] ??=
         (json['lastTouched'] == null || json['lastTouched'].toString().isEmpty)
-            ? DateTime.now().toIso8601String()
-            : json['lastTouched'];
+        ? DateTime.now().toIso8601String()
+        : json['lastTouched'];
 
     if (json['userId'] is String) {
       json['userId'] = int.tryParse(json['userId']) ?? json['userId'];
+    }
+
+    // Handle numeric fields that might come as strings from API
+    if (json['latitude'] is String) {
+      json['latitude'] = num.tryParse(json['latitude']);
+    }
+    if (json['longitude'] is String) {
+      json['longitude'] = num.tryParse(json['longitude']);
+    }
+    if (json['serverId'] is String) {
+      json['serverId'] = int.tryParse(json['serverId']);
+    }
+    if (json['lastSeen'] is String) {
+      json['lastSeen'] = int.tryParse(json['lastSeen']);
+    }
+    if (json['tinNumber'] is String) {
+      json['tinNumber'] = int.tryParse(json['tinNumber']);
     }
 
     return _$IBusinessFromJson(json);

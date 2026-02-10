@@ -20,15 +20,15 @@ final class EbmVatEnabledProvider
     with $FutureModifier<bool>, $FutureProvider<bool> {
   /// Provider that fetches the VAT enabled status from the EBM configuration
   const EbmVatEnabledProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'ebmVatEnabledProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'ebmVatEnabledProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$ebmVatEnabledHash();

@@ -14,7 +14,6 @@ import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_dashboard/QuickSellingView.dart';
 import 'package:flipper_dashboard/SearchCustomer.dart';
 import 'package:flipper_dashboard/functions.dart';
-import 'package:flipper_dashboard/ribbon.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
     as oldImplementationOfRiverpod;
@@ -87,7 +86,7 @@ class CheckOutState extends ConsumerState<CheckOut>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(body: _buildMainContent());
+    return _buildMainContent();
   }
 
   Widget _buildMainContent() {
@@ -162,14 +161,7 @@ class CheckOutState extends ConsumerState<CheckOut>
               child: Card(
                 color: Colors.white,
                 surfaceTintColor: Colors.white,
-                child: Column(
-                  children: [
-                    _buildIconRow().eligibleToSeeIfYouAre(ref, [
-                      UserType.ADMIN,
-                    ]),
-                    SearchInputWithDropdown(),
-                  ],
-                ),
+                child: Column(children: [SearchInputWithDropdown()]),
               ),
             ),
           ],
@@ -271,23 +263,12 @@ class CheckOutState extends ConsumerState<CheckOut>
     );
   }
 
-  Widget _buildIconRow() {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          return Padding(padding: EdgeInsets.all(8.0), child: IconRow());
-        },
-      ),
-    );
-  }
-
   String getCartText({required String transactionId}) {
     // Get the latest count with a fresh watch to ensure reactivity
     final itemsAsync = ref.watch(
       transactionItemsStreamProvider(
         transactionId: transactionId,
-        branchId: ProxyService.box.getBranchId()!,
+        branchId: ProxyService.box.getBranchId() ?? '0',
       ),
     );
 
@@ -417,7 +398,7 @@ class CheckOutState extends ConsumerState<CheckOut>
                         );
                       },
                 )
-              : Scaffold(body: SafeArea(child: _buildQuickSellingView())),
+              : SafeArea(child: _buildQuickSellingView()),
         );
       },
     );

@@ -57,20 +57,6 @@ class TransactionListState extends ConsumerState<TransactionList>
     // Watch the toggle value and immediately refresh the appropriate provider when it changes
     final showDetailed = ref.watch(toggleBooleanValueProvider);
 
-    ref.listen<bool>(toggleBooleanValueProvider, (previous, next) {
-      if (previous != next) {
-        if (next) {
-          ref.invalidate(transactionItemListProvider);
-        } else {
-          ref.invalidate(
-            transactionListProvider(
-              forceRealData: !(ProxyService.box.enableDebug() ?? false),
-            ),
-          );
-        }
-      }
-    });
-
     // Use a key to force rebuild when the toggle changes
     final AsyncValue<List<dynamic>> dataProvider;
 
@@ -327,18 +313,33 @@ class TransactionListState extends ConsumerState<TransactionList>
     return dataProvider.when(
       data: (data) {
         if (data.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.receipt_long, size: 60, color: Colors.grey[400]),
-                const SizedBox(height: 16),
-                Text(
-                  'No transactions found for the selected period.',
-                  style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+          return Column(
+            children: [
+              if (widget.hideHeader)
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: _buildReportTypeSwitch(showDetailed),
                 ),
-              ],
-            ),
+              Expanded(
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.receipt_long,
+                        size: 60,
+                        color: Colors.grey[400],
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'No transactions found for the selected period.',
+                        style: TextStyle(fontSize: 18, color: Colors.grey[600]),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           );
         }
 

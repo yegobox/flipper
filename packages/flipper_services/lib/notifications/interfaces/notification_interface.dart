@@ -13,6 +13,9 @@ abstract class NotificationInterface {
     String? payload,
   });
 
+  /// Show a notification for a new inventory request/order
+  Future<void> showOrderNotification(InventoryRequest order);
+
   /// Schedule a notification for a conversation
   Future<void> scheduleNotification(Conversation conversation);
 

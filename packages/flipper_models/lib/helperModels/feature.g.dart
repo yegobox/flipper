@@ -6,12 +6,10 @@ part of 'feature.dart';
 // JsonSerializableGenerator
 // **************************************************************************
 
-Feature _$FeatureFromJson(Map<String, dynamic> json) => Feature(
-      id: (json['id'] as num?)?.toInt(),
-      name: json['name'] as String,
-    );
+Feature _$FeatureFromJson(Map<String, dynamic> json) =>
+    Feature(id: (json['id'] as num?)?.toInt(), name: json['name'] as String);
 
 Map<String, dynamic> _$FeatureToJson(Feature instance) => <String, dynamic>{
-      'id': instance.id,
-      'name': instance.name,
-    };
+  'id': instance.id,
+  'name': instance.name,
+};

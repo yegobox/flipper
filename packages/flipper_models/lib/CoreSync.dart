@@ -20,6 +20,7 @@ import 'package:flipper_models/sync/mixins/delegation_mixin.dart';
 import 'package:flipper_models/sync/mixins/delete_mixin.dart';
 import 'package:flipper_models/sync/mixins/ebm_mixin.dart';
 import 'package:flipper_models/sync/mixins/log_mixin.dart';
+import 'package:flipper_models/sync/mixins/production_output_mixin.dart';
 import 'package:flipper_models/sync/mixins/shift_mixin.dart';
 import 'package:flipper_models/sync/mixins/product_mixin.dart';
 
@@ -55,6 +56,7 @@ import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:flipper_models/helperModels/RwApiResponse.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/ai_strategy_impl.dart';
 // import 'package:cbl/cbl.dart'
 //     if (dart.library.html) 'package:flipper_services/DatabaseProvider.dart';
@@ -92,6 +94,7 @@ class CoreSync extends AiStrategyImpl
         CategoryMixin,
         CounterMixin,
         DelegationMixin,
+        ProductionOutputMixin,
         DiscountMixin
     implements DatabaseSyncInterface {
   final String apihub = AppSecrets.apihubProd;
@@ -120,8 +123,10 @@ class CoreSync extends AiStrategyImpl
   Future<bool> firebaseLogin({String? token}) async {
     String? userId = ProxyService.box.getUserId();
     if (userId == null) return false;
-    final pinLocal = await ProxyService.strategy
-        .getPinLocal(userId: userId, alwaysHydrate: true);
+    final pinLocal = await ProxyService.strategy.getPinLocal(
+      userId: userId,
+      alwaysHydrate: true,
+    );
     try {
       token ??= pinLocal?.tokenUid;
 
@@ -165,19 +170,22 @@ class CoreSync extends AiStrategyImpl
     try {
       for (Map map in units) {
         final existingUnit = (await repository.get<IUnit>(
-                query: brick.Query(where: [
-          brick.Where('name').isExactly(map['name']),
-          brick.Where('branchId').isExactly(branchId),
-        ])))
-            .firstOrNull;
+          query: brick.Query(
+            where: [
+              brick.Where('name').isExactly(map['name']),
+              brick.Where('branchId').isExactly(branchId),
+            ],
+          ),
+        )).firstOrNull;
 
         if (existingUnit == null) {
           final unit = IUnit(
-              active: map['active'],
-              branchId: branchId,
-              name: map['name'],
-              lastTouched: DateTime.now().toUtc(),
-              value: map['value']);
+            active: map['active'],
+            branchId: branchId,
+            name: map['name'],
+            lastTouched: DateTime.now().toUtc(),
+            value: map['value'],
+          );
 
           // Add the unit to db
           await repository.upsert<IUnit>(unit);
@@ -197,8 +205,10 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Future<void> assignCustomerToTransaction(
-      {required Customer customer, required ITransaction transaction}) async {
+  Future<void> assignCustomerToTransaction({
+    required Customer customer,
+    required ITransaction transaction,
+  }) async {
     try {
       transaction.customerId = customer.id;
       transaction.customerName = customer.custNm;
@@ -225,11 +235,11 @@ class CoreSync extends AiStrategyImpl
 
     repository
         .subscribe<Tenant>(
-            query:
-                brick.Query(where: [brick.Where('userId').isExactly(userId)]))
+          query: brick.Query(where: [brick.Where('userId').isExactly(userId)]),
+        )
         .listen((tenants) {
-      controller.add(tenants.isEmpty ? null : tenants.first);
-    });
+          controller.add(tenants.isEmpty ? null : tenants.first);
+        });
 
     await for (var tenant in controller.stream) {
       yield tenant;
@@ -241,28 +251,32 @@ class CoreSync extends AiStrategyImpl
   @override
   Future<List<PColor>> colors({required String branchId}) async {
     return await repository.get<PColor>(
-        query:
-            brick.Query(where: [brick.Where('branchId').isExactly(branchId)]));
+      query: brick.Query(where: [brick.Where('branchId').isExactly(branchId)]),
+    );
   }
 
   @override
-  FutureOr<List<Composite>> composites(
-      {String? productId, String? variantId}) async {
+  FutureOr<List<Composite>> composites({
+    String? productId,
+    String? variantId,
+  }) async {
     return await repository.get<Composite>(
-        policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
-        query: brick.Query(
-          where: [
-            if (productId != null)
-              brick.Where('productId').isExactly(productId),
-            if (variantId != null)
-              brick.Where('variantId').isExactly(variantId),
-          ],
-        ));
+      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+      query: brick.Query(
+        where: [
+          if (productId != null) brick.Where('productId').isExactly(productId),
+          if (variantId != null) brick.Where('variantId').isExactly(variantId),
+        ],
+      ),
+    );
   }
 
   @override
-  Future<void> configureSystem(String userPhone, IUser user,
-      {required bool offlineLogin}) async {
+  Future<void> configureSystem(
+    String userPhone,
+    IUser user, {
+    required bool offlineLogin,
+  }) async {
     // Add system configuration logic here
 
     await ProxyService.box.writeString(key: 'userId', value: user.id);
@@ -272,17 +286,21 @@ class CoreSync extends AiStrategyImpl
     if (user.uid != null) {
       // Check if a PIN with this userId already exists
       final existingPin = await ProxyService.strategy.getPinLocal(
-          userId: user.id,
-          alwaysHydrate: false // Use local-only to avoid network calls
-          );
+        userId: user.id,
+        alwaysHydrate: false, // Use local-only to avoid network calls
+      );
 
       if (existingPin != null) {
         // Update the existing PIN with the correct UID
         if (existingPin.uid != user.uid) {
           talker.debug(
-              "Updating existing PIN with correct UID during configureSystem");
+            "Updating existing PIN with correct UID during configureSystem",
+          );
           await ProxyService.strategy.updatePin(
-              userId: user.id, tokenUid: user.uid, phoneNumber: userPhone);
+            userId: user.id,
+            tokenUid: user.uid,
+            phoneNumber: userPhone,
+          );
         }
       }
     }
@@ -294,57 +312,60 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Future<void> createOrUpdateBranchOnCloud(
-      {required Branch branch, required bool isOnline}) async {
+  Future<void> createOrUpdateBranchOnCloud({
+    required Branch branch,
+    required bool isOnline,
+  }) async {
     Branch? branchSaved = (await repository.get<Branch>(
-            query: brick.Query(where: [
-      brick.Where('id').isExactly(branch.id),
-    ])))
-        .firstOrNull;
+      query: brick.Query(where: [brick.Where('id').isExactly(branch.id)]),
+    )).firstOrNull;
     if (branchSaved == null) {
       await repository.upsert<Branch>(branch);
     }
   }
 
-  Future<models.Variant> _createRegularVariant(String branchId, int? tinNumber,
-      {required double qty,
-      required double supplierPrice,
-      required double retailPrice,
-      required int itemSeq,
-      String? bhFId,
-      bool createItemCode = false,
-      required bool ebmSynced,
-      Product? product,
-      required String productId,
-      required String name,
-      String? orgnNatCd,
-      String? exptNatCd,
-      int? pkg,
-      String? pkgUnitCd,
-      int? totWt,
-      int? netWt,
-      String? spplrNm,
-      String? agntNm,
-      int? invcFcurAmt,
-      String? invcFcurCd,
-      String? dclNo,
-      String? taskCd,
-      String? dclDe,
-      String? hsCd,
-      String? spplrItemCd,
-      String? imptItemsttsCd,
-      String? spplrItemClsCd,
-      Map<String, String>? taxTypes,
-      Map<String, String>? itemClasses,
-      Map<String, String>? itemTypes,
-      required int sku,
-      models.Configurations? taxType,
-      String? bcd,
-      String? pchsSttsCd,
-      double? totAmt,
-      double? taxAmt,
-      double? taxblAmt,
-      String? itemCd}) async {
+  Future<models.Variant> _createRegularVariant(
+    String branchId,
+    int? tinNumber, {
+    required double qty,
+    required double supplierPrice,
+    required double retailPrice,
+    required int itemSeq,
+    String? bhFId,
+    bool createItemCode = false,
+    required bool ebmSynced,
+    Product? product,
+    required String productId,
+    required String name,
+    String? orgnNatCd,
+    String? exptNatCd,
+    int? pkg,
+    String? pkgUnitCd,
+    int? totWt,
+    int? netWt,
+    String? spplrNm,
+    String? agntNm,
+    int? invcFcurAmt,
+    String? invcFcurCd,
+    String? dclNo,
+    String? taskCd,
+    String? dclDe,
+    String? hsCd,
+    String? spplrItemCd,
+    String? imptItemsttsCd,
+    String? spplrItemClsCd,
+    Map<String, String>? taxTypes,
+    Map<String, String>? itemClasses,
+    Map<String, String>? itemTypes,
+    required int sku,
+    models.Configurations? taxType,
+    String? bcd,
+    String? pchsSttsCd,
+    double? totAmt,
+    double? taxAmt,
+    double? taxblAmt,
+    String? itemCd,
+  }) async {
     final String variantId = const Uuid().v4();
     final number = randomNumber().toString().substring(0, 5);
 
@@ -409,9 +430,12 @@ class CoreSync extends AiStrategyImpl
       itemNm: product?.name ?? name,
       taxPercentage: taxType?.taxPercentage ?? 18.0,
       tin: tinNumber,
-      bcd: bcd ??
-          (product?.name ?? name)
-              .substring(0, min((product?.name ?? name).length, 20)),
+      bcd:
+          bcd ??
+          (product?.name ?? name).substring(
+            0,
+            min((product?.name ?? name).length, 20),
+          ),
 
       /// country of origin for this item we default until we support something different
       /// and this will happen when we do import.
@@ -453,29 +477,30 @@ class CoreSync extends AiStrategyImpl
     String branchId = ProxyService.box.getBranchId()!;
 
     Receipt receipt = Receipt(
-        branchId: branchId,
-        resultCd: signature.resultCd,
-        resultMsg: signature.resultMsg,
-        rcptNo: signature.data?.rcptNo ?? 0,
-        intrlData: signature.data?.intrlData ?? "",
-        rcptSign: signature.data?.rcptSign ?? "",
-        qrCode: qrCode,
-        receiptType: receiptType,
-        invoiceNumber: invoiceNumber,
-        timeReceivedFromserver: timeReceivedFromserver.toCompactDateTime(),
-        vsdcRcptPbctDate: signature.data?.vsdcRcptPbctDate ?? "",
-        sdcId: signature.data?.sdcId ?? "",
-        totRcptNo: signature.data?.totRcptNo ?? 0,
-        mrcNo: signature.data?.mrcNo ?? "",
-        transactionId: transaction.id,
-        invcNo: highestInvcNo,
-        whenCreated: whenCreated,
-        resultDt: signature.resultDt ?? "");
+      branchId: branchId,
+      resultCd: signature.resultCd,
+      resultMsg: signature.resultMsg,
+      rcptNo: signature.data?.rcptNo ?? 0,
+      intrlData: signature.data?.intrlData ?? "",
+      rcptSign: signature.data?.rcptSign ?? "",
+      qrCode: qrCode,
+      receiptType: receiptType,
+      invoiceNumber: invoiceNumber,
+      timeReceivedFromserver: timeReceivedFromserver.toCompactDateTime(),
+      vsdcRcptPbctDate: signature.data?.vsdcRcptPbctDate ?? "",
+      sdcId: signature.data?.sdcId ?? "",
+      totRcptNo: signature.data?.totRcptNo ?? 0,
+      mrcNo: signature.data?.mrcNo ?? "",
+      transactionId: transaction.id,
+      invcNo: highestInvcNo,
+      whenCreated: whenCreated,
+      resultDt: signature.resultDt ?? "",
+    );
     Receipt? existingReceipt = (await repository.get<Receipt>(
-            query: brick.Query(where: [
-      brick.Where('transactionId').isExactly(transaction.id),
-    ])))
-        .firstOrNull;
+      query: brick.Query(
+        where: [brick.Where('transactionId').isExactly(transaction.id)],
+      ),
+    )).firstOrNull;
 
     if (existingReceipt != null) {
       existingReceipt
@@ -494,25 +519,23 @@ class CoreSync extends AiStrategyImpl
         ..invcNo = receipt.invcNo
         ..whenCreated = receipt.whenCreated
         ..resultDt = receipt.resultDt;
-      return await repository.upsert(existingReceipt,
-          query: brick.Query(
-            action: QueryAction.update,
-          ));
+      return await repository.upsert(
+        existingReceipt,
+        query: brick.Query(action: QueryAction.update),
+      );
     } else {
-      return await repository.upsert(receipt,
-          query: brick.Query(
-            action: QueryAction.insert,
-          ));
+      return await repository.upsert(
+        receipt,
+        query: brick.Query(action: QueryAction.insert),
+      );
     }
   }
 
   @override
   Future<Branch?> defaultBranch() async {
     return (await repository.get<Branch>(
-            query: brick.Query(where: [
-      brick.Where('isDefault').isExactly(true),
-    ])))
-        .firstOrNull;
+      query: brick.Query(where: [brick.Where('isDefault').isExactly(true)]),
+    )).firstOrNull;
   }
 
   Future<void> deleteTransactionItemAndResequence({required String id}) async {
@@ -574,17 +597,20 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Future<void> deleteBranch(
-      {required String branchId,
-      required HttpClientInterface flipperHttpClient}) async {
+  Future<void> deleteBranch({
+    required String branchId,
+    required HttpClientInterface flipperHttpClient,
+  }) async {
     try {
-      await flipperHttpClient
-          .delete(Uri.parse(apihub + '/v2/api/branch/${branchId}'));
+      await flipperHttpClient.delete(
+        Uri.parse(apihub + '/v2/api/branch/${branchId}'),
+      );
 
       Branch? branch = (await repository.get<Branch>(
-              query: brick.Query(
-                  where: [brick.Where('serverId').isExactly(branchId)])))
-          .firstOrNull;
+        query: brick.Query(
+          where: [brick.Where('serverId').isExactly(branchId)],
+        ),
+      )).firstOrNull;
       if (branch != null) {
         await repository.delete<Branch>(branch);
       }
@@ -598,33 +624,32 @@ class CoreSync extends AiStrategyImpl
   @override
   Future<int> deleteFavoriteByIndex({required String favIndex}) async {
     Favorite? favorite = (await repository.get<Favorite>(
-            query: brick.Query(where: [
-      brick.Where('favIndex').isExactly(favIndex),
-    ])))
-        .firstOrNull;
+      query: brick.Query(where: [brick.Where('favIndex').isExactly(favIndex)]),
+    )).firstOrNull;
 
     repository.delete(favorite!);
     return Future.value(200);
   }
 
   @override
-  Future<void> deleteItemFromCart(
-      {required TransactionItem transactionItemId,
-      String? transactionId}) async {
+  Future<void> deleteItemFromCart({
+    required TransactionItem transactionItemId,
+    String? transactionId,
+  }) async {
     TransactionItem item = (await transactionItems(
-            id: transactionItemId.id,
-            transactionId: transactionId,
-            branchId: (await ProxyService.strategy.activeBranch(
-              branchId: ProxyService.box.getBranchId()!,
-            ))
-                .id))
-        .first;
+      id: transactionItemId.id,
+      transactionId: transactionId,
+      branchId: (await ProxyService.strategy.activeBranch(
+        branchId: ProxyService.box.getBranchId()!,
+      )).id,
+    )).first;
     await repository.delete(item);
   }
 
   @override
-  Future<int> deleteTransactionByIndex(
-      {required String transactionIndex}) async {
+  Future<int> deleteTransactionByIndex({
+    required String transactionIndex,
+  }) async {
     final transaction = await transactions(id: transactionIndex);
     repository.delete(transaction.first);
     return Future.value(200);
@@ -633,18 +658,23 @@ class CoreSync extends AiStrategyImpl
   @override
   Future<Product?> findProductByTenantId({required String tenantId}) async {
     final query = brick.Query(
-        where: [brick.Where('bindedToTenantId').isExactly(tenantId)]);
+      where: [brick.Where('bindedToTenantId').isExactly(tenantId)],
+    );
     final result = await repository.get<models.Product>(
-        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+      query: query,
+      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+    );
     return result.firstOrNull;
   }
 
   @override
-  Stream<List<Variant>> geVariantStreamByProductId(
-      {required String productId}) {
+  Stream<List<Variant>> geVariantStreamByProductId({
+    required String productId,
+  }) {
     final repository = Repository();
-    final query =
-        brick.Query(where: [brick.Where('productId').isExactly(productId)]);
+    final query = brick.Query(
+      where: [brick.Where('productId').isExactly(productId)],
+    );
     // Return the stream directly instead of storing in variable
     return repository.subscribe<Variant>(query: query);
   }
@@ -652,12 +682,16 @@ class CoreSync extends AiStrategyImpl
   @override
   FutureOr<Configurations?> getByTaxType({required String taxtype}) async {
     final repository = Repository();
-    final query = brick.Query(where: [
-      brick.Where('taxType').isExactly(taxtype),
-      brick.Where('branchId').isExactly(ProxyService.box.getBranchId()!),
-    ]);
+    final query = brick.Query(
+      where: [
+        brick.Where('taxType').isExactly(taxtype),
+        brick.Where('branchId').isExactly(ProxyService.box.getBranchId()!),
+      ],
+    );
     final result = await repository.get<models.Configurations>(
-        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+      query: query,
+      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+    );
     return result.firstOrNull;
   }
 
@@ -666,50 +700,60 @@ class CoreSync extends AiStrategyImpl
     final repository = Repository();
     final query = brick.Query(where: [brick.Where('id').isExactly(id)]);
     final result = await repository.get<models.PColor>(
-        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+      query: query,
+      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+    );
     return result.firstOrNull;
   }
 
   @override
-  Future<Variant?> getCustomVariant(
-      {required String businessId,
-      required String branchId,
-      required int tinNumber,
-      required String bhFId}) async {
+  Future<Variant?> getCustomVariant({
+    required String businessId,
+    required String branchId,
+    required int tinNumber,
+    required String bhFId,
+  }) async {
     final repository = Repository();
-    final productQuery = brick.Query(where: [
-      brick.Where('name').isExactly(CUSTOM_PRODUCT),
-      brick.Where('branchId').isExactly(branchId),
-    ]);
+    final productQuery = brick.Query(
+      where: [
+        brick.Where('name').isExactly(CUSTOM_PRODUCT),
+        brick.Where('branchId').isExactly(branchId),
+      ],
+    );
     final productResult = await repository.get<models.Product>(
-        query: productQuery,
-        policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+      query: productQuery,
+      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+    );
     Product? product = productResult.firstOrNull;
 
     if (product == null) {
       // Create a new custom product if it doesn't exist
       product = await createProduct(
-          tinNumber: tinNumber,
-          bhFId: bhFId,
-          skipRRaCall: false,
-          createItemCode: true,
-          branchId: branchId,
+        tinNumber: tinNumber,
+        bhFId: bhFId,
+        skipRRaCall: false,
+        createItemCode: true,
+        branchId: branchId,
+        businessId: businessId,
+        product: models.Product(
+          lastTouched: DateTime.now().toUtc(),
+          name: CUSTOM_PRODUCT,
           businessId: businessId,
-          product: models.Product(
-              lastTouched: DateTime.now().toUtc(),
-              name: CUSTOM_PRODUCT,
-              businessId: businessId,
-              color: "#e74c3c",
-              createdAt: DateTime.now().toUtc(),
-              branchId: branchId));
+          color: "#e74c3c",
+          createdAt: DateTime.now().toUtc(),
+          branchId: branchId,
+        ),
+      );
     }
 
     /// for whatever reason if a product exist and there is no related variant please add it before we proceed.
-    final variantQuery =
-        brick.Query(where: [brick.Where('productId').isExactly(product!.id)]);
+    final variantQuery = brick.Query(
+      where: [brick.Where('productId').isExactly(product!.id)],
+    );
     final variantResult = await repository.get<models.Variant>(
-        query: variantQuery,
-        policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+      query: variantQuery,
+      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+    );
     Variant? variant = variantResult.firstOrNull;
 
     return variant;
@@ -725,39 +769,47 @@ class CoreSync extends AiStrategyImpl
     final tinNumber = await effectiveTin(branchId: branchId) ?? 0;
 
     final repository = Repository();
-    final productQuery = brick.Query(where: [
-      brick.Where('name').isExactly("Utility"),
-      brick.Where('branchId').isExactly(branchId),
-    ]);
+    final productQuery = brick.Query(
+      where: [
+        brick.Where('name').isExactly("Utility"),
+        brick.Where('branchId').isExactly(branchId),
+      ],
+    );
     final productResult = await repository.get<models.Product>(
-        query: productQuery,
-        policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+      query: productQuery,
+      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+    );
     models.Product? product = productResult.firstOrNull;
 
     if (product == null) {
       product = await createProduct(
-          tinNumber: tinNumber,
-          bhFId: bhFId,
-          skipRRaCall: false,
-          createItemCode: true,
-          branchId: branchId,
+        tinNumber: tinNumber,
+        bhFId: bhFId,
+        skipRRaCall: false,
+        createItemCode: true,
+        branchId: branchId,
+        businessId: businessId,
+        product: models.Product(
+          lastTouched: DateTime.now().toUtc(),
+          name: "Utility",
           businessId: businessId,
-          product: models.Product(
-              lastTouched: DateTime.now().toUtc(),
-              name: "Utility",
-              businessId: businessId,
-              color: "#e74c3c",
-              createdAt: DateTime.now().toUtc(),
-              branchId: branchId));
+          color: "#e74c3c",
+          createdAt: DateTime.now().toUtc(),
+          branchId: branchId,
+        ),
+      );
     }
 
-    final variantQuery = brick.Query(where: [
-      brick.Where('productId').isExactly(product!.id),
-      brick.Where('name').isExactly(name),
-    ]);
+    final variantQuery = brick.Query(
+      where: [
+        brick.Where('productId').isExactly(product!.id),
+        brick.Where('name').isExactly(name),
+      ],
+    );
     final variantResult = await repository.get<models.Variant>(
-        query: variantQuery,
-        policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+      query: variantQuery,
+      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+    );
     models.Variant? variant = variantResult.firstOrNull;
 
     if (variant == null) {
@@ -811,9 +863,7 @@ class CoreSync extends AiStrategyImpl
       // Yield results for a specific customer by ID
       yield* repository.subscribe<Customer>(
         query: brick.Query(
-          where: [
-            brick.Where('id', value: id, compare: brick.Compare.exact),
-          ],
+          where: [brick.Where('id', value: id, compare: brick.Compare.exact)],
         ),
       );
       return;
@@ -822,19 +872,26 @@ class CoreSync extends AiStrategyImpl
     if (key != null) {
       // Fetch customers matching the search key asynchronously
       final searchFields = ['custNm', 'email', 'telNo'];
-      final queries = searchFields.map((field) => brick.Query(
-            where: [
-              brick.Where(field, value: key, compare: brick.Compare.contains),
-              brick.Where('branchId',
-                  value: branchId, compare: brick.Compare.exact),
-            ],
-          ));
+      final queries = searchFields.map(
+        (field) => brick.Query(
+          where: [
+            brick.Where(field, value: key, compare: brick.Compare.contains),
+            brick.Where(
+              'branchId',
+              value: branchId,
+              compare: brick.Compare.exact,
+            ),
+          ],
+        ),
+      );
 
       final results = await Future.wait(
-        queries.map((query) => repository.get<Customer>(
-              policy: OfflineFirstGetPolicy.localOnly,
-              query: query,
-            )),
+        queries.map(
+          (query) => repository.get<Customer>(
+            policy: OfflineFirstGetPolicy.localOnly,
+            query: query,
+          ),
+        ),
       );
 
       // Yield combined results from all queries
@@ -846,8 +903,11 @@ class CoreSync extends AiStrategyImpl
     yield* repository.subscribe<Customer>(
       query: brick.Query(
         where: [
-          brick.Where('branchId',
-              value: branchId, compare: brick.Compare.exact),
+          brick.Where(
+            'branchId',
+            value: branchId,
+            compare: brick.Compare.exact,
+          ),
         ],
       ),
     );
@@ -855,30 +915,38 @@ class CoreSync extends AiStrategyImpl
 
   @override
   Stream<Tenant?> getDefaultTenant({required String businessId}) {
-    final query =
-        brick.Query(where: [brick.Where('businessId').isExactly(businessId)]);
+    final query = brick.Query(
+      where: [brick.Where('businessId').isExactly(businessId)],
+    );
     // Return the stream directly instead of storing in variable
     return repository
         .subscribe<Tenant>(
-            query: query,
-            policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist)
+          query: query,
+          policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+        )
         .map((tenants) => tenants.firstOrNull);
   }
 
   @override
-  Future<Device?> getDevice(
-      {required String phone, required String linkingCode}) async {
+  Future<Device?> getDevice({
+    required String phone,
+    required String linkingCode,
+  }) async {
     try {
-      final query = brick.Query(where: [
-        brick.Where('phone', value: phone, compare: brick.Compare.exact),
-        brick.Where(
-          'linkingCode',
-          value: linkingCode,
-          compare: brick.Compare.exact,
-        ),
-      ]);
+      final query = brick.Query(
+        where: [
+          brick.Where('phone', value: phone, compare: brick.Compare.exact),
+          brick.Where(
+            'linkingCode',
+            value: linkingCode,
+            compare: brick.Compare.exact,
+          ),
+        ],
+      );
       final List<Device> fetchedDevices = await repository.get<Device>(
-          policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist, query: query);
+        policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+        query: query,
+      );
       return fetchedDevices.firstOrNull;
     } catch (e) {
       // Log the error but don't throw it up the stack
@@ -887,15 +955,18 @@ class CoreSync extends AiStrategyImpl
       // Try a fallback query with just linkingCode if available
       if (linkingCode.isNotEmpty) {
         try {
-          final fallbackQuery = brick.Query(where: [
-            brick.Where(
-              'linkingCode',
-              value: linkingCode,
-              compare: brick.Compare.exact,
-            ),
-          ]);
-          final List<Device> devices =
-              await repository.get<Device>(query: fallbackQuery);
+          final fallbackQuery = brick.Query(
+            where: [
+              brick.Where(
+                'linkingCode',
+                value: linkingCode,
+                compare: brick.Compare.exact,
+              ),
+            ],
+          );
+          final List<Device> devices = await repository.get<Device>(
+            query: fallbackQuery,
+          );
           return devices.firstOrNull;
         } catch (fallbackError) {
           talker.error('Fallback query also failed: $fallbackError');
@@ -911,7 +982,9 @@ class CoreSync extends AiStrategyImpl
   Future<Device?> getDeviceById({required int id}) async {
     final query = brick.Query(where: [brick.Where('id').isExactly(id)]);
     final List<Device> fetchedDevices = await repository.get<Device>(
-        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+      query: query,
+      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+    );
     return fetchedDevices.firstOrNull;
   }
 
@@ -921,7 +994,9 @@ class CoreSync extends AiStrategyImpl
       where: [brick.Where('businessId').isExactly(businessId)],
     );
     final List<Device> fetchedDevices = await repository.get<Device>(
-        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+      query: query,
+      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+    );
     return fetchedDevices;
   }
 
@@ -929,37 +1004,47 @@ class CoreSync extends AiStrategyImpl
   Future<Favorite?> getFavoriteById({required String favId}) async {
     final query = brick.Query(where: [brick.Where('id').isExactly(favId)]);
     final List<Favorite> fetchedFavorites = await repository.get<Favorite>(
-        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+      query: query,
+      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+    );
     return fetchedFavorites.firstOrNull;
   }
 
   @override
   Future<Favorite?> getFavoriteByIndex({required String favIndex}) async {
-    final query =
-        brick.Query(where: [brick.Where('favIndex').isExactly(favIndex)]);
+    final query = brick.Query(
+      where: [brick.Where('favIndex').isExactly(favIndex)],
+    );
     final List<Favorite> fetchedFavorites = await repository.get<Favorite>(
-        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+      query: query,
+      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+    );
     return fetchedFavorites.firstOrNull;
   }
 
   @override
   Stream<Favorite?> getFavoriteByIndexStream({required String favIndex}) {
     final repository = brick.Repository();
-    final query =
-        brick.Query(where: [brick.Where('favIndex').isExactly(favIndex)]);
+    final query = brick.Query(
+      where: [brick.Where('favIndex').isExactly(favIndex)],
+    );
     return repository
         .subscribe<Favorite>(
-            query: query,
-            policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist)
+          query: query,
+          policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+        )
         .map((data) => data.firstOrNull);
   }
 
   @override
   Future<Favorite?> getFavoriteByProdId({required String prodId}) async {
-    final query =
-        brick.Query(where: [brick.Where('productId').isExactly(prodId)]);
+    final query = brick.Query(
+      where: [brick.Where('productId').isExactly(prodId)],
+    );
     final List<Favorite> fetchedFavorites = await repository.get<Favorite>(
-        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+      query: query,
+      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+    );
     return fetchedFavorites.firstOrNull;
   }
 
@@ -967,7 +1052,9 @@ class CoreSync extends AiStrategyImpl
   Future<List<Favorite>> getFavorites() async {
     final query = brick.Query();
     final List<Favorite> fetchedFavorites = await repository.get<Favorite>(
-        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+      query: query,
+      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+    );
     return fetchedFavorites;
   }
 
@@ -981,52 +1068,60 @@ class CoreSync extends AiStrategyImpl
     final query = brick.Query(
       orderBy: [const OrderBy('createdAt', ascending: false)],
     );
-    final List<FlipperSaleCompaign> fetchedCampaigns =
-        await repository.get<FlipperSaleCompaign>(
-            query: query,
-            policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+    final List<FlipperSaleCompaign> fetchedCampaigns = await repository
+        .get<FlipperSaleCompaign>(
+          query: query,
+          policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+        );
     return fetchedCampaigns.firstOrNull;
   }
 
   @override
-  FutureOr<List<TransactionPaymentRecord>> getPaymentType(
-      {required String transactionId}) async {
+  FutureOr<List<TransactionPaymentRecord>> getPaymentType({
+    required String transactionId,
+  }) async {
     final query = brick.Query(
-        where: [brick.Where('transactionId').isExactly(transactionId)]);
-    final List<TransactionPaymentRecord> fetchedPaymentTypes =
-        await repository.get<TransactionPaymentRecord>(
-            query: query,
-            policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+      where: [brick.Where('transactionId').isExactly(transactionId)],
+    );
+    final List<TransactionPaymentRecord> fetchedPaymentTypes = await repository
+        .get<TransactionPaymentRecord>(
+          query: query,
+          policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+        );
     return fetchedPaymentTypes;
   }
 
   @override
-  Future<ext.IPin?> getPin(
-      {required String pinString,
-      required HttpClientInterface flipperHttpClient}) async {
+  Future<ext.IPin?> getPin({
+    required String pinString,
+    required HttpClientInterface flipperHttpClient,
+  }) async {
     final Uri uri = Uri.parse("$apihub/v2/api/pin/$pinString");
 
     try {
       final localPin = await repository.get<Pin>(
-          query:
-              brick.Query(where: [brick.Where('userId').isExactly(pinString)]),
-          policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+        query: brick.Query(where: [brick.Where('userId').isExactly(pinString)]),
+        policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+      );
 
       if (localPin.firstOrNull != null) {
         Business? business = await getBusinessById(
-            businessId: localPin.firstOrNull!.businessId!);
-        Branch? branchE =
-            await branch(serverId: localPin.firstOrNull!.branchId!);
+          businessId: localPin.firstOrNull!.businessId!,
+        );
+        Branch? branchE = await branch(
+          serverId: localPin.firstOrNull!.branchId!,
+        );
         if (branchE != null || business != null) {
           return IPin(
-              id: localPin.firstOrNull?.id,
-              pin: localPin.firstOrNull?.pin ?? int.parse(pinString),
-              userId: localPin.firstOrNull!.userId!.toString(),
-              phoneNumber: localPin.firstOrNull!.phoneNumber!,
-              branchId: localPin.firstOrNull!.branchId!,
-              businessId: localPin.firstOrNull!.businessId!,
-              ownerName: localPin.firstOrNull!.ownerName ?? "N/A",
-              tokenUid: localPin.firstOrNull!.tokenUid ?? "N/A");
+            id: localPin.firstOrNull?.id,
+            pin: localPin.firstOrNull?.pin ?? int.parse(pinString),
+            userId: localPin.firstOrNull!.userId!.toString(),
+            phoneNumber: localPin.firstOrNull!.phoneNumber!,
+            branchId: localPin.firstOrNull!.branchId!,
+            businessId: localPin.firstOrNull!.businessId!,
+            ownerName: localPin.firstOrNull!.ownerName ?? "N/A",
+            tokenUid: localPin.firstOrNull!.tokenUid ?? "N/A",
+          );
         } else {
           clearData(data: ClearData.Branch, identifier: branchE?.id ?? "");
           clearData(data: ClearData.Business, identifier: business?.id ?? "");
@@ -1047,20 +1142,23 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  FutureOr<Pin?> getPinLocal(
-      {String? userId,
-      required bool alwaysHydrate,
-      String? phoneNumber}) async {
+  FutureOr<Pin?> getPinLocal({
+    String? userId,
+    required bool alwaysHydrate,
+    String? phoneNumber,
+  }) async {
     return (await repository.get<Pin>(
-            policy: alwaysHydrate
-                ? OfflineFirstGetPolicy.awaitRemote
-                : OfflineFirstGetPolicy.localOnly,
-            query: brick.Query(where: [
-              if (userId != null) brick.Where('userId').isExactly(userId),
-              if (phoneNumber != null)
-                brick.Where('phoneNumber').isExactly(phoneNumber)
-            ])))
-        .firstOrNull;
+      policy: alwaysHydrate
+          ? OfflineFirstGetPolicy.awaitRemote
+          : OfflineFirstGetPolicy.localOnly,
+      query: brick.Query(
+        where: [
+          if (userId != null) brick.Where('userId').isExactly(userId),
+          if (phoneNumber != null)
+            brick.Where('phoneNumber').isExactly(phoneNumber),
+        ],
+      ),
+    )).firstOrNull;
   }
 
   @override
@@ -1087,50 +1185,55 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Future<List<Product>> getProducts(
-      {String? key, int? prodIndex, required String branchId}) async {
+  Future<List<Product>> getProducts({
+    String? key,
+    int? prodIndex,
+    required String branchId,
+  }) async {
     if (key != null) {
       return await repository.get<Product>(
-          query: brick.Query(where: [brick.Where('name').isExactly(key)]));
+        query: brick.Query(where: [brick.Where('name').isExactly(key)]),
+      );
     }
     if (prodIndex != null) {
       return await repository.get<Product>(
-          query: brick.Query(where: [brick.Where('id').isExactly(prodIndex)]));
+        query: brick.Query(where: [brick.Where('id').isExactly(prodIndex)]),
+      );
     }
     return await repository.get<Product>(
-        query:
-            brick.Query(where: [brick.Where('branchId').isExactly(branchId)]));
+      query: brick.Query(where: [brick.Where('branchId').isExactly(branchId)]),
+    );
   }
 
   @override
   Future<Receipt?> getReceipt({required String transactionId}) async {
     return (await repository.get<Receipt>(
-            query: brick.Query(where: [
-      brick.Where('transactionId').isExactly(transactionId)
-    ])))
-        .firstOrNull;
+      query: brick.Query(
+        where: [brick.Where('transactionId').isExactly(transactionId)],
+      ),
+    )).firstOrNull;
   }
 
   @override
   FutureOr<Tenant?> getTenant({String? userId, int? pin}) async {
     if (userId != null) {
       return (await repository.get<Tenant>(
-              query:
-                  brick.Query(where: [brick.Where('userId').isExactly(userId)]),
-              policy: OfflineFirstGetPolicy.localOnly))
-          .firstOrNull;
+        query: brick.Query(where: [brick.Where('userId').isExactly(userId)]),
+        policy: OfflineFirstGetPolicy.localOnly,
+      )).firstOrNull;
     } else if (pin != null) {
       return (await repository.get<Tenant>(
-              query: brick.Query(where: [brick.Where('pin').isExactly(pin)]),
-              policy: OfflineFirstGetPolicy.localOnly))
-          .firstOrNull;
+        query: brick.Query(where: [brick.Where('pin').isExactly(pin)]),
+        policy: OfflineFirstGetPolicy.localOnly,
+      )).firstOrNull;
     }
     throw Exception("UserId or Pin is required");
   }
 
   @override
-  Future<({double expense, double income})> getTransactionsAmountsSum(
-      {required String period}) async {
+  Future<({double expense, double income})> getTransactionsAmountsSum({
+    required String period,
+  }) async {
     DateTime oldDate;
     DateTime temporaryDate;
 
@@ -1178,9 +1281,9 @@ class CoreSync extends AiStrategyImpl
     bool? fetchOnline,
   }) async {
     try {
-      final query = brick.Query(where: [
-        brick.Where('businessId').isExactly(businessId),
-      ]);
+      final query = brick.Query(
+        where: [brick.Where('businessId').isExactly(businessId)],
+      );
 
       // Use awaitRemote when explicitly requesting online data to ensure
       // remote fetch happens even if local data exists (important for new devices)
@@ -1189,7 +1292,8 @@ class CoreSync extends AiStrategyImpl
           : OfflineFirstGetPolicy.alwaysHydrate;
 
       talker.info(
-          'getPaymentPlan: businessId=$businessId, fetchOnline=$fetchOnline, policy=$policy');
+        'getPaymentPlan: businessId=$businessId, fetchOnline=$fetchOnline, policy=$policy',
+      );
 
       final result = await repository.get<models.Plan>(
         query: query,
@@ -1203,8 +1307,10 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Future<void> upsertPlan(
-      {required String businessId, required Plan selectedPlan}) async {
+  Future<void> upsertPlan({
+    required String businessId,
+    required Plan selectedPlan,
+  }) async {
     try {
       selectedPlan.updatedAt = DateTime.now();
       await repository.upsert(selectedPlan);
@@ -1215,16 +1321,20 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  FutureOr<bool> isAdmin(
-      {required String userId, required String appFeature}) async {
+  FutureOr<bool> isAdmin({
+    required String userId,
+    required String appFeature,
+  }) async {
     final accesses = await allAccess(userId: userId);
 
     /// cases where no access was set to a user he is admin by default.
     if (accesses.isEmpty) return true;
 
-    return accesses.any((access) =>
-        access.featureName == appFeature &&
-        access.accessLevel?.toLowerCase() == 'admin');
+    return accesses.any(
+      (access) =>
+          access.featureName == appFeature &&
+          access.accessLevel?.toLowerCase() == 'admin',
+    );
   }
 
   bool isEmail(String input) {
@@ -1235,8 +1345,9 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  FutureOr<void> removeCustomerFromTransaction(
-      {required ITransaction transaction}) {
+  FutureOr<void> removeCustomerFromTransaction({
+    required ITransaction transaction,
+  }) {
     transaction.customerId = null;
     transaction.customerTin = null;
     repository.upsert(transaction);
@@ -1250,7 +1361,8 @@ class CoreSync extends AiStrategyImpl
       final result = await amplify.Amplify.Storage
           .remove(
             path: amplify.StoragePath.fromString(
-                'public/branch-$branchId/$fileName'),
+              'public/branch-$branchId/$fileName',
+            ),
           )
           .result;
       talker.warning('Removed file: ${result.removedItem.path}');
@@ -1264,198 +1376,7 @@ class CoreSync extends AiStrategyImpl
   @override
   Stream<List<Report>> reports({required String branchId}) {
     return repository.subscribe(
-        query:
-            brick.Query(where: [brick.Where('branchId').isExactly(branchId)]));
-  }
-
-  @override
-  Future<List<models.InventoryRequest>> requests(
-      {String? branchId, String? requestId}) async {
-    final ditto = dittoService.dittoInstance;
-    if (ditto == null) {
-      throw Exception('Ditto not initialized');
-    }
-
-    if (branchId != null) {
-      final result = await ditto.store.execute(
-        'SELECT * FROM stock_requests WHERE mainBranchId = :branchId AND (status = :pending OR status = :partiallyApproved)',
-        arguments: {
-          'branchId': branchId,
-          'pending': RequestStatus.pending,
-          'partiallyApproved': RequestStatus.partiallyApproved,
-        },
-      );
-
-      final requests = result.items.map((item) {
-        final data = Map<String, dynamic>.from(item.value);
-        return _convertInventoryRequestFromDitto(data);
-      }).toList();
-      return await Future.wait(requests.map(_hydrateSingleRequest));
-    }
-
-    if (requestId != null) {
-      final result = await ditto.store.execute(
-        'SELECT * FROM stock_requests WHERE _id = :requestId',
-        arguments: {'requestId': requestId},
-      );
-
-      final requests = result.items.map((item) {
-        final data = Map<String, dynamic>.from(item.value);
-        return _convertInventoryRequestFromDitto(data);
-      }).toList();
-      return await Future.wait(requests.map(_hydrateSingleRequest));
-    }
-
-    throw Exception("Invalid parameter");
-  }
-
-  @override
-  Stream<List<InventoryRequest>> requestsStream({
-    required String branchId,
-    String filter = RequestStatus.pending,
-    String? search,
-  }) {
-    final ditto = dittoService.dittoInstance;
-    if (ditto == null) {
-      talker.warning(
-          'Ditto not initialized yet, returning empty stream for requests');
-      // Return empty stream instead of error - Ditto will initialize soon
-      return Stream.value([]);
-    }
-
-    final controller = StreamController<List<InventoryRequest>>.broadcast();
-    dynamic observer;
-
-    () async {
-      try {
-        final query =
-            'SELECT * FROM stock_requests WHERE mainBranchId = :branchId AND status = :status';
-        final arguments = {'branchId': branchId, 'status': filter};
-
-        // Subscribe to ensure we have the latest data
-        await ditto.sync.registerSubscription(query, arguments: arguments);
-
-        observer = ditto.store.registerObserver(
-          query,
-          arguments: arguments,
-          onChange: (queryResult) async {
-            if (controller.isClosed) return;
-
-            final requests = queryResult.items.map((item) {
-              final data = Map<String, dynamic>.from(item.value);
-              return _convertInventoryRequestFromDitto(data);
-            }).toList();
-
-            // Hydrate requests
-            final hydratedRequests =
-                await Future.wait(requests.map(_hydrateSingleRequest));
-
-            controller.add(hydratedRequests);
-          },
-        );
-      } catch (e) {
-        talker.error('Error setting up requests observer: $e');
-        controller.addError(e);
-      }
-    }();
-
-    controller.onCancel = () async {
-      await observer?.cancel();
-      await controller.close();
-    };
-
-    return controller.stream;
-  }
-
-  InventoryRequest _convertInventoryRequestFromDitto(
-      Map<String, dynamic> data) {
-    // Parse transactionItems from embedded data
-    List<TransactionItem>? items;
-    if (data['transactionItems'] != null && data['transactionItems'] is List) {
-      items = (data['transactionItems'] as List).map((itemData) {
-        final itemMap = Map<String, dynamic>.from(itemData);
-        return TransactionItem(
-          id: itemMap['id'],
-          name: itemMap['name'],
-          qty: itemMap['qty'] ?? 0,
-          price: itemMap['price'] ?? 0,
-          discount: itemMap['discount'] ?? 0,
-          prc: itemMap['prc'] ?? 0,
-          ttCatCd: itemMap['ttCatCd'],
-          quantityRequested:
-              (itemMap['quantityRequested'] as num?)?.toInt() ?? 0,
-          quantityApproved: (itemMap['quantityApproved'] as num?)?.toInt() ?? 0,
-          quantityShipped: (itemMap['quantityShipped'] as num?)?.toInt() ?? 0,
-          transactionId: itemMap['transactionId'],
-          variantId: itemMap['variantId'],
-          inventoryRequestId: itemMap['inventoryRequestId'],
-        );
-      }).toList();
-    }
-
-    return InventoryRequest(
-      id: data['_id'] ?? data['id'],
-      mainBranchId: data['mainBranchId'],
-      subBranchId: data['subBranchId'],
-      branchId: data['branchId'],
-      createdAt: data['createdAt'] != null
-          ? DateTime.tryParse(data['createdAt'])
-          : null,
-      status: data['status'],
-      deliveryDate: data['deliveryDate'] != null
-          ? DateTime.tryParse(data['deliveryDate'])
-          : null,
-      deliveryNote: data['deliveryNote'],
-      orderNote: data['orderNote'],
-      customerReceivedOrder: data['customerReceivedOrder'],
-      driverRequestDeliveryConfirmation:
-          data['driverRequestDeliveryConfirmation'],
-      driverId: data['driverId'],
-      updatedAt: data['updatedAt'] != null
-          ? DateTime.tryParse(data['updatedAt'])
-          : null,
-      itemCounts: data['itemCounts'],
-      bhfId: data['bhfId'],
-      tinNumber: data['tinNumber'],
-      financingId: data['financingId'],
-      transactionItems: items,
-    );
-  }
-
-  Future<InventoryRequest> _hydrateSingleRequest(InventoryRequest req) async {
-    Branch? hydratedBranch = req.branch;
-
-    if (hydratedBranch == null && req.subBranchId != null) {
-      final branches = await repository.get<Branch>(
-        policy: OfflineFirstGetPolicy.alwaysHydrate,
-        query: brick.Query(where: [
-          brick.Where('serverId').isExactly(req.subBranchId),
-        ]),
-      );
-
-      if (branches.isNotEmpty) {
-        hydratedBranch = branches.first;
-      }
-    }
-
-    Financing? financingToUse = req.financing;
-
-    if (financingToUse == null && req.financingId != null) {
-      final financingList = await repository.get<Financing>(
-        policy: OfflineFirstGetPolicy.alwaysHydrate,
-        query: brick.Query(where: [
-          brick.Where('id').isExactly(req.financingId),
-        ]),
-      );
-
-      if (financingList.isNotEmpty) {
-        financingToUse = financingList.first;
-      }
-    }
-
-    return await req.copyWith(
-      branch: hydratedBranch,
-      financing: financingToUse,
+      query: brick.Query(where: [brick.Where('branchId').isExactly(branchId)]),
     );
   }
 
@@ -1513,9 +1434,7 @@ class CoreSync extends AiStrategyImpl
     }
   }
 
-  Future<List<models.PlanAddon>> _fetchExistingAddons(
-    String businessId,
-  ) async {
+  Future<List<models.PlanAddon>> _fetchExistingAddons(String businessId) async {
     try {
       final response = await Supabase.instance.client
           .from('plans')
@@ -1644,8 +1563,9 @@ class CoreSync extends AiStrategyImpl
     try {
       // First check if a PIN with this userId already exists
       final existingPins = await repository.get<Pin>(
-        query:
-            brick.Query(where: [brick.Where('userId').isExactly(pin.userId)]),
+        query: brick.Query(
+          where: [brick.Where('userId').isExactly(pin.userId)],
+        ),
       );
 
       if (existingPins.isNotEmpty) {
@@ -1665,17 +1585,15 @@ class CoreSync extends AiStrategyImpl
         pin = existingPin;
 
         talker.debug(
-            "Updating existing PIN with userId: ${pin.userId}, ID: ${pin.id}");
+          "Updating existing PIN with userId: ${pin.userId}, ID: ${pin.id}",
+        );
       } else {
         talker.debug("Creating new PIN with userId: ${pin.userId}");
       }
 
       // Use upsert with a query to ensure we're updating the right record
       final query = brick.Query.where('userId', pin.userId, limit1: true);
-      final savedPin = await repository.upsert(
-        pin,
-        query: query,
-      );
+      final savedPin = await repository.upsert(pin, query: query);
 
       return savedPin;
     } catch (e, s) {
@@ -1686,9 +1604,13 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-// Helper method to save a variant
-  Future<void> saveVariant(Variant item, Business business, String branchId,
-      {required bool skipRRaCall}) async {
+  // Helper method to save a variant
+  Future<void> saveVariant(
+    Variant item,
+    Business business,
+    String branchId, {
+    required bool skipRRaCall,
+  }) async {
     final resolvedTin = (await effectiveTin(business: business))!;
     await createProduct(
       skipRRaCall: skipRRaCall,
@@ -1740,8 +1662,9 @@ class CoreSync extends AiStrategyImpl
     if (ProxyService.box.getBusinessId() == null) return;
     if (ProxyService.box.getBranchId() == null) return;
 
-    Business? business =
-        await getBusiness(businessId: ProxyService.box.getBusinessId()!);
+    Business? business = await getBusiness(
+      businessId: ProxyService.box.getBusinessId()!,
+    );
 
     try {
       sendPort!.send({
@@ -1762,9 +1685,10 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Future<Business> signup(
-      {required Map business,
-      required HttpClientInterface flipperHttpClient}) async {
+  Future<Business> signup({
+    required Map business,
+    required HttpClientInterface flipperHttpClient,
+  }) async {
     try {
       // Step 1: Create business via API
       talker.info('Signup: Creating business via API ${apihub}');
@@ -1772,8 +1696,9 @@ class CoreSync extends AiStrategyImpl
       // remove businessTypeId from business map
       business.remove('businessTypeId');
       final http.Response response = await flipperHttpClient.post(
-          Uri.parse("$apihub/v2/api/business"),
-          body: jsonEncode(business));
+        Uri.parse("$apihub/v2/api/business"),
+        body: jsonEncode(business),
+      );
 
       if (response.statusCode != 200 && response.statusCode != 201) {
         talker.error('Signup: API returned error: ${response.statusCode}');
@@ -1791,10 +1716,12 @@ class CoreSync extends AiStrategyImpl
       try {
         jsonData = jsonDecode(responseBody);
         bus = Business.fromMap(jsonData);
-        talker
-            .info('Signup: Business parsed successfully, ID: ${bus.serverId}');
-        await repository
-            .upsert<Business>(bus); // Save the business object locally
+        talker.info(
+          'Signup: Business parsed successfully, ID: ${bus.serverId}',
+        );
+        await repository.upsert<Business>(
+          bus,
+        ); // Save the business object locally
       } catch (e, s) {
         talker.error('Signup: Error parsing business data: $e', s);
         throw e;
@@ -1819,13 +1746,15 @@ class CoreSync extends AiStrategyImpl
       try {
         talker.info('Signup: Saving PIN locally');
         savedPin = await savePin(
-            pin: Pin(
-                userId: bus.userId,
-                id: bus.userId.toString(),
-                branchId: bus.id,
-                businessId: bus.id,
-                ownerName: business['name'] ?? '',
-                phoneNumber: business['phoneNumber'] ?? ''));
+          pin: Pin(
+            userId: bus.userId,
+            id: bus.userId.toString(),
+            branchId: bus.id,
+            businessId: bus.id,
+            ownerName: business['name'] ?? '',
+            phoneNumber: business['phoneNumber'] ?? '',
+          ),
+        );
 
         if (savedPin == null) {
           talker.error('Signup: Failed to save PIN');
@@ -1841,12 +1770,13 @@ class CoreSync extends AiStrategyImpl
       try {
         talker.info('Signup: Logging in with new PIN');
         await login(
-            isInSignUpProgress: true,
-            pin: savedPin,
-            userPhone: business['phoneNumber'],
-            skipDefaultAppSetup: true,
-            flipperHttpClient: flipperHttpClient,
-            freshUser: true);
+          isInSignUpProgress: true,
+          pin: savedPin,
+          userPhone: business['phoneNumber'],
+          skipDefaultAppSetup: true,
+          flipperHttpClient: flipperHttpClient,
+          freshUser: true,
+        );
         talker.info('Signup: Login successful');
       } catch (e, s) {
         talker.error('Signup: Error in login: $e', s);
@@ -1867,8 +1797,9 @@ class CoreSync extends AiStrategyImpl
   Future<void> spawnIsolate(isolateHandler) async {
     try {
       final isTaxEnabledFor = await isTaxEnabled(
-          businessId: ProxyService.box.getBusinessId()!,
-          branchId: ProxyService.box.getBranchId()!);
+        businessId: ProxyService.box.getBusinessId()!,
+        branchId: ProxyService.box.getBranchId()!,
+      );
       if (isTaxEnabledFor) {
         // 1. Create the ReceivePort to receive messages from the isolate
         receivePort = ReceivePort();
@@ -1887,65 +1818,69 @@ class CoreSync extends AiStrategyImpl
         // 3. Retrieve the SendPort sent back by the isolate (used to send messages to the isolate)
         // sendPort = await receivePort!.first;
 
-        receivePort!.listen(
-          (message) async {
-            if (message is SendPort) {
-              // Store the sendPort for communication with isolate
-              sendPort = message;
-              print('SendPort received');
-              return;
+        receivePort!.listen((message) async {
+          if (message is SendPort) {
+            // Store the sendPort for communication with isolate
+            sendPort = message;
+            print('SendPort received');
+            return;
+          }
+          String identifier = message as String;
+          List<String> separator = identifier.split(":");
+
+          if (separator.first == "notification") {
+            if (separator.length == 2) {
+              /// this is error message
+              ProxyService.notification.sendLocalNotification(
+                body: separator[1],
+              );
             }
-            String identifier = message as String;
-            List<String> separator = identifier.split(":");
-
-            if (separator.first == "notification") {
-              if (separator.length == 2) {
-                /// this is error message
-                ProxyService.notification
-                    .sendLocalNotification(body: separator[1]);
-              }
-              if (separator.length < 3) return;
-              if (separator[2] == "variant") {
-                ProxyService.notification
-                    .sendLocalNotification(body: "Item Saving " + separator[1]);
-              }
-              if (separator[2] == "stock") {
-                final stockId = separator[3];
-                Stock? stock = await getStockById(id: stockId);
-
-                stock.ebmSynced = true;
-                repository.upsert<Stock>(stock);
-
-                ProxyService.notification.sendLocalNotification(
-                    body: "Stock Saving " + separator[1]);
-              }
-              if (separator[2] == "customer") {
-                final customerId = separator[3];
-                Customer? customer = (await customers(
-                        id: customerId,
-                        branchId: ProxyService.box.getBranchId()!))
-                    .firstOrNull;
-                if (customer != null) {
-                  customer.ebmSynced = true;
-                  repository.upsert<Customer>(customer);
-                }
-                ProxyService.notification.sendLocalNotification(
-                    body: "Customer Saving " + separator[1]);
-              }
-              if (separator[2] == "transaction") {
-                final transactionId = separator[3];
-                ITransaction? transaction =
-                    (await transactions(id: transactionId)).firstOrNull;
-                if (transaction != null) {
-                  transaction.ebmSynced = true;
-                  repository.upsert<ITransaction>(transaction);
-                }
-                ProxyService.notification.sendLocalNotification(
-                    body: "Transaction Saving " + separator[1]);
-              }
+            if (separator.length < 3) return;
+            if (separator[2] == "variant") {
+              ProxyService.notification.sendLocalNotification(
+                body: "Item Saving " + separator[1],
+              );
             }
-          },
-        );
+            if (separator[2] == "stock") {
+              final stockId = separator[3];
+              Stock? stock = await getStockById(id: stockId);
+
+              stock.ebmSynced = true;
+              repository.upsert<Stock>(stock);
+
+              ProxyService.notification.sendLocalNotification(
+                body: "Stock Saving " + separator[1],
+              );
+            }
+            if (separator[2] == "customer") {
+              final customerId = separator[3];
+              Customer? customer = (await customers(
+                id: customerId,
+                branchId: ProxyService.box.getBranchId()!,
+              )).firstOrNull;
+              if (customer != null) {
+                customer.ebmSynced = true;
+                repository.upsert<Customer>(customer);
+              }
+              ProxyService.notification.sendLocalNotification(
+                body: "Customer Saving " + separator[1],
+              );
+            }
+            if (separator[2] == "transaction") {
+              final transactionId = separator[3];
+              ITransaction? transaction = (await transactions(
+                id: transactionId,
+              )).firstOrNull;
+              if (transaction != null) {
+                transaction.ebmSynced = true;
+                repository.upsert<ITransaction>(transaction);
+              }
+              ProxyService.notification.sendLocalNotification(
+                body: "Transaction Saving " + separator[1],
+              );
+            }
+          }
+        });
       }
     } catch (error, s) {
       talker.warning('Error managing isolates: $error');
@@ -1979,16 +1914,24 @@ class CoreSync extends AiStrategyImpl
     double totalStock = 0.0;
     if (productId != null) {
       List<Stock> stocksIn = await repository.get<Stock>(
-          query: brick.Query(
-              where: [brick.Where('productId').isExactly(productId)]));
-      totalStock =
-          stocksIn.fold(0.0, (sum, stock) => sum + (stock.currentStock!));
+        query: brick.Query(
+          where: [brick.Where('productId').isExactly(productId)],
+        ),
+      );
+      totalStock = stocksIn.fold(
+        0.0,
+        (sum, stock) => sum + (stock.currentStock!),
+      );
     } else if (variantId != null) {
       List<Stock> stocksIn = await repository.get<Stock>(
-          query: brick.Query(
-              where: [brick.Where('variantId').isExactly(variantId)]));
-      totalStock =
-          stocksIn.fold(0.0, (sum, stock) => sum + (stock.currentStock!));
+        query: brick.Query(
+          where: [brick.Where('variantId').isExactly(variantId)],
+        ),
+      );
+      totalStock = stocksIn.fold(
+        0.0,
+        (sum, stock) => sum + (stock.currentStock!),
+      );
     }
     return totalStock;
   }
@@ -1996,31 +1939,33 @@ class CoreSync extends AiStrategyImpl
   @override
   Future<List<IUnit>> units({required String branchId}) async {
     final existingUnits = await repository.get<IUnit>(
-        query:
-            brick.Query(where: [brick.Where('branchId').isExactly(branchId)]));
+      query: brick.Query(where: [brick.Where('branchId').isExactly(branchId)]),
+    );
     if (existingUnits.isNotEmpty) {
       return existingUnits;
     }
     await addUnits(units: mockUnits);
     return await repository.get<IUnit>(
-      query: brick.Query(where: [
-        brick.Where('branchId').isExactly(branchId),
-      ]),
+      query: brick.Query(where: [brick.Where('branchId').isExactly(branchId)]),
       policy: OfflineFirstGetPolicy.localOnly,
     );
   }
 
   @override
-  Future<List<UnversalProduct>> universalProductNames(
-      {required String branchId}) async {
+  Future<List<UnversalProduct>> universalProductNames({
+    required String branchId,
+  }) async {
     return repository.get<UnversalProduct>(
       policy: OfflineFirstGetPolicy.alwaysHydrate,
     );
   }
 
   @override
-  Future<String> uploadPdfToS3(Uint8List pdfData, String fileName,
-      {required String transactionId}) async {
+  Future<String> uploadPdfToS3(
+    Uint8List pdfData,
+    String fileName, {
+    required String transactionId,
+  }) async {
     try {
       String branchId = ProxyService.box.getBranchId()!;
       final filePath = 'public/invoices-${branchId}/$fileName.pdf';
@@ -2033,18 +1978,22 @@ class CoreSync extends AiStrategyImpl
             ),
             path: amplify.StoragePath.fromString(filePath),
             onProgress: (progress) {
-              talker
-                  .warning('Fraction completed: ${progress.fractionCompleted}');
+              talker.warning(
+                'Fraction completed: ${progress.fractionCompleted}',
+              );
             },
           )
           .result;
       // update thi transacton
-      ITransaction? transaction =
-          await _getTransaction(transactionId: transactionId);
+      ITransaction? transaction = await _getTransaction(
+        transactionId: transactionId,
+      );
       if (transaction != null) {
         transaction.receiptFileName = fileName + ".pdf";
-        ProxyService.box
-            .writeString(key: 'getReceiptFileName', value: fileName + ".pdf");
+        ProxyService.box.writeString(
+          key: 'getReceiptFileName',
+          value: fileName + ".pdf",
+        );
         await repository.upsert(transaction);
       }
       return result.uploadedItem.path;
@@ -2055,11 +2004,13 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Future<int> userNameAvailable(
-      {required String name,
-      required HttpClientInterface flipperHttpClient}) async {
-    final response = await flipperHttpClient
-        .get(Uri.parse("$apihub/v2/api/search?name=$name"));
+  Future<int> userNameAvailable({
+    required String name,
+    required HttpClientInterface flipperHttpClient,
+  }) async {
+    final response = await flipperHttpClient.get(
+      Uri.parse("$apihub/v2/api/search?name=$name"),
+    );
     return response.statusCode;
   }
 
@@ -2111,7 +2062,8 @@ class CoreSync extends AiStrategyImpl
           }
         }
         if (countryCode != "N/A" && countryCode != "") {
-          transaction.currentSaleCustomerPhoneNumber = countryCode +
+          transaction.currentSaleCustomerPhoneNumber =
+              countryCode +
               (customerPhone ??
                   ProxyService.box.currentSaleCustomerPhoneNumber())!;
         }
@@ -2122,9 +2074,9 @@ class CoreSync extends AiStrategyImpl
         // Fetch transaction items
         talker.info("collectPayment: Explicitly fetching transaction items");
         final items = await repository.get<TransactionItem>(
-          query: brick.Query(where: [
-            brick.Where('transactionId').isExactly(transaction.id),
-          ]),
+          query: brick.Query(
+            where: [brick.Where('transactionId').isExactly(transaction.id)],
+          ),
           policy: OfflineFirstGetPolicy.localOnly,
         );
         talker.info("collectPayment: Found ${items.length} items");
@@ -2134,8 +2086,10 @@ class CoreSync extends AiStrategyImpl
 
         // sum up all discount found on item then save them on a transaction
         talker.info("collectPayment: Calculating discountAmount");
-        transaction.discountAmount =
-            items.fold(0, (a, b) => a! + (b.dcAmt ?? 0));
+        transaction.discountAmount = items.fold(
+          0,
+          (a, b) => a! + (b.dcAmt ?? 0),
+        );
 
         transaction.subTotal = items.isEmpty
             ? cashReceived
@@ -2168,16 +2122,20 @@ class CoreSync extends AiStrategyImpl
 
         if (isIncome) {
           talker.info(
-              "Processing income items for transaction ${transaction.id}");
+            "Processing income items for transaction ${transaction.id}",
+          );
         }
         // Touch variants' lastTouched asynchronously to aid reporting without blocking the flow.
         Future.microtask(() async {
           final items = transaction.items ?? const <TransactionItem>[];
           talker.info(
-              "Touching ${items.length} items for transaction ${transaction.id}");
+            "Touching ${items.length} items for transaction ${transaction.id}",
+          );
 
-          final variantIds =
-              items.map((i) => i.variantId).whereType<String>().toSet();
+          final variantIds = items
+              .map((i) => i.variantId)
+              .whereType<String>()
+              .toSet();
           for (final id in variantIds) {
             final variant = await ProxyService.strategy.getVariant(id: id);
             if (variant != null) {
@@ -2201,53 +2159,56 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  FutureOr<void> addAccess(
-      {required String userId,
-      required String featureName,
-      required String accessLevel,
-      required String userType,
-      required String status,
-      required String branchId,
-      required String businessId,
-      DateTime? createdAt}) async {
-    await repository.upsert<Access>(Access(
-      branchId: branchId,
-      businessId: businessId,
-      userId: userId,
-      featureName: featureName,
-      accessLevel: accessLevel,
-      status: status,
-      userType: userType,
-      createdAt: createdAt,
-    ));
+  FutureOr<void> addAccess({
+    required String userId,
+    required String featureName,
+    required String accessLevel,
+    required String userType,
+    required String status,
+    required String branchId,
+    required String businessId,
+    DateTime? createdAt,
+  }) async {
+    await repository.upsert<Access>(
+      Access(
+        branchId: branchId,
+        businessId: businessId,
+        userId: userId,
+        featureName: featureName,
+        accessLevel: accessLevel,
+        status: status,
+        userType: userType,
+        createdAt: createdAt,
+      ),
+    );
   }
 
   @override
   FutureOr<void> addColor({required String name, required String branchId}) {
-    repository.upsert<PColor>(PColor(
-      name: name,
-      active: false,
-      branchId: branchId,
-    ));
+    repository.upsert<PColor>(
+      PColor(name: name, active: false, branchId: branchId),
+    );
   }
 
   @override
-  FutureOr<void> deleteAll<T extends Object>(
-      {required String tableName}) async {}
+  FutureOr<void> deleteAll<T extends Object>({
+    required String tableName,
+  }) async {}
 
   @override
-  FutureOr<void> updateCategory(
-      {required String categoryId,
-      String? name,
-      bool? active,
-      bool? focused,
-      String? branchId}) async {
+  FutureOr<void> updateCategory({
+    required String categoryId,
+    String? name,
+    bool? active,
+    bool? focused,
+    String? branchId,
+  }) async {
     final category = (await repository.get<Category>(
-            query: brick.Query(where: [
-              brick.Where('id', value: categoryId, compare: Compare.exact),
-            ]),
-            policy: OfflineFirstGetPolicy.localOnly))
-        .firstOrNull;
+      query: brick.Query(
+        where: [brick.Where('id', value: categoryId, compare: Compare.exact)],
+      ),
+      policy: OfflineFirstGetPolicy.localOnly,
+    )).firstOrNull;
     if (category != null) {
       category.name = name ?? category.name;
       category.active = active ?? category.active;
@@ -2268,16 +2229,23 @@ class CoreSync extends AiStrategyImpl
       if (data is PColor) {
         PColor color = data;
         for (String colorName in data.colors!) {
-          await repository.upsert<PColor>(PColor(
-              name: colorName, active: color.active, branchId: color.branchId));
+          await repository.upsert<PColor>(
+            PColor(
+              name: colorName,
+              active: color.active,
+              branchId: color.branchId,
+            ),
+          );
         }
         return data as T;
       }
 
       if (data is Device) {
         final existingDevice = await repository.get<Device>(
-            query: brick.Query(
-                where: [brick.Where('userId').isExactly(data.userId)]));
+          query: brick.Query(
+            where: [brick.Where('userId').isExactly(data.userId)],
+          ),
+        );
         if (existingDevice.isNotEmpty) {
           final device = existingDevice.first;
           device.linkingCode = data.linkingCode;
@@ -2372,20 +2340,25 @@ class CoreSync extends AiStrategyImpl
   @override
   Future<List<Configurations>> taxes({required String branchId}) async {
     return await repository.get<Configurations>(
-        policy: OfflineFirstGetPolicy.awaitRemote,
-        query:
-            brick.Query(where: [brick.Where('branchId').isExactly(branchId)]));
+      policy: OfflineFirstGetPolicy.awaitRemote,
+      query: brick.Query(where: [brick.Where('branchId').isExactly(branchId)]),
+    );
   }
 
   Future<ITransaction?> _getTransaction({String? transactionId}) async {
     return (await repository.get<ITransaction>(
-            policy: OfflineFirstGetPolicy.localOnly,
-            query: brick.Query(where: [
-              if (transactionId != null)
-                brick.Where('id',
-                    value: transactionId, compare: brick.Compare.exact),
-            ])))
-        .firstOrNull;
+      policy: OfflineFirstGetPolicy.localOnly,
+      query: brick.Query(
+        where: [
+          if (transactionId != null)
+            brick.Where(
+              'id',
+              value: transactionId,
+              compare: brick.Compare.exact,
+            ),
+        ],
+      ),
+    )).firstOrNull;
   }
 
   @override
@@ -2394,8 +2367,10 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Future<bool> isTaxEnabled(
-      {required String businessId, required String branchId}) async {
+  Future<bool> isTaxEnabled({
+    required String businessId,
+    required String branchId,
+  }) async {
     try {
       final ditto = dittoService.dittoInstance;
       if (ditto == null) {
@@ -2459,8 +2434,8 @@ class CoreSync extends AiStrategyImpl
 
         final isMobile =
             foundation.defaultTargetPlatform == foundation.TargetPlatform.iOS ||
-                foundation.defaultTargetPlatform ==
-                    foundation.TargetPlatform.android;
+            foundation.defaultTargetPlatform ==
+                foundation.TargetPlatform.android;
 
         if (isMobile &&
             taxServerUrl != null &&
@@ -2496,17 +2471,20 @@ class CoreSync extends AiStrategyImpl
 
     if (paymentMethod == null && paymentRecord == null) {
       throw ArgumentError(
-          'Either paymentMethod or paymentRecord must be provided');
+        'Either paymentMethod or paymentRecord must be provided',
+      );
     }
 
     // 1. Delete records with amount 0
     final transactionPaymentRecordWithAmount0 = await repository
         .get<TransactionPaymentRecord>(
           policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
-          query: brick.Query(where: [
-            brick.Where('transactionId').isExactly(transactionId),
-            brick.Where('amount').isExactly(0.0),
-          ]),
+          query: brick.Query(
+            where: [
+              brick.Where('transactionId').isExactly(transactionId),
+              brick.Where('amount').isExactly(0.0),
+            ],
+          ),
         )
         .then((records) => records.firstOrNull);
 
@@ -2520,17 +2498,18 @@ class CoreSync extends AiStrategyImpl
     // 2. Handle single payment mode
     if (singlePaymentOnly) {
       final existingRecords = await repository.get<TransactionPaymentRecord>(
-        query: brick.Query(where: [
-          brick.Where('transactionId').isExactly(transactionId),
-        ]),
+        query: brick.Query(
+          where: [brick.Where('transactionId').isExactly(transactionId)],
+        ),
       );
 
       await Future.wait(
-        existingRecords
-            .map((record) => repository.delete<TransactionPaymentRecord>(
-                  record,
-                  query: brick.Query(action: QueryAction.delete),
-                )),
+        existingRecords.map(
+          (record) => repository.delete<TransactionPaymentRecord>(
+            record,
+            query: brick.Query(action: QueryAction.delete),
+          ),
+        ),
       );
     }
 
@@ -2561,10 +2540,9 @@ class CoreSync extends AiStrategyImpl
   @override
   FutureOr<LPermission?> permission({required String userId}) async {
     return (await repository.get<LPermission>(
-            query:
-                brick.Query(where: [brick.Where('userId').isExactly(userId)]),
-            policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist))
-        .firstOrNull;
+      query: brick.Query(where: [brick.Where('userId').isExactly(userId)]),
+      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+    )).firstOrNull;
   }
 
   @override
@@ -2573,15 +2551,16 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  void updateAccess(
-      {required String accessId,
-      required String userId,
-      required String featureName,
-      required String accessLevel,
-      required String status,
-      required String branchId,
-      required String businessId,
-      required String userType}) {
+  void updateAccess({
+    required String accessId,
+    required String userId,
+    required String featureName,
+    required String accessLevel,
+    required String status,
+    required String branchId,
+    required String businessId,
+    required String userType,
+  }) {
     Access access = Access(
       id: accessId,
       userId: userId,
@@ -2596,10 +2575,11 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Future<List<Access>> access(
-      {required String userId,
-      String? featureName,
-      required bool fetchRemote}) async {
+  Future<List<Access>> access({
+    required String userId,
+    String? featureName,
+    required bool fetchRemote,
+  }) async {
     final accesses = await allAccess(userId: userId);
     if (featureName != null) {
       return accesses
@@ -2610,8 +2590,10 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  FutureOr<SKU> getSku(
-      {required String branchId, required String businessId}) async {
+  FutureOr<SKU> getSku({
+    required String branchId,
+    required String businessId,
+  }) async {
     final query = brick.Query(
       where: [
         brick.Where('branchId').isExactly(branchId),
@@ -2621,7 +2603,9 @@ class CoreSync extends AiStrategyImpl
     );
 
     final skus = await repository.get<SKU>(
-        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+      query: query,
+      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+    );
 
     // Get highest sequence number
     int lastSequence = skus.isEmpty ? 0 : skus.last.sku ?? 0;
@@ -2648,30 +2632,28 @@ class CoreSync extends AiStrategyImpl
     );
 
     return repository
-        .subscribe<SKU>(
-          query: query,
-          policy: OfflineFirstGetPolicy.localOnly,
-        )
+        .subscribe<SKU>(query: query, policy: OfflineFirstGetPolicy.localOnly)
         .map((skus) => skus.isNotEmpty ? skus.first : null);
   }
 
   @override
-  Future<Variant> createVariant(
-      {required String barCode,
-      required int sku,
-      required String productId,
-      required String branchId,
-      required double retailPrice,
-      required double supplierPrice,
-      required double qty,
-      Map<String, String>? taxTypes,
-      Map<String, String>? itemClasses,
-      Map<String, String>? itemTypes,
-      required String color,
-      required int tinNumber,
-      required int itemSeq,
-      required String name,
-      models.Configurations? taxType}) async {
+  Future<Variant> createVariant({
+    required String barCode,
+    required int sku,
+    required String productId,
+    required String branchId,
+    required double retailPrice,
+    required double supplierPrice,
+    required double qty,
+    Map<String, String>? taxTypes,
+    Map<String, String>? itemClasses,
+    Map<String, String>? itemTypes,
+    required String color,
+    required int tinNumber,
+    required int itemSeq,
+    required String name,
+    models.Configurations? taxType,
+  }) async {
     return await _createRegularVariant(
       branchId,
       tinNumber,
@@ -2691,10 +2673,15 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Future<void> updateStockRequest(
-      {required String stockRequestId,
-      DateTime? updatedAt,
-      String? status}) async {
+  Future<void> updateStockRequest({
+    required String stockRequestId,
+    DateTime? updatedAt,
+    String? status,
+    String? approvedBy,
+    DateTime? approvedAt,
+    String? deliveryNote,
+    String? orderNote,
+  }) async {
     final ditto = dittoService.dittoInstance;
     if (ditto == null) {
       throw Exception('Ditto not initialized:002');
@@ -2707,6 +2694,18 @@ class CoreSync extends AiStrategyImpl
     if (status != null) {
       updateData['status'] = status;
     }
+    if (approvedBy != null) {
+      updateData['approvedBy'] = approvedBy;
+    }
+    if (approvedAt != null) {
+      updateData['approvedAt'] = approvedAt.toIso8601String();
+    }
+    if (deliveryNote != null) {
+      updateData['deliveryNote'] = deliveryNote;
+    }
+    if (orderNote != null) {
+      updateData['orderNote'] = orderNote;
+    }
 
     if (updateData.isNotEmpty) {
       await ditto.store.execute(
@@ -2716,67 +2715,13 @@ class CoreSync extends AiStrategyImpl
     }
   }
 
+
   @override
-  Future<void> updateStockRequestItem({
-    required String requestId,
-    required String transactionItemId,
-    int? quantityApproved,
-    bool? ignoreForReport,
+  Future<void> createNewStock({
+    required Variant variant,
+    required TransactionItem item,
+    required String subBranchId,
   }) async {
-    final ditto = dittoService.dittoInstance;
-    if (ditto == null) {
-      throw Exception('Ditto not initialized:003');
-    }
-
-    // Get the request
-    final result = await ditto.store.execute(
-      'SELECT * FROM stock_requests WHERE _id = :requestId LIMIT 1',
-      arguments: {'requestId': requestId},
-    );
-
-    if (result.items.isEmpty) {
-      talker.error('Stock request with ID $requestId not found');
-      throw Exception('Stock request with ID $requestId not found');
-    }
-
-    final requestData = Map<String, dynamic>.from(result.items.first.value);
-    final transactionItems = requestData['transactionItems'] as List?;
-
-    if (transactionItems != null) {
-      // Find and update the item
-      final itemIndex = transactionItems
-          .indexWhere((item) => item['id'] == transactionItemId);
-
-      if (itemIndex != -1) {
-        final item = Map<String, dynamic>.from(transactionItems[itemIndex]);
-
-        if (quantityApproved != null) {
-          item['quantityApproved'] =
-              (item['quantityApproved'] ?? 0) + quantityApproved;
-        }
-        if (ignoreForReport != null) {
-          item['ignoreForReport'] = ignoreForReport;
-        }
-
-        transactionItems[itemIndex] = item;
-
-        // Update the request with modified items
-        await ditto.store.execute(
-          'UPDATE stock_requests SET transactionItems = :items WHERE _id = :requestId',
-          arguments: {
-            'items': transactionItems,
-            'requestId': requestId,
-          },
-        );
-      }
-    }
-  }
-
-  @override
-  Future<void> createNewStock(
-      {required Variant variant,
-      required TransactionItem item,
-      required String subBranchId}) async {
     final newStock = Stock(
       lastTouched: DateTime.now().toUtc(),
       branchId: subBranchId,
@@ -2792,9 +2737,10 @@ class CoreSync extends AiStrategyImpl
   Future<int> addFavorite({required models.Favorite data}) async {
     try {
       Favorite? fav = (await repository.get<Favorite>(
-              query: brick.Query(
-                  where: [brick.Where('favIndex').isExactly(data.favIndex)])))
-          .firstOrNull;
+        query: brick.Query(
+          where: [brick.Where('favIndex').isExactly(data.favIndex)],
+        ),
+      )).firstOrNull;
 
       if (fav == null) {
         await repository.upsert(data);
@@ -2812,13 +2758,16 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Future<bool> bindProduct(
-      {required String productId, required String tenantId}) async {
+  Future<bool> bindProduct({
+    required String productId,
+    required String tenantId,
+  }) async {
     try {
       final product = await getProduct(
-          id: productId,
-          branchId: ProxyService.box.getBranchId()!,
-          businessId: ProxyService.box.getBusinessId()!);
+        id: productId,
+        branchId: ProxyService.box.getBranchId()!,
+        businessId: ProxyService.box.getBusinessId()!,
+      );
 
       if (product == null) {
         return false;
@@ -2838,124 +2787,16 @@ class CoreSync extends AiStrategyImpl
 
   @override
   Future<String> createStockRequest(
-    List<models.TransactionItem> items, {
+    List<TransactionItem> items, {
     required String mainBranchId,
     required String subBranchId,
     String? deliveryNote,
     String? orderNote,
     String? financingId,
-  }) async {
-    try {
-      final String requestId = const Uuid().v4();
-      final String? bhfId = await ProxyService.box.bhfId();
-      int? tin = await effectiveTin(branchId: ProxyService.box.getBranchId()!);
-
-      FinanceProvider? provider;
-      if (financingId != null) {
-        provider = (await repository.get<FinanceProvider>(
-          policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
-          query: brick.Query(where: [
-            brick.Where('id').isExactly(financingId),
-          ]),
-        ))
-            .firstOrNull;
-      }
-
-      final financing = Financing(
-        id: provider?.id,
-        provider: provider,
-        requested: true,
-        amount: items.fold(
-          0,
-          (previousValue, element) => previousValue! + element.price,
-        ),
-        status: 'pending',
-        financeProviderId: provider?.id,
-        approvalDate: DateTime.now().toUtc(),
-      );
-
-      await repository.upsert(financing);
-
-      final InventoryRequest request = InventoryRequest(
-        id: requestId,
-        mainBranchId: mainBranchId,
-        subBranchId: subBranchId,
-        financing: financing,
-        createdAt: DateTime.now().toUtc(),
-        status: RequestStatus.pending,
-        deliveryNote: deliveryNote,
-        orderNote: orderNote,
-        bhfId: bhfId,
-        tinNumber: tin!.toString(),
-        branchId: (await ProxyService.strategy
-                .activeBranch(branchId: ProxyService.box.getBranchId()!))
-            .id,
-        financingId: financingId,
-        itemCounts: items.length,
-        transactionItems: items
-            .map((item) => item.copyWith(inventoryRequestId: requestId))
-            .toList(),
-      );
-
-      final ditto = dittoService.dittoInstance;
-      if (ditto == null) {
-        throw Exception('Ditto not initialized:004');
-      }
-
-      final requestDoc = {
-        '_id': request.id,
-        'mainBranchId': request.mainBranchId,
-        'subBranchId': request.subBranchId,
-        'branchId': request.branchId,
-        'createdAt': request.createdAt?.toIso8601String(),
-        'status': request.status,
-        'deliveryDate': request.deliveryDate?.toIso8601String(),
-        'deliveryNote': request.deliveryNote,
-        'orderNote': request.orderNote,
-        'customerReceivedOrder': request.customerReceivedOrder,
-        'driverRequestDeliveryConfirmation':
-            request.driverRequestDeliveryConfirmation,
-        'driverId': request.driverId,
-        'updatedAt': request.updatedAt?.toIso8601String(),
-        'itemCounts': request.itemCounts,
-        'bhfId': request.bhfId,
-        'tinNumber': request.tinNumber,
-        'financingId': request.financingId,
-        'transactionItems': request.transactionItems
-            ?.map((item) => {
-                  'id': item.id,
-                  'name': item.name,
-                  'qty': item.qty,
-                  'price': item.price,
-                  'discount': item.discount,
-                  'prc': item.prc,
-                  'ttCatCd': item.ttCatCd,
-                  'quantityRequested': item.qty,
-                  'quantityApproved': 0,
-                  'quantityShipped': 0,
-                  'transactionId': item.transactionId,
-                  'variantId': item.variantId,
-                  'inventoryRequestId': item.inventoryRequestId,
-                })
-            .toList(),
-      };
-
-      await ditto.store.execute('''
-  INSERT INTO stock_requests
-  DOCUMENTS (:request)
-  ON ID CONFLICT DO UPDATE
-  ''', arguments: {
-        'request': requestDoc,
-      });
-
-      return requestId;
-    } catch (e) {
-      talker.error('Error in createStockRequest: $e');
-      rethrow;
-    }
+  }) {
+    throw UnimplementedError();
   }
 
-  @override
   conversations({int? conversationId}) {
     // TODO: implement conversations
     throw UnimplementedError();
@@ -2973,7 +2814,7 @@ class CoreSync extends AiStrategyImpl
     throw UnimplementedError();
   }
 
-//TODO: check if we are setting modrId same as barcode in other places
+  //TODO: check if we are setting modrId same as barcode in other places
   @override
   Future<void> processItem({
     required Variant item,
@@ -2998,7 +2839,8 @@ class CoreSync extends AiStrategyImpl
           // Update EBM fields from the maps (with proper defaults)
           variant.itemClsCd =
               itemClasses[item.barCode] ?? variant.itemClsCd ?? "5020230602";
-          variant.itemTyCd = itemTypes[item.barCode] ??
+          variant.itemTyCd =
+              itemTypes[item.barCode] ??
               variant.itemTyCd ??
               "2"; // 2 = Finished Product
           variant.taxTyCd = taxTypes[item.barCode] ?? variant.taxTyCd ?? "B";
@@ -3053,7 +2895,8 @@ class CoreSync extends AiStrategyImpl
           // Update EBM fields from the maps (with proper defaults)
           variant.itemClsCd =
               itemClasses[item.barCode] ?? variant.itemClsCd ?? "5020230602";
-          variant.itemTyCd = itemTypes[item.barCode] ??
+          variant.itemTyCd =
+              itemTypes[item.barCode] ??
               variant.itemTyCd ??
               "2"; // 2 = Finished Product
           variant.taxTyCd = taxTypes[item.barCode] ?? variant.taxTyCd ?? "B";
@@ -3185,18 +3028,21 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Future<void> loadConversations(
-      {required String businessId,
-      int? pageSize = 10,
-      String? pk,
-      String? sk}) {
+  Future<void> loadConversations({
+    required String businessId,
+    int? pageSize = 10,
+    String? pk,
+    String? sk,
+  }) {
     // TODO: implement loadConversations
     throw UnimplementedError();
   }
 
   @override
-  Future<ext.SocialToken?> loginOnSocial(
-      {String? phoneNumberOrEmail, String? password}) {
+  Future<ext.SocialToken?> loginOnSocial({
+    String? phoneNumberOrEmail,
+    String? password,
+  }) {
     // TODO: implement loginOnSocial
     throw UnimplementedError();
   }
@@ -3237,8 +3083,10 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Future<void> refreshSession(
-      {required String branchId, int? refreshRate = 5}) {
+  Future<void> refreshSession({
+    required String branchId,
+    int? refreshRate = 5,
+  }) {
     // TODO: implement refreshSession
     throw UnimplementedError();
   }
@@ -3260,7 +3108,8 @@ class CoreSync extends AiStrategyImpl
     try {
       await repository.upsert<Composite>(composite);
       talker.debug(
-          "Saved composite: productId=${composite.productId}, variantId=${composite.variantId}, qty=${composite.qty}");
+        "Saved composite: productId=${composite.productId}, variantId=${composite.variantId}, qty=${composite.qty}",
+      );
     } catch (e, s) {
       talker.error("Error saving composite: $e");
       talker.error(s.toString());
@@ -3269,23 +3118,25 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Future<void> saveDiscount(
-      {required String branchId, required name, double? amount}) {
+  Future<void> saveDiscount({
+    required String branchId,
+    required name,
+    double? amount,
+  }) {
     // TODO: implement saveDiscount
     throw UnimplementedError();
   }
 
   @override
-  Future<models.Configurations> saveTax(
-      {required String configId, required double taxPercentage}) async {
+  Future<models.Configurations> saveTax({
+    required String configId,
+    required double taxPercentage,
+  }) async {
     try {
       // Get existing configuration or create new one
       final existingConfig = (await repository.get<Configurations>(
-        query: brick.Query(where: [
-          brick.Where('id').isExactly(configId),
-        ]),
-      ))
-          .firstOrNull;
+        query: brick.Query(where: [brick.Where('id').isExactly(configId)]),
+      )).firstOrNull;
 
       Configurations config;
       if (existingConfig != null) {
@@ -3294,10 +3145,7 @@ class CoreSync extends AiStrategyImpl
         config.taxPercentage = taxPercentage;
       } else {
         // Create new configuration
-        config = Configurations(
-          id: configId,
-          taxPercentage: taxPercentage,
-        );
+        config = Configurations(id: configId, taxPercentage: taxPercentage);
       }
 
       // Save the configuration
@@ -3311,8 +3159,9 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Future<int> sendReport(
-      {required List<models.TransactionItem> transactionItems}) {
+  Future<int> sendReport({
+    required List<models.TransactionItem> transactionItems,
+  }) {
     // TODO: implement sendReport
     throw UnimplementedError();
   }
@@ -3327,23 +3176,25 @@ class CoreSync extends AiStrategyImpl
   Future<void> startReplicator() async {}
 
   @override
-  Future<({String customerCode, String url, int userId})> subscribe(
-      {required String businessId,
-      required models.Business business,
-      required int agentCode,
-      required HttpClientInterface flipperHttpClient,
-      required int amount}) {
+  Future<({String customerCode, String url, int userId})> subscribe({
+    required String businessId,
+    required models.Business business,
+    required int agentCode,
+    required HttpClientInterface flipperHttpClient,
+    required int amount,
+  }) {
     // TODO: implement subscribe
     throw UnimplementedError();
   }
 
   @override
-  FutureOr<void> updateAcess(
-      {required String userId,
-      String? featureName,
-      String? status,
-      String? accessLevel,
-      String? userType}) {
+  FutureOr<void> updateAcess({
+    required String userId,
+    String? featureName,
+    String? status,
+    String? accessLevel,
+    String? userType,
+  }) {
     // TODO: implement updateAcess
     throw UnimplementedError();
   }
@@ -3355,25 +3206,34 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  FutureOr<void> updateColor(
-      {required String colorId, String? name, bool? active}) {
+  FutureOr<void> updateColor({
+    required String colorId,
+    String? name,
+    bool? active,
+  }) {
     // TODO: implement updateColor
     throw UnimplementedError();
   }
 
   @override
-  FutureOr<void> updateNotification(
-      {required String notificationId, bool? completed}) {
+  FutureOr<void> updateNotification({
+    required String notificationId,
+    bool? completed,
+  }) {
     // TODO: implement updateNotification
     throw UnimplementedError();
   }
 
   @override
-  Future<void> updatePin(
-      {required String userId, String? phoneNumber, String? tokenUid}) async {
+  Future<void> updatePin({
+    required String userId,
+    String? phoneNumber,
+    String? tokenUid,
+  }) async {
     try {
       List<Pin> pins = await repository.get<Pin>(
-          query: brick.Query(where: [brick.Where('userId').isExactly(userId)]));
+        query: brick.Query(where: [brick.Where('userId').isExactly(userId)]),
+      );
 
       if (pins.isNotEmpty) {
         Pin myPin = pins.first;
@@ -3389,7 +3249,8 @@ class CoreSync extends AiStrategyImpl
         }
 
         talker.debug(
-            "Updating PIN for userId: $userId with tokenUid: ${tokenUid ?? 'unchanged'}");
+          "Updating PIN for userId: $userId with tokenUid: ${tokenUid ?? 'unchanged'}",
+        );
         await repository.upsert(myPin);
       } else {
         talker.warning("No PIN found for userId: $userId. Cannot update.");
@@ -3407,41 +3268,50 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  FutureOr<void> updateUnit(
-      {required String unitId, String? name, bool? active, String? branchId}) {
+  FutureOr<void> updateUnit({
+    required String unitId,
+    String? name,
+    bool? active,
+    String? branchId,
+  }) {
     // TODO: implement updateUnit
     throw UnimplementedError();
   }
 
   Future<Stock> getStockById({required String id}) async {
     return (await repository.get<Stock>(
-            query: brick.Query(where: [brick.Where('id').isExactly(id)])))
-        .first;
+      query: brick.Query(where: [brick.Where('id').isExactly(id)]),
+    )).first;
   }
 
   @override
-  Future<bool> isBranchEnableForPayment(
-      {required String currentBranchId, bool fetchRemote = false}) async {
+  Future<bool> isBranchEnableForPayment({
+    required String currentBranchId,
+    bool fetchRemote = false,
+  }) async {
     final payment_status = await repository.get<BranchPaymentIntegration>(
-        policy: fetchRemote
-            ? OfflineFirstGetPolicy.alwaysHydrate
-            : OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
-        query: brick.Query(where: [
-          brick.Where('branchId').isExactly(currentBranchId),
-        ]));
+      policy: fetchRemote
+          ? OfflineFirstGetPolicy.alwaysHydrate
+          : OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+      query: brick.Query(
+        where: [brick.Where('branchId').isExactly(currentBranchId)],
+      ),
+    );
     final decision = payment_status.firstOrNull?.isEnabled ?? false;
     return decision;
   }
 
   @override
-  Future<void> setBranchPaymentStatus(
-      {required String currentBranchId, required bool status}) async {
+  Future<void> setBranchPaymentStatus({
+    required String currentBranchId,
+    required bool status,
+  }) async {
     final payment_status = (await repository.get<BranchPaymentIntegration>(
-            policy: OfflineFirstGetPolicy.alwaysHydrate,
-            query: brick.Query(where: [
-              brick.Where('branchId').isExactly(currentBranchId),
-            ])))
-        .firstOrNull;
+      policy: OfflineFirstGetPolicy.alwaysHydrate,
+      query: brick.Query(
+        where: [brick.Where('branchId').isExactly(currentBranchId)],
+      ),
+    )).firstOrNull;
     if (payment_status != null) {
       payment_status.isEnabled = status;
       await repository.upsert<BranchPaymentIntegration>(payment_status);
@@ -3468,19 +3338,21 @@ class CoreSync extends AiStrategyImpl
 
   @override
   Future<models.CustomerPayments> upsertPayment(
-      models.CustomerPayments payment) async {
+    models.CustomerPayments payment,
+  ) async {
     return await repository.upsert<CustomerPayments>(payment);
   }
 
   @override
-  Future<CustomerPayments?> getPayment(
-      {required String paymentReference}) async {
+  Future<CustomerPayments?> getPayment({
+    required String paymentReference,
+  }) async {
     return (await repository.get<CustomerPayments>(
-            policy: OfflineFirstGetPolicy.alwaysHydrate,
-            query: brick.Query(where: [
-              brick.Where('transactionId').isExactly(paymentReference),
-            ])))
-        .firstOrNull;
+      policy: OfflineFirstGetPolicy.alwaysHydrate,
+      query: brick.Query(
+        where: [brick.Where('transactionId').isExactly(paymentReference)],
+      ),
+    )).firstOrNull;
   }
 
   @override
@@ -3491,20 +3363,18 @@ class CoreSync extends AiStrategyImpl
   @override
   Future<Credit?> getCredit({required String branchId}) async {
     return (await repository.get<Credit>(
-            policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
-            query: brick.Query(where: [
-              brick.Where('branchId').isExactly(branchId),
-            ])))
-        .firstOrNull;
+      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+      query: brick.Query(where: [brick.Where('branchId').isExactly(branchId)]),
+    )).firstOrNull;
   }
 
   Stream<Credit?> credit({required String branchId}) {
     return repository
         .subscribe<Credit>(
           policy: OfflineFirstGetPolicy.alwaysHydrate,
-          query: brick.Query(where: [
-            brick.Where('branchId').isExactly(branchId),
-          ]),
+          query: brick.Query(
+            where: [brick.Where('branchId').isExactly(branchId)],
+          ),
         )
         .map((list) => list.isNotEmpty ? list.first : null);
   }
@@ -3512,7 +3382,8 @@ class CoreSync extends AiStrategyImpl
   @override
   Future<List<Country>> countries() async {
     return await repository.get<Country>(
-        policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+    );
   }
 
   @override
@@ -3521,9 +3392,7 @@ class CoreSync extends AiStrategyImpl
 
     // Fetch all variants for the given branch
     final variants = await repository.get<Variant>(
-      query: brick.Query(where: [
-        brick.Where('branchId').isExactly(branchId),
-      ]),
+      query: brick.Query(where: [brick.Where('branchId').isExactly(branchId)]),
     );
 
     // Calculate cost for each variant
@@ -3542,9 +3411,7 @@ class CoreSync extends AiStrategyImpl
 
     // Fetch all variants for the given branch
     final variants = await repository.get<Variant>(
-      query: brick.Query(where: [
-        brick.Where('branchId').isExactly(branchId),
-      ]),
+      query: brick.Query(where: [brick.Where('branchId').isExactly(branchId)]),
     );
 
     // Calculate profit for each variant
@@ -3560,9 +3427,7 @@ class CoreSync extends AiStrategyImpl
 
     // Fetch all transaction items for the given branch
     final transactionItems = await repository.get<TransactionItem>(
-      query: brick.Query(where: [
-        brick.Where('branchId').isExactly(branchId),
-      ]),
+      query: brick.Query(where: [brick.Where('branchId').isExactly(branchId)]),
       policy: OfflineFirstGetPolicy.localOnly,
     );
 
@@ -3570,11 +3435,10 @@ class CoreSync extends AiStrategyImpl
     for (final item in transactionItems) {
       // Fetch the associated variant to get the supply price
       final variant = (await repository.get<Variant>(
-        query: brick.Query(where: [
-          brick.Where('id').isExactly(item.variantId!),
-        ]),
-      ))
-          .first;
+        query: brick.Query(
+          where: [brick.Where('id').isExactly(item.variantId!)],
+        ),
+      )).first;
 
       if (variant.supplyPrice != null) {
         final revenue = item.price * item.qty;
@@ -3590,19 +3454,24 @@ class CoreSync extends AiStrategyImpl
   Stream<double> wholeStockValue({required String branchId}) {
     return repository
         .subscribe<Stock>(
-            query: brick.Query(
-                where: [brick.Where('branchId').isExactly(branchId)]))
+          query: brick.Query(
+            where: [brick.Where('branchId').isExactly(branchId)],
+          ),
+        )
         .map(
-            (changes) => changes.fold(0.0, (sum, stock) => sum + stock.value!));
+          (changes) => changes.fold(0.0, (sum, stock) => sum + stock.value!),
+        );
   }
 
   @override
   Stream<double> totalSales({required String branchId}) async* {
     // Fetch all stock records for the given branch
     final stocks = await repository.get<Stock>(
-      query: brick.Query(where: [
-        brick.Where('branchId').isExactly(branchId), // Filter by branchId
-      ]),
+      query: brick.Query(
+        where: [
+          brick.Where('branchId').isExactly(branchId), // Filter by branchId
+        ],
+      ),
     );
 
     // Initialize total revenue to 0.0
@@ -3617,9 +3486,11 @@ class CoreSync extends AiStrategyImpl
 
         // Fetch all variants associated with this stock item
         final variants = await repository.get<Variant>(
-          query: brick.Query(where: [
-            brick.Where('stockId').isExactly(stock.id), // Filter by stockId
-          ]),
+          query: brick.Query(
+            where: [
+              brick.Where('stockId').isExactly(stock.id), // Filter by stockId
+            ],
+          ),
         );
 
         // Iterate through each variant to calculate revenue
@@ -3658,9 +3529,9 @@ class CoreSync extends AiStrategyImpl
   @override
   Future<List<models.Stock>> stocks({required String branchId}) async {
     return await repository.get<Stock>(
-        policy: OfflineFirstGetPolicy.alwaysHydrate,
-        query:
-            brick.Query(where: [brick.Where('branchId').isExactly(branchId)]));
+      policy: OfflineFirstGetPolicy.alwaysHydrate,
+      query: brick.Query(where: [brick.Where('branchId').isExactly(branchId)]),
+    );
   }
 
   @override
@@ -3679,16 +3550,19 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Future<models.VariantBranch?> variantBranch(
-      {required String variantId, required String destinationBranchId}) async {
+  Future<models.VariantBranch?> variantBranch({
+    required String variantId,
+    required String destinationBranchId,
+  }) async {
     return (await repository.get<VariantBranch>(
-      query: brick.Query(where: [
-        brick.Where('destinationBranchId').isExactly(destinationBranchId),
-        brick.Where('variantId').isExactly(variantId),
-      ]),
+      query: brick.Query(
+        where: [
+          brick.Where('destinationBranchId').isExactly(destinationBranchId),
+          brick.Where('variantId').isExactly(variantId),
+        ],
+      ),
       policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
-    ))
-        .firstOrNull;
+    )).firstOrNull;
   }
 
   @override
@@ -3710,8 +3584,12 @@ class CoreSync extends AiStrategyImpl
     //   return BusinessInfoResponse.fromJson(ebmInitializationMockData).data.info;
     // } else {
     // Call the API in release mode
-    final initialisable = await ProxyService.tax
-        .initApi(tinNumber: tin, bhfId: bhfId, dvcSrlNo: dvcSrlNo, URI: URI!);
+    final initialisable = await ProxyService.tax.initApi(
+      tinNumber: tin,
+      bhfId: bhfId,
+      dvcSrlNo: dvcSrlNo,
+      URI: URI!,
+    );
     return initialisable;
     // }
   }
@@ -3783,7 +3661,8 @@ class CoreSync extends AiStrategyImpl
   }
 
   List<Access> _mapUserAccessToAccessList(
-      Map<String, dynamic>? userAccessJson) {
+    Map<String, dynamic>? userAccessJson,
+  ) {
     if (userAccessJson == null || !userAccessJson.containsKey('businesses')) {
       return [];
     }
@@ -3828,24 +3707,29 @@ class CoreSync extends AiStrategyImpl
     if (businessId == null) return;
 
     List<Plan> plans = await repository.get<Plan>(
-      query:
-          brick.Query(where: [brick.Where('businessId').isExactly(businessId)]),
+      query: brick.Query(
+        where: [brick.Where('businessId').isExactly(businessId)],
+      ),
     );
 
     if (plans.length < 2) return;
 
     // Separate paid and unpaid plans
-    final paidPlans =
-        plans.where((p) => p.paymentCompletedByUser ?? false).toList();
-    final unpaidPlans =
-        plans.where((p) => !(p.paymentCompletedByUser ?? false)).toList();
+    final paidPlans = plans
+        .where((p) => p.paymentCompletedByUser ?? false)
+        .toList();
+    final unpaidPlans = plans
+        .where((p) => !(p.paymentCompletedByUser ?? false))
+        .toList();
 
     Plan? planToKeep;
 
     if (paidPlans.isNotEmpty) {
       // If there are paid plans, keep the most recent one
-      paidPlans.sort((a, b) =>
-          (b.createdAt ?? DateTime(0)).compareTo(a.createdAt ?? DateTime(0)));
+      paidPlans.sort(
+        (a, b) =>
+            (b.createdAt ?? DateTime(0)).compareTo(a.createdAt ?? DateTime(0)),
+      );
       planToKeep = paidPlans.first;
 
       // Delete all other paid plans and all unpaid plans
@@ -3856,8 +3740,10 @@ class CoreSync extends AiStrategyImpl
       }
     } else if (unpaidPlans.isNotEmpty) {
       // If there are only unpaid plans, keep the most recent one
-      unpaidPlans.sort((a, b) =>
-          (b.createdAt ?? DateTime(0)).compareTo(a.createdAt ?? DateTime(0)));
+      unpaidPlans.sort(
+        (a, b) =>
+            (b.createdAt ?? DateTime(0)).compareTo(a.createdAt ?? DateTime(0)),
+      );
       planToKeep = unpaidPlans.first;
 
       // Delete all other unpaid plans
@@ -3870,8 +3756,9 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Stream<List<models.BusinessAnalytic>> streamRemoteAnalytics(
-      {required String branchId}) {
+  Stream<List<models.BusinessAnalytic>> streamRemoteAnalytics({
+    required String branchId,
+  }) {
     return repository.subscribeToRealtime<BusinessAnalytic>(
       policy: OfflineFirstGetPolicy.alwaysHydrate,
       query: Query(
@@ -3879,5 +3766,11 @@ class CoreSync extends AiStrategyImpl
         orderBy: [OrderBy('date', ascending: false)],
       ),
     );
+  }
+
+  @override
+  Future<void> deleteWorkOrder({required String workOrderId}) {
+    // TODO: implement deleteWorkOrder
+    throw UnimplementedError();
   }
 }

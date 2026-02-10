@@ -22,7 +22,7 @@ import 'package:flipper_dashboard/utils/error_handler.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
 import 'package:flipper_services/app_service.dart';
-// ignore: unnecessary_import
+import 'package:permission_handler/permission_handler.dart';
 
 final selectedBusinessIdProvider = StateProvider<String?>((ref) => null);
 
@@ -47,6 +47,58 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     super.initState();
     // Validate that userId is set before allowing access to this page
     _validateUserId();
+    // Request Ditto sync permissions on Android
+    _requestDittoPermissions();
+    // Invalidate providers to ensure fresh data is loaded for the current user
+    // This is especially important when logging in with a different user
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        ref.invalidate(businessesProvider);
+        // Reset selected business to ensure no stale selection from previous user
+        ref.read(selectedBusinessIdProvider.notifier).state = null;
+      }
+    });
+  }
+
+  /// Requests all permissions required for Ditto sync on Android
+  /// This ensures permissions are granted upfront before Ditto sync is attempted
+  Future<void> _requestDittoPermissions() async {
+    // Only request on Android
+    if (!Platform.isAndroid) return;
+
+    try {
+      // Request all permissions required for Ditto peer-to-peer sync
+      final permissions = [
+        Permission.bluetoothConnect,
+        Permission.bluetoothAdvertise,
+        Permission.nearbyWifiDevices,
+        Permission.bluetoothScan,
+      ];
+
+      final statuses = await permissions.request();
+
+      // Check results and log any denied permissions
+      final deniedPermissions = <String>[];
+      for (final entry in statuses.entries) {
+        if (entry.value != PermissionStatus.granted) {
+          deniedPermissions.add(entry.key.toString());
+        }
+      }
+
+      if (deniedPermissions.isEmpty) {
+        talker.info('✅ All Ditto sync permissions granted on Android');
+      } else {
+        talker.warning(
+          '⚠️ Some Ditto sync permissions denied: ${deniedPermissions.join(", ")}',
+        );
+        talker.warning(
+          'Ditto peer-to-peer sync may not work properly without these permissions.',
+        );
+      }
+    } catch (e) {
+      talker.error('Error requesting Ditto permissions: $e');
+      // Don't block login flow if permission request fails
+    }
   }
 
   /// Validates that userId is set in ProxyService.box before proceeding
@@ -340,12 +392,15 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     } catch (e) {
       talker.error('Error handling branch selection: $e');
       if (!mounted) return;
+      // Reset loading state so user can try again
+      setState(() {
+        _isLoading = false;
+      });
       ErrorHandler.showErrorSnackBar(context, e);
     } finally {
       if (mounted) {
         setState(() {
           _loadingItemId = null;
-          // Do not set _isLoading to false here if a navigation is happening
         });
       }
     }

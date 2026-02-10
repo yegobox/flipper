@@ -16,10 +16,13 @@ mixin TransactionComputationMixin {
       (sum, item) => sum + (item.price * item.qty),
     );
 
-    // Fallback/Validation: Check if the transaction's stored subTotal is larger (implying missing items in the UI list)
-    if (transaction != null && (transaction.subTotal ?? 0.0) > baseTotal) {
-      baseTotal = transaction.subTotal!;
-    }
+    // Fallback/Validation: REMOVED
+    // We strictly use the sum of items because relying on transaction.subTotal
+    // can lead to stale totals when items are deleted but the transaction
+    // object hasn't been updated/refreshed yet.
+    // if (transaction != null && (transaction.subTotal ?? 0.0) > baseTotal) {
+    //   baseTotal = transaction.subTotal!;
+    // }
 
     if (discountPercent > 0) {
       final discountAmount = (baseTotal * discountPercent) / 100;
@@ -84,17 +87,21 @@ mixin TransactionComputationMixin {
 
       final payments = ref.read(paymentMethodsProvider);
       if (payments.isNotEmpty) {
+        // Reuse existing controller to prevent disposal issues
+        final payment = payments[0];
+        if (payment.controller.text != displayRemainder.toString()) {
+          payment.controller.text = displayRemainder.toString();
+        }
+
         ref
             .read(paymentMethodsProvider.notifier)
             .updatePaymentMethod(
               0,
               Payment(
                 amount: displayRemainder,
-                method: payments[0].method,
-                id: payments[0].id,
-                controller: TextEditingController(
-                  text: displayRemainder.toString(),
-                ),
+                method: payment.method,
+                id: payment.id,
+                controller: payment.controller,
               ),
             );
       }
@@ -141,14 +148,17 @@ mixin TransactionComputationMixin {
             double.tryParse(firstPayment.controller.text) ==
                 (transaction.subTotal ?? 0.0);
 
-        // Create a new Payment with updated amount and potentially updated controller
+        if (shouldUpdateControllerText &&
+            firstPayment.controller.text != displayRemainder.toString()) {
+          firstPayment.controller.text = displayRemainder.toString();
+        }
+
+        // Create a new Payment with updated amount but REUSE controller
         Payment updatedPayment = Payment(
           amount: displayRemainder,
           method: firstPayment.method,
           id: firstPayment.id,
-          controller: shouldUpdateControllerText
-              ? TextEditingController(text: displayRemainder.toString())
-              : firstPayment.controller,
+          controller: firstPayment.controller,
         );
 
         ref

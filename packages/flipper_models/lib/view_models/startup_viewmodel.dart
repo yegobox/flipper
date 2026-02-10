@@ -62,7 +62,8 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       // Ensure db is initialized before proceeding.
       await _allRequirementsMeets();
       print(
-          '✅ [StartupViewModel] Requirements met (${DateTime.now().difference(startTime).inMilliseconds}ms)');
+        '✅ [StartupViewModel] Requirements met (${DateTime.now().difference(startTime).inMilliseconds}ms)',
+      );
 
       print('⏳ [StartupViewModel] Initializing app components...');
       // Ensure admin access for API/onboarded users
@@ -76,35 +77,42 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
 
       ProxyService.strategy.cleanDuplicatePlans();
       print(
-          '✅ [StartupViewModel] App components initialized (${DateTime.now().difference(startTime).inMilliseconds}ms)');
+        '✅ [StartupViewModel] App components initialized (${DateTime.now().difference(startTime).inMilliseconds}ms)',
+      );
 
       print('⏳ [StartupViewModel] Setting up payment verification...');
       // Set up payment verification callback and start periodic verification
-      _paymentVerificationService
-          .setPaymentStatusChangeCallback(_handlePaymentStatusChange);
+      _paymentVerificationService.setPaymentStatusChangeCallback(
+        _handlePaymentStatusChange,
+      );
       _paymentVerificationService.startPeriodicVerification(
-          intervalMinutes: kDebugMode ? 25 : 15);
+        intervalMinutes: kDebugMode ? 25 : 15,
+      );
 
       // Start periodic internet connection check (check every 6 hours)
       _internetConnectionService.startPeriodicConnectionCheck();
       print(
-          '✅ [StartupViewModel] Payment verification setup complete (${DateTime.now().difference(startTime).inMilliseconds}ms)');
+        '✅ [StartupViewModel] Payment verification setup complete (${DateTime.now().difference(startTime).inMilliseconds}ms)',
+      );
 
       /// listen all database change and replicate them in sync db.
       // ProxyService.backUp.listen();
       print('⏳ [StartupViewModel] Running appService.appInit()...');
       await appService.appInit();
       print(
-          '✅ [StartupViewModel] appService.appInit() complete (${DateTime.now().difference(startTime).inMilliseconds}ms)');
+        '✅ [StartupViewModel] appService.appInit() complete (${DateTime.now().difference(startTime).inMilliseconds}ms)',
+      );
 
       // Check payment status before navigating to main app
       print('⏳ [StartupViewModel] Verifying payment status...');
       await _handleInitialPaymentVerification();
       print(
-          '✅ [StartupViewModel] Payment verification complete (${DateTime.now().difference(startTime).inMilliseconds}ms)');
+        '✅ [StartupViewModel] Payment verification complete (${DateTime.now().difference(startTime).inMilliseconds}ms)',
+      );
 
       print(
-          '🎉 [StartupViewModel] runStartupLogic completed in ${DateTime.now().difference(startTime).inMilliseconds}ms');
+        '🎉 [StartupViewModel] runStartupLogic completed in ${DateTime.now().difference(startTime).inMilliseconds}ms',
+      );
     } catch (e, stackTrace) {
       talker.info("StartupViewModel ${e}");
       talker.error("StartupViewModel ${stackTrace}");
@@ -124,13 +132,14 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       'TransactionDetail',
       'CheckOut',
       'NewTicket',
-      'CheckOut'
+      'CheckOut',
     ];
 
     // Don't interrupt user during critical operations
     if (criticalRoutes.contains(currentRoute)) {
       talker.info(
-          'Skipping payment verification navigation - user on critical page: $currentRoute');
+        'Skipping payment verification navigation - user on critical page: $currentRoute',
+      );
       return;
     }
 
@@ -140,7 +149,8 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
         DateTime.now().difference(_lastUserActivity!) <
             _userActivityThreshold) {
       talker.info(
-          'Skipping payment verification navigation - user recently active');
+        'Skipping payment verification navigation - user recently active',
+      );
       return;
     }
 
@@ -168,11 +178,13 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
     } catch (e) {
       // If payment verification itself throws an exception, create a response and handle it
       talker.error("Exception during initial payment verification: $e");
-      _handleVerificationError(PaymentVerificationResponse(
-        result: PaymentVerificationResult.error,
-        errorMessage: 'Payment verification failed: $e',
-        exception: Exception(e),
-      ));
+      _handleVerificationError(
+        PaymentVerificationResponse(
+          result: PaymentVerificationResult.error,
+          errorMessage: 'Payment verification failed: $e',
+          exception: Exception(e),
+        ),
+      );
     }
   }
 
@@ -191,8 +203,9 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
 
     // If we were on a payment screen, navigate back to the main app
     if (_isOnPaymentScreen) {
-      talker
-          .info('Returning to main app after successful payment verification');
+      talker.info(
+        'Returning to main app after successful payment verification',
+      );
       _clearPaymentScreenFlag();
       _routerService.navigateTo(FlipperAppRoute());
     } else {
@@ -211,7 +224,8 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
 
   void _handleInactivePlan(PaymentVerificationResponse response) {
     talker.error(
-        'Payment plan exists but is not active: ${response.errorMessage}');
+      'Payment plan exists but is not active: ${response.errorMessage}',
+    );
     _setOnPaymentScreen();
     _routerService.navigateTo(FailedPaymentRoute());
   }
@@ -224,7 +238,8 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
 
     if (shouldGoToPersonal) {
       talker.info(
-          'Navigating to personal app for individual business despite payment verification error');
+        'Navigating to personal app for individual business despite payment verification error',
+      );
       _routerService.navigateTo(PersonalHomeRoute());
       return;
     }
@@ -238,8 +253,9 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       _routerService.navigateTo(FailedPaymentRoute());
     } else {
       // For other errors, still allow access to main app but log the issue
-      talker
-          .warning("Proceeding to main app despite payment verification error");
+      talker.warning(
+        "Proceeding to main app despite payment verification error",
+      );
       _routerService.navigateTo(FlipperAppRoute());
     }
   }
@@ -262,8 +278,8 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
 
   /// Force payment verification with navigation handling
   Future<void> forcePaymentVerification() async {
-    final response =
-        await _paymentVerificationService.forcePaymentVerification();
+    final response = await _paymentVerificationService
+        .forcePaymentVerification();
     _handlePaymentStatusChange(response);
   }
 
@@ -289,13 +305,18 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
   }) async {
     try {
       // Use features from flipper_services/constants.dart
-      final List<String> featureNames =
-          features.map((f) => f.toString()).toList();
+      final List<String> featureNames = features
+          .map((f) => f.toString())
+          .toList();
       for (String feature in featureNames) {
         talker.warning(
-            "Checking permission for userId: $userId, feature: $feature");
-        List<Access> hasAccess = await ProxyService.strategy
-            .access(userId: userId, featureName: feature, fetchRemote: true);
+          "Checking permission for userId: $userId, feature: $feature",
+        );
+        List<Access> hasAccess = await ProxyService.strategy.access(
+          userId: userId,
+          featureName: feature,
+          fetchRemote: true,
+        );
         if (hasAccess.isEmpty) {
           await ProxyService.strategy.addAccess(
             branchId: branchId,
@@ -356,7 +377,8 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
   /// Handles BusinessNotFoundException specifically for the desktop platform.
   void _handleBusinessNotFoundForDesktop() {
     ProxyService.notie.sendData(
-        'Could not login business with user ${ProxyService.box.getUserId()} not found!');
+      'Could not login business with user ${ProxyService.box.getUserId()} not found!',
+    );
     logOut();
     _routerService.clearStackAndShow(LoginRoute());
   }
@@ -380,22 +402,32 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
         throw Exception("Business ID is not set in local storage");
       }
 
+      // Check if branch ID is set
+      final branchId = ProxyService.box.getBranchId();
+      if (branchId == null) {
+        throw LoginChoicesException(term: "Branch ID not set");
+      }
+
       // Check if the specific business exists instead of fetching all businesses
-      final business =
-          await ProxyService.strategy.getBusiness(businessId: businessId);
+      final business = await ProxyService.strategy.getBusiness(
+        businessId: businessId,
+      );
       if (business == null) {
         throw Exception("Business not found locally");
       }
       talker.warning("Business found: ${business.name}");
 
       // Check branches for the specific business
-      List<Branch> branches = await ProxyService.strategy
-          .branches(businessId: businessId, active: true);
+      List<Branch> branches = await ProxyService.strategy.branches(
+        businessId: businessId,
+        active: true,
+      );
       talker.warning("branches: ${branches.length}");
 
       if (branches.isEmpty) {
         throw Exception(
-            "requirements failed for having branches saved locally");
+          "requirements failed for having branches saved locally",
+        );
       }
     } catch (e) {
       talker.error("StartupViewModel _allRequirementsMeets ${e}");

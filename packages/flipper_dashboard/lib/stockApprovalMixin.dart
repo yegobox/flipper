@@ -19,9 +19,15 @@ mixin StockRequestApprovalLogic {
     try {
       _showLoadingDialog(context);
 
-      final List<TransactionItem> items = await ProxyService.getStrategy(
+      List<TransactionItem> items = await ProxyService.getStrategy(
         Strategy.capella,
       ).transactionItems(requestId: request.id);
+
+      if (items.isEmpty &&
+          request.transactionItems != null &&
+          request.transactionItems!.isNotEmpty) {
+        items = request.transactionItems!;
+      }
 
       if (items.isEmpty) {
         Navigator.of(context).pop();
@@ -94,10 +100,47 @@ mixin StockRequestApprovalLogic {
     }
   }
 
+  Future<void> updateRequestedQuantity({
+    required InventoryRequest request,
+    required TransactionItem item,
+    required int newQuantity,
+    required BuildContext context,
+  }) async {
+    try {
+      _showLoadingDialog(context);
+
+      await ProxyService.strategy.updateStockRequestItem(
+        requestId: request.id,
+        transactionItemId: item.id,
+        quantityRequested: newQuantity,
+        // We don't change approval status here
+      );
+
+      if (context.mounted) {
+        Navigator.of(context).pop();
+        _showSnackBar(
+          message: 'Quantity updated successfully',
+          context: context,
+        );
+      }
+    } catch (e, s) {
+      talker.error('Error in updateRequestedQuantity', e, s);
+      if (context.mounted) {
+        Navigator.of(context).pop();
+        _showSnackBar(
+          message: 'Failed to update quantity',
+          context: context,
+          isError: true,
+        );
+      }
+    }
+  }
+
   Future<void> approveSingleItem({
     required InventoryRequest request,
     required TransactionItem item,
     required BuildContext context,
+    double? quantity,
   }) async {
     try {
       _showLoadingDialog(context);
@@ -132,9 +175,21 @@ mixin StockRequestApprovalLogic {
 
       final double availableStock = variant.stock?.currentStock ?? 0;
       final int requestedQuantity = item.quantityRequested ?? 0;
-      final int approvedQuantity = availableStock >= requestedQuantity
-          ? requestedQuantity
-          : availableStock.toInt();
+
+      int approvedQuantity;
+      if (quantity != null) {
+        approvedQuantity = quantity.toInt();
+        if (approvedQuantity > availableStock) {
+          approvedQuantity = availableStock.toInt();
+          if (context.mounted) {
+            toast('Quantity adjusted to available stock: $approvedQuantity');
+          }
+        }
+      } else {
+        approvedQuantity = availableStock >= requestedQuantity
+            ? requestedQuantity
+            : availableStock.toInt();
+      }
 
       await _processPartialApprovalItem(
         item: item,
@@ -311,6 +366,10 @@ mixin StockRequestApprovalLogic {
         status: isFullyApproved
             ? RequestStatus.approved
             : RequestStatus.partiallyApproved,
+        approvedBy: ProxyService.box
+            .getUserId()
+            .toString(), // Assuming userId for now, will refine
+        approvedAt: DateTime.now().toUtc(),
       );
 
       // Send SMS notification to requester

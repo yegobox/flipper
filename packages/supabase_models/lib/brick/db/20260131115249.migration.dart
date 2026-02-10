@@ -9,9 +9,10 @@ part of 'schema.g.dart';
 
 // The migration version must **always** mirror the file name
 
-const List<MigrationCommand> _migration_20260127123921_up = [
+const List<MigrationCommand> _migration_20260131115249_up = [
   InsertTable('BranchPaymentIntegration'),
   InsertTable('Access'),
+  InsertTable('ActualOutput'),
   InsertTable('AppNotification'),
   InsertTable('Assets'),
   InsertTable('Branch'),
@@ -76,6 +77,7 @@ const List<MigrationCommand> _migration_20260127123921_up = [
   InsertTable('User'),
   InsertTable('Variant'),
   InsertTable('VariantBranch'),
+  InsertTable('WorkOrder'),
   InsertColumn('id', Column.varchar, onTable: 'BranchPaymentIntegration', unique: true),
   InsertColumn('branch_id', Column.varchar, onTable: 'BranchPaymentIntegration'),
   InsertColumn('is_enabled', Column.boolean, onTable: 'BranchPaymentIntegration'),
@@ -90,6 +92,20 @@ const List<MigrationCommand> _migration_20260127123921_up = [
   InsertColumn('created_at', Column.datetime, onTable: 'Access'),
   InsertColumn('expires_at', Column.datetime, onTable: 'Access'),
   InsertColumn('status', Column.varchar, onTable: 'Access'),
+  InsertColumn('id', Column.varchar, onTable: 'ActualOutput', unique: true),
+  InsertColumn('work_order_id', Column.varchar, onTable: 'ActualOutput'),
+  InsertColumn('branch_id', Column.varchar, onTable: 'ActualOutput'),
+  InsertColumn('actual_quantity', Column.Double, onTable: 'ActualOutput'),
+  InsertColumn('recorded_at', Column.datetime, onTable: 'ActualOutput'),
+  InsertColumn('user_id', Column.varchar, onTable: 'ActualOutput'),
+  InsertColumn('user_name', Column.varchar, onTable: 'ActualOutput'),
+  InsertColumn('variance_reason', Column.varchar, onTable: 'ActualOutput'),
+  InsertColumn('notes', Column.varchar, onTable: 'ActualOutput'),
+  InsertColumn('shift_id', Column.varchar, onTable: 'ActualOutput'),
+  InsertColumn('quality_status', Column.varchar, onTable: 'ActualOutput'),
+  InsertColumn('rework_quantity', Column.num, onTable: 'ActualOutput'),
+  InsertColumn('scrap_quantity', Column.num, onTable: 'ActualOutput'),
+  InsertColumn('last_touched', Column.datetime, onTable: 'ActualOutput'),
   InsertColumn('id', Column.varchar, onTable: 'AppNotification', unique: true),
   InsertColumn('type', Column.varchar, onTable: 'AppNotification'),
   InsertColumn('message', Column.varchar, onTable: 'AppNotification'),
@@ -894,8 +910,28 @@ const List<MigrationCommand> _migration_20260127123921_up = [
   InsertColumn('new_variant_id', Column.varchar, onTable: 'VariantBranch'),
   InsertColumn('source_branch_id', Column.varchar, onTable: 'VariantBranch'),
   InsertColumn('destination_branch_id', Column.varchar, onTable: 'VariantBranch'),
+  InsertColumn('id', Column.varchar, onTable: 'WorkOrder', unique: true),
+  InsertColumn('branch_id', Column.varchar, onTable: 'WorkOrder'),
+  InsertColumn('business_id', Column.varchar, onTable: 'WorkOrder'),
+  InsertColumn('variant_id', Column.varchar, onTable: 'WorkOrder'),
+  InsertColumn('variant_name', Column.varchar, onTable: 'WorkOrder'),
+  InsertColumn('planned_quantity', Column.Double, onTable: 'WorkOrder'),
+  InsertColumn('actual_quantity', Column.num, onTable: 'WorkOrder'),
+  InsertColumn('target_date', Column.datetime, onTable: 'WorkOrder'),
+  InsertColumn('shift_id', Column.varchar, onTable: 'WorkOrder'),
+  InsertColumn('status', Column.varchar, onTable: 'WorkOrder'),
+  InsertColumn('unit_of_measure', Column.varchar, onTable: 'WorkOrder'),
+  InsertColumn('notes', Column.varchar, onTable: 'WorkOrder'),
+  InsertColumn('created_by', Column.varchar, onTable: 'WorkOrder'),
+  InsertColumn('created_at', Column.datetime, onTable: 'WorkOrder'),
+  InsertColumn('started_at', Column.datetime, onTable: 'WorkOrder'),
+  InsertColumn('completed_at', Column.datetime, onTable: 'WorkOrder'),
+  InsertColumn('last_touched', Column.datetime, onTable: 'WorkOrder'),
   CreateIndex(columns: ['id'], onTable: 'BranchPaymentIntegration', unique: true),
   CreateIndex(columns: ['id'], onTable: 'Access', unique: true),
+  CreateIndex(columns: ['id'], onTable: 'ActualOutput', unique: true),
+  CreateIndex(columns: ['work_order_id'], onTable: 'ActualOutput', unique: false),
+  CreateIndex(columns: ['branch_id'], onTable: 'ActualOutput', unique: false),
   CreateIndex(columns: ['id'], onTable: 'AppNotification', unique: true),
   CreateIndex(columns: ['id'], onTable: 'Assets', unique: true),
   CreateIndex(columns: ['id'], onTable: 'Branch', unique: true),
@@ -977,12 +1013,17 @@ const List<MigrationCommand> _migration_20260127123921_up = [
   CreateIndex(columns: ['id'], onTable: 'UnversalProduct', unique: true),
   CreateIndex(columns: ['id'], onTable: 'User', unique: true),
   CreateIndex(columns: ['id'], onTable: 'Variant', unique: true),
-  CreateIndex(columns: ['id'], onTable: 'VariantBranch', unique: true)
+  CreateIndex(columns: ['id'], onTable: 'VariantBranch', unique: true),
+  CreateIndex(columns: ['id'], onTable: 'WorkOrder', unique: true),
+  CreateIndex(columns: ['branch_id'], onTable: 'WorkOrder', unique: false),
+  CreateIndex(columns: ['business_id'], onTable: 'WorkOrder', unique: false),
+  CreateIndex(columns: ['variant_id'], onTable: 'WorkOrder', unique: false)
 ];
 
-const List<MigrationCommand> _migration_20260127123921_down = [
+const List<MigrationCommand> _migration_20260131115249_down = [
   DropTable('BranchPaymentIntegration'),
   DropTable('Access'),
+  DropTable('ActualOutput'),
   DropTable('AppNotification'),
   DropTable('Assets'),
   DropTable('Branch'),
@@ -1047,6 +1088,7 @@ const List<MigrationCommand> _migration_20260127123921_down = [
   DropTable('User'),
   DropTable('Variant'),
   DropTable('VariantBranch'),
+  DropTable('WorkOrder'),
   DropColumn('id', onTable: 'BranchPaymentIntegration'),
   DropColumn('branch_id', onTable: 'BranchPaymentIntegration'),
   DropColumn('is_enabled', onTable: 'BranchPaymentIntegration'),
@@ -1061,6 +1103,20 @@ const List<MigrationCommand> _migration_20260127123921_down = [
   DropColumn('created_at', onTable: 'Access'),
   DropColumn('expires_at', onTable: 'Access'),
   DropColumn('status', onTable: 'Access'),
+  DropColumn('id', onTable: 'ActualOutput'),
+  DropColumn('work_order_id', onTable: 'ActualOutput'),
+  DropColumn('branch_id', onTable: 'ActualOutput'),
+  DropColumn('actual_quantity', onTable: 'ActualOutput'),
+  DropColumn('recorded_at', onTable: 'ActualOutput'),
+  DropColumn('user_id', onTable: 'ActualOutput'),
+  DropColumn('user_name', onTable: 'ActualOutput'),
+  DropColumn('variance_reason', onTable: 'ActualOutput'),
+  DropColumn('notes', onTable: 'ActualOutput'),
+  DropColumn('shift_id', onTable: 'ActualOutput'),
+  DropColumn('quality_status', onTable: 'ActualOutput'),
+  DropColumn('rework_quantity', onTable: 'ActualOutput'),
+  DropColumn('scrap_quantity', onTable: 'ActualOutput'),
+  DropColumn('last_touched', onTable: 'ActualOutput'),
   DropColumn('id', onTable: 'AppNotification'),
   DropColumn('type', onTable: 'AppNotification'),
   DropColumn('message', onTable: 'AppNotification'),
@@ -1865,8 +1921,28 @@ const List<MigrationCommand> _migration_20260127123921_down = [
   DropColumn('new_variant_id', onTable: 'VariantBranch'),
   DropColumn('source_branch_id', onTable: 'VariantBranch'),
   DropColumn('destination_branch_id', onTable: 'VariantBranch'),
+  DropColumn('id', onTable: 'WorkOrder'),
+  DropColumn('branch_id', onTable: 'WorkOrder'),
+  DropColumn('business_id', onTable: 'WorkOrder'),
+  DropColumn('variant_id', onTable: 'WorkOrder'),
+  DropColumn('variant_name', onTable: 'WorkOrder'),
+  DropColumn('planned_quantity', onTable: 'WorkOrder'),
+  DropColumn('actual_quantity', onTable: 'WorkOrder'),
+  DropColumn('target_date', onTable: 'WorkOrder'),
+  DropColumn('shift_id', onTable: 'WorkOrder'),
+  DropColumn('status', onTable: 'WorkOrder'),
+  DropColumn('unit_of_measure', onTable: 'WorkOrder'),
+  DropColumn('notes', onTable: 'WorkOrder'),
+  DropColumn('created_by', onTable: 'WorkOrder'),
+  DropColumn('created_at', onTable: 'WorkOrder'),
+  DropColumn('started_at', onTable: 'WorkOrder'),
+  DropColumn('completed_at', onTable: 'WorkOrder'),
+  DropColumn('last_touched', onTable: 'WorkOrder'),
   DropIndex('index_BranchPaymentIntegration_on_id'),
   DropIndex('index_Access_on_id'),
+  DropIndex('index_ActualOutput_on_id'),
+  DropIndex('index_ActualOutput_on_work_order_id'),
+  DropIndex('index_ActualOutput_on_branch_id'),
   DropIndex('index_AppNotification_on_id'),
   DropIndex('index_Assets_on_id'),
   DropIndex('index_Branch_on_id'),
@@ -1948,7 +2024,11 @@ const List<MigrationCommand> _migration_20260127123921_down = [
   DropIndex('index_UnversalProduct_on_id'),
   DropIndex('index_User_on_id'),
   DropIndex('index_Variant_on_id'),
-  DropIndex('index_VariantBranch_on_id')
+  DropIndex('index_VariantBranch_on_id'),
+  DropIndex('index_WorkOrder_on_id'),
+  DropIndex('index_WorkOrder_on_branch_id'),
+  DropIndex('index_WorkOrder_on_business_id'),
+  DropIndex('index_WorkOrder_on_variant_id')
 ];
 
 //
@@ -1956,15 +2036,15 @@ const List<MigrationCommand> _migration_20260127123921_down = [
 //
 
 @Migratable(
-  version: '20260127123921',
-  up: _migration_20260127123921_up,
-  down: _migration_20260127123921_down,
+  version: '20260131115249',
+  up: _migration_20260131115249_up,
+  down: _migration_20260131115249_down,
 )
-class Migration20260127123921 extends Migration {
-  const Migration20260127123921()
+class Migration20260131115249 extends Migration {
+  const Migration20260131115249()
     : super(
-        version: 20260127123921,
-        up: _migration_20260127123921_up,
-        down: _migration_20260127123921_down,
+        version: 20260131115249,
+        up: _migration_20260131115249_up,
+        down: _migration_20260131115249_down,
       );
 }

@@ -12,19 +12,24 @@ part of 'shift_data_provider.dart';
 @ProviderFor(shiftData)
 const shiftDataProvider = ShiftDataProvider._();
 
-final class ShiftDataProvider extends $FunctionalProvider<AsyncValue<ShiftData>,
-        ShiftData, FutureOr<ShiftData>>
+final class ShiftDataProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<ShiftData>,
+          ShiftData,
+          FutureOr<ShiftData>
+        >
     with $FutureModifier<ShiftData>, $FutureProvider<ShiftData> {
   const ShiftDataProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'shiftDataProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'shiftDataProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$shiftDataHash();

@@ -12,6 +12,7 @@ import 'package:synchronized/synchronized.dart';
 import 'package:flipper_services/GlobalLogError.dart';
 import 'package:flipper_models/helperModels/flipperWatch.dart';
 import 'package:flutter/foundation.dart' hide Category;
+import 'package:flipper_models/providers/optimistic_order_count_provider.dart';
 
 class TransactionItemAdder {
   final BuildContext context;
@@ -32,6 +33,10 @@ class TransactionItemAdder {
     w?.start();
 
     try {
+      // Increment optimistic count IMMEDIATELY for instant UI feedback
+      // This happens before any async operations
+      ref.read(optimisticOrderCountProvider.notifier).increment();
+
       // Show immediate visual feedback to indicate the item is being processed
       if (context.mounted) {
         // showCustomSnackBarUtil(context, 'Adding item to cart...');
@@ -41,10 +46,13 @@ class TransactionItemAdder {
       final businessId = ProxyService.box.getBusinessId()!;
 
       // Manage transaction
+      w?.log("Pre-PendingTransaction");
       final pendingTransaction = await ref.read(
         pendingTransactionStreamProvider(isExpense: isOrdering).future,
       );
+      w?.log("Post-PendingTransaction");
 
+      w?.log("Pre-GetProduct");
       // Fetch product details
       final product = await ProxyService.getStrategy(Strategy.capella)
           .getProduct(
@@ -52,15 +60,18 @@ class TransactionItemAdder {
             id: variant.productId!,
             branchId: branchId,
           );
+      w?.log("Post-GetProduct");
 
+      // Get the latest stock from cache
+      Stock? cachedStock;
       // Only check stock if we're not in ordering mode
       if (!isOrdering) {
-        // Get the latest stock from cache
-        Stock? cachedStock;
         if (variant.id.isNotEmpty) {
+          w?.log("Pre-CacheStock");
           cachedStock = await ProxyService.getStrategy(
             Strategy.capella,
           ).getStockById(id: variant.stockId!);
+          w?.log("Post-CacheStock");
         }
 
         // Use cached stock if available, otherwise fall back to variant.stock
@@ -88,11 +99,23 @@ class TransactionItemAdder {
         }
       }
 
+      w?.log("Pre-Lock");
       // Use a lock to prevent multiple simultaneous operations
       await _lock.synchronized(() async {
-        Stock stock = await ProxyService.getStrategy(
-          Strategy.capella,
-        ).getStockById(id: variant.stockId!);
+        w?.log("Post-Lock");
+        // Use the stock we already fetched above if available
+        // If not, fetch it now (only if we didn't fetch it before)
+        Stock? stock;
+        if (!isOrdering && cachedStock != null) {
+          stock = cachedStock;
+        } else {
+          w?.log("Pre-FetchStock-InLock");
+          stock = await ProxyService.getStrategy(
+            Strategy.capella,
+          ).getStockById(id: variant.stockId!);
+          w?.log("Post-FetchStock-InLock");
+        }
+
         if (product != null && product.isComposite == true) {
           // Handle composite product
           final composites = await ProxyService.strategy.composites(
@@ -119,6 +142,7 @@ class TransactionItemAdder {
           }
         } else {
           // Handle non-composite product
+          w?.log("Pre-SaveItem");
           await ProxyService.strategy.saveTransactionItem(
             variation: variant,
             doneWithTransaction: false,
@@ -129,8 +153,10 @@ class TransactionItemAdder {
             pendingTransaction: pendingTransaction,
             partOfComposite: false,
           );
+          w?.log("Post-SaveItem");
         }
       });
+      w?.log("Post-Lock-Release");
 
       // Hide the loading indicator
       if (context.mounted) {
@@ -144,17 +170,27 @@ class TransactionItemAdder {
       //await Future.delayed(const Duration(milliseconds: 100));
 
       // Immediately refresh the transaction items
-      ref.refresh(
-        transactionItemsStreamProvider(
-          transactionId: pendingTransaction.id,
-          branchId: (await ProxyService.strategy.activeBranch(
-            branchId: ProxyService.box.getBranchId()!,
-          )).id,
-        ),
-      );
+
+      w?.log("Pre-Refresh");
+      if (context.mounted) {
+        ref.refresh(
+          transactionItemsStreamProvider(
+            transactionId: pendingTransaction.id,
+            branchId: (await ProxyService.strategy.activeBranch(
+              branchId: ProxyService.box.getBranchId()!,
+            )).id,
+          ),
+        );
+      }
+      w?.log("Post-Refresh");
 
       w?.log("ItemAddedToTransactionSuccess"); // Log success
     } catch (e, s) {
+      // Rollback optimistic increment on failure
+      if (context.mounted) {
+        ref.read(optimisticOrderCountProvider.notifier).decrement();
+      }
+
       if (!context.mounted) return;
 
       // Hide the loading indicator if there was an error

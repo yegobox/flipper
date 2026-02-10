@@ -19,7 +19,8 @@ cd .. && cd form_bloc    &&  git checkout master  && git add .  && git commit -a
 cd .. && cd brick    &&  git checkout main  && git add .  && git commit -am "clean-up" && git push origin main
 
 
-# cd ./android && ./gradlew :clean && cd ..
+# cd ./android && ./gradlew :clean && cd .
+# .
 # rm -rf ./build
 # rm -rf ~/.gradle/caches
 # dart pub cache clean && flutter pub get

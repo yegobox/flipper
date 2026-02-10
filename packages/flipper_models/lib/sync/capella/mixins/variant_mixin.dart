@@ -11,9 +11,13 @@ import 'package:flipper_services/log_service.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:talker/talker.dart';
+import 'package:supabase_models/brick/models/transactionItemUtil.dart';
+import 'package:supabase_models/brick/models/sars.model.dart';
+import 'package:supabase_models/brick/models/ebm.model.dart';
 
 mixin CapellaVariantMixin implements VariantInterface {
   DittoService get dittoService => DittoService.instance;
+  Repository get repository;
   Talker get talker;
   @override
   Future<PagedVariants> variants({
@@ -34,6 +38,7 @@ mixin CapellaVariantMixin implements VariantInterface {
     bool excludeApprovedInWaitingOrCanceledItems = false,
     bool fetchRemote = false,
     List<String>? taxTyCds,
+    String? itemTyCd,
   }) async {
     final logService = LogService();
     try {
@@ -42,7 +47,8 @@ mixin CapellaVariantMixin implements VariantInterface {
           'Starting variants fetch',
           type: 'business_fetch',
           tags: {
-            'userId': (ProxyService.box
+            'userId':
+                (ProxyService.box
                     .getUserId()
                     ?.toString()
                     .hashCode
@@ -72,7 +78,8 @@ mixin CapellaVariantMixin implements VariantInterface {
             'Ditto service not initialized',
             type: 'business_fetch',
             tags: {
-              'userId': (ProxyService.box
+              'userId':
+                  (ProxyService.box
                       .getUserId()
                       ?.toString()
                       .hashCode
@@ -106,7 +113,8 @@ mixin CapellaVariantMixin implements VariantInterface {
           'Ditto instance available',
           type: 'business_fetch',
           tags: {
-            'userId': (ProxyService.box
+            'userId':
+                (ProxyService.box
                     .getUserId()
                     ?.toString()
                     .hashCode
@@ -145,12 +153,20 @@ mixin CapellaVariantMixin implements VariantInterface {
 
       // Tax filters
       if (taxTyCds != null && taxTyCds.isNotEmpty) {
-        final placeholders =
-            taxTyCds.asMap().keys.map((i) => ':tax$i').join(', ');
+        final placeholders = taxTyCds
+            .asMap()
+            .keys
+            .map((i) => ':tax$i')
+            .join(', ');
         query += ' AND taxTyCd IN ($placeholders)';
         for (int i = 0; i < taxTyCds.length; i++) {
           arguments['tax$i'] = taxTyCds[i];
         }
+      }
+
+      if (itemTyCd != null) {
+        query += ' AND itemTyCd = :itemTyCd';
+        arguments['itemTyCd'] = itemTyCd;
       }
 
       // Name / barcode search
@@ -184,7 +200,8 @@ mixin CapellaVariantMixin implements VariantInterface {
           'Prepared Ditto query',
           type: 'business_fetch',
           tags: {
-            'userId': (ProxyService.box
+            'userId':
+                (ProxyService.box
                     .getUserId()
                     ?.toString()
                     .hashCode
@@ -206,7 +223,8 @@ mixin CapellaVariantMixin implements VariantInterface {
           'Registering Ditto subscription',
           type: 'business_fetch',
           tags: {
-            'userId': (ProxyService.box
+            'userId':
+                (ProxyService.box
                     .getUserId()
                     ?.toString()
                     .hashCode
@@ -227,7 +245,8 @@ mixin CapellaVariantMixin implements VariantInterface {
           'Registering Ditto observer',
           type: 'business_fetch',
           tags: {
-            'userId': (ProxyService.box
+            'userId':
+                (ProxyService.box
                     .getUserId()
                     ?.toString()
                     .hashCode
@@ -256,7 +275,8 @@ mixin CapellaVariantMixin implements VariantInterface {
                 'Observer onChange triggered with $itemCount items',
                 type: 'business_fetch',
                 tags: {
-                  'userId': (ProxyService.box
+                  'userId':
+                      (ProxyService.box
                           .getUserId()
                           ?.toString()
                           .hashCode
@@ -278,7 +298,8 @@ mixin CapellaVariantMixin implements VariantInterface {
           'Waiting for observer data',
           type: 'business_fetch',
           tags: {
-            'userId': (ProxyService.box
+            'userId':
+                (ProxyService.box
                     .getUserId()
                     ?.toString()
                     .hashCode
@@ -301,7 +322,8 @@ mixin CapellaVariantMixin implements VariantInterface {
                   'Observer timeout waiting for variants',
                   type: 'business_fetch',
                   tags: {
-                    'userId': (ProxyService.box
+                    'userId':
+                        (ProxyService.box
                             .getUserId()
                             ?.toString()
                             .hashCode
@@ -326,7 +348,8 @@ mixin CapellaVariantMixin implements VariantInterface {
           'Received ${items.length} items from observer',
           type: 'business_fetch',
           tags: {
-            'userId': (ProxyService.box
+            'userId':
+                (ProxyService.box
                     .getUserId()
                     ?.toString()
                     .hashCode
@@ -368,9 +391,16 @@ mixin CapellaVariantMixin implements VariantInterface {
           }
 
           if (taxTyCds != null && taxTyCds.isNotEmpty) {
-            final placeholders =
-                taxTyCds.asMap().keys.map((i) => ':tax$i').join(', ');
+            final placeholders = taxTyCds
+                .asMap()
+                .keys
+                .map((i) => ':tax$i')
+                .join(', ');
             countQuery += ' AND taxTyCd IN ($placeholders)';
+          }
+
+          if (itemTyCd != null) {
+            countQuery += ' AND itemTyCd = :itemTyCd';
           }
 
           if (name != null && name.isNotEmpty) {
@@ -382,10 +412,13 @@ mixin CapellaVariantMixin implements VariantInterface {
             countQuery += ' AND productId = :productId';
           }
 
-          talker
-              .info('Executing count query: $countQuery with args: $countArgs');
-          final countResult =
-              await ditto.store.execute(countQuery, arguments: countArgs);
+          talker.info(
+            'Executing count query: $countQuery with args: $countArgs',
+          );
+          final countResult = await ditto.store.execute(
+            countQuery,
+            arguments: countArgs,
+          );
 
           if (countResult.items.isNotEmpty) {
             final v = countResult.items.first.value;
@@ -401,8 +434,9 @@ mixin CapellaVariantMixin implements VariantInterface {
       for (var doc in items) {
         final variant = Variant.fromJson(Map<String, dynamic>.from(doc.value));
         if (variant.stockId != null) {
-          variant.stock =
-              await (this as StockInterface).getStockById(id: variant.stockId!);
+          variant.stock = await (this as StockInterface).getStockById(
+            id: variant.stockId!,
+          );
         }
         pagedVariants.add(variant);
       }
@@ -412,7 +446,8 @@ mixin CapellaVariantMixin implements VariantInterface {
           'Successfully parsed ${pagedVariants.length} variants (totalCount: $totalCount)',
           type: 'business_fetch',
           tags: {
-            'userId': (ProxyService.box
+            'userId':
+                (ProxyService.box
                     .getUserId()
                     ?.toString()
                     .hashCode
@@ -427,10 +462,12 @@ mixin CapellaVariantMixin implements VariantInterface {
       }
 
       talker.info(
-          'Returning ${pagedVariants.length} variants (totalCount: $totalCount)');
+        'Returning ${pagedVariants.length} variants (totalCount: $totalCount)',
+      );
       return PagedVariants(
-          variants: pagedVariants,
-          totalCount: totalCount ?? pagedVariants.length);
+        variants: pagedVariants,
+        totalCount: totalCount ?? pagedVariants.length,
+      );
     } catch (e, st) {
       talker.error('Error fetching variants from Ditto: $e\n$st');
       await logService.logException(
@@ -440,7 +477,7 @@ mixin CapellaVariantMixin implements VariantInterface {
         tags: {
           'userId':
               (ProxyService.box.getUserId()?.toString().hashCode.toString()) ??
-                  'unknown',
+              'unknown',
           'method': 'variants',
           'error': e.toString(),
         },
@@ -470,7 +507,8 @@ mixin CapellaVariantMixin implements VariantInterface {
           'Starting getVariant fetch',
           type: 'business_fetch',
           tags: {
-            'userId': (ProxyService.box
+            'userId':
+                (ProxyService.box
                     .getUserId()
                     ?.toString()
                     .hashCode
@@ -498,7 +536,8 @@ mixin CapellaVariantMixin implements VariantInterface {
             'Ditto service not initialized in getVariant',
             type: 'business_fetch',
             tags: {
-              'userId': (ProxyService.box
+              'userId':
+                  (ProxyService.box
                       .getUserId()
                       ?.toString()
                       .hashCode
@@ -525,7 +564,8 @@ mixin CapellaVariantMixin implements VariantInterface {
             'Using ID filter for getVariant',
             type: 'business_fetch',
             tags: {
-              'userId': (ProxyService.box
+              'userId':
+                  (ProxyService.box
                       .getUserId()
                       ?.toString()
                       .hashCode
@@ -545,7 +585,8 @@ mixin CapellaVariantMixin implements VariantInterface {
             'Using BCD filter for getVariant',
             type: 'business_fetch',
             tags: {
-              'userId': (ProxyService.box
+              'userId':
+                  (ProxyService.box
                       .getUserId()
                       ?.toString()
                       .hashCode
@@ -565,7 +606,8 @@ mixin CapellaVariantMixin implements VariantInterface {
             'Using name filter for getVariant',
             type: 'business_fetch',
             tags: {
-              'userId': (ProxyService.box
+              'userId':
+                  (ProxyService.box
                       .getUserId()
                       ?.toString()
                       .hashCode
@@ -585,7 +627,8 @@ mixin CapellaVariantMixin implements VariantInterface {
             'Using productId filter for getVariant',
             type: 'business_fetch',
             tags: {
-              'userId': (ProxyService.box
+              'userId':
+                  (ProxyService.box
                       .getUserId()
                       ?.toString()
                       .hashCode
@@ -603,7 +646,8 @@ mixin CapellaVariantMixin implements VariantInterface {
             'No valid filter provided for getVariant',
             type: 'business_fetch',
             tags: {
-              'userId': (ProxyService.box
+              'userId':
+                  (ProxyService.box
                       .getUserId()
                       ?.toString()
                       .hashCode
@@ -624,7 +668,8 @@ mixin CapellaVariantMixin implements VariantInterface {
           'Prepared getVariant query',
           type: 'business_fetch',
           tags: {
-            'userId': (ProxyService.box
+            'userId':
+                (ProxyService.box
                     .getUserId()
                     ?.toString()
                     .hashCode
@@ -648,7 +693,8 @@ mixin CapellaVariantMixin implements VariantInterface {
           'Registered subscription for getVariant',
           type: 'business_fetch',
           tags: {
-            'userId': (ProxyService.box
+            'userId':
+                (ProxyService.box
                     .getUserId()
                     ?.toString()
                     .hashCode
@@ -669,8 +715,11 @@ mixin CapellaVariantMixin implements VariantInterface {
           // Complete the completer to avoid hanging
           if (!completer.isCompleted) {
             if (result.items.isNotEmpty) {
-              completer.complete(Variant.fromJson(
-                  Map<String, dynamic>.from(result.items.first.value)));
+              completer.complete(
+                Variant.fromJson(
+                  Map<String, dynamic>.from(result.items.first.value),
+                ),
+              );
             } else {
               completer.complete(null);
             }
@@ -681,7 +730,8 @@ mixin CapellaVariantMixin implements VariantInterface {
               'GetVariant observer onChange triggered with $itemCount items',
               type: 'business_fetch',
               tags: {
-                'userId': (ProxyService.box
+                'userId':
+                    (ProxyService.box
                         .getUserId()
                         ?.toString()
                         .hashCode
@@ -709,7 +759,8 @@ mixin CapellaVariantMixin implements VariantInterface {
                   'GetVariant observer timeout',
                   type: 'business_fetch',
                   tags: {
-                    'userId': (ProxyService.box
+                    'userId':
+                        (ProxyService.box
                             .getUserId()
                             ?.toString()
                             .hashCode
@@ -733,7 +784,8 @@ mixin CapellaVariantMixin implements VariantInterface {
             'GetVariant completed with ${variant != null ? 'success' : 'null'} result',
             type: 'business_fetch',
             tags: {
-              'userId': (ProxyService.box
+              'userId':
+                  (ProxyService.box
                       .getUserId()
                       ?.toString()
                       .hashCode
@@ -746,8 +798,9 @@ mixin CapellaVariantMixin implements VariantInterface {
         }
 
         if (variant != null && variant.stockId != null) {
-          variant.stock =
-              await (this as StockInterface).getStockById(id: variant.stockId!);
+          variant.stock = await (this as StockInterface).getStockById(
+            id: variant.stockId!,
+          );
         }
         return variant;
       } finally {
@@ -761,7 +814,8 @@ mixin CapellaVariantMixin implements VariantInterface {
           stackTrace: st,
           type: 'business_fetch',
           tags: {
-            'userId': (ProxyService.box
+            'userId':
+                (ProxyService.box
                     .getUserId()
                     ?.toString()
                     .hashCode
@@ -777,11 +831,140 @@ mixin CapellaVariantMixin implements VariantInterface {
   }
 
   @override
-  Future<int> addVariant(
-      {required List<Variant> variations,
-      required String branchId,
-      required bool skipRRaCall}) {
-    throw UnimplementedError('addVariant needs to be implemented for Capella');
+  Future<int> addVariant({
+    required List<Variant> variations,
+    required String branchId,
+    required bool skipRRaCall,
+  }) async {
+    final results = await Future.wait(
+      variations.map((variant) async {
+        try {
+          // Create a new variant with a UUID if one doesn't exist
+          var variantToSave = variant.id.isEmpty
+              ? variant.copyWith(id: const Uuid().v4(), branchId: branchId)
+              : variant.copyWith(branchId: branchId);
+
+          final ditto = dittoService.dittoInstance;
+
+          // Handle stock if it exists
+          if (variantToSave.stock != null) {
+            String stockId;
+            Stock stockToSave;
+
+            if (variantToSave.stock!.id.isEmpty) {
+              stockId = const Uuid().v4();
+              // Create a new Stock instance with the new ID
+              stockToSave = variantToSave.stock!.copyWith(id: stockId);
+            } else {
+              stockId = variantToSave.stock!.id;
+              stockToSave = variantToSave.stock!;
+            }
+
+            // Upsert stock to repository
+            await repository.upsert<Stock>(stockToSave);
+
+            // Sync stock to Ditto
+            if (ditto != null) {
+              await ditto.store.execute(
+                "INSERT INTO stocks DOCUMENTS (:doc) ON ID CONFLICT DO REPLACE",
+                arguments: {'doc': stockToSave.toJson()},
+              );
+            }
+
+            // Update the variant with the new stock and stockId
+            variantToSave = variantToSave.copyWith(
+              stock: stockToSave,
+              stockId: stockId,
+            );
+          }
+
+          // Ensure EBM sync flag if applicable (from CoreSync logic but adapted)
+          // CoreSync logic: Ebm? ebm = await ProxyService.strategy.ebm(...)
+
+          // Upsert Variant to Repository
+          await repository.upsert<Variant>(variantToSave);
+
+          // Sync Variant to Ditto
+          if (ditto != null) {
+            await ditto.store.execute(
+              "INSERT INTO variants DOCUMENTS (:doc) ON ID CONFLICT DO REPLACE",
+              arguments: {'doc': variantToSave.toFlipperJson()},
+            );
+          }
+
+          if (skipRRaCall) {
+            return;
+          }
+
+          Ebm? ebm = await ProxyService.strategy.ebm(
+            branchId: ProxyService.box.getBranchId()!,
+          );
+
+          final isTaxEnabled = await ProxyService.strategy.isTaxEnabled(
+            businessId: ProxyService.box.getBusinessId()!,
+            branchId: ProxyService.box.getBranchId()!,
+          );
+
+          if (!isTaxEnabled || ebm == null) {
+            return;
+          }
+
+          String serverUrl = ebm.taxServerUrl;
+          // if (isMobileDevice) { ... } // Assuming serverUrl handling is standard
+
+          // save items
+          await ProxyService.tax.saveItem(
+            variation: variantToSave,
+            URI: serverUrl,
+          );
+
+          // save io (SAR)
+          final sar = await ProxyService.strategy.getSar(
+            branchId: ProxyService.box.getBranchId()!,
+          );
+
+          if (sar != null) {
+            sar.sarNo = sar.sarNo + 1;
+            await repository.upsert<Sar>(sar);
+
+            // Skip stock reporting for services (itemTyCd: "3")
+            if (variantToSave.itemTyCd != "3") {
+              await ProxyService.tax.saveStockItems(
+                updateMaster: false,
+                items: [
+                  TransactionItemUtil.fromVariant(variantToSave, itemSeq: 1),
+                ],
+                tinNumber: ebm.tinNumber.toString(),
+                bhFId: ebm.bhfId,
+                totalSupplyPrice: variantToSave.supplyPrice ?? 0,
+                totalvat: 0,
+                totalAmount: variantToSave.retailPrice ?? 0,
+                sarTyCd: "06",
+                sarNo: sar.sarNo.toString(),
+                invoiceNumber: sar.sarNo,
+                remark: "Stock In from adding new item",
+                ocrnDt: DateTime.now().toUtc(),
+                URI: serverUrl,
+              );
+            }
+
+            // Skip stock master reporting for services (itemTyCd: "3")
+            if (variantToSave.itemTyCd != "3") {
+              await ProxyService.tax.saveStockMaster(
+                variant: variantToSave,
+                URI: serverUrl,
+                stockMasterQty: variantToSave.stock?.currentStock?.toDouble(),
+              );
+            }
+          }
+        } catch (e, stackTrace) {
+          talker.error('Error adding variant', e, stackTrace);
+          rethrow;
+        }
+      }),
+    );
+
+    return results.length;
   }
 
   @override
@@ -795,34 +978,35 @@ mixin CapellaVariantMixin implements VariantInterface {
   }
 
   @override
-  FutureOr<void> updateVariant(
-      {required List<Variant> updatables,
-      String? color,
-      String? taxTyCd,
-      Purchase? purchase,
-      num? approvedQty,
-      num? invoiceNumber,
-      bool updateIo = true,
-      String? variantId,
-      double? newRetailPrice,
-      double? retailPrice,
-      Map<String, String>? rates,
-      double? supplyPrice,
-      DateTime? expirationDate,
-      String? selectedProductType,
-      String? productId,
-      String? categoryId,
-      String? productName,
-      double? prc,
-      double? dftPrc,
-      String? unit,
-      String? pkgUnitCd,
-      double? dcRt,
-      bool? ebmSynced,
-      String? propertyTyCd,
-      String? roomTypeCd,
-      String? ttCatCd,
-      Map<String, String>? dates}) async {
+  FutureOr<void> updateVariant({
+    required List<Variant> updatables,
+    String? color,
+    String? taxTyCd,
+    Purchase? purchase,
+    num? approvedQty,
+    num? invoiceNumber,
+    bool updateIo = true,
+    String? variantId,
+    double? newRetailPrice,
+    double? retailPrice,
+    Map<String, String>? rates,
+    double? supplyPrice,
+    DateTime? expirationDate,
+    String? selectedProductType,
+    String? productId,
+    String? categoryId,
+    String? productName,
+    double? prc,
+    double? dftPrc,
+    String? unit,
+    String? pkgUnitCd,
+    double? dcRt,
+    bool? ebmSynced,
+    String? propertyTyCd,
+    String? roomTypeCd,
+    String? ttCatCd,
+    Map<String, String>? dates,
+  }) async {
     final ditto = dittoService.dittoInstance;
     if (ditto == null) return;
 
@@ -892,10 +1076,13 @@ mixin CapellaVariantMixin implements VariantInterface {
   }
 
   @override
-  FutureOr<Variant> addStockToVariant(
-      {required Variant variant, Stock? stock}) {
+  FutureOr<Variant> addStockToVariant({
+    required Variant variant,
+    Stock? stock,
+  }) {
     throw UnimplementedError(
-        'addStockToVariant needs to be implemented for Capella');
+      'addStockToVariant needs to be implemented for Capella',
+    );
   }
 
   @override
@@ -905,13 +1092,12 @@ mixin CapellaVariantMixin implements VariantInterface {
     int? limit,
   }) async {
     throw UnimplementedError(
-        'getExpiredItems needs to be implemented for Capella');
+      'getExpiredItems needs to be implemented for Capella',
+    );
   }
 
   @override
-  Future<List<Variant>> variantsByStockId({
-    required String stockId,
-  }) async {
+  Future<List<Variant>> variantsByStockId({required String stockId}) async {
     final logService = LogService();
     // Implement fetching variants by stockId using Ditto
     try {
@@ -920,7 +1106,8 @@ mixin CapellaVariantMixin implements VariantInterface {
           'Starting variantsByStockId fetch',
           type: 'business_fetch',
           tags: {
-            'userId': (ProxyService.box
+            'userId':
+                (ProxyService.box
                     .getUserId()
                     ?.toString()
                     .hashCode
@@ -940,7 +1127,8 @@ mixin CapellaVariantMixin implements VariantInterface {
             'Ditto service not initialized in variantsByStockId',
             type: 'business_fetch',
             tags: {
-              'userId': (ProxyService.box
+              'userId':
+                  (ProxyService.box
                       .getUserId()
                       ?.toString()
                       .hashCode
@@ -964,7 +1152,8 @@ mixin CapellaVariantMixin implements VariantInterface {
           'Prepared variantsByStockId query',
           type: 'business_fetch',
           tags: {
-            'userId': (ProxyService.box
+            'userId':
+                (ProxyService.box
                     .getUserId()
                     ?.toString()
                     .hashCode
@@ -985,7 +1174,8 @@ mixin CapellaVariantMixin implements VariantInterface {
           'Registered subscription for variantsByStockId',
           type: 'business_fetch',
           tags: {
-            'userId': (ProxyService.box
+            'userId':
+                (ProxyService.box
                     .getUserId()
                     ?.toString()
                     .hashCode
@@ -1005,7 +1195,8 @@ mixin CapellaVariantMixin implements VariantInterface {
           'Fetched ${items.length} items from variantsByStockId query',
           type: 'business_fetch',
           tags: {
-            'userId': (ProxyService.box
+            'userId':
+                (ProxyService.box
                     .getUserId()
                     ?.toString()
                     .hashCode
@@ -1022,8 +1213,9 @@ mixin CapellaVariantMixin implements VariantInterface {
       for (var item in items) {
         final variant = Variant.fromJson(Map<String, dynamic>.from(item.value));
         if (variant.stockId != null) {
-          variant.stock =
-              await (this as StockInterface).getStockById(id: variant.stockId!);
+          variant.stock = await (this as StockInterface).getStockById(
+            id: variant.stockId!,
+          );
         }
         variants.add(variant);
       }
@@ -1033,7 +1225,8 @@ mixin CapellaVariantMixin implements VariantInterface {
           'Successfully parsed ${variants.length} variants by stockId',
           type: 'business_fetch',
           tags: {
-            'userId': (ProxyService.box
+            'userId':
+                (ProxyService.box
                     .getUserId()
                     ?.toString()
                     .hashCode
@@ -1055,7 +1248,8 @@ mixin CapellaVariantMixin implements VariantInterface {
           stackTrace: st,
           type: 'business_fetch',
           tags: {
-            'userId': (ProxyService.box
+            'userId':
+                (ProxyService.box
                     .getUserId()
                     ?.toString()
                     .hashCode

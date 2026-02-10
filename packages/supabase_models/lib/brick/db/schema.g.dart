@@ -1,15 +1,14 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20260127123921.migration.dart';
+part '20260131115249.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
-final migrations = <Migration>{
-  const Migration20260127123921(),};
+final migrations = <Migration>{const Migration20260131115249()};
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
-  0,
+  20260131115249,
   generatorVersion: 1,
   tables: <SchemaTable>{
     SchemaTable(
@@ -54,6 +53,37 @@ final schema = Schema(
       },
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['id'], unique: true),
+      },
+    ),
+    SchemaTable(
+      'ActualOutput',
+      columns: <SchemaColumn>{
+        SchemaColumn(
+          '_brick_id',
+          Column.integer,
+          autoincrement: true,
+          nullable: false,
+          isPrimaryKey: true,
+        ),
+        SchemaColumn('id', Column.varchar, unique: true),
+        SchemaColumn('work_order_id', Column.varchar),
+        SchemaColumn('branch_id', Column.varchar),
+        SchemaColumn('actual_quantity', Column.Double),
+        SchemaColumn('recorded_at', Column.datetime),
+        SchemaColumn('user_id', Column.varchar),
+        SchemaColumn('user_name', Column.varchar),
+        SchemaColumn('variance_reason', Column.varchar),
+        SchemaColumn('notes', Column.varchar),
+        SchemaColumn('shift_id', Column.varchar),
+        SchemaColumn('quality_status', Column.varchar),
+        SchemaColumn('rework_quantity', Column.num),
+        SchemaColumn('scrap_quantity', Column.num),
+        SchemaColumn('last_touched', Column.datetime),
+      },
+      indices: <SchemaIndex>{
+        SchemaIndex(columns: ['id'], unique: true),
+        SchemaIndex(columns: ['work_order_id'], unique: false),
+        SchemaIndex(columns: ['branch_id'], unique: false),
       },
     ),
     SchemaTable(
@@ -1965,6 +1995,41 @@ final schema = Schema(
       },
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['id'], unique: true),
+      },
+    ),
+    SchemaTable(
+      'WorkOrder',
+      columns: <SchemaColumn>{
+        SchemaColumn(
+          '_brick_id',
+          Column.integer,
+          autoincrement: true,
+          nullable: false,
+          isPrimaryKey: true,
+        ),
+        SchemaColumn('id', Column.varchar, unique: true),
+        SchemaColumn('branch_id', Column.varchar),
+        SchemaColumn('business_id', Column.varchar),
+        SchemaColumn('variant_id', Column.varchar),
+        SchemaColumn('variant_name', Column.varchar),
+        SchemaColumn('planned_quantity', Column.Double),
+        SchemaColumn('actual_quantity', Column.num),
+        SchemaColumn('target_date', Column.datetime),
+        SchemaColumn('shift_id', Column.varchar),
+        SchemaColumn('status', Column.varchar),
+        SchemaColumn('unit_of_measure', Column.varchar),
+        SchemaColumn('notes', Column.varchar),
+        SchemaColumn('created_by', Column.varchar),
+        SchemaColumn('created_at', Column.datetime),
+        SchemaColumn('started_at', Column.datetime),
+        SchemaColumn('completed_at', Column.datetime),
+        SchemaColumn('last_touched', Column.datetime),
+      },
+      indices: <SchemaIndex>{
+        SchemaIndex(columns: ['id'], unique: true),
+        SchemaIndex(columns: ['branch_id'], unique: false),
+        SchemaIndex(columns: ['business_id'], unique: false),
+        SchemaIndex(columns: ['variant_id'], unique: false),
       },
     ),
   },

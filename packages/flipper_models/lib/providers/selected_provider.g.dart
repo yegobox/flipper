@@ -15,15 +15,15 @@ const selectedSupplierProvider = SelectedSupplierProvider._();
 final class SelectedSupplierProvider
     extends $NotifierProvider<SelectedSupplier, Branch?> {
   const SelectedSupplierProvider._()
-      : super(
-          from: null,
-          argument: null,
-          retry: null,
-          name: r'selectedSupplierProvider',
-          isAutoDispose: true,
-          dependencies: null,
-          $allTransitiveDependencies: null,
-        );
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'selectedSupplierProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
 
   @override
   String debugGetCreateSourceHash() => _$selectedSupplierHash();
@@ -50,8 +50,14 @@ abstract class _$SelectedSupplier extends $Notifier<Branch?> {
   void runBuild() {
     final created = build();
     final ref = this.ref as $Ref<Branch?, Branch?>;
-    final element = ref.element as $ClassProviderElement<
-        AnyNotifier<Branch?, Branch?>, Branch?, Object?, Object?>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<Branch?, Branch?>,
+              Branch?,
+              Object?,
+              Object?
+            >;
     element.handleValue(ref, created);
   }
 }

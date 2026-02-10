@@ -202,14 +202,15 @@ class OrderingViewModel extends ProductViewModel
       }
 
       // ignore: unused_local_variable
-      String orderId = await ProxyService.strategy.createStockRequest(
-        items,
-        mainBranchId: supplier.id,
-        subBranchId: ProxyService.box.getBranchId()!,
-        deliveryNote: deliveryNote,
-        orderNote: null,
-        financingId: financeOption.id,
-      );
+      String orderId = await ProxyService.getStrategy(Strategy.capella)
+          .createStockRequest(
+            items,
+            mainBranchId: supplier.id,
+            subBranchId: ProxyService.box.getBranchId()!,
+            deliveryNote: deliveryNote,
+            orderNote: null,
+            financingId: financeOption.id,
+          );
       await _markItemsAsDone(items, transaction);
       _changeTransactionStatus(transaction: transaction);
       await _refreshTransactionItems(ref: ref, transactionId: transaction.id);

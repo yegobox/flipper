@@ -1,5 +1,5 @@
 import 'dart:async';
-// import 'package:logging/logging.dart';
+import 'package:logging/logging.dart';
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_rw/dependency_initializer.dart';
@@ -78,10 +78,10 @@ Future<void> main() async {
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
   // Configure logging
-  // Logger.root.level = Level.ALL;
-  // Logger.root.onRecord.listen((record) {
-  //   debugPrint('${record.level.name}: ${record.time}: ${record.message}');
-  // });
+  Logger.root.level = Level.OFF;
+  Logger.root.onRecord.listen((record) {
+    debugPrint('${record.level.name}: ${record.time}: ${record.message}');
+  });
 
   // Centralized initialization function
   Future<void> initializeApp() async {

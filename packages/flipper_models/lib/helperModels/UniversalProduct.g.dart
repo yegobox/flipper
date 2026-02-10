@@ -8,12 +8,12 @@ part of 'UniversalProduct.dart';
 
 UniversalProduct _$UniversalProductFromJson(Map<String, dynamic> json) =>
     UniversalProduct(
-      itemClsCd: json['itemClsCd'] as String?,
-      itemClsNm: json['itemClsNm'] as String?,
-      itemClsLvl: (json['itemClsLvl'] as num?)?.toInt(),
-      mjrTgYn: json['mjrTgYn'] as String?,
-      useYn: json['useYn'] as String?,
-    )
+        itemClsCd: json['itemClsCd'] as String?,
+        itemClsNm: json['itemClsNm'] as String?,
+        itemClsLvl: (json['itemClsLvl'] as num?)?.toInt(),
+        mjrTgYn: json['mjrTgYn'] as String?,
+        useYn: json['useYn'] as String?,
+      )
       ..taxTyCd = json['taxTyCd'] as String?
       ..businessId = json['businessId'] as String?
       ..branchId = json['branchId'] as String?;

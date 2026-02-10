@@ -174,4 +174,10 @@ class LinuxNotifications extends BaseNotifications {
       linux: linuxNotificationDetails,
     );
   }
+
+  @override
+  Future<void> showOrderNotification(InventoryRequest order) async {
+    // Use the base implementation from BaseNotifications
+    await super.showOrderNotification(order);
+  }
 }

@@ -96,6 +96,16 @@ class EnhancedSideMenu extends ConsumerWidget {
         },
         tooltip: 'Incoming Orders',
       ),
+      _SideMenuItem(
+        icon: Icons.factory_outlined,
+        isSelected: selectedItem == 9,
+        onTap: () {
+          ref.read(selectedMenuItemProvider.notifier).state = 9;
+          ref.read(selectedPageProvider.notifier).state =
+              DashboardPage.productionOutput;
+        },
+        tooltip: 'Production Output',
+      ),
       if (isAdminAsyncValue.value == true)
         _SideMenuItem(
           icon: Icons.history,
@@ -180,15 +190,6 @@ class EnhancedSideMenu extends ConsumerWidget {
       child: Column(
         children: [
           // Header
-          Container(
-            padding: const EdgeInsets.all(16),
-            child: Image.asset(
-              'assets/logo.png',
-              package: 'flipper_dashboard',
-              width: 40,
-              height: 40,
-            ),
-          ),
 
           // Menu Items
           Expanded(
