@@ -70,7 +70,7 @@ mixin AssetMixin implements AssetInterface {
         return downloadAsset(
           branchId: branchId,
           assetName: assetName,
-          subPath: subPath!,
+          subPath: subPath ?? "branch",
         );
       }
 
@@ -149,7 +149,7 @@ mixin AssetMixin implements AssetInterface {
         Stream<double> downloadStream = await downloadAsset(
           branchId: branchId,
           assetName: asset.assetName!,
-          subPath: subPath!,
+          subPath: subPath ?? "branch",
         );
 
         // Listen to the download stream and add its events to the main controller
@@ -246,15 +246,19 @@ mixin AssetMixin implements AssetInterface {
         },
       );
       // Listen for the download completion
-      operation.result
-          .then((_) {
-            progressController.close();
-            talker.info("Downloaded file at path ${storagePath}");
-          })
-          .catchError((error) async {
-            progressController.addError(error);
-            progressController.close();
-          });
+      () async {
+        try {
+          await operation.result;
+          progressController.close();
+          talker.info("Downloaded file at path ${storagePath}");
+        } catch (error, stackTrace) {
+          progressController.addError(error);
+          progressController.close();
+          talker.error(
+            "Error downloading file at path $storagePath: $error\n$stackTrace",
+          );
+        }
+      }();
       return progressController.stream;
     } catch (e) {
       talker.error('Error downloading file: $e');
