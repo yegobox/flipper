@@ -129,6 +129,16 @@ mixin AssetMixin implements AssetInterface {
         return progressController.stream;
       }
 
+      // Track subscriptions for cleanup
+      final subscriptions = <StreamSubscription<double>>[];
+
+      // Cleanup subscriptions when controller is closed
+      progressController.onCancel = () {
+        for (final sub in subscriptions) {
+          sub.cancel();
+        }
+      };
+
       // Download assets that need downloading
       int completedDownloads = 0;
       for (Assets asset in assetsToDownload) {
@@ -142,19 +152,24 @@ mixin AssetMixin implements AssetInterface {
         );
 
         // Listen to the download stream and add its events to the main controller
-        downloadStream.listen(
-          (progress) {
+        final subscription = downloadStream.listen(
+          (progress) async {
             talker.info('Download progress for ${asset.assetName}: $progress');
             progressController.add(progress);
 
             // If this download completes, update the asset record
             if (progress >= 100.0) {
               // Update the asset record with the local path when download completes
-              getSupportDir().then((dir) {
+              try {
+                final dir = await getSupportDir();
                 final filePath = path.join(dir.path, asset.assetName!);
                 asset.localPath = filePath;
-                repository.upsert<Assets>(asset);
-              });
+                await repository.upsert<Assets>(asset);
+              } catch (e, st) {
+                talker.error(
+                  'Failed to upsert asset ${asset.assetName}: $e\n$st',
+                );
+              }
 
               // If all downloads are complete, close the controller
               completedDownloads++;
@@ -179,6 +194,7 @@ mixin AssetMixin implements AssetInterface {
             talker.info('Download completed for: ${asset.assetName}');
           },
         );
+        subscriptions.add(subscription);
       }
 
       return progressController.stream;
@@ -264,8 +280,11 @@ mixin AssetMixin implements AssetInterface {
             assetName: asset.assetName!,
             subPath: "branch",
           );
-        } catch (e) {
-          // Log error but continue to next asset
+        } catch (e, stackTrace) {
+          talker.error(
+            'Failed to download asset ${asset.assetName} for branch ${asset.branchId}: $e\n$stackTrace',
+          );
+          // Continue to next asset
         }
       }
     }
@@ -273,7 +292,6 @@ mixin AssetMixin implements AssetInterface {
 
   @override
   FutureOr<Assets?> getAsset({String? assetName, String? productId}) async {
-    final repository = Repository();
     final query = brick.Query(
       where: assetName != null
           ? [brick.Where('assetName').isExactly(assetName)]
@@ -400,9 +418,12 @@ mixin AssetMixin implements AssetInterface {
             // Create the file reference
             final file = File(asset.localPath!);
             if (await file.exists()) {
-              // Upload to S3
+              // Upload to S3 using same path pattern as downloadAsset
+              // Default to 'branch' subPath to match most common download usage
+              final subPath =
+                  'branch'; // Could be made configurable or stored on Assets model
               final storagePath = amplify.StoragePath.fromString(
-                'public/branch-${asset.branchId}/${asset.assetName}',
+                'public/$subPath-${asset.branchId}/${asset.assetName}',
               );
 
               await amplify.Amplify.Storage

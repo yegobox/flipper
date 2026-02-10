@@ -269,7 +269,7 @@ class AppService with ListenableServiceMixin {
     try {
       final appID = kDebugMode ? AppSecrets.appIdDebug : AppSecrets.appId;
       await DittoSingleton.instance.initialize(appId: appID, userId: userId);
-      DittoSyncCoordinator.instance.setDitto(
+      await DittoSyncCoordinator.instance.setDitto(
         DittoSingleton.instance.ditto,
         skipInitialFetch: true,
       );
