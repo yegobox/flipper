@@ -6,21 +6,7 @@ import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 
-/// Enum for business types
-enum BusinessTypeEnum {
-  BUSINESS('1'),
-  INDIVIDUAL('2');
-
-  const BusinessTypeEnum(this.id);
-  final String id;
-
-  static BusinessTypeEnum fromId(String id) {
-    return BusinessTypeEnum.values.firstWhere(
-      (type) => type.id == id,
-      orElse: () => BusinessTypeEnum.BUSINESS,
-    );
-  }
-}
+import 'package:flipper_models/helperModels/business_type.dart';
 
 final signupRepositoryProvider = Provider<SignupRepository>((ref) {
   return SignupRepository();

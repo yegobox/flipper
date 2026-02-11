@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:developer';
-import 'dart:convert';
 import 'package:flipper_models/helperModels/business_type.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 import 'package:flipper_services/proxy.dart';
@@ -80,16 +79,16 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
 
     // Business types are now hardcoded to match flipper_web app
     // Set default to Individual after items are loaded
-    final businessTypeItems = BusinessType.fromJsonList(jsonEncode([
-      {"id": "1", "typeName": "Flipper Retailer"},
-      {"id": "2", "typeName": "Individual"},
-      {"id": "3", "typeName": "Enterprise"},
-    ]));
+    // Business types are now generated from BusinessTypeEnum
+    // Set default to Individual after items are loaded
+    final businessTypeItems = BusinessTypeEnum.values
+        .map((e) => BusinessType(id: e.id, typeName: e.typeName))
+        .toList();
     businessTypes.updateItems(businessTypeItems);
 
     // Set Individual as the default
     final individualType = businessTypeItems.firstWhere(
-      (type) => type.id == "2",
+      (type) => type.id == BusinessTypeEnum.INDIVIDUAL.id,
       orElse: () => businessTypeItems.first,
     );
     businessTypes.updateInitialValue(individualType);
@@ -147,7 +146,7 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
 
     // Listen to business type changes to update tinNumber validation
     businessTypes.stream.listen((state) {
-      if (state.value?.id == "2") {
+      if (state.value?.id == BusinessTypeEnum.INDIVIDUAL.id) {
         // Individual - no TIN required
         tinNumber.updateValidators([]);
       } else {
@@ -447,10 +446,10 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
       signupViewModel.setFullName(name: fullName.value);
       signupViewModel.setPhoneNumber(phoneNumber: phoneNumber.value);
       signupViewModel.setCountry(country: countryName.value ?? 'Rwanda');
-      signupViewModel.tin =
-          (tinNumber.value.isEmpty || businessTypes.value?.id == "2")
-              ? "999909695"
-              : tinNumber.value;
+      signupViewModel.tin = (tinNumber.value.isEmpty ||
+              businessTypes.value?.id == BusinessTypeEnum.INDIVIDUAL.id)
+          ? "999909695"
+          : tinNumber.value;
       signupViewModel.businessType = businessTypes.value!;
 
       // Perform signup
@@ -474,7 +473,9 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
   }
 
   String? _validateTinStatus(String? tin) {
-    if (businessTypes.value?.id == "2") return null; // Individual
+    if (businessTypes.value?.id == BusinessTypeEnum.INDIVIDUAL.id) {
+      return null; // Individual
+    }
     if (_isTinValidationRelaxed) return null;
     if (_isTinVerified) return null;
     return 'Please validate TIN';
@@ -491,7 +492,7 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
     _isTinValidationRelaxed = false; // specific verification overrides relaxed
     _verifiedTinNumber = verified ? tinNumber.value : null;
 
-    if (businessTypes.value?.id != "2") {
+    if (businessTypes.value?.id != BusinessTypeEnum.INDIVIDUAL.id) {
       if (verified) {
         // The TIN is verified, so we no longer need the status validator.
         tinNumber.updateValidators([FieldBlocValidators.required]);
@@ -515,7 +516,7 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
     // if relaxed, we don't strictly require verification, so we don't change _isTinVerified
     _verifiedTinNumber = relaxed ? tinNumber.value : null;
 
-    if (businessTypes.value?.id != "2") {
+    if (businessTypes.value?.id != BusinessTypeEnum.INDIVIDUAL.id) {
       if (relaxed) {
         // Validation is relaxed, so we no longer need the status validator.
         tinNumber.updateValidators([FieldBlocValidators.required]);

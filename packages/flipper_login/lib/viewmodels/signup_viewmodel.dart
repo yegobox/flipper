@@ -6,22 +6,6 @@ import 'package:flipper_models/helperModels/business_type.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/proxy.dart';
 
-/// Enum for business types
-enum BusinessTypeEnum {
-  BUSINESS('1'),
-  INDIVIDUAL('2');
-
-  const BusinessTypeEnum(this.id);
-  final String id;
-
-  static BusinessTypeEnum fromId(String id) {
-    return BusinessTypeEnum.values.firstWhere(
-      (type) => type.id == id,
-      orElse: () => BusinessTypeEnum.BUSINESS,
-    );
-  }
-}
-
 /// View model for handling signup business logic
 class SignupViewModel extends BaseViewModel {
   BuildContext? context;
