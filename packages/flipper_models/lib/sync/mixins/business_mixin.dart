@@ -83,7 +83,7 @@ mixin BusinessMixin implements BusinessInterface {
       query: query,
       policy: fetchOnline
           ? OfflineFirstGetPolicy.awaitRemoteWhenNoneExist
-          : OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+          : OfflineFirstGetPolicy.localOnly,
     );
     return result.firstOrNull;
   }
