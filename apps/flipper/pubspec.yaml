@@ -4,7 +4,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # 1.170.4252223234854+1755779343
 # 1.180.4252223234901+1756527939
 
-version: 1.180.4252223234901+1756528881
+version: 1.180.4252223234901+1756528882
 
 
 environment:
@@ -28,7 +28,7 @@ dependencies:
   mime: ^2.0.0
   open_filex: ^4.7.0
   ant_icons: ^2.0.0-nullsafety.0
-  ditto_live: ^4.14.1
+  ditto_live: ^4.14.2
   feather_icons: ^1.1.0-nullsafety.0
   flex_color_scheme: ^4.2.0
   image_picker: ^1.2.1
