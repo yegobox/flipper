@@ -195,9 +195,9 @@ mixin BusinessMixin implements BusinessInterface {
         exist.tinNumber = tinNumber;
       }
 
-      repository.upsert<Business>(exist);
+      await repository.upsert<Business>(exist);
     } else {
-      repository.upsert<Business>(
+      await repository.upsert<Business>(
         Business(
           id: id,
           serverId: serverId,
