@@ -209,6 +209,10 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
           businessTypes.updateValue(matchingType);
         }
       }
+    }).catchError((error, stackTrace) {
+      // Silently handle the error to prevent unhandled Future exceptions
+      // The existing enum-backed items will remain as fallback
+      log('Error loading business types: $error', name: 'AsyncFieldValidationFormBloc');
     });
   }
 

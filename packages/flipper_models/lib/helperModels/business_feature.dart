@@ -1,5 +1,3 @@
-library flipper_models;
-
 import 'package:json_annotation/json_annotation.dart';
 import 'package:flipper_models/sync_service.dart';
 
