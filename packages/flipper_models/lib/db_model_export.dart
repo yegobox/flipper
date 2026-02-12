@@ -19,3 +19,4 @@ export 'package:flipper_models/view_models/ScannViewModel.dart';
 
 export 'models/user_mfa_secret.dart';
 export 'repositories/user_mfa_secret_repository.dart';
+export 'helperModels/business_feature.dart';

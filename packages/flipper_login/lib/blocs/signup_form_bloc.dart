@@ -183,6 +183,33 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
     });
 
     username.addAsyncValidators([_checkUsername]);
+
+    // Load business types from remote
+    _loadBusinessTypes();
+  }
+
+  void _loadBusinessTypes() {
+    ProxyService.app.getBusinessTypes().then((types) {
+      if (types.isNotEmpty) {
+        businessTypes.updateItems(types);
+
+        // Try to maintain selection or default to Individual (id 2)
+        // If current selection is valid in new list, keep it.
+        // Otherwise default to Individual or first item.
+
+        final currentId = businessTypes.value?.id;
+        final targetId = currentId ?? BusinessTypeEnum.INDIVIDUAL.id;
+
+        final matchingType = types.firstWhere((t) => t.id == targetId,
+            orElse: () => types.firstWhere(
+                (t) => t.id == BusinessTypeEnum.INDIVIDUAL.id,
+                orElse: () => types.first));
+
+        if (businessTypes.value != matchingType) {
+          businessTypes.updateValue(matchingType);
+        }
+      }
+    });
   }
 
   /// Validates that username is not too long

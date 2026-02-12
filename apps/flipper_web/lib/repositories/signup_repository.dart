@@ -5,6 +5,7 @@ import 'package:flipper_web/core/secrets.dart';
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'package:flipper_models/helperModels/business_type.dart';
 
@@ -172,6 +173,22 @@ class SignupRepository {
       } else {
         throw Exception('Registration failed: ${e.toString()}');
       }
+    }
+  }
+
+  Future<List<BusinessType>> getBusinessTypes() async {
+    try {
+      final supabase = Supabase.instance.client;
+      final response = await supabase.from('business_types').select();
+      return (response as List).map((e) => BusinessType.fromJson(e)).toList();
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error fetching business types: $e');
+      }
+      // Fallback to enum if fetch fails
+      return BusinessTypeEnum.values
+          .map((e) => BusinessType(id: e.id, typeName: e.typeName))
+          .toList();
     }
   }
 }
