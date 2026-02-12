@@ -21,6 +21,14 @@ class EnhancedSideMenu extends ConsumerWidget {
     final selectedItem = ref.watch(selectedMenuItemProvider);
     final _dialogService = locator<DialogService>();
     final _routerService = locator<RouterService>();
+
+    final hasKDS = ref.watch(hasFeatureProvider("KDS"));
+    final hasInventory = ref.watch(hasFeatureProvider("INVENTORY"));
+    final hasOrdering = ref.watch(hasFeatureProvider("ORDERING"));
+    final hasManufacturing = ref.watch(hasFeatureProvider("MANUFACTURING"));
+    final hasShiftHistory = ref.watch(hasFeatureProvider("SHIFT_HISTORY"));
+    final hasAccess = ref.watch(hasFeatureProvider("PRINTING_DELEGATION"));
+
     final isAdminAsyncValue = ref.watch(
       isAdminProvider(
         ProxyService.box.getUserId() ?? "",
@@ -48,65 +56,73 @@ class EnhancedSideMenu extends ConsumerWidget {
         },
         tooltip: 'Chat',
       ),
-      _SideMenuItem(
-        icon: FluentIcons.box_24_regular,
-        isSelected: selectedItem == 2,
-        onTap: () {
-          ref.read(selectedMenuItemProvider.notifier).state = 2;
-          ref.read(selectedPageProvider.notifier).state = DashboardPage.reports;
-        },
-        tooltip: 'Items',
-      ),
-      _SideMenuItem(
-        icon: Icons.restaurant_menu,
-        isSelected: selectedItem == 3,
-        onTap: () {
-          ref.read(selectedMenuItemProvider.notifier).state = 3;
-          ref.read(selectedPageProvider.notifier).state = DashboardPage.kitchen;
-        },
-        tooltip: 'Kitchen Display',
-      ),
-      _SideMenuItem(
-        icon: Icons.inventory_2_outlined,
-        isSelected: selectedItem == 6,
-        onTap: () {
-          ref.read(selectedMenuItemProvider.notifier).state = 6;
-          ref.read(selectedPageProvider.notifier).state =
-              DashboardPage.stockRecount;
-        },
-        tooltip: 'Stock Recount',
-      ),
-      _SideMenuItem(
-        icon: Icons.print_outlined,
-        isSelected: selectedItem == 7,
-        onTap: () {
-          ref.read(selectedMenuItemProvider.notifier).state = 7;
-          ref.read(selectedPageProvider.notifier).state =
-              DashboardPage.delegations;
-        },
-        tooltip: 'Delegations',
-      ),
-      _SideMenuItem(
-        icon: Icons.move_to_inbox,
-        isSelected: selectedItem == 8,
-        onTap: () {
-          ref.read(selectedMenuItemProvider.notifier).state = 8;
-          ref.read(selectedPageProvider.notifier).state =
-              DashboardPage.incomingOrders;
-        },
-        tooltip: 'Incoming Orders',
-      ),
-      _SideMenuItem(
-        icon: Icons.factory_outlined,
-        isSelected: selectedItem == 9,
-        onTap: () {
-          ref.read(selectedMenuItemProvider.notifier).state = 9;
-          ref.read(selectedPageProvider.notifier).state =
-              DashboardPage.productionOutput;
-        },
-        tooltip: 'Production Output',
-      ),
-      if (isAdminAsyncValue.value == true)
+      if (hasInventory)
+        _SideMenuItem(
+          icon: FluentIcons.box_24_regular,
+          isSelected: selectedItem == 2,
+          onTap: () {
+            ref.read(selectedMenuItemProvider.notifier).state = 2;
+            ref.read(selectedPageProvider.notifier).state =
+                DashboardPage.reports;
+          },
+          tooltip: 'Items',
+        ),
+      if (hasKDS)
+        _SideMenuItem(
+          icon: Icons.restaurant_menu,
+          isSelected: selectedItem == 3,
+          onTap: () {
+            ref.read(selectedMenuItemProvider.notifier).state = 3;
+            ref.read(selectedPageProvider.notifier).state =
+                DashboardPage.kitchen;
+          },
+          tooltip: 'Kitchen Display',
+        ),
+      if (hasInventory)
+        _SideMenuItem(
+          icon: Icons.inventory_2_outlined,
+          isSelected: selectedItem == 6,
+          onTap: () {
+            ref.read(selectedMenuItemProvider.notifier).state = 6;
+            ref.read(selectedPageProvider.notifier).state =
+                DashboardPage.stockRecount;
+          },
+          tooltip: 'Stock Recount',
+        ),
+      if (hasAccess)
+        _SideMenuItem(
+          icon: Icons.print_outlined,
+          isSelected: selectedItem == 7,
+          onTap: () {
+            ref.read(selectedMenuItemProvider.notifier).state = 7;
+            ref.read(selectedPageProvider.notifier).state =
+                DashboardPage.delegations;
+          },
+          tooltip: 'Delegations',
+        ),
+      if (hasOrdering || hasInventory)
+        _SideMenuItem(
+          icon: Icons.move_to_inbox,
+          isSelected: selectedItem == 8,
+          onTap: () {
+            ref.read(selectedMenuItemProvider.notifier).state = 8;
+            ref.read(selectedPageProvider.notifier).state =
+                DashboardPage.incomingOrders;
+          },
+          tooltip: 'Incoming Orders',
+        ),
+      if (hasManufacturing)
+        _SideMenuItem(
+          icon: Icons.factory_outlined,
+          isSelected: selectedItem == 9,
+          onTap: () {
+            ref.read(selectedMenuItemProvider.notifier).state = 9;
+            ref.read(selectedPageProvider.notifier).state =
+                DashboardPage.productionOutput;
+          },
+          tooltip: 'Production Output',
+        ),
+      if (isAdminAsyncValue.value == true && hasShiftHistory)
         _SideMenuItem(
           icon: Icons.history,
           isSelected: selectedItem == 5,

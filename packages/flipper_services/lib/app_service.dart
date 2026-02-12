@@ -14,6 +14,7 @@ import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flipper_web/core/secrets.dart';
 import 'package:flipper_models/ebm_helper.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flipper_models/helperModels/business_type.dart' as helper;
 
 const socialApp = "socials";
 
@@ -166,6 +167,9 @@ class AppService with ListenableServiceMixin {
       isDefault: true,
     );
     await _updateBusinessPreferences(business);
+    if (ProxyService.ditto.isReady()) {
+      loadFeatures();
+    }
   }
 
   Future<void> setDefaultBranch(Branch branch) async {
@@ -372,6 +376,9 @@ class AppService with ListenableServiceMixin {
 
     // After successful business/branch selection, check for active shift
     await checkAndStartShift(userId: userId);
+    if (ProxyService.ditto.isReady()) {
+      loadFeatures();
+    }
   }
 
   Future<void> checkAndStartShift({required String userId}) async {
@@ -418,7 +425,7 @@ class AppService with ListenableServiceMixin {
   }
 
   AppService() {
-    listenToReactiveValues([_categories, _business, _contacts]);
+    listenToReactiveValues([_categories, _business, _contacts, _features]);
   }
 
   Future<List<Branch>> searchSuppliers(String query) async {
@@ -432,5 +439,58 @@ class AppService with ListenableServiceMixin {
         .ilike('name', '%$query%');
 
     return data.map<Branch>((item) => Branch.fromMap(item)).toList();
+  }
+
+  Future<List<helper.BusinessType>> getBusinessTypes() async {
+    try {
+      final response = await Supabase.instance.client
+          .from('business_types')
+          .select();
+      return (response as List)
+          .map((e) => helper.BusinessType.fromJson(e))
+          .toList();
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error fetching business types: $e');
+      }
+      return helper.BusinessTypeEnum.values
+          .map((e) => helper.BusinessType(id: e.id, typeName: e.typeName))
+          .toList();
+    }
+  }
+
+  final _features = ReactiveValue<List<String>>([]);
+  List<String> get features => _features.value;
+
+  StreamSubscription<BusinessFeature?>? _featuresSubscription;
+
+  void loadFeatures() {
+    // 1. Check if Ditto is ready
+    if (!ProxyService.ditto.isReady()) {
+      _features.value = [];
+      return;
+    }
+
+    final businessId = ProxyService.box.getBusinessId();
+    if (businessId == null) return;
+
+    _featuresSubscription?.cancel();
+    // 2. Add onError handler
+    _featuresSubscription = ProxyService.ditto
+        .businessFeatureStream(businessId: businessId)
+        .listen(
+          (feature) {
+            if (feature != null) {
+              _features.value = feature.features;
+            } else {
+              _features.value = [];
+            }
+          },
+          onError: (error) {
+            print("Error in businessFeatureStream: $error");
+            _features.value = [];
+            _featuresSubscription?.cancel();
+          },
+        );
   }
 }

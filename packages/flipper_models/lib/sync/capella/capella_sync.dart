@@ -960,6 +960,7 @@ class CapellaSync extends AiStrategyImpl
     required String productId,
     required String branchId,
     required String businessId,
+    String subPath = 'branch',
   }) {
     // TODO: implement saveImageLocally
     throw UnimplementedError();

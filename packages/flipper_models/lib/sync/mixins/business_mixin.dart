@@ -16,7 +16,7 @@ mixin BusinessMixin implements BusinessInterface {
   @override
   Future<List<BusinessType>> businessTypes() async {
     final responseJson = [
-      {"id": "1", "typeName": "Flipper Retailer"}
+      {"id": "1", "typeName": "Flipper Retailer"},
     ];
     await Future.delayed(Duration(seconds: 5));
     final response = http.Response(jsonEncode(responseJson), 200);
@@ -27,17 +27,21 @@ mixin BusinessMixin implements BusinessInterface {
   }
 
   @override
-  Future<List<Business>> businesses(
-      {String? userId, bool fetchOnline = false, bool active = false}) async {
+  Future<List<Business>> businesses({
+    String? userId,
+    bool fetchOnline = false,
+    bool active = false,
+  }) async {
     if (userId == null) {
       return [];
     }
 
     final tenants = await repository.get<Tenant>(
-        policy: fetchOnline
-            ? OfflineFirstGetPolicy.awaitRemoteWhenNoneExist
-            : OfflineFirstGetPolicy.localOnly,
-        query: Query(where: [Where('userId').isExactly(userId)]));
+      policy: fetchOnline
+          ? OfflineFirstGetPolicy.awaitRemoteWhenNoneExist
+          : OfflineFirstGetPolicy.localOnly,
+      query: Query(where: [Where('userId').isExactly(userId)]),
+    );
 
     if (tenants.isEmpty) {
       return [];
@@ -49,74 +53,84 @@ mixin BusinessMixin implements BusinessInterface {
   Future<Business?> activeBusiness() async {
     return (await repository.get<Business>(
       policy: OfflineFirstGetPolicy.localOnly,
-      query: Query(
-        where: [
-          Where('isDefault').isExactly(true),
-        ],
-      ),
-    ))
-        .firstOrNull;
+      query: Query(where: [Where('isDefault').isExactly(true)]),
+    )).firstOrNull;
   }
 
   @override
   Future<Category?> activeCategory({required String branchId}) async {
     return (await repository.get<Category>(
-            query: Query(where: [
-              Where('focused').isExactly(true),
-              Where('active').isExactly(true),
-              Where('branchId').isExactly(branchId),
-            ], limit: 1),
-            policy: OfflineFirstGetPolicy.localOnly))
-        .firstOrNull;
+      query: Query(
+        where: [
+          Where('focused').isExactly(true),
+          Where('active').isExactly(true),
+          Where('branchId').isExactly(branchId),
+        ],
+        limit: 1,
+      ),
+      policy: OfflineFirstGetPolicy.localOnly,
+    )).firstOrNull;
   }
 
   @override
-  FutureOr<Business?> getBusinessById(
-      {required String businessId, bool fetchOnline = false}) async {
+  FutureOr<Business?> getBusinessById({
+    required String businessId,
+    bool fetchOnline = false,
+  }) async {
     final repository = Repository();
     final query = Query(where: [Where('id').isExactly(businessId)]);
     final result = await repository.get<Business>(
-        query: query,
-        policy: fetchOnline
-            ? OfflineFirstGetPolicy.awaitRemoteWhenNoneExist
-            : OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+      query: query,
+      policy: fetchOnline
+          ? OfflineFirstGetPolicy.awaitRemoteWhenNoneExist
+          : OfflineFirstGetPolicy.localOnly,
+    );
     return result.firstOrNull;
   }
 
   @override
-  FutureOr<Business?> getBusiness({String? businessId}) async {
+  Future<Business?> getBusiness({String? businessId}) async {
     final repository = Repository();
     final query = Query(
-        where: businessId != null
-            ? [Where('id').isExactly(businessId)]
-            : [Where('isDefault').isExactly(true)]);
+      where: businessId != null
+          ? [Where('id').isExactly(businessId)]
+          : [Where('isDefault').isExactly(true)],
+    );
     final result = await repository.get<Business>(
-        query: query, policy: OfflineFirstGetPolicy.localOnly);
+      query: query,
+      policy: OfflineFirstGetPolicy.localOnly,
+    );
     return result.firstOrNull;
   }
 
   final String apihub = AppSecrets.apihubProd;
 
   @override
-  Future<Business?> getBusinessFromOnlineGivenId(
-      {required int id, required HttpClientInterface flipperHttpClient}) async {
+  Future<Business?> getBusinessFromOnlineGivenId({
+    required int id,
+    required HttpClientInterface flipperHttpClient,
+  }) async {
     final repository = Repository();
     final query = Query(where: [Where('id').isExactly(id)]);
     final result = await repository.get<Business>(
-        query: query, policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist);
+      query: query,
+      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+    );
     Business? business = result.firstOrNull;
 
     if (business != null) return business;
-    final http.Response response =
-        await flipperHttpClient.get(Uri.parse("$apihub/v2/api/business/$id"));
+    final http.Response response = await flipperHttpClient.get(
+      Uri.parse("$apihub/v2/api/business/$id"),
+    );
     if (response.statusCode == 200) {
       IBusiness iBusiness = IBusiness.fromJson(json.decode(response.body));
       Business business = Business(
-          serverId: iBusiness.serverId!,
-          name: iBusiness.name,
-          phoneNumber: iBusiness.phoneNumber!,
-          userId: iBusiness.userId,
-          createdAt: DateTime.now());
+        serverId: iBusiness.serverId!,
+        name: iBusiness.name,
+        phoneNumber: iBusiness.phoneNumber!,
+        userId: iBusiness.userId,
+        createdAt: DateTime.now(),
+      );
 
       // business.id = id;
       await repository.upsert<Business>(business);
@@ -126,52 +140,53 @@ mixin BusinessMixin implements BusinessInterface {
   }
 
   @override
-  Future<void> addBusiness(
-      {required String id,
-      required String userId,
-      required int serverId,
-      required String businessId,
-      String? name,
-      String? currency,
-      String? categoryId,
-      num? latitude,
-      num? longitude,
-      String? timeZone,
-      String? country,
-      String? businessUrl,
-      String? hexColor,
-      String? imageUrl,
-      String? type,
-      bool? active,
-      String? chatUid,
-      String? metadata,
-      String? role,
-      int? lastSeen,
-      String? firstName,
-      String? lastName,
-      String? createdAt,
-      String? deviceToken,
-      bool? backUpEnabled,
-      String? subscriptionPlan,
-      String? nextBillingDate,
-      String? previousBillingDate,
-      bool? isLastSubscriptionPaymentSucceeded,
-      String? backupFileId,
-      String? email,
-      String? lastDbBackup,
-      String? fullName,
-      int? tinNumber,
-      required String bhfId,
-      String? dvcSrlNo,
-      String? adrs,
-      bool? taxEnabled,
-      String? taxServerUrl,
-      bool? isDefault,
-      String? businessTypeId,
-      DateTime? lastTouched,
-      required String phoneNumber,
-      DateTime? deletedAt,
-      required String encryptionKey}) async {
+  Future<void> addBusiness({
+    required String id,
+    required String userId,
+    required int serverId,
+    required String businessId,
+    String? name,
+    String? currency,
+    String? categoryId,
+    num? latitude,
+    num? longitude,
+    String? timeZone,
+    String? country,
+    String? businessUrl,
+    String? hexColor,
+    String? imageUrl,
+    String? type,
+    bool? active,
+    String? chatUid,
+    String? metadata,
+    String? role,
+    int? lastSeen,
+    String? firstName,
+    String? lastName,
+    String? createdAt,
+    String? deviceToken,
+    bool? backUpEnabled,
+    String? subscriptionPlan,
+    String? nextBillingDate,
+    String? previousBillingDate,
+    bool? isLastSubscriptionPaymentSucceeded,
+    String? backupFileId,
+    String? email,
+    String? lastDbBackup,
+    String? fullName,
+    int? tinNumber,
+    required String bhfId,
+    String? dvcSrlNo,
+    String? adrs,
+    bool? taxEnabled,
+    String? taxServerUrl,
+    bool? isDefault,
+    String? businessTypeId,
+    DateTime? lastTouched,
+    required String phoneNumber,
+    DateTime? deletedAt,
+    required String encryptionKey,
+  }) async {
     Business? exist = await getBusiness(businessId: businessId);
 
     if (exist != null) {
@@ -180,51 +195,54 @@ mixin BusinessMixin implements BusinessInterface {
         exist.tinNumber = tinNumber;
       }
 
-      repository.upsert<Business>(exist);
+      await repository.upsert<Business>(exist);
     } else {
-      repository.upsert<Business>(Business(
-        id: id,
-        serverId: serverId,
-        phoneNumber: phoneNumber,
-        name: name,
-        currency: currency,
-        categoryId: categoryId,
-        latitude: latitude,
-        longitude: longitude,
-        timeZone: timeZone,
-        country: country,
-        businessUrl: businessUrl,
-        hexColor: hexColor,
-        imageUrl: imageUrl,
-        type: type,
-        active: active,
-        chatUid: chatUid,
-        tinNumber: tinNumber,
-        metadata: metadata,
-        role: role,
-        userId: userId,
-        lastSeen: lastSeen,
-        firstName: firstName,
-        lastName: lastName,
-        deviceToken: deviceToken,
-        backUpEnabled: backUpEnabled,
-        subscriptionPlan: subscriptionPlan,
-        nextBillingDate: nextBillingDate,
-        previousBillingDate: previousBillingDate,
-        isLastSubscriptionPaymentSucceeded: isLastSubscriptionPaymentSucceeded,
-        backupFileId: backupFileId,
-        email: email,
-        lastDbBackup: lastDbBackup,
-        fullName: fullName,
-        bhfId: bhfId,
-        dvcSrlNo: dvcSrlNo,
-        adrs: adrs,
-        taxEnabled: taxEnabled,
-        taxServerUrl: taxServerUrl,
-        isDefault: isDefault,
-        businessTypeId: businessTypeId,
-        encryptionKey: encryptionKey,
-      ));
+      await repository.upsert<Business>(
+        Business(
+          id: id,
+          serverId: serverId,
+          phoneNumber: phoneNumber,
+          name: name,
+          currency: currency,
+          categoryId: categoryId,
+          latitude: latitude,
+          longitude: longitude,
+          timeZone: timeZone,
+          country: country,
+          businessUrl: businessUrl,
+          hexColor: hexColor,
+          imageUrl: imageUrl,
+          type: type,
+          active: active,
+          chatUid: chatUid,
+          tinNumber: tinNumber,
+          metadata: metadata,
+          role: role,
+          userId: userId,
+          lastSeen: lastSeen,
+          firstName: firstName,
+          lastName: lastName,
+          deviceToken: deviceToken,
+          backUpEnabled: backUpEnabled,
+          subscriptionPlan: subscriptionPlan,
+          nextBillingDate: nextBillingDate,
+          previousBillingDate: previousBillingDate,
+          isLastSubscriptionPaymentSucceeded:
+              isLastSubscriptionPaymentSucceeded,
+          backupFileId: backupFileId,
+          email: email,
+          lastDbBackup: lastDbBackup,
+          fullName: fullName,
+          bhfId: bhfId,
+          dvcSrlNo: dvcSrlNo,
+          adrs: adrs,
+          taxEnabled: taxEnabled,
+          taxServerUrl: taxServerUrl,
+          isDefault: isDefault,
+          businessTypeId: businessTypeId,
+          encryptionKey: encryptionKey,
+        ),
+      );
     }
   }
 
@@ -250,14 +268,16 @@ mixin BusinessMixin implements BusinessInterface {
     business.name = name ?? business.name;
     business.isDefault = isDefault ?? business.isDefault;
     business.backupFileId = backupFileId ?? business.backupFileId;
-    await repository.upsert(business,
-        policy: OfflineFirstUpsertPolicy.optimisticLocal);
+    await repository.upsert(
+      business,
+      policy: OfflineFirstUpsertPolicy.optimisticLocal,
+    );
   }
 
   @override
   Future<Business?> defaultBusiness() async {
     return (await repository.get<Business>(
-            query: Query(where: [Where('isDefault').isExactly(true)])))
-        .firstOrNull;
+      query: Query(where: [Where('isDefault').isExactly(true)]),
+    )).firstOrNull;
   }
 }

@@ -123,7 +123,7 @@ dependencies:
   markdown_widget: ^2.3.2
   flipper_auth: any
   flutter_soloud: ^3.4.7
-  ditto_live: ^4.14.1
+  ditto_live: ^4.14.2
   flipper_personal: any
   flutter_contacts: ^2.0.0-beta.2
   # just_audio: ^0.10.5

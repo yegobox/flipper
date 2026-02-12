@@ -20,6 +20,10 @@ import 'package:flipper_dashboard/mfa_setup_view.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flipper_models/providers/device_provider.dart';
 import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
+import 'package:flipper_dashboard/BranchSelectionMixin.dart';
+import 'package:flipper_auth/auth_scanner_actions.dart';
+import 'package:flipper_scanner/scanner_view.dart';
+import 'package:flipper_services/constants.dart';
 
 class MyDrawer extends ConsumerStatefulWidget {
   const MyDrawer({Key? key}) : super(key: key);
@@ -28,7 +32,7 @@ class MyDrawer extends ConsumerStatefulWidget {
   ConsumerState<MyDrawer> createState() => _MyDrawerState();
 }
 
-class _MyDrawerState extends ConsumerState<MyDrawer> {
+class _MyDrawerState extends ConsumerState<MyDrawer> with BranchSelectionMixin {
   String? _switchingBranchId;
   bool userLoggingEnabled = false;
   bool backgroundSyncEnabled = false;
@@ -196,8 +200,14 @@ class _MyDrawerState extends ConsumerState<MyDrawer> {
                   color: const Color(0xFF0078D4),
                   onTap: () {
                     Navigator.pop(context);
-                    locator<RouterService>().navigateTo(
-                      ScannViewRoute(intent: 'login'),
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ScannView(
+                          intent: LOGIN,
+                          scannerActions: AuthScannerActions(context, ref),
+                        ),
+                      ),
                     );
                   },
                 ),
@@ -692,37 +702,44 @@ class _MyDrawerState extends ConsumerState<MyDrawer> {
     Business business,
     Branch branch,
   ) async {
-    if (ProxyService.box.readBool(key: 'branch_switching') ?? false) {
-      return;
-    }
+    // Use the mixin's standardized branch selection logic
+    handleBranchSelection(
+      branch,
+      context,
+      setLoadingState: (String? id) {
+        if (mounted) {
+          setState(() {
+            _switchingBranchId = id;
+          });
+        }
+      },
+      setDefaultBranch: _setDefaultBranch,
+      onComplete: () {
+        if (mounted) {
+          setState(() {
+            _switchingBranchId = null;
+          });
+          // Close the drawer after successful switch
+          Navigator.pop(context);
+        }
+      },
+      setIsLoading: (bool value) {
+        // We can use this if we need a general loading state,
+        // but _switchingBranchId effectively handles it for specific items
+      },
+    );
+  }
 
-    setState(() {
-      _switchingBranchId = branch.id.toString();
-    });
+  Future<void> _setDefaultBranch(Branch branch) async {
+    // This matches the logic from ribbon.dart's usage of the mixin
+    // The mixin handles database updates, this just needs to refresh providers
+    // if there's any specific extra work needed.
+    // But BranchSelectionMixin.handleBranchSelection calls _syncBranchWithDatabase
+    // and _updateBranchActive internally.
 
-    final appService = locator<AppService>();
-
-    try {
-      await ProxyService.box.writeBool(key: 'branch_switching', value: true);
-
-      final currentBranchId = ProxyService.box.readInt(key: 'branchId');
-
-      if (currentBranchId != branch.id) {
-        await appService.setDefaultBusiness(business);
-        await appService.setDefaultBranch(branch);
-
-        ref.invalidate(branchesProvider(businessId: business.id));
-        ref.read(searchStringProvider.notifier).emitString(value: "search");
-        ref.read(searchStringProvider.notifier).emitString(value: "");
-      }
-
-      Navigator.pop(context);
-    } finally {
-      setState(() {
-        _switchingBranchId = null;
-      });
-      await ProxyService.box.writeBool(key: 'branch_switching', value: false);
-    }
+    // We can add any specific post-switch logic here if needed,
+    // but for now just returning is fine as the mixin does the heavy lifting.
+    return Future.value();
   }
 }
 

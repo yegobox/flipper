@@ -484,7 +484,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
     required Map business,
     required HttpClientInterface flipperHttpClient,
   });
-  FutureOr<Business?> getBusiness({String? businessId});
+  Future<Business?> getBusiness({String? businessId});
   Future<Business?> defaultBusiness();
   FutureOr<Branch?> defaultBranch();
 
