@@ -121,8 +121,8 @@ class PDesktop extends StatelessWidget with CoreMiscellaneous {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<Business?>(
-      future: Future.value(
-        ProxyService.strategy.getBusiness(businessId: widget.branch.businessId),
+      future: ProxyService.strategy.getBusiness(
+        businessId: widget.branch.businessId,
       ),
       builder: (context, snapshot) {
         return PopupMenuButton<String>(

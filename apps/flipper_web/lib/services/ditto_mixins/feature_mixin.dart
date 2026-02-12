@@ -36,23 +36,40 @@ mixin FeatureMixin on DittoCore {
       return Stream.value(null);
     }
 
+    StreamController<BusinessFeature?> controller =
+        StreamController<BusinessFeature?>();
+
     const String query =
         "SELECT * FROM business_features WHERE businessId = :businessId";
     final Map<String, dynamic> args = {'businessId': businessId};
 
-    // 1. Register Subscription (to sync data)
-    try {
-      dittoInstance!.sync.registerSubscription(query, arguments: args);
-    } catch (e) {
-      debugPrint("Error registering subscription: $e");
-    }
+    // Keep track of resources to cancel
+    dynamic syncSubscription;
+    dynamic observer;
 
-    // 2. Register Observer (to listen for local changes)
-    StreamController<BusinessFeature?> controller =
-        StreamController<BusinessFeature?>();
+    // Define cleanup logic
+    controller.onCancel = () {
+      try {
+        syncSubscription?.cancel();
+        observer?.cancel();
+      } catch (e) {
+        debugPrint("Error cancelling resources: $e");
+      } finally {
+        if (!controller.isClosed) {
+          controller.close();
+        }
+      }
+    };
 
     try {
-      final observer = store!.registerObserver(
+      // 1. Register Subscription (to sync data)
+      syncSubscription = dittoInstance!.sync.registerSubscription(
+        query,
+        arguments: args,
+      );
+
+      // 2. Register Observer (to listen for local changes)
+      observer = store!.registerObserver(
         query,
         arguments: args,
         onChange: (result) {
@@ -67,12 +84,11 @@ mixin FeatureMixin on DittoCore {
           }
         },
       );
-
-      controller.onCancel = () {
-        observer.cancel();
-      };
     } catch (e) {
-      debugPrint("Error registering observer: $e");
+      debugPrint("Error registering subscription or observer: $e");
+      // Cleanup if setup fails
+      syncSubscription?.cancel();
+      observer?.cancel();
       controller.add(null);
       controller.close();
     }

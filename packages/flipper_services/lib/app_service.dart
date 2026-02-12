@@ -167,7 +167,9 @@ class AppService with ListenableServiceMixin {
       isDefault: true,
     );
     await _updateBusinessPreferences(business);
-    loadFeatures();
+    if (ProxyService.ditto.isReady()) {
+      loadFeatures();
+    }
   }
 
   Future<void> setDefaultBranch(Branch branch) async {
@@ -374,7 +376,9 @@ class AppService with ListenableServiceMixin {
 
     // After successful business/branch selection, check for active shift
     await checkAndStartShift(userId: userId);
-    loadFeatures();
+    if (ProxyService.ditto.isReady()) {
+      loadFeatures();
+    }
   }
 
   Future<void> checkAndStartShift({required String userId}) async {
@@ -461,19 +465,32 @@ class AppService with ListenableServiceMixin {
   StreamSubscription<BusinessFeature?>? _featuresSubscription;
 
   void loadFeatures() {
+    // 1. Check if Ditto is ready
+    if (!ProxyService.ditto.isReady()) {
+      _features.value = [];
+      return;
+    }
+
     final businessId = ProxyService.box.getBusinessId();
     if (businessId == null) return;
 
     _featuresSubscription?.cancel();
+    // 2. Add onError handler
     _featuresSubscription = ProxyService.ditto
         .businessFeatureStream(businessId: businessId)
-        .listen((feature) {
-          if (feature != null) {
-            _features.value = feature.features;
-            // notifyListeners(); // handled by ReactiveValue
-          } else {
+        .listen(
+          (feature) {
+            if (feature != null) {
+              _features.value = feature.features;
+            } else {
+              _features.value = [];
+            }
+          },
+          onError: (error) {
+            print("Error in businessFeatureStream: $error");
             _features.value = [];
-          }
-        });
+            _featuresSubscription?.cancel();
+          },
+        );
   }
 }
