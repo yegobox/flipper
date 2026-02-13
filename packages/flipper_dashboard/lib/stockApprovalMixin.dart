@@ -73,7 +73,8 @@ mixin StockRequestApprovalLogic {
             Strategy.capella,
           ).transactionItems(requestId: request.id);
 
-      if (!_atLeastOneItemApproved(approvedItems)) {
+      if (!_atLeastOneItemApproved(approvedItems) &&
+          !_atLeastOneItemApproved(items)) {
         _showSnackBar(
           message: 'At least one item must be approved',
           context: context,
@@ -260,6 +261,17 @@ mixin StockRequestApprovalLogic {
     required InventoryRequest request,
   }) async {
     try {
+      // If the item is already fully approved, we don't need to do anything
+      if ((item.quantityApproved ?? 0) >= (item.quantityRequested ?? 0)) {
+        // Heal DB
+        await ProxyService.strategy.updateStockRequestItem(
+          requestId: request.id,
+          transactionItemId: item.id,
+          quantityApproved: item.quantityApproved,
+        );
+        return true;
+      }
+
       if (await _canApproveItem(item: item)) {
         await _approveItem(
           item: item,

@@ -858,6 +858,15 @@ mixin CapellaStockMixin implements StockInterface {
           arguments: {'qty': quantityRequested, 'id': transactionItemId},
         );
       }
+      if (quantityApproved != null) {
+        await ditto.store.execute(
+          'UPDATE transaction_items SET quantityApproved = :quantityApproved WHERE _id = :id',
+          arguments: {
+            'quantityApproved': quantityApproved,
+            'id': transactionItemId,
+          },
+        );
+      }
     } catch (e) {
       talker.error('Error updating stock request item: $e');
       rethrow;
