@@ -110,8 +110,20 @@ class _MessageBubbleState extends State<MessageBubble> {
                           decoration: BoxDecoration(
                             color: widget.isUser
                                 ? AiTheme.userMessageColor
-                                : AiTheme.assistantMessageColor,
+                                : (widget.message.messageSource == 'whatsapp'
+                                      ? AiTheme.whatsAppBubbleColor
+                                      : AiTheme.assistantMessageColor),
                             borderRadius: BorderRadius.circular(16),
+                            border:
+                                (!widget.isUser &&
+                                    widget.message.messageSource == 'whatsapp')
+                                ? Border(
+                                    left: BorderSide(
+                                      color: AiTheme.whatsAppGreen,
+                                      width: 3,
+                                    ),
+                                  )
+                                : null,
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.black.withValues(alpha: 0.05),
@@ -198,36 +210,68 @@ class _MessageBubbleState extends State<MessageBubble> {
                   // WhatsApp indicator and contact name
                   if (widget.message.messageSource == 'whatsapp')
                     Padding(
-                      padding: const EdgeInsets.only(top: 4, left: 4, right: 4),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            Icons.chat_bubble_outline,
-                            size: 14,
-                            color: Color(0xFF25D366), // WhatsApp green
+                      padding: const EdgeInsets.only(top: 6, left: 4, right: 4),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AiTheme.whatsAppGreen.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: AiTheme.whatsAppGreen.withValues(alpha: 0.3),
                           ),
-                          const SizedBox(width: 4),
-                          Text(
-                            widget.message.contactName ??
-                                widget.message.phoneNumber,
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: AiTheme.hintColor,
-                              fontWeight: FontWeight.w500,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.chat_rounded,
+                              size: 12,
+                              color: AiTheme.whatsAppGreen,
                             ),
-                          ),
-                        ],
+                            const SizedBox(width: 4),
+                            Text(
+                              widget.message.contactName ??
+                                  widget.message.phoneNumber,
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: AiTheme.whatsAppDarkGreen,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   Padding(
-                    padding: const EdgeInsets.only(top: 6, left: 4, right: 4),
-                    child: Text(
-                      _formatTimestamp(widget.message.timestamp),
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: AiTheme.hintColor,
-                      ),
+                    padding: const EdgeInsets.only(top: 4, left: 4, right: 4),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          _formatTimestamp(widget.message.timestamp),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AiTheme.hintColor,
+                          ),
+                        ),
+                        // Delivery status for WhatsApp user messages
+                        if (widget.message.messageSource == 'whatsapp' &&
+                            widget.isUser) ...[
+                          const SizedBox(width: 4),
+                          Icon(
+                            widget.message.delivered
+                                ? Icons.done_all_rounded
+                                : Icons.check_rounded,
+                            size: 14,
+                            color: widget.message.delivered
+                                ? AiTheme.whatsAppGreen
+                                : AiTheme.hintColor,
+                          ),
+                        ],
+                      ],
                     ),
                   ),
                 ],

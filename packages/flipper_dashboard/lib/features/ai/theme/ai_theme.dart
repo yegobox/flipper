@@ -36,6 +36,12 @@ abstract class AiTheme {
   // Border color
   static const borderColor = Color(0xFFE0E0E0);
 
+  // WhatsApp branding colors
+  static const whatsAppGreen = Color(0xFF25D366);
+  static const whatsAppDarkGreen = Color(0xFF128C7E);
+  static const whatsAppLightGreen = Color(0xFFDCF8C6);
+  static const whatsAppBubbleColor = Color(0xFFF0FFF4);
+
   // This class is not meant to be instantiated
   const AiTheme._();
 }

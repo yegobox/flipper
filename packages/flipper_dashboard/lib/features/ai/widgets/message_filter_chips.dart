@@ -52,6 +52,7 @@ class MessageFilterChips extends StatelessWidget {
             count: whatsappCount,
             filter: MessageFilter.whatsapp,
             icon: Icons.chat_rounded,
+            brandColor: AiTheme.whatsAppGreen,
           ),
         ],
       ),
@@ -63,8 +64,10 @@ class MessageFilterChips extends StatelessWidget {
     required MessageFilter filter,
     required IconData icon,
     int? count,
+    Color? brandColor,
   }) {
     final isSelected = currentFilter == filter;
+    final chipColor = brandColor ?? AiTheme.primaryColor;
 
     return FilterChip(
       label: Row(
@@ -73,7 +76,9 @@ class MessageFilterChips extends StatelessWidget {
           Icon(
             icon,
             size: 16,
-            color: isSelected ? AiTheme.onPrimaryColor : AiTheme.secondaryColor,
+            color: isSelected
+                ? AiTheme.onPrimaryColor
+                : (brandColor ?? AiTheme.secondaryColor),
           ),
           const SizedBox(width: 6),
           Text(label),
@@ -104,7 +109,7 @@ class MessageFilterChips extends StatelessWidget {
       selected: isSelected,
       onSelected: (_) => onFilterChanged(filter),
       backgroundColor: AiTheme.inputBackgroundColor,
-      selectedColor: AiTheme.primaryColor,
+      selectedColor: chipColor,
       checkmarkColor: AiTheme.onPrimaryColor,
       labelStyle: TextStyle(
         color: isSelected ? AiTheme.onPrimaryColor : AiTheme.textColor,
@@ -114,7 +119,7 @@ class MessageFilterChips extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(20),
         side: BorderSide(
-          color: isSelected ? AiTheme.primaryColor : AiTheme.borderColor,
+          color: isSelected ? chipColor : AiTheme.borderColor,
           width: 1,
         ),
       ),

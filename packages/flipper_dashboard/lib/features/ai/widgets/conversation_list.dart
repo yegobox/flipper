@@ -102,7 +102,7 @@ class ConversationList extends StatelessWidget {
                   children: [
                     Icon(
                       Icons.chat_rounded,
-                      color: Color(0xFF25D366),
+                      color: AiTheme.whatsAppGreen,
                       size: 20,
                     ),
                     SizedBox(width: 12),
