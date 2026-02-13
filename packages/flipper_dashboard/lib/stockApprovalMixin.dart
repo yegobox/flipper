@@ -259,6 +259,10 @@ mixin StockRequestApprovalLogic {
     required String sourceBranchId,
     required InventoryRequest request,
   }) async {
+    // If the item is already fully approved, we don't need to do anything
+    if ((item.quantityApproved ?? 0) >= (item.quantityRequested ?? 0)) {
+      return true;
+    }
     try {
       if (await _canApproveItem(item: item)) {
         await _approveItem(
