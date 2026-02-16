@@ -63,7 +63,7 @@ abstract class BusinessInterface {
     bool? taxEnabled,
     String? taxServerUrl,
     bool? isDefault,
-    String? businessTypeId,
+    int? businessTypeId,
     DateTime? lastTouched,
     required String phoneNumber,
     DateTime? deletedAt,

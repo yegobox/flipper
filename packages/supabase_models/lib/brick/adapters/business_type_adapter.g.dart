@@ -17,6 +17,9 @@ Future<BusinessType> _$BusinessTypeFromSupabase(
         : data['created_at'] == null
         ? null
         : DateTime.tryParse(data['created_at'] as String),
+    features: data['features'] == null
+        ? null
+        : data['features']?.toList().cast<String>(),
   );
 }
 
@@ -30,6 +33,7 @@ Future<Map<String, dynamic>> _$BusinessTypeToSupabase(
     'name': instance.name,
     'description': instance.description,
     'created_at': instance.createdAt?.toIso8601String(),
+    'features': instance.features,
   };
 }
 
@@ -49,6 +53,9 @@ Future<BusinessType> _$BusinessTypeFromSqlite(
         : data['created_at'] == null
         ? null
         : DateTime.tryParse(data['created_at'] as String),
+    features: data['features'] == null
+        ? null
+        : jsonDecode(data['features']).toList().cast<String>(),
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -62,6 +69,9 @@ Future<Map<String, dynamic>> _$BusinessTypeToSqlite(
     'name': instance.name,
     'description': instance.description,
     'created_at': instance.createdAt?.toIso8601String(),
+    'features': instance.features == null
+        ? null
+        : jsonEncode(instance.features),
   };
 }
 
@@ -91,6 +101,10 @@ class BusinessTypeAdapter
     'createdAt': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'created_at',
+    ),
+    'features': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'features',
     ),
   };
   @override
@@ -128,6 +142,12 @@ class BusinessTypeAdapter
       columnName: 'created_at',
       iterable: false,
       type: DateTime,
+    ),
+    'features': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'features',
+      iterable: true,
+      type: String,
     ),
   };
   @override

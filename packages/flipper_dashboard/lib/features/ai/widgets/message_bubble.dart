@@ -109,6 +109,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                           alignment: widget.isUser
                               ? Alignment.centerRight
                               : Alignment.centerLeft,
+                          clipBehavior: Clip.none, // Allow children to extend beyond boundaries
                           children: [
                             Container(
                               padding: EdgeInsets.all(hasVisualization ? 0 : 14),
@@ -197,7 +198,7 @@ class _MessageBubbleState extends State<MessageBubble> {
                               Positioned(
                                 top: 0,
                                 bottom: 0,
-                                left: 0,
+                                left: -3, // Position slightly to the left to account for the 3px bar
                                 child: Container(
                                   width: 3,
                                   decoration: BoxDecoration(

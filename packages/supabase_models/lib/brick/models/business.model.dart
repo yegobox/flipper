@@ -68,7 +68,7 @@ class Business extends OfflineFirstWithSupabaseModel {
   bool? taxEnabled;
   String? taxServerUrl;
   bool? isDefault;
-  String? businessTypeId;
+  int? businessTypeId;
   String? referredBy;
 
   String? encryptionKey;
@@ -271,7 +271,7 @@ class Business extends OfflineFirstWithSupabaseModel {
       taxServerUrl: map['tax_server_url'] as String?,
       isDefault: map['is_default'] as bool?,
       businessTypeId: map['business_type_id'] is int
-          ? map['business_type_id'].toString()
+          ? map['business_type_id']
           : map['business_type_id'] as String?,
       referredBy: map['referred_by'] as String?,
       encryptionKey: map['encryption_key'] as String?,
