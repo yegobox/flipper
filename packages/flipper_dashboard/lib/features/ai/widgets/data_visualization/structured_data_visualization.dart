@@ -76,7 +76,7 @@ class StructuredDataVisualization implements VisualizationInterface {
     }
 
     return _InteractiveVisualizationWrapper(
-      key: ValueKey(structuredData.hashCode),
+      key: ValueKey(data), // Use original data string for stable key
       data: structuredData,
       currency: currency,
       cardKey: cardKey,

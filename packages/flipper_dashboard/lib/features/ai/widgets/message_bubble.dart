@@ -105,97 +105,107 @@ class _MessageBubbleState extends State<MessageBubble> {
                           ? Alignment.topRight
                           : Alignment.topLeft,
                       children: [
-                        Container(
-                          padding: EdgeInsets.all(hasVisualization ? 0 : 14),
-                          decoration: BoxDecoration(
-                            color: widget.isUser
-                                ? AiTheme.userMessageColor
-                                : (widget.message.messageSource == 'whatsapp'
-                                      ? AiTheme.whatsAppBubbleColor
-                                      : AiTheme.assistantMessageColor),
-                            borderRadius: BorderRadius.circular(16),
-                            border:
-                                (!widget.isUser &&
-                                    widget.message.messageSource == 'whatsapp')
-                                ? Border(
-                                    left: BorderSide(
-                                      color: AiTheme.whatsAppGreen,
-                                      width: 3,
-                                    ),
-                                  )
-                                : null,
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.05),
-                                blurRadius: 5,
-                                offset: const Offset(0, 2),
+                        Stack(
+                          alignment: widget.isUser
+                              ? Alignment.centerRight
+                              : Alignment.centerLeft,
+                          children: [
+                            Container(
+                              padding: EdgeInsets.all(hasVisualization ? 0 : 14),
+                              decoration: BoxDecoration(
+                                color: widget.isUser
+                                    ? AiTheme.userMessageColor
+                                    : (widget.message.messageSource == 'whatsapp'
+                                          ? AiTheme.whatsAppBubbleColor
+                                          : AiTheme.assistantMessageColor),
+                                borderRadius: BorderRadius.circular(16),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(alpha: 0.05),
+                                    blurRadius: 5,
+                                    offset: const Offset(0, 2),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              hasVisualization
-                                  ? DataVisualization(
-                                      data: widget.message.text,
-                                      currency: ProxyService.box
-                                          .defaultCurrency(),
-                                      cardKey: _visualizationKey,
-                                      onCopyGraph: _copyToClipboard,
-                                    )
-                                  : MarkdownWidget(
-                                      data: widget.message.text,
-                                      shrinkWrap: true,
-                                      physics:
-                                          const NeverScrollableScrollPhysics(),
-                                      config: MarkdownConfig(
-                                        configs: [
-                                          PConfig(
-                                            textStyle: TextStyle(
-                                              color: widget.isUser
-                                                  ? AiTheme.onPrimaryColor
-                                                  : AiTheme
-                                                        .onAssistantMessageColor,
-                                              fontSize: 16,
-                                              height: 1.4,
-                                            ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  hasVisualization
+                                      ? DataVisualization(
+                                          data: widget.message.text,
+                                          currency: ProxyService.box
+                                              .defaultCurrency(),
+                                          cardKey: _visualizationKey,
+                                          onCopyGraph: _copyToClipboard,
+                                        )
+                                      : MarkdownWidget(
+                                          data: widget.message.text,
+                                          shrinkWrap: true,
+                                          physics:
+                                              const NeverScrollableScrollPhysics(),
+                                          config: MarkdownConfig(
+                                            configs: [
+                                              PConfig(
+                                                textStyle: TextStyle(
+                                                  color: widget.isUser
+                                                      ? AiTheme.onPrimaryColor
+                                                      : AiTheme
+                                                            .onAssistantMessageColor,
+                                                  fontSize: 16,
+                                                  height: 1.4,
+                                                ),
+                                              ),
+                                            ],
                                           ),
-                                        ],
-                                      ),
-                                    ),
-                              if (widget.message.text.contains(
-                                "purchase credits",
-                              ))
-                                Padding(
-                                  padding: const EdgeInsets.only(top: 12.0),
-                                  child: ElevatedButton(
-                                    onPressed: () {
-                                      showDialog(
-                                        context: context,
-                                        builder: (context) => CreditPurchaseDialog(
-                                          onPaymentSuccess: () {
-                                            Navigator.pop(
-                                              context,
-                                            ); // Close dialog
-                                            _showSnackBar(
-                                              "Payment successful! You can now retry your request.",
-                                            );
-                                          },
                                         ),
-                                      );
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: AiTheme.primaryColor,
-                                      foregroundColor: Colors.white,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(8),
+                                  if (widget.message.text.contains(
+                                    "purchase credits",
+                                  ))
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 12.0),
+                                      child: ElevatedButton(
+                                        onPressed: () {
+                                          showDialog(
+                                            context: context,
+                                            builder: (context) => CreditPurchaseDialog(
+                                              onPaymentSuccess: () {
+                                                Navigator.pop(
+                                                  context,
+                                                ); // Close dialog
+                                                _showSnackBar(
+                                                  "Payment successful! You can now retry your request.",
+                                                );
+                                              },
+                                            ),
+                                          );
+                                        },
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: AiTheme.primaryColor,
+                                          foregroundColor: Colors.white,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                        ),
+                                        child: const Text("Purchase Credits"),
                                       ),
                                     ),
-                                    child: const Text("Purchase Credits"),
+                                ],
+                              ),
+                            ),
+                            // WhatsApp left accent bar
+                            if (!widget.isUser && widget.message.messageSource == 'whatsapp')
+                              Container(
+                                width: 3,
+                                height: double.infinity,
+                                decoration: BoxDecoration(
+                                  color: AiTheme.whatsAppGreen,
+                                  borderRadius: const BorderRadius.only(
+                                    topLeft: Radius.circular(16),
+                                    bottomLeft: Radius.circular(16),
                                   ),
                                 ),
-                            ],
-                          ),
+                              ),
+                          ],
                         ),
                         if (_isHovering && !hasVisualization)
                           Positioned(
