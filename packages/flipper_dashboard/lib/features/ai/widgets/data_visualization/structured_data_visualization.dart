@@ -54,6 +54,7 @@ class _CopyButtonState extends State<CopyButton> {
 }
 
 /// Enhanced visualization for structured data with adaptive design
+/// and interactive chart type switching.
 class StructuredDataVisualization implements VisualizationInterface {
   final String data;
   final dynamic currencyService;
@@ -74,28 +75,13 @@ class StructuredDataVisualization implements VisualizationInterface {
       return const SizedBox.shrink();
     }
 
-    final String? visualizationType = structuredData['type'];
-
-    switch (visualizationType) {
-      case 'tax':
-        return _buildTaxVisualization(context, structuredData, currency);
-      case 'business_analytics':
-        return _buildBusinessAnalyticsVisualization(
-          context,
-          structuredData,
-          currency,
-        );
-      case 'inventory':
-        return _buildInventoryVisualization(context, structuredData, currency);
-      case 'financial_report':
-        return _buildFinancialReportVisualization(
-          context,
-          structuredData,
-          currency,
-        );
-      default:
-        return const SizedBox.shrink();
-    }
+    return _InteractiveVisualizationWrapper(
+      key: ValueKey(structuredData.hashCode),
+      data: structuredData,
+      currency: currency,
+      cardKey: cardKey,
+      onCopyGraph: onCopyGraph,
+    );
   }
 
   @override
@@ -121,6 +107,66 @@ class StructuredDataVisualization implements VisualizationInterface {
     } catch (e) {
       print('Error extracting structured data: $e');
       return null;
+    }
+  }
+}
+
+class _InteractiveVisualizationWrapper extends StatefulWidget {
+  final Map<String, dynamic> data;
+  final String? currency;
+  final GlobalKey cardKey;
+  final VoidCallback onCopyGraph;
+
+  const _InteractiveVisualizationWrapper({
+    Key? key,
+    required this.data,
+    this.currency,
+    required this.cardKey,
+    required this.onCopyGraph,
+  }) : super(key: key);
+
+  @override
+  State<_InteractiveVisualizationWrapper> createState() =>
+      _InteractiveVisualizationWrapperState();
+}
+
+class _InteractiveVisualizationWrapperState
+    extends State<_InteractiveVisualizationWrapper> {
+  String? _selectedChartType;
+
+  void _onChartTypeChanged(String type) {
+    setState(() {
+      _selectedChartType = type;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final String? visualizationType = widget.data['type'];
+
+    switch (visualizationType) {
+      case 'tax':
+        return _buildTaxVisualization(context, widget.data, widget.currency);
+      case 'business_analytics':
+        return _buildBusinessAnalyticsVisualization(
+          context,
+          widget.data,
+          widget.currency,
+        );
+      case 'inventory':
+        return _buildInventoryVisualization(
+          context,
+          widget.data,
+          widget.currency,
+        );
+      case 'financial_report':
+        return _buildFinancialReportVisualization(
+          context,
+          widget.data,
+          widget.currency,
+        );
+      default:
+        return const SizedBox.shrink();
     }
   }
 
@@ -228,8 +274,11 @@ class StructuredDataVisualization implements VisualizationInterface {
     final sortedItems = itemTaxContributions.entries.toList()
       ..sort((a, b) => b.value.compareTo(a.value));
 
+    // Determine current chart type (default to 'auto')
+    final currentType = _selectedChartType ?? 'auto';
+
     return RepaintBoundary(
-      key: cardKey,
+      key: widget.cardKey,
       child: Card(
         elevation: 0,
         shape: RoundedRectangleBorder(
@@ -254,7 +303,12 @@ class StructuredDataVisualization implements VisualizationInterface {
                   title: date.isNotEmpty ? '$title for $date' : title,
                   subtitle: 'Total: $currencyCode ${_formatCurrency(totalTax)}',
                   config: config,
-                  onCopy: onCopyGraph,
+                  onCopy: widget.onCopyGraph,
+                  chartSelector: _buildChartTypeSelector(
+                    currentType,
+                    ['auto', 'pie', 'bar'],
+                    ['Auto', 'Pie', 'Bar'],
+                  ),
                 ),
                 SizedBox(height: config['cardPadding']),
                 _buildAdaptiveTaxChart(
@@ -264,6 +318,7 @@ class StructuredDataVisualization implements VisualizationInterface {
                   currencyCode,
                   colors,
                   config,
+                  currentType,
                 ),
               ],
             ),
@@ -281,8 +336,18 @@ class StructuredDataVisualization implements VisualizationInterface {
     String currencyCode,
     List<Color> colors,
     Map<String, dynamic> config,
+    String chartType,
   ) {
-    final shouldUsePie = sortedItems.length <= 6 && !config['isMobile'];
+    bool shouldUsePie;
+
+    if (chartType == 'pie') {
+      shouldUsePie = true;
+    } else if (chartType == 'bar') {
+      shouldUsePie = false;
+    } else {
+      // Auto logic
+      shouldUsePie = sortedItems.length <= 6 && !config['isMobile'];
+    }
 
     if (shouldUsePie) {
       return _buildModernPieChart(
@@ -301,6 +366,54 @@ class StructuredDataVisualization implements VisualizationInterface {
         config,
       );
     }
+  }
+
+  Widget _buildChartTypeSelector(
+    String current,
+    List<String> values,
+    List<String> labels,
+  ) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      padding: const EdgeInsets.all(2),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: List.generate(values.length, (index) {
+          final isSelected = current == values[index];
+          return InkWell(
+            onTap: () => _onChartTypeChanged(values[index]),
+            borderRadius: BorderRadius.circular(6),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: isSelected ? Colors.white : Colors.transparent,
+                borderRadius: BorderRadius.circular(6),
+                boxShadow: isSelected
+                    ? [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.1),
+                          blurRadius: 2,
+                        ),
+                      ]
+                    : null,
+              ),
+              child: Text(
+                labels[index],
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                  color: isSelected ? Colors.black87 : Colors.grey.shade600,
+                ),
+              ),
+            ),
+          );
+        }),
+      ),
+    );
   }
 
   /// Build modern pie chart with enhanced styling
@@ -521,7 +634,7 @@ class StructuredDataVisualization implements VisualizationInterface {
     final List<dynamic> worstSellingItems = data['worstSellingItems'] ?? [];
 
     return RepaintBoundary(
-      key: cardKey,
+      key: widget.cardKey,
       child: Card(
         elevation: 0,
         shape: RoundedRectangleBorder(
@@ -547,7 +660,7 @@ class StructuredDataVisualization implements VisualizationInterface {
                     title: 'Business Analytics',
                     subtitle: date,
                     config: config,
-                    onCopy: onCopyGraph,
+                    onCopy: widget.onCopyGraph,
                   ),
                   SizedBox(height: config['cardPadding']),
                   _buildMetricCards(
@@ -826,7 +939,7 @@ class StructuredDataVisualization implements VisualizationInterface {
     final config = _getResponsiveConfig(context);
 
     return RepaintBoundary(
-      key: cardKey,
+      key: widget.cardKey,
       child: Card(
         elevation: 0,
         shape: RoundedRectangleBorder(
@@ -871,7 +984,7 @@ class StructuredDataVisualization implements VisualizationInterface {
                         ),
                       ],
                     ),
-                    CopyButton(onPressed: onCopyGraph),
+                    CopyButton(onPressed: widget.onCopyGraph),
                   ],
                 ),
                 const SizedBox(height: 16),
@@ -901,8 +1014,11 @@ class StructuredDataVisualization implements VisualizationInterface {
     final List<dynamic> labels = data['labels'] ?? [];
     final List<dynamic> datasets = data['datasets'] ?? [];
 
+    // Determine current chart type (default to 'auto')
+    final currentType = _selectedChartType ?? 'auto';
+
     return RepaintBoundary(
-      key: cardKey,
+      key: widget.cardKey,
       child: Card(
         elevation: 0,
         shape: RoundedRectangleBorder(
@@ -927,13 +1043,168 @@ class StructuredDataVisualization implements VisualizationInterface {
                   title: title,
                   subtitle: 'Trends Analysis',
                   config: config,
-                  onCopy: onCopyGraph,
+                  onCopy: widget.onCopyGraph,
+                  chartSelector: _buildChartTypeSelector(
+                    currentType,
+                    ['auto', 'line', 'bar'],
+                    ['Auto', 'Line', 'Bar'],
+                  ),
                 ),
                 SizedBox(height: config['cardPadding']),
-                _buildModernLineChart(labels, datasets, config, colors),
+                _buildAdaptiveFinancialChart(
+                  labels,
+                  datasets,
+                  config,
+                  colors,
+                  currentType,
+                ),
                 SizedBox(height: config['cardPadding']),
                 _buildLineChartLegend(datasets, config, colors),
               ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAdaptiveFinancialChart(
+    List<dynamic> labels,
+    List<dynamic> datasets,
+    Map<String, dynamic> config,
+    List<Color> colors,
+    String chartType,
+  ) {
+    if (chartType == 'bar') {
+      return _buildModernFinancialBarChart(labels, datasets, config, colors);
+    } else {
+      // 'line' or 'auto' defaults to line for financial trends
+      return _buildModernLineChart(labels, datasets, config, colors);
+    }
+  }
+
+  /// Build modern financial bar chart (grouped)
+  Widget _buildModernFinancialBarChart(
+    List<dynamic> labels,
+    List<dynamic> datasets,
+    Map<String, dynamic> config,
+    List<Color> colors,
+  ) {
+    if (labels.isEmpty || datasets.isEmpty) return const SizedBox.shrink();
+
+    // Calculate max Y value for scaling
+    double maxY = 0;
+    for (var dataset in datasets) {
+      final List<dynamic> data = dataset['data'] ?? [];
+      for (var val in data) {
+        final dVal = _parseNumericValue(val);
+        if (dVal > maxY) maxY = dVal;
+      }
+    }
+    maxY = maxY * 1.2;
+
+    final List<BarChartGroupData> barGroups = [];
+
+    // Transform data for grouped bars
+    // We strictly limit to first 10 items for bar chart to avoid overcrowding
+    final displayLimit = min(labels.length, 12);
+
+    for (int i = 0; i < displayLimit; i++) {
+      final List<BarChartRodData> rods = [];
+
+      for (int j = 0; j < datasets.length; j++) {
+        final dataset = datasets[j];
+        final List<dynamic> data = dataset['data'] ?? [];
+        if (i < data.length) {
+          final colorStr = dataset['color'];
+          final Color color = colorStr != null && colorStr.isNotEmpty
+              ? _safeParseHexColor(colorStr, colors[j % colors.length])
+              : colors[j % colors.length];
+
+          rods.add(
+            BarChartRodData(
+              toY: _parseNumericValue(data[i]),
+              color: color,
+              width: config['barWidth'] / datasets.length,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(4),
+                topRight: Radius.circular(4),
+              ),
+            ),
+          );
+        }
+      }
+
+      barGroups.add(BarChartGroupData(x: i, barRods: rods, barsSpace: 4));
+    }
+
+    return SizedBox(
+      height: config['chartHeight'],
+      child: BarChart(
+        BarChartData(
+          maxY: maxY,
+          alignment: BarChartAlignment.spaceAround,
+          titlesData: FlTitlesData(
+            bottomTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                getTitlesWidget: (value, meta) {
+                  final index = value.toInt();
+                  if (index >= 0 && index < displayLimit) {
+                    return Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Text(
+                        labels[index].toString(),
+                        style: TextStyle(
+                          color: Colors.grey.shade600,
+                          fontSize: config['legendSize'] - 2,
+                          fontWeight: FontWeight.w500,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    );
+                  }
+                  return const SizedBox.shrink();
+                },
+                reservedSize: 30,
+              ),
+            ),
+            leftTitles: AxisTitles(
+              sideTitles: SideTitles(
+                showTitles: true,
+                getTitlesWidget: (value, meta) {
+                  return Text(
+                    _formatAxisValue(value),
+                    style: TextStyle(
+                      color: Colors.grey.shade600,
+                      fontSize: config['legendSize'] - 2,
+                    ),
+                  );
+                },
+                reservedSize: 45,
+              ),
+            ),
+            topTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+            rightTitles: const AxisTitles(
+              sideTitles: SideTitles(showTitles: false),
+            ),
+          ),
+          gridData: FlGridData(
+            show: true,
+            drawHorizontalLine: true,
+            getDrawingHorizontalLine: (value) =>
+                FlLine(color: Colors.grey.shade200, strokeWidth: 1),
+            drawVerticalLine: false,
+          ),
+          borderData: FlBorderData(show: false),
+          barTouchData: BarTouchData(
+            enabled: true,
+            touchTooltipData: BarTouchTooltipData(
+              // tooltipBgColor: Colors.grey.shade800,
+              tooltipBorderRadius: BorderRadius.circular(8),
+              tooltipPadding: const EdgeInsets.all(8),
             ),
           ),
         ),
@@ -1136,37 +1407,52 @@ class StructuredDataVisualization implements VisualizationInterface {
     required String subtitle,
     required Map<String, dynamic> config,
     VoidCallback? onCopy,
+    Widget? chartSelector,
   }) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Column(
       children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: config['titleSize'],
-                  fontWeight: FontWeight.w700,
-                  color: Colors.grey.shade800,
-                ),
-                overflow: TextOverflow.ellipsis,
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: config['titleSize'],
+                      fontWeight: FontWeight.w700,
+                      color: Colors.grey.shade800,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: config['subtitleSize'],
+                      fontWeight: FontWeight.w500,
+                      color: const Color(0xFF0078D4),
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ),
-              const SizedBox(height: 4),
-              Text(
-                subtitle,
-                style: TextStyle(
-                  fontSize: config['subtitleSize'],
-                  fontWeight: FontWeight.w500,
-                  color: const Color(0xFF0078D4),
-                ),
-                overflow: TextOverflow.ellipsis,
+            ),
+            if (config['isDesktop'] == true && chartSelector != null)
+              Padding(
+                padding: const EdgeInsets.only(right: 16.0),
+                child: chartSelector,
               ),
-            ],
-          ),
+            if (onCopy != null) CopyButton(onPressed: onCopy),
+          ],
         ),
-        if (onCopy != null) CopyButton(onPressed: onCopy),
+        if (config['isDesktop'] == false && chartSelector != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 12.0),
+            child: Align(alignment: Alignment.centerLeft, child: chartSelector),
+          ),
       ],
     );
   }
@@ -1301,8 +1587,8 @@ class StructuredDataVisualization implements VisualizationInterface {
                       fontSize: config['legendSize'],
                       fontWeight: FontWeight.w500,
                       color: Colors.grey.shade700,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
               ],
