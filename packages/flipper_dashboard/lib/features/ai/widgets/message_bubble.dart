@@ -194,14 +194,18 @@ class _MessageBubbleState extends State<MessageBubble> {
                             ),
                             // WhatsApp left accent bar
                             if (!widget.isUser && widget.message.messageSource == 'whatsapp')
-                              Container(
-                                width: 3,
-                                height: double.infinity,
-                                decoration: BoxDecoration(
-                                  color: AiTheme.whatsAppGreen,
-                                  borderRadius: const BorderRadius.only(
-                                    topLeft: Radius.circular(16),
-                                    bottomLeft: Radius.circular(16),
+                              Positioned(
+                                top: 0,
+                                bottom: 0,
+                                left: 0,
+                                child: Container(
+                                  width: 3,
+                                  decoration: BoxDecoration(
+                                    color: AiTheme.whatsAppGreen,
+                                    borderRadius: const BorderRadius.only(
+                                      topLeft: Radius.circular(16),
+                                      bottomLeft: Radius.circular(16),
+                                    ),
                                   ),
                                 ),
                               ),
