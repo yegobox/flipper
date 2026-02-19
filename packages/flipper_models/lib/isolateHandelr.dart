@@ -28,6 +28,11 @@ class IsolateHandler {
           } else {
             // talker.error('Ditto is initialized');
           }
+        } else if (message['task'] == 'salesSync') {
+          // TODO: Implement sales synchronization logic
+          // 1. Fetch unsynced sales data
+          // 2. Post to Umusada API
+          // 3. Mark as synced
         }
       }
     });
