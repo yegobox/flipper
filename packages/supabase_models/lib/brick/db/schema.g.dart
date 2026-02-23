@@ -4,7 +4,6 @@ import 'package:brick_sqlite/db.dart';
 part '20260223114710.migration.dart';
 part '20260131115249.migration.dart';
 part '20260210125423.migration.dart';
-part '20260210125423.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
