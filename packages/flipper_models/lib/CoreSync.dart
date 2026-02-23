@@ -1657,30 +1657,10 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Future<void> sendMessageToIsolate() async {
-    if (ProxyService.box.stopTaxService() ?? false) return;
-    if (ProxyService.box.getBusinessId() == null) return;
-    if (ProxyService.box.getBranchId() == null) return;
-
-    Business? business = await getBusiness(
-      businessId: ProxyService.box.getBusinessId()!,
-    );
-
-    try {
-      sendPort!.send({
-        'task': 'taxService',
-        'branchId': ProxyService.box.getBranchId()!,
-        "businessId": ProxyService.box.getBusinessId()!,
-        "URI": await ProxyService.box.getServerUrl(),
-        "bhfId": await ProxyService.box.bhfId(),
-        'tinNumber': business?.tinNumber,
-        'encryptionKey': ProxyService.box.encryptionKey(),
-        // 'dbPath': path.join(
-        //     (await DatabasePath.getDatabaseDirectory()), Repository.dbFileName),
-      });
-    } catch (e, s) {
-      talker.error(e, s);
-      rethrow;
+  Future<void> sendMessageToIsolate({Map<String, dynamic>? message}) async {
+    if (message != null) {
+      sendPort?.send(message);
+      return;
     }
   }
 
@@ -2714,7 +2694,6 @@ class CoreSync extends AiStrategyImpl
       );
     }
   }
-
 
   @override
   Future<void> createNewStock({
