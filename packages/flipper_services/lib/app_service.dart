@@ -320,6 +320,16 @@ class AppService with ListenableServiceMixin {
           .map((json) => Business.fromMap(Map<String, dynamic>.from(json)))
           .toList();
 
+      // If the server returned a user record but with no businesses, this user
+      // account is invalid/a duplicate. Force a logout so the user can sign in
+      // with the correct account (e.g., the one whose phone has a + prefix).
+      if (businesses.isEmpty) {
+        throw SessionException(
+          term:
+              'No businesses found for this user account. Please sign in again.',
+        );
+      }
+
       final businessId = ProxyService.box.getBusinessId();
       if (businessId != null) {
         final businessJson = businessesJson.firstWhere(
