@@ -151,7 +151,7 @@ class IBusiness extends IJsonSerializable {
   dynamic adrs;
   bool? taxEnabled;
   bool? isDefault;
-  String? businessTypeId;
+  int? businessTypeId;
   String? encryptionKey;
   bool? businessDefault;
   bool? lastSubscriptionPaymentSucceeded;

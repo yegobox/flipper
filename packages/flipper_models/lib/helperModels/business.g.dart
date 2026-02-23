@@ -55,7 +55,7 @@ IBusiness _$IBusinessFromJson(Map<String, dynamic> json) =>
         adrs: json['adrs'],
         taxEnabled: json['taxEnabled'] as bool?,
         isDefault: json['isDefault'] as bool?,
-        businessTypeId: json['businessTypeId'] as String?,
+        businessTypeId: json['businessTypeId'] as int?,
         encryptionKey: json['encryptionKey'] as String?,
         businessDefault: json['businessDefault'] as bool?,
         lastSubscriptionPaymentSucceeded:
