@@ -142,12 +142,6 @@ class SignupViewModel extends BaseViewModel {
       }
       // send pin for this user
     } catch (e) {
-      showSimpleNotification(
-        const Text("Error while signing up try again later"),
-        background: Colors.red,
-        duration: const Duration(seconds: 10),
-        position: NotificationPosition.bottom,
-      );
       rethrow;
     }
   }

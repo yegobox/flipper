@@ -809,7 +809,7 @@ mixin AuthMixin implements AuthInterface {
         adrs: e.adrs ?? '',
         taxEnabled: e.taxEnabled ?? false,
         isDefault: e.isDefault ?? false,
-        businessTypeId: e.businessTypeId ?? "",
+        businessTypeId: e.businessTypeId ?? 0,
         encryptionKey: e.encryptionKey ?? '',
       );
     }).toList();
