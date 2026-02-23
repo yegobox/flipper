@@ -212,7 +212,8 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
     }).catchError((error, stackTrace) {
       // Silently handle the error to prevent unhandled Future exceptions
       // The existing enum-backed items will remain as fallback
-      log('Error loading business types: $error', name: 'AsyncFieldValidationFormBloc');
+      log('Error loading business types: $error',
+          name: 'AsyncFieldValidationFormBloc');
     });
   }
 
@@ -311,8 +312,16 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
     return '$code$local';
   }
 
+  /// Guard to prevent concurrent OTP requests from firing duplicate HTTP calls.
+  bool _isRequestingOtp = false;
+
   /// Method to send OTP to the user's phone number or email
   Future<Map<String, dynamic>?> requestOtp() async {
+    // Prevent duplicate in-flight requests
+    if (_isRequestingOtp) {
+      return null;
+    }
+
     if (phoneNumber.value.isEmpty) {
       throw Exception('Phone number or email is required to send OTP');
     }
@@ -327,6 +336,7 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
           phoneNumber.value, countryName.value ?? 'Rwanda');
     }
 
+    _isRequestingOtp = true;
     try {
       final result = await ProxyService.strategy.sendOtpForSignup(contactInfo);
       // Enable the OTP field after successful request
@@ -334,6 +344,8 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
       return result;
     } catch (e) {
       rethrow;
+    } finally {
+      _isRequestingOtp = false;
     }
   }
 
@@ -475,7 +487,12 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
       // Transfer form values to view model
       signupViewModel.setName(name: username.value);
       signupViewModel.setFullName(name: fullName.value);
-      signupViewModel.setPhoneNumber(phoneNumber: phoneNumber.value);
+      signupViewModel.setPhoneNumber(
+        phoneNumber: _ensurePhoneHasDialCode(
+          phoneNumber.value,
+          countryName.value ?? 'Rwanda',
+        ),
+      );
       signupViewModel.setCountry(country: countryName.value ?? 'Rwanda');
       signupViewModel.tin = (tinNumber.value.isEmpty ||
               businessTypes.value?.id == BusinessTypeEnum.INDIVIDUAL.id)
