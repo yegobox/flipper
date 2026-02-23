@@ -18,13 +18,29 @@ class WhatsAppConnectionDialog extends ConsumerStatefulWidget {
 }
 
 class _WhatsAppConnectionDialogState
-    extends ConsumerState<WhatsAppConnectionDialog> {
+    extends ConsumerState<WhatsAppConnectionDialog>
+    with SingleTickerProviderStateMixin {
   final TextEditingController _phoneNumberIdController =
       TextEditingController();
+  late AnimationController _pulseController;
+  late Animation<double> _pulseAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat(reverse: true);
+    _pulseAnimation = Tween<double>(begin: 0.4, end: 1.0).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
+    );
+  }
 
   @override
   void dispose() {
     _phoneNumberIdController.dispose();
+    _pulseController.dispose();
     super.dispose();
   }
 
@@ -65,7 +81,7 @@ class _WhatsAppConnectionDialogState
       showCustomSnackBarUtil(
         context,
         'WhatsApp account connected successfully',
-        backgroundColor: Colors.green,
+        backgroundColor: AiTheme.whatsAppGreen,
       );
 
       Navigator.of(context).pop();
@@ -83,7 +99,7 @@ class _WhatsAppConnectionDialogState
       showCustomSnackBarUtil(
         context,
         'WhatsApp account disconnected successfully',
-        backgroundColor: Colors.green,
+        backgroundColor: AiTheme.whatsAppGreen,
       );
 
       Navigator.of(context).pop();
@@ -115,24 +131,35 @@ class _WhatsAppConnectionDialogState
     );
 
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      elevation: 8,
+      shadowColor: AiTheme.whatsAppGreen.withValues(alpha: 0.15),
       child: Container(
-        padding: const EdgeInsets.all(24),
-        constraints: const BoxConstraints(maxWidth: 400),
+        constraints: const BoxConstraints(maxWidth: 420),
         child: connectionState.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
+          loading: () => const Padding(
+            padding: EdgeInsets.all(48),
+            child: Center(
+              child: CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  AiTheme.whatsAppGreen,
+                ),
+              ),
+            ),
+          ),
           error: (error, _) => _buildErrorView(error.toString()),
           data: (state) {
             return Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildHeader(),
-                const SizedBox(height: 24),
-                if (state.isConnected)
-                  _buildConnectedView(state)
-                else
-                  _buildDisconnectedView(state),
+                _buildHeader(state.isConnected),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+                  child: state.isConnected
+                      ? _buildConnectedView(state)
+                      : _buildDisconnectedView(state),
+                ),
               ],
             );
           },
@@ -141,38 +168,119 @@ class _WhatsAppConnectionDialogState
     );
   }
 
-  Widget _buildHeader() {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: const Color(0xFF25D366).withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: const Icon(
-            Icons.chat_rounded,
-            color: Color(0xFF25D366),
-            size: 24,
+  Widget _buildHeader(bool isConnected) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(24, 20, 16, 16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            AiTheme.whatsAppGreen.withValues(alpha: 0.08),
+            AiTheme.whatsAppDarkGreen.withValues(alpha: 0.04),
+          ],
+        ),
+        borderRadius: const BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+        border: Border(
+          bottom: BorderSide(
+            color: AiTheme.whatsAppGreen.withValues(alpha: 0.15),
           ),
         ),
-        const SizedBox(width: 12),
-        const Expanded(
-          child: Text(
-            'WhatsApp Connection',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
-              color: AiTheme.textColor,
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [AiTheme.whatsAppGreen, AiTheme.whatsAppDarkGreen],
+              ),
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: AiTheme.whatsAppGreen.withValues(alpha: 0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: const Icon(
+              Icons.chat_rounded,
+              color: Colors.white,
+              size: 22,
             ),
           ),
-        ),
-        IconButton(
-          icon: const Icon(Icons.close_rounded),
-          onPressed: () => Navigator.of(context).pop(),
-          color: AiTheme.secondaryColor,
-        ),
-      ],
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'WhatsApp Business',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: AiTheme.textColor,
+                    letterSpacing: -0.3,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Row(
+                  children: [
+                    if (isConnected) ...[
+                      AnimatedBuilder(
+                        animation: _pulseAnimation,
+                        builder: (context, child) {
+                          return Container(
+                            width: 7,
+                            height: 7,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: AiTheme.whatsAppGreen.withValues(
+                                alpha: _pulseAnimation.value,
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AiTheme.whatsAppGreen.withValues(
+                                    alpha: _pulseAnimation.value * 0.4,
+                                  ),
+                                  blurRadius: 4,
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
+                      const SizedBox(width: 6),
+                    ],
+                    Text(
+                      isConnected ? 'Connected' : 'Not connected',
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: isConnected
+                            ? AiTheme.whatsAppGreen
+                            : AiTheme.hintColor,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.close_rounded, size: 20),
+            onPressed: () => Navigator.of(context).pop(),
+            color: AiTheme.secondaryColor,
+            splashRadius: 18,
+          ),
+        ],
+      ),
     );
   }
 
@@ -183,33 +291,59 @@ class _WhatsAppConnectionDialogState
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: Colors.green.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.green.withValues(alpha: 0.3)),
+            color: AiTheme.whatsAppGreen.withValues(alpha: 0.06),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: AiTheme.whatsAppGreen.withValues(alpha: 0.2),
+            ),
           ),
           child: Row(
             children: [
-              const Icon(
-                Icons.check_circle_rounded,
-                color: Colors.green,
-                size: 24,
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AiTheme.whatsAppGreen.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.verified_rounded,
+                  color: AiTheme.whatsAppGreen,
+                  size: 22,
+                ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 14),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     const Text(
-                      'Connected',
+                      'Account Active',
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
-                        color: Colors.green,
+                        fontSize: 15,
+                        color: AiTheme.whatsAppDarkGreen,
                       ),
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      'Phone Number ID: ${state.phoneNumberId}',
-                      style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.tag_rounded,
+                          size: 14,
+                          color: AiTheme.hintColor,
+                        ),
+                        const SizedBox(width: 4),
+                        Flexible(
+                          child: Text(
+                            state.phoneNumberId ?? '',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: AiTheme.secondaryColor,
+                              fontFamily: 'monospace',
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -217,23 +351,55 @@ class _WhatsAppConnectionDialogState
             ],
           ),
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 12),
+        // Info text
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: AiTheme.inputBackgroundColor,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                Icons.info_outline_rounded,
+                size: 16,
+                color: AiTheme.hintColor,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'WhatsApp messages will appear in your conversations automatically.',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: AiTheme.secondaryColor,
+                    height: 1.4,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 20),
         SizedBox(
           width: double.infinity,
           child: OutlinedButton.icon(
             onPressed: state.isLoading ? null : _handleDisconnect,
-            icon: const Icon(Icons.link_off_rounded),
-            label: state.isLoading
+            icon: state.isLoading
                 ? const SizedBox(
                     height: 16,
                     width: 16,
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
-                : const Text('Disconnect'),
+                : const Icon(Icons.link_off_rounded, size: 18),
+            label: Text(state.isLoading ? 'Disconnecting...' : 'Disconnect'),
             style: OutlinedButton.styleFrom(
-              foregroundColor: Colors.red,
-              side: const BorderSide(color: Colors.red),
-              padding: const EdgeInsets.symmetric(vertical: 12),
+              foregroundColor: Colors.red.shade400,
+              side: BorderSide(color: Colors.red.shade300),
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
           ),
         ),
@@ -246,38 +412,79 @@ class _WhatsAppConnectionDialogState
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Enter your WhatsApp Business phone number ID to connect your account.',
-          style: TextStyle(color: AiTheme.secondaryColor, height: 1.5),
+        Text(
+          'Connect your WhatsApp Business account to receive and reply to customer messages.',
+          style: TextStyle(
+            color: AiTheme.secondaryColor,
+            fontSize: 14,
+            height: 1.5,
+          ),
+        ),
+        const SizedBox(height: 20),
+        // Setup steps
+        _buildSetupStep(
+          number: '1',
+          text: 'Go to your Meta Business Suite',
+          icon: Icons.open_in_new_rounded,
+        ),
+        const SizedBox(height: 8),
+        _buildSetupStep(
+          number: '2',
+          text: 'Find your Phone Number ID in WhatsApp settings',
+          icon: Icons.search_rounded,
+        ),
+        const SizedBox(height: 8),
+        _buildSetupStep(
+          number: '3',
+          text: 'Paste it below and connect',
+          icon: Icons.content_paste_rounded,
         ),
         const SizedBox(height: 20),
         TextField(
           controller: _phoneNumberIdController,
           decoration: InputDecoration(
             labelText: 'Phone Number ID',
+            labelStyle: const TextStyle(color: AiTheme.hintColor),
             hintText: 'e.g., 101514826127381',
+            hintStyle: TextStyle(
+              color: AiTheme.hintColor.withValues(alpha: 0.6),
+            ),
             errorText: state.error,
-            prefixIcon: const Icon(Icons.phone_rounded),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            prefixIcon: Icon(
+              Icons.phone_rounded,
+              color: AiTheme.whatsAppGreen.withValues(alpha: 0.7),
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: AiTheme.borderColor),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: AiTheme.borderColor),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(
+                color: AiTheme.whatsAppGreen,
+                width: 2,
+              ),
+            ),
             filled: true,
             fillColor: AiTheme.inputBackgroundColor,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
+            ),
           ),
           enabled: !state.isLoading,
+          style: const TextStyle(fontSize: 15, fontFamily: 'monospace'),
         ),
         const SizedBox(height: 24),
         SizedBox(
           width: double.infinity,
-          child: ElevatedButton(
+          child: ElevatedButton.icon(
             onPressed: state.isLoading ? null : _handleConnect,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF25D366),
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: state.isLoading
+            icon: state.isLoading
                 ? const SizedBox(
                     height: 20,
                     width: 20,
@@ -286,57 +493,163 @@ class _WhatsAppConnectionDialogState
                       valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                     ),
                   )
-                : const Text(
-                    'Connect WhatsApp',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                  ),
+                : const Icon(Icons.link_rounded, size: 20),
+            label: Text(
+              state.isLoading ? 'Connecting...' : 'Connect WhatsApp',
+              style: const TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.2,
+              ),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AiTheme.whatsAppGreen,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+              elevation: 2,
+              shadowColor: AiTheme.whatsAppGreen.withValues(alpha: 0.3),
+            ),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildErrorView(String error) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
+  Widget _buildSetupStep({
+    required String number,
+    required String text,
+    required IconData icon,
+  }) {
+    return Row(
       children: [
-        _buildHeader(),
-        const SizedBox(height: 24),
         Container(
-          padding: const EdgeInsets.all(16),
+          width: 24,
+          height: 24,
           decoration: BoxDecoration(
-            color: Colors.red.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.red.withValues(alpha: 0.3)),
+            color: AiTheme.whatsAppGreen.withValues(alpha: 0.1),
+            shape: BoxShape.circle,
           ),
-          child: Row(
-            children: [
-              const Icon(
-                Icons.error_outline_rounded,
-                color: Colors.red,
-                size: 24,
+          child: Center(
+            child: Text(
+              number,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w700,
+                color: AiTheme.whatsAppDarkGreen,
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  'Error: $error',
-                  style: const TextStyle(color: Colors.red),
+            ),
+          ),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: 13,
+              color: AiTheme.secondaryColor,
+              height: 1.3,
+            ),
+          ),
+        ),
+        Icon(icon, size: 16, color: AiTheme.hintColor.withValues(alpha: 0.5)),
+      ],
+    );
+  }
+
+  Widget _buildErrorView(String error) {
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: Colors.red.shade50,
+                  borderRadius: BorderRadius.circular(12),
                 ),
+                child: Icon(
+                  Icons.error_outline_rounded,
+                  color: Colors.red.shade400,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 14),
+              const Expanded(
+                child: Text(
+                  'Connection Error',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: AiTheme.textColor,
+                  ),
+                ),
+              ),
+              IconButton(
+                icon: const Icon(Icons.close_rounded, size: 20),
+                onPressed: () => Navigator.of(context).pop(),
+                color: AiTheme.secondaryColor,
+                splashRadius: 18,
               ),
             ],
           ),
-        ),
-        const SizedBox(height: 16),
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            onPressed: () {
-              ref.read(whatsAppConnectionStateProvider.notifier).refresh();
-            },
-            child: const Text('Retry'),
+          const SizedBox(height: 20),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: Colors.red.shade50,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.red.withValues(alpha: 0.2)),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.warning_amber_rounded,
+                  color: Colors.red.shade400,
+                  size: 18,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    error,
+                    style: TextStyle(
+                      color: Colors.red.shade700,
+                      fontSize: 13,
+                      height: 1.4,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-      ],
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                ref.read(whatsAppConnectionStateProvider.notifier).refresh();
+              },
+              icon: const Icon(Icons.refresh_rounded, size: 18),
+              label: const Text('Try Again'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AiTheme.whatsAppGreen,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

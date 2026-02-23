@@ -69,6 +69,7 @@ class Business extends OfflineFirstWithSupabaseModel {
   String? taxServerUrl;
   bool? isDefault;
   int? businessTypeId;
+  int? businessTypeId;
   String? referredBy;
 
   String? encryptionKey;
