@@ -69,7 +69,6 @@ class Business extends OfflineFirstWithSupabaseModel {
   String? taxServerUrl;
   bool? isDefault;
   int? businessTypeId;
-  int? businessTypeId;
   String? referredBy;
 
   String? encryptionKey;
@@ -180,7 +179,7 @@ class Business extends OfflineFirstWithSupabaseModel {
     bool? taxEnabled,
     String? taxServerUrl,
     bool? isDefault,
-    String? businessTypeId,
+    int? businessTypeId,
     String? referredBy,
     DateTime? lastTouched,
     DateTime? deletedAt,
