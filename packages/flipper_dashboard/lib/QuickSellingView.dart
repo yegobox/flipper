@@ -1320,7 +1320,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         child: Column(
           children: [
             _buildInvoiceNumber(),
-            SizedBox(height: 20),
+            const SizedBox(height: 10),
             Semantics(
               label: 'Transaction items list',
               hint:

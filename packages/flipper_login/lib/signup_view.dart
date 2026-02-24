@@ -124,11 +124,36 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                   // Success is handled by navigation in the bloc
                 },
                 onFailure: (context, state) {
-                  // Show error notification
-                  showErrorNotification(
-                    context,
-                    state.failureResponse ?? 'An error occurred during signup',
-                  );
+                  final message = state.failureResponse ??
+                      'An error occurred during signup';
+                  final isOtpError = message.toLowerCase().contains('otp') ||
+                      message.toLowerCase().contains('expired') ||
+                      message.toLowerCase().contains('invalid');
+
+                  if (isOtpError) {
+                    // Show a snackbar with a "Resend OTP" action so the user
+                    // can immediately get a fresh code without hunting for the button.
+                    showErrorNotification(
+                      context,
+                      'OTP expired or invalid. Please request a new code.',
+                      duration: const Duration(seconds: 8),
+                      actionLabel: 'Resend OTP',
+                      onAction: () async {
+                        try {
+                          await formBloc.requestOtp();
+                          if (!context.mounted) return;
+                          showSuccessNotification(
+                              context, 'New OTP sent successfully!');
+                        } catch (e) {
+                          if (!context.mounted) return;
+                          showErrorNotification(
+                              context, 'Failed to resend OTP: $e');
+                        }
+                      },
+                    );
+                  } else {
+                    showErrorNotification(context, message);
+                  }
                 },
                 child: Scaffold(
                   backgroundColor: const Color(0xFFF5F7FA),

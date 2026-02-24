@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
-import 'dart:convert';
 import 'package:flipper_models/helperModels/business_type.dart';
-import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/proxy.dart';
 
 /// View model for handling signup business logic
@@ -58,33 +56,6 @@ class SignupViewModel extends BaseViewModel {
   /// Perform signup
   Future<void> signup() async {
     String? phoneNumber = ProxyService.box.getUserPhone();
-    String? userId = ProxyService.box.getUserId();
-
-    // If we don't have a userId, call v2/api/user to create/get user with phone number
-    if (userId == null && phoneNumber != null && phoneNumber.isNotEmpty) {
-      try {
-        // Call v2/api/user endpoint to create or get user
-        final response = await ProxyService.strategy.sendLoginRequest(
-          phoneNumber,
-          ProxyService.http,
-          AppSecrets.apihubProdDomain,
-        );
-
-        if (response.statusCode == 200 && response.body.isNotEmpty) {
-          final responseData = json.decode(response.body);
-          if (responseData['id'] != null) {
-            userId = responseData['id'] is String
-                ? responseData['id']
-                : responseData['id'] as int;
-            // Store the userId for future use
-            ProxyService.box.writeString(key: 'userId', value: userId!);
-          }
-        }
-      } catch (e) {
-        // If user creation fails, continue with existing flow for backward compatibility
-        // The existing signup method will handle user creation
-      }
-    }
 
     try {
       // Create business map with all required fields
@@ -100,46 +71,18 @@ class SignupViewModel extends BaseViewModel {
         'latitude': 1,
         'bhfid': '00',
         'businessTypeId': int.tryParse(businessType?.id ?? '1') ?? 1,
-        'userId': userId,
+        // userId is intentionally omitted here; the server assigns it and
+        // CoreSync.signup → login → sendLoginRequest saves it to box + Ditto.
       };
 
-      // Signup logic implementation with correct signature
+      // Signup logic implementation with correct signature.
+      // CoreSync.signup() internally calls login() which calls sendLoginRequest().
+      // sendLoginRequest() stores userId in ProxyService.box AND saves user_access
+      // to Ditto, so we do NOT need a separate sendLoginRequest call here.
       await ProxyService.strategy.signup(
         business: businessMap,
         flipperHttpClient: ProxyService.http,
       );
-
-      // After successfully creating the business, re-fetch the user data
-      // to get the updated list of businesses and save it to Ditto.
-      if (phoneNumber != null && phoneNumber.isNotEmpty) {
-        final response = await ProxyService.strategy.sendLoginRequest(
-          phoneNumber,
-          ProxyService.http,
-          AppSecrets.apihubProdDomain,
-        );
-        if (response.statusCode == 200 && response.body.isNotEmpty) {
-          final responseData = json.decode(response.body);
-          if (responseData['id'] != null) {
-            userId = responseData['id'] is String
-                ? responseData['id']
-                : responseData['id'] as int;
-            // Store the userId for future use
-            ProxyService.box.writeString(key: 'userId', value: userId!);
-            await ProxyService.http.post(
-              Uri.parse('${AppSecrets.apihubProd}/v2/api/pin'),
-              headers: {'Content-Type': 'application/json'},
-              body: jsonEncode({
-                'phoneNumber': phoneNumber,
-                'userId': userId,
-                'branchId': responseData['businesses'][0]['branches'][0]['id'],
-                'businessId': responseData['businesses'][0]['id'],
-                'defaultApp': 1,
-              }),
-            );
-          }
-        }
-      }
-      // send pin for this user
     } catch (e) {
       rethrow;
     }

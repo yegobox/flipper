@@ -478,11 +478,15 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
       // Transfer form values to view model
       signupViewModel.setName(name: username.value);
       signupViewModel.setFullName(name: fullName.value);
+      // Only prepend dial code for phone numbers — emails must be passed as-is.
+      final _isEmail = EMAIL_REGEX.hasMatch(phoneNumber.value);
       signupViewModel.setPhoneNumber(
-        phoneNumber: _ensurePhoneHasDialCode(
-          phoneNumber.value,
-          countryName.value ?? 'Rwanda',
-        ),
+        phoneNumber: _isEmail
+            ? phoneNumber.value
+            : _ensurePhoneHasDialCode(
+                phoneNumber.value,
+                countryName.value ?? 'Rwanda',
+              ),
       );
       signupViewModel.setCountry(country: countryName.value ?? 'Rwanda');
       signupViewModel.tin = (tinNumber.value.isEmpty ||

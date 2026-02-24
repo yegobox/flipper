@@ -403,12 +403,17 @@ void showSuccessNotification(
   );
 }
 
-/// Shows an error notification
+/// Shows an error notification, optionally with an inline action button.
+///
+/// Pass [actionLabel] + [onAction] to embed a button (e.g. "Resend OTP")
+/// directly in the snackbar instead of using a raw [ScaffoldMessenger] call.
 void showErrorNotification(
   BuildContext context,
   String message, {
   Duration duration = const Duration(seconds: 4),
   bool enableHapticFeedback = true,
+  String? actionLabel,
+  VoidCallback? onAction,
 }) {
   showCustomSnackBarUtil(
     context,
@@ -416,6 +421,8 @@ void showErrorNotification(
     type: NotificationType.error,
     duration: duration,
     enableHapticFeedback: enableHapticFeedback,
+    actionLabel: actionLabel,
+    onAction: onAction,
   );
 }
 

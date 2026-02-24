@@ -1769,6 +1769,13 @@ class CoreSync extends AiStrategyImpl
       // Step 5: Login
       try {
         talker.info('Signup: Logging in with new PIN');
+        // Reset the Ditto initialization flag so Ditto re-initializes for
+        // the newly created user. Without this, the static
+        // _isDittoInitialized guard (set during a previous login) prevents
+        // Ditto from re-opening under the new userId, which means
+        // saveUserAccess() stores nothing and businessesProvider returns
+        // an empty list → the user is immediately logged back out.
+        AuthMixin.resetDittoInitializationStatic();
         await login(
           isInSignUpProgress: true,
           pin: savedPin,
@@ -2714,7 +2721,6 @@ class CoreSync extends AiStrategyImpl
       );
     }
   }
-
 
   @override
   Future<void> createNewStock({
