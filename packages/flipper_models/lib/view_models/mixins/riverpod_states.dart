@@ -511,9 +511,8 @@ class CombinedNotifier {
     ref.read(searchStringProvider.notifier).emitString(value: "search");
     ref.read(searchStringProvider.notifier).emitString(value: "");
 
-    // Note: We don't call refresh() here because variants are already added
-    // directly in the onCompleteCallback via addVariants() method.
-    // Calling refresh() here would cause duplicates.
+    // Trigger refresh for outerVariantsProvider to show newly imported products
+    ref.read(outerVariantsProvider(branchId).notifier).refresh();
 
     // Reload products
     ref

@@ -203,6 +203,7 @@ class BulkAddProductViewModel extends ChangeNotifier {
       }
 
       return brick.Variant(
+        branchId: ProxyService.box.getBranchId()!,
         itemCd: (await ProxyService.strategy.itemCode(
           countryCode: orgnNatCd,
           productType: "2",
@@ -260,6 +261,7 @@ class BulkAddProductViewModel extends ChangeNotifier {
       }
 
       return brick.Variant(
+        branchId: ProxyService.box.getBranchId()!,
         itemCd: (await ProxyService.strategy.itemCode(
           countryCode: orgnNatCd,
           productType: "2",
@@ -311,7 +313,11 @@ class BulkAddProductViewModel extends ChangeNotifier {
           _quantityControllers[barCode] = TextEditingController(text: '0');
         }
         if (!_selectedTaxTypes.containsKey(barCode)) {
-          _selectedTaxTypes[barCode] = 'B'; // Default tax type
+          final ebm = await ProxyService.strategy.ebm(
+            branchId: ProxyService.box.getBranchId()!,
+          );
+          final isVatEnabled = ebm?.vatEnabled ?? false;
+          _selectedTaxTypes[barCode] = isVatEnabled ? 'B' : 'D';
         }
         if (!_selectedItemClasses.containsKey(barCode)) {
           _selectedItemClasses[barCode] =
