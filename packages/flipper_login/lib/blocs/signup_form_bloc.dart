@@ -111,19 +111,10 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
       _phoneVerificationField // Add phone verification field
     ]);
 
-    // Set initial phone value and listen for country changes
-    final initialPhone = _ensurePhoneHasDialCode('', country);
-    phoneNumber.updateInitialValue(initialPhone);
-
-    countryName.stream.listen((state) {
-      if (state.value != null) {
-        final currentPhone = phoneNumber.value;
-        final newPhone = _ensurePhoneHasDialCode(currentPhone, state.value!);
-        if (newPhone != currentPhone) {
-          phoneNumber.updateValue(newPhone);
-        }
-      }
-    });
+    // Country dial-code is shown as a visual prefix chip in the UI.
+    // The field stores only what the user typed (local digits or email).
+    // _ensurePhoneHasDialCode is called at OTP-send / submit time to
+    // prepend the correct country code before hitting the backend.
 
     // Listen to username and fullName streams to enable/disable phoneNumber
     void updatePhoneNumberEnabled() {

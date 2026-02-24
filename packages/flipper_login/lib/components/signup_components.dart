@@ -73,6 +73,7 @@ class SignupComponents {
     String? hint,
     List<TextInputFormatter>? inputFormatters,
     Widget? suffix,
+    Widget? prefix,
   }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
@@ -91,6 +92,7 @@ class SignupComponents {
             keyboardType: keyboardType ?? TextInputType.text,
             inputFormatters: inputFormatters,
             decoration: InputDecoration(
+              prefix: prefix,
               suffixIcon: suffix,
               labelText: label,
               hintText: hint,

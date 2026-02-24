@@ -176,10 +176,66 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                         components.SignupComponents
                                             .buildInputField(
                                           fieldBloc: formBloc.phoneNumber,
-                                          label: 'Phone Number or Email',
+                                          label: 'Phone / Email',
                                           icon: Icons.phone_outlined,
-                                          hint: 'Enter your phone or email',
+                                          hint: '783054874 or your@email.com',
                                           keyboardType: TextInputType.text,
+                                          // Dial-code prefix chip — shows when input is a phone number,
+                                          // hides automatically when the user types "@" (email mode).
+                                          prefix: BlocBuilder<
+                                              SelectFieldBloc<String, String>,
+                                              SelectFieldBlocState<String,
+                                                  String>>(
+                                            bloc: formBloc.countryName,
+                                            builder: (context, countryState) {
+                                              final country =
+                                                  countryState.value ??
+                                                      'Rwanda';
+                                              final dialCode =
+                                                  _phoneValidationRules[country]
+                                                          ?.dialCode ??
+                                                      '+250';
+                                              return BlocBuilder<TextFieldBloc,
+                                                  TextFieldBlocState>(
+                                                bloc: formBloc.phoneNumber,
+                                                builder: (context, phoneState) {
+                                                  final isEmail = phoneState
+                                                      .value
+                                                      .contains('@');
+                                                  if (isEmail)
+                                                    return const SizedBox
+                                                        .shrink();
+                                                  return Container(
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                        horizontal: 6,
+                                                        vertical: 2),
+                                                    margin:
+                                                        const EdgeInsets.only(
+                                                            right: 4),
+                                                    decoration: BoxDecoration(
+                                                      color: const Color(
+                                                              0xFF0078D4)
+                                                          .withOpacity(0.1),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              4),
+                                                    ),
+                                                    child: Text(
+                                                      dialCode,
+                                                      style: const TextStyle(
+                                                        color:
+                                                            Color(0xFF0078D4),
+                                                        fontWeight:
+                                                            FontWeight.w700,
+                                                        fontSize: 14,
+                                                      ),
+                                                    ),
+                                                  );
+                                                },
+                                              );
+                                            },
+                                          ),
                                           suffix: BlocBuilder<TextFieldBloc,
                                               TextFieldBlocState>(
                                             bloc: formBloc.phoneNumber,
