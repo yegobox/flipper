@@ -571,6 +571,37 @@ const String NO_SELECTION = "-1";
 
 final selectedItemIdProvider = StateProvider<String?>((ref) => NO_SELECTION);
 
+final selectedItemIdsProvider =
+    NotifierProvider<SelectedItemIdsNotifier, Set<String>>(
+      SelectedItemIdsNotifier.new,
+    );
+
+class SelectedItemIdsNotifier extends Notifier<Set<String>> {
+  @override
+  Set<String> build() => {};
+
+  void toggleSelection(String id) {
+    if (state.contains(id)) {
+      state = Set.from(state)..remove(id);
+    } else {
+      state = Set.from(state)..add(id);
+    }
+    // Update the single selection provider for compatibility
+    if (state.isEmpty) {
+      ref.read(selectedItemIdProvider.notifier).state = NO_SELECTION;
+    } else {
+      ref.read(selectedItemIdProvider.notifier).state = state.last;
+    }
+  }
+
+  void clearSelection() {
+    state = {};
+    ref.read(selectedItemIdProvider.notifier).state = NO_SELECTION;
+  }
+
+  bool isSelected(String id) => state.contains(id);
+}
+
 final tenantProvider = FutureProvider<Tenant?>((ref) async {
   final userId = ProxyService.box.getUserId();
   return await ProxyService.strategy.tenant(

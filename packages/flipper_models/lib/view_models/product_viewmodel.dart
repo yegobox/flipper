@@ -39,8 +39,9 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
   List<Product> _products = [];
 
   List<Product> get products => _products
-      .where((element) =>
-          element.name != 'temp' && element.name != 'Custom Amount')
+      .where(
+        (element) => element.name != 'temp' && element.name != 'Custom Amount',
+      )
       .toList();
 
   set products(List<Product> value) {
@@ -51,10 +52,12 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
   Product? product = null;
 
   List<Product> get nonFavoriteProducts => _products
-      .where((element) =>
-          element.name != 'temp' &&
-          element.name != 'Custom Amount' &&
-          element.id != 1)
+      .where(
+        (element) =>
+            element.name != 'temp' &&
+            element.name != 'Custom Amount' &&
+            element.id != 1,
+      )
       .toList();
   set nonFavoriteProducts(List<Product> value) {
     products = value;
@@ -98,9 +101,10 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
     try {
       if (productId != null) {
         Product? product = await ProxyService.strategy.getProduct(
-            id: productId,
-            branchId: ProxyService.box.getBranchId()!,
-            businessId: ProxyService.box.getBusinessId()!);
+          id: productId,
+          branchId: ProxyService.box.getBranchId()!,
+          businessId: ProxyService.box.getBusinessId()!,
+        );
         setCurrentProduct(currentProduct: product!);
         setCurrentProduct(currentProduct: product);
         kProductName = product.name;
@@ -175,44 +179,51 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
     for (Category category in categories) {
       if (category.focused) {
         ProxyService.strategy.updateCategory(
-            categoryId: category.id,
-            name: category.name,
-            active: false,
-            focused: false,
-            branchId: branchId);
+          categoryId: category.id,
+          name: category.name,
+          active: false,
+          focused: false,
+          branchId: branchId,
+        );
       }
     }
 
     ProxyService.strategy.updateCategory(
-        categoryId: category.id,
-        name: category.name,
-        active: true,
-        focused: true,
-        branchId: branchId);
+      categoryId: category.id,
+      name: category.name,
+      active: true,
+      focused: true,
+      branchId: branchId,
+    );
 
     app.loadCategories();
   }
 
   /// Should save a focused unit given the id to persist to
   /// the Id can be ID of product or variant
-  void saveFocusedUnit(
-      {required IUnit newUnit, String? id, required String type}) async {
+  void saveFocusedUnit({
+    required IUnit newUnit,
+    String? id,
+    required String type,
+  }) async {
     final String branchId = ProxyService.box.getBranchId()!;
 
     for (IUnit unit in units) {
       if (unit.active ?? false) {
         ProxyService.strategy.updateUnit(
-            unitId: unit.id,
-            name: unit.name,
-            active: false,
-            branchId: branchId);
+          unitId: unit.id,
+          name: unit.name,
+          active: false,
+          branchId: branchId,
+        );
       }
     }
     ProxyService.strategy.updateUnit(
-        unitId: newUnit.id,
-        name: newUnit.name,
-        active: true,
-        branchId: branchId);
+      unitId: newUnit.id,
+      name: newUnit.name,
+      active: true,
+      branchId: branchId,
+    );
     if (type == 'product') {
       ProxyService.strategy.updateProduct(
         productId: product!.id,
@@ -222,9 +233,10 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
       );
       // get updated product
       product = await ProxyService.strategy.getProduct(
-          businessId: ProxyService.box.getBusinessId()!,
-          id: product!.id,
-          branchId: ProxyService.box.getBranchId()!);
+        businessId: ProxyService.box.getBusinessId()!,
+        id: product!.id,
+        branchId: ProxyService.box.getBranchId()!,
+      );
     }
 
     loadUnits();
@@ -236,8 +248,10 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
     if (_stockValue != null) {
       Variant? variant = await ProxyService.strategy.getVariant(id: variantId);
 
-      ProxyService.strategy
-          .updateStock(stockId: variant!.stock!.id, currentStock: _stockValue!);
+      ProxyService.strategy.updateStock(
+        stockId: variant!.stock!.id,
+        currentStock: _stockValue!,
+      );
     }
   }
 
@@ -250,33 +264,45 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
 
   void deleteVariant({required String id}) async {
     final paged = await ProxyService.strategy.variants(
-        variantId: id,
-        branchId: ProxyService.box.getBranchId()!,
-        taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D']);
+      variantId: id,
+      branchId: ProxyService.box.getBranchId()!,
+      taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D'],
+    );
     Variant? variant = (List<Variant>.from(paged.variants)).firstOrNull;
     // can not delete regular variant every product should have a regular variant.
     if (variant!.name != 'Regular') {
       ProxyService.strategy.flipperDelete(
-          id: id, endPoint: 'variation', flipperHttpClient: ProxyService.http);
+        id: id,
+        endPoint: 'variation',
+        flipperHttpClient: ProxyService.http,
+      );
       //this will reload the variations remain
       getProduct();
     }
   }
 
-  Future<void> switchColor(
-      {required PColor color, required WidgetRef widgetReference}) async {
+  Future<void> switchColor({
+    required PColor color,
+    required WidgetRef widgetReference,
+  }) async {
     for (PColor c in colors) {
       if (c.active) {
         final PColor? _color = await ProxyService.strategy.getColor(id: c.id);
-        ProxyService.strategy
-            .updateColor(colorId: _color!.id, active: false, name: _color.name);
+        ProxyService.strategy.updateColor(
+          colorId: _color!.id,
+          active: false,
+          name: _color.name,
+        );
       }
     }
 
     final PColor? _color = await ProxyService.strategy.getColor(id: color.id);
 
-    ProxyService.strategy
-        .updateColor(colorId: _color!.id, active: true, name: _color.name);
+    ProxyService.strategy.updateColor(
+      colorId: _color!.id,
+      active: true,
+      name: _color.name,
+    );
 
     widgetReference
         .read(unsavedProductProvider.notifier)
@@ -294,8 +320,10 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
 
   /// add variation to a product [variations],[retailPrice],[supplyPrice]
 
-  void navigateAddVariation(
-      {required String productId, required BuildContext context}) {
+  void navigateAddVariation({
+    required String productId,
+    required BuildContext context,
+  }) {
     _routerService.navigateTo(AddVariationRoute(productId: productId));
   }
 
@@ -308,9 +336,10 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
     double? retailPrice,
   }) async {
     Product? product = await ProxyService.strategy.getProduct(
-        businessId: ProxyService.box.getBusinessId()!,
-        id: productId,
-        branchId: ProxyService.box.getBranchId()!);
+      businessId: ProxyService.box.getBusinessId()!,
+      id: productId,
+      branchId: ProxyService.box.getBranchId()!,
+    );
     final paged = await ProxyService.strategy.variants(
       taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D'],
       branchId: ProxyService.box.getBranchId()!,
@@ -322,12 +351,13 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
       for (Variant variation in variants) {
         if (variation.name == "Regular") {
           ProxyService.strategy.updateVariant(
-              updatables: [variation],
-              variantId: variation.id,
-              productName: product!.name,
-              productId: variation.productId!,
-              supplyPrice: supplyPrice,
-              retailPrice: retailPrice);
+            updatables: [variation],
+            variantId: variation.id,
+            productName: product!.name,
+            productId: variation.productId!,
+            supplyPrice: supplyPrice,
+            retailPrice: retailPrice,
+          );
           // update io
           // await StockIOUtil.saveStockIO(
           //   repository: Repository(),
@@ -347,11 +377,12 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
       for (Variant variation in variants) {
         if (variation.name == "Regular") {
           ProxyService.strategy.updateVariant(
-              updatables: [variation],
-              variantId: variation.id,
-              productName: product!.name,
-              productId: variation.productId!,
-              retailPrice: retailPrice);
+            updatables: [variation],
+            variantId: variation.id,
+            productName: product!.name,
+            productId: variation.productId!,
+            retailPrice: retailPrice,
+          );
           // update io
           // await StockIOUtil.saveStockIO(
           //   repository: Repository(),
@@ -369,8 +400,10 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
   }
 
   /// Add a product into the favorites
-  Future<int> addFavorite(
-      {required String favIndex, required String productId}) async {
+  Future<int> addFavorite({
+    required String favIndex,
+    required String productId,
+  }) async {
     final favorite = Favorite(
       favIndex: favIndex,
       productId: productId,
@@ -383,38 +416,55 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
     return res;
   }
 
-  Future<void> deleteProduct({required String productId}) async {
+  Future<void> bulkDelete({
+    required Set<String> ids,
+    required String type,
+  }) async {
     try {
-      //get variants->delete
-      String branchId = ProxyService.box.getBranchId()!;
-      final paged = await ProxyService.strategy.variants(
-          branchId: branchId,
-          productId: productId,
-          taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D']);
-      List<Variant> variations = List<Variant>.from(paged.variants);
-      for (Variant variation in variations) {
-        //get stock->delete
-        /// deleting variant is supposed to cascade delete stock
-        await ProxyService.strategy.flipperDelete(
-            id: variation.id,
-            endPoint: 'variant',
-            flipperHttpClient: ProxyService.http);
+      for (final id in ids) {
+        if (type == 'variant') {
+          // get variant by id directly
+          Variant? variation = await ProxyService.getStrategy(
+            Strategy.capella,
+          ).getVariant(id: id);
 
-        Favorite? fav =
-            await ProxyService.strategy.getFavoriteByProdId(prodId: productId);
-        if (fav != null) {
-          await ProxyService.strategy.deleteFavoriteByIndex(favIndex: fav.id);
+          if (variation != null) {
+            // If it's a variant, we should also delete the product
+            await deleteProduct(productId: variation.productId!);
+
+            // delete the variant
+            await ProxyService.strategy.flipperDelete(
+              id: variation.id,
+              endPoint: 'variant',
+              flipperHttpClient: ProxyService.http,
+            );
+
+            // check if it's a favorite and delete that too
+            Favorite? fav = await ProxyService.strategy.getFavoriteByProdId(
+              prodId: variation.productId!,
+            );
+            if (fav != null) {
+              await ProxyService.strategy.deleteFavoriteByIndex(
+                favIndex: fav.id,
+              );
+            }
+          }
+        } else if (type == 'product') {
+          await deleteProduct(productId: id);
         }
       }
-      //then delete the product
-      await ProxyService.strategy.flipperDelete(
-          id: productId,
-          endPoint: 'product',
-          flipperHttpClient: ProxyService.http);
     } catch (e, s) {
       talker.warning(e);
       talker.error(s);
     }
+  }
+
+  Future<void> deleteProduct({required String productId}) async {
+    await ProxyService.strategy.flipperDelete(
+      id: productId,
+      endPoint: 'product',
+      flipperHttpClient: ProxyService.http,
+    );
   }
 
   void updateExpiryDate(DateTime date) async {
@@ -425,9 +475,10 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
       businessId: ProxyService.box.getBusinessId()!,
     );
     Product? cProduct = await ProxyService.strategy.getProduct(
-        id: product!.id,
-        branchId: ProxyService.box.getBranchId()!,
-        businessId: ProxyService.box.getBusinessId()!);
+      id: product!.id,
+      branchId: ProxyService.box.getBranchId()!,
+      businessId: ProxyService.box.getBusinessId()!,
+    );
     setCurrentProduct(currentProduct: cProduct!);
     rebuildUi();
   }
@@ -438,37 +489,43 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
 
   void deleteDiscount({id}) {
     ProxyService.strategy.flipperDelete(
-        id: id, endPoint: 'discount', flipperHttpClient: ProxyService.http);
+      id: id,
+      endPoint: 'discount',
+      flipperHttpClient: ProxyService.http,
+    );
   }
 
   /// loop through transaction's items and update item with discount in consideration
   /// a discount can not go beyond the item's price
   Future<bool> applyDiscount({required Discount discount}) async {
     String branchId = ProxyService.box.getBranchId()!;
-    ITransaction? transaction =
-        await ProxyService.keypad.getPendingTransaction(branchId: branchId);
+    ITransaction? transaction = await ProxyService.keypad.getPendingTransaction(
+      branchId: branchId,
+    );
 
     if (transaction != null) {
       List<TransactionItem> transactionItems =
           await ProxyService.getStrategy(Strategy.capella).transactionItems(
-              transactionId: transaction.id,
-              branchId: (await ProxyService.strategy.activeBranch(
-                branchId: ProxyService.box.getBranchId()!,
-              ))
-                  .id);
+            transactionId: transaction.id,
+            branchId: (await ProxyService.strategy.activeBranch(
+              branchId: ProxyService.box.getBranchId()!,
+            )).id,
+          );
 
       for (TransactionItem item in transactionItems) {
         if (item.price.toInt() <= discount.amount!) {
           // item.discount = item.price;
           ProxyService.strategy.updateTransactionItem(
-              ignoreForReport: false,
-              transactionItemId: item.id,
-              discount: item.price.toDouble());
+            ignoreForReport: false,
+            transactionItemId: item.id,
+            discount: item.price.toDouble(),
+          );
         } else {
           ProxyService.strategy.updateTransactionItem(
-              transactionItemId: item.id,
-              ignoreForReport: false,
-              discount: discount.amount!.toDouble());
+            transactionItemId: item.id,
+            ignoreForReport: false,
+            discount: discount.amount!.toDouble(),
+          );
         }
       }
 
@@ -477,11 +534,15 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
     return false;
   }
 
-  Future<void> bindTenant(
-      {required String tenantId, required String productId}) async {
+  Future<void> bindTenant({
+    required String tenantId,
+    required String productId,
+  }) async {
     try {
-      await ProxyService.strategy
-          .bindProduct(productId: productId, tenantId: tenantId);
+      await ProxyService.strategy.bindProduct(
+        productId: productId,
+        tenantId: tenantId,
+      );
       rebuildUi();
     } catch (e) {
       // handle the exception

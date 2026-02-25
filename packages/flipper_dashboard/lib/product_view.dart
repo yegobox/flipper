@@ -160,10 +160,102 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
   }
 
   Widget _buildMainContent(BuildContext context, ProductViewModel model) {
+    final selectedIds = ref.watch(selectedItemIdsProvider);
+    final isSelectionMode = selectedIds.isNotEmpty;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
-      children: [Expanded(child: _buildVariantList(context, model))],
+      children: [
+        if (isSelectionMode)
+          _buildBulkSelectionBar(context, model, selectedIds),
+        Expanded(child: _buildVariantList(context, model)),
+      ],
     );
+  }
+
+  Widget _buildBulkSelectionBar(
+    BuildContext context,
+    ProductViewModel model,
+    Set<String> selectedIds,
+  ) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      color: colorScheme.primaryContainer,
+      child: Row(
+        children: [
+          IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: () {
+              ref.read(selectedItemIdsProvider.notifier).clearSelection();
+            },
+            tooltip: 'Clear selection',
+          ),
+          const SizedBox(width: 8),
+          Text(
+            '${selectedIds.length} items selected',
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
+          const Spacer(),
+          TextButton.icon(
+            icon: const Icon(Icons.delete_outline),
+            label: const Text('Delete'),
+            style: TextButton.styleFrom(foregroundColor: colorScheme.error),
+            onPressed: () =>
+                _showBulkDeleteConfirmation(context, model, selectedIds),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _showBulkDeleteConfirmation(
+    BuildContext context,
+    ProductViewModel model,
+    Set<String> selectedIds,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Multiple Items'),
+        content: Text(
+          'Are you sure you want to delete ${selectedIds.length} items? This action cannot be undone.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      final branchId = ProxyService.box.getBranchId() ?? "";
+      final notifier = ref.read(outerVariantsProvider(branchId).notifier);
+
+      await model.bulkDelete(ids: selectedIds, type: 'variant');
+
+      // Manual optimization: remove items from state for immediate UI feedback
+      for (final id in selectedIds) {
+        notifier.removeVariantById(id);
+      }
+
+      ref.read(selectedItemIdsProvider.notifier).clearSelection();
+
+      if (context.mounted) {
+        showCustomSnackBarUtil(
+          context,
+          'Successfully deleted ${selectedIds.length} items',
+        );
+      }
+    }
   }
 
   Widget _buildVariantList(BuildContext context, ProductViewModel model) {
