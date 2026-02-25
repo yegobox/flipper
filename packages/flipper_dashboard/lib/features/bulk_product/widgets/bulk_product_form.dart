@@ -4,7 +4,7 @@ import 'package:flipper_models/view_models/BulkAddProductViewModel.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_dashboard/features/bulk_product/widgets/file_upload_section.dart';
 import 'package:flipper_dashboard/features/bulk_product/widgets/product_data_table.dart';
-import 'package:flipper_dashboard/features/bulk_product/widgets/progress_dialog_handler.dart';
+import 'package:flipper_ui/flipper_ui.dart';
 
 class BulkProductForm extends ConsumerStatefulWidget {
   const BulkProductForm({super.key});
@@ -41,25 +41,26 @@ class BulkProductFormState extends ConsumerState<BulkProductForm> {
         if (model.selectedFile != null)
           Align(
             alignment: Alignment.centerRight,
-            child: ProgressDialogHandler(
-              onSave: () async {
+            child: FlipperButton(
+              textColor: Colors.white,
+              color: Colors.blue,
+              onPressed: () async {
                 setState(() {
                   _errorMessage = null;
                 });
                 try {
                   if (model.excelData != null) {
-                    await ProgressDialogHandler.showProgressDialog(
-                      context,
-                      model.saveAllWithProgress,
-                      onComplete: () {
-                        final combinedNotifier = ref.read(refreshProvider);
-                        combinedNotifier.performActions(
-                          productName: "",
-                          scanMode: true,
-                        );
-                        Navigator.maybePop(context);
-                      },
+                    await model.saveAllWithProgress();
+                    // Handle completion
+                    final combinedNotifier = ref.read(refreshProvider);
+                    combinedNotifier.performActions(
+                      productName: "",
+                      scanMode: true,
                     );
+                    // Close the modal after successful save
+                    if (mounted) {
+                      Navigator.of(context).pop();
+                    }
                   } else {
                     setState(() {
                       _errorMessage = 'No data to save';
@@ -71,6 +72,7 @@ class BulkProductFormState extends ConsumerState<BulkProductForm> {
                   });
                 }
               },
+              text: 'Save All',
             ),
           ),
         const SizedBox(height: 8.0),

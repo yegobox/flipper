@@ -36,127 +36,231 @@ class ProductDataTableState extends ConsumerState<ProductDataTable> {
     // Initialize controllers if not already done
     widget.model.initializeControllers();
 
-    return Container(
-      // Limit height to 600 or content height, whatever is smaller, or just content height
-      // but let's make it more production-ready by using a max height.
-      constraints: BoxConstraints(
-        maxHeight: 600,
-        minHeight: 110, // Header + at least one row
-      ),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            spreadRadius: 2,
-            blurRadius: 5,
-            offset: const Offset(0, 3),
+    return Stack(
+      children: [
+        Container(
+          // Limit height to 600 or content height, whatever is smaller, or just content height
+          // but let's make it more production-ready by using a max height.
+          constraints: BoxConstraints(
+            maxHeight: 600,
+            minHeight: 110, // Header + at least one row
           ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: SfDataGrid(
-          source: _dataSource,
-          columnWidthMode: ColumnWidthMode.fill,
-          rowHeight: 60,
-          headerRowHeight: 50,
-          gridLinesVisibility: GridLinesVisibility.horizontal,
-          headerGridLinesVisibility: GridLinesVisibility.horizontal,
-          columns: [
-            GridColumn(
-              columnName: 'BarCode',
-              label: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                alignment: Alignment.centerLeft,
-                child: const Text(
-                  'BarCode',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                spreadRadius: 2,
+                blurRadius: 5,
+                offset: const Offset(0, 3),
               ),
-            ),
-            GridColumn(
-              columnName: 'Name',
-              label: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                alignment: Alignment.centerLeft,
-                child: const Text(
-                  'Name',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: SfDataGrid(
+              source: _dataSource,
+              columnWidthMode: ColumnWidthMode.fill,
+              rowHeight: 60,
+              headerRowHeight: 50,
+              gridLinesVisibility: GridLinesVisibility.horizontal,
+              headerGridLinesVisibility: GridLinesVisibility.horizontal,
+              columns: [
+                GridColumn(
+                  columnName: 'BarCode',
+                  label: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    alignment: Alignment.centerLeft,
+                    child: const Text(
+                      'BarCode',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            GridColumn(
-              columnName: 'Category',
-              label: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                alignment: Alignment.centerLeft,
-                child: const Text(
-                  'Category',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                GridColumn(
+                  columnName: 'Name',
+                  label: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    alignment: Alignment.centerLeft,
+                    child: const Text(
+                      'Name',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            GridColumn(
-              columnName: 'Price',
-              label: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                alignment: Alignment.centerLeft,
-                child: const Text(
-                  'Price',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                GridColumn(
+                  columnName: 'Category',
+                  label: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    alignment: Alignment.centerLeft,
+                    child: const Text(
+                      'Category',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            GridColumn(
-              columnName: 'Quantity',
-              label: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                alignment: Alignment.centerLeft,
-                child: const Text(
-                  'Quantity',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                GridColumn(
+                  columnName: 'Price',
+                  label: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    alignment: Alignment.centerLeft,
+                    child: const Text(
+                      'Price',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            GridColumn(
-              columnName: 'ItemClass',
-              label: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                alignment: Alignment.centerLeft,
-                child: const Text(
-                  'Item Class',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                GridColumn(
+                  columnName: 'Quantity',
+                  label: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    alignment: Alignment.centerLeft,
+                    child: const Text(
+                      'Quantity',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            GridColumn(
-              columnName: 'TaxType',
-              columnWidthMode: ColumnWidthMode.auto,
-              label: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                alignment: Alignment.centerLeft,
-                child: const Text(
-                  'Tax',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                GridColumn(
+                  columnName: 'ItemClass',
+                  label: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    alignment: Alignment.centerLeft,
+                    child: const Text(
+                      'Item Class',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            GridColumn(
-              columnName: 'ProductType',
-              label: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                alignment: Alignment.centerLeft,
-                child: const Text(
-                  'Type',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                GridColumn(
+                  columnName: 'TaxType',
+                  columnWidthMode: ColumnWidthMode.auto,
+                  label: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    alignment: Alignment.centerLeft,
+                    child: const Text(
+                      'Tax',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
                 ),
-              ),
+                GridColumn(
+                  columnName: 'ProductType',
+                  label: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    alignment: Alignment.centerLeft,
+                    child: const Text(
+                      'Type',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
-      ),
+        if (widget.model.isSaving)
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.7),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Center(
+                child: ValueListenableBuilder(
+                  valueListenable: widget.model.progressNotifier,
+                  builder: (context, progressData, child) {
+                    double progressPercentage = 0.0;
+                    if (progressData.totalItems > 0) {
+                      progressPercentage =
+                          (progressData.currentItem / progressData.totalItems) *
+                          100;
+                    }
+                    final bool isComplete =
+                        progressData.currentItem == progressData.totalItems;
+
+                    return Container(
+                      width: 280,
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.1),
+                            blurRadius: 20,
+                            spreadRadius: 5,
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text(
+                            'Saving Inventory',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blueAccent,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              SizedBox(
+                                height: 70,
+                                width: 70,
+                                child: CircularProgressIndicator(
+                                  value: progressData.totalItems > 0
+                                      ? progressData.currentItem /
+                                            progressData.totalItems
+                                      : 0.0,
+                                  strokeWidth: 6,
+                                  backgroundColor: Colors.grey[100],
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    isComplete ? Colors.green : Colors.blue,
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                '${progressPercentage.toStringAsFixed(0)}%',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            progressData.progress,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: Colors.black87,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${progressData.currentItem} of ${progressData.totalItems} processed',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

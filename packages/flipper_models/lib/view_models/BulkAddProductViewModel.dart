@@ -7,7 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:excel/excel.dart' as excel_pkg;
 import 'package:path_provider/path_provider.dart';
-import 'package:syncfusion_flutter_xlsio/xlsio.dart' hide Column, Alignment;
+import 'package:syncfusion_flutter_xlsio/xlsio.dart' hide Column;
 import 'package:open_filex/open_filex.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as brick;
@@ -23,6 +23,11 @@ class BulkAddProductViewModel extends ChangeNotifier {
   final Map<String, String> _selectedProductTypes = {};
   final Map<String, String> _selectedCategories = {};
   bool _isLoading = false;
+  bool _isSaving = false;
+  final ValueNotifier<ProgressData> _progressNotifier =
+      ValueNotifier<ProgressData>(
+        ProgressData(progress: '', currentItem: 0, totalItems: 0),
+      );
 
   PlatformFile? get selectedFile => _selectedFile;
   List<Map<String, dynamic>>? get excelData => _excelData;
@@ -34,6 +39,8 @@ class BulkAddProductViewModel extends ChangeNotifier {
   Map<String, TextEditingController> get quantityControllers =>
       _quantityControllers;
   bool get isLoading => _isLoading;
+  bool get isSaving => _isSaving;
+  ValueNotifier<ProgressData> get progressNotifier => _progressNotifier;
 
   BulkAddProductViewModel();
 
@@ -44,7 +51,7 @@ class BulkAddProductViewModel extends ChangeNotifier {
   }
 
   void initializeControllers() {
-    if (_excelData != null) {
+    if (_excelData != null && _controllers.isEmpty) {
       for (var product in _excelData!) {
         String barCode = product['BarCode'] ?? '';
         _controllers[barCode] = TextEditingController(text: product['Price']);
@@ -248,116 +255,129 @@ class BulkAddProductViewModel extends ChangeNotifier {
     }
   }
 
-  Future<void> saveAllWithProgress(
-    ValueNotifier<ProgressData> progressNotifier,
-  ) async {
-    String orgnNatCd = "RW"; // Define the variable
-    List<Future<brick.Variant>> itemFutures = _excelData!.map((product) async {
-      String barCode = product['BarCode'] ?? '';
-      String finalCategoryId = _selectedCategories[barCode] ?? '';
-      if (finalCategoryId.isEmpty) {
-        final category = await ProxyService.strategy
-            .ensureUncategorizedCategory(
-              branchId: ProxyService.box.getBranchId()!,
-            );
-        finalCategoryId = category.id;
-      }
+  Future<void> saveAllWithProgress() async {
+    _isSaving = true;
+    notifyListeners();
+    try {
+      String orgnNatCd = "RW"; // Define the variable
+      List<Future<brick.Variant>> itemFutures = _excelData!.map((
+        product,
+      ) async {
+        String barCode = product['BarCode'] ?? '';
+        String finalCategoryId = _selectedCategories[barCode] ?? '';
+        if (finalCategoryId.isEmpty) {
+          final category = await ProxyService.strategy
+              .ensureUncategorizedCategory(
+                branchId: ProxyService.box.getBranchId()!,
+              );
+          finalCategoryId = category.id;
+        }
 
-      return brick.Variant(
-        branchId: ProxyService.box.getBranchId()!,
-        itemCd: (await ProxyService.strategy.itemCode(
-          countryCode: orgnNatCd,
-          productType: "2",
-          packagingUnit: "CT",
-          quantityUnit: "BJ",
+        return brick.Variant(
           branchId: ProxyService.box.getBranchId()!,
-        )),
-        bcdU: product['bcdU'] ?? '',
-        barCode: barCode,
-        name: product['Name'] ?? '',
-        category: finalCategoryId.isNotEmpty
-            ? finalCategoryId
-            : (product['Category'] ?? ''),
-        retailPrice: double.tryParse(product['Price'] ?? '0') ?? 0,
-        supplyPrice: double.tryParse(product['Price'] ?? '0') ?? 0,
-        quantity: double.tryParse(product['Quantity'] ?? '0') ?? 0,
-        categoryId: finalCategoryId,
-      );
-    }).toList();
-    List<brick.Variant> items = await Future.wait(itemFutures);
-
-    final totalItems = items.length;
-
-    for (var i = 0; i < items.length; i++) {
-      try {
-        progressNotifier.value = ProgressData(
-          progress: 'Processing ${items[i].name}',
-          currentItem: i + 1,
-          totalItems: totalItems,
-        );
-
-        // Ensure we have valid values for required fields
-        String barCode = items[i].barCode ?? '';
-        if (barCode.isEmpty) {
-          barCode = 'TEMP_${DateTime.now().millisecondsSinceEpoch}';
-          items[i].barCode = barCode;
-        }
-
-        // Make sure we have a valid name
-        if (items[i].name.isEmpty) {
-          items[i].name = 'Unnamed Product';
-        }
-
-        // Set itemNm to the same as name if it's null
-        items[i].itemNm = items[i].name;
-
-        // Ensure we have valid maps with the barcode as key
-        if (!_quantityControllers.containsKey(barCode)) {
-          _quantityControllers[barCode] = TextEditingController(text: '0');
-        }
-        if (!_selectedTaxTypes.containsKey(barCode)) {
-          final ebm = await ProxyService.strategy.ebm(
+          itemCd: (await ProxyService.strategy.itemCode(
+            countryCode: orgnNatCd,
+            productType: "2",
+            packagingUnit: "CT",
+            quantityUnit: "BJ",
             branchId: ProxyService.box.getBranchId()!,
-          );
-          final isVatEnabled = ebm?.vatEnabled ?? false;
-          _selectedTaxTypes[barCode] = isVatEnabled ? 'B' : 'D';
-        }
-        if (!_selectedItemClasses.containsKey(barCode)) {
-          _selectedItemClasses[barCode] =
-              '5020230602'; // Default item class code (finished product)
-        }
-        if (!_selectedProductTypes.containsKey(barCode)) {
-          _selectedProductTypes[barCode] =
-              '2'; // Default: 2 = Finished Product, 1 = Raw Material, 3 = Service
-        }
+          )),
+          bcdU: product['bcdU'] ?? '',
+          barCode: barCode,
+          name: product['Name'] ?? '',
+          category: finalCategoryId.isNotEmpty
+              ? finalCategoryId
+              : (product['Category'] ?? ''),
+          retailPrice: double.tryParse(product['Price'] ?? '0') ?? 0,
+          supplyPrice: double.tryParse(product['Price'] ?? '0') ?? 0,
+          quantity: double.tryParse(product['Quantity'] ?? '0') ?? 0,
+          categoryId: finalCategoryId,
+        );
+      }).toList();
+      List<brick.Variant> items = await Future.wait(itemFutures);
 
+      final totalItems = items.length;
+
+      // Cache EBM/VAT status outside the loop
+      final ebm = await ProxyService.strategy.ebm(
+        branchId: ProxyService.box.getBranchId()!,
+      );
+      final isVatEnabled = ebm?.vatEnabled ?? false;
+
+      for (var i = 0; i < items.length; i++) {
         try {
-          await ProxyService.strategy.processItem(
-            item: items[i],
-            quantitis: _quantityControllers.map(
-              (barCode, controller) => MapEntry(barCode, controller.text),
-            ),
-            taxTypes: _selectedTaxTypes,
-            itemClasses: _selectedItemClasses,
-            itemTypes: _selectedProductTypes,
-          );
-        } catch (processError) {
-          // Log the error but continue processing other items
-          talker.error('Error processing item ${items[i].name}: $processError');
-          // Update progress to show the error
-          progressNotifier.value = ProgressData(
-            progress:
-                'Error: ${processError.toString().substring(0, processError.toString().length > 50 ? 50 : processError.toString().length)}...',
+          _progressNotifier.value = ProgressData(
+            progress: 'Processing ${items[i].name}',
             currentItem: i + 1,
             totalItems: totalItems,
           );
-          // Wait a moment so the user can see the error
-          await Future.delayed(Duration(milliseconds: 500));
+
+          // Ensure we have valid values for required fields
+          String barCode = items[i].barCode ?? '';
+          if (barCode.isEmpty) {
+            barCode = 'TEMP_${DateTime.now().millisecondsSinceEpoch}';
+            items[i].barCode = barCode;
+          }
+
+          // Make sure we have a valid name
+          if (items[i].name.isEmpty) {
+            items[i].name = 'Unnamed Product';
+          }
+
+          // Set itemNm to the same as name if it's null
+          items[i].itemNm = items[i].name;
+
+          // Ensure we have valid maps with the barcode as key
+          if (!_quantityControllers.containsKey(barCode)) {
+            _quantityControllers[barCode] = TextEditingController(text: '0');
+          }
+          if (!_selectedTaxTypes.containsKey(barCode)) {
+            _selectedTaxTypes[barCode] = isVatEnabled ? 'B' : 'D';
+          }
+          if (!_selectedItemClasses.containsKey(barCode)) {
+            _selectedItemClasses[barCode] =
+                '5020230602'; // Default item class code (finished product)
+          }
+          if (!_selectedProductTypes.containsKey(barCode)) {
+            _selectedProductTypes[barCode] =
+                '2'; // Default: 2 = Finished Product, 1 = Raw Material, 3 = Service
+          }
+
+          try {
+            await ProxyService.strategy.processItem(
+              item: items[i],
+              quantitis: _quantityControllers.map(
+                (barCode, controller) => MapEntry(barCode, controller.text),
+              ),
+              taxTypes: _selectedTaxTypes,
+              itemClasses: _selectedItemClasses,
+              itemTypes: _selectedProductTypes,
+            );
+          } catch (processError) {
+            // Log the error but continue processing other items
+            talker.error(
+              'Error processing item ${items[i].name}: $processError',
+            );
+            // Update progress to show the error
+            _progressNotifier.value = ProgressData(
+              progress:
+                  'Error: ${processError.toString().substring(0, processError.toString().length > 50 ? 50 : processError.toString().length)}...',
+              currentItem: i + 1,
+              totalItems: totalItems,
+            );
+            // Wait a moment so the user can see the error
+            await Future.delayed(Duration(milliseconds: 500));
+          }
+        } catch (e) {
+          talker.error('General error: $e');
+          // Don't rethrow, just log and continue with the next item
         }
-      } catch (e) {
-        talker.error('General error: $e');
-        // Don't rethrow, just log and continue with the next item
       }
+    } catch (e) {
+      talker.error('Fatal error during bulk save: $e');
+    } finally {
+      _isSaving = false;
+      notifyListeners();
     }
   }
 
