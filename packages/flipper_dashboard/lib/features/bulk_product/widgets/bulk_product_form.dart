@@ -39,36 +39,39 @@ class BulkProductFormState extends ConsumerState<BulkProductForm> {
         ),
         const SizedBox(height: 16),
         if (model.selectedFile != null)
-          ProgressDialogHandler(
-            onSave: () async {
-              setState(() {
-                _errorMessage = null;
-              });
-              try {
-                if (model.excelData != null) {
-                  await ProgressDialogHandler.showProgressDialog(
-                    context,
-                    model.saveAllWithProgress,
-                    onComplete: () {
-                      final combinedNotifier = ref.read(refreshProvider);
-                      combinedNotifier.performActions(
-                        productName: "",
-                        scanMode: true,
-                      );
-                      Navigator.maybePop(context);
-                    },
-                  );
-                } else {
+          Align(
+            alignment: Alignment.centerRight,
+            child: ProgressDialogHandler(
+              onSave: () async {
+                setState(() {
+                  _errorMessage = null;
+                });
+                try {
+                  if (model.excelData != null) {
+                    await ProgressDialogHandler.showProgressDialog(
+                      context,
+                      model.saveAllWithProgress,
+                      onComplete: () {
+                        final combinedNotifier = ref.read(refreshProvider);
+                        combinedNotifier.performActions(
+                          productName: "",
+                          scanMode: true,
+                        );
+                        Navigator.maybePop(context);
+                      },
+                    );
+                  } else {
+                    setState(() {
+                      _errorMessage = 'No data to save';
+                    });
+                  }
+                } catch (e) {
                   setState(() {
-                    _errorMessage = 'No data to save';
+                    _errorMessage = e.toString();
                   });
                 }
-              } catch (e) {
-                setState(() {
-                  _errorMessage = e.toString();
-                });
-              }
-            },
+              },
+            ),
           ),
         const SizedBox(height: 8.0),
         if (_errorMessage != null)
