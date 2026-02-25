@@ -9,6 +9,7 @@ import 'package:flipper_models/helperModels/flipperWatch.dart';
 import 'package:flipper_models/helperModels/hexColor.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -984,7 +985,9 @@ class _RowItemState extends ConsumerState<RowItem>
                       branchId: branchId,
                     );
 
-                if ((stock.currentStock ?? 0) > 0 && isEbmEnabled) {
+                if ((stock.currentStock ?? 0) > 0 &&
+                    isEbmEnabled &&
+                    !kDebugMode) {
                   final dialogService = locator<DialogService>();
                   dialogService.showCustomDialog(
                     variant: DialogType.info,

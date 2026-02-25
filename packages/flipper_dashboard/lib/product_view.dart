@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'package:flipper_dashboard/data_view_reports/DataView.dart';
 import 'package:flipper_dashboard/dataMixer.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_models/providers/product_sort_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -16,6 +18,10 @@ import 'package:stacked/stacked.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flipper_dashboard/widgets/variant_shimmer_placeholder.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
+import 'package:flipper_dashboard/dialog_status.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.dialogs.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 enum ViewMode { products, stocks }
 
@@ -162,10 +168,20 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
   Widget _buildMainContent(BuildContext context, ProductViewModel model) {
     final selectedIds = ref.watch(selectedItemIdsProvider);
     final isSelectionMode = selectedIds.isNotEmpty;
+    final progress = ref.watch(bulkDeleteProgressProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
+        if (progress > 0)
+          LinearProgressIndicator(
+            value: progress,
+            backgroundColor: Colors.transparent,
+            valueColor: AlwaysStoppedAnimation<Color>(
+              Theme.of(context).colorScheme.primary,
+            ),
+            minHeight: 2,
+          ),
         if (isSelectionMode)
           _buildBulkSelectionBar(context, model, selectedIds),
         Expanded(child: _buildVariantList(context, model)),
@@ -215,32 +231,57 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     ProductViewModel model,
     Set<String> selectedIds,
   ) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Multiple Items'),
-        content: Text(
+    final businessId = ProxyService.box.getBusinessId();
+    final branchId = ProxyService.box.getBranchId();
+    final isEbmEnabled =
+        businessId != null &&
+        branchId != null &&
+        await ProxyService.strategy.isTaxEnabled(
+          businessId: businessId,
+          branchId: branchId,
+        );
+
+    if (isEbmEnabled && !kDebugMode) {
+      for (final id in selectedIds) {
+        final variant = await ProxyService.getStrategy(
+          Strategy.capella,
+        ).getVariant(id: id);
+        if (variant != null && (variant.stock?.currentStock ?? 0) > 0) {
+          final dialogService = locator<DialogService>();
+          dialogService.showCustomDialog(
+            variant: DialogType.info,
+            title: 'Error',
+            description: 'Cannot delete variant with stock remaining.',
+            data: {'status': InfoDialogStatus.error},
+          );
+          return;
+        }
+      }
+    }
+
+    final dialogService = locator<DialogService>();
+    final response = await dialogService.showCustomDialog(
+      variant: DialogType.info,
+      title: 'Delete Multiple Items',
+      description:
           'Are you sure you want to delete ${selectedIds.length} items? This action cannot be undone.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
+      data: {'status': InfoDialogStatus.warning, 'mainButtonText': 'Delete'},
     );
 
-    if (confirmed == true) {
+    if (response?.confirmed == true) {
       final branchId = ProxyService.box.getBranchId() ?? "";
       final notifier = ref.read(outerVariantsProvider(branchId).notifier);
 
-      await model.bulkDelete(ids: selectedIds, type: 'variant');
+      // Reset and show progress
+      ref.read(bulkDeleteProgressProvider.notifier).state = 0.01;
+
+      await model.bulkDelete(
+        ids: selectedIds,
+        type: 'variant',
+        onProgress: (p) {
+          ref.read(bulkDeleteProgressProvider.notifier).state = p;
+        },
+      );
 
       // Manual optimization: remove items from state for immediate UI feedback
       for (final id in selectedIds) {
@@ -248,6 +289,8 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
       }
 
       ref.read(selectedItemIdsProvider.notifier).clearSelection();
+      // Reset progress
+      ref.read(bulkDeleteProgressProvider.notifier).state = 0.0;
 
       if (context.mounted) {
         showCustomSnackBarUtil(

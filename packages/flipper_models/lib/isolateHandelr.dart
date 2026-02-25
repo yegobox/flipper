@@ -33,13 +33,13 @@ class IsolateHandler {
             // talker.error('Ditto is initialized');
           }
         } else if (message['task'] == 'salesSync') {
-          try {
-            print('salesSync message: $message');
-            String? token = message['token'];
-            List<Map<String, dynamic>>? salesData =
-                (message['salesData'] as List?)?.cast<Map<String, dynamic>>();
-            SendPort? replyTo = message['replyTo'];
+          print('salesSync message: $message');
+          String? token = message['token'];
+          List<Map<String, dynamic>>? salesData =
+              (message['salesData'] as List?)?.cast<Map<String, dynamic>>();
+          SendPort? replyTo = message['replyTo'];
 
+          try {
             if (token != null && salesData != null && salesData.isNotEmpty) {
               final service =
                   UmusadaService(); // Repository is optional and not needed for syncSales
@@ -57,10 +57,13 @@ class IsolateHandler {
               if (replyTo != null) {
                 replyTo.send(true);
               }
+            } else {
+              if (replyTo != null) {
+                replyTo.send(false);
+              }
             }
           } catch (e) {
             print('Error in salesSync: $e');
-            SendPort? replyTo = message['replyTo'];
             if (replyTo != null) {
               replyTo.send(false);
             }

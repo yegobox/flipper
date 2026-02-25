@@ -891,6 +891,8 @@ final requestStatusProvider = StateProvider<String>(
 
 final showProductsList = StateProvider.autoDispose<bool>((ref) => true);
 
+final bulkDeleteProgressProvider = StateProvider<double>((ref) => 0.0);
+
 // Stock stream provider for live stock updates
 final stockByVariantProvider = StreamProvider.autoDispose
     .family<Stock?, String>((ref, stockId) {
