@@ -232,7 +232,7 @@ class ProductDataGridSource extends DataGridSource {
       cells: [
         Container(
           alignment: Alignment.centerLeft,
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Text(
             barCode,
             style: const TextStyle(fontSize: 13),
@@ -241,7 +241,7 @@ class ProductDataGridSource extends DataGridSource {
         ),
         Container(
           alignment: Alignment.centerLeft,
-          padding: const EdgeInsets.all(8.0),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: Text(
             row.getCells()[1].value.toString(),
             style: const TextStyle(fontSize: 13),
@@ -250,7 +250,7 @@ class ProductDataGridSource extends DataGridSource {
         ),
         Container(
           alignment: Alignment.centerLeft,
-          padding: const EdgeInsets.all(4.0),
+          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
           child: CategoryDropdown(
             barCode: barCode,
             selectedValue: model.selectedCategories[barCode],
@@ -258,14 +258,9 @@ class ProductDataGridSource extends DataGridSource {
         ),
         Container(
           alignment: Alignment.centerLeft,
-          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-          child: TextField(
-            controller: model.controllers[barCode],
-            style: const TextStyle(fontSize: 13),
-            decoration: const InputDecoration(
-              isDense: true,
-              contentPadding: EdgeInsets.symmetric(vertical: 8),
-            ),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+          child: PriceQuantityField(
+            controller: model.controllers[barCode]!,
             onChanged: (value) {
               model.updatePrice(barCode, value);
             },
@@ -273,7 +268,7 @@ class ProductDataGridSource extends DataGridSource {
         ),
         Container(
           alignment: Alignment.centerLeft,
-          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
           child: PriceQuantityField(
             controller: model.quantityControllers[barCode]!,
             onChanged: (value) {
@@ -283,7 +278,7 @@ class ProductDataGridSource extends DataGridSource {
         ),
         Container(
           alignment: Alignment.centerLeft,
-          padding: const EdgeInsets.all(4.0),
+          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
           child: ItemClassDropdown(
             barCode: barCode,
             selectedValue: model.selectedItemClasses[barCode],
@@ -291,7 +286,7 @@ class ProductDataGridSource extends DataGridSource {
         ),
         Container(
           alignment: Alignment.centerLeft,
-          padding: const EdgeInsets.all(4.0),
+          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
           child: TaxTypeDropdown(
             barCode: barCode,
             selectedValue: model.selectedTaxTypes[barCode],
@@ -299,7 +294,7 @@ class ProductDataGridSource extends DataGridSource {
         ),
         Container(
           alignment: Alignment.centerLeft,
-          padding: const EdgeInsets.all(4.0),
+          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
           child: ProductTypeDropdown(
             barCode: barCode,
             selectedValue: model.selectedProductTypes[barCode],
