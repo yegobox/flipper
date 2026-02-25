@@ -37,6 +37,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     with BranchSelectionMixin {
   bool _isSelectingBranch = false;
   bool _isLoading = false;
+  bool _isSigningOut = false;
   String? _loadingItemId;
   Timer? _navigationTimer;
 
@@ -167,10 +168,31 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
         if (businesses.hasValue &&
             !businesses.isLoading &&
             (businesses.value?.isEmpty ?? false)) {
-          
+
+          // One-shot guard: bail out if logout is already scheduled.
+          if (_isSigningOut) {
+            return Scaffold(
+              backgroundColor: Colors.white,
+              body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const CircularProgressIndicator(),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No businesses found. Signing out...',
+                      style: TextStyle(color: Colors.grey[600]),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+
           talker.warning(
             'LoginChoices: no businesses found for current user. Logging out.',
           );
+          _isSigningOut = true;
           WidgetsBinding.instance.addPostFrameCallback((_) async {
             if (mounted) {
               await ProxyService.strategy.logOut();
