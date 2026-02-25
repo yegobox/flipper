@@ -161,6 +161,23 @@ class SearchFieldState extends ConsumerState<SearchField>
                 children: [
                   Consumer(
                     builder: (context, ref, child) {
+                      final isAutoAdd = ref.watch(autoAddSearchProvider);
+                      return IconButton(
+                        onPressed: () {
+                          ref.read(autoAddSearchProvider.notifier).toggle();
+                        },
+                        icon: Icon(
+                          isAutoAdd
+                              ? FluentIcons.barcode_scanner_24_filled
+                              : FluentIcons.barcode_scanner_24_regular,
+                          color: isAutoAdd ? Colors.blue : Colors.grey,
+                        ),
+                        tooltip: 'Toggle Scan Mode',
+                      );
+                    },
+                  ),
+                  Consumer(
+                    builder: (context, ref, child) {
                       final notice = ref.watch(noticesProvider);
                       return notices(notice: notice.value ?? []);
                     },
