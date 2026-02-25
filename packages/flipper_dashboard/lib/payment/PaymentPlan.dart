@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper_dashboard/utils/error_handler.dart';
 
 class PaymentPlanUI extends StatefulWidget {
   const PaymentPlanUI({Key? key}) : super(key: key);
@@ -550,12 +551,7 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
           // Handle failed payment specifically
           talker.warning('Payment failed: ${e.message}');
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('Payment failed: ${e.message}'),
-                backgroundColor: Colors.red,
-              ),
-            );
+            ErrorHandler.showErrorSnackBar(context, e);
             // Optionally navigate to failed payment screen
             locator<RouterService>().navigateTo(FailedPaymentRoute());
           }
@@ -564,11 +560,9 @@ class _PaymentPlanUIState extends State<PaymentPlanUI> {
           talker.error('Error processing payment: $e');
           talker.error(s.toString());
           if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('An error occurred. Please try again.'),
-                backgroundColor: Colors.red,
-              ),
+            ErrorHandler.showErrorSnackBar(
+              context,
+              'An error occurred. Please try again.',
             );
           }
         }

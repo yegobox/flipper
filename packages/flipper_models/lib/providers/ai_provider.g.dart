@@ -17,9 +17,9 @@ final class AvailableModelsProvider
         $FunctionalProvider<
           AsyncValue<List<AIModel>>,
           List<AIModel>,
-          FutureOr<List<AIModel>>
+          Stream<List<AIModel>>
         >
-    with $FutureModifier<List<AIModel>>, $FutureProvider<List<AIModel>> {
+    with $FutureModifier<List<AIModel>>, $StreamProvider<List<AIModel>> {
   const AvailableModelsProvider._()
     : super(
         from: null,
@@ -36,17 +36,17 @@ final class AvailableModelsProvider
 
   @$internal
   @override
-  $FutureProviderElement<List<AIModel>> $createElement(
+  $StreamProviderElement<List<AIModel>> $createElement(
     $ProviderPointer pointer,
-  ) => $FutureProviderElement(pointer);
+  ) => $StreamProviderElement(pointer);
 
   @override
-  FutureOr<List<AIModel>> create(Ref ref) {
+  Stream<List<AIModel>> create(Ref ref) {
     return availableModels(ref);
   }
 }
 
-String _$availableModelsHash() => r'b0bcf36e9f71093151ad6446448c7a88a2206c5a';
+String _$availableModelsHash() => r'3210304d609c462a74b7276aa651e367fda2dbd0';
 
 /// Providers
 
@@ -162,6 +162,7 @@ final class GeminiBusinessAnalyticsProvider
       String? filePath,
       List<Content>? history,
       AIModel? aiModel,
+      String useCase,
     })
     super.argument,
   }) : super(
@@ -199,7 +200,7 @@ final class GeminiBusinessAnalyticsProvider
 }
 
 String _$geminiBusinessAnalyticsHash() =>
-    r'6b90936bff9ba316eb7bb8277b3b949acee31852';
+    r'bc902cb011f1526d539742944dbb114e0143e36b';
 
 final class GeminiBusinessAnalyticsFamily extends $Family
     with
@@ -214,6 +215,7 @@ final class GeminiBusinessAnalyticsFamily extends $Family
             String? filePath,
             List<Content>? history,
             AIModel? aiModel,
+            String useCase,
           })
         > {
   const GeminiBusinessAnalyticsFamily._()
@@ -231,6 +233,7 @@ final class GeminiBusinessAnalyticsFamily extends $Family
     String? filePath,
     List<Content>? history,
     AIModel? aiModel,
+    String useCase = 'business',
   }) => GeminiBusinessAnalyticsProvider._(
     argument: (
       branchId,
@@ -238,6 +241,7 @@ final class GeminiBusinessAnalyticsFamily extends $Family
       filePath: filePath,
       history: history,
       aiModel: aiModel,
+      useCase: useCase,
     ),
     from: this,
   );
@@ -255,12 +259,14 @@ abstract class _$GeminiBusinessAnalytics extends $AsyncNotifier<String> {
             String? filePath,
             List<Content>? history,
             AIModel? aiModel,
+            String useCase,
           });
   String get branchId => _$args.$1;
   String get userPrompt => _$args.$2;
   String? get filePath => _$args.filePath;
   List<Content>? get history => _$args.history;
   AIModel? get aiModel => _$args.aiModel;
+  String get useCase => _$args.useCase;
 
   FutureOr<String> build(
     String branchId,
@@ -268,6 +274,7 @@ abstract class _$GeminiBusinessAnalytics extends $AsyncNotifier<String> {
     String? filePath,
     List<Content>? history,
     AIModel? aiModel,
+    String useCase = 'business',
   });
   @$mustCallSuper
   @override
@@ -278,6 +285,7 @@ abstract class _$GeminiBusinessAnalytics extends $AsyncNotifier<String> {
       filePath: _$args.filePath,
       history: _$args.history,
       aiModel: _$args.aiModel,
+      useCase: _$args.useCase,
     );
     final ref = this.ref as $Ref<AsyncValue<String>, String>;
     final element =
@@ -371,13 +379,13 @@ const streamedBusinessAnalyticsProvider = StreamedBusinessAnalyticsFamily._();
 final class StreamedBusinessAnalyticsProvider
     extends
         $FunctionalProvider<
-          AsyncValue<List<BusinessAnalytic>>,
-          List<BusinessAnalytic>,
-          Stream<List<BusinessAnalytic>>
+          AsyncValue<List<models.BusinessAnalytic>>,
+          List<models.BusinessAnalytic>,
+          Stream<List<models.BusinessAnalytic>>
         >
     with
-        $FutureModifier<List<BusinessAnalytic>>,
-        $StreamProvider<List<BusinessAnalytic>> {
+        $FutureModifier<List<models.BusinessAnalytic>>,
+        $StreamProvider<List<models.BusinessAnalytic>> {
   const StreamedBusinessAnalyticsProvider._({
     required StreamedBusinessAnalyticsFamily super.from,
     required String super.argument,
@@ -401,12 +409,12 @@ final class StreamedBusinessAnalyticsProvider
 
   @$internal
   @override
-  $StreamProviderElement<List<BusinessAnalytic>> $createElement(
+  $StreamProviderElement<List<models.BusinessAnalytic>> $createElement(
     $ProviderPointer pointer,
   ) => $StreamProviderElement(pointer);
 
   @override
-  Stream<List<BusinessAnalytic>> create(Ref ref) {
+  Stream<List<models.BusinessAnalytic>> create(Ref ref) {
     final argument = this.argument as String;
     return streamedBusinessAnalytics(ref, argument);
   }
@@ -424,10 +432,14 @@ final class StreamedBusinessAnalyticsProvider
 }
 
 String _$streamedBusinessAnalyticsHash() =>
-    r'087c0b987e5d3f7d085c717d3a13b92d9613dc5e';
+    r'23f52d512a0ec93827732f1c44766bbd0f2708cd';
 
 final class StreamedBusinessAnalyticsFamily extends $Family
-    with $FunctionalFamilyOverride<Stream<List<BusinessAnalytic>>, String> {
+    with
+        $FunctionalFamilyOverride<
+          Stream<List<models.BusinessAnalytic>>,
+          String
+        > {
   const StreamedBusinessAnalyticsFamily._()
     : super(
         retry: null,

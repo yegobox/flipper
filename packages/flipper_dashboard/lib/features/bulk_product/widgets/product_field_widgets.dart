@@ -27,8 +27,14 @@ class PriceQuantityField extends StatelessWidget {
       controller: controller,
       onChanged: onChanged,
       keyboardType: isNumeric ? TextInputType.number : TextInputType.text,
-      inputFormatters:
-          isNumeric ? [FilteringTextInputFormatter.digitsOnly] : null,
+      inputFormatters: isNumeric
+          ? [FilteringTextInputFormatter.digitsOnly]
+          : null,
+      style: const TextStyle(fontSize: 13),
+      decoration: const InputDecoration(
+        isDense: true,
+        contentPadding: EdgeInsets.symmetric(vertical: 8),
+      ),
     );
   }
 }
@@ -85,11 +91,7 @@ class TaxTypeDropdown extends ConsumerWidget {
   final String barCode;
   final String? selectedValue;
 
-  const TaxTypeDropdown({
-    super.key,
-    required this.barCode,
-    this.selectedValue,
-  });
+  const TaxTypeDropdown({super.key, required this.barCode, this.selectedValue});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -108,9 +110,7 @@ class TaxTypeDropdown extends ConsumerWidget {
 
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 8.0),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(4),
-          ),
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(4)),
           child: DropdownButton<String>(
             value: currentValue,
             items: options.map((String option) {
@@ -129,16 +129,11 @@ class TaxTypeDropdown extends ConsumerWidget {
       },
       loading: () => Container(
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(4),
-        ),
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(4)),
         child: DropdownButton<String>(
           value: selectedValue ?? "B",
           items: ["A", "B", "C", "D"].map((String option) {
-            return DropdownMenuItem<String>(
-              value: option,
-              child: Text(option),
-            );
+            return DropdownMenuItem<String>(value: option, child: Text(option));
           }).toList(),
           onChanged: (String? newValue) {
             model.updateTaxType(barCode, newValue);
@@ -149,16 +144,11 @@ class TaxTypeDropdown extends ConsumerWidget {
       ),
       error: (_, __) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 8.0),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(4),
-        ),
+        decoration: BoxDecoration(borderRadius: BorderRadius.circular(4)),
         child: DropdownButton<String>(
           value: selectedValue ?? "B",
           items: ["A", "B", "C", "D"].map((String option) {
-            return DropdownMenuItem<String>(
-              value: option,
-              child: Text(option),
-            );
+            return DropdownMenuItem<String>(value: option, child: Text(option));
           }).toList(),
           onChanged: (String? newValue) {
             model.updateTaxType(barCode, newValue);
@@ -189,7 +179,8 @@ class ItemClassDropdown extends ConsumerWidget {
 
     return unitsAsyncValue.when(
       data: (items) {
-        final List<String> itemClsCdList = items.asData?.value
+        final List<String> itemClsCdList =
+            items.asData?.value
                 .map((unit) => ((unit.itemClsNm ?? "") + " " + unit.itemClsCd!))
                 .toList() ??
             [];
@@ -198,26 +189,17 @@ class ItemClassDropdown extends ConsumerWidget {
           width: double.infinity,
           child: DropdownSearch<String>(
             items: (a, b) => itemClsCdList,
-            selectedItem: selectedValue ??
+            selectedItem:
+                selectedValue ??
                 (itemClsCdList.isNotEmpty ? itemClsCdList.first : null),
             compareFn: (String i, String s) => i == s,
             decoratorProps: DropDownDecoratorProps(
               decoration: InputDecoration(
-                border: OutlineInputBorder(
-                  borderSide: BorderSide.none,
-                ),
-                disabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide.none,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderSide: BorderSide.none,
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide.none,
-                ),
-                errorBorder: OutlineInputBorder(
-                  borderSide: BorderSide.none,
-                ),
+                border: OutlineInputBorder(borderSide: BorderSide.none),
+                disabledBorder: OutlineInputBorder(borderSide: BorderSide.none),
+                enabledBorder: OutlineInputBorder(borderSide: BorderSide.none),
+                focusedBorder: OutlineInputBorder(borderSide: BorderSide.none),
+                errorBorder: OutlineInputBorder(borderSide: BorderSide.none),
                 contentPadding: EdgeInsets.fromLTRB(12, 12, 8, 0),
               ),
             ),
@@ -253,10 +235,7 @@ class CategoryDropdown extends ConsumerWidget {
       data: (categories) {
         // Map Category objects to a Map of id:name pairs for internal use
         final categoryOptions = categories
-            .map((category) => {
-                  'id': category.id,
-                  'name': category.name,
-                })
+            .map((category) => {'id': category.id, 'name': category.name})
             .toList();
 
         return Row(
@@ -272,16 +251,14 @@ class CategoryDropdown extends ConsumerWidget {
                             : {'id': '', 'name': 'Select Category'},
                       )
                     : (categoryOptions.isNotEmpty
-                        ? categoryOptions.first
-                        : {'id': '', 'name': 'Select Category'}),
+                          ? categoryOptions.first
+                          : {'id': '', 'name': 'Select Category'}),
                 compareFn: (item1, item2) => item1['id'] == item2['id'],
                 itemAsString: (Map<String, dynamic> category) =>
                     category['name'],
                 decoratorProps: DropDownDecoratorProps(
                   decoration: InputDecoration(
-                    border: OutlineInputBorder(
-                      borderSide: BorderSide.none,
-                    ),
+                    border: OutlineInputBorder(borderSide: BorderSide.none),
                     disabledBorder: OutlineInputBorder(
                       borderSide: BorderSide.none,
                     ),
@@ -319,8 +296,10 @@ class CategoryDropdown extends ConsumerWidget {
               ),
             ),
             IconButton(
-              icon: Icon(Icons.add_circle_outline,
-                  color: Theme.of(context).primaryColor),
+              icon: Icon(
+                Icons.add_circle_outline,
+                color: Theme.of(context).primaryColor,
+              ),
               onPressed: () async {
                 await showAddCategoryModal(context);
               },

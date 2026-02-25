@@ -4,7 +4,7 @@ import 'package:flipper_models/view_models/BulkAddProductViewModel.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_dashboard/features/bulk_product/widgets/file_upload_section.dart';
 import 'package:flipper_dashboard/features/bulk_product/widgets/product_data_table.dart';
-import 'package:flipper_dashboard/features/bulk_product/widgets/progress_dialog_handler.dart';
+import 'package:flipper_ui/flipper_ui.dart';
 
 class BulkProductForm extends ConsumerStatefulWidget {
   const BulkProductForm({super.key});
@@ -35,37 +35,45 @@ class BulkProductFormState extends ConsumerState<BulkProductForm> {
         FileUploadSection(
           selectedFile: model.selectedFile,
           onSelectFile: model.selectFile,
+          onDownloadTemplate: model.downloadTemplate,
         ),
         const SizedBox(height: 16),
         if (model.selectedFile != null)
-          ProgressDialogHandler(
-            onSave: () async {
-              setState(() {
-                _errorMessage = null;
-              });
-              try {
-                if (model.excelData != null) {
-                  await ProgressDialogHandler.showProgressDialog(
-                    context,
-                    model.saveAllWithProgress,
-                    onComplete: () {
-                      final combinedNotifier = ref.read(refreshProvider);
-                      combinedNotifier.performActions(
-                          productName: "", scanMode: true);
-                      Navigator.maybePop(context);
-                    },
-                  );
-                } else {
+          Align(
+            alignment: Alignment.centerRight,
+            child: FlipperButton(
+              textColor: Colors.white,
+              color: Colors.blue,
+              onPressed: () async {
+                setState(() {
+                  _errorMessage = null;
+                });
+                try {
+                  if (model.excelData != null) {
+                    await model.saveAllWithProgress();
+                    // Handle completion
+                    final combinedNotifier = ref.read(refreshProvider);
+                    combinedNotifier.performActions(
+                      productName: "",
+                      scanMode: true,
+                    );
+                    // Close the modal after successful save
+                    if (mounted) {
+                      Navigator.of(context).pop();
+                    }
+                  } else {
+                    setState(() {
+                      _errorMessage = 'No data to save';
+                    });
+                  }
+                } catch (e) {
                   setState(() {
-                    _errorMessage = 'No data to save';
+                    _errorMessage = e.toString();
                   });
                 }
-              } catch (e) {
-                setState(() {
-                  _errorMessage = e.toString();
-                });
-              }
-            },
+              },
+              text: 'Save All',
+            ),
           ),
         const SizedBox(height: 8.0),
         if (_errorMessage != null)
@@ -82,8 +90,10 @@ class BulkProductFormState extends ConsumerState<BulkProductForm> {
             model.selectedFile != null &&
             !model.isLoading)
           const Center(
-            child: Text('Parsing Data...',
-                style: TextStyle(fontSize: 16, fontStyle: FontStyle.italic)),
+            child: Text(
+              'Parsing Data...',
+              style: TextStyle(fontSize: 16, fontStyle: FontStyle.italic),
+            ),
           ),
         if (model.excelData != null) ProductDataTable(model: model),
       ],

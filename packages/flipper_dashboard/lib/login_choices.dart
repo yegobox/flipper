@@ -37,6 +37,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     with BranchSelectionMixin {
   bool _isSelectingBranch = false;
   bool _isLoading = false;
+  bool _isSigningOut = false;
   String? _loadingItemId;
   Timer? _navigationTimer;
 
@@ -161,6 +162,60 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
         final branches = ref.watch(
           branchesProvider(businessId: selectedBusinessId),
         );
+
+        // If the provider has resolved (not loading, no error) but returned zero
+        // businesses, this userId has no associated business — log out immediately.
+        if (businesses.hasValue &&
+            !businesses.isLoading &&
+            (businesses.value?.isEmpty ?? false)) {
+
+          // One-shot guard: bail out if logout is already scheduled.
+          if (_isSigningOut) {
+            return Scaffold(
+              backgroundColor: Colors.white,
+              body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const CircularProgressIndicator(),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No businesses found. Signing out...',
+                      style: TextStyle(color: Colors.grey[600]),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+
+          talker.warning(
+            'LoginChoices: no businesses found for current user. Logging out.',
+          );
+          _isSigningOut = true;
+          WidgetsBinding.instance.addPostFrameCallback((_) async {
+            if (mounted) {
+              await ProxyService.strategy.logOut();
+              _routerService.clearStackAndShow(LoginRoute());
+            }
+          });
+          return Scaffold(
+            backgroundColor: Colors.white,
+            body: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const CircularProgressIndicator(),
+                  const SizedBox(height: 16),
+                  Text(
+                    'No businesses found. Signing out...',
+                    style: TextStyle(color: Colors.grey[600]),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
 
         return Scaffold(
           backgroundColor: Colors.white,

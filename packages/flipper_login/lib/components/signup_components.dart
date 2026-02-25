@@ -73,6 +73,7 @@ class SignupComponents {
     String? hint,
     List<TextInputFormatter>? inputFormatters,
     Widget? suffix,
+    Widget? prefix,
   }) {
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
@@ -91,6 +92,7 @@ class SignupComponents {
             keyboardType: keyboardType ?? TextInputType.text,
             inputFormatters: inputFormatters,
             decoration: InputDecoration(
+              prefix: prefix,
               suffixIcon: suffix,
               labelText: label,
               hintText: hint,
@@ -188,97 +190,138 @@ class SignupComponents {
   }
 
   /// Build the submit button.
+  /// Wraps in BlocBuilder on all relevant fields so the button re-evaluates
+  /// whenever any field's state changes (username, fullName, phone, TIN, businessType, OTP).
   static Widget buildSubmitButton(
       AsyncFieldValidationFormBloc formBloc, bool isLoading) {
-    // Manual validity checks that are robust across UI states
-    final hasUsername = formBloc.username.value.isNotEmpty;
-    final isUsernameValid = hasUsername &&
-        !formBloc.username.state.isValidating &&
-        !formBloc.username.state.hasError;
+    return BlocBuilder<TextFieldBloc, TextFieldBlocState>(
+      bloc: formBloc.username,
+      builder: (context, usernameState) {
+        return BlocBuilder<TextFieldBloc, TextFieldBlocState>(
+          bloc: formBloc.fullName,
+          builder: (context, fullNameState) {
+            return BlocBuilder<TextFieldBloc, TextFieldBlocState>(
+              bloc: formBloc.phoneNumber,
+              builder: (context, phoneState) {
+                return BlocBuilder<SelectFieldBloc, SelectFieldBlocState>(
+                  bloc: formBloc.businessTypes,
+                  builder: (context, businessTypeState) {
+                    return BlocBuilder<TextFieldBloc, TextFieldBlocState>(
+                      bloc: formBloc.otpCode,
+                      builder: (context, otpState) {
+                        return BlocBuilder<TextFieldBloc, TextFieldBlocState>(
+                          bloc: formBloc.tinNumber,
+                          builder: (context, tinState) {
+                            // Manual validity checks that are robust across UI states
+                            final hasUsername = usernameState.value.isNotEmpty;
+                            final isUsernameValid = hasUsername &&
+                                !usernameState.isValidating &&
+                                !usernameState.hasError;
 
-    final hasFullName = formBloc.fullName.value.isNotEmpty;
-    final hasPhone = formBloc.phoneNumber.value.isNotEmpty;
-    final hasBusinessType = formBloc.businessTypes.value != null;
+                            final hasFullName =
+                                fullNameState.value.isNotEmpty;
+                            final hasPhone = phoneState.value.isNotEmpty;
+                            final hasBusinessType =
+                                businessTypeState.value != null;
 
-    // Source verification status directly from extraData for maximum reactivity
-    final isPhoneVerified = (formBloc.phoneNumber.state.extraData is Map &&
-        (formBloc.phoneNumber.state.extraData as Map)['verified'] == true);
+                            // Source verification status directly from extraData for maximum reactivity
+                            final isPhoneVerified =
+                                (phoneState.extraData is Map &&
+                                    (phoneState.extraData as Map)
+                                        ['verified'] == true);
 
-    // Use the form bloc's getter which properly handles both strict and relaxed verification
-    final isTinVerified = formBloc.isTinVerified;
+                            // Use the form bloc's getter which properly handles both strict and relaxed verification
+                            final isTinVerified = formBloc.isTinVerified;
 
-    // Check if TIN is required and valid
-    final selectedBusinessType = formBloc.businessTypes.value;
-    final isTinRequired =
-        selectedBusinessType != null && selectedBusinessType.id != "2";
+                            // Check if TIN is required and valid
+                            final selectedBusinessType =
+                                businessTypeState.value;
+                            final isTinRequired = selectedBusinessType != null &&
+                                selectedBusinessType.id != "2";
 
-    // If TIN is required, it must be filled and verified; if not required, it's automatically valid
-    // Also check if the field has errors which would make it invalid
-    final isTinValid = !isTinRequired ||
-        (formBloc.tinNumber.value.isNotEmpty &&
-            isTinVerified &&
-            !formBloc.tinNumber.state.hasError);
+                            // If TIN is required, it must be filled and verified; if not required, it's automatically valid
+                            final isTinValid = !isTinRequired ||
+                                (tinState.value.toString().isNotEmpty &&
+                                    isTinVerified &&
+                                    !tinState.hasError);
 
-    // OTP field logic
-    final isOtpEnabled = (formBloc.otpCode.state.extraData is Map &&
-        (formBloc.otpCode.state.extraData as Map)['enabled'] == true);
-    final isOtpValid = isPhoneVerified ||
-        !isOtpEnabled ||
-        (formBloc.otpCode.value.isNotEmpty && !formBloc.otpCode.state.hasError);
+                            // OTP field logic
+                            final isOtpEnabled =
+                                (otpState.extraData is Map &&
+                                    (otpState.extraData as Map)['enabled'] ==
+                                        true);
+                            final isOtpValid = isPhoneVerified ||
+                                !isOtpEnabled ||
+                                (otpState.value.isNotEmpty &&
+                                    !otpState.hasError);
 
-    final isValid = isUsernameValid &&
-        hasFullName &&
-        hasPhone &&
-        isPhoneVerified &&
-        hasBusinessType &&
-        isOtpValid &&
-        isTinValid;
+                            final isValid = isUsernameValid &&
+                                hasFullName &&
+                                hasPhone &&
+                                isPhoneVerified &&
+                                hasBusinessType &&
+                                isOtpValid &&
+                                isTinValid;
 
-    // Debug log to help identify which condition is failing
-    log(
-        'Signup Button Status: '
-        'isValid: $isValid, '
-        'isUsernameValid: $isUsernameValid (hasVal: $hasUsername, isValing: ${formBloc.username.state.isValidating}, err: ${formBloc.username.state.hasError}), '
-        'hasFullName: $hasFullName, '
-        'hasPhone: $hasPhone, '
-        'isPhoneVerified: $isPhoneVerified, '
-        'hasBusinessType: $hasBusinessType, '
-        'isOtpValid: $isOtpValid, '
-        'isTinValid: $isTinValid (isReq: $isTinRequired, hasVal: ${formBloc.tinNumber.value.isNotEmpty}, isVer: $isTinVerified, hasErr: ${formBloc.tinNumber.state.hasError})',
-        name: 'SignupComponents');
+                            // Debug log to help identify which condition is failing
+                            log(
+                                'Signup Button Status: '
+                                'isValid: $isValid, '
+                                'isUsernameValid: $isUsernameValid (hasVal: $hasUsername, isValing: ${usernameState.isValidating}, err: ${usernameState.hasError}), '
+                                'hasFullName: $hasFullName, '
+                                'hasPhone: $hasPhone, '
+                                'isPhoneVerified: $isPhoneVerified, '
+                                'hasBusinessType: $hasBusinessType, '
+                                'isOtpValid: $isOtpValid, '
+                                'isTinValid: $isTinValid (isReq: $isTinRequired, hasVal: ${tinState.value.toString().isNotEmpty}, isVer: $isTinVerified, hasErr: ${tinState.hasError})',
+                                name: 'SignupComponents');
 
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 24),
-      width: double.infinity,
-      height: 52,
-      child: ElevatedButton(
-        onPressed: (isLoading || !isValid) ? null : formBloc.submit,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: primaryColor,
-          foregroundColor: Colors.white,
-          disabledBackgroundColor: primaryColor.withOpacity(0.6),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8.0),
-          ),
-          elevation: 0,
-        ),
-        child: isLoading
-            ? const SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(
-                  color: Colors.white,
-                  strokeWidth: 3,
-                ),
-              )
-            : const Text(
-                'Create Account',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-      ),
+                            return Container(
+                              margin: const EdgeInsets.symmetric(vertical: 24),
+                              width: double.infinity,
+                              height: 52,
+                              child: ElevatedButton(
+                                onPressed:
+                                    (isLoading || !isValid) ? null : formBloc.submit,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: primaryColor,
+                                  foregroundColor: Colors.white,
+                                  disabledBackgroundColor:
+                                      primaryColor.withOpacity(0.6),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8.0),
+                                  ),
+                                  elevation: 0,
+                                ),
+                                child: isLoading
+                                    ? const SizedBox(
+                                        width: 24,
+                                        height: 24,
+                                        child: CircularProgressIndicator(
+                                          color: Colors.white,
+                                          strokeWidth: 3,
+                                        ),
+                                      )
+                                    : const Text(
+                                        'Create Account',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    );
+                  },
+                );
+              },
+            );
+          },
+        );
+      },
     );
   }
 }

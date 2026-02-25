@@ -124,11 +124,36 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                   // Success is handled by navigation in the bloc
                 },
                 onFailure: (context, state) {
-                  // Show error notification
-                  showErrorNotification(
-                    context,
-                    state.failureResponse ?? 'An error occurred during signup',
-                  );
+                  final message = state.failureResponse ??
+                      'An error occurred during signup';
+                  final isOtpError = message.toLowerCase().contains('otp') ||
+                      message.toLowerCase().contains('expired') ||
+                      message.toLowerCase().contains('invalid');
+
+                  if (isOtpError) {
+                    // Show a snackbar with a "Resend OTP" action so the user
+                    // can immediately get a fresh code without hunting for the button.
+                    showErrorNotification(
+                      context,
+                      'OTP expired or invalid. Please request a new code.',
+                      duration: const Duration(seconds: 8),
+                      actionLabel: 'Resend OTP',
+                      onAction: () async {
+                        try {
+                          await formBloc.requestOtp();
+                          if (!context.mounted) return;
+                          showSuccessNotification(
+                              context, 'New OTP sent successfully!');
+                        } catch (e) {
+                          if (!context.mounted) return;
+                          showErrorNotification(
+                              context, 'Failed to resend OTP: $e');
+                        }
+                      },
+                    );
+                  } else {
+                    showErrorNotification(context, message);
+                  }
                 },
                 child: Scaffold(
                   backgroundColor: const Color(0xFFF5F7FA),
@@ -176,10 +201,66 @@ class _SignUpViewState extends ConsumerState<SignUpView> {
                                         components.SignupComponents
                                             .buildInputField(
                                           fieldBloc: formBloc.phoneNumber,
-                                          label: 'Phone Number or Email',
+                                          label: 'Phone / Email',
                                           icon: Icons.phone_outlined,
-                                          hint: 'Enter your phone or email',
+                                          hint: '783054874 or your@email.com',
                                           keyboardType: TextInputType.text,
+                                          // Dial-code prefix chip — shows when input is a phone number,
+                                          // hides automatically when the user types "@" (email mode).
+                                          prefix: BlocBuilder<
+                                              SelectFieldBloc<String, String>,
+                                              SelectFieldBlocState<String,
+                                                  String>>(
+                                            bloc: formBloc.countryName,
+                                            builder: (context, countryState) {
+                                              final country =
+                                                  countryState.value ??
+                                                      'Rwanda';
+                                              final dialCode =
+                                                  _phoneValidationRules[country]
+                                                          ?.dialCode ??
+                                                      '+250';
+                                              return BlocBuilder<TextFieldBloc,
+                                                  TextFieldBlocState>(
+                                                bloc: formBloc.phoneNumber,
+                                                builder: (context, phoneState) {
+                                                  final isEmail = phoneState
+                                                      .value
+                                                      .contains('@');
+                                                  if (isEmail)
+                                                    return const SizedBox
+                                                        .shrink();
+                                                  return Container(
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                        horizontal: 6,
+                                                        vertical: 2),
+                                                    margin:
+                                                        const EdgeInsets.only(
+                                                            right: 4),
+                                                    decoration: BoxDecoration(
+                                                      color: const Color(
+                                                              0xFF0078D4)
+                                                          .withOpacity(0.1),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                              4),
+                                                    ),
+                                                    child: Text(
+                                                      dialCode,
+                                                      style: const TextStyle(
+                                                        color:
+                                                            Color(0xFF0078D4),
+                                                        fontWeight:
+                                                            FontWeight.w700,
+                                                        fontSize: 14,
+                                                      ),
+                                                    ),
+                                                  );
+                                                },
+                                              );
+                                            },
+                                          ),
                                           suffix: BlocBuilder<TextFieldBloc,
                                               TextFieldBlocState>(
                                             bloc: formBloc.phoneNumber,

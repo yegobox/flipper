@@ -17,7 +17,6 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:overlay_support/overlay_support.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:amplify_storage_s3/amplify_storage_s3.dart';
@@ -171,10 +170,11 @@ class _RowItemState extends ConsumerState<RowItem>
 
   @override
   Widget build(BuildContext context) {
-    final selectedItem = ref.watch(selectedItemIdProvider);
-    final isSelected =
-        selectedItem == widget.variant?.id ||
-        widget.product?.id == selectedItem;
+    final selectedItemIds = ref.watch(selectedItemIdsProvider);
+    final itemId = widget.variant?.id ?? widget.product?.id;
+    final isSelected = selectedItemIds.contains(itemId);
+    final isMultiSelectActive = selectedItemIds.isNotEmpty;
+
     final colorScheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
@@ -186,13 +186,6 @@ class _RowItemState extends ConsumerState<RowItem>
             deviceType !=
                 'Desktop'); // Use list view on phones or when forced (except on desktop)
 
-    // Debug the selection state
-    if (isSelected) {
-      talker.debug(
-        "Card is selected: ${widget.variant?.id ?? widget.product?.id}",
-      );
-    }
-
     return ViewModelBuilder.nonReactive(
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, c) {
@@ -201,19 +194,19 @@ class _RowItemState extends ConsumerState<RowItem>
           curve: Curves.easeInOut,
           decoration: BoxDecoration(
             color: isSelected
-                ? colorScheme.primaryContainer.withValues(alpha: 0.15)
+                ? colorScheme.primaryContainer.withValues(alpha: 0.25)
                 : Colors.white,
             borderRadius: BorderRadius.circular(cardBorderRadius),
             border: Border.all(
               color: isSelected
-                  ? colorScheme.primary.withValues(alpha: 0.12)
+                  ? colorScheme.primary
                   : Colors.grey.withValues(alpha: 0.12),
               width: isSelected ? 2.0 : 1.0,
             ),
             boxShadow: [
               BoxShadow(
                 color: isSelected
-                    ? colorScheme.primary.withValues(alpha: 0.2)
+                    ? colorScheme.primary.withValues(alpha: 0.3)
                     : Colors.black.withValues(alpha: 0.04),
                 blurRadius: isSelected ? 8.0 : 4.0,
                 spreadRadius: isSelected ? 1.0 : 0.0,
@@ -229,9 +222,12 @@ class _RowItemState extends ConsumerState<RowItem>
             child: InkWell(
               borderRadius: BorderRadius.circular(cardBorderRadius),
               onTap: () async {
-                if (isSelected && !widget.isOrdering) {
-                  ref.read(selectedItemIdProvider.notifier).state =
-                      NO_SELECTION;
+                if (isMultiSelectActive) {
+                  if (itemId != null) {
+                    ref
+                        .read(selectedItemIdsProvider.notifier)
+                        .toggleSelection(itemId);
+                  }
                   return;
                 }
                 final flipperWatch? w = kDebugMode
@@ -242,16 +238,10 @@ class _RowItemState extends ConsumerState<RowItem>
                 w?.log("Item Added to Quick Sell");
               },
               onLongPress: () {
-                final itemId = widget.variant?.id ?? widget.product?.id;
                 if (itemId != null && !widget.isOrdering) {
-                  if (selectedItem == itemId) {
-                    ref.read(selectedItemIdProvider.notifier).state =
-                        NO_SELECTION;
-                  } else {
-                    ref.read(selectedItemIdProvider.notifier).state = itemId;
-                    // Show a toast to indicate selection
-                    toast("Item selected for editing");
-                  }
+                  ref
+                      .read(selectedItemIdsProvider.notifier)
+                      .toggleSelection(itemId);
                 }
               },
               child: Stack(
@@ -269,8 +259,29 @@ class _RowItemState extends ConsumerState<RowItem>
                         : _buildItemContent(isSelected, textTheme, colorScheme),
                   ),
 
-                  // Overlay action buttons when selected
+                  // Selection indicator overlay (always show when selected)
                   if (isSelected)
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          color: colorScheme.primary,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.check,
+                          color: Colors.white,
+                          size: 14,
+                        ),
+                      ),
+                    ),
+
+                  // Overlay action buttons when selected and NOT in multi-select mode (only 1 item selected)
+                  if (isSelected &&
+                      selectedItemIds.length == 1 &&
+                      !widget.isOrdering)
                     Positioned(
                       right: 0,
                       top: 0,

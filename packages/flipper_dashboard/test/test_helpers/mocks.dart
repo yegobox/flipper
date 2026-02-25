@@ -48,6 +48,7 @@ class GeminiBusinessAnalyticsMock extends Mock
     String? filePath,
     List<Content>? history,
     AIModel? aiModel,
+    String useCase = 'business',
   }) async {
     return 'Mocked response';
   }

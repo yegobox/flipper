@@ -133,7 +133,7 @@ class CheckOutState extends ConsumerState<CheckOut>
         return Stack(
           children: [
             Padding(
-              padding: const EdgeInsets.only(top: 160.0),
+              padding: const EdgeInsets.only(top: 80.0),
               child: Container(
                 width: constraints.maxWidth,
                 height: constraints.maxHeight,
@@ -146,7 +146,7 @@ class CheckOutState extends ConsumerState<CheckOut>
               ),
             ),
             Padding(
-              padding: const EdgeInsets.only(top: 160.0),
+              padding: const EdgeInsets.only(top: 80.0),
               child: FadeTransition(
                 opacity: _animation,
                 child: (ProxyService.box.isOrdersDefault() ?? false)
@@ -158,11 +158,7 @@ class CheckOutState extends ConsumerState<CheckOut>
               top: 5.0,
               left: 5.0,
               right: 8.0,
-              child: Card(
-                color: Colors.white,
-                surfaceTintColor: Colors.white,
-                child: Column(children: [SearchInputWithDropdown()]),
-              ),
+              child: SearchInputWithDropdown(),
             ),
           ],
         );

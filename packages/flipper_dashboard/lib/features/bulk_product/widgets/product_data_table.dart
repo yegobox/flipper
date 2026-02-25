@@ -1,142 +1,410 @@
-import 'package:flutter/material.dart';
+import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:flipper_models/view_models/BulkAddProductViewModel.dart';
 import 'package:flipper_dashboard/features/bulk_product/widgets/product_field_widgets.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:flutter/material.dart';
 
-class ProductDataTable extends StatelessWidget {
+class ProductDataTable extends ConsumerStatefulWidget {
   final BulkAddProductViewModel model;
 
-  const ProductDataTable({
-    super.key,
-    required this.model,
-  });
+  const ProductDataTable({super.key, required this.model});
+
+  @override
+  ProductDataTableState createState() => ProductDataTableState();
+}
+
+class ProductDataTableState extends ConsumerState<ProductDataTable> {
+  late ProductDataGridSource _dataSource;
+
+  @override
+  void initState() {
+    super.initState();
+    _dataSource = ProductDataGridSource(model: widget.model);
+  }
+
+  @override
+  void didUpdateWidget(ProductDataTable oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.model != widget.model ||
+        oldWidget.model.excelData != widget.model.excelData) {
+      _dataSource = ProductDataGridSource(model: widget.model);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            spreadRadius: 2,
-            blurRadius: 5,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: DataTable(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-          ),
-          columns: [
-            DataColumn(
-              label: Text('BarCode',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-            ),
-            DataColumn(
-              label:
-                  Text('Name', style: TextStyle(fontWeight: FontWeight.bold)),
-            ),
-            DataColumn(
-              label: Text('Category',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-            ),
-            DataColumn(
-              label:
-                  Text('Price', style: TextStyle(fontWeight: FontWeight.bold)),
-            ),
-            DataColumn(
-              label: Text('Quantity',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-            ),
-            DataColumn(
-              label: Text('Item Class',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-            ),
-            DataColumn(
-              label: Text('Tax Type',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-            ),
-            DataColumn(
-              label: Text('Product Type',
-                  style: TextStyle(fontWeight: FontWeight.bold)),
-            ),
-          ],
-          rows: model.excelData!.map((product) {
-            String barCode = product['BarCode'] ?? '';
-            if (!model.controllers.containsKey(barCode)) {
-              model.controllers[barCode] =
-                  TextEditingController(text: product['Price']);
-            }
-            if (!model.quantityControllers.containsKey(barCode)) {
-              model.quantityControllers[barCode] =
-                  TextEditingController(text: product['Quantity'] ?? '0');
-            }
+    // Initialize controllers if not already done
+    widget.model.initializeControllers();
 
-            return DataRow(
-              cells: [
-                DataCell(Text(product['BarCode'] ?? '')),
-                DataCell(Text(product['Name'] ?? '')),
-                DataCell(
-                  SizedBox(
-                    width: 200, // Fixed width, you can adjust this
-                    child: CategoryDropdown(
-                      barCode: barCode,
-                      selectedValue: model.selectedCategories[barCode],
+    return Stack(
+      children: [
+        Container(
+          // Limit height to 600 or content height, whatever is smaller, or just content height
+          // but let's make it more production-ready by using a max height.
+          constraints: BoxConstraints(
+            maxHeight: 600,
+            minHeight: 110, // Header + at least one row
+          ),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                spreadRadius: 2,
+                blurRadius: 5,
+                offset: const Offset(0, 3),
+              ),
+            ],
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(8),
+            child: SfDataGrid(
+              source: _dataSource,
+              columnWidthMode: ColumnWidthMode.fill,
+              rowHeight: 60,
+              headerRowHeight: 50,
+              gridLinesVisibility: GridLinesVisibility.horizontal,
+              headerGridLinesVisibility: GridLinesVisibility.horizontal,
+              columns: [
+                GridColumn(
+                  columnName: 'BarCode',
+                  label: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    alignment: Alignment.centerLeft,
+                    child: const Text(
+                      'BarCode',
+                      style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
-                DataCell(
-                  TextField(
-                    controller: model.controllers[barCode],
-                    onChanged: (value) {
-                      model.updatePrice(product['BarCode'], value);
-                    },
-                  ),
-                ),
-                DataCell(
-                  PriceQuantityField(
-                    controller: model.quantityControllers[barCode]!,
-                    onChanged: (value) {
-                      model.updateQuantity(product['BarCode'], value);
-                    },
-                  ),
-                ),
-                DataCell(
-                  SizedBox(
-                    width: 200, // Fixed width, you can adjust this
-                    child: ItemClassDropdown(
-                      barCode: barCode,
-                      selectedValue: model.selectedItemClasses[barCode],
+                GridColumn(
+                  columnName: 'Name',
+                  label: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    alignment: Alignment.centerLeft,
+                    child: const Text(
+                      'Name',
+                      style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
-                DataCell(
-                  SizedBox(
-                    width: 100, // Fixed width, you can adjust this
-                    child: TaxTypeDropdown(
-                      barCode: barCode,
-                      selectedValue: model.selectedTaxTypes[barCode],
+                GridColumn(
+                  columnName: 'Category',
+                  label: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    alignment: Alignment.centerLeft,
+                    child: const Text(
+                      'Category',
+                      style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
-                DataCell(
-                  SizedBox(
-                    width: 100, // Fixed width, you can adjust this
-                    child: ProductTypeDropdown(
-                      barCode: barCode,
-                      selectedValue: model.selectedProductTypes[barCode],
+                GridColumn(
+                  columnName: 'Price',
+                  label: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    alignment: Alignment.centerLeft,
+                    child: const Text(
+                      'Price',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+                GridColumn(
+                  columnName: 'Quantity',
+                  label: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    alignment: Alignment.centerLeft,
+                    child: const Text(
+                      'Quantity',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+                GridColumn(
+                  columnName: 'ItemClass',
+                  label: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    alignment: Alignment.centerLeft,
+                    child: const Text(
+                      'Item Class',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+                GridColumn(
+                  columnName: 'TaxType',
+                  columnWidthMode: ColumnWidthMode.auto,
+                  label: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    alignment: Alignment.centerLeft,
+                    child: const Text(
+                      'Tax',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+                GridColumn(
+                  columnName: 'ProductType',
+                  label: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    alignment: Alignment.centerLeft,
+                    child: const Text(
+                      'Type',
+                      style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
               ],
-            );
-          }).toList(),
+            ),
+          ),
         ),
-      ),
+        if (widget.model.isSaving)
+          Positioned.fill(
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.7),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Center(
+                child: ValueListenableBuilder(
+                  valueListenable: widget.model.progressNotifier,
+                  builder: (context, progressData, child) {
+                    double progressPercentage = 0.0;
+                    if (progressData.totalItems > 0) {
+                      progressPercentage =
+                          (progressData.currentItem / progressData.totalItems) *
+                          100;
+                    }
+                    final bool isComplete =
+                        progressData.currentItem == progressData.totalItems;
+
+                    return Container(
+                      width: 280,
+                      padding: const EdgeInsets.all(20),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.1),
+                            blurRadius: 20,
+                            spreadRadius: 5,
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text(
+                            'Saving Inventory',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blueAccent,
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              SizedBox(
+                                height: 70,
+                                width: 70,
+                                child: CircularProgressIndicator(
+                                  value: progressData.totalItems > 0
+                                      ? progressData.currentItem /
+                                            progressData.totalItems
+                                      : 0.0,
+                                  strokeWidth: 6,
+                                  backgroundColor: Colors.grey[100],
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    isComplete ? Colors.green : Colors.blue,
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                '${progressPercentage.toStringAsFixed(0)}%',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            progressData.progress,
+                            textAlign: TextAlign.center,
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: Colors.black87,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${progressData.currentItem} of ${progressData.totalItems} processed',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class ProductDataGridSource extends DataGridSource {
+  final BulkAddProductViewModel model;
+  List<DataGridRow> _rows = [];
+
+  ProductDataGridSource({required this.model}) {
+    _buildRows();
+  }
+
+  void _buildRows() {
+    _rows = model.excelData!.map<DataGridRow>((product) {
+      String barCode = product['BarCode'] ?? '';
+
+      // Set up controllers if they don't exist
+      if (!model.controllers.containsKey(barCode)) {
+        model.controllers[barCode] = TextEditingController(
+          text: product['Price'],
+        );
+      }
+      if (!model.quantityControllers.containsKey(barCode)) {
+        model.quantityControllers[barCode] = TextEditingController(
+          text: product['Quantity'] ?? '0',
+        );
+      }
+
+      return DataGridRow(
+        cells: [
+          DataGridCell<String>(columnName: 'BarCode', value: barCode),
+          DataGridCell<String>(
+            columnName: 'Name',
+            value: product['Name'] ?? '',
+          ),
+          DataGridCell<String>(
+            columnName: 'Category',
+            value: model.selectedCategories[barCode],
+          ),
+          DataGridCell<String>(
+            columnName: 'Price',
+            value: product['Price'] ?? '',
+          ),
+          DataGridCell<String>(
+            columnName: 'Quantity',
+            value: product['Quantity'] ?? '0',
+          ),
+          DataGridCell<String>(
+            columnName: 'ItemClass',
+            value: model.selectedItemClasses[barCode],
+          ),
+          DataGridCell<String>(
+            columnName: 'TaxType',
+            value: model.selectedTaxTypes[barCode],
+          ),
+          DataGridCell<String>(
+            columnName: 'ProductType',
+            value: model.selectedProductTypes[barCode],
+          ),
+        ],
+      );
+    }).toList();
+  }
+
+  @override
+  List<DataGridRow> get rows => _rows;
+
+  @override
+  DataGridRowAdapter buildRow(DataGridRow row) {
+    final String barCode = row.getCells()[0].value.toString();
+
+    return DataGridRowAdapter(
+      cells: [
+        Container(
+          alignment: Alignment.centerLeft,
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Text(
+            barCode,
+            style: const TextStyle(fontSize: 13),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        Container(
+          alignment: Alignment.centerLeft,
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: Text(
+            row.getCells()[1].value.toString(),
+            style: const TextStyle(fontSize: 13),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        Container(
+          alignment: Alignment.centerLeft,
+          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+          child: CategoryDropdown(
+            barCode: barCode,
+            selectedValue: model.selectedCategories[barCode],
+          ),
+        ),
+        Container(
+          alignment: Alignment.centerLeft,
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+          child: PriceQuantityField(
+            controller: model.controllers[barCode]!,
+            onChanged: (value) {
+              model.updatePrice(barCode, value);
+            },
+          ),
+        ),
+        Container(
+          alignment: Alignment.centerLeft,
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+          child: PriceQuantityField(
+            controller: model.quantityControllers[barCode]!,
+            onChanged: (value) {
+              model.updateQuantity(barCode, value);
+            },
+          ),
+        ),
+        Container(
+          alignment: Alignment.centerLeft,
+          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+          child: ItemClassDropdown(
+            barCode: barCode,
+            selectedValue: model.selectedItemClasses[barCode],
+          ),
+        ),
+        Container(
+          alignment: Alignment.centerLeft,
+          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+          child: TaxTypeDropdown(
+            barCode: barCode,
+            selectedValue: model.selectedTaxTypes[barCode],
+          ),
+        ),
+        Container(
+          alignment: Alignment.centerLeft,
+          padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+          child: ProductTypeDropdown(
+            barCode: barCode,
+            selectedValue: model.selectedProductTypes[barCode],
+          ),
+        ),
+      ],
     );
   }
 }

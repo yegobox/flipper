@@ -9,13 +9,12 @@ abstract class AiStrategy {
     int? offset,
   });
 
-  Stream<List<Conversation>> conversationsStream({
-    required String branchId,
-  });
+  Stream<List<Conversation>> conversationsStream({required String branchId});
 
   Future<Conversation> createConversation({
     required String title,
     required String branchId,
+    String useCase = 'business',
   });
 
   Future<void> deleteConversation(String conversationId);

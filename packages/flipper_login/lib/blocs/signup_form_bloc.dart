@@ -111,19 +111,10 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
       _phoneVerificationField // Add phone verification field
     ]);
 
-    // Set initial phone value and listen for country changes
-    final initialPhone = _ensurePhoneHasDialCode('', country);
-    phoneNumber.updateInitialValue(initialPhone);
-
-    countryName.stream.listen((state) {
-      if (state.value != null) {
-        final currentPhone = phoneNumber.value;
-        final newPhone = _ensurePhoneHasDialCode(currentPhone, state.value!);
-        if (newPhone != currentPhone) {
-          phoneNumber.updateValue(newPhone);
-        }
-      }
-    });
+    // Country dial-code is shown as a visual prefix chip in the UI.
+    // The field stores only what the user typed (local digits or email).
+    // _ensurePhoneHasDialCode is called at OTP-send / submit time to
+    // prepend the correct country code before hitting the backend.
 
     // Listen to username and fullName streams to enable/disable phoneNumber
     void updatePhoneNumberEnabled() {
@@ -212,7 +203,8 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
     }).catchError((error, stackTrace) {
       // Silently handle the error to prevent unhandled Future exceptions
       // The existing enum-backed items will remain as fallback
-      log('Error loading business types: $error', name: 'AsyncFieldValidationFormBloc');
+      log('Error loading business types: $error',
+          name: 'AsyncFieldValidationFormBloc');
     });
   }
 
@@ -311,8 +303,16 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
     return '$code$local';
   }
 
+  /// Guard to prevent concurrent OTP requests from firing duplicate HTTP calls.
+  bool _isRequestingOtp = false;
+
   /// Method to send OTP to the user's phone number or email
   Future<Map<String, dynamic>?> requestOtp() async {
+    // Prevent duplicate in-flight requests
+    if (_isRequestingOtp) {
+      return null;
+    }
+
     if (phoneNumber.value.isEmpty) {
       throw Exception('Phone number or email is required to send OTP');
     }
@@ -327,6 +327,7 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
           phoneNumber.value, countryName.value ?? 'Rwanda');
     }
 
+    _isRequestingOtp = true;
     try {
       final result = await ProxyService.strategy.sendOtpForSignup(contactInfo);
       // Enable the OTP field after successful request
@@ -334,6 +335,8 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
       return result;
     } catch (e) {
       rethrow;
+    } finally {
+      _isRequestingOtp = false;
     }
   }
 
@@ -475,7 +478,16 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
       // Transfer form values to view model
       signupViewModel.setName(name: username.value);
       signupViewModel.setFullName(name: fullName.value);
-      signupViewModel.setPhoneNumber(phoneNumber: phoneNumber.value);
+      // Only prepend dial code for phone numbers — emails must be passed as-is.
+      final _isEmail = EMAIL_REGEX.hasMatch(phoneNumber.value);
+      signupViewModel.setPhoneNumber(
+        phoneNumber: _isEmail
+            ? phoneNumber.value
+            : _ensurePhoneHasDialCode(
+                phoneNumber.value,
+                countryName.value ?? 'Rwanda',
+              ),
+      );
       signupViewModel.setCountry(country: countryName.value ?? 'Rwanda');
       signupViewModel.tin = (tinNumber.value.isEmpty ||
               businessTypes.value?.id == BusinessTypeEnum.INDIVIDUAL.id)

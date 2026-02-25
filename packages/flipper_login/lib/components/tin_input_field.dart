@@ -90,11 +90,18 @@ class _TinInputFieldState extends State<TinInputField> {
           showSuccessNotification(
               context, 'TIN validated: ${business.taxPayerName}');
 
-          // Update the username field with the taxpayer name if formBloc is available
+          // Update the username field with the taxpayer name if formBloc is available.
+          // Truncate to 11 chars to satisfy the username length validator.
           if (widget.formBloc != null) {
-            widget.formBloc!.username.updateValue(business.taxPayerName);
+            final truncatedName = business.taxPayerName.length > 11
+                ? business.taxPayerName.substring(0, 11)
+                : business.taxPayerName;
+            widget.formBloc!.username.updateValue(truncatedName);
           }
 
+          setState(() {
+            _errorText = null; // clear any previous error
+          });
           widget.onValidationResult?.call(true, false);
         }
       } else {

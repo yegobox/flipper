@@ -179,7 +179,7 @@ class Business extends OfflineFirstWithSupabaseModel {
     bool? taxEnabled,
     String? taxServerUrl,
     bool? isDefault,
-    String? businessTypeId,
+    int? businessTypeId,
     String? referredBy,
     DateTime? lastTouched,
     DateTime? deletedAt,
@@ -263,16 +263,22 @@ class Business extends OfflineFirstWithSupabaseModel {
       email: map['email'] as String?,
       lastDbBackup: map['last_db_backup'] as String?,
       fullName: map['full_name'] as String?,
-      tinNumber: map['tin_number'] as int?,
+      tinNumber: map['tin_number'] == null
+          ? null
+          : map['tin_number'] is int
+              ? map['tin_number'] as int
+              : int.tryParse(map['tin_number'].toString()),
       bhfId: map['bhf_id'] as String?,
       dvcSrlNo: map['dvc_srl_no'] as String?,
       adrs: map['adrs'] as String?,
       taxEnabled: map['tax_enabled'] as bool?,
       taxServerUrl: map['tax_server_url'] as String?,
       isDefault: map['is_default'] as bool?,
-      businessTypeId: map['business_type_id'] is int
-          ? map['business_type_id']
-          : map['business_type_id'] as String?,
+      businessTypeId: map['business_type_id'] == null
+          ? null
+          : map['business_type_id'] is int
+              ? map['business_type_id'] as int
+              : int.tryParse(map['business_type_id'].toString()),
       referredBy: map['referred_by'] as String?,
       encryptionKey: map['encryption_key'] as String?,
       phoneNumber: map['phone_number'] as String?,
