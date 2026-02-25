@@ -1,6 +1,7 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
+part '20260223114710.migration.dart';
 part '20260131115249.migration.dart';
 part '20260210125423.migration.dart';
 part '20260216095950.migration.dart';
@@ -8,6 +9,7 @@ part '20260223114710.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
+  const Migration20260223114710(),
   const Migration20260131115249(),
   const Migration20260210125423(),
   const Migration20260216095950(),
@@ -233,6 +235,7 @@ final schema = Schema(
         SchemaColumn('tax_server_url', Column.varchar),
         SchemaColumn('is_default', Column.boolean),
         SchemaColumn('business_type_id', Column.integer),
+        SchemaColumn('business_type_id', Column.integer),
         SchemaColumn('referred_by', Column.varchar),
         SchemaColumn('encryption_key', Column.varchar),
         SchemaColumn('phone_number', Column.varchar),
@@ -293,6 +296,7 @@ final schema = Schema(
         SchemaColumn('name', Column.varchar),
         SchemaColumn('description', Column.varchar),
         SchemaColumn('created_at', Column.datetime),
+        SchemaColumn('features', Column.varchar),
         SchemaColumn('features', Column.varchar),
       },
       indices: <SchemaIndex>{
@@ -747,6 +751,31 @@ final schema = Schema(
       },
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['id'], unique: true),
+      },
+    ),
+    SchemaTable(
+      'IntegrationConfig',
+      columns: <SchemaColumn>{
+        SchemaColumn(
+          '_brick_id',
+          Column.integer,
+          autoincrement: true,
+          nullable: false,
+          isPrimaryKey: true,
+        ),
+        SchemaColumn('id', Column.varchar, unique: true),
+        SchemaColumn('business_id', Column.varchar),
+        SchemaColumn('provider', Column.varchar),
+        SchemaColumn('token', Column.varchar),
+        SchemaColumn('refresh_token', Column.varchar),
+        SchemaColumn('created_at', Column.datetime),
+        SchemaColumn('updated_at', Column.datetime),
+        SchemaColumn('config', Column.varchar),
+      },
+      indices: <SchemaIndex>{
+        SchemaIndex(columns: ['id'], unique: true),
+        SchemaIndex(columns: ['business_id'], unique: false),
+        SchemaIndex(columns: ['provider'], unique: false),
       },
     ),
     SchemaTable(

@@ -11,6 +11,7 @@ import 'package:supabase_models/brick/models/counter.model.dart' as counter_mode
 import 'package:supabase_models/brick/models/customer.model.dart' as customer_model;
 import 'package:supabase_models/brick/models/device.model.dart' as device_model;
 import 'package:supabase_models/brick/models/ebm.model.dart' as ebm_model;
+import 'package:supabase_models/brick/models/integration_config.model.dart' as integration_config_model;
 import 'package:supabase_models/brick/models/itemCode.model.dart' as itemCode_model;
 import 'package:supabase_models/brick/models/message.model.dart' as message_model;
 import 'package:supabase_models/brick/models/plans.model.dart' as plans_model;
@@ -36,6 +37,7 @@ void ensureDittoAdaptersLoaded() {
   customer_model.CustomerDittoAdapter.registryToken; // ignore: unnecessary_statements
   device_model.DeviceDittoAdapter.registryToken; // ignore: unnecessary_statements
   ebm_model.EbmDittoAdapter.registryToken; // ignore: unnecessary_statements
+  integration_config_model.IntegrationConfigDittoAdapter.registryToken; // ignore: unnecessary_statements
   itemCode_model.ItemCodeDittoAdapter.registryToken; // ignore: unnecessary_statements
   message_model.MessageDittoAdapter.registryToken; // ignore: unnecessary_statements
   plans_model.PlanDittoAdapter.registryToken; // ignore: unnecessary_statements

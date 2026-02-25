@@ -1015,7 +1015,7 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  Future<void> sendMessageToIsolate() {
+  Future<void> sendMessageToIsolate({Map<String, dynamic>? message}) async {
     // TODO: implement sendMessageToIsolate
     throw UnimplementedError();
   }

@@ -514,7 +514,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
   ReceivePort? receivePort;
   Future<String> getFirebaseToken();
 
-  Future<void> sendMessageToIsolate();
+  Future<void> sendMessageToIsolate({Map<String, dynamic>? message});
   Future<void> spawnIsolate(dynamic isolateHandler);
 
   Future<void> processItem({

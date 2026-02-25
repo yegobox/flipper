@@ -29,6 +29,7 @@ import 'package:badges/badges.dart' as badges;
 import 'package:flipper_models/providers/notice_provider.dart';
 import 'package:flipper_dashboard/providers/app_mode_provider.dart';
 
+import 'package:flipper_dashboard/umusada_helper.dart';
 import 'package:supabase_models/brick/models/notice.model.dart';
 
 class SearchField extends StatefulHookConsumerWidget {
@@ -96,9 +97,9 @@ class SearchFieldState extends ConsumerState<SearchField>
       child: ViewModelBuilder<CoreViewModel>.nonReactive(
         viewModelBuilder: () => CoreViewModel(),
         onViewModelReady: (model) {
-          _textSubject
-              .debounceTime(const Duration(milliseconds: 400))
-              .listen((value) {
+          _textSubject.debounceTime(const Duration(milliseconds: 400)).listen((
+            value,
+          ) {
             if (ref.read(searchStringProvider) != value) {
               if (!isSearching) {
                 setState(() {
@@ -107,21 +108,23 @@ class SearchFieldState extends ConsumerState<SearchField>
 
                 processDebouncedValue(value, model, widget.controller)
                     .then((_) {
-                  // Add a small delay to ensure all operations complete
-                  return Future.delayed(const Duration(milliseconds: 300));
-                }).then((_) {
-                  if (mounted) {
-                    setState(() {
-                      isSearching = false;
+                      // Add a small delay to ensure all operations complete
+                      return Future.delayed(const Duration(milliseconds: 300));
+                    })
+                    .then((_) {
+                      if (mounted) {
+                        setState(() {
+                          isSearching = false;
+                        });
+                      }
+                    })
+                    .catchError((error) {
+                      if (mounted) {
+                        setState(() {
+                          isSearching = false;
+                        });
+                      }
                     });
-                  }
-                }).catchError((error) {
-                  if (mounted) {
-                    setState(() {
-                      isSearching = false;
-                    });
-                  }
-                });
               }
             }
           });
@@ -161,17 +164,24 @@ class SearchFieldState extends ConsumerState<SearchField>
                   ),
                   Consumer(
                     builder: (context, ref, child) {
-                      final orders = ref.watch(stockRequestsProvider(
+                      final orders = ref.watch(
+                        stockRequestsProvider(
                           status: RequestStatus.pending,
-                          search: stringValue.isNotEmpty ? stringValue : null));
+                          search: stringValue.isNotEmpty ? stringValue : null,
+                        ),
+                      );
                       return orders.when(
                         data: (orders) => widget.showOrderButton
-                            ? orderButton(orders.length).shouldSeeTheApp(ref,
-                                featureName: AppFeature.Orders)
+                            ? orderButton(orders.length).shouldSeeTheApp(
+                                ref,
+                                featureName: AppFeature.Orders,
+                              )
                             : const SizedBox.shrink(),
                         loading: () => widget.showOrderButton
-                            ? orderButton(0).shouldSeeTheApp(ref,
-                                featureName: AppFeature.Orders)
+                            ? orderButton(0).shouldSeeTheApp(
+                                ref,
+                                featureName: AppFeature.Orders,
+                              )
                             : const SizedBox.shrink(),
                         error: (err, stack) => Text('Error: $err'),
                       );
@@ -190,8 +200,9 @@ class SearchFieldState extends ConsumerState<SearchField>
                               appMode)
                             incomingButton(),
                           if (widget.showAddButton && appMode)
-                            addButton()
-                                .eligibleToSeeIfYouAre(ref, [UserType.ADMIN]),
+                            addButton().eligibleToSeeIfYouAre(ref, [
+                              UserType.ADMIN,
+                            ]),
                         ],
                       );
                     },
@@ -231,8 +242,10 @@ class SearchFieldState extends ConsumerState<SearchField>
 
   Widget _buildNoticesIcon({required List<Notice> notice}) {
     return badges.Badge(
-      badgeContent: Text(notice.length.toString(),
-          style: const TextStyle(color: Colors.white)),
+      badgeContent: Text(
+        notice.length.toString(),
+        style: const TextStyle(color: Colors.white),
+      ),
       child: Icon(FluentIcons.mail_24_regular, color: Colors.grey),
     );
   }
@@ -246,9 +259,7 @@ class SearchFieldState extends ConsumerState<SearchField>
     );
   }
 
-  IconButton orderButton(
-    int orders,
-  ) {
+  IconButton orderButton(int orders) {
     return IconButton(
       onPressed: () {
         _handleReceiveOrderToggle();
@@ -258,19 +269,23 @@ class SearchFieldState extends ConsumerState<SearchField>
   }
 
   void _handleReceiveOrderToggle() {
-    try {
-      ProxyService.box.writeBool(key: 'isOrdering', value: true);
+    UmusadaHelper.handleOrderingFlow(context, () {
+      try {
+        ProxyService.box.writeBool(key: 'isOrdering', value: true);
 
-      _routerService.navigateTo(OrdersRoute());
-    } catch (e) {
-      print(e);
-    }
+        _routerService.navigateTo(OrdersRoute());
+      } catch (e) {
+        print(e);
+      }
+    });
   }
 
   Widget _buildOrderIcon(int orders) {
     return badges.Badge(
-      badgeContent:
-          Text(orders.toString(), style: const TextStyle(color: Colors.white)),
+      badgeContent: Text(
+        orders.toString(),
+        style: const TextStyle(color: Colors.white),
+      ),
       child: Icon(FluentIcons.cart_24_regular, color: Colors.grey),
     );
   }
@@ -343,17 +358,13 @@ class SearchFieldState extends ConsumerState<SearchField>
             showDialog(
               barrierDismissible: true,
               context: context,
-              builder: (context) => OptionModal(
-                child: BulkAddProduct(),
-              ),
+              builder: (context) => OptionModal(child: BulkAddProduct()),
             );
           } else if (choice == 'single') {
             showDialog(
               barrierDismissible: true,
               context: context,
-              builder: (context) => OptionModal(
-                child: ProductEntryScreen(),
-              ),
+              builder: (context) => OptionModal(child: ProductEntryScreen()),
             );
           } else if (choice == 'rooms') {
             showDialog(
