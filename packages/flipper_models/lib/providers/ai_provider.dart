@@ -7,7 +7,8 @@ import 'package:flipper_services/proxy.dart';
 import 'package:http/http.dart' as http;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:supabase_models/brick/models/business_analytic.model.dart';
+import 'package:supabase_models/brick/models/business_analytic.model.dart'
+    as models;
 import 'package:supabase_models/brick/models/credit.model.dart';
 import 'package:mime/mime.dart'; // Import for lookupMimeType
 import 'package:flipper_models/utils/excel_utility.dart';
@@ -320,10 +321,15 @@ class GeminiBusinessAnalytics extends _$GeminiBusinessAnalytics {
     String? filePath,
     List<Content>? history,
     AIModel? aiModel,
+    String useCase = 'business',
   }) async {
-    final businessAnalyticsData = await ProxyService.getStrategy(
-      Strategy.capella,
-    ).analytics(branchId: branchId);
+    final bool isPersonal = useCase == 'personal';
+
+    final List<models.BusinessAnalytic> businessAnalyticsData = isPersonal
+        ? []
+        : await ProxyService.getStrategy(
+            Strategy.capella,
+          ).analytics(branchId: branchId);
 
     // Check if the user wants to buy credits
     final lowerCasePrompt = userPrompt.toLowerCase();
@@ -520,9 +526,10 @@ User Query: $enrichedUserPrompt
 """;
 
     // Format CSV with all available fields
-    String csvData =
-        "ID,Date,Value,Branch ID,Item Name,Price,Profit,Units Sold,Tax Rate,Traffic Count\n" +
-        businessAnalyticsData.map((e) => e.toString()).join('\n');
+    String csvData = isPersonal
+        ? ""
+        : "ID,Date,Value,Branch ID,Item Name,Price,Profit,Units Sold,Tax Rate,Traffic Count\n" +
+              businessAnalyticsData.map((e) => e.toString()).join('\n');
 
     final List<Part> currentTurnParts = [];
 
@@ -543,9 +550,17 @@ User Query: $enrichedUserPrompt
       );
     }
 
-    // Always add business data and base prompt for context.
-    currentTurnParts.add(Part.text(csvData));
-    currentTurnParts.add(Part.text(basePrompt));
+    // Only add business context if not in personal mode
+    if (!isPersonal) {
+      currentTurnParts.add(Part.text(csvData));
+      currentTurnParts.add(Part.text(basePrompt));
+    } else {
+      currentTurnParts.add(
+        Part.text(
+          "You are a helpful personal assistant. Provide clear, concise, and accurate responses to the user's queries.",
+        ),
+      );
+    }
 
     final List<Content> contents = [];
     if (history != null) {
@@ -553,7 +568,7 @@ User Query: $enrichedUserPrompt
     }
     contents.add(Content(role: "user", parts: currentTurnParts));
 
-    if (businessAnalyticsData.isEmpty && filePath == null) {
+    if (!isPersonal && businessAnalyticsData.isEmpty && filePath == null) {
       return "I don't have enough data to analyze at the moment. Please make sure you have some sales or inventory data in your system.";
     }
 
@@ -633,7 +648,7 @@ Future<String> geminiSummary(Ref ref, String prompt, {AIModel? aiModel}) async {
 }
 
 @riverpod
-Stream<List<BusinessAnalytic>> streamedBusinessAnalytics(
+Stream<List<models.BusinessAnalytic>> streamedBusinessAnalytics(
   Ref ref,
   String branchId,
 ) {

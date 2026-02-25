@@ -20,6 +20,7 @@ import '../providers/whatsapp_message_provider.dart';
 import '../providers/conversation_provider.dart';
 import 'package:flipper_services/whatsapp_service.dart';
 import '../widgets/excel_analysis_modal.dart';
+import 'package:flipper_ui/snack_bar_utils.dart';
 
 /// Main screen for the AI feature with a modern, polished UI.
 class AiScreen extends ConsumerStatefulWidget {
@@ -42,6 +43,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
   List<Content> _conversationHistory =
       []; // To store conversation history for AI
   AIModel? _selectedModel; // State for selected AI model
+  String _selectedUseCase = 'business'; // State for selected mode
 
   void _handleAttachedFile(String filePath) {
     // Check if it's an Excel file
@@ -89,6 +91,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
       final conversation = await ProxyService.strategy.createConversation(
         title: 'New Conversation',
         branchId: branchId,
+        useCase: _selectedUseCase,
       );
 
       if (mounted) {
@@ -151,6 +154,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
         final conversation = await ProxyService.strategy.createConversation(
           title: text.length > 30 ? '${text.substring(0, 30)}...' : text,
           branchId: branchId,
+          useCase: _selectedUseCase,
         );
         targetConversationId = conversation.id;
 
@@ -162,6 +166,18 @@ class _AiScreenState extends ConsumerState<AiScreen> {
           });
           _subscribeToCurrentConversation();
         }
+      }
+
+      // Get the useCase for the current conversation
+      String currentUseCase = _selectedUseCase;
+      try {
+        final conversations = ref.read(conversationProvider).value ?? [];
+        final currentConv = conversations.firstWhere(
+          (c) => c.id == targetConversationId,
+        );
+        currentUseCase = currentConv.useCase;
+      } catch (e) {
+        // Fallback to selected useCase if conversation not yet in provider
       }
 
       // Check context: Is this a reply to a WhatsApp message?
@@ -260,6 +276,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
                   fileToAnalyzePath, // Provider still needs the path for the current call
               history: _conversationHistory, // Pass conversation history
               aiModel: _selectedModel, // Pass the selected model
+              useCase: currentUseCase, // Pass the useCase
             ).future,
           )
           .catchError((e) {
@@ -642,66 +659,11 @@ class _AiScreenState extends ConsumerState<AiScreen> {
         style: TextStyle(color: AiTheme.textColor),
       ),
       actions: [
+        _buildModeSelector(),
         if (availableModels.isNotEmpty)
           Padding(
             padding: const EdgeInsets.only(right: 8.0),
-            child: PopupMenuButton<AIModel>(
-              initialValue: _selectedModel,
-              icon: const Icon(Icons.psychology, color: AiTheme.primaryColor),
-              tooltip: 'Select AI Model',
-              onSelected: (AIModel model) {
-                setState(() {
-                  _selectedModel = model;
-                });
-              },
-              itemBuilder: (BuildContext context) {
-                return availableModels.map((AIModel model) {
-                  return PopupMenuItem<AIModel>(
-                    value: model,
-                    child: Row(
-                      children: [
-                        if (model.id == _selectedModel?.id)
-                          const Icon(
-                            Icons.check,
-                            color: AiTheme.primaryColor,
-                            size: 18,
-                          ),
-                        if (model.id == _selectedModel?.id)
-                          const SizedBox(width: 8),
-                        Text(
-                          model.name,
-                          style: TextStyle(
-                            fontWeight: model.id == _selectedModel?.id
-                                ? FontWeight.bold
-                                : FontWeight.normal,
-                          ),
-                        ),
-                        if (model.isPaidOnly) const SizedBox(width: 8),
-                        if (model.isPaidOnly)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 6,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.amber.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(4),
-                              border: Border.all(color: Colors.amber),
-                            ),
-                            child: const Text(
-                              'PRO',
-                              style: TextStyle(
-                                fontSize: 10,
-                                color: Colors.amber,
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  );
-                }).toList();
-              },
-            ),
+            child: _buildModelSelector(availableModels),
           ),
       ],
       backgroundColor: AiTheme.surfaceColor,
@@ -797,99 +759,14 @@ class _AiScreenState extends ConsumerState<AiScreen> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text(
-                      'Chat',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                        color: AiTheme.textColor,
-                      ),
+                    Row(
+                      children: [
+                        _buildModeSelector(),
+                        const SizedBox(width: 8),
+                        if (availableModels.isNotEmpty)
+                          _buildModelSelector(availableModels),
+                      ],
                     ),
-                    if (availableModels.isNotEmpty)
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AiTheme.backgroundColor,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: AiTheme.borderColor),
-                        ),
-                        child: DropdownButtonHideUnderline(
-                          child: DropdownButton<AIModel>(
-                            value: _selectedModel,
-                            hint: const Text('Select Model'),
-                            icon: const Icon(
-                              Icons.arrow_drop_down,
-                              color: AiTheme.secondaryColor,
-                            ),
-                            onChanged: (AIModel? newValue) {
-                              if (newValue != null) {
-                                setState(() {
-                                  _selectedModel = newValue;
-                                });
-                              }
-                            },
-                            items: availableModels
-                                .map<DropdownMenuItem<AIModel>>((
-                                  AIModel model,
-                                ) {
-                                  return DropdownMenuItem<AIModel>(
-                                    value: model,
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Icon(
-                                          Icons.psychology,
-                                          size: 16,
-                                          color: AiTheme.primaryColor,
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          model.name,
-                                          style: TextStyle(
-                                            color: AiTheme.textColor,
-                                            fontWeight:
-                                                model.id == _selectedModel?.id
-                                                ? FontWeight.bold
-                                                : FontWeight.normal,
-                                          ),
-                                        ),
-                                        if (model.isPaidOnly) ...[
-                                          const SizedBox(width: 8),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: 6,
-                                              vertical: 2,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: Colors.amber.withValues(
-                                                alpha: 0.2,
-                                              ),
-                                              borderRadius:
-                                                  BorderRadius.circular(4),
-                                              border: Border.all(
-                                                color: Colors.amber,
-                                              ),
-                                            ),
-                                            child: const Text(
-                                              'PRO',
-                                              style: TextStyle(
-                                                fontSize: 10,
-                                                color: Colors.amber,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ],
-                                    ),
-                                  );
-                                })
-                                .toList(),
-                          ),
-                        ),
-                      ),
                   ],
                 ),
               ),
@@ -908,11 +785,132 @@ class _AiScreenState extends ConsumerState<AiScreen> {
     );
   }
 
+  Widget _buildModeSelector() {
+    return PopupMenuButton<String>(
+      initialValue: _selectedUseCase,
+      icon: Icon(
+        _selectedUseCase == 'business'
+            ? Icons.business_center_rounded
+            : Icons.person_rounded,
+        color: AiTheme.primaryColor,
+      ),
+      tooltip: 'Select AI Mode',
+      onSelected: (String mode) {
+        setState(() {
+          _selectedUseCase = mode;
+        });
+        // If we choose a different mode, suggest starting a new conversation
+        if (_messages.isNotEmpty) {
+          showCustomSnackBarUtil(
+            context,
+            'Mode changed to ${mode == 'business' ? 'Business' : 'Personal'}. Start a new conversation to use this mode.',
+            type: NotificationType.info,
+            actionLabel: 'New Chat',
+            onAction: _startNewConversation,
+          );
+        }
+      },
+      itemBuilder: (BuildContext context) {
+        return [
+          const PopupMenuItem<String>(
+            value: 'business',
+            child: Row(
+              children: [
+                Icon(Icons.business_center_rounded, size: 20),
+                SizedBox(width: 8),
+                Text('Business Assistant'),
+              ],
+            ),
+          ),
+          const PopupMenuItem<String>(
+            value: 'personal',
+            child: Row(
+              children: [
+                Icon(Icons.person_rounded, size: 20),
+                SizedBox(width: 8),
+                Text('Personal Assistant'),
+              ],
+            ),
+          ),
+        ];
+      },
+    );
+  }
+
+  Widget _buildModelSelector(List<AIModel> availableModels) {
+    return PopupMenuButton<AIModel>(
+      initialValue: _selectedModel,
+      icon: const Icon(Icons.psychology, color: AiTheme.primaryColor),
+      tooltip: 'Select AI Model',
+      onSelected: (AIModel model) {
+        setState(() {
+          _selectedModel = model;
+        });
+      },
+      itemBuilder: (BuildContext context) {
+        return availableModels.map((AIModel model) {
+          return PopupMenuItem<AIModel>(
+            value: model,
+            child: Row(
+              children: [
+                if (model.id == _selectedModel?.id)
+                  const Icon(
+                    Icons.check,
+                    color: AiTheme.primaryColor,
+                    size: 18,
+                  ),
+                if (model.id == _selectedModel?.id) const SizedBox(width: 8),
+                Text(
+                  model.name,
+                  style: TextStyle(
+                    fontWeight: model.id == _selectedModel?.id
+                        ? FontWeight.bold
+                        : FontWeight.normal,
+                  ),
+                ),
+                if (model.isPaidOnly) const SizedBox(width: 8),
+                if (model.isPaidOnly)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.amber.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(color: Colors.amber),
+                    ),
+                    child: const Text(
+                      'PRO',
+                      style: TextStyle(fontSize: 10, color: Colors.amber),
+                    ),
+                  ),
+              ],
+            ),
+          );
+        }).toList();
+      },
+    );
+  }
+
   Widget _buildMessageList() {
     if (_messages.isEmpty) {
+      // Get the useCase for the current conversation
+      String currentUseCase = _selectedUseCase;
+      try {
+        final conversations = ref.read(conversationProvider).value ?? [];
+        final currentConv = conversations.firstWhere(
+          (c) => c.id == _currentConversationId,
+        );
+        currentUseCase = currentConv.useCase;
+      } catch (e) {
+        // Fallback
+      }
+
       return WelcomeView(
         onSend: (text) =>
             _sendMessage(text, conversationId: _currentConversationId),
+        useCase: currentUseCase,
       );
     }
     return ListView.builder(

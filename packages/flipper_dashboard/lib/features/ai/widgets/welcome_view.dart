@@ -3,16 +3,28 @@ import '../theme/ai_theme.dart';
 
 class WelcomeView extends StatelessWidget {
   final Function(String) onSend;
+  final String useCase;
 
-  const WelcomeView({super.key, required this.onSend});
+  const WelcomeView({
+    super.key,
+    required this.onSend,
+    this.useCase = 'business',
+  });
 
   @override
   Widget build(BuildContext context) {
-    final sampleQuestions = [
-      'What were my total sales last week?',
-      'Show me a breakdown of my top-selling products this month.',
-      'Generate a tax summary for the last quarter.',
-    ];
+    final isPersonal = useCase == 'personal';
+    final sampleQuestions = isPersonal
+        ? [
+            'What are some good books on leadership?',
+            'Help me draft an email to a potential partner.',
+            'Give me some tips for better time management.',
+          ]
+        : [
+            'What were my total sales last week?',
+            'Show me a breakdown of my top-selling products this month.',
+            'Generate a tax summary for the last quarter.',
+          ];
 
     return Center(
       child: SingleChildScrollView(
@@ -45,10 +57,7 @@ class WelcomeView extends StatelessWidget {
             const SizedBox(height: 12),
             const Text(
               'Ready to help you with insights about your business. Try asking one of the questions below.',
-              style: TextStyle(
-                fontSize: 16,
-                color: AiTheme.hintColor,
-              ),
+              style: TextStyle(fontSize: 16, color: AiTheme.hintColor),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),

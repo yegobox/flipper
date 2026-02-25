@@ -15,6 +15,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as models;
 import 'package:supabase_models/brick/models/conversation.model.dart';
+import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 import '../../../test_helpers/mocks.dart';
 import '../../../test_helpers/setup.dart';
@@ -25,6 +26,7 @@ class MockRouterService extends Mock implements RouterService {}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  setupPathProviderMock();
 
   late TestEnvironment env;
   late MockDatabaseSync mockDbSync;
@@ -34,6 +36,8 @@ void main() {
   late MockRepository mockRepository;
 
   setUpAll(() async {
+    sqfliteFfiInit();
+    databaseFactory = databaseFactoryFfi;
     // Reset the locator to ensure a clean state for each test suite
     await loc.locator.reset();
     env = TestEnvironment();
