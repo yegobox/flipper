@@ -28,6 +28,8 @@ import 'package:flipper_services/DeviceType.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_dashboard/transaction_item_adder.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:flipper_ui/dialogs/AdminPinDialog.dart';
+import 'package:flipper_services/setting_service.dart';
 
 Map<int, String> positionString = {
   0: 'first',
@@ -997,6 +999,19 @@ class _RowItemState extends ConsumerState<RowItem>
                   );
                   return;
                 }
+
+                // PIN Verification
+                final settingsService = locator<SettingsService>();
+                if (settingsService.isAdminPinEnabled) {
+                  final setting = await settingsService.settings();
+                  final confirmed = await showAdminPinDialog(
+                    context: context,
+                    mode: AdminPinMode.verify,
+                    expectedPin: setting?.adminPin,
+                  );
+                  if (confirmed != true) return;
+                }
+
                 widget.delete(widget.variant!.id, 'variant');
               }
             },
@@ -1010,7 +1025,19 @@ class _RowItemState extends ConsumerState<RowItem>
               size: 20,
             ),
             tooltip: 'Edit',
-            onPressed: () {
+            onPressed: () async {
+              // PIN Verification
+              final settingsService = locator<SettingsService>();
+              if (settingsService.isAdminPinEnabled) {
+                final setting = await settingsService.settings();
+                final confirmed = await showAdminPinDialog(
+                  context: context,
+                  mode: AdminPinMode.verify,
+                  expectedPin: setting?.adminPin,
+                );
+                if (confirmed != true) return;
+              }
+
               if (widget.variant != null) {
                 widget.edit(widget.variant?.productId, 'product');
               } else if (widget.product != null) {

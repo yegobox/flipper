@@ -32,6 +32,7 @@ import 'package:flipper_models/sync/mixins/transaction_item_mixin.dart';
 import 'package:flipper_models/sync/mixins/transaction_mixin.dart';
 import 'package:flipper_models/sync/mixins/variant_mixin.dart';
 import 'package:flipper_models/sync/mixins/discount_mixin.dart';
+import 'package:flipper_models/sync/mixins/settings_mixin.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/Miscellaneous.dart';
@@ -95,7 +96,8 @@ class CoreSync extends AiStrategyImpl
         CounterMixin,
         DelegationMixin,
         ProductionOutputMixin,
-        DiscountMixin
+        DiscountMixin,
+        SettingsMixin
     implements DatabaseSyncInterface {
   final String apihub = AppSecrets.apihubProd;
 
@@ -2794,12 +2796,6 @@ class CoreSync extends AiStrategyImpl
     throw UnimplementedError();
   }
 
-  @override
-  Future<models.Setting?> getSetting({required String businessId}) {
-    // TODO: implement getSetting
-    throw UnimplementedError();
-  }
-
   //TODO: check if we are setting modrId same as barcode in other places
   @override
   Future<void> processItem({
@@ -3036,12 +3032,6 @@ class CoreSync extends AiStrategyImpl
   @override
   void notify({required models.AppNotification notification}) {
     // TODO: implement notify
-  }
-
-  @override
-  Future<void> patchSocialSetting({required models.Setting setting}) {
-    // TODO: implement patchSocialSetting
-    throw UnimplementedError();
   }
 
   @override

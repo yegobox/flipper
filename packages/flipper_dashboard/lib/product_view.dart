@@ -22,6 +22,8 @@ import 'package:flipper_dashboard/dialog_status.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper_services/setting_service.dart';
+import 'package:flipper_ui/dialogs/AdminPinDialog.dart';
 
 enum ViewMode { products, stocks }
 
@@ -257,6 +259,18 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
           return;
         }
       }
+    }
+
+    // Admin PIN Verification
+    final settingsService = locator<SettingsService>();
+    if (settingsService.isAdminPinEnabled) {
+      final setting = await settingsService.settings();
+      final confirmed = await showAdminPinDialog(
+        context: context,
+        mode: AdminPinMode.verify,
+        expectedPin: setting?.adminPin,
+      );
+      if (confirmed != true) return;
     }
 
     final dialogService = locator<DialogService>();

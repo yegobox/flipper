@@ -1,3 +1,4 @@
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/material.dart';
@@ -8,8 +9,9 @@ class SettingsService with ListenableServiceMixin {
   //  bool sendDailReport = false;
   final _enablePrinter = ReactiveValue<bool>(false);
 
-  final ReactiveValue<ThemeMode> themeMode =
-      ReactiveValue<ThemeMode>(ThemeMode.system);
+  final ReactiveValue<ThemeMode> themeMode = ReactiveValue<ThemeMode>(
+    ThemeMode.system,
+  );
   bool get enablePrinter => _enablePrinter.value;
 
   void setThemeMode(ThemeMode mode) {
@@ -25,51 +27,69 @@ class SettingsService with ListenableServiceMixin {
 
   bool get isAttendanceEnabled => _isAttendanceEnabled.value;
 
+  final _isAdminPinEnabled = ReactiveValue<bool>(false);
+
+  bool get isAdminPinEnabled => _isAdminPinEnabled.value;
+
   Future<bool> updateSettings({required Map map}) async {
-    //todo: when no setting for this user create one with given detail
-    //if the setting exist then update the given detail.
     String userId = ProxyService.box.getUserId()!;
     String businessId = ProxyService.box.getBusinessId()!;
 
-    Setting? setting =
-        await ProxyService.strategy.getSetting(businessId: businessId);
+    Setting? setting = await ProxyService.getStrategy(
+      Strategy.capella,
+    ).getSetting(businessId: businessId);
     if (setting != null) {
-      Map<String, dynamic> settingsMap = setting as Map<String, dynamic>;
-      //replace a key in settings_map if the key match with the key from map
+      if (map.containsKey('email')) setting.email = map['email'];
+      if (map.containsKey('hasPin')) setting.hasPin = map['hasPin'];
+      if (map.containsKey('adminPin')) setting.adminPin = map['adminPin'];
+      if (map.containsKey('isAdminPinEnabled')) {
+        setting.isAdminPinEnabled = map['isAdminPinEnabled'];
+      }
+      if (map.containsKey('type')) setting.type = map['type'];
+      if (map.containsKey('attendnaceDocCreated')) {
+        setting.attendnaceDocCreated = map['attendnaceDocCreated'];
+      }
+      if (map.containsKey('sendDailyReport')) {
+        setting.sendDailyReport = map['sendDailyReport'];
+      }
+      if (map.containsKey('openReceiptFileOSaleComplete')) {
+        setting.openReceiptFileOSaleComplete =
+            map['openReceiptFileOSaleComplete'];
+      }
+      if (map.containsKey('autoPrint')) setting.autoPrint = map['autoPrint'];
+      if (map.containsKey('isAttendanceEnabled')) {
+        setting.isAttendanceEnabled = map['isAttendanceEnabled'];
+      }
 
-      settingsMap.forEach((key, value) {
-        if (map.containsKey(key)) {
-          settingsMap[key] = map[key];
-        }
-      });
-
+      await ProxyService.strategy.patchSettings(setting: setting);
       return true;
     } else {
-      Map kMap = map;
-      map.forEach((key, value) {
-        kMap[key] = value;
-      });
-      Setting setting = Setting(
-        email: kMap['email'] ?? '',
+      Setting newSetting = Setting(
+        email: map['email'] ?? '',
         userId: userId,
-        hasPin: kMap['hasPin'] ?? false,
-        type: kMap['type'] ?? '',
-        businessId: ProxyService.box.getBusinessId(),
-        attendnaceDocCreated: kMap['attendnaceDocCreated'] ?? false,
-        sendDailyReport: kMap['sendDailyReport'] ?? false,
+        hasPin: map['hasPin'] ?? false,
+        adminPin: map['adminPin'],
+        isAdminPinEnabled: map['isAdminPinEnabled'] ?? false,
+        type: map['type'] ?? '',
+        businessId: businessId,
+        attendnaceDocCreated: map['attendnaceDocCreated'] ?? false,
+        sendDailyReport: map['sendDailyReport'] ?? false,
         openReceiptFileOSaleComplete:
-            kMap['openReceiptFileOSaleComplete'] ?? false,
-        autoPrint: kMap['autoPrint'] ?? false,
-        isAttendanceEnabled: kMap['isAttendanceEnabled'] ?? false,
+            map['openReceiptFileOSaleComplete'] ?? false,
+        autoPrint: map['autoPrint'] ?? false,
+        isAttendanceEnabled: map['isAttendanceEnabled'] ?? false,
       );
-
+      await ProxyService.getStrategy(
+        Strategy.capella,
+      ).patchSettings(setting: newSetting);
       return true;
     }
   }
 
   Future<Setting?> settings() async {
-    return ProxyService.strategy
-        .getSetting(businessId: ProxyService.box.getBusinessId() ?? "");
+    return ProxyService.getStrategy(
+      Strategy.capella,
+    ).getSetting(businessId: ProxyService.box.getBusinessId() ?? "");
   }
 
   Future<bool> isDailyReportEnabled() async {
@@ -97,8 +117,9 @@ class SettingsService with ListenableServiceMixin {
   void getEnableReportToggleState() async {
     Setting? setting = await settings();
     if (setting != null) {
-      _sendDailReport.value =
-          setting.sendDailyReport == null ? false : setting.sendDailyReport!;
+      _sendDailReport.value = setting.sendDailyReport == null
+          ? false
+          : setting.sendDailyReport!;
     }
   }
 
@@ -163,8 +184,10 @@ class SettingsService with ListenableServiceMixin {
     }
   }
 
-  Future<Function?> enableAttendance(
-      {required bool bool, required Function callback}) async {
+  Future<Function?> enableAttendance({
+    required bool bool,
+    required Function callback,
+  }) async {
     Setting? setting = await settings();
     if (setting != null) {
       // String businessId = ProxyService.box.getBusinessId()!;
@@ -176,7 +199,45 @@ class SettingsService with ListenableServiceMixin {
     }
   }
 
+  void getAdminPinToggleState() async {
+    Setting? setting = await settings();
+    if (setting != null) {
+      _isAdminPinEnabled.value = setting.isAdminPinEnabled ?? false;
+    }
+  }
+
+  Future<void> setAdminPin({
+    required String pin,
+    required String businessId,
+  }) async {
+    await updateSettings(
+      map: {
+        'adminPin': pin,
+        'isAdminPinEnabled': true,
+        'businessId': businessId,
+      },
+    );
+    _isAdminPinEnabled.value = true;
+    notifyListeners();
+  }
+
+  Future<void> toggleAdminPin({
+    required bool enabled,
+    required String businessId,
+  }) async {
+    await updateSettings(
+      map: {'isAdminPinEnabled': enabled, 'businessId': businessId},
+    );
+    _isAdminPinEnabled.value = enabled;
+    notifyListeners();
+  }
+
   SettingsService() {
-    listenToReactiveValues([_sendDailReport, _enablePrinter, themeMode]);
+    listenToReactiveValues([
+      _sendDailReport,
+      _enablePrinter,
+      themeMode,
+      _isAdminPinEnabled,
+    ]);
   }
 }

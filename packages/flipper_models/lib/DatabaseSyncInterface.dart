@@ -298,7 +298,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
 
   // Future<void> deleteAllProducts();
 
-  Future<void> patchSocialSetting({required Setting setting});
+  Future<void> patchSettings({required Setting setting});
 
   Future<Device?> getDevice({
     required String phone,

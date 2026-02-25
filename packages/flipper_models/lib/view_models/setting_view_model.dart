@@ -1,3 +1,4 @@
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:flipper_services/setting_service.dart';
 import 'package:flipper_services/language_service.dart';
@@ -17,8 +18,9 @@ class SettingViewModel extends CoreViewModel {
   Business? _business;
   Business? get business => _business;
   getBusiness() async {
-    _business = await ProxyService.strategy
-        .getBusiness(businessId: ProxyService.box.getBusinessId()!);
+    _business = await ProxyService.strategy.getBusiness(
+      businessId: ProxyService.box.getBusinessId()!,
+    );
     notifyListeners();
   }
 
@@ -33,8 +35,9 @@ class SettingViewModel extends CoreViewModel {
   get isProcessing => _isProceeding;
 
   String? getSetting() {
-    klocale =
-        Locale(ProxyService.box.readString(key: 'defaultLanguage') ?? 'en');
+    klocale = Locale(
+      ProxyService.box.readString(key: 'defaultLanguage') ?? 'en',
+    );
     setLanguage(ProxyService.box.readString(key: 'defaultLanguage') ?? 'en');
     return ProxyService.box.readString(key: 'defaultLanguage');
   }
@@ -60,7 +63,9 @@ class SettingViewModel extends CoreViewModel {
 
   loadUserSettings() async {
     String businessId = ProxyService.box.getBusinessId()!;
-    _setting = await ProxyService.strategy.getSetting(businessId: businessId);
+    _setting = await ProxyService.getStrategy(
+      Strategy.capella,
+    ).getSetting(businessId: businessId);
     notifyListeners();
   }
 
@@ -77,8 +82,10 @@ class SettingViewModel extends CoreViewModel {
     } else if (ProxyService.box.getBusinessId().runtimeType is String) {
       businessId = ProxyService.box.getBusinessId()!;
     }
-    return ProxyService.strategy
-        .isSubscribed(feature: 'sync', businessId: businessId);
+    return ProxyService.strategy.isSubscribed(
+      feature: 'sync',
+      businessId: businessId,
+    );
   }
 
   /// enable sync
@@ -96,8 +103,10 @@ class SettingViewModel extends CoreViewModel {
 
     /// do we have a subscription on the feature
 
-    isSubscribed = ProxyService.strategy
-        .isSubscribed(businessId: businessId, feature: feature);
+    isSubscribed = ProxyService.strategy.isSubscribed(
+      businessId: businessId,
+      feature: feature,
+    );
     if (isSubscribed) {
       callback(isSubscribed);
     } else {
