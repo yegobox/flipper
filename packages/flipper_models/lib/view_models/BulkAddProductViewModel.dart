@@ -5,7 +5,10 @@ import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:excel/excel.dart';
+import 'package:excel/excel.dart' as excel_pkg;
+import 'package:path_provider/path_provider.dart';
+import 'package:syncfusion_flutter_xlsio/xlsio.dart' hide Column, Alignment;
+import 'package:open_filex/open_filex.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as brick;
 import 'package:supabase_models/brick/models/all_models.dart';
@@ -101,14 +104,14 @@ class BulkAddProductViewModel extends ChangeNotifier {
     notifyListeners();
     try {
       if (_selectedFile != null) {
-        late Excel excel;
+        late excel_pkg.Excel excel;
 
         if (_selectedFile!.bytes != null) {
-          excel = Excel.decodeBytes(_selectedFile!.bytes!);
+          excel = excel_pkg.Excel.decodeBytes(_selectedFile!.bytes!);
         } else if (_selectedFile!.path != null) {
           final file = File(_selectedFile!.path!);
           final bytes = await file.readAsBytes();
-          excel = Excel.decodeBytes(bytes);
+          excel = excel_pkg.Excel.decodeBytes(bytes);
         } else {
           throw Exception('Unable to read file contents');
         }
@@ -418,6 +421,42 @@ class BulkAddProductViewModel extends ChangeNotifier {
       _selectedCategories[barCode] = newValue;
       notifyListeners();
     }
+  }
+
+  Future<void> downloadTemplate() async {
+    final Workbook workbook = Workbook();
+    final Worksheet sheet = workbook.worksheets[0];
+
+    // Set headers
+    sheet.getRangeByIndex(1, 1).setText('BarCode');
+    sheet.getRangeByIndex(1, 2).setText('Name');
+    sheet.getRangeByIndex(1, 3).setText('Category');
+    sheet.getRangeByIndex(1, 4).setText('Price');
+    sheet.getRangeByIndex(1, 5).setText('Quantity');
+    sheet.getRangeByIndex(1, 6).setText('bcdU');
+
+    // Style headers
+    final Range headerRange = sheet.getRangeByIndex(1, 1, 1, 6);
+    headerRange.cellStyle.bold = true;
+    headerRange.cellStyle.backColor = '#EEEEEE';
+
+    // Add sample data
+    sheet.getRangeByIndex(2, 1).setText('123456789');
+    sheet.getRangeByIndex(2, 2).setText('Sample Product');
+    sheet.getRangeByIndex(2, 3).setText('General');
+    sheet.getRangeByIndex(2, 4).setNumber(100.0);
+    sheet.getRangeByIndex(2, 5).setNumber(10.0);
+    sheet.getRangeByIndex(2, 6).setText('PCS');
+
+    final List<int> bytes = workbook.saveAsStream();
+    workbook.dispose();
+
+    final directory = await getApplicationDocumentsDirectory();
+    final String path = '${directory.path}/bulk_add_products_template.xlsx';
+    final File file = File(path);
+    await file.writeAsBytes(bytes, flush: true);
+
+    await OpenFilex.open(path);
   }
 }
 

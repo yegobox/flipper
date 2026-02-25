@@ -35,6 +35,7 @@ class BulkProductFormState extends ConsumerState<BulkProductForm> {
         FileUploadSection(
           selectedFile: model.selectedFile,
           onSelectFile: model.selectFile,
+          onDownloadTemplate: model.downloadTemplate,
         ),
         const SizedBox(height: 16),
         if (model.selectedFile != null)
@@ -51,7 +52,9 @@ class BulkProductFormState extends ConsumerState<BulkProductForm> {
                     onComplete: () {
                       final combinedNotifier = ref.read(refreshProvider);
                       combinedNotifier.performActions(
-                          productName: "", scanMode: true);
+                        productName: "",
+                        scanMode: true,
+                      );
                       Navigator.maybePop(context);
                     },
                   );
@@ -82,8 +85,10 @@ class BulkProductFormState extends ConsumerState<BulkProductForm> {
             model.selectedFile != null &&
             !model.isLoading)
           const Center(
-            child: Text('Parsing Data...',
-                style: TextStyle(fontSize: 16, fontStyle: FontStyle.italic)),
+            child: Text(
+              'Parsing Data...',
+              style: TextStyle(fontSize: 16, fontStyle: FontStyle.italic),
+            ),
           ),
         if (model.excelData != null) ProductDataTable(model: model),
       ],

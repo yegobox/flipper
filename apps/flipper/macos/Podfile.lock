@@ -475,7 +475,7 @@ SPEC CHECKSUMS:
   AppCheckCore: cc8fd0a3a230ddd401f326489c99990b013f0c4f
   CocoaAsyncSocket: 065fd1e645c7abab64f7a6a2007a48038fdc6a99
   connectivity_plus: 0a976dfd033b59192912fa3c6c7b54aab5093802
-  desktop_drop: 69eeff437544aa619c8db7f4481b3a65f7696898
+  desktop_drop: 1eeeb9484299585770b6461e4f3d60950e99efa2
   desktop_webview_auth: 9bba53a29c9bc6a4ff621fd0ebfbb18856c4dada
   device_info_plus: 1b14eed9bf95428983aed283a8d51cce3d8c4215
   ditto_live: c93f8a037b41b3ab4c831b737ea54aa75d3af801
