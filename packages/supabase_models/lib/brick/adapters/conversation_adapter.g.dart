@@ -21,6 +21,7 @@ Future<Conversation> _$ConversationFromSupabase(
     whatsappWaId: data['whatsapp_wa_id'] == null
         ? null
         : data['whatsapp_wa_id'] as String?,
+    useCase: data['use_case'] as String,
   );
 }
 
@@ -36,6 +37,7 @@ Future<Map<String, dynamic>> _$ConversationToSupabase(
     'created_at': instance.createdAt?.toIso8601String(),
     'last_message_at': instance.lastMessageAt.toIso8601String(),
     'whatsapp_wa_id': instance.whatsappWaId,
+    'use_case': instance.useCase,
   };
 }
 
@@ -77,6 +79,7 @@ Future<Conversation> _$ConversationFromSqlite(
     whatsappWaId: data['whatsapp_wa_id'] == null
         ? null
         : data['whatsapp_wa_id'] as String?,
+    useCase: data['use_case'] as String,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -92,6 +95,7 @@ Future<Map<String, dynamic>> _$ConversationToSqlite(
     'created_at': instance.createdAt?.toIso8601String(),
     'last_message_at': instance.lastMessageAt.toIso8601String(),
     'whatsapp_wa_id': instance.whatsappWaId,
+    'use_case': instance.useCase,
   };
 }
 
@@ -129,6 +133,10 @@ class ConversationAdapter
     'whatsappWaId': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'whatsapp_wa_id',
+    ),
+    'useCase': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'use_case',
     ),
   };
   @override
@@ -182,6 +190,12 @@ class ConversationAdapter
     'whatsappWaId': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'whatsapp_wa_id',
+      iterable: false,
+      type: String,
+    ),
+    'useCase': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'use_case',
       iterable: false,
       type: String,
     ),

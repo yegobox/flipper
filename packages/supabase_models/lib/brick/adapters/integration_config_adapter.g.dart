@@ -14,6 +14,11 @@ Future<IntegrationConfig> _$IntegrationConfigFromSupabase(
     refreshToken: data['refresh_token'] == null
         ? null
         : data['refresh_token'] as String?,
+    expiresAt: data['expires_at'] == null
+        ? null
+        : data['expires_at'] == null
+        ? null
+        : DateTime.tryParse(data['expires_at'] as String),
     createdAt: data['created_at'] == null
         ? null
         : data['created_at'] == null
@@ -45,6 +50,7 @@ Future<Map<String, dynamic>> _$IntegrationConfigToSupabase(
     'provider': instance.provider,
     'token': instance.token,
     'refresh_token': instance.refreshToken,
+    'expires_at': instance.expiresAt?.toIso8601String(),
     'created_at': instance.createdAt?.toIso8601String(),
     'updated_at': instance.updatedAt?.toIso8601String(),
     'config': instance.config,
@@ -64,6 +70,11 @@ Future<IntegrationConfig> _$IntegrationConfigFromSqlite(
     refreshToken: data['refresh_token'] == null
         ? null
         : data['refresh_token'] as String?,
+    expiresAt: data['expires_at'] == null
+        ? null
+        : data['expires_at'] == null
+        ? null
+        : DateTime.tryParse(data['expires_at'] as String),
     createdAt: data['created_at'] == null
         ? null
         : data['created_at'] == null
@@ -89,6 +100,7 @@ Future<Map<String, dynamic>> _$IntegrationConfigToSqlite(
     'provider': instance.provider,
     'token': instance.token,
     'refresh_token': instance.refreshToken,
+    'expires_at': instance.expiresAt?.toIso8601String(),
     'created_at': instance.createdAt?.toIso8601String(),
     'updated_at': instance.updatedAt?.toIso8601String(),
     'config': instance.config,
@@ -125,6 +137,10 @@ class IntegrationConfigAdapter
     'refreshToken': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'refresh_token',
+    ),
+    'expiresAt': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'expires_at',
     ),
     'createdAt': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -180,6 +196,12 @@ class IntegrationConfigAdapter
       columnName: 'refresh_token',
       iterable: false,
       type: String,
+    ),
+    'expiresAt': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'expires_at',
+      iterable: false,
+      type: DateTime,
     ),
     'createdAt': const RuntimeSqliteColumnDefinition(
       association: false,

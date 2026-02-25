@@ -1,18 +1,20 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20260223114710.migration.dart';
+part '20260225075135.migration.dart';
 part '20260131115249.migration.dart';
 part '20260210125423.migration.dart';
 part '20260216095950.migration.dart';
+part '20260219185654.migration.dart';
 part '20260223114710.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20260223114710(),
+  const Migration20260225075135(),
   const Migration20260131115249(),
   const Migration20260210125423(),
   const Migration20260216095950(),
+  const Migration20260219185654(),
   const Migration20260223114710(),
 };
 
@@ -235,7 +237,6 @@ final schema = Schema(
         SchemaColumn('tax_server_url', Column.varchar),
         SchemaColumn('is_default', Column.boolean),
         SchemaColumn('business_type_id', Column.integer),
-        SchemaColumn('business_type_id', Column.integer),
         SchemaColumn('referred_by', Column.varchar),
         SchemaColumn('encryption_key', Column.varchar),
         SchemaColumn('phone_number', Column.varchar),
@@ -296,7 +297,6 @@ final schema = Schema(
         SchemaColumn('name', Column.varchar),
         SchemaColumn('description', Column.varchar),
         SchemaColumn('created_at', Column.datetime),
-        SchemaColumn('features', Column.varchar),
         SchemaColumn('features', Column.varchar),
       },
       indices: <SchemaIndex>{
@@ -438,6 +438,7 @@ final schema = Schema(
         SchemaColumn('created_at', Column.datetime),
         SchemaColumn('last_message_at', Column.datetime),
         SchemaColumn('whatsapp_wa_id', Column.varchar),
+        SchemaColumn('use_case', Column.varchar),
       },
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['id'], unique: true),
@@ -768,6 +769,7 @@ final schema = Schema(
         SchemaColumn('provider', Column.varchar),
         SchemaColumn('token', Column.varchar),
         SchemaColumn('refresh_token', Column.varchar),
+        SchemaColumn('expires_at', Column.datetime),
         SchemaColumn('created_at', Column.datetime),
         SchemaColumn('updated_at', Column.datetime),
         SchemaColumn('config', Column.varchar),

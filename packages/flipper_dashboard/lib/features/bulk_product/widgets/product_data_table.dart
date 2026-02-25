@@ -112,6 +112,17 @@ class ProductDataTableState extends ConsumerState<ProductDataTable> {
                   ),
                 ),
                 GridColumn(
+                  columnName: 'SupplyPrice',
+                  label: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                    alignment: Alignment.centerLeft,
+                    child: const Text(
+                      'Supply Price',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+                GridColumn(
                   columnName: 'Quantity',
                   label: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -283,6 +294,11 @@ class ProductDataGridSource extends DataGridSource {
           text: product['Price'],
         );
       }
+      if (!model.supplyPriceControllers.containsKey(barCode)) {
+        model.supplyPriceControllers[barCode] = TextEditingController(
+          text: product['SupplyPrice'] ?? product['Price'] ?? '0',
+        );
+      }
       if (!model.quantityControllers.containsKey(barCode)) {
         model.quantityControllers[barCode] = TextEditingController(
           text: product['Quantity'] ?? '0',
@@ -303,6 +319,10 @@ class ProductDataGridSource extends DataGridSource {
           DataGridCell<String>(
             columnName: 'Price',
             value: product['Price'] ?? '',
+          ),
+          DataGridCell<String>(
+            columnName: 'SupplyPrice',
+            value: product['SupplyPrice'] ?? product['Price'] ?? '',
           ),
           DataGridCell<String>(
             columnName: 'Quantity',
@@ -367,6 +387,16 @@ class ProductDataGridSource extends DataGridSource {
             controller: model.controllers[barCode]!,
             onChanged: (value) {
               model.updatePrice(barCode, value);
+            },
+          ),
+        ),
+        Container(
+          alignment: Alignment.centerLeft,
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 4.0),
+          child: PriceQuantityField(
+            controller: model.supplyPriceControllers[barCode]!,
+            onChanged: (value) {
+              model.updateSupplyPrice(barCode, value);
             },
           ),
         ),

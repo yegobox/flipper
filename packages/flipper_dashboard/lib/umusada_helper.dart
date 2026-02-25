@@ -72,8 +72,8 @@ class UmusadaHelper {
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          _kPrimary.withOpacity(0.15),
-                          _kPrimary.withOpacity(0.05),
+                          _kPrimary.withAlpha(15),
+                          _kPrimary.withAlpha(5),
                         ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
