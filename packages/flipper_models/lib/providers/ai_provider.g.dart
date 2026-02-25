@@ -17,9 +17,9 @@ final class AvailableModelsProvider
         $FunctionalProvider<
           AsyncValue<List<AIModel>>,
           List<AIModel>,
-          FutureOr<List<AIModel>>
+          Stream<List<AIModel>>
         >
-    with $FutureModifier<List<AIModel>>, $FutureProvider<List<AIModel>> {
+    with $FutureModifier<List<AIModel>>, $StreamProvider<List<AIModel>> {
   const AvailableModelsProvider._()
     : super(
         from: null,
@@ -36,17 +36,17 @@ final class AvailableModelsProvider
 
   @$internal
   @override
-  $FutureProviderElement<List<AIModel>> $createElement(
+  $StreamProviderElement<List<AIModel>> $createElement(
     $ProviderPointer pointer,
-  ) => $FutureProviderElement(pointer);
+  ) => $StreamProviderElement(pointer);
 
   @override
-  FutureOr<List<AIModel>> create(Ref ref) {
+  Stream<List<AIModel>> create(Ref ref) {
     return availableModels(ref);
   }
 }
 
-String _$availableModelsHash() => r'b0bcf36e9f71093151ad6446448c7a88a2206c5a';
+String _$availableModelsHash() => r'3210304d609c462a74b7276aa651e367fda2dbd0';
 
 /// Providers
 

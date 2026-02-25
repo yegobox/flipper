@@ -6,6 +6,7 @@ import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:http/http.dart' as http;
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:supabase_models/brick/models/business_analytic.model.dart';
 import 'package:supabase_models/brick/models/credit.model.dart';
 import 'package:mime/mime.dart'; // Import for lookupMimeType
@@ -18,9 +19,27 @@ import 'package:flipper_models/repositories/ai_model_repository.dart';
 part 'ai_provider.g.dart';
 
 @riverpod
-Future<List<AIModel>> availableModels(Ref ref) async {
-  final repository = AIModelRepository();
-  return await repository.getAvailableModels();
+Stream<List<AIModel>> availableModels(Ref ref) {
+  final supabase = Supabase.instance.client;
+  return supabase
+      .from('ai_models')
+      .stream(primaryKey: ['id'])
+      .eq('is_active', true)
+      .map((List<Map<String, dynamic>> data) {
+        final models = data.map((json) => AIModel.fromJson(json)).toList();
+
+        // Manual sorting:
+        // 1. Default models first (isDefault = true comes before false)
+        // 2. Alphabetical by name
+        models.sort((a, b) {
+          if (a.isDefault != b.isDefault) {
+            return a.isDefault ? -1 : 1;
+          }
+          return a.name.compareTo(b.name);
+        });
+
+        return models;
+      });
 }
 
 /// Define the input data structure
@@ -36,11 +55,11 @@ class GeminiInput {
   });
 
   Map<String, dynamic> toJson() => {
-        'contents': contents.map((e) => e.toJson()).toList(),
-        if (safetySettings != null) 'safetySettings': safetySettings,
-        if (generationConfig != null)
-          'generationConfig': generationConfig!.toJson(),
-      };
+    'contents': contents.map((e) => e.toJson()).toList(),
+    if (safetySettings != null) 'safetySettings': safetySettings,
+    if (generationConfig != null)
+      'generationConfig': generationConfig!.toJson(),
+  };
 }
 
 /// Generation configuration
@@ -48,15 +67,12 @@ class GenerationConfig {
   final double? temperature;
   final int? maxOutputTokens;
 
-  GenerationConfig({
-    this.temperature,
-    this.maxOutputTokens,
-  });
+  GenerationConfig({this.temperature, this.maxOutputTokens});
 
   Map<String, dynamic> toJson() => {
-        if (temperature != null) 'temperature': temperature,
-        if (maxOutputTokens != null) 'maxOutputTokens': maxOutputTokens,
-      };
+    if (temperature != null) 'temperature': temperature,
+    if (maxOutputTokens != null) 'maxOutputTokens': maxOutputTokens,
+  };
 }
 
 /// Content structure
@@ -67,9 +83,9 @@ class Content {
   Content({required this.parts, this.role});
 
   Map<String, dynamic> toJson() => {
-        'parts': parts.map((e) => e.toJson()).toList(),
-        if (role != null) 'role': role,
-      };
+    'parts': parts.map((e) => e.toJson()).toList(),
+    if (role != null) 'role': role,
+  };
 }
 
 /// Part of the content
@@ -79,11 +95,12 @@ class Part {
 
   // Private constructor
   Part._({this.text, Map<String, dynamic>? inlineData})
-      : _inlineData = inlineData,
-        assert(
-            (text != null && inlineData == null) ||
-                (text == null && inlineData != null),
-            'A Part must contain either text or inline_data, but not both, and not neither.');
+    : _inlineData = inlineData,
+      assert(
+        (text != null && inlineData == null) ||
+            (text == null && inlineData != null),
+        'A Part must contain either text or inline_data, but not both, and not neither.',
+      );
 
   // Factory constructor for text parts
   factory Part.text(String text) => Part._(text: text);
@@ -96,11 +113,12 @@ class Part {
     if (text != null) {
       return {'text': text};
     } else if (_inlineData != null) {
-      return {'inline_data': _inlineData!};
+      return {'inline_data': _inlineData};
     }
     // This case should ideally not be reached due to the assert
     throw StateError(
-        'Invalid Part state: neither text nor inline_data is present.');
+      'Invalid Part state: neither text nor inline_data is present.',
+    );
   }
 }
 
@@ -114,10 +132,7 @@ Future<Map<String, dynamic>> fileToBase64(String filePath) async {
   final bytes = await file.readAsBytes();
   final mimeType = lookupMimeType(filePath) ?? 'application/octet-stream';
 
-  return {
-    "mime_type": mimeType,
-    "data": base64Encode(bytes),
-  };
+  return {"mime_type": mimeType, "data": base64Encode(bytes)};
 }
 
 /// Providers
@@ -133,17 +148,20 @@ class GeminiResponse extends _$GeminiResponse {
     // USAGE TRACKING & ACCESS CONTROL
     // -------------------------------
     // 1. Get current business
-    final business =
-        await ProxyService.getStrategy(Strategy.capella).activeBusiness();
+    final business = await ProxyService.getStrategy(
+      Strategy.capella,
+    ).activeBusiness();
 
     if (business != null) {
       talker.info(
-          'AI Provider: Checking constraints for business ${business.id}');
+        'AI Provider: Checking constraints for business ${business.id}',
+      );
       final repository = AIModelRepository();
 
       // 2. Check "Paid Only" Restriction
       if (aiModel?.isPaidOnly == true) {
-        final isPro = business.subscriptionPlan == 'pro' ||
+        final isPro =
+            business.subscriptionPlan == 'pro' ||
             business.subscriptionPlan == 'enterprise';
 
         if (!isPro) {
@@ -152,9 +170,9 @@ class GeminiResponse extends _$GeminiResponse {
           bool hasCredits = false;
 
           if (branchId != null) {
-            final creditRecord =
-                await ProxyService.getStrategy(Strategy.capella)
-                    .getCredit(branchId: branchId);
+            final creditRecord = await ProxyService.getStrategy(
+              Strategy.capella,
+            ).getCredit(branchId: branchId);
 
             // Assuming 1 credit per request cost for now
             if (creditRecord != null && creditRecord.credits >= 1) {
@@ -172,17 +190,20 @@ class GeminiResponse extends _$GeminiResponse {
                 branchServerId: creditRecord.branchServerId,
               );
 
-              await ProxyService.getStrategy(Strategy.capella)
-                  .updateCredit(updatedCreditRecord);
+              await ProxyService.getStrategy(
+                Strategy.capella,
+              ).updateCredit(updatedCreditRecord);
 
               talker.info(
-                  'Deducted 1 credit for AI usage. Remaining: $updatedCredits');
+                'Deducted 1 credit for AI usage. Remaining: $updatedCredits',
+              );
             }
           }
 
           if (!hasCredits) {
             throw Exception(
-                'Upgrade Required: The selected model (${aiModel?.name}) is available on Pro plans only or requires credits.');
+              'Upgrade Required: The selected model (${aiModel?.name}) is available on Pro plans only or requires credits.',
+            );
           }
         }
       }
@@ -192,20 +213,23 @@ class GeminiResponse extends _$GeminiResponse {
       if (config != null) {
         if (config.isQuotaExceeded) {
           throw Exception(
-              'Usage Limit Reached: You have used ${config.currentUsage}/${config.usageLimit} requests. Please upgrade your plan.');
+            'Usage Limit Reached: You have used ${config.currentUsage}/${config.usageLimit} requests. Please upgrade your plan.',
+          );
         }
       } else {
         // If config is still null after repository attempts to create it, something is wrong.
         // We can block or allow with warning. Choosing to allow for now but log error.
         talker.error(
-            'AI Provider: Failed to retrieve or create usage config for business ${business.id}');
+          'AI Provider: Failed to retrieve or create usage config for business ${business.id}',
+        );
       }
     }
 
     // Validate model ID for non-Gemini APIs
     if (!isGemini && (aiModel?.modelId == null || aiModel!.modelId.isEmpty)) {
       throw Exception(
-          'Model ID is required for ${aiModel?.provider ?? "this API provider"}. Please ensure the AI model configuration includes a valid model_id.');
+        'Model ID is required for ${aiModel?.provider ?? "this API provider"}. Please ensure the AI model configuration includes a valid model_id.',
+      );
     }
 
     // Construct URL and Headers
@@ -229,11 +253,7 @@ class GeminiResponse extends _$GeminiResponse {
     // talker.info('Request Body: $body');
 
     try {
-      final response = await http.post(
-        url,
-        headers: headers,
-        body: body,
-      );
+      final response = await http.post(url, headers: headers, body: body);
 
       if (response.statusCode == 200) {
         talker.info('AI API response body: ${response.body}');
@@ -277,7 +297,8 @@ class GeminiResponse extends _$GeminiResponse {
         if (!ref.mounted) throw Exception('Provider disposed');
         talker.error('AI API Error: ${response.statusCode} - ${response.body}');
         throw Exception(
-            'Failed to fetch data from AI API: ${response.statusCode}, ${response.body}');
+          'Failed to fetch data from AI API: ${response.statusCode}, ${response.body}',
+        );
       }
     } catch (e, stack) {
       if (e.toString().contains('Provider disposed')) {
@@ -293,11 +314,16 @@ class GeminiResponse extends _$GeminiResponse {
 @riverpod
 class GeminiBusinessAnalytics extends _$GeminiBusinessAnalytics {
   @override
-  Future<String> build(String branchId, String userPrompt,
-      {String? filePath, List<Content>? history, AIModel? aiModel}) async {
-    final businessAnalyticsData =
-        await ProxyService.getStrategy(Strategy.capella)
-            .analytics(branchId: branchId);
+  Future<String> build(
+    String branchId,
+    String userPrompt, {
+    String? filePath,
+    List<Content>? history,
+    AIModel? aiModel,
+  }) async {
+    final businessAnalyticsData = await ProxyService.getStrategy(
+      Strategy.capella,
+    ).analytics(branchId: branchId);
 
     // Check if the user wants to buy credits
     final lowerCasePrompt = userPrompt.toLowerCase();
@@ -311,28 +337,31 @@ class GeminiBusinessAnalytics extends _$GeminiBusinessAnalytics {
         // Extract phone number and credit amount from the command
         // Expected format: "buy credit 100 #2507XXXXXXXX" or similar
         final phoneMatch = RegExp(r'#(\d+)').firstMatch(userPrompt);
-        final creditMatch =
-            RegExp(r'(\d+)').firstMatch(userPrompt.split(RegExp(r'#\d+'))[0]);
+        final creditMatch = RegExp(
+          r'(\d+)',
+        ).firstMatch(userPrompt.split(RegExp(r'#\d+'))[0]);
 
         if (phoneMatch != null) {
           final phoneNumber = phoneMatch.group(1);
-          final creditAmount =
-              creditMatch != null ? int.tryParse(creditMatch.group(1)!) : null;
+          final creditAmount = creditMatch != null
+              ? int.tryParse(creditMatch.group(1)!)
+              : null;
 
           if (creditAmount != null && creditAmount > 0) {
             // Attempt to purchase credits using the membership API
             try {
               // Get the current business to determine the branch
-              final business = await ProxyService.getStrategy(Strategy.capella)
-                  .activeBusiness();
+              final business = await ProxyService.getStrategy(
+                Strategy.capella,
+              ).activeBusiness();
               if (business == null) {
                 return "Credit Purchase Failed: No active business found. Please ensure you're logged in and have an active business.";
               }
 
               // Get or create the credit record for the branch
-              var creditRecord =
-                  await ProxyService.getStrategy(Strategy.capella)
-                      .getCredit(branchId: branchId);
+              var creditRecord = await ProxyService.getStrategy(
+                Strategy.capella,
+              ).getCredit(branchId: branchId);
               if (creditRecord == null) {
                 // Create a new credit record if it doesn't exist
                 creditRecord = Credit(
@@ -360,8 +389,9 @@ class GeminiBusinessAnalytics extends _$GeminiBusinessAnalytics {
               );
 
               // Save the updated credit record
-              await ProxyService.getStrategy(Strategy.capella)
-                  .updateCredit(updatedCreditRecord);
+              await ProxyService.getStrategy(
+                Strategy.capella,
+              ).updateCredit(updatedCreditRecord);
 
               return "Credit Purchase Successful: $creditAmount credits have been added to account associated with phone number $phoneNumber. Your new credit balance is ${updatedCredits.toInt()} credits.";
             } catch (e) {
@@ -400,7 +430,8 @@ class GeminiBusinessAnalytics extends _$GeminiBusinessAnalytics {
     final today = DateTime(now.year, now.month, now.day);
 
     // Enhanced prompt with temporal context
-    final String basePrompt = """
+    final String basePrompt =
+        """
 Current Time Context:
 - Current Date: ${today.toString().split(' ')[0]}
 - Today refers to: ${today.toString().split(' ')[0]}
@@ -491,7 +522,7 @@ User Query: $enrichedUserPrompt
     // Format CSV with all available fields
     String csvData =
         "ID,Date,Value,Branch ID,Item Name,Price,Profit,Units Sold,Tax Rate,Traffic Count\n" +
-            businessAnalyticsData.map((e) => e.toString()).join('\n');
+        businessAnalyticsData.map((e) => e.toString()).join('\n');
 
     final List<Part> currentTurnParts = [];
 
@@ -502,10 +533,14 @@ User Query: $enrichedUserPrompt
     if (filePath != null) {
       final fileData = await fileToBase64(filePath);
       if (!ref.mounted) return "Operation cancelled";
-      currentTurnParts
-          .add(Part.inlineData(fileData['mime_type'], fileData['data']));
-      currentTurnParts.add(Part.text(
-          "The user has attached a file. Please use it as additional context for the analysis."));
+      currentTurnParts.add(
+        Part.inlineData(fileData['mime_type'], fileData['data']),
+      );
+      currentTurnParts.add(
+        Part.text(
+          "The user has attached a file. Please use it as additional context for the analysis.",
+        ),
+      );
     }
 
     // Always add business data and base prompt for context.
@@ -539,8 +574,9 @@ User Query: $enrichedUserPrompt
       if (!ref.mounted) return "Operation cancelled";
       talker.info('Directing to Gemini provider with enriched prompt...');
       // Pass the selected AIModel (or null which defaults to Gemini in GeminiResponse)
-      final result =
-          await ref.read(geminiResponseProvider(inputData, aiModel).future);
+      final result = await ref.read(
+        geminiResponseProvider(inputData, aiModel).future,
+      );
       // If we get a result from the nested provider, return it even if this provider is no longer mounted
       // since the AI call was successful
       return result;
@@ -554,8 +590,9 @@ User Query: $enrichedUserPrompt
       // Provide more user-friendly error messages for specific cases
       if (e.toString().contains('Upgrade Required')) {
         // Extract the model name from the error message for a more personalized message
-        final modelMatch =
-            RegExp(r'The selected model \(([^)]+)\)').firstMatch(e.toString());
+        final modelMatch = RegExp(
+          r'The selected model \(([^)]+)\)',
+        ).firstMatch(e.toString());
         final modelName = modelMatch?.group(1) ?? 'this AI model';
         return "To use $modelName, you need either a Pro plan subscription or sufficient credits. You can upgrade your subscription or purchase credits to access this feature.";
       }
@@ -570,12 +607,7 @@ User Query: $enrichedUserPrompt
 Future<String> geminiSummary(Ref ref, String prompt, {AIModel? aiModel}) async {
   final inputData = UnifiedAIInput(
     contents: [
-      Content(
-        role: "user",
-        parts: [
-          Part.text(prompt),
-        ],
-      ),
+      Content(role: "user", parts: [Part.text(prompt)]),
     ],
     model: aiModel?.modelId, // Use provided model instead of null
     generationConfig: GenerationConfig(
@@ -590,8 +622,9 @@ Future<String> geminiSummary(Ref ref, String prompt, {AIModel? aiModel}) async {
     // Handle specific upgrade error
     if (e.toString().contains('Upgrade Required')) {
       // Extract the model name from the error message for a more personalized message
-      final modelMatch =
-          RegExp(r'The selected model \(([^)]+)\)').firstMatch(e.toString());
+      final modelMatch = RegExp(
+        r'The selected model \(([^)]+)\)',
+      ).firstMatch(e.toString());
       final modelName = modelMatch?.group(1) ?? 'this AI model';
       return "To use $modelName, you need either a Pro plan subscription or sufficient credits. You can upgrade your subscription or purchase credits to access this feature.";
     }
@@ -601,7 +634,10 @@ Future<String> geminiSummary(Ref ref, String prompt, {AIModel? aiModel}) async {
 
 @riverpod
 Stream<List<BusinessAnalytic>> streamedBusinessAnalytics(
-    Ref ref, String branchId) {
-  return ProxyService.getStrategy(Strategy.capella)
-      .streamRemoteAnalytics(branchId: branchId);
+  Ref ref,
+  String branchId,
+) {
+  return ProxyService.getStrategy(
+    Strategy.capella,
+  ).streamRemoteAnalytics(branchId: branchId);
 }
