@@ -40,6 +40,7 @@ class SearchField extends StatefulHookConsumerWidget {
     required this.showIncomingButton,
     required this.showAddButton,
     required this.showDatePicker,
+    this.hintText,
   }) : super(key: key);
 
   final TextEditingController controller;
@@ -47,6 +48,7 @@ class SearchField extends StatefulHookConsumerWidget {
   final bool showIncomingButton;
   final bool showAddButton;
   final bool showDatePicker;
+  final String? hintText;
 
   @override
   SearchFieldState createState() => SearchFieldState();
@@ -142,6 +144,7 @@ class SearchFieldState extends ConsumerState<SearchField>
               enabledBorder: OutlineInputBorder(
                 borderSide: BorderSide(color: Colors.grey.shade400, width: 1.0),
               ),
+              hintText: widget.hintText,
               prefixIcon: isSearching
                   ? Container(
                       padding: const EdgeInsets.all(8),

@@ -4,10 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 class SearchFieldWidget extends ConsumerWidget {
-  const SearchFieldWidget({
-    Key? key,
-    required this.controller,
-  }) : super(key: key);
+  const SearchFieldWidget({Key? key, required this.controller})
+    : super(key: key);
 
   final TextEditingController controller;
 
@@ -23,6 +21,7 @@ class SearchFieldWidget extends ConsumerWidget {
         showDatePicker: showDatePicker,
         showIncomingButton: true,
         showOrderButton: true,
+        hintText: 'Search products, transactions...',
       ),
     );
   }
