@@ -2,7 +2,7 @@ name: flipper_rw
 description: "A new Flutter project."
 publish_to: "none" 
 
-version: 1.180.4252223234901+1756528902
+version: 1.180.4252223234902+1756528903
 
 environment:
   sdk: ">=3.3.4 <4.0.0"
