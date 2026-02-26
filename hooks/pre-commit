@@ -94,13 +94,14 @@ eval "find . -type f -name \"pubspec.yaml\" $EXCLUDE_PATTERN" | while read -r PU
       major="${BASH_REMATCH[1]}"
       minor="${BASH_REMATCH[2]}"
       build="${BASH_REMATCH[3]}"
-      # Set revision to 0 instead of incrementing to comply with store requirements
-      new_msix_version="$major.$minor.$build.0"
+      revision="${BASH_REMATCH[4]}"
+      # Increment the revision number
+      new_revision=$((revision + 1))
+      new_msix_version="$major.$minor.$build.$new_revision"
 
       SED_INPLACE "s/msix_version: $msix_version/msix_version: $new_msix_version/" pubspec.yaml
       if [[ "$msix_version" != "$new_msix_version" ]]; then
         git add pubspec.yaml
-        git commit -m "Update MSIX version to $new_msix_version"
       fi
     else
       echo "Invalid msix_version format in $APP_DIR/pubspec.yaml: $msix_version"

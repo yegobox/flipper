@@ -98,6 +98,10 @@ class _AdminPinContentState extends State<_AdminPinContent> {
   bool _isConfirming = false;
   bool _canSave = false;
   bool _isLoading = false;
+  int _failedAttempts = 0;
+  DateTime? _lockoutUntil;
+  static const int _maxFailedAttempts = 5;
+  static const Duration _lockoutDuration = Duration(seconds: 30);
 
   String get _subtitle {
     if (widget.mode == AdminPinMode.verify) {
@@ -110,6 +114,12 @@ class _AdminPinContentState extends State<_AdminPinContent> {
   }
 
   void _onKeyPress(String value) {
+    // Block input if locked out in verify mode
+    if (widget.mode == AdminPinMode.verify &&
+        _lockoutUntil != null &&
+        DateTime.now().isBefore(_lockoutUntil!)) {
+      return;
+    }
     if (_pinController.text.length < 4) {
       setState(() {
         _pinController.text += value;
@@ -134,12 +144,38 @@ class _AdminPinContentState extends State<_AdminPinContent> {
 
   void _handlePinEntry() {
     if (widget.mode == AdminPinMode.verify) {
+      // Check if currently locked out
+      if (_lockoutUntil != null && DateTime.now().isBefore(_lockoutUntil!)) {
+        final remaining = _lockoutUntil!.difference(DateTime.now()).inSeconds;
+        setState(() {
+          _errorText = 'Too many failed attempts. Try again in $remaining seconds.';
+        });
+        return;
+      } else if (_lockoutUntil != null) {
+        // Lockout expired, reset state
+        setState(() {
+          _lockoutUntil = null;
+          _failedAttempts = 0;
+        });
+      }
+
       if (_pinController.text == widget.expectedPin) {
+        setState(() {
+          _failedAttempts = 0;
+          _lockoutUntil = null;
+        });
         widget.onSuccess(_pinController.text);
       } else {
         setState(() {
-          _errorText = 'Incorrect PIN. Please try again.';
+          _failedAttempts++;
           _pinController.clear();
+          if (_failedAttempts >= _maxFailedAttempts) {
+            _lockoutUntil = DateTime.now().add(_lockoutDuration);
+            _errorText = 'Too many failed attempts. Try again in ${_lockoutDuration.inSeconds} seconds.';
+            _failedAttempts = 0;
+          } else {
+            _errorText = 'Incorrect PIN. ${_maxFailedAttempts - _failedAttempts} attempts remaining.';
+          }
         });
       }
     } else {
