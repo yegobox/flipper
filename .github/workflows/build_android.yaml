@@ -116,14 +116,18 @@ jobs:
           KEYSTORE_STORE_PASSWORD: ${{ secrets.KEYSTORE_STORE_PASSWORD }}
           GOOGLE_SERVICE_JSON: ${{ secrets.GOOGLE_SERVICE_JSON }}
         working-directory: apps/flipper/android
+      - name: Calculate Version
+        run: |
+          VERSION_CODE=$(( ${{ github.run_number }} + 1800000000 ))
+          VERSION_NAME="1.180.${{ github.run_number }}"
+          echo "VERSION_CODE=$VERSION_CODE" >> $GITHUB_ENV
+          echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_ENV
       - run: |
           bundle exec fastlane ${{ github.event.inputs.lane || 'internal' }}
         env:
           PLAY_STORE_CONFIG_JSON: ${{ secrets.PLAYSTORE_ACCOUNT_KEY }}
           DB_URL: ${{ secrets.DB_URL }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-          VERSION_CODE: ${{ github.run_number + 1800000000 }}
-          VERSION_NAME: "1.180.${{ github.run_number }}"
         working-directory: apps/flipper/android
 
   
