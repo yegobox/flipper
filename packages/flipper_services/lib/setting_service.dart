@@ -28,12 +28,17 @@ class SettingsService with ListenableServiceMixin {
   bool get isAttendanceEnabled => _isAttendanceEnabled.value;
 
   final _isAdminPinEnabled = ReactiveValue<bool>(false);
-
   bool get isAdminPinEnabled => _isAdminPinEnabled.value;
 
+  final _enablePriceQuantityAdjustment = ReactiveValue<bool>(false);
+  bool get enablePriceQuantityAdjustment =>
+      _enablePriceQuantityAdjustment.value;
+
   Future<bool> updateSettings({required Map map}) async {
-    String userId = ProxyService.box.getUserId()!;
-    String businessId = ProxyService.box.getBusinessId()!;
+    String? userId = ProxyService.box.getUserId();
+    String? businessId = map['businessId'] ?? ProxyService.box.getBusinessId();
+
+    if (userId == null || businessId == null) return false;
 
     Setting? setting = await ProxyService.getStrategy(
       Strategy.capella,
@@ -60,6 +65,12 @@ class SettingsService with ListenableServiceMixin {
       if (map.containsKey('isAttendanceEnabled')) {
         setting.isAttendanceEnabled = map['isAttendanceEnabled'];
       }
+      if (map.containsKey('enablePriceQuantityAdjustment')) {
+        setting.enablePriceQuantityAdjustment =
+            map['enablePriceQuantityAdjustment'];
+        _enablePriceQuantityAdjustment.value =
+            map['enablePriceQuantityAdjustment'];
+      }
 
       await ProxyService.strategy.patchSettings(setting: setting);
       return true;
@@ -78,7 +89,10 @@ class SettingsService with ListenableServiceMixin {
             map['openReceiptFileOSaleComplete'] ?? false,
         autoPrint: map['autoPrint'] ?? false,
         isAttendanceEnabled: map['isAttendanceEnabled'] ?? false,
+        enablePriceQuantityAdjustment:
+            map['enablePriceQuantityAdjustment'] ?? false,
       );
+
       await ProxyService.getStrategy(
         Strategy.capella,
       ).patchSettings(setting: newSetting);
@@ -135,26 +149,14 @@ class SettingsService with ListenableServiceMixin {
   void toggleAttendanceSetting() async {
     Setting? setting = await settings();
     if (setting != null) {
-      if (setting.isAttendanceEnabled == null) {
-        _isAttendanceEnabled.value = false;
-      } else {
-        _isAttendanceEnabled.value = !setting.isAttendanceEnabled!;
-      }
+      _isAttendanceEnabled.value = !(setting.isAttendanceEnabled ?? false);
 
-      Setting(
-        userId: setting.userId,
-        id: setting.id,
-        email: setting.email,
-        businessId: setting.businessId,
-        hasPin: setting.hasPin,
-        type: setting.type,
-        attendnaceDocCreated: setting.attendnaceDocCreated,
-        sendDailyReport: setting.sendDailyReport!,
-        openReceiptFileOSaleComplete: setting.openReceiptFileOSaleComplete,
-        autoPrint: setting.autoPrint,
-        isAttendanceEnabled: _isAttendanceEnabled.value,
+      await updateSettings(
+        map: {
+          'isAttendanceEnabled': _isAttendanceEnabled.value,
+          'businessId': setting.businessId,
+        },
       );
-      updateSettings(map: setting as Map<String, dynamic>);
       notifyListeners();
     }
   }
@@ -162,24 +164,14 @@ class SettingsService with ListenableServiceMixin {
   void toggleDailyReportSetting() async {
     Setting? setting = await settings();
     if (setting != null) {
-      if (setting.sendDailyReport == null) {
-        _sendDailReport.value = false;
-      } else {
-        _sendDailReport.value = !setting.sendDailyReport!;
-      }
-      Setting(
-        id: setting.id,
-        userId: setting.userId,
-        email: setting.email,
-        businessId: setting.businessId,
-        hasPin: setting.hasPin,
-        type: setting.type,
-        attendnaceDocCreated: setting.attendnaceDocCreated,
-        sendDailyReport: _sendDailReport.value,
-        openReceiptFileOSaleComplete: setting.openReceiptFileOSaleComplete,
-        autoPrint: setting.autoPrint,
+      _sendDailReport.value = !(setting.sendDailyReport ?? false);
+
+      await updateSettings(
+        map: {
+          'sendDailyReport': _sendDailReport.value,
+          'businessId': setting.businessId,
+        },
       );
-      updateSettings(map: setting as Map<String, dynamic>);
       notifyListeners();
     }
   }
@@ -204,6 +196,25 @@ class SettingsService with ListenableServiceMixin {
     if (setting != null) {
       _isAdminPinEnabled.value = setting.isAdminPinEnabled ?? false;
     }
+  }
+
+  void getPriceQuantityAdjustmentToggleState() async {
+    Setting? setting = await settings();
+    if (setting != null) {
+      _enablePriceQuantityAdjustment.value =
+          setting.enablePriceQuantityAdjustment ?? false;
+    }
+  }
+
+  Future<void> togglePriceQuantityAdjustment({
+    required bool enabled,
+    required String businessId,
+  }) async {
+    await updateSettings(
+      map: {'enablePriceQuantityAdjustment': enabled, 'businessId': businessId},
+    );
+    _enablePriceQuantityAdjustment.value = enabled;
+    notifyListeners();
   }
 
   Future<void> setAdminPin({
@@ -238,6 +249,7 @@ class SettingsService with ListenableServiceMixin {
       _enablePrinter,
       themeMode,
       _isAdminPinEnabled,
+      _enablePriceQuantityAdjustment,
     ]);
   }
 }

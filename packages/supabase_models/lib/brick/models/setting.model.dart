@@ -31,6 +31,7 @@ class Setting extends OfflineFirstWithSupabaseModel {
   bool? isAdminPinEnabled;
   String? businessId;
   String? createdAt;
+  bool? enablePriceQuantityAdjustment;
 
   DateTime? lastTouched;
 
@@ -56,6 +57,7 @@ class Setting extends OfflineFirstWithSupabaseModel {
     this.isAdminPinEnabled,
     this.businessId,
     this.createdAt,
+    this.enablePriceQuantityAdjustment,
     this.lastTouched,
     this.deletedAt,
   }) : id = id ?? const Uuid().v4();
@@ -83,6 +85,8 @@ class Setting extends OfflineFirstWithSupabaseModel {
       isAdminPinEnabled: json['isAdminPinEnabled'] as bool?,
       businessId: json['businessId'] as String?,
       createdAt: json['createdAt'] as String?,
+      enablePriceQuantityAdjustment:
+          json['enablePriceQuantityAdjustment'] as bool?,
       lastTouched: json['lastTouched'] != null
           ? DateTime.tryParse(json['lastTouched'] as String)
           : null,
@@ -114,6 +118,7 @@ class Setting extends OfflineFirstWithSupabaseModel {
       'isAdminPinEnabled': isAdminPinEnabled,
       'businessId': businessId,
       'createdAt': createdAt,
+      'enablePriceQuantityAdjustment': enablePriceQuantityAdjustment,
       'lastTouched': lastTouched?.toIso8601String(),
       'deletedAt': deletedAt?.toIso8601String(),
     };

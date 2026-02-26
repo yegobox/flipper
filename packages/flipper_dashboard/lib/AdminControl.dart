@@ -127,6 +127,7 @@ class _AdminControlState extends State<AdminControl> {
       }
     }
     settingsService.getAdminPinToggleState();
+    settingsService.getPriceQuantityAdjustmentToggleState();
     _loadSmsConfig();
   }
 
@@ -363,6 +364,13 @@ class _AdminControlState extends State<AdminControl> {
     setState(() {
       userLoggingEnabled = value;
     });
+  }
+
+  void togglePriceQuantityAdjustment(bool value) async {
+    await settingsService.togglePriceQuantityAdjustment(
+      enabled: value,
+      businessId: ProxyService.box.getBusinessId()!,
+    );
   }
 
   @override
@@ -693,6 +701,19 @@ class _AdminControlState extends State<AdminControl> {
               value: userLoggingEnabled,
               onChanged: toggleUserLogging,
               color: Colors.indigo,
+            ),
+            ListenableBuilder(
+              listenable: settingsService,
+              builder: (context, child) {
+                return SwitchSettingsCard(
+                  title: 'Price-Qty Adjustment',
+                  subtitle: 'Auto-adjust qty on price change',
+                  icon: Icons.scale_outlined,
+                  value: settingsService.enablePriceQuantityAdjustment,
+                  onChanged: togglePriceQuantityAdjustment,
+                  color: Colors.deepOrange,
+                );
+              },
             ),
           ],
         ),
