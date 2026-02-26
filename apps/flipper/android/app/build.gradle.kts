@@ -60,8 +60,8 @@ android {
             }
         )
 
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
+        versionCode = System.getenv("VERSION_CODE")?.toInt() ?: flutter.versionCode
+        versionName = System.getenv("VERSION_NAME") ?: flutter.versionName
     }
 
 

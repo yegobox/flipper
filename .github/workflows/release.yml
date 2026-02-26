@@ -716,6 +716,8 @@ jobs:
           PLAY_STORE_CONFIG_JSON: ${{ matrix.app == 'flipper_auth' && secrets.FLIPPER_AUTH_PLAYSTORE_ACCOUNT_KEY || secrets.PLAYSTORE_ACCOUNT_KEY }}
           DB_URL: ${{ secrets.DB_URL }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+          VERSION_CODE: ${{ github.run_number + 1800000000 }}
+          VERSION_NAME: "1.180.${{ github.run_number }}"
         working-directory: apps/${{ matrix.app }}/android
       
       # ===== POST-BUILD 16 KB VERIFICATION - START =====

@@ -1,5 +1,6 @@
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 import 'package:flipper_services/setting_service.dart';
@@ -102,9 +103,41 @@ class _AdminPinContentState extends State<_AdminPinContent> {
   DateTime? _lockoutUntil;
   static const int _maxFailedAttempts = 5;
   static const Duration _lockoutDuration = Duration(seconds: 30);
+  Timer? _lockoutTimer;
+
+  @override
+  void initState() {
+    super.initState();
+    _startLockoutTimer();
+  }
+
+  @override
+  void dispose() {
+    _lockoutTimer?.cancel();
+    _pinController.dispose();
+    super.dispose();
+  }
+
+  void _startLockoutTimer() {
+    _lockoutTimer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (_lockoutUntil != null && mounted) {
+        setState(() {});
+        if (DateTime.now().isAfter(_lockoutUntil!)) {
+          setState(() {
+            _lockoutUntil = null;
+            _failedAttempts = 0;
+          });
+        }
+      }
+    });
+  }
 
   String get _subtitle {
     if (widget.mode == AdminPinMode.verify) {
+      if (_lockoutUntil != null && DateTime.now().isBefore(_lockoutUntil!)) {
+        final remaining = _lockoutUntil!.difference(DateTime.now()).inSeconds;
+        return 'Too many failed attempts. Try again in $remaining seconds.';
+      }
       return 'Please enter your 4-digit administrator PIN to proceed.';
     }
     if (_isConfirming) {
