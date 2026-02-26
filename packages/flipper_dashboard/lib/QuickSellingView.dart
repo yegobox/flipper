@@ -366,6 +366,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     // Reset UI state for the next transaction to prevent stale data
     _lastAutoSetAmount = 0.0;
     ref.invalidate(paymentMethodsProvider);
+    widget.deliveryNoteCotroller.clear();
     widget.receivedAmountController.clear();
     widget.discountController.clear();
     widget.customerPhoneNumberController.clear();

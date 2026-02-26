@@ -1,26 +1,28 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20260225075135.migration.dart';
+part '20260226120531.migration.dart';
 part '20260131115249.migration.dart';
 part '20260210125423.migration.dart';
 part '20260216095950.migration.dart';
 part '20260219185654.migration.dart';
 part '20260223114710.migration.dart';
+part '20260225075135.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20260225075135(),
+  const Migration20260226120531(),
   const Migration20260131115249(),
   const Migration20260210125423(),
   const Migration20260216095950(),
   const Migration20260219185654(),
   const Migration20260223114710(),
+  const Migration20260225075135(),
 };
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
-  20260223114710,
+  20260225075135,
   generatorVersion: 1,
   tables: <SchemaTable>{
     SchemaTable(
@@ -1339,8 +1341,11 @@ final schema = Schema(
         SchemaColumn('auto_respond', Column.boolean),
         SchemaColumn('token', Column.varchar),
         SchemaColumn('has_pin', Column.boolean),
+        SchemaColumn('admin_pin', Column.varchar),
+        SchemaColumn('is_admin_pin_enabled', Column.boolean),
         SchemaColumn('business_id', Column.varchar),
         SchemaColumn('created_at', Column.varchar),
+        SchemaColumn('enable_price_quantity_adjustment', Column.boolean),
         SchemaColumn('last_touched', Column.datetime),
         SchemaColumn('deleted_at', Column.datetime),
       },
