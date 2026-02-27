@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
+import 'package:universal_platform/universal_platform.dart';
 import 'package:logging/logging.dart';
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:flipper_models/secrets.dart';
@@ -79,7 +81,7 @@ Future<void> main() async {
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
   // Configure logging
-  Logger.root.level = Level.OFF;
+  Logger.root.level = Level.INFO;
   Logger.root.onRecord.listen((record) {
     debugPrint('${record.level.name}: ${record.time}: ${record.message}');
   });
@@ -117,8 +119,18 @@ Future<void> main() async {
 
       // Call Amplify AFTER Supabase and additional dependencies
       debugPrint('☁️  Configuring Amplify...');
-      await AmplifyConfigHelper.configureAmplify();
-      debugPrint('✅ Amplify configured');
+      // In debug/test environments, we don't block on Amplify configuration
+      // as it can hang indefinitely on iOS simulators.
+      final isSimulator = UniversalPlatform.isIOS && !UniversalPlatform.isWeb;
+      final shouldBlock =
+          !kDebugMode && !isSimulator && !AppSecrets.isTestEnvironment();
+      await AmplifyConfigHelper.configureAmplify(block: shouldBlock);
+      if (shouldBlock) {
+        debugPrint('✅ Amplify configured');
+      } else {
+        debugPrint(
+            'ℹ️ Amplify configuration started in background (non-blocking)');
+      }
 
       debugPrint('🔄 Registering Ditto sync defaults...');
       await DittoSyncRegistry.registerDefaults();
