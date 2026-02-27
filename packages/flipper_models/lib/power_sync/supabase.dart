@@ -14,15 +14,23 @@ Future<void> loadSupabase() async {
       debugPrint('  Anon Key: $supabaseAnonKey');
     }
 
+    debugPrint(
+      '🚀 [loadSupabase] Calling Repository.initializeSupabaseAndConfigure...',
+    );
     await Repository.initializeSupabaseAndConfigure(
       supabaseUrl: supabaseUrl,
       supabaseAnonKey: supabaseAnonKey,
     );
+    debugPrint(
+      '✅ [loadSupabase] Repository.initializeSupabaseAndConfigure completed',
+    );
 
+    debugPrint('🚀 [loadSupabase] Calling Repository().initialize()...');
     await Repository().initialize();
+    debugPrint('✅ [loadSupabase] Repository().initialize() completed');
   } catch (e, s) {
-    debugPrint('Error initializing Supabase: $e');
-    debugPrint('Error initializing Supabase: $s');
+    debugPrint('❌ [loadSupabase] Error initializing Supabase: $e');
+    debugPrint('❌ [loadSupabase] Stack trace: $s');
 
     // In test environment, we'll continue even if Supabase fails
     if (!AppSecrets.isTestEnvironment()) {

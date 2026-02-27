@@ -317,16 +317,14 @@ class Repository extends OfflineFirstWithSupabaseRepository {
         // Note: PRAGMA commands work even if the database file doesn't exist yet
         await _singleton!._databaseManager.configureDatabaseSettings(
             dbPath, PlatformHelpers.getDatabaseFactory());
-        _logger.info('Database configuration completed successfully');
+        print('✅ [Repository] Database configuration completed successfully');
       }
     } catch (e) {
-      _logger.warning('Error during database configuration: $e');
-      // Continue without database configuration as it's not critical
+      print('⚠️ [Repository] Error during database configuration: $e');
     } finally {
-      // CRITICAL: Always mark ready, even if configuration fails
-      _logger.info('Marking Repository as ready...');
+      print('🚀 [Repository] Marking Repository as ready...');
       _markReady();
-      _logger.info('Repository marked as ready');
+      print('✅ [Repository] Repository marked as ready');
     }
   }
 
@@ -429,13 +427,19 @@ class Repository extends OfflineFirstWithSupabaseRepository {
         'Starting Repository initialization (first time or after disposal).');
 
     try {
+      print('🚀 [Repository] Starting _configureAndInitializeDatabase...');
       await _configureAndInitializeDatabase(
         supabaseUrl: supabaseUrl,
         supabaseAnonKey: supabaseAnonKey,
         configureDatabase: configureDatabase,
       );
+      print('✅ [Repository] _configureAndInitializeDatabase completed');
       _logger.info('Repository initialization complete.');
       _markReady();
+    } catch (e, s) {
+      print('❌ [Repository] Initialization failed: $e');
+      print('❌ [Repository] Stack trace: $s');
+      rethrow;
     } finally {
       // Ensure the initialization flag is reset
       _isInitializing = false;
