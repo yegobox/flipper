@@ -4,6 +4,7 @@ import 'package:country_code_picker/country_code_picker.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_rw/dependency_initializer.dart';
 import 'package:flipper_rw/state_observer.dart';
+import 'package:flipper_models/amplify_config_helper.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_routing/app.locator.dart' as loc;
@@ -89,58 +90,40 @@ Future<void> main() async {
       debugPrint('🚀 Starting app initialization...');
 
       debugPrint('📱 Initializing Firebase...');
-      debugPrint('🚀 Starting app initialization...');
-
-      debugPrint('📱 Initializing Firebase...');
       await _initializeFirebase();
       debugPrint('✅ Firebase initialized');
 
-      debugPrint('🔧 Initializing dependencies...');
-      debugPrint('✅ Firebase initialized');
+      debugPrint('🔧 Setting up locator and UI services...');
+      loc.setupLocator(stackedRouter: stackedRouter);
+      setupDialogUi();
+      setupBottomSheetUi();
+      debugPrint('✅ Locator and UI services setup complete');
 
       debugPrint('🔧 Initializing dependencies...');
       await initializeDependencies();
       debugPrint('✅ Dependencies initialized');
 
-      debugPrint('🗄️  Initializing Supabase...');
-      debugPrint('✅ Dependencies initialized');
+      // Move error handler earlier
+      GlobalErrorHandler.initialize();
+      debugPrint('✅ Global error handler initialized');
 
       debugPrint('🗄️  Initializing Supabase...');
       await _initializeSupabase();
-      GlobalErrorHandler.initialize();
-      loc.setupLocator(stackedRouter: stackedRouter);
-      debugPrint('✅ Locator setup complete');
-
-      debugPrint('💬 Setting up dialogs...');
-      debugPrint('✅ Locator setup complete');
-
-      debugPrint('💬 Setting up dialogs...');
-      setupDialogUi();
-      debugPrint('✅ Dialogs setup complete');
-
-      debugPrint('📋 Setting up bottom sheets...');
-      debugPrint('✅ Dialogs setup complete');
-
-      debugPrint('📋 Setting up bottom sheets...');
-      setupBottomSheetUi();
-      debugPrint('✅ Bottom sheets setup complete');
-
-      debugPrint('⚙️  Initializing additional dependencies...');
-      debugPrint('✅ Bottom sheets setup complete');
+      debugPrint('✅ Supabase initialized');
 
       debugPrint('⚙️  Initializing additional dependencies...');
       await initDependencies();
       debugPrint('✅ Additional dependencies initialized');
 
-      debugPrint('🔄 Registering Ditto sync defaults...');
-      debugPrint('✅ Additional dependencies initialized');
+      // Call Amplify AFTER Supabase and additional dependencies
+      debugPrint('☁️  Configuring Amplify...');
+      await AmplifyConfigHelper.configureAmplify();
+      debugPrint('✅ Amplify configured');
 
       debugPrint('🔄 Registering Ditto sync defaults...');
       await DittoSyncRegistry.registerDefaults();
       debugPrint('✅ Ditto sync defaults registered');
-      debugPrint('✅ Ditto sync defaults registered');
 
-      debugPrint('🎉 App initialization completed successfully!');
       debugPrint('🎉 App initialization completed successfully!');
     }
   }

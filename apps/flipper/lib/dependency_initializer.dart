@@ -1,6 +1,5 @@
 import 'dart:io';
 import 'dart:async';
-import 'package:flipper_models/amplify_config_helper.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/foundation.dart' as foundation;
@@ -163,7 +162,7 @@ Future<void> initializeDependencies() async {
     await _initializeNonCriticalDependencies();
     await _configureErrorHandling();
     await _configurePlatformServices();
-    await AmplifyConfigHelper.configureAmplify();
+    // Amplify configuration moved to main.dart to ensure it happens after Supabase initialization
   } catch (e, stackTrace) {
     debugPrint('Error during dependency initialization: $e');
     debugPrint(stackTrace.toString());
