@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/proxy.dart';
@@ -105,91 +106,83 @@ class PaymentVerificationService {
   /// Verifies the current business payment status
   /// Returns a detailed response that callers can use to decide what action to take
   Future<PaymentVerificationResponse> verifyPaymentStatus() async {
-    talker.info('Verifying payment status - starting verification');
+    debugPrint('🚀 [PaymentVerificationService] Verifying payment status...');
 
     try {
-      final business = await ProxyService.strategy.activeBusiness();
+      final business = await ProxyService.strategy.activeBusiness().timeout(
+        const Duration(seconds: 10),
+      );
       if (business?.id == null) {
         talker.error('Payment verification failed: No active business found');
-        return PaymentVerificationResponse(
+        return const PaymentVerificationResponse(
           result: PaymentVerificationResult.error,
           errorMessage: 'No active business found',
         );
       }
 
       final businessId = business!.id;
-      talker.info(
-        'Payment verification: Checking plan for business: $businessId',
+      debugPrint(
+        '🚀 [PaymentVerificationService] Checking plan for business: $businessId',
       );
 
       // First check if a payment plan exists at all
-      // fetchOnline: true ensures we check remote, crucial for new devices
-      final plan = await ProxyService.strategy.getPaymentPlan(
-        businessId: businessId,
-        fetchOnline: true,
-      );
+      final plan = await ProxyService.strategy
+          .getPaymentPlan(businessId: businessId, fetchOnline: true)
+          .timeout(const Duration(seconds: 15));
 
       if (plan == null) {
-        talker.warning(
-          'Payment verification: No payment plan found for business: $businessId (checked remote)',
+        debugPrint(
+          '🚀 [PaymentVerificationService] No payment plan found for business: $businessId',
         );
-        return PaymentVerificationResponse(
+        return const PaymentVerificationResponse(
           result: PaymentVerificationResult.noPlan,
           errorMessage: 'No payment plan exists for this business',
         );
       }
 
-      talker.info(
-        'Payment verification: Found plan ${plan.id} for business $businessId, checking subscription status',
+      debugPrint(
+        '🚀 [PaymentVerificationService] Found plan, checking subscription status...',
       );
 
       // A plan exists, now check if it's active
       try {
-        final isActive = await ProxyService.strategy.hasActiveSubscription(
-          businessId: businessId,
-          flipperHttpClient: ProxyService.http,
-          fetchRemote: true,
-        );
+        final isActive = await ProxyService.strategy
+            .hasActiveSubscription(
+              businessId: businessId,
+              flipperHttpClient: ProxyService.http,
+              fetchRemote: true,
+            )
+            .timeout(const Duration(seconds: 15));
 
         if (isActive) {
-          talker.info(
-            'Payment verification successful: Subscription is active',
-          );
+          debugPrint('🚀 [PaymentVerificationService] Subscription is active');
           return PaymentVerificationResponse(
             result: PaymentVerificationResult.active,
             plan: plan,
           );
         } else {
-          talker.error('Payment plan exists but is not active');
+          debugPrint(
+            '🚀 [PaymentVerificationService] Subscription is NOT active',
+          );
           return PaymentVerificationResponse(
             result: PaymentVerificationResult.planExistsButInactive,
             errorMessage: 'Payment plan exists but subscription is not active',
             plan: plan,
           );
         }
-      } on PaymentIncompleteException catch (e) {
-        talker.error('Payment incomplete: $e');
-        return PaymentVerificationResponse(
-          result: PaymentVerificationResult.planExistsButInactive,
-          errorMessage: 'Payment incomplete: ${e.message}',
-          plan: plan,
-          exception: e,
-        );
       } catch (e) {
-        // For any other error during subscription check, still consider it as planExistsButInactive
-        talker.error('Error checking subscription status: $e');
-        return PaymentVerificationResponse(
-          result: PaymentVerificationResult.planExistsButInactive,
-          errorMessage: 'Error checking subscription status: ${e.toString()}',
-          plan: plan,
-          exception: e is Exception ? e : Exception(e.toString()),
+        debugPrint(
+          '🚀 [PaymentVerificationService] Error checking subscription status: $e',
         );
+        rethrow;
       }
     } catch (e) {
-      talker.error('Error during payment verification: $e');
+      debugPrint(
+        '🚀 [PaymentVerificationService] ERROR during verification: $e',
+      );
       return PaymentVerificationResponse(
         result: PaymentVerificationResult.error,
-        errorMessage: 'Failed to verify payment status: ${e.toString()}',
+        errorMessage: 'Failed to verify payment status: $e',
         exception: e is Exception ? e : Exception(e.toString()),
       );
     }
