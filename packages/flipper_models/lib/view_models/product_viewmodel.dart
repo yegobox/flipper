@@ -419,8 +419,11 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
   Future<void> bulkDelete({
     required Set<String> ids,
     required String type,
+    Function(double progress)? onProgress,
   }) async {
     try {
+      int count = 0;
+      int total = ids.length;
       for (final id in ids) {
         if (type == 'variant') {
           // get variant by id directly
@@ -451,6 +454,10 @@ class ProductViewModel extends CoreViewModel with ProductMixin {
           }
         } else if (type == 'product') {
           await deleteProduct(productId: id);
+        }
+        count++;
+        if (onProgress != null) {
+          onProgress(count / total);
         }
       }
     } catch (e, s) {

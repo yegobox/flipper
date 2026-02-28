@@ -32,6 +32,7 @@ import 'package:flipper_models/sync/mixins/transaction_item_mixin.dart';
 import 'package:flipper_models/sync/mixins/transaction_mixin.dart';
 import 'package:flipper_models/sync/mixins/variant_mixin.dart';
 import 'package:flipper_models/sync/mixins/discount_mixin.dart';
+import 'package:flipper_models/sync/mixins/settings_mixin.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_services/Miscellaneous.dart';
@@ -95,7 +96,8 @@ class CoreSync extends AiStrategyImpl
         CounterMixin,
         DelegationMixin,
         ProductionOutputMixin,
-        DiscountMixin
+        DiscountMixin,
+        SettingsMixin
     implements DatabaseSyncInterface {
   final String apihub = AppSecrets.apihubProd;
 
@@ -1657,30 +1659,10 @@ class CoreSync extends AiStrategyImpl
   }
 
   @override
-  Future<void> sendMessageToIsolate() async {
-    if (ProxyService.box.stopTaxService() ?? false) return;
-    if (ProxyService.box.getBusinessId() == null) return;
-    if (ProxyService.box.getBranchId() == null) return;
-
-    Business? business = await getBusiness(
-      businessId: ProxyService.box.getBusinessId()!,
-    );
-
-    try {
-      sendPort!.send({
-        'task': 'taxService',
-        'branchId': ProxyService.box.getBranchId()!,
-        "businessId": ProxyService.box.getBusinessId()!,
-        "URI": await ProxyService.box.getServerUrl(),
-        "bhfId": await ProxyService.box.bhfId(),
-        'tinNumber': business?.tinNumber,
-        'encryptionKey': ProxyService.box.encryptionKey(),
-        // 'dbPath': path.join(
-        //     (await DatabasePath.getDatabaseDirectory()), Repository.dbFileName),
-      });
-    } catch (e, s) {
-      talker.error(e, s);
-      rethrow;
+  Future<void> sendMessageToIsolate({Map<String, dynamic>? message}) async {
+    if (message != null) {
+      sendPort?.send(message);
+      return;
     }
   }
 
@@ -2814,12 +2796,6 @@ class CoreSync extends AiStrategyImpl
     throw UnimplementedError();
   }
 
-  @override
-  Future<models.Setting?> getSetting({required String businessId}) {
-    // TODO: implement getSetting
-    throw UnimplementedError();
-  }
-
   //TODO: check if we are setting modrId same as barcode in other places
   @override
   Future<void> processItem({
@@ -3056,12 +3032,6 @@ class CoreSync extends AiStrategyImpl
   @override
   void notify({required models.AppNotification notification}) {
     // TODO: implement notify
-  }
-
-  @override
-  Future<void> patchSocialSetting({required models.Setting setting}) {
-    // TODO: implement patchSocialSetting
-    throw UnimplementedError();
   }
 
   @override

@@ -118,7 +118,8 @@ class _InfoDialogState extends State<InfoDialog>
                       ),
                     ),
                     child: Text(
-                      _getButtonText(status),
+                      widget.request.data?['mainButtonText'] ??
+                          _getButtonText(status),
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,

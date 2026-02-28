@@ -138,15 +138,14 @@ mixin TransactionComputationMixin {
           );
     } else {
       final firstPayment = payments[0];
-      // If the first payment is 0 or matches the full total (default initialization),
+      // If the first payment is 0 or matches a "default" state,
       // update it to the true remainder for this session.
       if (firstPayment.amount == 0 ||
-          (firstPayment.amount - (transaction.subTotal ?? 0.0)).abs() < 0.01) {
-        // Check if we need to update the controller text
+          (firstPayment.amount - displayRemainder).abs() > 0.01) {
+        // Only update if the current controller text is empty or matches old logic
         bool shouldUpdateControllerText =
             firstPayment.controller.text.isEmpty ||
-            double.tryParse(firstPayment.controller.text) ==
-                (transaction.subTotal ?? 0.0);
+            double.tryParse(firstPayment.controller.text) == 0;
 
         if (shouldUpdateControllerText &&
             firstPayment.controller.text != displayRemainder.toString()) {

@@ -78,6 +78,10 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   }
 
   double get totalAfterDiscountAndShipping {
+    return _calculateTotal();
+  }
+
+  double _calculateTotal({List<TransactionItem>? items}) {
     final isExpense = ProxyService.box.isOrdering() ?? false;
     final transaction = ref
         .read(pendingTransactionStreamProvider(isExpense: isExpense))
@@ -86,19 +90,22 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         double.tryParse(widget.discountController.text) ?? 0.0;
 
     return calculateTransactionTotal(
-      items: internalTransactionItems,
+      items: items ?? internalTransactionItems,
       transaction: transaction,
       discountPercent: discountPercent,
     );
   }
 
-  void _updateReceivedAmountIfNeeded(ITransaction transaction) {
+  void _updateReceivedAmountIfNeeded(
+    ITransaction transaction, {
+    List<TransactionItem>? items,
+  }) {
     if (!mounted) return;
 
     updatePaymentRemainder(
       ref: ref,
       transaction: transaction,
-      total: totalAfterDiscountAndShipping,
+      total: _calculateTotal(items: items),
       receivedAmountController: widget.receivedAmountController,
       lastAutoSetAmount: _lastAutoSetAmount,
       onAutoSetAmountChanged: (amount) {
@@ -356,6 +363,15 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       ),
     );
 
+    // Reset UI state for the next transaction to prevent stale data
+    _lastAutoSetAmount = 0.0;
+    ref.invalidate(paymentMethodsProvider);
+    widget.deliveryNoteCotroller.clear();
+    widget.receivedAmountController.clear();
+    widget.discountController.clear();
+    widget.customerPhoneNumberController.clear();
+    ref.read(customerNameControllerProvider).clear();
+
     await newTransaction(
       typeOfThisTransactionIsExpense: ProxyService.box.isOrdering() ?? false,
     );
@@ -419,8 +435,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                 ),
               )
               .value;
-          if (transaction != null) {
-            _updateReceivedAmountIfNeeded(transaction);
+          if (transaction != null && next.hasValue) {
+            _updateReceivedAmountIfNeeded(transaction, items: next.value);
           }
         },
       );

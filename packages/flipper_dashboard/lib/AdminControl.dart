@@ -10,6 +10,8 @@ import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/sms/sms_notification_service.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flipper_ui/dialogs/AdminPinDialog.dart';
+import 'package:flipper_services/setting_service.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flutter/foundation.dart' hide Category;
@@ -43,6 +45,7 @@ class _AdminControlState extends State<AdminControl> {
   bool isUpdatingReceiptLogo = false;
   bool isRemovingReceiptLogo = false;
   bool userLoggingEnabled = false;
+  final settingsService = locator<SettingsService>();
 
   bool _isValidPhoneNumber(String phone) {
     // Remove any spaces or special characters
@@ -123,6 +126,8 @@ class _AdminControlState extends State<AdminControl> {
         receiptLogoBytes = null;
       }
     }
+    settingsService.getAdminPinToggleState();
+    settingsService.getPriceQuantityAdjustmentToggleState();
     _loadSmsConfig();
   }
 
@@ -361,6 +366,13 @@ class _AdminControlState extends State<AdminControl> {
     });
   }
 
+  void togglePriceQuantityAdjustment(bool value) async {
+    await settingsService.togglePriceQuantityAdjustment(
+      enabled: value,
+      businessId: ProxyService.box.getBusinessId()!,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -505,6 +517,8 @@ class _AdminControlState extends State<AdminControl> {
         ),
         const SizedBox(height: 32),
         _buildSmsConfigSection(context),
+        const SizedBox(height: 32),
+        _buildSecuritySection(context),
         const SizedBox(height: 32),
         _buildSystemSettings(context),
         const SizedBox(height: 32),
@@ -688,6 +702,19 @@ class _AdminControlState extends State<AdminControl> {
               onChanged: toggleUserLogging,
               color: Colors.indigo,
             ),
+            ListenableBuilder(
+              listenable: settingsService,
+              builder: (context, child) {
+                return SwitchSettingsCard(
+                  title: 'Price-Qty Adjustment',
+                  subtitle: 'Auto-adjust qty on price change',
+                  icon: Icons.scale_outlined,
+                  value: settingsService.enablePriceQuantityAdjustment,
+                  onChanged: togglePriceQuantityAdjustment,
+                  color: Colors.deepOrange,
+                );
+              },
+            ),
           ],
         ),
       ],
@@ -830,6 +857,88 @@ class _AdminControlState extends State<AdminControl> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildSecuritySection(BuildContext context) {
+    return ListenableBuilder(
+      listenable: settingsService,
+      builder: (context, _) {
+        return SettingsSection(
+          title: 'Security',
+          children: [
+            SwitchSettingsCard(
+              title: 'Administrator PIN',
+              subtitle:
+                  'Secure sensitive actions like deleting or editing products',
+              icon: Icons.shield_outlined,
+              value: settingsService.isAdminPinEnabled,
+              onChanged: (value) async {
+                if (value) {
+                  // Enable: prompt to set PIN if not already set, or just enable
+                  final setting = await settingsService.settings();
+                  if (setting?.adminPin == null) {
+                    await showAdminPinDialog(
+                      context: context,
+                      mode: AdminPinMode.set,
+                    );
+                  } else {
+                    await settingsService.toggleAdminPin(
+                      enabled: true,
+                      businessId: ProxyService.box.getBusinessId()!,
+                    );
+                  }
+                } else {
+                  // Disable: prompt for current PIN to confirm
+                  final setting = await settingsService.settings();
+                  if (setting?.adminPin != null) {
+                    final confirmed = await showAdminPinDialog(
+                      context: context,
+                      mode: AdminPinMode.verify,
+                      expectedPin: setting!.adminPin,
+                    );
+                    if (confirmed == true) {
+                      await settingsService.toggleAdminPin(
+                        enabled: false,
+                        businessId: ProxyService.box.getBusinessId()!,
+                      );
+                    }
+                  } else {
+                    await settingsService.toggleAdminPin(
+                      enabled: false,
+                      businessId: ProxyService.box.getBusinessId()!,
+                    );
+                  }
+                }
+              },
+              color: const Color(0xFF01B8E4),
+            ),
+            if (settingsService.isAdminPinEnabled) ...[
+              const SizedBox(height: 12),
+              SettingsCard(
+                title: 'Reset Administrator PIN',
+                subtitle: 'Update your high-security 4-digit PIN',
+                icon: Icons.lock_reset_outlined,
+                onTap: () async {
+                  final setting = await settingsService.settings();
+                  final confirmed = await showAdminPinDialog(
+                    context: context,
+                    mode: AdminPinMode.verify,
+                    expectedPin: setting?.adminPin,
+                  );
+                  if (confirmed == true) {
+                    await showAdminPinDialog(
+                      context: context,
+                      mode: AdminPinMode.set,
+                    );
+                  }
+                },
+                color: const Color(0xFF01B8E4),
+              ),
+            ],
+          ],
+        );
+      },
     );
   }
 
