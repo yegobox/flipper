@@ -331,20 +331,6 @@ class _SearchInputWithDropdownState
     final screenWidth = MediaQuery.of(context).size.width;
     final isMobileWidth = screenWidth < 600;
 
-    // Set mobile-specific defaults if on mobile
-    if (isMobileWidth) {
-      if (_selectedCustomerType == 'Walk-in') {
-        _selectedCustomerType = 'Shop';
-      }
-      if (_selectedSaleType == 'Outgoing- Sale') {
-        _selectedSaleType = 'Agent Sale';
-        // Update the stockInOutType value for Agent Sale
-        ProxyService.box.writeString(key: 'stockInOutType', value: "11");
-      }
-    } else {
-      ProxyService.box.writeString(key: 'stockInOutType', value: "11");
-    }
-
     // Extract the customer value, defaulting to null if loading or error
     final attachedCustomer = attachedCustomerAsync.maybeWhen(
       data: (customer) => customer,
@@ -356,9 +342,7 @@ class _SearchInputWithDropdownState
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          isMobileWidth
-              ? _buildMobileLayout(attachedCustomer)
-              : _buildDesktopLayout(attachedCustomer),
+          _buildSearchLayout(attachedCustomer, isMobileWidth),
           const SizedBox(height: 16.0),
           if (_searchResults.isNotEmpty)
             ListView.builder(
@@ -503,46 +487,98 @@ class _SearchInputWithDropdownState
     );
   }
 
-  Widget _buildMobileLayout(Customer? attachedCustomer) {
+  Widget _buildSearchLayout(Customer? attachedCustomer, bool isMobileWidth) {
+    if (isMobileWidth) {
+      return _buildCompactLayout(attachedCustomer);
+    } else {
+      return _buildExpandedLayout(attachedCustomer);
+    }
+  }
+
+  Widget _buildCompactLayout(Customer? attachedCustomer) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        TextFormField(
-          readOnly: attachedCustomer != null,
-          controller: _searchController,
-          onChanged: _performSearch,
-          decoration: InputDecoration(
-            hintText: 'Search Customer',
-            prefixIcon: const Icon(Icons.search),
-            suffixIcon: attachedCustomer != null
-                ? IconButton(
-                    icon: const Icon(
-                      FluentIcons.person_delete_20_regular,
-                      color: Colors.red,
-                    ),
-                    onPressed: _removeCustomer,
-                  )
-                : IconButton(
-                    onPressed: () {
-                      locator<RouterService>().navigateTo(CustomersRoute());
-                    },
-                    icon: const Icon(
-                      FluentIcons.person_add_16_regular,
-                      color: Colors.blue,
-                    ),
-                  ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12.0),
-              borderSide: BorderSide.none,
+        Row(
+          children: [
+            Expanded(
+              child: CustomDropdownButton(
+                items: ['Walk-in', 'Shop'],
+                selectedItem: _selectedCustomerType,
+                onChanged: (value) {
+                  setState(() {
+                    _selectedCustomerType = value;
+                  });
+                },
+                label: 'Customer Type',
+                icon: FluentIcons.person_16_regular,
+                compact: true,
+              ),
             ),
-            filled: true,
-            fillColor: Colors.grey[200],
-          ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: CustomDropdownButton(
+                items: ['Outgoing- Sale', 'Agent Sale'],
+                selectedItem: _selectedSaleType,
+                onChanged: (value) {
+                  setState(() {
+                    _selectedSaleType = value;
+                    ProxyService.box.writeString(
+                      key: 'stockInOutType',
+                      value: value == 'Agent Sale' ? "11" : "1",
+                    );
+                  });
+                },
+                label: 'Sale Type',
+                icon: FluentIcons.arrow_swap_16_regular,
+                compact: true,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        _buildSearchField(attachedCustomer),
+      ],
+    );
+  }
+
+  Widget _buildExpandedLayout(Customer? attachedCustomer) {
+    return Row(
+      children: [
+        Expanded(flex: 2, child: _buildSearchField(attachedCustomer)),
+        const SizedBox(width: 12),
+        CustomDropdownButton(
+          items: ['Walk-in', 'Shop'],
+          selectedItem: _selectedCustomerType,
+          onChanged: (value) {
+            setState(() {
+              _selectedCustomerType = value;
+            });
+          },
+          label: 'Customer Type',
+          icon: FluentIcons.person_16_regular,
+        ),
+        const SizedBox(width: 8),
+        CustomDropdownButton(
+          items: ['Outgoing- Sale', 'Agent Sale'],
+          selectedItem: _selectedSaleType,
+          onChanged: (value) {
+            setState(() {
+              _selectedSaleType = value;
+              ProxyService.box.writeString(
+                key: 'stockInOutType',
+                value: value == 'Agent Sale' ? "11" : "1",
+              );
+            });
+          },
+          label: 'Sale Type',
+          icon: FluentIcons.arrow_swap_16_regular,
         ),
       ],
     );
   }
 
-  Widget _buildDesktopLayout(Customer? attachedCustomer) {
+  Widget _buildSearchField(Customer? attachedCustomer) {
     return TextFormField(
       readOnly: attachedCustomer != null,
       controller: _searchController,
@@ -550,28 +586,23 @@ class _SearchInputWithDropdownState
       decoration: InputDecoration(
         hintText: 'Search Customer',
         prefixIcon: const Icon(Icons.search),
-        suffixIcon: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            attachedCustomer != null
-                ? IconButton(
-                    icon: const Icon(
-                      FluentIcons.person_delete_20_regular,
-                      color: Colors.red,
-                    ),
-                    onPressed: _removeCustomer,
-                  )
-                : IconButton(
-                    onPressed: () {
-                      locator<RouterService>().navigateTo(CustomersRoute());
-                    },
-                    icon: const Icon(
-                      FluentIcons.person_add_16_regular,
-                      color: Colors.blue,
-                    ),
-                  ),
-          ],
-        ),
+        suffixIcon: attachedCustomer != null
+            ? IconButton(
+                icon: const Icon(
+                  FluentIcons.person_delete_20_regular,
+                  color: Colors.red,
+                ),
+                onPressed: _removeCustomer,
+              )
+            : IconButton(
+                onPressed: () {
+                  locator<RouterService>().navigateTo(CustomersRoute());
+                },
+                icon: const Icon(
+                  FluentIcons.person_add_16_regular,
+                  color: Colors.blue,
+                ),
+              ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12.0),
           borderSide: BorderSide.none,

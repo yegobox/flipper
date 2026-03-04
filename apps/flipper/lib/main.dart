@@ -88,7 +88,7 @@ Future<void> main() async {
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
   // Configure logging
-  Logger.root.level = Level.INFO;
+  Logger.root.level = Level.OFF;
   Logger.root.onRecord.listen((record) {
     debugPrint('${record.level.name}: ${record.time}: ${record.message}');
   });

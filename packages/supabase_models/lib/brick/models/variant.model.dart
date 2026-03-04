@@ -46,7 +46,7 @@ class Variant extends OfflineFirstWithSupabaseModel {
   String? productName;
   String? categoryId; // Reference to the category
   String? categoryName; // Name of the category
-  String? branchId;
+  String branchId;
   String? taxName;
 
   // add RRA fields
@@ -181,7 +181,7 @@ class Variant extends OfflineFirstWithSupabaseModel {
     this.productName,
     this.categoryId,
     this.categoryName,
-    this.branchId,
+    required this.branchId,
     this.taxName,
     this.taxPercentage,
     this.itemSeq,
@@ -279,7 +279,7 @@ class Variant extends OfflineFirstWithSupabaseModel {
         lastTouched: DateTime.now().toUtc(),
         rsdQty: (parseNum(json['qty']) ?? 0.0).toDouble(),
         initialStock: (parseNum(json['qty']) ?? 0.0).toDouble(),
-        branchId: ProxyService.box.getBranchId(),
+        branchId: ProxyService.box.getBranchId()!,
         currentStock: (parseNum(json['qty']) ?? 0.0).toDouble(),
       );
 

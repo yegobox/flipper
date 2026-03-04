@@ -28,10 +28,7 @@ class Stock extends OfflineFirstWithSupabaseModel {
   int? tin;
 
   String? bhfId;
-
-  /// we kee both branchId and businessId as int as we are storing in it
-  /// the server it, but local id will be uuid
-  String? branchId;
+  String branchId;
   @Supabase(defaultValue: "0.0")
   double? currentStock;
 

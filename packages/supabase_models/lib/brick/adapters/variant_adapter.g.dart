@@ -38,7 +38,7 @@ Future<Variant> _$VariantFromSupabase(
     categoryName: data['category_name'] == null
         ? null
         : data['category_name'] as String?,
-    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
+    branchId: data['branch_id'] as String,
     taxName: data['tax_name'] == null ? null : data['tax_name'] as String?,
     itemSeq: data['item_seq'] == null ? null : data['item_seq'] as int?,
     isrccCd: data['isrcc_cd'] == null ? null : data['isrcc_cd'] as String?,
@@ -286,7 +286,7 @@ Future<Variant> _$VariantFromSqlite(
     categoryName: data['category_name'] == null
         ? null
         : data['category_name'] as String?,
-    branchId: data['branch_id'] == null ? null : data['branch_id'] as String?,
+    branchId: data['branch_id'] as String,
     taxName: data['tax_name'] == null ? null : data['tax_name'] as String?,
     itemSeq: data['item_seq'] == null ? null : data['item_seq'] as int?,
     isrccCd: data['isrcc_cd'] == null ? null : data['isrcc_cd'] as String?,
