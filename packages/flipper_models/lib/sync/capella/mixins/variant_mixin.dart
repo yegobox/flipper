@@ -13,7 +13,6 @@ import 'package:supabase_models/brick/repository.dart';
 import 'package:talker/talker.dart';
 import 'package:supabase_models/brick/models/transactionItemUtil.dart';
 import 'package:supabase_models/brick/models/sars.model.dart';
-import 'package:supabase_models/brick/models/ebm.model.dart';
 
 mixin CapellaVariantMixin implements VariantInterface {
   DittoService get dittoService => DittoService.instance;
