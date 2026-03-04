@@ -1,0 +1,76 @@
+name: flipper_ai
+description: "Standalone AI feature app for Flipper - AI assistant and tools"
+publish_to: 'none'
+version: 1.0.1+2
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Core dependencies
+  cupertino_icons: ^1.0.8
+  flutter_riverpod: ^3.0.3
+  riverpod_annotation: ^3.0.3
+  hooks_riverpod: ^3.0.3
+  flutter_hooks: ^0.20.5
+
+  # Authentication - reuse flipper_auth
+  flipper_auth: any
+  flipper_web: any
+  flipper_models: any
+  flipper_services: any
+  flipper_ui: any
+
+  # Supabase for auth
+  supabase_flutter: ^2.12.0
+
+  # UI components
+  flutter_localizations:
+    sdk: flutter
+  intl: ^0.20.2
+
+  # Storage
+  shared_preferences: ^2.3.2
+  path_provider: ^2.1.4
+
+  # Network
+  connectivity_plus: ^7.0.0
+  http: ^1.2.2
+
+  # Utilities
+  equatable: ^2.0.3
+  json_annotation: ^4.9.0
+  universal_platform: ^1.0.0+1
+
+  # AI-specific dependencies (add your AI service SDKs here)
+  # For example:
+  # - google_generative_ai: ^0.4.0  # Google AI
+  # - openai_dart: ^0.3.0           # OpenAI
+  # Add your preferred AI service SDK
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  build_runner: ^2.4.15
+  riverpod_generator: ^3.0.0
+  json_serializable: ^6.11.2
+
+  # Icon generator (optional - customize for AI app)
+  flutter_launcher_icons: ^0.14.4
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  remove_alpha_ios: true
+  image_path: "assets/icon.png"
+  min_sdk_android: 21
+
+flutter:
+  uses-material-design: true
+  
+  assets:
+    - assets/
