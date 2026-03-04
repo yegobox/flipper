@@ -15,10 +15,13 @@ class IUnit extends IJsonSerializable {
   late bool active;
 
   @JsonKey(
-      includeIfNull: true, fromJson: _dateTimeFromJson, toJson: _dateTimeToJson)
+    includeIfNull: true,
+    fromJson: _dateTimeFromJson,
+    toJson: _dateTimeToJson,
+  )
   DateTime? lastTouched;
 
-  late String action;
+  late String? action;
 
   static DateTime? _dateTimeFromJson(String? json) {
     const dateTimeConverter = DateTimeConverter();
@@ -31,14 +34,15 @@ class IUnit extends IJsonSerializable {
   }
 
   // contructor
-  IUnit(
-      {required this.id,
-      required this.branchId,
-      required this.name,
-      required this.value,
-      required this.active,
-      required this.action,
-      this.lastTouched});
+  IUnit({
+    required this.id,
+    required this.branchId,
+    required this.name,
+    required this.value,
+    required this.active,
+    required this.action,
+    this.lastTouched,
+  });
   // toString()
   @override
   String toString() {

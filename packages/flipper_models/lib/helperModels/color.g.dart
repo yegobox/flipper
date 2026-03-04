@@ -15,7 +15,7 @@ PColor _$PColorFromJson(Map<String, dynamic> json) => PColor(
   lastTouched: json['lastTouched'] == null
       ? null
       : DateTime.parse(json['lastTouched'] as String),
-  action: json['action'] as String,
+  action: json['action'] as String?,
   deletedAt: json['deletedAt'] == null
       ? null
       : DateTime.parse(json['deletedAt'] as String),

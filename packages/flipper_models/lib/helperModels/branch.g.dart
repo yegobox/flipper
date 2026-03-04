@@ -32,7 +32,7 @@ IBranch _$IBranchFromJson(Map<String, dynamic> json) =>
       ..deletedAt = json['deletedAt'] == null
           ? null
           : DateTime.parse(json['deletedAt'] as String)
-      ..action = json['action'] as String;
+      ..action = json['action'] as String?;
 
 Map<String, dynamic> _$IBranchToJson(IBranch instance) => <String, dynamic>{
   'lastTouched': instance.lastTouched?.toIso8601String(),

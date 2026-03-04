@@ -20,7 +20,7 @@ BusinessFeature _$BusinessFeatureFromJson(Map<String, dynamic> json) =>
       ..deletedAt = json['deletedAt'] == null
           ? null
           : DateTime.parse(json['deletedAt'] as String)
-      ..action = json['action'] as String;
+      ..action = json['action'] as String?;
 
 Map<String, dynamic> _$BusinessFeatureToJson(BusinessFeature instance) =>
     <String, dynamic>{

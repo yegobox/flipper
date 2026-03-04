@@ -347,10 +347,12 @@ mixin TransactionMixin implements TransactionInterface {
     String? shiftId,
   }) async {
     try {
+      final userId = ProxyService.box.getUserId();
+      if (userId == null) return null;
       // Base query to find PENDING transactions matching the criteria
       final baseWhere = [
         Where('branchId').isExactly(branchId),
-        Where('agentId').isExactly(ProxyService.box.getUserId()!),
+        Where('agentId').isExactly(userId),
         Where('isExpense').isExactly(isExpense),
         Where('status').isExactly(status),
         Where('transactionType').isIn([transactionType, "NS"]),

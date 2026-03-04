@@ -16,7 +16,7 @@ class ICounter extends IJsonSerializable {
   late int curRcptNo;
   @JsonKey(includeIfNull: true)
   DateTime? lastTouched;
-  String action;
+  String? action;
 
   ICounter({
     required this.id,

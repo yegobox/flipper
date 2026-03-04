@@ -22,7 +22,7 @@ Token _$TokenFromJson(Map<String, dynamic> json) =>
             ? null
             : DateTime.parse(json['deletedAt'] as String),
       )
-      ..action = json['action'] as String
+      ..action = json['action'] as String?
       ..lastTouched = json['lastTouched'] == null
           ? null
           : DateTime.parse(json['lastTouched'] as String);
