@@ -970,6 +970,7 @@ mixin TransactionMixin implements TransactionInterface {
     bool isUnclassfied = false,
     bool? isTrainingMode,
     String? customerPhone,
+    String? customerType,
   }) async {
     if (transaction == null) {
       if (transactionId == null) {
@@ -1002,6 +1003,7 @@ mixin TransactionMixin implements TransactionInterface {
     transaction.ticketName = ticketName ?? transaction.ticketName;
     transaction.updatedAt = updatedAt ?? transaction.updatedAt;
     transaction.customerId = customerId ?? transaction.customerId;
+    transaction.customerType = customerType ?? transaction.customerType;
     transaction.isRefunded = isRefunded ?? transaction.isRefunded;
     transaction.ebmSynced = ebmSynced ?? transaction.ebmSynced;
     transaction.sarNo = sarNo ?? transaction.sarNo;

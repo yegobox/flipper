@@ -154,6 +154,12 @@ class _SearchInputWithDropdownState
     // Initialize with default values
     _selectedCustomerType = 'Walk-in';
     _selectedSaleType = 'Outgoing- Sale';
+    // Save default values to transaction after a short delay to ensure transaction is ready
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (mounted) {
+        _saveTransactionMetadata();
+      }
+    });
   }
 
   @override
@@ -256,6 +262,36 @@ class _SearchInputWithDropdownState
         });
       }
     });
+  }
+
+  /// Save customer type and sale type to the pending transaction
+  Future<void> _saveTransactionMetadata() async {
+    final transaction = ref.read(
+      pendingTransactionStreamProvider(isExpense: false),
+    );
+
+    if (transaction.value?.id != null) {
+      try {
+        // Save customer type to transaction
+        await ProxyService.strategy.updateTransaction(
+          transactionId: transaction.value!.id,
+          customerType: _selectedCustomerType,
+        );
+
+        // Save sale type (stockInOutType) to box for reference, defaulting to all 11 for now
+        final stockInOutType = _selectedSaleType == 'Agent Sale' ? "11" : "11";
+        await ProxyService.box.writeString(
+          key: 'stockInOutType',
+          value: stockInOutType,
+        );
+
+        talker.info(
+          'Transaction metadata updated: customerType=$_selectedCustomerType, saleType=$_selectedSaleType',
+        );
+      } catch (e) {
+        talker.warning('Error saving transaction metadata: $e');
+      }
+    }
   }
 
   void _addCustomerToTransaction(
@@ -511,6 +547,7 @@ class _SearchInputWithDropdownState
                   setState(() {
                     _selectedCustomerType = value;
                   });
+                  _saveTransactionMetadata();
                 },
                 label: 'Customer Type',
                 icon: FluentIcons.person_16_regular,
@@ -525,11 +562,8 @@ class _SearchInputWithDropdownState
                 onChanged: (value) {
                   setState(() {
                     _selectedSaleType = value;
-                    ProxyService.box.writeString(
-                      key: 'stockInOutType',
-                      value: value == 'Agent Sale' ? "11" : "1",
-                    );
                   });
+                  _saveTransactionMetadata();
                 },
                 label: 'Sale Type',
                 icon: FluentIcons.arrow_swap_16_regular,
@@ -556,6 +590,7 @@ class _SearchInputWithDropdownState
             setState(() {
               _selectedCustomerType = value;
             });
+            _saveTransactionMetadata();
           },
           label: 'Customer Type',
           icon: FluentIcons.person_16_regular,
@@ -567,11 +602,8 @@ class _SearchInputWithDropdownState
           onChanged: (value) {
             setState(() {
               _selectedSaleType = value;
-              ProxyService.box.writeString(
-                key: 'stockInOutType',
-                value: value == 'Agent Sale' ? "11" : "1",
-              );
             });
+            _saveTransactionMetadata();
           },
           label: 'Sale Type',
           icon: FluentIcons.arrow_swap_16_regular,
