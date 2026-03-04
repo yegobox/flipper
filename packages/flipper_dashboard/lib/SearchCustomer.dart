@@ -19,6 +19,7 @@ import 'dart:async';
 import 'package:flipper_dashboard/providers/customer_provider.dart';
 import 'package:flipper_dashboard/providers/customer_phone_provider.dart';
 import 'package:flipper_dashboard/utils/resume_transaction_helper.dart';
+import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
 class CustomDropdownButton extends StatefulWidget {
   final List<String> items;
@@ -43,32 +44,31 @@ class CustomDropdownButton extends StatefulWidget {
 }
 
 class _CustomDropdownButtonState extends State<CustomDropdownButton> {
-  final GlobalKey _dropdownKey = GlobalKey();
-
   void _showDropdown() {
-    final RenderBox renderBox =
-        _dropdownKey.currentContext?.findRenderObject() as RenderBox;
-    final size = renderBox.size;
-
-    showDialog(
+    WoltModalSheet.show(
       context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          contentPadding: EdgeInsets.zero,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          content: Container(
-            width: size.width,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-            ),
+      pageListBuilder: (context) => [
+        WoltModalSheetPage(
+          pageTitle: Text(widget.label),
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 8),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: widget.items.map((String value) {
+                final isSelected = value == widget.selectedItem;
                 return ListTile(
-                  title: Text(value),
+                  title: Text(
+                    value,
+                    style: TextStyle(
+                      fontWeight: isSelected
+                          ? FontWeight.w600
+                          : FontWeight.normal,
+                      color: isSelected ? Colors.blue : Colors.black,
+                    ),
+                  ),
+                  trailing: isSelected
+                      ? const Icon(Icons.check, color: Colors.blue)
+                      : null,
                   onTap: () {
                     widget.onChanged(value);
                     Navigator.of(context).pop();
@@ -77,16 +77,14 @@ class _CustomDropdownButtonState extends State<CustomDropdownButton> {
               }).toList(),
             ),
           ),
-        );
-      },
-      barrierDismissible: true,
+        ),
+      ],
     );
   }
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      key: _dropdownKey,
       onTap: _showDropdown,
       child: Container(
         padding: EdgeInsets.symmetric(
