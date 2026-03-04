@@ -1,5 +1,6 @@
 // ignore_for_file: unused_result
 
+import 'package:demo_ui_components/demo_ui_components.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -49,8 +50,11 @@ class _CustomDropdownButtonState extends State<CustomDropdownButton> {
       context: context,
       pageListBuilder: (context) => [
         WoltModalSheetPage(
-          pageTitle: Text(widget.label),
-          child: Container(
+          isTopBarLayerAlwaysVisible: true,
+          topBarTitle: ModalSheetTopBarTitle(widget.label),
+          pageTitle: ModalSheetTitle(widget.label),
+          trailingNavBarWidget: const WoltModalSheetCloseButton(),
+          child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: Column(
               mainAxisSize: MainAxisSize.min,
