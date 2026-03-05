@@ -35,13 +35,13 @@ class ConversationList extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
               itemCount: conversations.length,
               itemBuilder: (context, index) {
-                final conversationId = conversations[index].id;
-                final messages = conversations[index].messages ?? [];
+                final conversation = conversations[index];
+                final messages = conversation.messages ?? [];
                 final lastMessage = messages.isNotEmpty ? messages.first : null;
 
                 return _buildConversationTile(
                   context: context,
-                  conversationId: conversationId,
+                  conversation: conversation,
                   lastMessage: lastMessage,
                 );
               },
@@ -134,11 +134,21 @@ class ConversationList extends StatelessWidget {
 
   Widget _buildConversationTile({
     required BuildContext context,
-    required String conversationId,
+    required Conversation conversation,
     Message? lastMessage,
   }) {
+    final conversationId = conversation.id;
     final isSelected = conversationId == currentConversationId;
-    final title = lastMessage?.text.split('\n').first ?? 'New Conversation';
+
+    // Priority:
+    // 1. The renamed conversation title
+    // 2. The first message text
+    // 3. Fallback to "New Conversation"
+    final title = (conversation.title.isNotEmpty &&
+            conversation.title != "New Conversation")
+        ? conversation.title
+        : (lastMessage?.text.split('\n').first ?? conversation.title);
+
     final timestamp = lastMessage?.timestamp ?? DateTime.now();
 
     return Material(
