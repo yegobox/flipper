@@ -149,7 +149,8 @@ class ConversationList extends StatelessWidget {
         ? conversation.title
         : (lastMessage?.text.split('\n').first ?? conversation.title);
 
-    final timestamp = lastMessage?.timestamp ?? DateTime.now();
+    final timestamp =
+        lastMessage?.timestamp ?? conversation.createdAt ?? DateTime.now();
 
     return Material(
       color: Colors.transparent,
@@ -235,11 +236,13 @@ class ConversationList extends StatelessWidget {
   }
 
   String _formatTimestamp(DateTime timestamp) {
+    // Normalise to local time so UTC-stored values compare correctly
+    final localTimestamp = timestamp.isUtc ? timestamp.toLocal() : timestamp;
     final now = DateTime.now();
-    final difference = now.difference(timestamp);
+    final difference = now.difference(localTimestamp);
 
     if (difference.inDays > 7) {
-      return DateFormat('MMM d').format(timestamp);
+      return DateFormat('MMM d').format(localTimestamp);
     } else if (difference.inDays > 0) {
       return '${difference.inDays}d ago';
     } else if (difference.inHours > 0) {
