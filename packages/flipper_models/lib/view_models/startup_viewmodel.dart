@@ -109,7 +109,7 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
         _handlePaymentStatusChange,
       );
       _paymentVerificationService.startPeriodicVerification(
-        intervalMinutes: kDebugMode ? 25 : 15,
+        intervalMinutes: kDebugMode ? 2 : 15,
       );
 
       _internetConnectionService.startPeriodicConnectionCheck();
