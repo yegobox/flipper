@@ -1,6 +1,6 @@
 // src/services/ai_service.dart
 /// AI Service - Re-export from flipper_services
-/// 
+///
 /// The actual AI service implementations are in flipper_services
 /// This package re-exports them for convenience.
 

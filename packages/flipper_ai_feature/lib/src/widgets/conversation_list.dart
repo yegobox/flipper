@@ -162,9 +162,8 @@ class ConversationList extends StatelessWidget {
             children: [
               Icon(
                 Icons.chat_bubble_outline_rounded,
-                color: isSelected
-                    ? AiTheme.primaryColor
-                    : AiTheme.secondaryColor,
+                color:
+                    isSelected ? AiTheme.primaryColor : AiTheme.secondaryColor,
                 size: 18, // Slightly smaller icon
               ),
               const SizedBox(width: 8), // Reduced spacing
@@ -178,9 +177,8 @@ class ConversationList extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: TextStyle(
                         fontSize: 13, // Slightly smaller font
-                        fontWeight: isSelected
-                            ? FontWeight.w600
-                            : FontWeight.w500,
+                        fontWeight:
+                            isSelected ? FontWeight.w600 : FontWeight.w500,
                         color: AiTheme.textColor,
                       ),
                     ),
@@ -199,14 +197,25 @@ class ConversationList extends StatelessWidget {
                 icon: const Icon(
                   Icons.delete_outline_rounded,
                   size: 18,
-                ), // Smaller icon
-                color: AiTheme.secondaryColor,
+                ),
+                style: ButtonStyle(
+                  foregroundColor: WidgetStateProperty.resolveWith((states) {
+                    if (states.contains(WidgetState.hovered)) {
+                      return Colors.red;
+                    }
+                    return AiTheme.secondaryColor;
+                  }),
+                  overlayColor: WidgetStateProperty.resolveWith((states) {
+                    if (states.contains(WidgetState.hovered)) {
+                      return Colors.red.withValues(alpha: 0.1);
+                    }
+                    return null;
+                  }),
+                ),
                 onPressed: () => onDeleteConversation(conversationId),
                 tooltip: 'Delete Conversation',
-                splashRadius: 16, // Smaller splash radius
-                padding: EdgeInsets.zero, // Minimize padding
-                constraints:
-                    const BoxConstraints(), // Remove default constraints
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
               ),
             ],
           ),

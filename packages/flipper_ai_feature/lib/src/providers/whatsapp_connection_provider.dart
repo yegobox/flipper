@@ -10,14 +10,11 @@ final whatsAppConnectionServiceProvider = Provider<WhatsAppConnectionService>((
 });
 
 /// Provider for WhatsApp connection state
-final whatsAppConnectionStateProvider =
-    StateNotifierProvider<
-      WhatsAppConnectionNotifier,
-      AsyncValue<WhatsAppConnectionState>
-    >((ref) {
-      final service = ref.watch(whatsAppConnectionServiceProvider);
-      return WhatsAppConnectionNotifier(service);
-    });
+final whatsAppConnectionStateProvider = StateNotifierProvider<
+    WhatsAppConnectionNotifier, AsyncValue<WhatsAppConnectionState>>((ref) {
+  final service = ref.watch(whatsAppConnectionServiceProvider);
+  return WhatsAppConnectionNotifier(service);
+});
 
 /// Notifier for managing WhatsApp connection state
 class WhatsAppConnectionNotifier
@@ -25,7 +22,7 @@ class WhatsAppConnectionNotifier
   final WhatsAppConnectionService _service;
 
   WhatsAppConnectionNotifier(this._service)
-    : super(const AsyncValue.loading()) {
+      : super(const AsyncValue.loading()) {
     _initialize();
   }
 

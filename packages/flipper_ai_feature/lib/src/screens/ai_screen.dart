@@ -157,9 +157,12 @@ class _AiScreenState extends ConsumerState<AiScreen> {
       final branchId = ProxyService.box.getBranchId();
       if (branchId == null) throw Exception('Branch ID is required');
 
+      bool isFirstMessage = false;
+
       // Ensure we have a valid conversation ID. The auto-creation logic in build()
       // should guarantee this, but we place a fallback here just in case.
       if (targetConversationId.isEmpty) {
+        isFirstMessage = true;
         final conversation = await ProxyService.strategy.createConversation(
           title: text.length > 30 ? '${text.substring(0, 30)}...' : text,
           branchId: branchId,
@@ -174,6 +177,17 @@ class _AiScreenState extends ConsumerState<AiScreen> {
           });
           _subscribeToCurrentConversation();
         }
+      } else {
+        // Check if this is the first message in an existing 'New Conversation'
+        try {
+          final conversations = ref.read(conversationProvider).value ?? [];
+          final currentConv = conversations.firstWhere(
+            (c) => c.id == targetConversationId,
+          );
+          if (currentConv.title == 'New Conversation' && _messages.isEmpty) {
+            isFirstMessage = true;
+          }
+        } catch (_) {}
       }
 
       // Get the useCase for the current conversation
@@ -362,6 +376,32 @@ class _AiScreenState extends ConsumerState<AiScreen> {
         _conversationHistory.add(
           Content(role: "assistant", parts: [Part.text(summaryText)]),
         );
+      }
+
+      // Generate a dynamic conversation title if this is the first message
+      if (isFirstMessage && !isWhatsAppReply) {
+        Future.microtask(() async {
+          try {
+            final titlePrompt =
+                "Generate a concise, descriptive title (maximum 5 words) for a conversation that starts with this user message: \"$processedText\". Only return the title and nothing else without quotes.";
+            final generatedTitle = await ref.read(
+              geminiSummaryProvider(titlePrompt, aiModel: _selectedModel)
+                  .future,
+            );
+            final cleanTitle = generatedTitle.replaceAll('"', '').trim();
+
+            if (cleanTitle.isNotEmpty) {
+              final conversations = ref.read(conversationProvider).value ?? [];
+              final currentConv = conversations.firstWhere(
+                (c) => c.id == targetConversationId,
+              );
+              currentConv.title = cleanTitle;
+              await ProxyService.strategy.updateConversation(currentConv);
+            }
+          } catch (e) {
+            debugPrint('Failed to generate conversation title: $e');
+          }
+        });
       }
 
       _scrollToBottom();

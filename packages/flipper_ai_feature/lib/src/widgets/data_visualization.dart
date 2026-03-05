@@ -27,8 +27,8 @@ class DataVisualization extends ConsumerWidget {
     final currencyService = ref.watch(currencyServiceProvider);
 
     // Use the visualization factory to get the appropriate visualization
-    final visualization =
-        VisualizationFactory.createVisualization(data, currencyService, cardKey, onCopyGraph);
+    final visualization = VisualizationFactory.createVisualization(
+        data, currencyService, cardKey, onCopyGraph);
 
     // If no visualization can handle this data, return an empty widget
     if (visualization == null) {

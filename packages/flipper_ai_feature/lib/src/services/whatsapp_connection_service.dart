@@ -28,7 +28,9 @@ class WhatsAppConnectionState {
   }) {
     return WhatsAppConnectionState(
       isConnected: isConnected ?? this.isConnected,
-      phoneNumberId: identical(phoneNumberId, _unset) ? this.phoneNumberId : phoneNumberId as String?,
+      phoneNumberId: identical(phoneNumberId, _unset)
+          ? this.phoneNumberId
+          : phoneNumberId as String?,
       isLoading: isLoading ?? this.isLoading,
       error: identical(error, _unset) ? this.error : error as String?,
     );
@@ -43,8 +45,8 @@ class WhatsAppConnectionService {
   WhatsAppConnectionService({
     WhatsAppService? whatsappService,
     Repository? repository,
-  }) : _whatsappService = whatsappService ?? WhatsAppService(),
-       _repository = repository ?? Repository();
+  })  : _whatsappService = whatsappService ?? WhatsAppService(),
+        _repository = repository ?? Repository();
 
   /// Get current connection state from Business model (single source of truth)
   Future<WhatsAppConnectionState> getConnectionState() async {

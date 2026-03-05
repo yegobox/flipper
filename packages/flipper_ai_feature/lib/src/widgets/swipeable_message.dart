@@ -119,9 +119,8 @@ class _SwipeableMessageState extends State<SwipeableMessage>
           AnimatedBuilder(
             animation: _controller,
             builder: (context, child) {
-              final animatedOffset = _controller.isAnimating
-                  ? _offsetAnimation.value
-                  : offset;
+              final animatedOffset =
+                  _controller.isAnimating ? _offsetAnimation.value : offset;
               return Transform.translate(
                 offset: Offset(animatedOffset.dx * screenWidth, 0),
                 child: child,

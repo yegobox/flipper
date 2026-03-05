@@ -10,7 +10,7 @@ class WhatsAppConnectionDialog extends ConsumerStatefulWidget {
   final VoidCallback? onConnectionChanged;
 
   const WhatsAppConnectionDialog({Key? key, this.onConnectionChanged})
-    : super(key: key);
+      : super(key: key);
 
   @override
   ConsumerState<WhatsAppConnectionDialog> createState() =>

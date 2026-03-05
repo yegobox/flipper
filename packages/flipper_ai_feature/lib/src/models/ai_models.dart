@@ -1,6 +1,6 @@
 // src/models/ai_models.dart
 /// AI Models - Re-export from flipper_models
-/// 
+///
 /// The actual AI model definitions are in flipper_models
 /// This package re-exports them for convenience.
 

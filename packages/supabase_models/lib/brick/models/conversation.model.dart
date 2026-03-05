@@ -16,7 +16,7 @@ class Conversation extends OfflineFirstWithSupabaseModel {
   @Sqlite(fromGenerator: "data['title'] == null ? '' : data['title'] as String")
   @Supabase(
       fromGenerator: "data['title'] == null ? '' : data['title'] as String")
-  final String title;
+  String title;
 
   @Sqlite(
       fromGenerator:

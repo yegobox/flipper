@@ -91,6 +91,16 @@ class AiStrategyImpl implements AiStrategy {
   }
 
   @override
+  Future<Conversation> updateConversation(Conversation conversation) async {
+    try {
+      return await repository.upsert<Conversation>(conversation);
+    } catch (e, s) {
+      talker.error('Error updating conversation: $e\n$s');
+      rethrow;
+    }
+  }
+
+  @override
   Future<void> deleteConversation(String conversationId) async {
     try {
       // First get and delete all messages in the conversation
@@ -101,7 +111,13 @@ class AiStrategyImpl implements AiStrategy {
       );
 
       for (final message in messages) {
-        await repository.delete<Message>(message);
+        try {
+          if (message.primaryKey != null) {
+            await repository.delete<Message>(message);
+          }
+        } catch (e) {
+          talker.warning('Could not delete message ${message.id}: $e');
+        }
       }
 
       // Then delete the conversation

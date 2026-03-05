@@ -186,43 +186,43 @@ class _InteractiveVisualizationWrapperState
       'cardPadding': isDesktop
           ? 24.0
           : isTablet
-          ? 20.0
-          : 16.0,
+              ? 20.0
+              : 16.0,
       'chartHeight': isDesktop
           ? 280.0
           : isTablet
-          ? 240.0
-          : 200.0,
+              ? 240.0
+              : 200.0,
       'titleSize': isDesktop
           ? 20.0
           : isTablet
-          ? 18.0
-          : 16.0,
+              ? 18.0
+              : 16.0,
       'subtitleSize': isDesktop
           ? 16.0
           : isTablet
-          ? 14.0
-          : 12.0,
+              ? 14.0
+              : 12.0,
       'legendSize': isDesktop
           ? 14.0
           : isTablet
-          ? 12.0
-          : 11.0,
+              ? 12.0
+              : 11.0,
       'maxLegendColumns': isDesktop
           ? 3
           : isTablet
-          ? 2
-          : 1,
+              ? 2
+              : 1,
       'pieRadius': isDesktop
           ? 80.0
           : isTablet
-          ? 70.0
-          : 60.0,
+              ? 70.0
+              : 60.0,
       'barWidth': isDesktop
           ? 32.0
           : isTablet
-          ? 28.0
-          : 24.0,
+              ? 28.0
+              : 24.0,
     };
   }
 
@@ -429,9 +429,8 @@ class _InteractiveVisualizationWrapperState
     final hasOther = items.length > 5;
 
     if (hasOther) {
-      final otherAmount = items
-          .skip(5)
-          .fold(0.0, (sum, item) => sum + item.value);
+      final otherAmount =
+          items.skip(5).fold(0.0, (sum, item) => sum + item.value);
       displayItems.add(MapEntry('Other Items', otherAmount));
     }
 
@@ -625,8 +624,7 @@ class _InteractiveVisualizationWrapperState
     final double revenue = _parseNumericValue(data['revenue']);
     final double profit = _parseNumericValue(data['profit']);
     final double unitsSold = _parseNumericValue(data['unitsSold']);
-    final String currencyCode =
-        data['currencyCode'] ??
+    final String currencyCode = data['currencyCode'] ??
         currency ??
         '${ProxyService.box.defaultCurrency()}';
     final String date = data['date'] ?? 'Today';
@@ -1258,11 +1256,11 @@ class _InteractiveVisualizationWrapperState
             show: true,
             getDotPainter: (spot, percent, barData, index) =>
                 FlDotCirclePainter(
-                  radius: 4,
-                  color: Colors.white,
-                  strokeWidth: 2,
-                  strokeColor: color,
-                ),
+              radius: 4,
+              color: Colors.white,
+              strokeWidth: 2,
+              strokeColor: color,
+            ),
           ),
           belowBarData: BarAreaData(
             show: true,
@@ -1667,9 +1665,7 @@ class _InteractiveVisualizationWrapperState
     } else if (value.abs() >= 1000) {
       return '${(value / 1000).toStringAsFixed(1)}K';
     }
-    return value
-        .toStringAsFixed(2)
-        .replaceAllMapped(
+    return value.toStringAsFixed(2).replaceAllMapped(
           RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
           (Match m) => '${m[1]},',
         );
@@ -1677,9 +1673,7 @@ class _InteractiveVisualizationWrapperState
 
   /// Format number with proper separators
   String _formatNumber(double value) {
-    return value
-        .toStringAsFixed(0)
-        .replaceAllMapped(
+    return value.toStringAsFixed(0).replaceAllMapped(
           RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
           (Match m) => '${m[1]},',
         );

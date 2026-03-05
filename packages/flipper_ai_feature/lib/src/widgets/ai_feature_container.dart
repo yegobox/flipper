@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 // import 'ai_screen.dart';
 
 /// AI Feature Container
-/// 
+///
 /// This widget provides a flexible container for AI features that can be:
 /// 1. Embedded as a tab/page in the main flipper app
 /// 2. Used as the main screen in the standalone flipper_ai app

@@ -16,9 +16,8 @@ class VisualizationUtils {
     // Using addPostFrameCallback to ensuring the render object is ready/stable if called during build (unlikely for button tap but safe)
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       try {
-        final boundary =
-            visualizationKey.currentContext?.findRenderObject()
-                as RenderRepaintBoundary?;
+        final boundary = visualizationKey.currentContext?.findRenderObject()
+            as RenderRepaintBoundary?;
 
         if (boundary == null) {
           if (context.mounted) {

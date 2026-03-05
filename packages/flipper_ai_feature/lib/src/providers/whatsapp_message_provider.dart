@@ -6,14 +6,11 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
 /// Provider for WhatsApp message sync service
-final whatsappMessageSyncProvider =
-    StateNotifierProvider<
-      WhatsAppMessageSyncNotifier,
-      AsyncValue<WhatsAppSyncState>
-    >((ref) {
-      ref.keepAlive();
-      return WhatsAppMessageSyncNotifier();
-    });
+final whatsappMessageSyncProvider = StateNotifierProvider<
+    WhatsAppMessageSyncNotifier, AsyncValue<WhatsAppSyncState>>((ref) {
+  ref.keepAlive();
+  return WhatsAppMessageSyncNotifier();
+});
 
 /// Notifier to manage WhatsApp message sync service lifecycle
 class WhatsAppMessageSyncNotifier

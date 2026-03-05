@@ -1,6 +1,6 @@
 // src/providers/ai_provider.dart
 /// AI Providers - Re-export from flipper_models
-/// 
+///
 /// The actual AI provider implementations (Riverpod) are in flipper_models
 /// This package re-exports them for convenience.
 

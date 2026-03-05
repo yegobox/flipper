@@ -22,7 +22,7 @@ class AiInputField extends ConsumerStatefulWidget {
   final Function(String)? onAttachFile; // New callback for file attachments
   final String? attachedFilePath; // New parameter to display attached file
   final VoidCallback?
-  onClearAttachedFile; // New callback to clear attached file
+      onClearAttachedFile; // New callback to clear attached file
   final String? hintText;
   final bool enabled;
 
@@ -248,8 +248,7 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
 
   KeyEventResult _handleKeyEvent(FocusNode node, KeyEvent event) {
     if (event is KeyDownEvent) {
-      final isModifierPressed =
-          HardwareKeyboard.instance.isControlPressed ||
+      final isModifierPressed = HardwareKeyboard.instance.isControlPressed ||
           HardwareKeyboard.instance.isMetaPressed;
 
       if (event.logicalKey == LogicalKeyboardKey.enter && !isModifierPressed) {
@@ -621,9 +620,8 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
           children: [
             // Normal interface
             AnimatedSlide(
-              offset: _isRecording && !_isLocked
-                  ? const Offset(0, 1)
-                  : Offset.zero,
+              offset:
+                  _isRecording && !_isLocked ? const Offset(0, 1) : Offset.zero,
               duration: _animationDuration,
               child: AnimatedOpacity(
                 opacity: _isRecording && !_isLocked ? 0.0 : 1.0,
@@ -1254,8 +1252,8 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
           color: _focusNode.hasFocus
               ? AiTheme.primaryColor.withValues(alpha: 0.3)
               : (Theme.of(context).brightness == Brightness.dark
-                    ? Colors.grey[600]!
-                    : Colors.grey[300]!),
+                  ? Colors.grey[600]!
+                  : Colors.grey[300]!),
           width: _focusNode.hasFocus ? 1.5 : 1,
         ),
         boxShadow: _focusNode.hasFocus
@@ -1305,8 +1303,10 @@ class _AiInputFieldState extends ConsumerState<AiInputField>
             onLongPressStart: _hasText || widget.isLoading
                 ? null
                 : (details) => _startRecording(),
-            onLongPressMoveUpdate:
-                _hasText || widget.isLoading || !_isRecording || _isLocked
+            onLongPressMoveUpdate: _hasText ||
+                    widget.isLoading ||
+                    !_isRecording ||
+                    _isLocked
                 ? null
                 : (details) {
                     final RenderBox renderBox =
