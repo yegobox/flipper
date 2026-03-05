@@ -322,7 +322,10 @@ class CoreSync extends AiStrategyImpl
       query: brick.Query(where: [brick.Where('id').isExactly(branch.id)]),
     )).firstOrNull;
     if (branchSaved == null) {
-      await repository.upsert<Branch>(branch);
+      await repository.upsert<Branch>(
+        branch,
+        policy: OfflineFirstUpsertPolicy.localOnly,
+      );
     }
   }
 
@@ -1703,6 +1706,7 @@ class CoreSync extends AiStrategyImpl
         );
         await repository.upsert<Business>(
           bus,
+          policy: OfflineFirstUpsertPolicy.localOnly,
         ); // Save the business object locally
       } catch (e, s) {
         talker.error('Signup: Error parsing business data: $e', s);
@@ -2306,11 +2310,17 @@ class CoreSync extends AiStrategyImpl
         return data as T;
       }
       if (data is Business) {
-        await repository.upsert<Business>(data);
+        await repository.upsert<Business>(
+          data,
+          policy: OfflineFirstUpsertPolicy.localOnly,
+        );
         return data as T;
       }
       if (data is Branch) {
-        await repository.upsert<Branch>(data);
+        await repository.upsert<Branch>(
+          data,
+          policy: OfflineFirstUpsertPolicy.localOnly,
+        );
         return data as T;
       }
       if (data is Purchase) {

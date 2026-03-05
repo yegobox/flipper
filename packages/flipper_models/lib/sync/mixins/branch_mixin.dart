@@ -38,7 +38,10 @@ mixin BranchMixin implements BranchInterface {
     // find a branch by name create the branch if only it does not exist
     Branch? existingBranch = await branch(name: name);
     if (existingBranch != null) {
-      await repository.upsert<Branch>(existingBranch);
+      await repository.upsert<Branch>(
+        existingBranch,
+        policy: OfflineFirstUpsertPolicy.localOnly,
+      );
       return existingBranch;
     }
     final response = await flipperHttpClient.post(
@@ -51,17 +54,20 @@ mixin BranchMixin implements BranchInterface {
     );
     if (response.statusCode == 201) {
       IBranch remoteBranch = IBranch.fromJson(json.decode(response.body));
-      return await repository.upsert<Branch>(Branch(
-        id: remoteBranch.id,
-        serverId: remoteBranch.serverId,
-        location: location,
-        description: description,
-        name: name,
-        businessId: businessId,
-        longitude: longitude,
-        latitude: latitude,
-        isDefault: isDefault,
-      ));
+      return await repository.upsert<Branch>(
+        Branch(
+          id: remoteBranch.id,
+          serverId: remoteBranch.serverId,
+          location: location,
+          description: description,
+          name: name,
+          businessId: businessId,
+          longitude: longitude,
+          latitude: latitude,
+          isDefault: isDefault,
+        ),
+        policy: OfflineFirstUpsertPolicy.localOnly,
+      );
     }
     throw Exception('Failed to create branch');
   }
@@ -85,7 +91,10 @@ mixin BranchMixin implements BranchInterface {
 
   @override
   Future<void> saveBranch(Branch branch) async {
-    await repository.upsert<Branch>(branch);
+    await repository.upsert<Branch>(
+      branch,
+      policy: OfflineFirstUpsertPolicy.localOnly,
+    );
   }
 
   @override

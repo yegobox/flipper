@@ -397,6 +397,11 @@ class _AiScreenState extends ConsumerState<AiScreen> {
               );
               currentConv.title = cleanTitle;
               await ProxyService.strategy.updateConversation(currentConv);
+              debugPrint('Saved new conversation title: $cleanTitle');
+              // Force the UI stream to refresh so the new title appears
+              if (mounted) {
+                ref.invalidate(conversationProvider);
+              }
             }
           } catch (e) {
             debugPrint('Failed to generate conversation title: $e');

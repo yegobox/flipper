@@ -133,7 +133,10 @@ mixin BusinessMixin implements BusinessInterface {
       );
 
       // business.id = id;
-      await repository.upsert<Business>(business);
+      await repository.upsert<Business>(
+        business,
+        policy: OfflineFirstUpsertPolicy.localOnly,
+      );
       return business;
     }
     return null;
@@ -195,7 +198,10 @@ mixin BusinessMixin implements BusinessInterface {
         exist.tinNumber = tinNumber;
       }
 
-      await repository.upsert<Business>(exist);
+      await repository.upsert<Business>(
+        exist,
+        policy: OfflineFirstUpsertPolicy.localOnly,
+      );
     } else {
       await repository.upsert<Business>(
         Business(
@@ -242,6 +248,7 @@ mixin BusinessMixin implements BusinessInterface {
           businessTypeId: businessTypeId,
           encryptionKey: encryptionKey,
         ),
+        policy: OfflineFirstUpsertPolicy.localOnly,
       );
     }
   }
