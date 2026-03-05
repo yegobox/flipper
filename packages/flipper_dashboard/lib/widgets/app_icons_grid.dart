@@ -1,4 +1,4 @@
-import 'package:flipper_dashboard/features/ai/screens/ai_screen.dart';
+import 'package:flipper_ai_feature/flipper_ai_feature.dart';
 import 'package:flipper_dashboard/features/production_output/production_output_app.dart';
 import 'package:flipper_models/providers/all_providers.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';

@@ -1,0 +1,33 @@
+# This file tracks properties of this Flutter project.
+# Used by Flutter tool to assess capabilities and perform upgrades etc.
+#
+# This file should be version controlled and should not be manually edited.
+
+version:
+  revision: 1234567890abcdef
+  channel: "stable"
+
+project_type: app
+
+# Tracks metadata for the flutter migrate command
+migration:
+  platforms:
+    - platform: root
+      create_revision: 1234567890abcdef
+      base_revision: 1234567890abcdef
+    - platform: android
+      create_revision: 1234567890abcdef
+      base_revision: 1234567890abcdef
+    - platform: ios
+      create_revision: 1234567890abcdef
+      base_revision: 1234567890abcdef
+
+  # User provided section
+
+  # List of Local paths (relative to this file) that should be
+  # ignored by the migrate command.
+  #
+  # Files outside the project root will be ignored.
+  # Files listed here should not be required for the app to compile.
+  # Wildcards are supported.
+  ignore: []

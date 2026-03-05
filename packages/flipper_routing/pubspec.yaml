@@ -13,6 +13,7 @@ dependencies:
   flipper_dashboard: any
   flipper_login: any
   flipper_models: any
+  flipper_ai_feature: any
   stacked_services: ^1.6.0
   stacked: ^3.5.0
   logger: ^2.5.0

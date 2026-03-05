@@ -1,0 +1,71 @@
+name: flipper_ai_feature
+description: "Reusable AI feature module for Flipper apps - can be embedded in flipper app or used standalone"
+version: 1.0.0+1
+repository: https://github.com/yegobox/flipper
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State management
+  flutter_riverpod: ^3.0.3
+  riverpod_annotation: any
+  hooks_riverpod: any
+  flutter_hooks: any
+
+  # UI components
+  cupertino_icons: any
+  
+  # Authentication (optional - can work with or without auth)
+  supabase_flutter: any
+  
+  # Utilities
+  equatable: any
+  http: any
+  shared_preferences: any
+  path_provider: ^2.1.5
+  intl: any
+  markdown_widget: any
+  record: ^6.2.0
+  file_picker: ^10.3.7
+  mime: any
+  
+  # Flipper packages
+  flipper_services: any
+  flipper_models: any
+  flipper_ui: any
+  supabase_models: any
+  flipper_dashboard: any
+
+  # AI service SDKs - add your preferred AI provider
+  # For example:
+  # - google_generative_ai: ^0.4.0
+  # - openai_dart: ^0.3.0
+  
+  pasteboard: any
+  brick_offline_first: any
+  fl_chart: any
+  # flutter_riverpod: any
+  # path_provider: any
+  # record: any
+  # file_picker: any
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: any
+  build_runner: any
+  riverpod_generator: any
+
+  flipper_routing: any
+  mocktail: any
+  stacked_services: any
+  sqflite_common_ffi: any
+  visibility_detector: any
+  fl_chart: any
+
+dependency_overrides:
+  sqlite3: ^3.1.3
+flutter:

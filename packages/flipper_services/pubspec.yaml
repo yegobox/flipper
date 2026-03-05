@@ -15,7 +15,7 @@ dependencies:
   firebase_remote_config: ^6.2.0
   share_plus: ^10.1.4
   firebase_messaging: ^16.1.0
-  image: ^4.5.4
+  image: ^4.1.0
   firebase_auth: ^6.1.0
   geolocator: ^13.0.2
   geocode: ^1.0.3

@@ -18,10 +18,25 @@ class AiStrategyImpl implements AiStrategy {
             ),
           )
           .map((conversations) {
-            conversations.sort(
-              (a, b) => b.lastMessageAt.compareTo(a.lastMessageAt),
+            talker.warning(
+              'conversationsStream ON MAP: ${conversations.length} records found.',
             );
+            try {
+              conversations.sort(
+                (a, b) => b.lastMessageAt.compareTo(a.lastMessageAt),
+              );
+            } catch (e, s) {
+              talker.error(
+                'Error sorting conversations inside stream map: $e\n$s',
+              );
+              // Return them unsorted in case of error instead of bombing the stream
+            }
             return conversations;
+          })
+          .handleError((error) {
+            talker.error(
+              'Error from repository.subscribe<Conversation> in ai_strategy: $error',
+            );
           });
     } catch (e, s) {
       talker.error('Error subscribing to conversations: $e\n$s');

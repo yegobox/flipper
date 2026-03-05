@@ -8,8 +8,8 @@ Future<Conversation> _$ConversationFromSupabase(
 }) async {
   return Conversation(
     id: data['id'] as String?,
-    title: data['title'] as String,
-    branchId: data['branch_id'] as String,
+    title: data['title'] == null ? '' : data['title'] as String,
+    branchId: data['branch_id'] == null ? '' : data['branch_id'] as String,
     createdAt: data['created_at'] == null
         ? null
         : data['created_at'] == null
@@ -21,7 +21,7 @@ Future<Conversation> _$ConversationFromSupabase(
     whatsappWaId: data['whatsapp_wa_id'] == null
         ? null
         : data['whatsapp_wa_id'] as String?,
-    useCase: data['use_case'] as String,
+    useCase: data['use_case'] == null ? 'business' : data['use_case'] as String,
   );
 }
 
@@ -48,8 +48,8 @@ Future<Conversation> _$ConversationFromSqlite(
 }) async {
   return Conversation(
     id: data['id'] as String,
-    title: data['title'] as String,
-    branchId: data['branch_id'] as String,
+    title: data['title'] == null ? '' : data['title'] as String,
+    branchId: data['branch_id'] == null ? '' : data['branch_id'] as String,
     createdAt: data['created_at'] == null
         ? null
         : data['created_at'] == null
@@ -79,7 +79,7 @@ Future<Conversation> _$ConversationFromSqlite(
     whatsappWaId: data['whatsapp_wa_id'] == null
         ? null
         : data['whatsapp_wa_id'] as String?,
-    useCase: data['use_case'] as String,
+    useCase: data['use_case'] == null ? 'business' : data['use_case'] as String,
   )..primaryKey = data['_brick_id'] as int;
 }
 

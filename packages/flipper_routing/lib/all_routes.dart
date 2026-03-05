@@ -9,7 +9,7 @@ export 'package:flipper_dashboard/checkout.dart';
 export 'package:flipper_dashboard/settings.dart';
 export 'package:flipper_dashboard/security.dart';
 export 'package:flipper_dashboard/transactions.dart';
-export 'package:flipper_dashboard/features/ai/screens/ai_screen.dart';
+export 'package:flipper_ai_feature/flipper_ai_feature.dart';
 // export 'package:flipper_dashboard/apps.dart';
 export 'package:flipper_dashboard/no_net.dart';
 export 'package:flipper_dashboard/payment_confirmation.dart';
