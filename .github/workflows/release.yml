@@ -238,7 +238,7 @@ jobs:
       - name: Add pub cache to PATH
         run: |
           if [ "$RUNNER_OS" == "Windows" ]; then
-            echo "$APPDATA\\Pub\\Cache\\bin" >> $GITHUB_PATH
+            echo "${PUB_CACHE}/bin" >> $GITHUB_PATH
           else
             echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
           fi
@@ -271,7 +271,7 @@ jobs:
       - run: |
           cd apps/flipper
           flutter test --dart-define=FLUTTER_TEST_ENV=true -d windows integration_test/smoke_windows_test.dart
-  
+
   build-and-release-windows-debug:
     name: "Build windows app-debug"
     # if: false  # skip for now as it is flaky
@@ -303,7 +303,7 @@ jobs:
       - name: Add pub cache to PATH
         run: |
           if [ "$RUNNER_OS" == "Windows" ]; then
-            echo "$APPDATA\\Pub\\Cache\\bin" >> $GITHUB_PATH
+            echo "${PUB_CACHE}/bin" >> $GITHUB_PATH
           else
             echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
           fi
@@ -399,7 +399,7 @@ jobs:
       - name: Add pub cache to PATH
         run: |
           if [ "$RUNNER_OS" == "Windows" ]; then
-            echo "$APPDATA\\Pub\\Cache\\bin" >> $GITHUB_PATH
+            echo "${PUB_CACHE}/bin" >> $GITHUB_PATH
           else
             echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
           fi
