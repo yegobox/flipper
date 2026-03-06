@@ -62,8 +62,10 @@ jobs:
       - name: Load melos
         run: |
           dart pub global activate melos 7.3.0
-          melos bootstrap
-          melos run generate:icons
+          # Add pub cache bin to PATH
+          echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+          dart run melos bootstrap
+          dart run melos run generate:icons
 
       - name: Configure Missing files
         shell: bash
@@ -93,7 +95,7 @@ jobs:
         run: |
           cd packages/flipper_dashboard
           cd ../..
-          melos run test:ci
+          dart run melos run test:ci
 #  # dart run realm install
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
@@ -156,7 +158,9 @@ jobs:
       - name: Bootstrap dependencies
         run: |
           dart pub global activate melos 7.3.0
-          melos bootstrap
+          # Add pub cache bin to PATH
+          echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+          dart run melos bootstrap
 
       - name: Build Flipper app
         run: |
@@ -230,7 +234,14 @@ jobs:
         run: |
           git submodule update --init
           dart pub global activate melos 7.3.0
-          melos bootstrap
+          # Add pub cache bin to PATH for Windows
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            echo "$APPDATA\\Pub\\Cache\\bin" >> $GITHUB_PATH
+          else
+            echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+          fi
+          dart run melos bootstrap
+        shell: bash
       - name: Configure Missing files
         shell: bash
         run: |
@@ -279,7 +290,13 @@ jobs:
       - name: Setup melos
         run: |
           dart pub global activate melos 7.3.0
-          melos bootstrap
+          # Add pub cache bin to PATH for Windows
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            echo "$APPDATA\\Pub\\Cache\\bin" >> $GITHUB_PATH
+          else
+            echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+          fi
+        shell: bash
 
       - name: Clean Flutter Build Cache
         run: |
@@ -289,8 +306,8 @@ jobs:
 
       - name: Get Dependencies
         run: |
-          melos run upgrade_dependencies
-          melos bootstrap
+          dart run melos run upgrade_dependencies
+          dart run melos bootstrap
         shell: bash
 
       - name: Configure Missing files
@@ -366,9 +383,16 @@ jobs:
       - name: Setup melos
         run: |
           dart pub global activate melos 7.3.0
-          melos bootstrap
+          # Add pub cache bin to PATH for Windows
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            echo "$APPDATA\\Pub\\Cache\\bin" >> $GITHUB_PATH
+          else
+            echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+          fi
+          dart run melos bootstrap
+        shell: bash
 
-      - name: Configure Missing files 
+      - name: Configure Missing files
         shell: bash
         run: |
           echo "$INDEX" >> apps/flipper/web/index.html
@@ -475,7 +499,9 @@ jobs:
       - name: Setup melos
         run: |
           dart pub global activate melos 7.3.0
-          melos bootstrap
+          # Add pub cache bin to PATH
+          echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+          dart run melos bootstrap
       - name: Configure Missing files
         run: |
           echo "$INDEX" >> apps/flipper/web/index.html
@@ -506,7 +532,9 @@ jobs:
           ls -la apps/${{ matrix.app }}/android/
       - run: |
           dart pub global activate melos 7.3.0
-          melos bootstrap
+          # Add pub cache bin to PATH
+          echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+          dart run melos bootstrap
       
       # Get version from pubspec.yaml
       - name: Get version from pubspec.yaml
