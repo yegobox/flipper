@@ -230,18 +230,26 @@ jobs:
           distribution: "zulu"
           java-version: "17"
 
-      - name: submodule init
+      - name: Setup melos
         run: |
-          git submodule update --init
           dart pub global activate melos 7.3.0
-          # Add pub cache bin to PATH for Windows
+        shell: bash
+
+      - name: Add pub cache to PATH
+        run: |
           if [ "$RUNNER_OS" == "Windows" ]; then
             echo "$APPDATA\\Pub\\Cache\\bin" >> $GITHUB_PATH
           else
             echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
           fi
+        shell: bash
+
+      - name: Initialize submodules and bootstrap melos
+        run: |
+          git submodule update --init
           dart run melos bootstrap
         shell: bash
+
       - name: Configure Missing files
         shell: bash
         run: |
@@ -290,7 +298,10 @@ jobs:
       - name: Setup melos
         run: |
           dart pub global activate melos 7.3.0
-          # Add pub cache bin to PATH for Windows
+        shell: bash
+
+      - name: Add pub cache to PATH
+        run: |
           if [ "$RUNNER_OS" == "Windows" ]; then
             echo "$APPDATA\\Pub\\Cache\\bin" >> $GITHUB_PATH
           else
@@ -383,12 +394,20 @@ jobs:
       - name: Setup melos
         run: |
           dart pub global activate melos 7.3.0
-          # Add pub cache bin to PATH for Windows
+        shell: bash
+
+      - name: Add pub cache to PATH
+        run: |
           if [ "$RUNNER_OS" == "Windows" ]; then
             echo "$APPDATA\\Pub\\Cache\\bin" >> $GITHUB_PATH
           else
             echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
           fi
+        shell: bash
+
+      - name: Initialize submodules and bootstrap melos
+        run: |
+          git submodule update --init
           dart run melos bootstrap
         shell: bash
 
