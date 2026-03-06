@@ -59,11 +59,14 @@ jobs:
           channel: "stable"
       - run: |
           git submodule update --init
-      - name: Load melos
+      - name: Setup melos
+        run: dart pub global activate melos 7.3.0
+
+      - name: Add pub cache to PATH
+        run: echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+
+      - name: Bootstrap melos
         run: |
-          dart pub global activate melos 7.3.0
-          # Add pub cache bin to PATH
-          echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
           dart run melos bootstrap
           dart run melos run generate:icons
 
@@ -151,16 +154,18 @@ jobs:
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
           
       - name: Set up Node.js for Firebase CLI
-        uses: actions/setup-node@v4 
+        uses: actions/setup-node@v4
         with:
           node-version: '20' # Specify Node.js v20.x LTS
 
+      - name: Setup melos
+        run: dart pub global activate melos 7.3.0
+
+      - name: Add pub cache to PATH
+        run: echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+
       - name: Bootstrap dependencies
-        run: |
-          dart pub global activate melos 7.3.0
-          # Add pub cache bin to PATH
-          echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
-          dart run melos bootstrap
+        run: dart run melos bootstrap
 
       - name: Build Flipper app
         run: |
@@ -315,7 +320,6 @@ jobs:
 
       - name: Get Dependencies
         run: |
-          dart run melos run upgrade_dependencies
           dart run melos bootstrap
         shell: bash
 
@@ -512,12 +516,16 @@ jobs:
           echo "https://github.com:${PAT_TOKEN}@github.com" > ~/.git-credentials
       - name: Initialize submodules
         run: git submodule update --init
+
       - name: Setup melos
-        run: |
-          dart pub global activate melos 7.3.0
-          # Add pub cache bin to PATH
-          echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
-          dart run melos bootstrap
+        run: dart pub global activate melos 7.3.0
+
+      - name: Add pub cache to PATH
+        run: echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+
+      - name: Bootstrap melos
+        run: dart run melos bootstrap
+
       - name: Configure Missing files
         run: |
           echo "$INDEX" >> apps/flipper/web/index.html
@@ -546,12 +554,7 @@ jobs:
           ls -la apps/
           ls -la apps/${{ matrix.app }}/
           ls -la apps/${{ matrix.app }}/android/
-      - run: |
-          dart pub global activate melos 7.3.0
-          # Add pub cache bin to PATH
-          echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
-          dart run melos bootstrap
-      
+
       # Get version from pubspec.yaml
       - name: Get version from pubspec.yaml
         id: get_version
