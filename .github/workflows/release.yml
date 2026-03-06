@@ -231,17 +231,16 @@ jobs:
           java-version: "17"
 
       - name: Setup melos
-        run: |
-          dart pub global activate melos 7.3.0
-        shell: bash
+        run: dart pub global activate melos 7.3.0
 
-      - name: Add pub cache to PATH
-        run: |
-          if [ "$RUNNER_OS" == "Windows" ]; then
-            echo "${PUB_CACHE}/bin" >> $GITHUB_PATH
-          else
-            echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
-          fi
+      - name: Add pub cache to PATH (Windows)
+        if: runner.os == 'Windows'
+        run: Add-Content -Path $env:GITHUB_PATH -Value "${PUB_CACHE}/bin"
+        shell: pwsh
+
+      - name: Add pub cache to PATH (Unix)
+        if: runner.os != 'Windows'
+        run: echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
         shell: bash
 
       - name: Initialize submodules and bootstrap melos
@@ -296,17 +295,16 @@ jobs:
           cache: true
 
       - name: Setup melos
-        run: |
-          dart pub global activate melos 7.3.0
-        shell: bash
+        run: dart pub global activate melos 7.3.0
 
-      - name: Add pub cache to PATH
-        run: |
-          if [ "$RUNNER_OS" == "Windows" ]; then
-            echo "${PUB_CACHE}/bin" >> $GITHUB_PATH
-          else
-            echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
-          fi
+      - name: Add pub cache to PATH (Windows)
+        if: runner.os == 'Windows'
+        run: Add-Content -Path $env:GITHUB_PATH -Value "${PUB_CACHE}/bin"
+        shell: pwsh
+
+      - name: Add pub cache to PATH (Unix)
+        if: runner.os != 'Windows'
+        run: echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
         shell: bash
 
       - name: Clean Flutter Build Cache
@@ -392,17 +390,16 @@ jobs:
         run: git submodule update --init
 
       - name: Setup melos
-        run: |
-          dart pub global activate melos 7.3.0
-        shell: bash
+        run: dart pub global activate melos 7.3.0
 
-      - name: Add pub cache to PATH
-        run: |
-          if [ "$RUNNER_OS" == "Windows" ]; then
-            echo "${PUB_CACHE}/bin" >> $GITHUB_PATH
-          else
-            echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
-          fi
+      - name: Add pub cache to PATH (Windows)
+        if: runner.os == 'Windows'
+        run: Add-Content -Path $env:GITHUB_PATH -Value "${PUB_CACHE}/bin"
+        shell: pwsh
+
+      - name: Add pub cache to PATH (Unix)
+        if: runner.os != 'Windows'
+        run: echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
         shell: bash
 
       - name: Initialize submodules and bootstrap melos
