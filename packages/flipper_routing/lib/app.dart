@@ -679,8 +679,6 @@ class App {}
 
 //  archive: ^3.3.5
 //   bloc: ^8.1.0
-//  cbl_flutter_ce: ^3.1.3
-//   cbl_flutter: ^3.1.3
 //
 //   collection: ^1.16.0
 //   cupertino_icons: ^1.0.5

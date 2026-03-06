@@ -281,6 +281,18 @@ jobs:
           dart pub global activate melos 7.3.0
           melos bootstrap
 
+      - name: Clean Flutter Build Cache
+        run: |
+          flutter clean
+          flutter pub cache clean --force
+        shell: bash
+
+      - name: Get Dependencies
+        run: |
+          melos run upgrade_dependencies
+          melos bootstrap
+        shell: bash
+
       - name: Configure Missing files
         shell: bash
         run: |

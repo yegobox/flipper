@@ -12,7 +12,7 @@ dependencies:
     sdk: flutter
 
   stacked: ^3.5.0
-  # firebase_remote_config: ^6.2.0
+  firebase_remote_config: ^6.2.0
   share_plus: ^10.1.4
   firebase_messaging: ^16.1.0
   image: ^4.1.0
@@ -53,8 +53,6 @@ dependencies:
   talker_flutter: ^4.1.5
   supabase_flutter: ^2.12.0
   firebase_core: ^4.2.1
-  # cbl_flutter_ce: ^3.1.3
-  # cbl_flutter: ^3.1.3
   supabase_models: any
   file_picker: 10.3.7
   url_launcher: ^6.3.1
