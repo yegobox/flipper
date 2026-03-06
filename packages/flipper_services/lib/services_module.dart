@@ -34,7 +34,7 @@ import 'package:flipper_services/mobile_upload.dart';
 import 'package:flipper_services/mocks/SharedPreferenceStorageMock.dart';
 import 'package:flipper_services/product_service.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_services/remote_config_service.dart';
+import 'package:flipper_services/remote_config_windows.dart';
 import 'package:flipper_services/cron_service.dart';
 import 'package:flipper_services/sentry_service.dart';
 import 'package:flipper_services/setting_service.dart';
@@ -79,9 +79,7 @@ abstract class ServicesModule {
   @preResolve
   @Named('capella')
   @LazySingleton()
-  Future<DatabaseSyncInterface> capella(
-    LocalStorage box,
-  ) async {
+  Future<DatabaseSyncInterface> capella(LocalStorage box) async {
     return await CapellaSync();
   }
 
@@ -105,9 +103,7 @@ abstract class ServicesModule {
 
   @preResolve
   @LazySingleton()
-  Future<DatabaseSyncInterface> localRealm(
-    LocalStorage box,
-  ) async {
+  Future<DatabaseSyncInterface> localRealm(LocalStorage box) async {
     return await CoreSync();
   }
 
@@ -156,8 +152,10 @@ abstract class ServicesModule {
   @preResolve
   @LazySingleton()
   Future<LocalStorage> box() async {
-    const isTest =
-        const bool.fromEnvironment('FLUTTER_TEST_ENV', defaultValue: false);
+    const isTest = const bool.fromEnvironment(
+      'FLUTTER_TEST_ENV',
+      defaultValue: false,
+    );
     // talker.warning("running in test env: $isTest");
 
     if (isTest) {
@@ -263,13 +261,7 @@ abstract class ServicesModule {
   // @preResolve
   @LazySingleton()
   Remote remote() {
-    late Remote remote;
-    if (UniversalPlatform.isAndroid) {
-      remote = RemoteConfigService();
-    } else {
-      remote = RemoteConfigWindows();
-    }
-    return remote;
+    return RemoteConfigWindows();
   }
 
   @LazySingleton()
@@ -426,4 +418,5 @@ abstract class ServicesModule {
     return BillingService();
   }
 }
+
 //

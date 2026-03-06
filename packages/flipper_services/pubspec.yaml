@@ -12,7 +12,7 @@ dependencies:
     sdk: flutter
 
   stacked: ^3.5.0
-  firebase_remote_config: ^6.2.0
+  # firebase_remote_config: ^6.2.0  # Disabled on Windows - see conditional dependency below
   share_plus: ^10.1.4
   firebase_messaging: ^16.1.0
   image: ^4.1.0
@@ -70,6 +70,19 @@ dependency_overrides:
   excel: ^4.0.6
   cbor: ^6.3.7
   jni: ^0.14.2
+
+# Conditional dependency: firebase_remote_config only for non-Windows platforms
+firebase_remote_config:
+  git:
+    url: https://github.com/firebase/flutterfire.git
+    ref: firebase_remote_config-6.2.0
+    path: packages/firebase_remote_config/firebase_remote_config
+  platforms:
+    - android
+    - ios
+    - macos
+    - web
+    - linux
   
 
 dev_dependencies:
