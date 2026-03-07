@@ -156,9 +156,12 @@ class CheckOutState extends ConsumerState<CheckOut>
             ),
             Positioned(
               top: 5.0,
-              left: 152.0, // Align with top bar search field
+              left: 5.0,
+              right: 5.0,
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 600),
+                constraints: BoxConstraints(
+                  maxWidth: (constraints.maxWidth - 10).clamp(200.0, 560.0),
+                ),
                 child: SearchInputWithDropdown(),
               ),
             ),

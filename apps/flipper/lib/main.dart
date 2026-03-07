@@ -22,6 +22,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:device_preview/device_preview.dart';
 import 'firebase_options.dart';
 import 'package:flipper_models/power_sync/supabase.dart';
 import 'package:flipper_services/GlobalLogError.dart';
@@ -315,30 +316,37 @@ class _FlipperAppState extends State<FlipperApp> {
     return ProviderScope(
       observers: [StateObserver()],
       child: OverlaySupport.global(
-        child: MaterialApp.router(
-          debugShowCheckedModeBanner: false,
-          title: 'flipper',
-          theme: _theme,
-          localizationsDelegates: [
-            FirebaseUILocalizations.withDefaultOverrides(
-              const LabelOverrides(),
-            ),
-            const FlipperLocalizationsDelegate(),
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            CountryLocalizations.delegate
+        child: DevicePreview(
+          enabled: kDebugMode,
+          tools: const [
+            ...DevicePreview.defaultTools,
           ],
-          supportedLocales: const [
-            Locale('en'),
-            Locale('es'),
-          ],
-          locale: const Locale('en'),
-          themeMode: ThemeMode.system,
-          routerDelegate: routerDelegate,
-          routeInformationParser: routeInformationParser,
-          builder: (context, child) {
-            return child!;
-          },
+          builder: (context) => MaterialApp.router(
+            debugShowCheckedModeBanner: false,
+            title: 'flipper',
+            theme: _theme,
+            useInheritedMediaQuery: true,
+            localizationsDelegates: [
+              FirebaseUILocalizations.withDefaultOverrides(
+                const LabelOverrides(),
+              ),
+              const FlipperLocalizationsDelegate(),
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              CountryLocalizations.delegate
+            ],
+            supportedLocales: const [
+              Locale('en'),
+              Locale('es'),
+            ],
+            locale: const Locale('en'),
+            themeMode: ThemeMode.system,
+            routerDelegate: routerDelegate,
+            routeInformationParser: routeInformationParser,
+            builder: (context, child) {
+              return child!;
+            },
+          ),
         ),
       ),
     );
