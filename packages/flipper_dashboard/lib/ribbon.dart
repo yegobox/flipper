@@ -94,77 +94,74 @@ class IconRowState extends ConsumerState<IconRow>
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.start,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          _buildIconText(
-            context,
-            Icons.home_outlined,
-            'Home',
-            0,
-            const Key('home_desktop'),
-            () {
-              _showTaxDialog(context);
-            },
-          ),
-          const SizedBox(width: 4),
-          _buildIconText(
-            context,
-            Icons.sync_outlined,
-            'Transactions',
-            1,
-            const Key('transactions_desktop'),
-          ),
-          const SizedBox(width: 4),
-          _buildIconText(
-            context,
-            Icons.payment_outlined,
-            'EOD',
-            2,
-            const Key('eod_desktop'),
-          ),
-          const SizedBox(width: 4),
-          _buildIconText(
-            context,
-            Icons.dashboard_outlined,
-            'Analytics',
-            3,
-            const Key('analytics_desktop'),
-          ),
-          const SizedBox(width: 4),
-          _buildIconText(
-            context,
-            Icons.maps_home_work_outlined,
-            'Locations',
-            4,
-            const Key('locations'),
-            () {
-              final deviceType = _getDeviceType(context);
-              if (deviceType == 'Phone' || deviceType == 'Phablet') {
-                ref.read(selectedBranchProvider.notifier).state = null;
-                _showBranchPerformanceMobile(context);
-              } else {
-                _showBranchPerformance(context);
-              }
-            },
-          ),
-          const SizedBox(width: 4),
-          _buildIconText(
-            context,
-            Icons.inventory_2_outlined,
-            'Items',
-            5,
-            const Key('items_desktop'),
-            () {
-              final dialogService = locator<DialogService>();
-              dialogService.showCustomDialog(variant: DialogType.items);
-            },
-          ),
-        ],
-      ),
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        _buildIconText(
+          context,
+          Icons.home_outlined,
+          'Home',
+          0,
+          const Key('home_desktop'),
+          () {
+            _showTaxDialog(context);
+          },
+        ),
+        const SizedBox(width: 4),
+        _buildIconText(
+          context,
+          Icons.sync_outlined,
+          'Transactions',
+          1,
+          const Key('transactions_desktop'),
+        ),
+        const SizedBox(width: 4),
+        _buildIconText(
+          context,
+          Icons.payment_outlined,
+          'EOD',
+          2,
+          const Key('eod_desktop'),
+        ),
+        const SizedBox(width: 4),
+        _buildIconText(
+          context,
+          Icons.dashboard_outlined,
+          'Analytics',
+          3,
+          const Key('analytics_desktop'),
+        ),
+        const SizedBox(width: 4),
+        _buildIconText(
+          context,
+          Icons.maps_home_work_outlined,
+          'Locations',
+          4,
+          const Key('locations'),
+          () {
+            final deviceType = _getDeviceType(context);
+            if (deviceType == 'Phone' || deviceType == 'Phablet') {
+              ref.read(selectedBranchProvider.notifier).state = null;
+              _showBranchPerformanceMobile(context);
+            } else {
+              _showBranchPerformance(context);
+            }
+          },
+        ),
+        const SizedBox(width: 4),
+        _buildIconText(
+          context,
+          Icons.inventory_2_outlined,
+          'Items',
+          5,
+          const Key('items_desktop'),
+          () {
+            final dialogService = locator<DialogService>();
+            dialogService.showCustomDialog(variant: DialogType.items);
+          },
+        ),
+      ],
     );
   }
 
