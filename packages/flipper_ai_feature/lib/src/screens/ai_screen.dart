@@ -50,6 +50,23 @@ class _AiScreenState extends ConsumerState<AiScreen> {
   AIModel? _selectedModel; // State for selected AI model
   String _selectedUseCase = 'business'; // State for selected mode
 
+  String _cleanResponse(String text) {
+    return text
+        .replaceAll(
+          RegExp(
+            r'\{\{VISUALIZATION_DATA\}\}.*?\{\{/VISUALIZATION_DATA\}\}',
+            dotAll: true,
+          ),
+          '',
+        )
+        .replaceAll(
+          RegExp(r'\{\{REASONING\}\}.*?\{\{/REASONING\}\}', dotAll: true),
+          '',
+        )
+        .replaceAll(RegExp(r'\{\{.*?\}\}'), '') // Remove any orphaned tags
+        .trim();
+  }
+
   void _handleAttachedFile(String filePath) {
     // Check if it's an Excel file
     if (filePath.endsWith('.xlsx') || filePath.endsWith('.xls')) {
@@ -335,13 +352,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
       );
 
       // Clean the response for conversation history to avoid confusing the AI.
-      final cleanedForHistory = aiResponseText.replaceAll(
-        RegExp(
-          r'\{\{VISUALIZATION_DATA\}\}.*?\{\{/VISUALIZATION_DATA\}\}',
-          dotAll: true,
-        ),
-        '',
-      );
+      final cleanedForHistory = _cleanResponse(aiResponseText);
 
       // Update conversation history with the user's prompt and the cleaned AI response.
       _conversationHistory.add(userContentForHistory);
@@ -351,9 +362,11 @@ class _AiScreenState extends ConsumerState<AiScreen> {
 
       // If the response contained visualization data, generate and save a separate summary message.
       if (aiResponseText.contains('{{VISUALIZATION_DATA}}')) {
+        // Use a cleaner prompt that clearly separates the visualization data from the instructions.
         final summaryPrompt =
-            "Summarize the key insight from the following data visualization in one or two concise sentences. "
-            "Focus on the most important takeaway for a business owner.\n\n"
+            "The following is a data visualization provided to the user. Briefly explain what this data means for their business in one or two friendly, professional sentences. "
+            "IMPORTANT: Your response MUST be plain text only. DO NOT include any JSON, bracketed tags like {{VISUALIZATION_DATA}}, or code blocks.\n\n"
+            "Data to summarize:\n"
             "$aiResponseText";
 
         final summaryText = await ref
@@ -364,36 +377,45 @@ class _AiScreenState extends ConsumerState<AiScreen> {
           ).future,
         )
             .onError((error, stackTrace) {
-          // talker.error("Failed to generate summary: $error");
-          return "Error: Could not generate summary.";
+          debugPrint("Failed to generate summary: $error");
+          return "";
         });
 
-        await ProxyService.strategy.saveMessage(
-          text: summaryText,
-          phoneNumber: ProxyService.box.getUserPhone() ?? '',
-          branchId: branchId,
-          role: 'assistant',
-          conversationId: targetConversationId,
-          messageSource: 'ai',
-        );
+        final cleanedSummary = _cleanResponse(summaryText);
 
-        // Also add the summary to the conversation history for complete context.
-        _conversationHistory.add(
-          Content(role: "assistant", parts: [Part.text(summaryText)]),
-        );
+        if (cleanedSummary.isNotEmpty) {
+          await ProxyService.strategy.saveMessage(
+            text: cleanedSummary,
+            phoneNumber: ProxyService.box.getUserPhone() ?? '',
+            branchId: branchId,
+            role: 'assistant',
+            conversationId: targetConversationId,
+            messageSource: 'ai',
+          );
+
+          // Also add the summary to the conversation history for complete context.
+          _conversationHistory.add(
+            Content(role: "assistant", parts: [Part.text(cleanedSummary)]),
+          );
+        }
       }
+
+      _scrollToBottom();
 
       // Generate a dynamic conversation title if this is the first message
       if (isFirstMessage && !isWhatsAppReply) {
         Future.microtask(() async {
           try {
             final titlePrompt =
-                "Generate a concise, descriptive title (maximum 5 words) for a conversation that starts with this user message: \"$processedText\". Only return the title and nothing else without quotes.";
+                "Generate a concise, descriptive title (maximum 5 words) for a conversation that starts with this user message: \"$processedText\". Only return the plain text title and nothing else. DO NOT include quotes, reasoning or internal tags.";
             final generatedTitle = await ref.read(
               geminiSummaryProvider(titlePrompt, aiModel: _selectedModel)
                   .future,
             );
-            final cleanTitle = generatedTitle.replaceAll('"', '').trim();
+            final cleanTitle = _cleanResponse(generatedTitle)
+                .replaceAll('"', '')
+                .replaceAll(RegExp(r'[{}]+'), '')
+                .trim();
 
             if (cleanTitle.isNotEmpty) {
               final conversations = ref.read(conversationProvider).value ?? [];
