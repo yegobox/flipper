@@ -606,8 +606,6 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
       return ListView.builder(
         controller: _scrollController,
         itemCount: variants.length,
-        // Add itemExtent for better performance with uniform item heights
-        // itemExtent: 120.0, // Adjust based on your actual item height
         itemBuilder: (context, index) {
           return buildVariantRow(
             forceRemoteUrl: false,
@@ -619,18 +617,28 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
           );
         },
         physics: const AlwaysScrollableScrollPhysics(),
-        // Add cacheExtent for smoother scrolling
         cacheExtent: 500.0,
       );
     } else {
+      // For desktop and web, use a responsive grid extent
+      final screenWidth = MediaQuery.of(context).size.width;
+      // High-density pos format on wide screens, slightly larger on smaller screens
+      final double crossAxisExtent = screenWidth >= 1200
+          ? 140.0
+          : (screenWidth >= 800 ? 160.0 : 200.0);
+
+      // A slightly taller child aspect ratio allows both the image/color block
+      // and the multi-line text (title, variant, price, stock) to fit comfortably.
+      // e.g. at 140 width, a 0.78 ratio makes the height about 179px.
+      final double childAspectRatio = screenWidth >= 1200 ? 0.78 : 0.85;
+
       return GridView.builder(
         controller: _scrollController,
-        gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
-          maxCrossAxisExtent: 200,
-          mainAxisSpacing: 5.0,
-          crossAxisSpacing: 2.0,
-          // Add childAspectRatio for consistent item sizing
-          childAspectRatio: 1.0,
+        gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
+          maxCrossAxisExtent: crossAxisExtent,
+          mainAxisSpacing: 12.0,
+          crossAxisSpacing: 12.0,
+          childAspectRatio: childAspectRatio,
         ),
         itemCount: variants.length,
         itemBuilder: (context, index) {

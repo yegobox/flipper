@@ -304,9 +304,6 @@ class _RowItemState extends ConsumerState<RowItem>
     TextTheme textTheme,
     ColorScheme colorScheme,
   ) {
-    // Check if we're on desktop Windows
-    final isDesktopWindows = Platform.isWindows;
-
     return LayoutBuilder(
       builder: (context, constraints) {
         // Calculate available height for content
@@ -320,13 +317,11 @@ class _RowItemState extends ConsumerState<RowItem>
         final double availableForImage =
             maxHeight - maxInfoHeight - 4; // 4px for spacing
 
-        // Cap image height to prevent overflow
-        final double imageHeight = isDesktopWindows
-            ? math.min(100, availableForImage) // More conservative on Windows
-            : math.min(
-                availableForImage,
-                maxHeight * 0.55,
-              ); // Cap at 55% of available height
+        // Cap image height to prevent overflow and maintain a balanced look
+        final double imageHeight = math.min(
+          availableForImage,
+          maxHeight * 0.55, // Cap at 55% of available height
+        );
 
         return Column(
           mainAxisSize: MainAxisSize.min, // Important to prevent overflow
@@ -378,7 +373,7 @@ class _RowItemState extends ConsumerState<RowItem>
           style: textTheme.titleMedium?.copyWith(
             fontWeight: FontWeight.w600,
             color: Colors.black87,
-            fontSize: 11, // Smaller font size
+            fontSize: 13, // Increased from 11
           ),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
@@ -390,7 +385,7 @@ class _RowItemState extends ConsumerState<RowItem>
             displayVariantName,
             style: textTheme.bodyMedium?.copyWith(
               color: Colors.grey[600],
-              fontSize: 9, // Smaller font size
+              fontSize: 11, // Increased from 9
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
@@ -402,7 +397,7 @@ class _RowItemState extends ConsumerState<RowItem>
             'BCD: ${widget.variant!.bcd}',
             style: textTheme.bodySmall?.copyWith(
               color: Colors.grey[600],
-              fontSize: 9,
+              fontSize: 11, // Increased from 9
             ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
