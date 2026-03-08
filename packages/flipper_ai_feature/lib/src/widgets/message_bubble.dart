@@ -33,6 +33,7 @@ class _MessageBubbleState extends State<MessageBubble> {
   bool _isHovering = false;
   bool _showCopied = false;
   final GlobalKey _visualizationKey = GlobalKey();
+  bool _showThinking = false;
   Timer? _copiedTimer;
 
   Future<void> _copyToClipboard() async {
@@ -139,25 +140,8 @@ class _MessageBubbleState extends State<MessageBubble> {
                                           cardKey: _visualizationKey,
                                           onCopyGraph: _copyToClipboard,
                                         )
-                                      : MarkdownWidget(
-                                          data: widget.message.text,
-                                          shrinkWrap: true,
-                                          physics:
-                                              const NeverScrollableScrollPhysics(),
-                                          config: MarkdownConfig(
-                                            configs: [
-                                              PConfig(
-                                                textStyle: TextStyle(
-                                                  color: widget.isUser
-                                                      ? AiTheme.onPrimaryColor
-                                                      : AiTheme
-                                                          .onAssistantMessageColor,
-                                                  fontSize: 16,
-                                                  height: 1.4,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
+                                      : _buildMessageContent(
+                                          widget.message.text,
                                         ),
                                   if (widget.message.text.contains(
                                     "purchase credits",
@@ -330,6 +314,124 @@ class _MessageBubbleState extends State<MessageBubble> {
               ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMessageContent(String messageText) {
+    final reasoningMatch = RegExp(
+      r'{{REASONING}}(.*?){{/REASONING}}',
+      dotAll: true,
+    ).firstMatch(messageText);
+    final reasoningText = reasoningMatch?.group(1)?.trim();
+    final mainContent = messageText
+        .replaceAll(
+          RegExp(r'{{REASONING}}.*?{{/REASONING}}', dotAll: true),
+          '',
+        )
+        .trim();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (reasoningText != null && reasoningText.isNotEmpty) ...[
+          _buildThinkingToggle(reasoningText),
+          if (_showThinking)
+            Container(
+              margin: const EdgeInsets.only(top: 8, bottom: 12),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.03),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
+              ),
+              child: MarkdownWidget(
+                data: reasoningText,
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                config: MarkdownConfig(
+                  configs: [
+                    PConfig(
+                      textStyle: TextStyle(
+                        color: AiTheme.onAssistantMessageColor.withValues(
+                          alpha: 0.7,
+                        ),
+                        fontSize: 14,
+                        fontStyle: FontStyle.italic,
+                        height: 1.4,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+        ],
+        if (mainContent.isNotEmpty)
+          MarkdownWidget(
+            data: mainContent,
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            config: MarkdownConfig(
+              configs: [
+                PConfig(
+                  textStyle: TextStyle(
+                    color: widget.isUser
+                        ? AiTheme.onPrimaryColor
+                        : AiTheme.onAssistantMessageColor,
+                    fontSize: 16,
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          )
+        else if (reasoningText != null && !_showThinking)
+          // Show a placeholder if content is empty but reasoning is hidden
+          Text(
+            "AI is processing... Expand thinking to see details.",
+            style: TextStyle(
+              color: AiTheme.onAssistantMessageColor.withValues(alpha: 0.5),
+              fontSize: 14,
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildThinkingToggle(String reasoningText) {
+    return InkWell(
+      onTap: () => setState(() => _showThinking = !_showThinking),
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4.0),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              _showThinking
+                  ? Icons.psychology_alt_outlined
+                  : Icons.psychology_outlined,
+              size: 18,
+              color: AiTheme.primaryColor.withValues(alpha: 0.7),
+            ),
+            const SizedBox(width: 6),
+            Text(
+              _showThinking ? 'Hide Thinking' : 'Show Thinking',
+              style: TextStyle(
+                color: AiTheme.primaryColor.withValues(alpha: 0.8),
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(width: 4),
+            Icon(
+              _showThinking ? Icons.expand_less : Icons.expand_more,
+              size: 16,
+              color: AiTheme.primaryColor.withValues(alpha: 0.7),
+            ),
+          ],
         ),
       ),
     );

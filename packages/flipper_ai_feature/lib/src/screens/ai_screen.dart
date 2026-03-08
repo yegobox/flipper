@@ -40,6 +40,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
   String _currentConversationId = '';
   List<Message> _messages = [];
   bool _isLoading = false;
+  bool _isCreatingConversation = false;
   StreamSubscription<List<Message>>? _subscription;
   final ScrollController _scrollController = ScrollController();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -88,6 +89,8 @@ class _AiScreenState extends ConsumerState<AiScreen> {
   }
 
   Future<void> _startNewConversation() async {
+    if (_isCreatingConversation) return;
+    setState(() => _isCreatingConversation = true);
     try {
       final branchId = ProxyService.box.getBranchId();
       if (branchId == null) throw Exception('Branch ID is required');
@@ -109,6 +112,8 @@ class _AiScreenState extends ConsumerState<AiScreen> {
       }
     } catch (e) {
       if (mounted) _showError('Error creating conversation: ${e.toString()}');
+    } finally {
+      if (mounted) setState(() => _isCreatingConversation = false);
     }
   }
 
@@ -634,31 +639,27 @@ class _AiScreenState extends ConsumerState<AiScreen> {
     // Handle initial selection if needed
     ref.listen(conversationProvider, (previous, next) {
       next.whenData((conversations) {
-        if (conversations.isNotEmpty && _currentConversationId.isEmpty) {
-          // Auto-select first conversation if none selected
-          setState(() {
-            _currentConversationId = conversations.first.id;
-            _messages = []; // Will be populated by stream
-          });
-          _subscribeToCurrentConversation();
-        } else if (conversations.isNotEmpty &&
+        if (conversations.isEmpty) {
+          // If no conversations exist, reset state and start a new one
+          if (_currentConversationId.isNotEmpty) {
+            setState(() {
+              _currentConversationId = '';
+              _messages = [];
+            });
+          }
+          _startNewConversation();
+          return;
+        }
+
+        // We have conversations
+        if (_currentConversationId.isEmpty ||
             !conversations.any((c) => c.id == _currentConversationId)) {
-          // If current selected is gone (deleted), select first
+          // Auto-select first conversation if none selected or current is gone
           setState(() {
             _currentConversationId = conversations.first.id;
             _messages = []; // Will be populated by stream
           });
           _subscribeToCurrentConversation();
-        } else if (conversations.isEmpty && _currentConversationId.isNotEmpty) {
-          // If all conversations were deleted, reset state and start a new one
-          setState(() {
-            _currentConversationId = '';
-            _messages = [];
-          });
-          _startNewConversation();
-        } else if (conversations.isEmpty && _currentConversationId.isEmpty) {
-          // If no conversations exist (e.g., first load), start a new one
-          _startNewConversation();
         }
       });
     });
