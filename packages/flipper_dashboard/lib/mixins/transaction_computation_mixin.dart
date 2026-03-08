@@ -1,5 +1,8 @@
 import 'package:flipper_models/db_model_export.dart';
+
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_services/setting_service.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_services/proxy.dart';
@@ -11,10 +14,18 @@ mixin TransactionComputationMixin {
     double discountPercent = 0.0,
   }) {
     // Default to using the sum of items
-    double baseTotal = items.fold(
-      0.0,
-      (sum, item) => sum + (item.price * item.qty),
-    );
+    // Round each item's subtotal to 2 decimal places to avoid
+    // floating-point drift (e.g. 3000 * 2.6666... = 7999.80 → 8000.00)
+    final settingsService = locator<SettingsService>();
+    final isCurrencyDecimal = settingsService.isCurrencyDecimal;
+
+    double baseTotal = items.fold(0.0, (sum, item) {
+      final val = (item.price * item.qty).toDouble();
+      return sum +
+          (isCurrencyDecimal
+              ? val.roundToTwoDecimalPlaces()
+              : val.roundToDouble());
+    });
 
     // Fallback/Validation: REMOVED
     // We strictly use the sum of items because relying on transaction.subTotal

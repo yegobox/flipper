@@ -32,6 +32,7 @@ class Setting extends OfflineFirstWithSupabaseModel {
   String? businessId;
   String? createdAt;
   bool? enablePriceQuantityAdjustment;
+  bool? isCurrencyDecimal;
 
   DateTime? lastTouched;
 
@@ -58,6 +59,7 @@ class Setting extends OfflineFirstWithSupabaseModel {
     this.businessId,
     this.createdAt,
     this.enablePriceQuantityAdjustment,
+    this.isCurrencyDecimal,
     this.lastTouched,
     this.deletedAt,
   }) : id = id ?? const Uuid().v4();
@@ -87,6 +89,7 @@ class Setting extends OfflineFirstWithSupabaseModel {
       createdAt: json['createdAt'] as String?,
       enablePriceQuantityAdjustment:
           json['enablePriceQuantityAdjustment'] as bool?,
+      isCurrencyDecimal: json['isCurrencyDecimal'] as bool?,
       lastTouched: json['lastTouched'] != null
           ? DateTime.tryParse(json['lastTouched'] as String)
           : null,
@@ -119,6 +122,7 @@ class Setting extends OfflineFirstWithSupabaseModel {
       'businessId': businessId,
       'createdAt': createdAt,
       'enablePriceQuantityAdjustment': enablePriceQuantityAdjustment,
+      'isCurrencyDecimal': isCurrencyDecimal,
       'lastTouched': lastTouched?.toIso8601String(),
       'deletedAt': deletedAt?.toIso8601String(),
     };

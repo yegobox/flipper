@@ -4,7 +4,7 @@ import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_services/utils.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -140,7 +140,11 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
           ? item.compositePrice!
           : item.price;
 
-      total += price * item.qty;
+      if (_settingsService.isCurrencyDecimal) {
+        total += (price * item.qty).toDouble().roundToTwoDecimalPlaces();
+      } else {
+        total += (price * item.qty).toDouble().roundToDouble();
+      }
     }
 
     return total;
@@ -301,7 +305,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
         // Price display
         Expanded(
           child: Text(
-            formatNumber(item.price.toDouble()),
+            item.price.toNoCurrencyFormatted(symbol: ''),
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -738,8 +742,13 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   }
 
   String _getItemTotal(TransactionItem item) {
-    final price = item.price * item.qty;
-    return formatNumber(price.toDouble());
+    final double price;
+    if (_settingsService.isCurrencyDecimal) {
+      price = (item.price * item.qty).toDouble().roundToTwoDecimalPlaces();
+    } else {
+      price = (item.price * item.qty).toDouble().roundToDouble();
+    }
+    return price.toNoCurrencyFormatted(symbol: '');
   }
 
   Future<void> _updateTransactionItemInDb(

@@ -13,6 +13,7 @@ import 'package:flipper_models/providers/selected_provider.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_services/setting_service.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -324,10 +325,16 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
       // update this transaction as completed
 
-      final double finalSubTotal = transactionItems.fold(
-        0,
-        (sum, item) => sum + (item.price * item.qty),
-      );
+      final settingsService = locator<SettingsService>();
+      final isCurrencyDecimal = settingsService.isCurrencyDecimal;
+
+      final double finalSubTotal = transactionItems.fold(0, (sum, item) {
+        final val = (item.price * item.qty).toDouble();
+        return sum +
+            (isCurrencyDecimal
+                ? val.roundToTwoDecimalPlaces()
+                : val.roundToDouble());
+      });
 
       // Ensure transaction subTotal is updated for correct isFullyPaid check downstream
       transaction.subTotal = finalSubTotal;
@@ -1067,10 +1074,16 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
     // Check if the AsyncValue is in a data state (has data)
     if (transactionItems.hasValue) {
-      return transactionItems.value!.fold(
-        0,
-        (sum, item) => sum + (item.price * item.qty),
-      );
+      final settingsService = locator<SettingsService>();
+      final isCurrencyDecimal = settingsService.isCurrencyDecimal;
+
+      return transactionItems.value!.fold(0, (sum, item) {
+        final val = (item.price * item.qty).toDouble();
+        return sum +
+            (isCurrencyDecimal
+                ? val.roundToTwoDecimalPlaces()
+                : val.roundToDouble());
+      });
     } else {
       // Return 0 or handle the case where data is not available
       return 0.0;

@@ -128,6 +128,7 @@ class _AdminControlState extends State<AdminControl> {
     }
     settingsService.getAdminPinToggleState();
     settingsService.getPriceQuantityAdjustmentToggleState();
+    settingsService.getCurrencyDecimalToggleState();
     _loadSmsConfig();
   }
 
@@ -368,6 +369,13 @@ class _AdminControlState extends State<AdminControl> {
 
   void togglePriceQuantityAdjustment(bool value) async {
     await settingsService.togglePriceQuantityAdjustment(
+      enabled: value,
+      businessId: ProxyService.box.getBusinessId()!,
+    );
+  }
+
+  void toggleCurrencyDecimal(bool value) async {
+    await settingsService.toggleCurrencyDecimal(
       enabled: value,
       businessId: ProxyService.box.getBusinessId()!,
     );
@@ -712,6 +720,19 @@ class _AdminControlState extends State<AdminControl> {
                   value: settingsService.enablePriceQuantityAdjustment,
                   onChanged: togglePriceQuantityAdjustment,
                   color: Colors.deepOrange,
+                );
+              },
+            ),
+            ListenableBuilder(
+              listenable: settingsService,
+              builder: (context, child) {
+                return SwitchSettingsCard(
+                  title: 'Decimals in Currency',
+                  subtitle: 'Enable fractional pricing',
+                  icon: Icons.payments_outlined,
+                  value: settingsService.isCurrencyDecimal,
+                  onChanged: toggleCurrencyDecimal,
+                  color: Colors.green,
                 );
               },
             ),

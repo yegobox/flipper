@@ -34,6 +34,9 @@ class SettingsService with ListenableServiceMixin {
   bool get enablePriceQuantityAdjustment =>
       _enablePriceQuantityAdjustment.value;
 
+  final _isCurrencyDecimal = ReactiveValue<bool>(false);
+  bool get isCurrencyDecimal => _isCurrencyDecimal.value;
+
   Future<bool> updateSettings({required Map map}) async {
     String? userId = ProxyService.box.getUserId();
     String? businessId = map['businessId'] ?? ProxyService.box.getBusinessId();
@@ -71,6 +74,10 @@ class SettingsService with ListenableServiceMixin {
         _enablePriceQuantityAdjustment.value =
             map['enablePriceQuantityAdjustment'];
       }
+      if (map.containsKey('isCurrencyDecimal')) {
+        setting.isCurrencyDecimal = map['isCurrencyDecimal'];
+        _isCurrencyDecimal.value = map['isCurrencyDecimal'];
+      }
 
       await ProxyService.strategy.patchSettings(setting: setting);
       return true;
@@ -91,6 +98,7 @@ class SettingsService with ListenableServiceMixin {
         isAttendanceEnabled: map['isAttendanceEnabled'] ?? false,
         enablePriceQuantityAdjustment:
             map['enablePriceQuantityAdjustment'] ?? false,
+        isCurrencyDecimal: map['isCurrencyDecimal'] ?? false,
       );
 
       await ProxyService.getStrategy(
@@ -206,6 +214,13 @@ class SettingsService with ListenableServiceMixin {
     }
   }
 
+  void getCurrencyDecimalToggleState() async {
+    Setting? setting = await settings();
+    if (setting != null) {
+      _isCurrencyDecimal.value = setting.isCurrencyDecimal ?? false;
+    }
+  }
+
   Future<void> togglePriceQuantityAdjustment({
     required bool enabled,
     required String businessId,
@@ -214,6 +229,17 @@ class SettingsService with ListenableServiceMixin {
       map: {'enablePriceQuantityAdjustment': enabled, 'businessId': businessId},
     );
     _enablePriceQuantityAdjustment.value = enabled;
+    notifyListeners();
+  }
+
+  Future<void> toggleCurrencyDecimal({
+    required bool enabled,
+    required String businessId,
+  }) async {
+    await updateSettings(
+      map: {'isCurrencyDecimal': enabled, 'businessId': businessId},
+    );
+    _isCurrencyDecimal.value = enabled;
     notifyListeners();
   }
 
@@ -250,6 +276,7 @@ class SettingsService with ListenableServiceMixin {
       themeMode,
       _isAdminPinEnabled,
       _enablePriceQuantityAdjustment,
+      _isCurrencyDecimal,
     ]);
   }
 }
