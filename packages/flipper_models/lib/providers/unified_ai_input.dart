@@ -6,24 +6,21 @@ class UnifiedAIInput {
   final GenerationConfig? generationConfig;
   final String? model;
 
-  UnifiedAIInput({
-    required this.contents,
-    this.generationConfig,
-    this.model,
-  });
+  UnifiedAIInput({required this.contents, this.generationConfig, this.model});
 
   /// Convert to Gemini-compatible JSON
   Map<String, dynamic> toGeminiJson() => {
-        'contents': contents.map((e) => e.toJson()).toList(),
-        if (generationConfig != null)
-          'generationConfig': generationConfig!.toJson(),
-      };
+    'contents': contents.map((e) => e.toJson()).toList(),
+    if (generationConfig != null)
+      'generationConfig': generationConfig!.toJson(),
+  };
 
   /// Convert to OpenAI/Groq-compatible JSON
   Map<String, dynamic> toOpenAIJson() {
     final messages = contents.map((content) {
-      final role =
-          content.role == 'model' ? 'assistant' : (content.role ?? 'user');
+      final role = content.role == 'model'
+          ? 'assistant'
+          : (content.role ?? 'user');
 
       // OpenAI expects a simple string content for text-only messages
       // or an array of content parts for multimodal/complex messages.
@@ -33,10 +30,7 @@ class UnifiedAIInput {
           .map((p) => p.text)
           .join('\n');
 
-      return {
-        'role': role,
-        'content': textContent,
-      };
+      return {'role': role, 'content': textContent};
     }).toList();
 
     return {
@@ -44,9 +38,10 @@ class UnifiedAIInput {
       'messages': messages,
       if (generationConfig?.temperature != null)
         'temperature': generationConfig!.temperature,
-      if (generationConfig?.maxOutputTokens != null)
-        'max_completion_tokens': generationConfig!
-            .maxOutputTokens, // OpenAI uses max_completion_tokens (new) or max_tokens
+      if (generationConfig?.maxOutputTokens != null) ...{
+        'max_completion_tokens': generationConfig!.maxOutputTokens,
+        'max_tokens': generationConfig!.maxOutputTokens,
+      },
     };
   }
 }
