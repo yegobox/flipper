@@ -26,6 +26,7 @@ import 'package:flipper_models/ebm_helper.dart';
 import 'package:flipper_web/core/secrets.dart';
 import 'package:flipper_web/core/utils/ditto_singleton.dart';
 import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
+import 'package:brick_offline_first/brick_offline_first.dart';
 
 mixin AuthMixin implements AuthInterface {
   String get apihub;
@@ -730,7 +731,10 @@ mixin AuthMixin implements AuthInterface {
             location: iBranch.location,
             isDefault: iBranch.isDefault ?? false,
           );
-          await repository.upsert<Branch>(branch);
+          await repository.upsert<Branch>(
+            branch,
+            policy: OfflineFirstUpsertPolicy.localOnly,
+          );
           talker.debug(
             "Saved branch locally: ${branch.name} (isDefault: ${branch.isDefault})",
           );

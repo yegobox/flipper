@@ -41,6 +41,7 @@ import 'package:flipper_models/sync/capella/mixins/transaction_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/variant_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/shift_mixin.dart';
 import 'package:flipper_models/sync/capella/mixins/counter_mixin.dart';
+import 'package:flipper_models/sync/capella/mixins/settings_mixin.dart';
 import 'package:flipper_services/ai_strategy_impl.dart';
 import 'package:flipper_models/sync/mixins/stock_recount_mixin.dart';
 import 'package:supabase_models/brick/models/all_models.dart' hide BusinessType;
@@ -74,6 +75,7 @@ class CapellaSync extends AiStrategyImpl
         CategoryMixin,
         CapellaDelegationMixin,
         StockRecountMixin,
+        CapellaSettingsMixin,
         CapellaProductionOutputMixin
     implements DatabaseSyncInterface {
   CapellaSync();
@@ -725,11 +727,6 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  Future<Setting?> getSetting({required String businessId}) {
-    // TODO: implement getSetting
-    throw UnimplementedError();
-  }
-
   @override
   getTop5RecentConversations() {
     // TODO: implement getTop5RecentConversations
@@ -836,11 +833,6 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  Future<void> patchSocialSetting({required Setting setting}) {
-    // TODO: implement patchSocialSetting
-    throw UnimplementedError();
-  }
-
   @override
   FutureOr<LPermission?> permission({required String userId}) {
     // TODO: implement permission
@@ -1015,7 +1007,7 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  Future<void> sendMessageToIsolate() {
+  Future<void> sendMessageToIsolate({Map<String, dynamic>? message}) async {
     // TODO: implement sendMessageToIsolate
     throw UnimplementedError();
   }

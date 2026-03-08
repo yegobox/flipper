@@ -19,7 +19,7 @@ SyncRecord _$SyncRecordFromJson(Map<String, dynamic> json) =>
       ..deletedAt = json['deletedAt'] == null
           ? null
           : DateTime.parse(json['deletedAt'] as String)
-      ..action = json['action'] as String;
+      ..action = json['action'] as String?;
 
 Map<String, dynamic> _$SyncRecordToJson(SyncRecord instance) =>
     <String, dynamic>{

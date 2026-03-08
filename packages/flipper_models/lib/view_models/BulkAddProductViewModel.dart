@@ -17,6 +17,7 @@ class BulkAddProductViewModel extends ChangeNotifier {
   PlatformFile? _selectedFile;
   List<Map<String, dynamic>>? _excelData;
   Map<String, TextEditingController> _controllers = {};
+  Map<String, TextEditingController> _supplyPriceControllers = {};
   final Map<String, String> _selectedItemClasses = {};
   final Map<String, String> _selectedTaxTypes = {};
   final Map<String, TextEditingController> _quantityControllers = {};
@@ -32,6 +33,8 @@ class BulkAddProductViewModel extends ChangeNotifier {
   PlatformFile? get selectedFile => _selectedFile;
   List<Map<String, dynamic>>? get excelData => _excelData;
   Map<String, TextEditingController> get controllers => _controllers;
+  Map<String, TextEditingController> get supplyPriceControllers =>
+      _supplyPriceControllers;
   Map<String, String> get selectedItemClasses => _selectedItemClasses;
   Map<String, String> get selectedTaxTypes => _selectedTaxTypes;
   Map<String, String> get selectedProductTypes => _selectedProductTypes;
@@ -51,16 +54,27 @@ class BulkAddProductViewModel extends ChangeNotifier {
   }
 
   void initializeControllers() {
-    if (_excelData != null && _controllers.isEmpty) {
-      for (var product in _excelData!) {
-        String barCode = product['BarCode'] ?? '';
-        _controllers[barCode] = TextEditingController(text: product['Price']);
+    if (_excelData != null) {
+      if (_controllers.isEmpty) {
+        for (var product in _excelData!) {
+          String barCode = product['BarCode'] ?? '';
+          _controllers[barCode] = TextEditingController(text: product['Price']);
+        }
+      }
+      if (_supplyPriceControllers.isEmpty) {
+        for (var product in _excelData!) {
+          String barCode = product['BarCode'] ?? '';
+          _supplyPriceControllers[barCode] = TextEditingController(
+            text: product['SupplyPrice'] ?? product['Price'] ?? '0',
+          );
+        }
       }
     }
   }
 
   void disposeControllers() {
     _controllers.forEach((_, controller) => controller.dispose());
+    _supplyPriceControllers.forEach((_, controller) => controller.dispose());
     _quantityControllers.values.forEach((controller) => controller.dispose());
   }
 
@@ -134,6 +148,7 @@ class BulkAddProductViewModel extends ChangeNotifier {
           'Name',
           'Category',
           'Price',
+          'SupplyPrice',
           'Quantity',
           'bcdU',
         ];
@@ -198,6 +213,16 @@ class BulkAddProductViewModel extends ChangeNotifier {
     }
   }
 
+  void updateSupplyPrice(String barCode, String newPrice) {
+    final index = _excelData!.indexWhere(
+      (product) => product['BarCode'] == barCode,
+    );
+    if (index != -1) {
+      _excelData![index]['SupplyPrice'] = newPrice;
+      notifyListeners();
+    }
+  }
+
   Future<void> saveAll() async {
     // Convert each row from the table to an Item model
     String orgnNatCd = "RW"; // Define the variable
@@ -228,7 +253,7 @@ class BulkAddProductViewModel extends ChangeNotifier {
             ? finalCategoryId
             : (product['Category'] ?? ''),
         retailPrice: double.tryParse(product['Price'] ?? '0') ?? 0,
-        supplyPrice: double.tryParse(product['Price'] ?? '0') ?? 0,
+        supplyPrice: double.tryParse(product['SupplyPrice'] ?? '0') ?? 0,
         quantity: double.tryParse(product['Quantity'] ?? '0') ?? 0,
         categoryId: finalCategoryId,
       );
@@ -289,7 +314,10 @@ class BulkAddProductViewModel extends ChangeNotifier {
               ? finalCategoryId
               : (product['Category'] ?? ''),
           retailPrice: double.tryParse(product['Price'] ?? '0') ?? 0,
-          supplyPrice: double.tryParse(product['Price'] ?? '0') ?? 0,
+          supplyPrice:
+              double.tryParse(product['SupplyPrice'] ?? '0') ??
+              double.tryParse(product['Price'] ?? '0') ??
+              0,
           quantity: double.tryParse(product['Quantity'] ?? '0') ?? 0,
           categoryId: finalCategoryId,
         );
@@ -452,11 +480,12 @@ class BulkAddProductViewModel extends ChangeNotifier {
     sheet.getRangeByIndex(1, 2).setText('Name');
     sheet.getRangeByIndex(1, 3).setText('Category');
     sheet.getRangeByIndex(1, 4).setText('Price');
-    sheet.getRangeByIndex(1, 5).setText('Quantity');
-    sheet.getRangeByIndex(1, 6).setText('bcdU');
+    sheet.getRangeByIndex(1, 5).setText('SupplyPrice');
+    sheet.getRangeByIndex(1, 6).setText('Quantity');
+    sheet.getRangeByIndex(1, 7).setText('bcdU');
 
     // Style headers
-    final Range headerRange = sheet.getRangeByIndex(1, 1, 1, 6);
+    final Range headerRange = sheet.getRangeByIndex(1, 1, 1, 7);
     headerRange.cellStyle.bold = true;
     headerRange.cellStyle.backColor = '#EEEEEE';
 
@@ -465,8 +494,9 @@ class BulkAddProductViewModel extends ChangeNotifier {
     sheet.getRangeByIndex(2, 2).setText('Sample Product');
     sheet.getRangeByIndex(2, 3).setText('General');
     sheet.getRangeByIndex(2, 4).setNumber(100.0);
-    sheet.getRangeByIndex(2, 5).setNumber(10.0);
-    sheet.getRangeByIndex(2, 6).setText('PCS');
+    sheet.getRangeByIndex(2, 5).setNumber(80.0);
+    sheet.getRangeByIndex(2, 6).setNumber(10.0);
+    sheet.getRangeByIndex(2, 7).setText('PCS');
 
     final List<int> bytes = workbook.saveAsStream();
     workbook.dispose();

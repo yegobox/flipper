@@ -22,6 +22,9 @@ dependency_overrides:
   flutter_native_splash: ^2.3.2
   analyzer: ^9.0.0
   source_gen: ">=3.1.0 <5.0.0"  # Override to allow compatibility with json_serializable
+  image: ^4.1.0
+  record_linux: 1.3.0
+  record_web: 1.3.0
 
 scripts:
   generate:icons:
@@ -29,6 +32,25 @@ scripts:
     packageFilters:
       scope: "flipper_auth"
     description: Generate app icons for flipper_auth
+  
+  generate:icons:ai:
+    exec: flutter pub run flutter_launcher_icons:main
+    packageFilters:
+      scope: "flipper_ai"
+    description: Generate app icons for flipper_ai
+  
+  test:ai:
+    exec: flutter test --coverage  --dart-define=FLUTTER_TEST_ENV=true
+    packageFilters:
+      scope: "flipper_ai"
+    description: Run tests for flipper_ai
+  
+  test:ai_feature:
+    exec: flutter test --coverage  --dart-define=FLUTTER_TEST_ENV=true
+    packageFilters:
+      scope: "flipper_ai_feature"
+    description: Run tests for flipper_ai_feature package
+  
   test:dashboard:
     exec: flutter test --coverage  --dart-define=FLUTTER_TEST_ENV=true 
     packageFilters:
@@ -63,19 +85,20 @@ scripts:
     description: Run tests for flipper_dashboard and flipper_auth
   test:ci:
     run: |
-      melos run test:dashboard
-      melos run test:auth
-      melos run test:flipper_web
-      melos run test:supabase_models
-     
+      dart run melos run test:dashboard
+      dart run melos run test:auth
+      dart run melos run test:flipper_web
+      dart run melos run test:supabase_models
+      dart run melos run test:ai_feature
+
     description: Run tests for dashboard, auth, web and supabase_models in CI/CD
   get_deps:
-    run: melos exec -- flutter pub deps
+    run: dart run melos exec -- flutter pub deps
     description: List sub dependencies
   flipper:
-    run: melos exec --scope="*flipper_data_table*" -- flutter packages pub publish -f
+    run: dart run melos exec --scope="*flipper_data_table*" -- flutter packages pub publish -f
   lint:all:
-    run: melos run analyze && melos run format
+    run: dart run melos run analyze && dart run melos run format
     description: Run all static analysis checks.
   test:all_unit_tests:
     exec: flutter test
@@ -84,19 +107,19 @@ scripts:
   unit_test:
     run: |
       # dart run realm install
-      melos exec --dir-exists="test" --fail-fast -- flutter test --dart-define=FLUTTER_TEST_ENV=true  --no-pub 
+      dart run melos exec --dir-exists="test" --fail-fast -- flutter test --dart-define=FLUTTER_TEST_ENV=true  --no-pub
     description: Run all Flutter tests in this project.
   unit_test_and_coverage:
     description: Merge all packages coverage tracefiles and filter out generated files with correct paths.
     run: |
-      melos exec rm -rf coverage
-      melos run unit_test
-      melos exec -c 1 --file-exists=coverage/lcov.info -- coverde  filter --input ./coverage/lcov.info --output MELOS_ROOT_PATH/coverage/filtered.lcov.info --filters \.g\.dart --paths-parent MELOS_PACKAGE_PATH --mode a
+      dart run melos exec rm -rf coverage
+      dart run melos run unit_test
+      dart run melos exec -c 1 --file-exists=coverage/lcov.info -- coverde  filter --input ./coverage/lcov.info --output MELOS_ROOT_PATH/coverage/filtered.lcov.info --filters \.g\.dart --paths-parent MELOS_PACKAGE_PATH --mode a
       coverde value -i coverage/filtered.lcov.info > MELOS_ROOT_PATH/coverage/result.txt
       genhtml -o MELOS_ROOT_PATH/coverage/html MELOS_ROOT_PATH/coverage/filtered.lcov.info 
   analyze:
     run: |
-      melos exec -c 5 -- \
+      dart run melos exec -c 5 -- \
         dart analyze . --fatal-infos
     description: |
       Run `dart analyze` in all packages.
@@ -119,15 +142,15 @@ scripts:
 
   build:all:
     run: |
-      melos run build:example_ios_pub --no-select && \
-      melos run build:example_android_pub --no-select && \
-      melos run build:example_macos --no-select && \
-      melos bootstrap
+      dart run melos run build:example_ios_pub --no-select && \
+      dart run melos run build:example_android_pub --no-select && \
+      dart run melos run build:example_macos --no-select && \
+      dart run melos bootstrap
     description: Build all example apps.
 
   build:example_android:
     run: |
-      melos exec -c 6 --fail-fast -- \
+      dart run melos exec -c 6 --fail-fast -- \
         "flutter build apk --no-pub"
     description: Build a specific example app for Android.
     select-package:
@@ -137,7 +160,7 @@ scripts:
 
   build:example_android_pub:
     run: |
-      melos exec -c 6 --fail-fast -- \
+      dart run melos exec -c 6 --fail-fast -- \
         "flutter build apk"
     description: Build a specific example app for Android.
     select-package:
@@ -147,7 +170,7 @@ scripts:
 
   build:example_ios:
     run: |
-      melos exec -c 6 --fail-fast -- \
+      dart run melos exec -c 6 --fail-fast -- \
         "flutter build ios --no-codesign --no-pub"
     description: Build a specific example app for iOS.
     select-package:
@@ -157,7 +180,7 @@ scripts:
 
   build:example_ios_pub:
     run: |
-      melos exec -c 6 --fail-fast -- \
+      dart run melos exec -c 6 --fail-fast -- \
         "flutter build ios --no-codesign"
     description: Build a specific example app for iOS.
     select-package:
@@ -167,7 +190,7 @@ scripts:
 
   build:example_macos:
     run: |
-      melos exec -c 6 --fail-fast -- \
+      dart run melos exec -c 6 --fail-fast -- \
         "flutter build macos --no-pub"
     description: |
       Build a specific example app for macOS.
@@ -178,15 +201,15 @@ scripts:
 
   test:all:
     run: |
-      melos run test --no-select && \
-      melos run test:web --no-select && \
-      melos run test:e2e --no-select
+      dart run melos run test --no-select && \
+      dart run melos run test:web --no-select && \
+      dart run melos run test:e2e --no-select
     description: |
       Run all tests available.
 
   test:
     run: |
-      melos exec -c 6 --fail-fast -- \
+      dart run melos exec -c 6 --fail-fast -- \
         "flutter test --no-pub"
     description: Run `flutter test` for a specific package.
     select-package:
@@ -199,7 +222,7 @@ scripts:
 
   test:web:
     run: |
-      melos exec -c 1 --fail-fast -- \
+      dart run melos exec -c 1 --fail-fast -- \
         "flutter test --no-pub --platform=chrome"
     description: Run `flutter test --platform=chrome` for a specific '*web' package.
     select-package:
@@ -209,7 +232,7 @@ scripts:
 
   test:e2e:
     run: |
-      melos exec -c 1 --fail-fast -- \
+      dart run melos exec -c 1 --fail-fast -- \
         "flutter drive --no-pub --target=./test_driver/driver_e2e.dart"
     description: |
       Run all e2e tests.
@@ -224,23 +247,23 @@ scripts:
 
   qualitycheck:
     run: |
-      melos run clean:deep && \
-      melos clean && \
-      melos bootstrap && \
-      melos run lint:all && \
-      melos run build:all && \
-      melos run test:all
+      dart run melos run clean:deep && \
+      dart run melos clean && \
+      dart run melos bootstrap && \
+      dart run melos run lint:all && \
+      dart run melos run build:all && \
+      dart run melos run test:all
     description: Run all targets generally expected in CI for a full local quality check.
 
   odm:test:
     run: |
-      melos run odm:test:dart &&
-      melos run odm:test:flutter
+      dart run melos run odm:test:dart &&
+      dart run melos run odm:test:flutter
     description: Run all tests for the ODM.
 
   odm:test:dart:
     run: |
-      melos exec -- \
+      dart run melos exec -- \
         "dart test"
     description: Run Dart tests for the ODM.
     select-package:
@@ -250,7 +273,7 @@ scripts:
 
   odm:test:flutter:
     run: |
-      melos exec -- \
+      dart run melos exec -- \
         "flutter test"
     description: Run Flutter tests for the ODM.
     select-package:
@@ -260,7 +283,7 @@ scripts:
 
   odm:example_build_runner:build:
     run: |
-      melos exec -- \
+      dart run melos exec -- \
         "flutter pub run build_runner build --delete-conflicting-outputs"
     description: Run a build_runner build in the ODM example app.
     select-package:
@@ -268,7 +291,7 @@ scripts:
 
   odm:generator_test_build_runner:build:
     run: |
-      melos exec -c 1 -- \
+      dart run melos exec -c 1 -- \
         "dart pub get && flutter pub run build_runner build --delete-conflicting-outputs"
     description: Run a build_runner build generator test.
     select-package:
@@ -277,18 +300,18 @@ scripts:
 
   odm:example_build_runner:watch:
     run: |
-      melos exec -c 5 -- \
+      dart run melos exec -c 5 -- \
         "flutter pub run build_runner watch --delete-conflicting-outputs"
     description: Run build_runner watch in the ODM example app.
     select-package:
       scope: "*odm_example*"
   upgrade_dependencies:
     run: |
-      melos exec -c 6 -- \
+      dart run melos exec -c 6 -- \
         "flutter pub upgrade"
 
   description: Upgrade all dependencies.
 
   # Additional cleanup lifecycle script, executed when `melos clean` is run.
   postclean: >
-    melos exec -c 6 -- "flutter clean"
+    dart run melos exec -c 6 -- "flutter clean"

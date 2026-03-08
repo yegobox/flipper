@@ -19,7 +19,7 @@ Social _$SocialFromJson(Map<String, dynamic> json) => Social(
   deletedAt: json['deletedAt'] == null
       ? null
       : DateTime.parse(json['deletedAt'] as String),
-)..action = json['action'] as String;
+)..action = json['action'] as String?;
 
 Map<String, dynamic> _$SocialToJson(Social instance) => <String, dynamic>{
   'action': instance.action,

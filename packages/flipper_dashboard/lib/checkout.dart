@@ -157,8 +157,13 @@ class CheckOutState extends ConsumerState<CheckOut>
             Positioned(
               top: 5.0,
               left: 5.0,
-              right: 8.0,
-              child: SearchInputWithDropdown(),
+              right: 5.0,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: (constraints.maxWidth - 10).clamp(200.0, 560.0),
+                ),
+                child: SearchInputWithDropdown(),
+              ),
             ),
           ],
         );

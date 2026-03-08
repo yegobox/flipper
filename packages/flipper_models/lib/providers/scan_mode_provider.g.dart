@@ -61,6 +61,59 @@ abstract class _$ScanningMode extends $Notifier<bool> {
   }
 }
 
+@ProviderFor(AutoAddSearch)
+const autoAddSearchProvider = AutoAddSearchProvider._();
+
+final class AutoAddSearchProvider
+    extends $NotifierProvider<AutoAddSearch, bool> {
+  const AutoAddSearchProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'autoAddSearchProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$autoAddSearchHash();
+
+  @$internal
+  @override
+  AutoAddSearch create() => AutoAddSearch();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(bool value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<bool>(value),
+    );
+  }
+}
+
+String _$autoAddSearchHash() => r'aeec42b9b6b95a8a55bc749cee8ed10a81d9be7f';
+
+abstract class _$AutoAddSearch extends $Notifier<bool> {
+  bool build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build();
+    final ref = this.ref as $Ref<bool, bool>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<bool, bool>,
+              bool,
+              Object?,
+              Object?
+            >;
+    element.handleValue(ref, created);
+  }
+}
+
 @ProviderFor(SearchString)
 const searchStringProvider = SearchStringProvider._();
 

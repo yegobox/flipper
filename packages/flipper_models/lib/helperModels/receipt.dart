@@ -23,7 +23,7 @@ class Receipt extends IJsonSerializable {
   late int transactionId;
 
   DateTime? lastTouched;
-  String action;
+  String? action;
   // constructor
   Receipt({
     required this.id,

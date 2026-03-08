@@ -4,9 +4,12 @@ import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_services/utils.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_services/setting_service.dart';
+import 'package:flipper_services/utils.dart';
 import 'dart:async'; // Import for Timer
 
 /// Modern Transaction Item Table Mixin
@@ -19,6 +22,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   final Map<String, FocusNode> _quantityFocusNodes = {};
   final Map<String, TextEditingController> _priceControllers = {};
   final Map<String, FocusNode> _priceFocusNodes = {};
+  final SettingsService _settingsService = locator<SettingsService>();
 
   // === MODERN UX ENHANCEMENTS ===
   final Map<String, bool> _isItemSaving = {};
@@ -137,7 +141,11 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
           ? item.compositePrice!
           : item.price;
 
-      total += price * item.qty;
+      if (_settingsService.isCurrencyDecimal) {
+        total += (price * item.qty).toDouble().roundToTwoDecimalPlaces();
+      } else {
+        total += (price * item.qty).toDouble().roundToDouble();
+      }
     }
 
     return total;
@@ -585,7 +593,8 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     final double? currentPrice = double.tryParse(controller.text);
     String? helperText;
 
-    if (currentPrice != null &&
+    if (_settingsService.enablePriceQuantityAdjustment &&
+        currentPrice != null &&
         originalUnitPrice > 0 &&
         currentPrice != item.price) {
       final calculatedQty = currentPrice / originalUnitPrice;
@@ -630,7 +639,9 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
 
         // Real-time quantity feedback
         final newPrice = double.tryParse(value);
-        if (newPrice != null && originalUnitPrice > 0) {
+        if (_settingsService.enablePriceQuantityAdjustment &&
+            newPrice != null &&
+            originalUnitPrice > 0) {
           final newQty = newPrice / originalUnitPrice;
           _quantityControllers[item.id]?.text = newQty.toStringAsFixed(2);
         }
@@ -732,8 +743,13 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   }
 
   String _getItemTotal(TransactionItem item) {
-    final price = item.price * item.qty;
-    return formatNumber(price.toDouble());
+    final double price;
+    if (_settingsService.isCurrencyDecimal) {
+      price = (item.price * item.qty).toDouble().roundToTwoDecimalPlaces();
+    } else {
+      price = (item.price * item.qty).toDouble().roundToDouble();
+    }
+    return formatNumber(price);
   }
 
   Future<void> _updateTransactionItemInDb(
@@ -864,7 +880,9 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     if (doubleValue != null && doubleValue >= 0) {
       final originalUnitPrice = item.retailPrice ?? item.price;
 
-      if (originalUnitPrice > 0 && doubleValue != item.price) {
+      if (_settingsService.enablePriceQuantityAdjustment &&
+          originalUnitPrice > 0 &&
+          doubleValue != item.price) {
         final newQty = doubleValue / originalUnitPrice;
 
         // If we are adjusting quantity based on price, we keep the unit price
@@ -881,9 +899,8 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
           // Update controllers to reflect adjusted values only if the DB update succeeded
           setState(() {
             _quantityControllers[item.id]?.text = newQty.toStringAsFixed(2);
-            _priceControllers[item.id]?.text = originalUnitPrice.toStringAsFixed(
-              2,
-            );
+            _priceControllers[item.id]?.text = originalUnitPrice
+                .toStringAsFixed(2);
           });
         } catch (e) {
           // Log the error and don't update the UI controllers to keep them in sync with the backend
@@ -891,9 +908,12 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
         }
       } else {
         try {
+          // If Price-Quantity sync is OFF, or original unit price is unknown,
+          // we update the price directly without changing the quantity.
           await _updateTransactionItemInDb(
             item,
             price: doubleValue,
+            qty: item.qty.toDouble(), // explicitly keep same quantity
             isOrdering: isOrdering,
           );
 

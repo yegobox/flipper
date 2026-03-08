@@ -19,7 +19,10 @@ import 'package:flutter/foundation.dart' hide Category;
 
 import 'package:ditto_live/ditto_live.dart';
 import 'package:permission_handler/permission_handler.dart';
-// import 'package:flipper_models/services/sqlite_service.dart';
+import 'package:supabase_models/brick/repository.dart';
+import 'package:supabase_models/brick/models/integration_config.model.dart';
+import 'package:flipper_models/umusada_service.dart';
+import 'dart:isolate'; // For ReceivePort
 
 /// A service class that manages scheduled tasks and periodic operations for the Flipper app.
 ///
@@ -423,61 +426,61 @@ class CronService {
   }
 
   /// Fetches and updates stock quantities for unsynchronized variants
-  Future<void> _syncStockQuantities() async {
-    try {
-      final branchId = ProxyService.box.getBranchId();
-      if (branchId == null) {
-        talker.warning('Skipping stock quantity sync: Branch ID is null');
-        return;
-      }
+  // Future<void> _syncStockQuantities() async {
+  //   try {
+  //     final branchId = ProxyService.box.getBranchId();
+  //     if (branchId == null) {
+  //       talker.warning('Skipping stock quantity sync: Branch ID is null');
+  //       return;
+  //     }
 
-      // Get all variants that haven't been synchronized yet
-      final paged = await ProxyService.strategy.variants(
-        taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D'],
-        branchId: branchId,
-        stockSynchronized: false,
-      );
-      final variants = List<Variant>.from(paged.variants);
+  //     // Get all variants that haven't been synchronized yet
+  //     final paged = await ProxyService.strategy.variants(
+  //       taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D'],
+  //       branchId: branchId,
+  //       stockSynchronized: false,
+  //     );
+  //     final variants = List<Variant>.from(paged.variants);
 
-      if (variants.isEmpty) {
-        talker.info('No unsynchronized variants found');
-        return;
-      }
+  //     if (variants.isEmpty) {
+  //       talker.info('No unsynchronized variants found');
+  //       return;
+  //     }
 
-      talker.info(
-        'Found ${variants.length} unsynchronized variants, syncing stock quantities...',
-      );
+  //     talker.info(
+  //       'Found ${variants.length} unsynchronized variants, syncing stock quantities...',
+  //     );
 
-      // Process each variant
-      for (final variant in variants) {
-        try {
-          bool remoteQuantityMatchLocal = await ProxyService.httpApi
-              .fetchRemoteStockQuantity(
-                variant: variant,
-                client: ProxyService.http,
-              );
+  //     // Process each variant
+  //     for (final variant in variants) {
+  //       try {
+  //         bool remoteQuantityMatchLocal = await ProxyService.httpApi
+  //             .fetchRemoteStockQuantity(
+  //               variant: variant,
+  //               client: ProxyService.http,
+  //             );
 
-          if (remoteQuantityMatchLocal) {
-            // the mote match then uplodate
-            variant.stockSynchronized = true;
-            ProxyService.strategy.updateVariant(updatables: [variant]);
-          }
-        } catch (e, stackTrace) {
-          talker.error(
-            'Failed to sync stock quantity for variant ${variant.id}: $e',
-            stackTrace,
-          );
-          // Continue with next variant even if one fails
-        }
-      }
+  //         if (remoteQuantityMatchLocal) {
+  //           // the mote match then uplodate
+  //           variant.stockSynchronized = true;
+  //           ProxyService.strategy.updateVariant(updatables: [variant]);
+  //         }
+  //       } catch (e, stackTrace) {
+  //         talker.error(
+  //           'Failed to sync stock quantity for variant ${variant.id}: $e',
+  //           stackTrace,
+  //         );
+  //         // Continue with next variant even if one fails
+  //       }
+  //     }
 
-      talker.info(
-        'Completed stock quantity sync for ${variants.length} variants',
-      );
-    } catch (e, stackTrace) {
-      talker.error('Stock quantity synchronization failed: $e', stackTrace);
-    }
-  }
+  //     talker.info(
+  //       'Completed stock quantity sync for ${variants.length} variants',
+  //     );
+  //   } catch (e, stackTrace) {
+  //     talker.error('Stock quantity synchronization failed: $e', stackTrace);
+  //   }
+  // }
 
   /// Sets up all periodic tasks with appropriate error handling
   void _setupPeriodicTasks() {
@@ -525,9 +528,211 @@ class CronService {
     );
 
     // Setup stock quantity sync timer (every 10 minutes)
+    // _activeTimers.add(
+    //   Timer.periodic(const Duration(minutes: 10), (Timer t) async {
+    //     await _syncStockQuantities();
+    //   }),
+    // );
+
+    // Setup sales synchronization timer (every 30 minutes)
     _activeTimers.add(
-      Timer.periodic(const Duration(minutes: 10), (Timer t) async {
-        await _syncStockQuantities();
+      Timer.periodic(const Duration(minutes: 3), (Timer t) async {
+        try {
+          // Fetch data for Umusada sync
+          final repo = Repository();
+          // Get Umusada config
+          final configs = await repo.get<IntegrationConfig>(
+            query: Query(where: [Where('provider').isExactly('umusada')]),
+          );
+
+          if (configs.isNotEmpty) {
+            var config = configs.first;
+            if (config.token != null) {
+              // Check if token needs refreshing (expired or within 5 min of expiry)
+              final now = DateTime.now().toUtc();
+              if (config.expiresAt != null &&
+                  config.expiresAt!.isBefore(
+                    now.add(const Duration(minutes: 5)),
+                  )) {
+                talker.info(
+                  'Umusada token expired or expiring soon, refreshing...',
+                );
+                if (config.refreshToken != null) {
+                  try {
+                    final service = UmusadaService(repository: repo);
+                    final refreshResult = await service.refreshSession(
+                      config.refreshToken!,
+                    );
+                    final newToken = refreshResult['token'] as String?;
+                    final newRefreshToken =
+                        refreshResult['refreshToken'] as String?;
+                    final newExpiresAtStr =
+                        refreshResult['expiresAt'] as String?;
+                    final newExpiresAt = newExpiresAtStr != null
+                        ? DateTime.tryParse(newExpiresAtStr)
+                        : null;
+
+                    if (newToken != null) {
+                      config = config.copyWith(
+                        token: newToken,
+                        refreshToken: newRefreshToken ?? config.refreshToken,
+                        expiresAt: newExpiresAt,
+                        updatedAt: DateTime.now(),
+                      );
+                      await repo.upsert<IntegrationConfig>(config);
+                      talker.info('Umusada token refreshed successfully');
+                    } else {
+                      talker.error(
+                        'Umusada refresh returned null token, skipping sync',
+                      );
+                      return;
+                    }
+                  } catch (e) {
+                    talker.error('Failed to refresh Umusada token: $e');
+                    return; // Skip this sync cycle
+                  }
+                } else {
+                  talker.error(
+                    'Umusada token expired but no refresh token available',
+                  );
+                  return;
+                }
+              }
+
+              // Parse lastSyncedAt
+              DateTime lastSyncedAt = DateTime.fromMillisecondsSinceEpoch(0);
+              Map<String, dynamic> configMap = {};
+              if (config.config != null) {
+                try {
+                  configMap = jsonDecode(config.config!);
+                  if (configMap.containsKey('lastSyncedAt')) {
+                    lastSyncedAt = DateTime.parse(configMap['lastSyncedAt']);
+                  }
+                } catch (e) {
+                  talker.error('Error parsing config: $e');
+                }
+              }
+
+              // Fetch transactions
+              final transactions = await repo.get<ITransaction>(
+                query: Query(
+                  where: [Where('updatedAt').isGreaterThan(lastSyncedAt)],
+                ),
+              );
+
+              if (transactions.isNotEmpty) {
+                List<Map<String, dynamic>> salesData = [];
+                DateTime maxDate = lastSyncedAt;
+
+                for (var t in transactions) {
+                  if (t.id.isNotEmpty) {
+                    salesData.add({
+                      'transactionId': t.id,
+                      'amount': t.subTotal ?? 0.0,
+                      'date':
+                          t.createdAt?.toIso8601String() ??
+                          DateTime.now().toIso8601String(),
+                      'currency': 'RWF',
+                    });
+                    if (t.updatedAt != null && t.updatedAt!.isAfter(maxDate)) {
+                      maxDate = t.updatedAt!;
+                    }
+                  }
+                }
+
+                if (salesData.isNotEmpty) {
+                  ProxyService.strategy.sendMessageToIsolate(
+                    message: {
+                      "task": "salesSync",
+                      "token": config.token,
+                      "salesData": salesData,
+                      "newLastSyncedAt": maxDate.toIso8601String(),
+                      "configId": config
+                          .id, // We might need to update config in Isolate? No, pass back?
+                      // Actually, we can update the config HERE in Main Isolate if the Isolate confirms success.
+                      // But simpler: Isolate just DOES the sync.
+                      // Issue: How do we know if it succeeded to update lastSyncedAt?
+                      // Option 1: Update lastSyncedAt here optimistically? Bad.
+                      // Option 2: Pass configId and newLastSyncedAt to Isolate, and Isolate updates DB?
+                      //      -> User said Isolate can't access DB unless RAW Query.
+                      // Option 3: Isolate sends message back.
+                    },
+                  );
+
+                  // For now, let's implement the Isolate to try to update DB using Raw Query if possible?
+                  // Or better: listening for encoded success message.
+                  // Since we don't have a robust two-way set up in this code block,
+                  // effectively we are stuck.
+                  // WAIT. usage of "salesSync" task in IsolateHandler currently does everything.
+                  // If I pass "salesData", IsolateHandler uses it.
+                  // If I pass "newLastSyncedAt", IsolateHandler knows what to save.
+                  // If IsolateHandler can't access Repository, it can't save.
+
+                  // User suggestion: "isolate can't access repository ... OR we can pass thing we need"
+                  // If we pass things we need (salesData) -> Isolate does HTTP.
+                  // Who does DB Update?
+                  // If Isolate can't access DB, Isolate CANNOT update DB.
+                  // So Main Isolate MUST update DB.
+                  // So Main Isolate needs to know when HTTP is done.
+                  // But sending message to Ioslate is fire-and-forget here?
+
+                  // Let's assume for this step we MOVE the logic here, but we still need the Network call in background.
+                  // Maybe I can just `await compute(...)`?
+                  // CronService is in Main Isolate.
+                  // `compute` spawns a temporary isolate.
+                  // It returns the result.
+                  // This is perfect.
+
+                  /*
+                      final result = await compute(UmusadaService.syncSalesStatic, {
+                        'token': config.token,
+                        'salesData': salesData
+                      });
+                      if (result == true) {
+                         // Update DB here
+                         configMap['lastSyncedAt'] = maxDate.toIso8601String();
+                         final updatedConfig = config.copyWith(config: jsonEncode(configMap));
+                         await repo.upsert<IntegrationConfig>(updatedConfig);
+                      }
+                      */
+                  // But UmusadaService.syncSalesStatic needs to be a static top-level function.
+                  // I need to add that to UmusadaService.
+
+                  // Re-evaluating: IsolateHandler is ALREADY a permanent isolate.
+                  // If I use it, I need a return channel.
+                  // The `port` variable in `IsolateHandler` is a `ReceivePort`.
+                  // `sendPort.send(port.sendPort)` sends the listener's address to Main.
+                  // Main sends message to `IsolateHandler`.
+
+                  // Does `IsolateHandler` have a way to reply to a specific message?
+                  // Usually we pass a `SendPort` in the message itself for the reply!
+                  // keys: {'task': 'salesSync', 'replyTo': receivePort.sendPort, ...}
+
+                  ReceivePort responsePort = ReceivePort();
+                  ProxyService.strategy.sendMessageToIsolate(
+                    message: {
+                      "task": "salesSync",
+                      "token": config.token,
+                      "salesData": salesData,
+                      "replyTo": responsePort.sendPort,
+                    },
+                  );
+
+                  final response = await responsePort.first;
+                  if (response == true) {
+                    configMap['lastSyncedAt'] = maxDate.toIso8601String();
+                    final updatedConfig = config.copyWith(
+                      config: jsonEncode(configMap),
+                    );
+                    await repo.upsert<IntegrationConfig>(updatedConfig);
+                  }
+                }
+              }
+            }
+          }
+        } catch (e, stackTrace) {
+          talker.error("Failed to trigger sales sync: $e", stackTrace);
+        }
       }),
     );
 

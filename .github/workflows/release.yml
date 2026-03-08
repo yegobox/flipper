@@ -59,11 +59,16 @@ jobs:
           channel: "stable"
       - run: |
           git submodule update --init
-      - name: Load melos
+      - name: Setup melos
+        run: dart pub global activate melos 7.3.0
+
+      - name: Add pub cache to PATH
+        run: echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+
+      - name: Bootstrap melos
         run: |
-          dart pub global activate melos 7.3.0
-          melos bootstrap
-          melos run generate:icons
+          dart run melos bootstrap
+          dart run melos run generate:icons
 
       - name: Configure Missing files
         shell: bash
@@ -93,7 +98,7 @@ jobs:
         run: |
           cd packages/flipper_dashboard
           cd ../..
-          melos run test:ci
+          dart run melos run test:ci
 #  # dart run realm install
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4
@@ -149,14 +154,18 @@ jobs:
           AMPLIFY_TEAM_PROVIDER: ${{ secrets.AMPLIFY_TEAM_PROVIDER }}
           
       - name: Set up Node.js for Firebase CLI
-        uses: actions/setup-node@v4 
+        uses: actions/setup-node@v4
         with:
           node-version: '20' # Specify Node.js v20.x LTS
 
+      - name: Setup melos
+        run: dart pub global activate melos 7.3.0
+
+      - name: Add pub cache to PATH
+        run: echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+
       - name: Bootstrap dependencies
-        run: |
-          dart pub global activate melos 7.3.0
-          melos bootstrap
+        run: dart run melos bootstrap
 
       - name: Build Flipper app
         run: |
@@ -226,11 +235,25 @@ jobs:
           distribution: "zulu"
           java-version: "17"
 
-      - name: submodule init
+      - name: Setup melos
+        run: dart pub global activate melos 7.3.0
+
+      - name: Add pub cache to PATH (Windows)
+        if: runner.os == 'Windows'
+        run: Add-Content -Path $env:GITHUB_PATH -Value "${PUB_CACHE}/bin"
+        shell: pwsh
+
+      - name: Add pub cache to PATH (Unix)
+        if: runner.os != 'Windows'
+        run: echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+        shell: bash
+
+      - name: Initialize submodules and bootstrap melos
         run: |
           git submodule update --init
-          dart pub global activate melos 7.3.0
-          melos bootstrap
+          dart run melos bootstrap
+        shell: bash
+
       - name: Configure Missing files
         shell: bash
         run: |
@@ -252,7 +275,7 @@ jobs:
       - run: |
           cd apps/flipper
           flutter test --dart-define=FLUTTER_TEST_ENV=true -d windows integration_test/smoke_windows_test.dart
-  
+
   build-and-release-windows-debug:
     name: "Build windows app-debug"
     # if: false  # skip for now as it is flaky
@@ -277,9 +300,28 @@ jobs:
           cache: true
 
       - name: Setup melos
+        run: dart pub global activate melos 7.3.0
+
+      - name: Add pub cache to PATH (Windows)
+        if: runner.os == 'Windows'
+        run: Add-Content -Path $env:GITHUB_PATH -Value "${PUB_CACHE}/bin"
+        shell: pwsh
+
+      - name: Add pub cache to PATH (Unix)
+        if: runner.os != 'Windows'
+        run: echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+        shell: bash
+
+      - name: Clean Flutter Build Cache
         run: |
-          dart pub global activate melos 7.3.0
-          melos bootstrap
+          flutter clean
+          flutter pub cache clean --force
+        shell: bash
+
+      - name: Get Dependencies
+        run: |
+          dart run melos bootstrap
+        shell: bash
 
       - name: Configure Missing files
         shell: bash
@@ -352,11 +394,25 @@ jobs:
         run: git submodule update --init
 
       - name: Setup melos
-        run: |
-          dart pub global activate melos 7.3.0
-          melos bootstrap
+        run: dart pub global activate melos 7.3.0
 
-      - name: Configure Missing files 
+      - name: Add pub cache to PATH (Windows)
+        if: runner.os == 'Windows'
+        run: Add-Content -Path $env:GITHUB_PATH -Value "${PUB_CACHE}/bin"
+        shell: pwsh
+
+      - name: Add pub cache to PATH (Unix)
+        if: runner.os != 'Windows'
+        run: echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+        shell: bash
+
+      - name: Initialize submodules and bootstrap melos
+        run: |
+          git submodule update --init
+          dart run melos bootstrap
+        shell: bash
+
+      - name: Configure Missing files
         shell: bash
         run: |
           echo "$INDEX" >> apps/flipper/web/index.html
@@ -460,10 +516,16 @@ jobs:
           echo "https://github.com:${PAT_TOKEN}@github.com" > ~/.git-credentials
       - name: Initialize submodules
         run: git submodule update --init
+
       - name: Setup melos
-        run: |
-          dart pub global activate melos 7.3.0
-          melos bootstrap
+        run: dart pub global activate melos 7.3.0
+
+      - name: Add pub cache to PATH
+        run: echo "$HOME/.pub-cache/bin" >> $GITHUB_PATH
+
+      - name: Bootstrap melos
+        run: dart run melos bootstrap
+
       - name: Configure Missing files
         run: |
           echo "$INDEX" >> apps/flipper/web/index.html
@@ -492,10 +554,7 @@ jobs:
           ls -la apps/
           ls -la apps/${{ matrix.app }}/
           ls -la apps/${{ matrix.app }}/android/
-      - run: |
-          dart pub global activate melos 7.3.0
-          melos bootstrap
-      
+
       # Get version from pubspec.yaml
       - name: Get version from pubspec.yaml
         id: get_version
@@ -710,6 +769,12 @@ jobs:
             exit 1
           fi
         working-directory: apps/${{ matrix.app }}/android
+      - name: Calculate Version
+        run: |
+          VERSION_CODE=$(( ${{ github.run_number }} + 1800000000 ))
+          VERSION_NAME="1.180.${{ github.run_number }}"
+          echo "VERSION_CODE=$VERSION_CODE" >> $GITHUB_ENV
+          echo "VERSION_NAME=$VERSION_NAME" >> $GITHUB_ENV
       - run: |
           bundle exec fastlane ${{ github.event.inputs.lane || 'internal' }}
         env:

@@ -56,7 +56,7 @@ dependencies:
   #   path: packages/flutter_form_bloc
   
   # firebase_auth_desktop: ^1.0.2-flipper
-  firebase_core: ^4.3.0
+  firebase_core: ^4.5.0
   # firebase_core_desktop: ^1.0.2-dev
   
   # The following adds the Cupertino Icons font to your application.
@@ -154,7 +154,7 @@ dependencies:
   flutter_chat_ui: ^1.6.10
   #TODO: added flipper_dashboard here only becase we need customAppBar
   
-  firebase_remote_config: ^6.0.0
+  # firebase_remote_config: ^6.2.0
   share_plus: ^10.1.4
   firebase_messaging: ^16.1.0
   image: ^4.5.4

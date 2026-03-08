@@ -746,9 +746,11 @@ class BranchSelectionNotifier extends Notifier<BranchSelectionState> {
 final variantsProvider = FutureProvider.autoDispose
     .family<List<Variant>, ({String branchId})>((ref, params) async {
       final (:branchId) = params;
-      final paged = await ProxyService.strategy.variants(
+
+      Ebm? ebm = await ProxyService.strategy.ebm(branchId: branchId);
+      final paged = await ProxyService.getStrategy(Strategy.capella).variants(
         branchId: branchId,
-        taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D'],
+        taxTyCds: ebm?.vatEnabled == true ? ['A', 'B', 'C', 'TT'] : ['D', 'TT'],
       );
       return List<Variant>.from(paged.variants);
     });
@@ -890,6 +892,8 @@ final requestStatusProvider = StateProvider<String>(
 );
 
 final showProductsList = StateProvider.autoDispose<bool>((ref) => true);
+
+final bulkDeleteProgressProvider = StateProvider<double>((ref) => 0.0);
 
 // Stock stream provider for live stock updates
 final stockByVariantProvider = StreamProvider.autoDispose

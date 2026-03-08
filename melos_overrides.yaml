@@ -3,4 +3,5 @@
 dependency_overrides:
   archive: ^3.6.1
   flutter_native_splash: ^2.3.2
+  # Prevent Couchbase Lite from being pulled in transitively (causes NO_OPUS_OGG_LIBS error on Windows)
   # Add any other problematic dependencies here

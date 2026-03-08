@@ -14,7 +14,7 @@ class NotificationHandler {
   factory NotificationHandler() => _instance;
   NotificationHandler._internal();
 
-  final RouterService _routerService = locator<RouterService>();
+  RouterService get _routerService => locator<RouterService>();
 
   /// Initialize the notification handler to listen for notification taps
   void initialize() {

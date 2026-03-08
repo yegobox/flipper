@@ -175,6 +175,7 @@ abstract class TransactionInterface {
     String? transactionId,
     bool? receiptPrinted,
     String? customerPhone,
+    String? customerType,
   });
   Future<ITransaction?> getTransaction({
     String? sarNo,

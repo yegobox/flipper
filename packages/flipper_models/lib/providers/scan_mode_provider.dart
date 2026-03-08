@@ -1,3 +1,4 @@
+import 'package:flipper_services/proxy.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'scan_mode_provider.g.dart';
@@ -23,6 +24,19 @@ class ScanningMode extends _$ScanningMode {
   // Method to disable scanning mode
   void disableScanningMode() {
     state = false;
+  }
+}
+
+@riverpod
+class AutoAddSearch extends _$AutoAddSearch {
+  @override
+  bool build() {
+    return ProxyService.box.readBool(key: 'enableAutoAddSearch') ?? false;
+  }
+
+  void toggle() {
+    state = !state;
+    ProxyService.box.writeBool(key: 'enableAutoAddSearch', value: state);
   }
 }
 

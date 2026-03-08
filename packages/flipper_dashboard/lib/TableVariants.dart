@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter/foundation.dart';
 
 class TableVariants extends StatelessWidget {
   final ScannViewModel model;
@@ -152,7 +153,9 @@ class TableVariants extends StatelessWidget {
                       branchId: branchId,
                     );
 
-                if ((variant.stock?.currentStock ?? 0) > 0 && isEbmEnabled) {
+                if ((variant.stock?.currentStock ?? 0) > 0 &&
+                    isEbmEnabled &&
+                    !kDebugMode) {
                   final dialogService = locator<DialogService>();
                   dialogService.showCustomDialog(
                     variant: DialogType.info,
@@ -488,7 +491,9 @@ class TableVariants extends StatelessWidget {
                     branchId: branchId,
                   );
 
-              if ((variant.stock?.currentStock ?? 0) > 0 && isEbmEnabled) {
+              if ((variant.stock?.currentStock ?? 0) > 0 &&
+                  isEbmEnabled &&
+                  !kDebugMode) {
                 final dialogService = locator<DialogService>();
                 dialogService.showCustomDialog(
                   variant: DialogType.info,

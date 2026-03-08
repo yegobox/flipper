@@ -1,5 +1,8 @@
 import 'package:flipper_models/db_model_export.dart';
+
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_services/setting_service.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_services/proxy.dart';
@@ -11,10 +14,18 @@ mixin TransactionComputationMixin {
     double discountPercent = 0.0,
   }) {
     // Default to using the sum of items
-    double baseTotal = items.fold(
-      0.0,
-      (sum, item) => sum + (item.price * item.qty),
-    );
+    // Round each item's subtotal to 2 decimal places to avoid
+    // floating-point drift (e.g. 3000 * 2.6666... = 7999.80 → 8000.00)
+    final settingsService = locator<SettingsService>();
+    final isCurrencyDecimal = settingsService.isCurrencyDecimal;
+
+    double baseTotal = items.fold(0.0, (sum, item) {
+      final val = (item.price * item.qty).toDouble();
+      return sum +
+          (isCurrencyDecimal
+              ? val.roundToTwoDecimalPlaces()
+              : val.roundToDouble());
+    });
 
     // Fallback/Validation: REMOVED
     // We strictly use the sum of items because relying on transaction.subTotal
@@ -138,15 +149,14 @@ mixin TransactionComputationMixin {
           );
     } else {
       final firstPayment = payments[0];
-      // If the first payment is 0 or matches the full total (default initialization),
+      // If the first payment is 0 or matches a "default" state,
       // update it to the true remainder for this session.
       if (firstPayment.amount == 0 ||
-          (firstPayment.amount - (transaction.subTotal ?? 0.0)).abs() < 0.01) {
-        // Check if we need to update the controller text
+          (firstPayment.amount - displayRemainder).abs() > 0.01) {
+        // Only update if the current controller text is empty or matches old logic
         bool shouldUpdateControllerText =
             firstPayment.controller.text.isEmpty ||
-            double.tryParse(firstPayment.controller.text) ==
-                (transaction.subTotal ?? 0.0);
+            double.tryParse(firstPayment.controller.text) == 0;
 
         if (shouldUpdateControllerText &&
             firstPayment.controller.text != displayRemainder.toString()) {

@@ -23,7 +23,7 @@ IITenant _$IITenantFromJson(Map<String, dynamic> json) =>
         isLongPressed: json['isLongPressed'] as bool? ?? false,
         pin: (json['pin'] as num?)?.toInt(),
       )
-      ..action = json['action'] as String
+      ..action = json['action'] as String?
       ..imageUrl = json['imageUrl'] as String?
       ..lastTouched = json['lastTouched'] == null
           ? null

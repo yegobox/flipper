@@ -1120,6 +1120,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     bool? isTrainingMode,
     String? transactionId,
     String? customerPhone,
+    String? customerType,
   }) async {
     final ditto = dittoService.dittoInstance;
     if (ditto == null) {
@@ -1159,6 +1160,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     );
     addUpdate('cashReceived', cashReceived ?? transaction?.cashReceived);
     addUpdate('customerPhone', customerPhone ?? transaction?.customerPhone);
+    addUpdate('customerType', customerType ?? transaction?.customerType);
     addUpdate('note', note ?? transaction?.note);
     addUpdate('customerId', customerId ?? transaction?.customerId);
     addUpdate('ticketName', ticketName ?? transaction?.ticketName);

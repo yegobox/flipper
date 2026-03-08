@@ -20,6 +20,9 @@ import 'package:flipper_services/asset_sync_service.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
+  StartupViewModel() {
+    debugPrint('🚀 [StartupViewModel] constructor called');
+  }
   final appService = loc.getIt<AppService>();
   bool isBusinessSet = false;
   final _routerService = locator<RouterService>();
@@ -39,11 +42,15 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
   DateTime? _lastUserActivity;
   static const Duration _userActivityThreshold = Duration(minutes: 5);
   bool _isInitialStartup = true;
+  double _progress = 0.0;
+  double get progress => _progress;
 
   Future<void> runStartupLogic() async {
     // await logOut();
     try {
-      print('🚀 [StartupViewModel] Starting runStartupLogic...');
+      debugPrint('🚀 [StartupViewModel] Starting runStartupLogic...');
+      _progress = 0.0;
+      notifyListeners();
       final startTime = DateTime.now();
 
       final forceLogout = ProxyService.box.getForceLogout();
@@ -63,77 +70,69 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
       final userId = ProxyService.box.getUserId();
       if (userId != null) {
         try {
-          print(
-            '🔧 [StartupViewModel] Initializing Ditto early for userId: $userId',
+          debugPrint(
+            '🚀 [StartupViewModel] Initializing Ditto early for userId: $userId',
           );
-          await appService.initDittoForLogin(userId);
-          print(
-            '✅ [StartupViewModel] Ditto initialized and ready for providers',
-          );
+          await appService
+              .initDittoForLogin(userId)
+              .timeout(const Duration(seconds: 10));
+          debugPrint('🚀 [StartupViewModel] Ditto initialized early');
         } catch (e) {
-          print(
-            '⚠️ [StartupViewModel] Failed to initialize Ditto early: $e (will continue)',
+          debugPrint(
+            '⚠️ [StartupViewModel] Failed to initialize Ditto early (will continue): $e',
           );
-          // Don't throw - app can still work in offline mode with cached data
         }
       }
+      _progress = 0.2;
+      notifyListeners();
 
-      print('⏳ [StartupViewModel] Checking requirements...');
-      // Ensure db is initialized before proceeding.
-      await _allRequirementsMeets();
-      print(
-        '✅ [StartupViewModel] Requirements met (${DateTime.now().difference(startTime).inMilliseconds}ms)',
-      );
+      debugPrint('🚀 [StartupViewModel] Checking requirements...');
+      await _allRequirementsMeets().timeout(const Duration(seconds: 15));
+      debugPrint('🚀 [StartupViewModel] Requirements met');
+      _progress = 0.4;
+      notifyListeners();
 
-      print('⏳ [StartupViewModel] Initializing app components...');
-      // Ensure admin access for API/onboarded users
+      debugPrint('🚀 [StartupViewModel] Initializing app components...');
       AppInitializer.initialize();
 
-      // Initialize the EBM Sync Service to listen for customer updates.
       final repository = Repository();
       EbmSyncService(repository);
 
       AssetSyncService().initialize();
 
       ProxyService.strategy.cleanDuplicatePlans();
-      print(
-        '✅ [StartupViewModel] App components initialized (${DateTime.now().difference(startTime).inMilliseconds}ms)',
-      );
+      debugPrint('🚀 [StartupViewModel] App components initialized');
+      _progress = 0.6;
+      notifyListeners();
 
-      print('⏳ [StartupViewModel] Setting up payment verification...');
-      // Set up payment verification callback and start periodic verification
       _paymentVerificationService.setPaymentStatusChangeCallback(
         _handlePaymentStatusChange,
       );
       _paymentVerificationService.startPeriodicVerification(
-        intervalMinutes: kDebugMode ? 25 : 15,
+        intervalMinutes: kDebugMode ? 2 : 15,
       );
 
-      // Start periodic internet connection check (check every 6 hours)
       _internetConnectionService.startPeriodicConnectionCheck();
-      print(
-        '✅ [StartupViewModel] Payment verification setup complete (${DateTime.now().difference(startTime).inMilliseconds}ms)',
-      );
 
-      /// listen all database change and replicate them in sync db.
-      // ProxyService.backUp.listen();
-      print('⏳ [StartupViewModel] Running appService.appInit()...');
-      await appService.appInit();
-      print(
-        '✅ [StartupViewModel] appService.appInit() complete (${DateTime.now().difference(startTime).inMilliseconds}ms)',
-      );
+      debugPrint('🚀 [StartupViewModel] Running appService.appInit()...');
+      await appService.appInit().timeout(const Duration(seconds: 30));
+      debugPrint('🚀 [StartupViewModel] appService.appInit() complete');
+      _progress = 0.8;
+      notifyListeners();
 
-      // Check payment status before navigating to main app
-      print('⏳ [StartupViewModel] Verifying payment status...');
-      await _handleInitialPaymentVerification();
-      print(
-        '✅ [StartupViewModel] Payment verification complete (${DateTime.now().difference(startTime).inMilliseconds}ms)',
+      debugPrint('🚀 [StartupViewModel] Verifying payment status...');
+      await _handleInitialPaymentVerification().timeout(
+        const Duration(seconds: 15),
       );
+      debugPrint('🚀 [StartupViewModel] Payment verification complete');
+      _progress = 1.0;
+      notifyListeners();
 
-      print(
+      debugPrint(
         '🎉 [StartupViewModel] runStartupLogic completed in ${DateTime.now().difference(startTime).inMilliseconds}ms',
       );
     } catch (e, stackTrace) {
+      debugPrint('❌ [StartupViewModel] ERROR during runStartupLogic: $e');
       talker.info("StartupViewModel ${e}");
       talker.error("StartupViewModel ${stackTrace}");
       await _handleStartupError(e, stackTrace);

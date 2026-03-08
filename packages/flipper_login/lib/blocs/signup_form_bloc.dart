@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:flipper_models/helperModels/business_type.dart';
 import 'package:flutter_form_bloc/flutter_form_bloc.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_models/secrets.dart';
 import 'package:flipper_login/viewmodels/signup_viewmodel.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -329,6 +330,14 @@ class AsyncFieldValidationFormBloc extends FormBloc<String, String> {
 
     _isRequestingOtp = true;
     try {
+      // Ensure user exists/is initialized first as required by backend
+      // This hits /v2/api/user which is a prerequisite for OTP sending
+      await ProxyService.strategy.sendLoginRequest(
+        contactInfo,
+        ProxyService.http,
+        AppSecrets.apihubProd,
+      );
+
       final result = await ProxyService.strategy.sendOtpForSignup(contactInfo);
       // Enable the OTP field after successful request
       otpCode.updateExtraData({'enabled': true});

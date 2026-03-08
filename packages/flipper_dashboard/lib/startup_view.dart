@@ -1,7 +1,6 @@
 library flipper_dashboard;
 
 import 'package:flipper_models/db_model_export.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked/stacked.dart';
 
@@ -16,64 +15,43 @@ class StartUpView extends StatefulWidget {
 class _StartUpViewState extends State<StartUpView> {
   @override
   Widget build(BuildContext context) {
+    debugPrint('🎬 [StartUpView] Building widget tree...');
     return ViewModelBuilder<StartupViewModel>.reactive(
       viewModelBuilder: () => StartupViewModel(),
       onViewModelReady: (viewModel) {
+        debugPrint('🎬 [StartUpView] onViewModelReady called');
         // Use a delayed call to ensure the widget is fully built
         WidgetsBinding.instance.addPostFrameCallback((timeStamp) async {
+          debugPrint(
+            '🎬 [StartUpView] postFrameCallback - starting runStartupLogic',
+          );
           await viewModel.runStartupLogic();
+          debugPrint(
+            '🎬 [StartUpView] postFrameCallback - runStartupLogic completed',
+          );
         });
       },
       builder: (context, model, child) {
+        debugPrint('🎬 [StartUpView] builder started');
         return Scaffold(
           body: Center(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Logo/Title with a subtle scaling animation
-                AnimatedContainer(
-                  duration: const Duration(seconds: 2),
-                  curve: Curves.easeInOut,
-                  transform: Matrix4.identity()..scale(1.1),
-                  child: Text(
-                    'Flipper',
-                    style: GoogleFonts.poppins(
-                      color: Colors.black87,
-                      fontSize: 42,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 2.5,
-                    ),
-                  ),
+                const Text(
+                  'Flipper',
+                  style: TextStyle(fontSize: 42, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 20),
-                // Loading description with a fade-in effect
-                AnimatedOpacity(
-                  opacity: 1.0,
-                  duration: const Duration(seconds: 2),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text(
-                        'A revolutionary business software...',
-                        style: GoogleFonts.poppins(
-                          fontSize: 16,
-                          color: Colors.grey.shade700,
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      // Customized CircularProgressIndicator with animation
-                      SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Colors.black.withValues(alpha: 0.7),
-                          ),
-                          strokeWidth: 3,
-                          backgroundColor: Colors.grey.shade300,
-                        ),
-                      ),
-                    ],
+                const Text('A revolutionary business software...'),
+                const SizedBox(height: 20),
+                CircularProgressIndicator(value: model.progress),
+                const SizedBox(height: 10),
+                Text(
+                  '${(model.progress * 100).toInt()}%',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ],

@@ -17,6 +17,8 @@ abstract class AiStrategy {
     String useCase = 'business',
   });
 
+  Future<Conversation> updateConversation(Conversation conversation);
+
   Future<void> deleteConversation(String conversationId);
 
   // Message methods

@@ -42,12 +42,20 @@ Future<Setting> _$SettingFromSupabase(
         : data['auto_respond'] as bool?,
     token: data['token'] == null ? null : data['token'] as String?,
     hasPin: data['has_pin'] == null ? null : data['has_pin'] as bool?,
+    adminPin: data['admin_pin'] == null ? null : data['admin_pin'] as String?,
+    isAdminPinEnabled: data['is_admin_pin_enabled'] == null
+        ? null
+        : data['is_admin_pin_enabled'] as bool?,
     businessId: data['business_id'] == null
         ? null
         : data['business_id'] as String?,
     createdAt: data['created_at'] == null
         ? null
         : data['created_at'] as String?,
+    enablePriceQuantityAdjustment:
+        data['enable_price_quantity_adjustment'] == null
+        ? null
+        : data['enable_price_quantity_adjustment'] as bool?,
     lastTouched: data['last_touched'] == null
         ? null
         : data['last_touched'] == null
@@ -83,8 +91,11 @@ Future<Map<String, dynamic>> _$SettingToSupabase(
     'auto_respond': instance.autoRespond,
     'token': instance.token,
     'has_pin': instance.hasPin,
+    'admin_pin': instance.adminPin,
+    'is_admin_pin_enabled': instance.isAdminPinEnabled,
     'business_id': instance.businessId,
     'created_at': instance.createdAt,
+    'enable_price_quantity_adjustment': instance.enablePriceQuantityAdjustment,
     'last_touched': instance.lastTouched?.toIso8601String(),
     'deleted_at': instance.deletedAt?.toIso8601String(),
   };
@@ -131,12 +142,20 @@ Future<Setting> _$SettingFromSqlite(
         : data['auto_respond'] == 1,
     token: data['token'] == null ? null : data['token'] as String?,
     hasPin: data['has_pin'] == null ? null : data['has_pin'] == 1,
+    adminPin: data['admin_pin'] == null ? null : data['admin_pin'] as String?,
+    isAdminPinEnabled: data['is_admin_pin_enabled'] == null
+        ? null
+        : data['is_admin_pin_enabled'] == 1,
     businessId: data['business_id'] == null
         ? null
         : data['business_id'] as String?,
     createdAt: data['created_at'] == null
         ? null
         : data['created_at'] as String?,
+    enablePriceQuantityAdjustment:
+        data['enable_price_quantity_adjustment'] == null
+        ? null
+        : data['enable_price_quantity_adjustment'] == 1,
     lastTouched: data['last_touched'] == null
         ? null
         : data['last_touched'] == null
@@ -187,8 +206,16 @@ Future<Map<String, dynamic>> _$SettingToSqlite(
         : (instance.autoRespond! ? 1 : 0),
     'token': instance.token,
     'has_pin': instance.hasPin == null ? null : (instance.hasPin! ? 1 : 0),
+    'admin_pin': instance.adminPin,
+    'is_admin_pin_enabled': instance.isAdminPinEnabled == null
+        ? null
+        : (instance.isAdminPinEnabled! ? 1 : 0),
     'business_id': instance.businessId,
     'created_at': instance.createdAt,
+    'enable_price_quantity_adjustment':
+        instance.enablePriceQuantityAdjustment == null
+        ? null
+        : (instance.enablePriceQuantityAdjustment! ? 1 : 0),
     'last_touched': instance.lastTouched?.toIso8601String(),
     'deleted_at': instance.deletedAt?.toIso8601String(),
   };
@@ -268,6 +295,14 @@ class SettingAdapter extends OfflineFirstWithSupabaseAdapter<Setting> {
       association: false,
       columnName: 'has_pin',
     ),
+    'adminPin': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'admin_pin',
+    ),
+    'isAdminPinEnabled': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'is_admin_pin_enabled',
+    ),
     'businessId': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'business_id',
@@ -275,6 +310,10 @@ class SettingAdapter extends OfflineFirstWithSupabaseAdapter<Setting> {
     'createdAt': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'created_at',
+    ),
+    'enablePriceQuantityAdjustment': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'enable_price_quantity_adjustment',
     ),
     'lastTouched': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -393,6 +432,18 @@ class SettingAdapter extends OfflineFirstWithSupabaseAdapter<Setting> {
       iterable: false,
       type: bool,
     ),
+    'adminPin': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'admin_pin',
+      iterable: false,
+      type: String,
+    ),
+    'isAdminPinEnabled': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'is_admin_pin_enabled',
+      iterable: false,
+      type: bool,
+    ),
     'businessId': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'business_id',
@@ -404,6 +455,12 @@ class SettingAdapter extends OfflineFirstWithSupabaseAdapter<Setting> {
       columnName: 'created_at',
       iterable: false,
       type: String,
+    ),
+    'enablePriceQuantityAdjustment': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'enable_price_quantity_adjustment',
+      iterable: false,
+      type: bool,
     ),
     'lastTouched': const RuntimeSqliteColumnDefinition(
       association: false,

@@ -11,10 +11,7 @@ import 'package:flipper_models/providers/ebm_provider.dart';
 class AddRoomDialog extends StatefulHookConsumerWidget {
   final Function(Map<String, dynamic>) onRoomAdded;
 
-  const AddRoomDialog({
-    super.key,
-    required this.onRoomAdded,
-  });
+  const AddRoomDialog({super.key, required this.onRoomAdded});
 
   @override
   _AddRoomDialogState createState() => _AddRoomDialogState();
@@ -121,9 +118,9 @@ class _AddRoomDialogState extends ConsumerState<AddRoomDialog> {
         const SizedBox(width: 16),
         Text(
           'Add Room',
-          style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
         ),
       ],
     );
@@ -164,10 +161,7 @@ class _AddRoomDialogState extends ConsumerState<AddRoomDialog> {
         ),
       ),
       items: _roomTypes.keys.map((String roomType) {
-        return DropdownMenuItem<String>(
-          value: roomType,
-          child: Text(roomType),
-        );
+        return DropdownMenuItem<String>(value: roomType, child: Text(roomType));
       }).toList(),
       onChanged: (String? newValue) {
         setState(() {
@@ -215,10 +209,7 @@ class _AddRoomDialogState extends ConsumerState<AddRoomDialog> {
           default:
             label = code;
         }
-        return DropdownMenuItem<String>(
-          value: code,
-          child: Text(label),
-        );
+        return DropdownMenuItem<String>(value: code, child: Text(label));
       }).toList(),
       onChanged: (String? newValue) {
         setState(() {
@@ -258,8 +249,9 @@ class _AddRoomDialogState extends ConsumerState<AddRoomDialog> {
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
         TextButton(
-          onPressed:
-              isLoading.isLoading ? null : () => Navigator.of(context).pop(),
+          onPressed: isLoading.isLoading
+              ? null
+              : () => Navigator.of(context).pop(),
           child: const Text('Cancel'),
         ),
         const SizedBox(width: 16),
@@ -311,6 +303,7 @@ class _AddRoomDialogState extends ConsumerState<AddRoomDialog> {
 
           // Create a room variant first
           Variant roomVariant = Variant(
+            branchId: ProxyService.box.getBranchId()!,
             name: _roomNumberController.text,
             retailPrice: double.tryParse(_priceController.text) ?? 0.0,
             supplyPrice: double.tryParse(_priceController.text) ?? 0.0,

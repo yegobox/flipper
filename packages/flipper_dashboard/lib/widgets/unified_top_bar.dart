@@ -39,21 +39,36 @@ class UnifiedTopBar extends ConsumerWidget {
             _buildLogo(),
             const SizedBox(width: 24),
 
-            // Center section: Search bar
+            // Center section: Search bar — Expanded fills whatever space
+            // remains after the right section claims its intrinsic width.
+            // ConstrainedBox ensures it never shrinks below a usable width.
             Expanded(
               child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 600),
+                constraints: const BoxConstraints(minWidth: 200),
                 child: SearchFieldWidget(controller: searchController),
               ),
             ),
             const SizedBox(width: 24),
 
-            // Right section: Ribbon icons + User info
-            if (isMultiUserEnabled) ...[
-              const IconRow(),
-              const SizedBox(width: 16),
-              const UserInfoWidget(),
-            ],
+            // Right section: Flexible so it can shrink when space is tight
+            // (e.g. on narrower Windows windows). IconRow scrolls horizontally
+            // instead of stealing width from the search bar.
+            if (isMultiUserEnabled)
+              Flexible(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Flexible(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: const IconRow(),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    const UserInfoWidget(),
+                  ],
+                ),
+              ),
           ],
         ),
       ),

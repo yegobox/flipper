@@ -1,15 +1,17 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
+import 'package:universal_platform/universal_platform.dart';
 import 'package:logging/logging.dart';
 import 'package:country_code_picker/country_code_picker.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_rw/dependency_initializer.dart';
 import 'package:flipper_rw/state_observer.dart';
+import 'package:flipper_models/amplify_config_helper.dart';
 import 'package:flipper_localize/flipper_localize.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_routing/app.locator.dart' as loc;
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_routing/app.bottomsheets.dart';
-import 'package:flipper_services/app_service.dart';
 import 'package:flipper_services/locator.dart';
 import 'package:firebase_ui_localizations/firebase_ui_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -20,6 +22,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:device_preview/device_preview.dart';
 import 'firebase_options.dart';
 import 'package:flipper_models/power_sync/supabase.dart';
 import 'package:flipper_services/GlobalLogError.dart';
@@ -36,17 +39,26 @@ Future<void> _initializeFirebase() async {
     final platform = Ditto.currentPlatform;
 
     if (platform case SupportedPlatform.android || SupportedPlatform.ios) {
-      await [
+      debugPrint('📱 [Firebase] Requesting permissions (non-blocking)...');
+      // Fire and forget permission requests so they don't block the startup sequence
+      unawaited([
         Permission.bluetoothConnect,
         Permission.bluetoothAdvertise,
         Permission.nearbyWifiDevices,
         Permission.notification,
-      ].request();
+      ].request().timeout(const Duration(seconds: 15), onTimeout: () {
+        debugPrint('⚠️ [Firebase] Background permission request timed out');
+        return {};
+      }));
     }
     // Don't use microtask for Firebase as critical services depend on it
+    debugPrint('📱 [Firebase] Calling Firebase.initializeApp...');
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
-    );
+    ).timeout(const Duration(seconds: 20), onTimeout: () {
+      debugPrint('⚠️ [Firebase] Firebase.initializeApp timed out');
+      throw TimeoutException('Firebase.initializeApp timed out');
+    });
     // talker.info('Firebase initialized successfully');
   } catch (e) {
     // talker.info('Firebase initialization error: $e');
@@ -72,9 +84,8 @@ bool skipDependencyInitialization = false;
 Future<void> main() async {
   // Initialize GlobalErrorHandler first to capture early errors
 
-  // FIXED: Initialize WidgetsBinding BEFORE Sentry
-  WidgetsFlutterBinding.ensureInitialized();
-  final widgetsBinding = SentryWidgetsFlutterBinding.ensureInitialized();
+  // Initialize WidgetsBinding
+  final widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
 
   // Configure logging
@@ -86,327 +97,256 @@ Future<void> main() async {
   // Centralized initialization function
   Future<void> initializeApp() async {
     if (!skipDependencyInitialization) {
-      debugPrint('🚀 Starting app initialization...');
+      debugPrint('🚀 [main] initializeApp starting...');
 
-      debugPrint('📱 Initializing Firebase...');
-      debugPrint('🚀 Starting app initialization...');
-
-      debugPrint('📱 Initializing Firebase...');
+      debugPrint('� [main] Step 1: _initializeFirebase...');
       await _initializeFirebase();
-      debugPrint('✅ Firebase initialized');
 
-      debugPrint('🔧 Initializing dependencies...');
-      debugPrint('✅ Firebase initialized');
-
-      debugPrint('🔧 Initializing dependencies...');
-      await initializeDependencies();
-      debugPrint('✅ Dependencies initialized');
-
-      debugPrint('🗄️  Initializing Supabase...');
-      debugPrint('✅ Dependencies initialized');
-
-      debugPrint('🗄️  Initializing Supabase...');
-      await _initializeSupabase();
-      GlobalErrorHandler.initialize();
+      debugPrint('� [main] Step 2: setupLocator...');
       loc.setupLocator(stackedRouter: stackedRouter);
-      debugPrint('✅ Locator setup complete');
-
-      debugPrint('💬 Setting up dialogs...');
-      debugPrint('✅ Locator setup complete');
-
-      debugPrint('💬 Setting up dialogs...');
       setupDialogUi();
-      debugPrint('✅ Dialogs setup complete');
-
-      debugPrint('📋 Setting up bottom sheets...');
-      debugPrint('✅ Dialogs setup complete');
-
-      debugPrint('📋 Setting up bottom sheets...');
       setupBottomSheetUi();
-      debugPrint('✅ Bottom sheets setup complete');
 
-      debugPrint('⚙️  Initializing additional dependencies...');
-      debugPrint('✅ Bottom sheets setup complete');
+      debugPrint('� [main] Step 3: initializeDependencies...');
+      await initializeDependencies();
 
-      debugPrint('⚙️  Initializing additional dependencies...');
+      debugPrint('🚀 [main] Step 4: GlobalErrorHandler.initialize...');
+      GlobalErrorHandler.initialize();
+
+      debugPrint('� [main] Step 5: _initializeSupabase...');
+      await _initializeSupabase();
+
+      debugPrint('🚀 [main] Step 6: initDependencies...');
       await initDependencies();
-      debugPrint('✅ Additional dependencies initialized');
 
-      debugPrint('🔄 Registering Ditto sync defaults...');
-      debugPrint('✅ Additional dependencies initialized');
+      debugPrint('🚀 [main] Step 7: Amplify configuration...');
+      final isSimulator = UniversalPlatform.isIOS && !UniversalPlatform.isWeb;
+      final shouldBlock =
+          !kDebugMode && !isSimulator && !AppSecrets.isTestEnvironment();
+      await AmplifyConfigHelper.configureAmplify(block: shouldBlock);
 
-      debugPrint('🔄 Registering Ditto sync defaults...');
+      debugPrint('🚀 [main] Step 8: DittoSyncRegistry.registerDefaults...');
       await DittoSyncRegistry.registerDefaults();
-      debugPrint('✅ Ditto sync defaults registered');
-      debugPrint('✅ Ditto sync defaults registered');
 
-      debugPrint('🎉 App initialization completed successfully!');
-      debugPrint('🎉 App initialization completed successfully!');
+      debugPrint('🎉 [main] initializeApp completed successfully!');
     }
   }
 
-  // Run the app within Sentry's guarded zone
-  await SentryFlutter.init(
-    (options) async => options
-      ..dsn = AppSecrets.sentryKey
-      ..release = await AppService().version()
-      ..environment = 'production'
-      ..tracesSampleRate = 0.2
-      ..attachScreenshot = false,
-    appRunner: () => runApp(
-      FutureBuilder(
-        future: initializeApp().timeout(
-          const Duration(seconds: 60),
-          onTimeout: () {
-            debugPrint('❌ App initialization timed out after 60 seconds');
+  runApp(
+    FutureBuilder(
+      future: initializeApp().timeout(
+        const Duration(seconds: 60),
+        onTimeout: () {
+          debugPrint('❌ App initialization timed out after 60 seconds');
 
-            final exception = TimeoutException(
-              'App initialization timed out',
-              const Duration(seconds: 60),
+          final exception = TimeoutException(
+            'App initialization timed out',
+            const Duration(seconds: 60),
+          );
+
+          // Report to telemetry (fire-and-forget)
+          try {
+            Sentry.captureException(
+              exception,
+              stackTrace: StackTrace.current,
+              hint: Hint.withMap({
+                'context': 'App initialization timeout',
+                'timeout_duration': '60 seconds',
+              }),
             );
+          } catch (e) {
+            debugPrint('Failed to report timeout to telemetry: $e');
+          }
 
-            // Report to telemetry (fire-and-forget)
+          throw exception;
+        },
+      ),
+      builder: (context, snapshot) {
+        debugPrint(
+            '🎬 [main] FutureBuilder snapshot: ${snapshot.connectionState} | hasError: ${snapshot.hasError} | hasData: ${snapshot.hasData}');
+        if (snapshot.connectionState == ConnectionState.done) {
+          if (snapshot.hasError) {
+            // Remove splash screen before showing error
+            FlutterNativeSplash.remove();
+
+            // Log full error to Sentry/monitoring
+            debugPrint('❌ App initialization error: ${snapshot.error}');
+            if (snapshot.stackTrace != null) {
+              debugPrint('Stack trace: ${snapshot.stackTrace}');
+            }
+
+            // Report to telemetry systems
             try {
+              final stackTrace = snapshot.stackTrace ?? StackTrace.current;
               Sentry.captureException(
-                exception,
-                stackTrace: StackTrace.current,
+                snapshot.error,
+                stackTrace: stackTrace,
                 hint: Hint.withMap({
-                  'context': 'App initialization timeout',
-                  'timeout_duration': '60 seconds',
+                  'context': 'App initialization failed',
+                  'error_type': snapshot.error.runtimeType.toString(),
                 }),
               );
+
+              GlobalErrorHandler.logError(
+                snapshot.error!,
+                stackTrace: stackTrace,
+                type: 'initialization_error',
+                context: {'error_type': snapshot.error.runtimeType.toString()},
+              );
             } catch (e) {
-              debugPrint('Failed to report timeout to telemetry: $e');
+              debugPrint('Failed to report error to telemetry: $e');
             }
 
-            throw exception;
-          },
-        ),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.done) {
-            if (snapshot.hasError) {
-              // Remove splash screen before showing error
-              FlutterNativeSplash.remove();
-
-              // Log full error to Sentry/monitoring
-              debugPrint('❌ App initialization error: ${snapshot.error}');
-              if (snapshot.stackTrace != null) {
-                debugPrint('Stack trace: ${snapshot.stackTrace}');
-              }
-
-              // Report to telemetry systems
-              try {
-                final stackTrace = snapshot.stackTrace ?? StackTrace.current;
-
-                // Send to Sentry
-                Sentry.captureException(
-                  snapshot.error,
-                  stackTrace: stackTrace,
-                  hint: Hint.withMap({
-                    'context': 'App initialization failed',
-                    'error_type': snapshot.error.runtimeType.toString(),
-                  }),
-                );
-
-                // Send to GlobalErrorHandler
-                GlobalErrorHandler.logError(
-                  snapshot.error!,
-                  stackTrace: stackTrace,
-                  type: 'initialization_error',
-                  context: {
-                    'error_type': snapshot.error.runtimeType.toString()
-                  },
-                );
-              } catch (e) {
-                debugPrint('Failed to report error to telemetry: $e');
-              }
-
-              // Show user-friendly error screen
-              return const MaterialApp(
-                home: Scaffold(
-                  backgroundColor: Colors.white,
-                  body: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.error_outline,
-                          color: Colors.red,
-                          size: 64,
-                        ),
-                        SizedBox(height: 16),
-                        Text(
-                          'Initialization Failed',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 32),
-                          child: Text(
-                            'Something went wrong while starting the app. Please try again.',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 14),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            }
-            if (snapshot.hasError) {
-              // Remove splash screen before showing error
-              FlutterNativeSplash.remove();
-
-              // Log full error to Sentry/monitoring
-              debugPrint('❌ App initialization error: ${snapshot.error}');
-              if (snapshot.stackTrace != null) {
-                debugPrint('Stack trace: ${snapshot.stackTrace}');
-              }
-
-              // Report to telemetry systems
-              try {
-                final stackTrace = snapshot.stackTrace ?? StackTrace.current;
-
-                // Send to Sentry
-                Sentry.captureException(
-                  snapshot.error,
-                  stackTrace: stackTrace,
-                  hint: Hint.withMap({
-                    'context': 'App initialization failed',
-                    'error_type': snapshot.error.runtimeType.toString(),
-                  }),
-                );
-
-                // Send to GlobalErrorHandler
-                GlobalErrorHandler.logError(
-                  snapshot.error!,
-                  stackTrace: stackTrace,
-                  type: 'initialization_error',
-                  context: {
-                    'error_type': snapshot.error.runtimeType.toString()
-                  },
-                );
-              } catch (e) {
-                debugPrint('Failed to report error to telemetry: $e');
-              }
-
-              // Show user-friendly error screen
-              return const MaterialApp(
-                home: Scaffold(
-                  backgroundColor: Colors.white,
-                  body: Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.error_outline,
-                          color: Colors.red,
-                          size: 64,
-                        ),
-                        SizedBox(height: 16),
-                        Text(
-                          'Initialization Failed',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        SizedBox(height: 8),
-                        Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 32),
-                          child: Text(
-                            'Something went wrong while starting the app. Please try again.',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(fontSize: 14),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            }
-            // Remove splash screen when the main app is ready
-            debugPrint('🎬 [main.dart] Removing splash screen...');
-            debugPrint('🎬 [main.dart] Removing splash screen...');
-            FlutterNativeSplash.remove();
-            debugPrint(
-                '🎬 [main.dart] Splash removed, returning FlipperApp...');
-            debugPrint(
-                '🎬 [main.dart] Splash removed, returning FlipperApp...');
-            return const FlipperApp();
-          } else {
-            // While initializing, show the loading screen.
-            // The native splash is preserved until the future completes.
+            // Show user-friendly error screen
             return const MaterialApp(
               home: Scaffold(
                 backgroundColor: Colors.white,
                 body: Center(
-                  child: CircularProgressIndicator(),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        color: Colors.red,
+                        size: 64,
+                      ),
+                      SizedBox(height: 16),
+                      Text(
+                        'Initialization Failed',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 8),
+                      Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 32),
+                        child: Text(
+                          'Something went wrong while starting the app. Please try again.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(fontSize: 14),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             );
           }
-        },
-      ),
+
+          // Remove splash screen immediately when initialization is done
+          FlutterNativeSplash.remove();
+          debugPrint('🎬 [main] Splash removed, returning FlipperApp');
+
+          // Return FlipperApp.
+          return const FlipperApp();
+        } else {
+          // While initializing, show the loading screen.
+          // The native splash is preserved until the future completes.
+          return const MaterialApp(
+            debugShowCheckedModeBanner: false,
+            home: Scaffold(
+              backgroundColor: Colors.white,
+              body: Center(
+                child: CircularProgressIndicator(),
+              ),
+            ),
+          );
+        }
+      },
     ),
   );
 }
 
-class FlipperApp extends StatelessWidget {
+class FlipperApp extends StatefulWidget {
   const FlipperApp({super.key});
 
   @override
+  State<FlipperApp> createState() => _FlipperAppState();
+}
+
+class _FlipperAppState extends State<FlipperApp> {
+  late final ThemeData _theme;
+
+  @override
+  void initState() {
+    debugPrint('🎬 [FlipperApp] initState called');
+    super.initState();
+    _theme = _buildTheme();
+    // Remove splash screen after the first frame is rendered
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      debugPrint(
+          '🎬 [FlipperApp] First frame rendered, removing splash screen...');
+      FlutterNativeSplash.remove();
+    });
+  }
+
+  ThemeData _buildTheme() {
+    // Disable runtime fetching since we have fonts bundled in flipper/google_fonts
+    GoogleFonts.config.allowRuntimeFetching = false;
+
+    return ThemeData(
+      textTheme: GoogleFonts.poppinsTextTheme(),
+      brightness: Brightness.light,
+      primaryColor: Colors.blue,
+      colorScheme: ColorScheme.fromSeed(
+        seedColor: const Color(0xFF00C2E8),
+        primary: const Color(0xFF00C2E8),
+        secondary: const Color(0xFF1D1D1D),
+      ).copyWith(surface: Colors.white),
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 0,
+      ),
+      cardTheme: CardThemeData(
+        elevation: 2,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+      ),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    debugPrint('🎬 [FlipperApp] Building FlipperApp widget tree...');
-    debugPrint('🎬 [FlipperApp] Building FlipperApp widget tree...');
+    debugPrint('🎬 [FlipperApp] build start');
+
+    final routerDelegate = stackedRouter.delegate();
+    final routeInformationParser = stackedRouter.defaultRouteParser();
+
     return ProviderScope(
       observers: [StateObserver()],
       child: OverlaySupport.global(
-        child: MaterialApp.router(
-          debugShowCheckedModeBanner: false,
-          title: 'flipper',
-          theme: ThemeData(
-            textTheme: GoogleFonts.poppinsTextTheme(),
-            brightness: Brightness.light,
-            primaryColor: Colors.blue,
-            colorScheme: ColorScheme.fromSeed(
-              seedColor: const Color(0xFF00C2E8),
-              primary: const Color(0xFF00C2E8),
-              secondary: const Color(0xFF1D1D1D),
-            ).copyWith(surface: Colors.white),
-            appBarTheme: const AppBarTheme(
-              backgroundColor: Colors.white,
-              foregroundColor: Colors.black,
-              elevation: 0,
-            ),
-            cardTheme: CardThemeData(
-              elevation: 2,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(4)),
-            ),
+        child: DevicePreview(
+          enabled: kDebugMode,
+          tools: const [
+            ...DevicePreview.defaultTools,
+          ],
+          builder: (context) => MaterialApp.router(
+            debugShowCheckedModeBanner: false,
+            title: 'flipper',
+            theme: _theme,
+            useInheritedMediaQuery: true,
+            localizationsDelegates: [
+              FirebaseUILocalizations.withDefaultOverrides(
+                const LabelOverrides(),
+              ),
+              const FlipperLocalizationsDelegate(),
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              CountryLocalizations.delegate
+            ],
+            supportedLocales: const [
+              Locale('en'),
+              Locale('es'),
+            ],
+            locale: const Locale('en'),
+            themeMode: ThemeMode.system,
+            routerDelegate: routerDelegate,
+            routeInformationParser: routeInformationParser,
+            builder: (context, child) {
+              return child!;
+            },
           ),
-          localizationsDelegates: [
-            FirebaseUILocalizations.withDefaultOverrides(
-              const LabelOverrides(),
-            ),
-            const FlipperLocalizationsDelegate(),
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            CountryLocalizations.delegate
-          ],
-          supportedLocales: const [
-            Locale('en'),
-            Locale('es'),
-          ],
-          locale: const Locale('en'),
-          themeMode: ThemeMode.system,
-          routerDelegate: stackedRouter.delegate(),
-          routeInformationParser: stackedRouter.defaultRouteParser(),
         ),
       ),
     );

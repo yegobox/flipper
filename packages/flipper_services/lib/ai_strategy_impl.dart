@@ -18,10 +18,25 @@ class AiStrategyImpl implements AiStrategy {
             ),
           )
           .map((conversations) {
-            conversations.sort(
-              (a, b) => b.lastMessageAt.compareTo(a.lastMessageAt),
+            talker.warning(
+              'conversationsStream ON MAP: ${conversations.length} records found.',
             );
+            try {
+              conversations.sort(
+                (a, b) => b.lastMessageAt.compareTo(a.lastMessageAt),
+              );
+            } catch (e, s) {
+              talker.error(
+                'Error sorting conversations inside stream map: $e\n$s',
+              );
+              // Return them unsorted in case of error instead of bombing the stream
+            }
             return conversations;
+          })
+          .handleError((error) {
+            talker.error(
+              'Error from repository.subscribe<Conversation> in ai_strategy: $error',
+            );
           });
     } catch (e, s) {
       talker.error('Error subscribing to conversations: $e\n$s');
@@ -76,6 +91,16 @@ class AiStrategyImpl implements AiStrategy {
   }
 
   @override
+  Future<Conversation> updateConversation(Conversation conversation) async {
+    try {
+      return await repository.upsert<Conversation>(conversation);
+    } catch (e, s) {
+      talker.error('Error updating conversation: $e\n$s');
+      rethrow;
+    }
+  }
+
+  @override
   Future<void> deleteConversation(String conversationId) async {
     try {
       // First get and delete all messages in the conversation
@@ -86,7 +111,13 @@ class AiStrategyImpl implements AiStrategy {
       );
 
       for (final message in messages) {
-        await repository.delete<Message>(message);
+        try {
+          if (message.primaryKey != null) {
+            await repository.delete<Message>(message);
+          }
+        } catch (e) {
+          talker.warning('Could not delete message ${message.id}: $e');
+        }
       }
 
       // Then delete the conversation

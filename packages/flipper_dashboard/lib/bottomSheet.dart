@@ -26,6 +26,8 @@ import 'package:flipper_dashboard/utils/resume_transaction_helper.dart';
 import 'package:flipper_dashboard/mixins/transaction_computation_mixin.dart';
 
 import 'data_view_reports/DynamicDataSource.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_services/setting_service.dart';
 
 enum ChargeButtonState {
   initial, // "Charge"
@@ -167,6 +169,8 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
     TextEditingController newPriceController = TextEditingController();
     newPriceController.text = transactionItem.price.toString();
 
+    final settingsService = locator<SettingsService>();
+
     // Create a completer to signal when the edit is complete
     final completer = Completer<bool>();
 
@@ -235,6 +239,7 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
 
                         // Determine if the user is overriding the price (entering total instead of unit price)
                         bool isPriceOverride =
+                            settingsService.enablePriceQuantityAdjustment &&
                             originalUnitPrice > 0 &&
                             localPriceInput > 0 &&
                             localPriceInput != originalUnitPrice;
@@ -380,7 +385,9 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                                                     newPriceController.text,
                                                   ) ??
                                                   0;
-                                              return parsedPrice > 0 &&
+                                              return settingsService
+                                                          .enablePriceQuantityAdjustment &&
+                                                      parsedPrice > 0 &&
                                                       originalUnitPrice > 0
                                                   ? 'Qty: ${(parsedPrice / originalUnitPrice).toStringAsFixed(2)} (calc.)'
                                                   : null;
@@ -393,7 +400,9 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                                           onChanged: (val) {
                                             final newPrice =
                                                 double.tryParse(val) ?? 0.0;
-                                            if (originalUnitPrice > 0 &&
+                                            if (settingsService
+                                                    .enablePriceQuantityAdjustment &&
+                                                originalUnitPrice > 0 &&
                                                 newPrice > 0) {
                                               final newQty =
                                                   newPrice / originalUnitPrice;
@@ -459,6 +468,8 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
 
                                     // Use the same logic as the UI to determine if price is being overridden
                                     bool isPriceOverride =
+                                        settingsService
+                                            .enablePriceQuantityAdjustment &&
                                         originalUnitPrice > 0 &&
                                         price > 0 &&
                                         price != originalUnitPrice;

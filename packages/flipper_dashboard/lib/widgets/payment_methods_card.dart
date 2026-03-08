@@ -7,6 +7,8 @@ import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_dashboard/mixins/transaction_computation_mixin.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
+import 'package:flipper_models/db_model_export.dart';
+import 'package:supabase_models/brick/models/transaction.model.dart';
 
 class PaymentMethodsCard extends StatefulHookConsumerWidget {
   const PaymentMethodsCard({
@@ -64,6 +66,7 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
     required String transactionId,
     int? focusedIndex,
     double? oldTotalPayable,
+    ITransaction? transaction,
   }) {
     final payments = ref.read(paymentMethodsProvider);
     double totalPayable = widget.totalPayable;
@@ -71,11 +74,10 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
     if (totalPayable == 0) return;
 
     if (payments.isEmpty) {
-      final transaction = ref
-          .read(transactionByIdProvider(transactionId))
-          .value;
-      final initialAmount = transaction != null
-          ? calculateCurrentRemainder(transaction, totalPayable)
+      final effectiveTransaction =
+          transaction ?? ref.read(transactionByIdProvider(transactionId)).value;
+      final initialAmount = effectiveTransaction != null
+          ? calculateCurrentRemainder(effectiveTransaction, totalPayable)
           : totalPayable;
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -99,13 +101,14 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
           focusedIndex == null && !_userEditedFields.contains(0);
 
       if (shouldAutoUpdate) {
-        final transaction = ref
-            .read(transactionByIdProvider(transactionId))
-            .value;
-        if (transaction != null) {
+        final effectiveTransaction =
+            transaction ??
+            ref.read(transactionByIdProvider(transactionId)).value;
+
+        if (effectiveTransaction != null) {
           updatePaymentRemainder(
             ref: ref,
-            transaction: transaction,
+            transaction: effectiveTransaction,
             total: totalPayable,
             lastAutoSetAmount: oldTotalPayable ?? payments[0].amount,
             onAutoSetAmountChanged: (amount) {
@@ -203,8 +206,15 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
   }
 
   void _removePaymentMethod(int index, {required String transactionId}) {
+    // Clear user edited fields to allow re-balancing of remaining methods
+    _userEditedFields.clear();
     ref.read(paymentMethodsProvider.notifier).removePaymentMethod(index);
-    updatePaymentAmounts(transactionId: transactionId);
+
+    final transaction = ref.read(transactionByIdProvider(transactionId)).value;
+    updatePaymentAmounts(
+      transactionId: transactionId,
+      transaction: transaction,
+    );
   }
 
   List<String> _getAvailablePaymentMethods(int index) {
@@ -750,6 +760,20 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
 
   @override
   Widget build(BuildContext context) {
+    final transactionAsync = ref.watch(
+      transactionByIdProvider(widget.transactionId),
+    );
+
+    // Initial load/re-synchronization
+    ref.listen(transactionByIdProvider(widget.transactionId), (previous, next) {
+      if (previous?.value == null && next.value != null) {
+        updatePaymentAmounts(
+          transactionId: widget.transactionId,
+          transaction: next.value,
+        );
+      }
+    });
+
     return widget.isCardView ? _buildCardView() : _buildListView();
   }
 
