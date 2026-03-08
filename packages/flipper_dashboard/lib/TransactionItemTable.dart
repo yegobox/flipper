@@ -9,6 +9,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_services/setting_service.dart';
+import 'package:flipper_services/utils.dart';
 import 'dart:async'; // Import for Timer
 
 /// Modern Transaction Item Table Mixin
@@ -305,7 +306,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
         // Price display
         Expanded(
           child: Text(
-            item.price.toNoCurrencyFormatted(symbol: ''),
+            formatNumber(item.price.toDouble()),
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w600,
@@ -748,7 +749,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     } else {
       price = (item.price * item.qty).toDouble().roundToDouble();
     }
-    return price.toNoCurrencyFormatted(symbol: '');
+    return formatNumber(price);
   }
 
   Future<void> _updateTransactionItemInDb(

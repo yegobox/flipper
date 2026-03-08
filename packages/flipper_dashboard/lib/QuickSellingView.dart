@@ -1437,19 +1437,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
               _customerNameField(),
               const SizedBox(height: 6.0),
             ],
-            IntrinsicWidth(
-              child: Row(
-                children: [
-                  const SizedBox(height: 6.0),
-                  Expanded(
-                    child: SizedBox(
-                      width: 850,
-                      child: _buildCustomerPhoneField(),
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            _buildCustomerPhoneField(),
             const SizedBox(height: 6.0),
             _buildPaymentRow(isOrdering, transactionId, alreadyPaid),
           ],
