@@ -436,6 +436,37 @@ class _AiScreenState extends ConsumerState<AiScreen> {
         });
       }
 
+      // Generate a dynamic conversation title if this is the first message
+      if (isFirstMessage && !isWhatsAppReply) {
+        Future.microtask(() async {
+          try {
+            final titlePrompt =
+                "Generate a concise, descriptive title (maximum 5 words) for a conversation that starts with this user message: \"$processedText\". Only return the title and nothing else without quotes.";
+            final generatedTitle = await ref.read(
+              geminiSummaryProvider(titlePrompt, aiModel: _selectedModel)
+                  .future,
+            );
+            final cleanTitle = generatedTitle.replaceAll('"', '').trim();
+
+            if (cleanTitle.isNotEmpty) {
+              final conversations = ref.read(conversationProvider).value ?? [];
+              final currentConv = conversations.firstWhere(
+                (c) => c.id == targetConversationId,
+              );
+              currentConv.title = cleanTitle;
+              await ProxyService.strategy.updateConversation(currentConv);
+              debugPrint('Saved new conversation title: $cleanTitle');
+              // Force the UI stream to refresh so the new title appears
+              if (mounted) {
+                ref.invalidate(conversationProvider);
+              }
+            }
+          } catch (e) {
+            debugPrint('Failed to generate conversation title: $e');
+          }
+        });
+      }
+
       _scrollToBottom();
     } catch (e) {
       _showError('Error: ${e.toString()}');
