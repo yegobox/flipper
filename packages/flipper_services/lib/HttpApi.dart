@@ -11,36 +11,43 @@ import 'package:supabase_models/brick/models/customer_payments.model.dart';
 import 'package:supabase_models/brick/models/variant.model.dart';
 
 abstract class HttpApiInterface {
-  Future<bool> isCouponValid(
-      {required HttpClientInterface flipperHttpClient,
-      required String couponCode});
-  Future<bool> isPaymentComplete(
-      {required HttpClientInterface flipperHttpClient,
-      required String businessId});
-  Future<bool> hasAcessSaved(
-      {required HttpClientInterface flipperHttpClient,
-      required String businessId});
-  Future<bool> makePayment(
-      {required HttpClientInterface flipperHttpClient,
-      String? businessId,
-      required String phoneNumber,
-      String? externalId,
-      required String branchId,
-      required String paymentType,
-      required String payeemessage,
-      required int amount});
-  Future<bool> subscribe(
-      {required HttpClientInterface flipperHttpClient,
-      required String businessId,
-      int? agentCode,
-      int? timeInSeconds = 120,
-      required int amount});
-  Future<Map<String, dynamic>> payNow(
-      {required Map<String, dynamic> paymentData,
-      required HttpClientInterface flipperHttpClient});
-  Future<bool> checkPaymentStatus(
-      {required HttpClientInterface flipperHttpClient,
-      required String paymentReference});
+  Future<bool> isCouponValid({
+    required HttpClientInterface flipperHttpClient,
+    required String couponCode,
+  });
+  Future<bool> isPaymentComplete({
+    required HttpClientInterface flipperHttpClient,
+    required String businessId,
+  });
+  Future<bool> hasAcessSaved({
+    required HttpClientInterface flipperHttpClient,
+    required String businessId,
+  });
+  Future<bool> makePayment({
+    required HttpClientInterface flipperHttpClient,
+    String? businessId,
+    required String phoneNumber,
+    String? externalId,
+    required String branchId,
+    required String paymentType,
+    required String payeemessage,
+    required int amount,
+  });
+  Future<bool> subscribe({
+    required HttpClientInterface flipperHttpClient,
+    required String businessId,
+    int? agentCode,
+    int? timeInSeconds = 120,
+    required int amount,
+  });
+  Future<Map<String, dynamic>> payNow({
+    required Map<String, dynamic> paymentData,
+    required HttpClientInterface flipperHttpClient,
+  });
+  Future<bool> checkPaymentStatus({
+    required HttpClientInterface flipperHttpClient,
+    required String paymentReference,
+  });
 
   /// Uploads a PDF document and extracts company information from it
   /// Returns a Map containing the extracted company information
@@ -53,8 +60,10 @@ abstract class HttpApiInterface {
     required Variant variant,
     required HttpClientInterface client,
   });
-  Future<int?> getBusinessId(
-      {required HttpClientInterface client, required String businessId});
+  Future<int?> getBusinessId({
+    required HttpClientInterface client,
+    required String businessId,
+  });
 }
 
 class HttpApi implements HttpApiInterface {
@@ -68,14 +77,18 @@ class HttpApi implements HttpApiInterface {
       final String baseUrl = AppSecrets.superbaseurl;
       final String anonKey = AppSecrets.supabaseAnonKey;
       final Uri uri = Uri.parse(
-          '$baseUrl/rest/v1/variants?id=eq.${variant.id}&select=stock_id');
+        '$baseUrl/rest/v1/variants?id=eq.${variant.id}&select=stock_id',
+      );
 
       // Fetch the variant to get the stock_id
-      final variantResp = await client.get(uri, headers: {
-        'apikey': anonKey,
-        'Authorization': 'Bearer $anonKey',
-        'Accept': 'application/json',
-      });
+      final variantResp = await client.get(
+        uri,
+        headers: {
+          'apikey': anonKey,
+          'Authorization': 'Bearer $anonKey',
+          'Accept': 'application/json',
+        },
+      );
       if (variantResp.statusCode != 200) {
         talker.error('Failed to fetch variant: \\${variantResp.body}');
         return false;
@@ -91,12 +104,16 @@ class HttpApi implements HttpApiInterface {
 
       // Now fetch the stock
       final Uri stockUri = Uri.parse(
-          '$baseUrl/rest/v1/stocks?id=eq.$stockId&select=current_stock');
-      final stockResp = await client.get(stockUri, headers: {
-        'apikey': anonKey,
-        'Authorization': 'Bearer $anonKey',
-        'Accept': 'application/json',
-      });
+        '$baseUrl/rest/v1/stocks?id=eq.$stockId&select=current_stock',
+      );
+      final stockResp = await client.get(
+        stockUri,
+        headers: {
+          'apikey': anonKey,
+          'Authorization': 'Bearer $anonKey',
+          'Accept': 'application/json',
+        },
+      );
       if (stockResp.statusCode != 200) {
         talker.error('Failed to fetch stock: \\${stockResp.body}');
         return false;
@@ -116,9 +133,10 @@ class HttpApi implements HttpApiInterface {
   }
 
   @override
-  Future<Map<String, dynamic>> payNow(
-      {required Map<String, dynamic> paymentData,
-      required HttpClientInterface flipperHttpClient}) async {
+  Future<Map<String, dynamic>> payNow({
+    required Map<String, dynamic> paymentData,
+    required HttpClientInterface flipperHttpClient,
+  }) async {
     try {
       // Ensure the URL is properly formatted
       final Uri uri = Uri.parse('${AppSecrets.apihubProd}/v2/api/payNow');
@@ -129,14 +147,14 @@ class HttpApi implements HttpApiInterface {
         "currency": paymentData['currency'] ?? "RWF",
         "payer": {
           "partyIdType": "MSISDN",
-          "partyId": paymentData['phoneNumber']
+          "partyId": paymentData['phoneNumber'],
         },
         // this is constant for now.
         "branchId": "2f83b8b1-6d41-4d80-b0e7-de8ab36910af",
         "payerMessage": paymentData['description'] ?? "Flipper Credit Purchase",
         "payeeNote": "Flipper Credit",
         "businessId": ProxyService.box.getBusinessId() ?? 1,
-        "paymentType": "Credit Purchase"
+        "paymentType": "Credit Purchase",
       };
 
       // Convert formatted payment data to JSON string
@@ -145,10 +163,7 @@ class HttpApi implements HttpApiInterface {
       talker.info('PayNow request body: $body');
 
       // Make the POST request
-      final response = await flipperHttpClient.post(
-        uri,
-        body: body,
-      );
+      final response = await flipperHttpClient.post(uri, body: body);
 
       // Parse the response
       final Map<String, dynamic> responseData = json.decode(response.body);
@@ -158,18 +173,21 @@ class HttpApi implements HttpApiInterface {
 
       // Check if the request was successful
       if (response.statusCode == 200 || response.statusCode == 202) {
-        await ProxyService.strategy.upsertPayment(CustomerPayments(
-          phoneNumber: paymentData['phoneNumber'],
-          paymentStatus: "pending",
-          amountPayable: paymentData['amount'].toDouble(),
-          transactionId: responseData['paymentReference'],
-        ));
+        await ProxyService.strategy.upsertPayment(
+          CustomerPayments(
+            phoneNumber: paymentData['phoneNumber'],
+            paymentStatus: "pending",
+            amountPayable: paymentData['amount'].toDouble(),
+            transactionId: responseData['paymentReference'],
+          ),
+        );
         return responseData;
       } else {
         // Handle error response
         talker.error('PayNow error: ${response.statusCode} - ${response.body}');
         throw Exception(
-            'PayNow request failed with status: ${response.statusCode}');
+          'PayNow request failed with status: ${response.statusCode}',
+        );
       }
     } catch (e, stackTrace) {
       // Log and rethrow any exceptions
@@ -181,22 +199,24 @@ class HttpApi implements HttpApiInterface {
   }
 
   @override
-  Future<bool> isCouponValid(
-      {required HttpClientInterface flipperHttpClient,
-      required String couponCode}) async {
+  Future<bool> isCouponValid({
+    required HttpClientInterface flipperHttpClient,
+    required String couponCode,
+  }) async {
     var headers = {
       'api-key': AppSecrets.apikey,
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
     };
     final response = await flipperHttpClient.post(
-        headers: headers,
-        Uri.parse(AppSecrets.mongoBaseUrl + '/data/v1/action/find'),
-        body: json.encode({
-          "collection": AppSecrets.flipperCompaignCollection,
-          "database": AppSecrets.database,
-          "dataSource": AppSecrets.dataSource,
-          "filter": {"couponCode": couponCode}
-        }));
+      headers: headers,
+      Uri.parse(AppSecrets.mongoBaseUrl + '/data/v1/action/find'),
+      body: json.encode({
+        "collection": AppSecrets.flipperCompaignCollection,
+        "database": AppSecrets.database,
+        "dataSource": AppSecrets.dataSource,
+        "filter": {"couponCode": couponCode},
+      }),
+    );
     if (response.statusCode == 200) {
       // Parse the response body
       final Map<String, dynamic> responseData = json.decode(response.body);
@@ -230,7 +250,8 @@ class HttpApi implements HttpApiInterface {
       final response = await flipperHttpClient.get(
         headers: headers,
         Uri.parse(
-            '${AppSecrets.superbaseurl}/rest/v1/plans?business_id=eq.$businessId'),
+          '${AppSecrets.superbaseurl}/rest/v1/plans?business_id=eq.$businessId',
+        ),
       );
 
       if (response.statusCode == 200) {
@@ -241,8 +262,12 @@ class HttpApi implements HttpApiInterface {
           // Get the first item from the array
           final Map<String, dynamic> planData = responseData.first;
 
-          // Use the correct field name from the API response
-          return planData['payment_completed_by_user'] ?? false;
+          final bool isCompletedByUser =
+              planData['payment_completed_by_user'] ?? false;
+          final bool isStatusCompleted =
+              planData['payment_status'] == 'COMPLETED';
+
+          return isCompletedByUser || isStatusCompleted;
         }
       }
 
@@ -256,22 +281,24 @@ class HttpApi implements HttpApiInterface {
   }
 
   @override
-  Future<bool> hasAcessSaved(
-      {required HttpClientInterface flipperHttpClient,
-      required String businessId}) async {
+  Future<bool> hasAcessSaved({
+    required HttpClientInterface flipperHttpClient,
+    required String businessId,
+  }) async {
     var headers = {
       'api-key': AppSecrets.apikey,
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
     };
     final response = await flipperHttpClient.post(
-        headers: headers,
-        Uri.parse(AppSecrets.mongoBaseUrl + '/data/v1/action/find'),
-        body: json.encode({
-          "collection": AppSecrets.AccessCollection,
-          "database": AppSecrets.database,
-          "dataSource": AppSecrets.dataSource,
-          "filter": {"businessId": businessId}
-        }));
+      headers: headers,
+      Uri.parse(AppSecrets.mongoBaseUrl + '/data/v1/action/find'),
+      body: json.encode({
+        "collection": AppSecrets.AccessCollection,
+        "database": AppSecrets.database,
+        "dataSource": AppSecrets.dataSource,
+        "filter": {"businessId": businessId},
+      }),
+    );
     if (response.statusCode == 200) {
       // Parse the response body
       final Map<String, dynamic> responseData = json.decode(response.body);
@@ -289,34 +316,33 @@ class HttpApi implements HttpApiInterface {
   }
 
   @override
-  Future<bool> makePayment(
-      {required HttpClientInterface flipperHttpClient,
-      String? businessId,
-      required String branchId,
-      required String paymentType,
-      String? externalId,
-      required String payeemessage,
-      required int amount,
-      required String phoneNumber}) async {
+  Future<bool> makePayment({
+    required HttpClientInterface flipperHttpClient,
+    String? businessId,
+    required String branchId,
+    required String paymentType,
+    String? externalId,
+    required String payeemessage,
+    required int amount,
+    required String phoneNumber,
+  }) async {
     // get active business or profile
 
     final response = await flipperHttpClient.post(
-        headers: {'Content-Type': 'application/json'},
-        Uri.parse('${AppSecrets.coreApi}/v2/api/payNow'),
-        body: json.encode({
-          "amount": amount,
-          "currency": "RWF",
-          "payer": {
-            "partyIdType": "MSISDN",
-            "partyId": phoneNumber,
-          },
-          "payerMessage": "Flipper Subscription",
-          "payeeNote": payeemessage,
-          "businessId": businessId,
-          "branchId": branchId,
-          "paymentType": paymentType,
-          "externalId": externalId
-        }));
+      headers: {'Content-Type': 'application/json'},
+      Uri.parse('${AppSecrets.coreApi}/v2/api/payNow'),
+      body: json.encode({
+        "amount": amount,
+        "currency": "RWF",
+        "payer": {"partyIdType": "MSISDN", "partyId": phoneNumber},
+        "payerMessage": "Flipper Subscription",
+        "payeeNote": payeemessage,
+        "businessId": businessId,
+        "branchId": branchId,
+        "paymentType": paymentType,
+        "externalId": externalId,
+      }),
+    );
     talker.debug(response.body);
     final status = response.statusCode;
     if (status == 400) {
@@ -342,34 +368,40 @@ class HttpApi implements HttpApiInterface {
   }
 
   @override
-  Future<bool> subscribe(
-      {required HttpClientInterface flipperHttpClient,
-      required String businessId,
-      int? agentCode,
-      int? timeInSeconds = 120,
-      required int amount}) async {
+  Future<bool> subscribe({
+    required HttpClientInterface flipperHttpClient,
+    required String businessId,
+    int? agentCode,
+    int? timeInSeconds = 120,
+    required int amount,
+  }) async {
     final phone =
         ProxyService.box.customPhoneNumberForPayment()?.replaceAll("+", "") ??
-            ProxyService.box.getUserPhone()!.replaceAll("+", "");
+        ProxyService.box.getUserPhone()!.replaceAll("+", "");
     final response = await flipperHttpClient.post(
-        Uri.parse('${AppSecrets.coreApi}/v2/api/preApprove'),
-        body: json.encode({
-          "payer": {"partyIdType": "MSISDN", "partyId": phone},
-          "payerCurrency": "RWF",
-          "payerMessage": "Flipper Subscription",
-          "validityTime": timeInSeconds,
-          "branchId": "2f83b8b1-6d41-4d80-b0e7-de8ab36910af"
-        }));
+      Uri.parse('${AppSecrets.coreApi}/v2/api/preApprove'),
+      body: json.encode({
+        "payer": {"partyIdType": "MSISDN", "partyId": phone},
+        "payerCurrency": "RWF",
+        "payerMessage": "Flipper Subscription",
+        "validityTime": timeInSeconds,
+        "branchId": "2f83b8b1-6d41-4d80-b0e7-de8ab36910af",
+      }),
+    );
     return response.statusCode == 200;
   }
 
   @override
-  Future<bool> checkPaymentStatus(
-      {required HttpClientInterface flipperHttpClient,
-      required String paymentReference}) async {
+  Future<bool> checkPaymentStatus({
+    required HttpClientInterface flipperHttpClient,
+    required String paymentReference,
+  }) async {
     try {
-      final response = await flipperHttpClient.get(Uri.parse(
-          '${AppSecrets.apihubProd}/v2/api/requesttopay/status/$paymentReference/2f83b8b1-6d41-4d80-b0e7-de8ab36910af'));
+      final response = await flipperHttpClient.get(
+        Uri.parse(
+          '${AppSecrets.apihubProd}/v2/api/requesttopay/status/$paymentReference/2f83b8b1-6d41-4d80-b0e7-de8ab36910af',
+        ),
+      );
 
       talker.info('Payment status response: ${response.body}');
 
@@ -393,11 +425,14 @@ class HttpApi implements HttpApiInterface {
   }
 
   Future<void> _updatePaymentStatus(
-      String paymentReference, Map<String, dynamic> responseData) async {
+    String paymentReference,
+    Map<String, dynamic> responseData,
+  ) async {
     try {
       // Find the payment record
-      final payments = await ProxyService.strategy
-          .getPayment(paymentReference: paymentReference);
+      final payments = await ProxyService.strategy.getPayment(
+        paymentReference: paymentReference,
+      );
 
       if (payments != null) {
         final payment = payments;
@@ -409,9 +444,10 @@ class HttpApi implements HttpApiInterface {
         if (responseData['status'] == 'SUCCESSFUL') {
           final amount = double.tryParse(responseData['amount'] ?? '0') ?? 0;
           Credit? credit = await ProxyService.strategy.getCredit(
-              branchId: (await ProxyService.strategy
-                      .branch(serverId: ProxyService.box.getBranchId()!))!
-                  .id);
+            branchId: (await ProxyService.strategy.branch(
+              serverId: ProxyService.box.getBranchId()!,
+            ))!.id,
+          );
           if (credit != null) {
             credit.credits += amount;
             await ProxyService.strategy.updateCredit(credit);
@@ -421,11 +457,11 @@ class HttpApi implements HttpApiInterface {
               createdAt: DateTime.now(),
               updatedAt: DateTime.now(),
               businessId: (await ProxyService.strategy.getBusiness(
-                      businessId: ProxyService.box.getBusinessId()!))!
-                  .id,
-              branchId: (await ProxyService.strategy
-                      .branch(serverId: ProxyService.box.getBranchId()!))!
-                  .id,
+                businessId: ProxyService.box.getBusinessId()!,
+              ))!.id,
+              branchId: (await ProxyService.strategy.branch(
+                serverId: ProxyService.box.getBranchId()!,
+              ))!.id,
               credits: amount,
             );
             await ProxyService.strategy.updateCredit(credit);
@@ -436,8 +472,9 @@ class HttpApi implements HttpApiInterface {
         await ProxyService.strategy.upsertPayment(payment);
         talker.info('Payment status updated for reference: $paymentReference');
       } else {
-        talker
-            .error('Payment record not found for reference: $paymentReference');
+        talker.error(
+          'Payment record not found for reference: $paymentReference',
+        );
       }
     } catch (e, stackTrace) {
       talker.error('Error updating payment status', e, stackTrace);
@@ -479,9 +516,11 @@ class HttpApi implements HttpApiInterface {
         return responseData;
       } else {
         talker.error(
-            'PDF extraction failed: ${response.statusCode} - ${response.body}');
+          'PDF extraction failed: ${response.statusCode} - ${response.body}',
+        );
         throw Exception(
-            'Failed to extract company info from PDF: ${response.statusCode}');
+          'Failed to extract company info from PDF: ${response.statusCode}',
+        );
       }
     } catch (e, stackTrace) {
       talker.error('Error in extractCompanyInfoFromPdf', e, stackTrace);
@@ -490,8 +529,10 @@ class HttpApi implements HttpApiInterface {
   }
 
   @override
-  Future<int?> getBusinessId(
-      {required HttpClientInterface client, required String businessId}) {
+  Future<int?> getBusinessId({
+    required HttpClientInterface client,
+    required String businessId,
+  }) {
     // TODO: implement getBusinessId
     throw UnimplementedError();
   }
@@ -508,64 +549,71 @@ class RealmViaHttpServiceMock implements HttpApiInterface {
   }
 
   @override
-  Future<bool> isCouponValid(
-      {required HttpClientInterface flipperHttpClient,
-      required String couponCode}) async {
+  Future<bool> isCouponValid({
+    required HttpClientInterface flipperHttpClient,
+    required String couponCode,
+  }) async {
     return true;
   }
 
   @override
-  Future<bool> isPaymentComplete(
-      {required HttpClientInterface flipperHttpClient,
-      required String businessId}) async {
+  Future<bool> isPaymentComplete({
+    required HttpClientInterface flipperHttpClient,
+    required String businessId,
+  }) async {
     return true;
   }
 
   @override
-  Future<bool> hasAcessSaved(
-      {required HttpClientInterface flipperHttpClient,
-      required String businessId}) {
+  Future<bool> hasAcessSaved({
+    required HttpClientInterface flipperHttpClient,
+    required String businessId,
+  }) {
     // TODO: implement hasAcessSaved
     throw UnimplementedError();
   }
 
   @override
-  Future<bool> subscribe(
-      {required HttpClientInterface flipperHttpClient,
-      required String businessId,
-      int? timeInSeconds,
-      int? agentCode,
-      required int amount}) {
+  Future<bool> subscribe({
+    required HttpClientInterface flipperHttpClient,
+    required String businessId,
+    int? timeInSeconds,
+    int? agentCode,
+    required int amount,
+  }) {
     // TODO: implement subscribe
     throw UnimplementedError();
   }
 
   @override
-  Future<bool> makePayment(
-      {required HttpClientInterface flipperHttpClient,
-      String? businessId,
-      required String paymentType,
-      required String phoneNumber,
-      String? externalId,
-      required String branchId,
-      required String payeemessage,
-      required int amount}) {
+  Future<bool> makePayment({
+    required HttpClientInterface flipperHttpClient,
+    String? businessId,
+    required String paymentType,
+    required String phoneNumber,
+    String? externalId,
+    required String branchId,
+    required String payeemessage,
+    required int amount,
+  }) {
     // TODO: implement makePayment
     throw UnimplementedError();
   }
 
   @override
-  Future<Map<String, dynamic>> payNow(
-      {required Map<String, dynamic> paymentData,
-      required HttpClientInterface flipperHttpClient}) {
+  Future<Map<String, dynamic>> payNow({
+    required Map<String, dynamic> paymentData,
+    required HttpClientInterface flipperHttpClient,
+  }) {
     // TODO: implement payNow
     throw UnimplementedError();
   }
 
   @override
-  Future<bool> checkPaymentStatus(
-      {required HttpClientInterface flipperHttpClient,
-      required String paymentReference}) {
+  Future<bool> checkPaymentStatus({
+    required HttpClientInterface flipperHttpClient,
+    required String paymentReference,
+  }) {
     // TODO: implement checkPaymentStatus
     throw UnimplementedError();
   }
@@ -590,16 +638,18 @@ class RealmViaHttpServiceMock implements HttpApiInterface {
         "Address": "Management details:",
         "MainBusinessActivityDescription": "Computer programming activities",
         "PhoneNumber": "+250788360058",
-        "CompanyCode": "108754813"
+        "CompanyCode": "108754813",
       },
       "Title": "DomesticDetail",
-      "Creator": "Microsoft Reporting Services 11.0.0.0"
+      "Creator": "Microsoft Reporting Services 11.0.0.0",
     };
   }
 
   @override
-  Future<int?> getBusinessId(
-      {required HttpClientInterface client, required String businessId}) {
+  Future<int?> getBusinessId({
+    required HttpClientInterface client,
+    required String businessId,
+  }) {
     // TODO: implement getBusinessId
     throw UnimplementedError();
   }

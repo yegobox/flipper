@@ -426,61 +426,61 @@ class CronService {
   }
 
   /// Fetches and updates stock quantities for unsynchronized variants
-  Future<void> _syncStockQuantities() async {
-    try {
-      final branchId = ProxyService.box.getBranchId();
-      if (branchId == null) {
-        talker.warning('Skipping stock quantity sync: Branch ID is null');
-        return;
-      }
+  // Future<void> _syncStockQuantities() async {
+  //   try {
+  //     final branchId = ProxyService.box.getBranchId();
+  //     if (branchId == null) {
+  //       talker.warning('Skipping stock quantity sync: Branch ID is null');
+  //       return;
+  //     }
 
-      // Get all variants that haven't been synchronized yet
-      final paged = await ProxyService.strategy.variants(
-        taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D'],
-        branchId: branchId,
-        stockSynchronized: false,
-      );
-      final variants = List<Variant>.from(paged.variants);
+  //     // Get all variants that haven't been synchronized yet
+  //     final paged = await ProxyService.strategy.variants(
+  //       taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D'],
+  //       branchId: branchId,
+  //       stockSynchronized: false,
+  //     );
+  //     final variants = List<Variant>.from(paged.variants);
 
-      if (variants.isEmpty) {
-        talker.info('No unsynchronized variants found');
-        return;
-      }
+  //     if (variants.isEmpty) {
+  //       talker.info('No unsynchronized variants found');
+  //       return;
+  //     }
 
-      talker.info(
-        'Found ${variants.length} unsynchronized variants, syncing stock quantities...',
-      );
+  //     talker.info(
+  //       'Found ${variants.length} unsynchronized variants, syncing stock quantities...',
+  //     );
 
-      // Process each variant
-      for (final variant in variants) {
-        try {
-          bool remoteQuantityMatchLocal = await ProxyService.httpApi
-              .fetchRemoteStockQuantity(
-                variant: variant,
-                client: ProxyService.http,
-              );
+  //     // Process each variant
+  //     for (final variant in variants) {
+  //       try {
+  //         bool remoteQuantityMatchLocal = await ProxyService.httpApi
+  //             .fetchRemoteStockQuantity(
+  //               variant: variant,
+  //               client: ProxyService.http,
+  //             );
 
-          if (remoteQuantityMatchLocal) {
-            // the mote match then uplodate
-            variant.stockSynchronized = true;
-            ProxyService.strategy.updateVariant(updatables: [variant]);
-          }
-        } catch (e, stackTrace) {
-          talker.error(
-            'Failed to sync stock quantity for variant ${variant.id}: $e',
-            stackTrace,
-          );
-          // Continue with next variant even if one fails
-        }
-      }
+  //         if (remoteQuantityMatchLocal) {
+  //           // the mote match then uplodate
+  //           variant.stockSynchronized = true;
+  //           ProxyService.strategy.updateVariant(updatables: [variant]);
+  //         }
+  //       } catch (e, stackTrace) {
+  //         talker.error(
+  //           'Failed to sync stock quantity for variant ${variant.id}: $e',
+  //           stackTrace,
+  //         );
+  //         // Continue with next variant even if one fails
+  //       }
+  //     }
 
-      talker.info(
-        'Completed stock quantity sync for ${variants.length} variants',
-      );
-    } catch (e, stackTrace) {
-      talker.error('Stock quantity synchronization failed: $e', stackTrace);
-    }
-  }
+  //     talker.info(
+  //       'Completed stock quantity sync for ${variants.length} variants',
+  //     );
+  //   } catch (e, stackTrace) {
+  //     talker.error('Stock quantity synchronization failed: $e', stackTrace);
+  //   }
+  // }
 
   /// Sets up all periodic tasks with appropriate error handling
   void _setupPeriodicTasks() {
@@ -528,11 +528,11 @@ class CronService {
     );
 
     // Setup stock quantity sync timer (every 10 minutes)
-    _activeTimers.add(
-      Timer.periodic(const Duration(minutes: 10), (Timer t) async {
-        await _syncStockQuantities();
-      }),
-    );
+    // _activeTimers.add(
+    //   Timer.periodic(const Duration(minutes: 10), (Timer t) async {
+    //     await _syncStockQuantities();
+    //   }),
+    // );
 
     // Setup sales synchronization timer (every 30 minutes)
     _activeTimers.add(
