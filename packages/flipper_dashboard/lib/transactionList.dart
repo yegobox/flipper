@@ -140,7 +140,7 @@ class TransactionListState extends ConsumerState<TransactionList>
                         OutlinedButton.icon(
                           icon: Icon(Icons.edit_calendar, size: 18),
                           label: Text('Change Date'),
-                          onPressed: null,
+                          onPressed: handleDateTimePicker,
                         ),
                       ],
                     ),

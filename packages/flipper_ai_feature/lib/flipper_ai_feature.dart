@@ -13,6 +13,7 @@
 /// - Data visualization (charts, graphs)
 /// - Credit-based usage tracking
 /// - Business and personal use cases
+/// - **Data source connections** (Supabase, PostgreSQL, MySQL, MongoDB, etc.)
 ///
 /// ## Usage
 ///
@@ -39,17 +40,37 @@
 ///   ),
 /// )
 /// ```
+///
+/// ### Connect a Data Source:
+/// ```dart
+/// import 'package:flipper_ai_feature/flipper_ai_feature.dart';
+///
+/// // Show data source connection dialog
+/// showDialog(
+///   context: context,
+///   builder: (context) => const DataSourceConnectionDialog(),
+/// );
+///
+/// // Navigate to data source management screen
+/// Navigator.push(
+///   context,
+///   MaterialPageRoute(builder: (context) => const DataSourceListScreen()),
+/// );
+/// ```
 library flipper_ai_feature;
 
 // Models
 export 'src/models/ai_models.dart';
+export 'src/models/data_source/data_source_models.dart';
 
 // Providers
 export 'src/providers/ai_provider.dart';
 export 'src/providers/conversation_provider.dart';
+export 'src/providers/data_source_provider.dart';
 
 // Services
 export 'src/services/ai_service.dart';
+export 'src/services/data_source/data_source_services.dart';
 
 // Widgets
 export 'src/screens/ai_screen.dart';
@@ -58,6 +79,7 @@ export 'src/widgets/message_bubble.dart';
 export 'src/widgets/ai_input_field.dart';
 export 'src/widgets/conversation_list.dart';
 export 'src/widgets/welcome_view.dart';
+export 'src/widgets/data_source/data_source_widgets.dart';
 
 // Theme
 export 'src/theme/ai_theme.dart';

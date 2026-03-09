@@ -10,7 +10,6 @@ import '../utils/visualization_utils.dart';
 
 import '../theme/ai_theme.dart';
 import 'data_visualization.dart';
-import 'data_visualization.dart';
 
 /// A chat message bubble with a modern and clean design.
 class MessageBubble extends StatefulWidget {
