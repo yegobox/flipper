@@ -19,6 +19,7 @@ import '../providers/whatsapp_message_provider.dart';
 import '../providers/conversation_provider.dart';
 import 'package:flipper_services/whatsapp_service.dart';
 import '../widgets/excel_analysis_modal.dart';
+import '../widgets/data_source/data_source_list_screen.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 
 /// Main screen for the AI feature with a modern, polished UI.
@@ -715,6 +716,21 @@ class _AiScreenState extends ConsumerState<AiScreen> {
       ),
       actions: [
         _buildModeSelector(),
+        // Data Source Connection Button
+        Tooltip(
+          message: 'Data Sources',
+          child: IconButton(
+            icon: const Icon(Icons.storage, color: AiTheme.secondaryColor),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const DataSourceListScreen(),
+                ),
+              );
+            },
+          ),
+        ),
         if (availableModels.isNotEmpty)
           Padding(
             padding: const EdgeInsets.only(right: 8.0),
@@ -808,6 +824,25 @@ class _AiScreenState extends ConsumerState<AiScreen> {
                         const SizedBox(width: 8),
                         if (availableModels.isNotEmpty)
                           _buildModelSelector(availableModels),
+                      ],
+                    ),
+                    Row(
+                      children: [
+                        // Data Source Connection Button
+                        Tooltip(
+                          message: 'Data Sources',
+                          child: IconButton(
+                            icon: const Icon(Icons.storage),
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const DataSourceListScreen(),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
                       ],
                     ),
                   ],

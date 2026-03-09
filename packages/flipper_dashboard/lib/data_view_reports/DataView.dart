@@ -299,6 +299,7 @@ class DataViewState extends ConsumerState<DataView>
         return Padding(
           padding: const EdgeInsets.all(12.0),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               ReportActionsRow(
                 showDetailed: showDetailed,
