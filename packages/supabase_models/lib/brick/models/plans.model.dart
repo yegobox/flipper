@@ -18,7 +18,7 @@ part 'plans.model.ditto_sync_adapter.g.dart';
   supabaseConfig: SupabaseSerializable(tableName: 'plans'),
   sqliteConfig: SqliteSerializable(),
 )
-@DittoAdapter('plans', syncDirection: SyncDirection.bidirectional)
+@DittoAdapter('plans', syncDirection: SyncDirection.sendOnly)
 class Plan extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
   @Sqlite(index: true, unique: true)

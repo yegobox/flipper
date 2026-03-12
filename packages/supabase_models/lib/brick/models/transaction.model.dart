@@ -2,6 +2,7 @@ import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:supabase_models/brick/models/transactionItem.model.dart';
 import 'package:supabase_models/brick/models/transaction_payment_record.model.dart';
@@ -19,7 +20,7 @@ part 'transaction.model.ditto_sync_adapter.g.dart';
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'transactions'),
 )
-@DittoAdapter('transactions', syncDirection: SyncDirection.bidirectional)
+@DittoAdapter('transactions', syncDirection: SyncDirection.sendOnly)
 class ITransaction extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
   @Sqlite(index: true, unique: true)
@@ -145,6 +146,12 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
 
   String? customerPhone;
   String? agentId;
+
+  /// Tracks which strategy/database this transaction was loaded from
+  /// This ensures we delete from the correct database (Capella/Ditto or CloudSync/SQLite)
+  @Supabase(ignore: true)
+  @Sqlite(ignore: true)
+  Strategy? dataSource;
 
   ITransaction({
     this.ticketName,

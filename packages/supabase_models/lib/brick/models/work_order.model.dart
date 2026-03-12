@@ -21,7 +21,7 @@ part 'work_order.model.ditto_sync_adapter.g.dart';
 )
 @DittoAdapter(
   'work_orders',
-  syncDirection: SyncDirection.bidirectional,
+  syncDirection: SyncDirection.sendOnly,
 )
 class WorkOrder extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)

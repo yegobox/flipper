@@ -40,7 +40,7 @@ abstract class DittoSyncAdapter<T extends OfflineFirstWithSupabaseModel> {
   String get collectionName;
 
   /// The sync direction for this adapter.
-  SyncDirection get syncDirection => SyncDirection.bidirectional;
+  SyncDirection get syncDirection => SyncDirection.sendOnly;
 
   /// Whether the coordinator should perform an initial remote hydration for
   /// this adapter when observers are started while skipping the default Ditto
@@ -112,4 +112,3 @@ abstract class DittoSyncAdapter<T extends OfflineFirstWithSupabaseModel> {
     );
   }
 }
-

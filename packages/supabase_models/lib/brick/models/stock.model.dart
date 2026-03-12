@@ -18,7 +18,7 @@ part 'stock.model.ditto_sync_adapter.g.dart';
 )
 @DittoAdapter(
   'stocks',
-  syncDirection: SyncDirection.bidirectional,
+  syncDirection: SyncDirection.sendOnly,
 )
 class Stock extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)

@@ -17,7 +17,7 @@ part 'branch.model.ditto_sync_adapter.g.dart';
 )
 @DittoAdapter(
   'branches',
-  syncDirection: SyncDirection.bidirectional,
+  syncDirection: SyncDirection.sendOnly,
 )
 class Branch extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)

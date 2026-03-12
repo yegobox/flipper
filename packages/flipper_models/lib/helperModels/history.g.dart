@@ -11,7 +11,7 @@ History _$HistoryFromJson(Map<String, dynamic> json) =>
         id: (json['id'] as num?)?.toInt(),
         modelId: (json['modelId'] as num).toInt(),
         createdAt: DateTime.parse(json['createdAt'] as String),
-        action: json['action'] as String,
+        action: json['action'] as String?,
       )
       ..deletedAt = json['deletedAt'] == null
           ? null

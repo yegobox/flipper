@@ -31,7 +31,7 @@ enum VarianceReason {
 )
 @DittoAdapter(
   'actual_outputs',
-  syncDirection: SyncDirection.bidirectional,
+  syncDirection: SyncDirection.sendOnly,
 )
 class ActualOutput extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)

@@ -8,6 +8,8 @@ part '20260219185654.migration.dart';
 part '20260223114710.migration.dart';
 part '20260225075135.migration.dart';
 part '20260226120531.migration.dart';
+part '20260310051019.migration.dart';
+part '20260310052105.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
@@ -18,11 +20,13 @@ final migrations = <Migration>{
   const Migration20260223114710(),
   const Migration20260225075135(),
   const Migration20260226120531(),
+  const Migration20260310051019(),
+  const Migration20260310052105(),
 };
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
-  20260226120531,
+  20260310052105,
   generatorVersion: 1,
   tables: <SchemaTable>{
     SchemaTable(
@@ -738,6 +742,26 @@ final schema = Schema(
       },
     ),
     SchemaTable(
+      'FlipperSaleCompaign',
+      columns: <SchemaColumn>{
+        SchemaColumn(
+          '_brick_id',
+          Column.integer,
+          autoincrement: true,
+          nullable: false,
+          isPrimaryKey: true,
+        ),
+        SchemaColumn('id', Column.varchar, unique: true),
+        SchemaColumn('compaign_id', Column.integer),
+        SchemaColumn('discount_rate', Column.integer),
+        SchemaColumn('created_at', Column.datetime),
+        SchemaColumn('coupon_code', Column.varchar),
+      },
+      indices: <SchemaIndex>{
+        SchemaIndex(columns: ['id'], unique: true),
+      },
+    ),
+    SchemaTable(
       'ImportPurchaseDates',
       columns: <SchemaColumn>{
         SchemaColumn(
@@ -1346,6 +1370,7 @@ final schema = Schema(
         SchemaColumn('business_id', Column.varchar),
         SchemaColumn('created_at', Column.varchar),
         SchemaColumn('enable_price_quantity_adjustment', Column.boolean),
+        SchemaColumn('is_currency_decimal', Column.boolean),
         SchemaColumn('last_touched', Column.datetime),
         SchemaColumn('deleted_at', Column.datetime),
       },

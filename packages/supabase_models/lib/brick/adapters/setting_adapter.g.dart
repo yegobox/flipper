@@ -56,6 +56,9 @@ Future<Setting> _$SettingFromSupabase(
         data['enable_price_quantity_adjustment'] == null
         ? null
         : data['enable_price_quantity_adjustment'] as bool?,
+    isCurrencyDecimal: data['is_currency_decimal'] == null
+        ? null
+        : data['is_currency_decimal'] as bool?,
     lastTouched: data['last_touched'] == null
         ? null
         : data['last_touched'] == null
@@ -96,6 +99,7 @@ Future<Map<String, dynamic>> _$SettingToSupabase(
     'business_id': instance.businessId,
     'created_at': instance.createdAt,
     'enable_price_quantity_adjustment': instance.enablePriceQuantityAdjustment,
+    'is_currency_decimal': instance.isCurrencyDecimal,
     'last_touched': instance.lastTouched?.toIso8601String(),
     'deleted_at': instance.deletedAt?.toIso8601String(),
   };
@@ -156,6 +160,9 @@ Future<Setting> _$SettingFromSqlite(
         data['enable_price_quantity_adjustment'] == null
         ? null
         : data['enable_price_quantity_adjustment'] == 1,
+    isCurrencyDecimal: data['is_currency_decimal'] == null
+        ? null
+        : data['is_currency_decimal'] == 1,
     lastTouched: data['last_touched'] == null
         ? null
         : data['last_touched'] == null
@@ -216,6 +223,9 @@ Future<Map<String, dynamic>> _$SettingToSqlite(
         instance.enablePriceQuantityAdjustment == null
         ? null
         : (instance.enablePriceQuantityAdjustment! ? 1 : 0),
+    'is_currency_decimal': instance.isCurrencyDecimal == null
+        ? null
+        : (instance.isCurrencyDecimal! ? 1 : 0),
     'last_touched': instance.lastTouched?.toIso8601String(),
     'deleted_at': instance.deletedAt?.toIso8601String(),
   };
@@ -314,6 +324,10 @@ class SettingAdapter extends OfflineFirstWithSupabaseAdapter<Setting> {
     'enablePriceQuantityAdjustment': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'enable_price_quantity_adjustment',
+    ),
+    'isCurrencyDecimal': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'is_currency_decimal',
     ),
     'lastTouched': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -459,6 +473,12 @@ class SettingAdapter extends OfflineFirstWithSupabaseAdapter<Setting> {
     'enablePriceQuantityAdjustment': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'enable_price_quantity_adjustment',
+      iterable: false,
+      type: bool,
+    ),
+    'isCurrencyDecimal': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'is_currency_decimal',
       iterable: false,
       type: bool,
     ),
