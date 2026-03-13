@@ -584,7 +584,7 @@ class DataViewState extends ConsumerState<DataView>
     return Consumer(
       builder: (context, ref, _) {
         final totalIncomeAsync = ref.watch(
-          totalIncomeStreamProvider(
+          grossProfitStreamProvider(
             startDate: widget.startDate,
             endDate: widget.endDate,
             branchId: ProxyService.box.getBranchId(),

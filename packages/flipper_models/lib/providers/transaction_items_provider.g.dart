@@ -88,7 +88,7 @@ final class TransactionItemsProvider
   }
 }
 
-String _$transactionItemsHash() => r'04903b5d92ad2d1858b4848f9daae07518a04af8';
+String _$transactionItemsHash() => r'a5c19f99eea1dfd7a03e5b18831927a36aed065f';
 
 final class TransactionItemsFamily extends $Family
     with
@@ -216,7 +216,7 @@ final class TransactionItemsStreamProvider
 }
 
 String _$transactionItemsStreamHash() =>
-    r'59c4d020adeda7ba407bb49d63d01b5b42d5de28';
+    r'61e24c03ea0356f67b3606ecfd1dede614ddecf3';
 
 final class TransactionItemsStreamFamily extends $Family
     with

@@ -9,6 +9,125 @@ part of 'transactions_provider.dart';
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
 
+@ProviderFor(coreTransactionsStream)
+const coreTransactionsStreamProvider = CoreTransactionsStreamFamily._();
+
+final class CoreTransactionsStreamProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<ITransaction>>,
+          List<ITransaction>,
+          Stream<List<ITransaction>>
+        >
+    with
+        $FutureModifier<List<ITransaction>>,
+        $StreamProvider<List<ITransaction>> {
+  const CoreTransactionsStreamProvider._({
+    required CoreTransactionsStreamFamily super.from,
+    required ({
+      DateTime startDate,
+      DateTime endDate,
+      String branchId,
+      bool forceRealData,
+    })
+    super.argument,
+  }) : super(
+         retry: null,
+         name: r'coreTransactionsStreamProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$coreTransactionsStreamHash();
+
+  @override
+  String toString() {
+    return r'coreTransactionsStreamProvider'
+        ''
+        '$argument';
+  }
+
+  @$internal
+  @override
+  $StreamProviderElement<List<ITransaction>> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<List<ITransaction>> create(Ref ref) {
+    final argument =
+        this.argument
+            as ({
+              DateTime startDate,
+              DateTime endDate,
+              String branchId,
+              bool forceRealData,
+            });
+    return coreTransactionsStream(
+      ref,
+      startDate: argument.startDate,
+      endDate: argument.endDate,
+      branchId: argument.branchId,
+      forceRealData: argument.forceRealData,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is CoreTransactionsStreamProvider &&
+        other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$coreTransactionsStreamHash() =>
+    r'2a9c874e0d974377bc58b44a9062a2ebd291eeb6';
+
+final class CoreTransactionsStreamFamily extends $Family
+    with
+        $FunctionalFamilyOverride<
+          Stream<List<ITransaction>>,
+          ({
+            DateTime startDate,
+            DateTime endDate,
+            String branchId,
+            bool forceRealData,
+          })
+        > {
+  const CoreTransactionsStreamFamily._()
+    : super(
+        retry: null,
+        name: r'coreTransactionsStreamProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  CoreTransactionsStreamProvider call({
+    required DateTime startDate,
+    required DateTime endDate,
+    required String branchId,
+    bool forceRealData = true,
+  }) => CoreTransactionsStreamProvider._(
+    argument: (
+      startDate: startDate,
+      endDate: endDate,
+      branchId: branchId,
+      forceRealData: forceRealData,
+    ),
+    from: this,
+  );
+
+  @override
+  String toString() => r'coreTransactionsStreamProvider';
+}
+
 @ProviderFor(transactionList)
 const transactionListProvider = TransactionListFamily._();
 
@@ -66,7 +185,7 @@ final class TransactionListProvider
   }
 }
 
-String _$transactionListHash() => r'ebf855dc3d7f01480dbbb0faa38f0e0316867c67';
+String _$transactionListHash() => r'ed4fa8d5e42fc112afdff70eb949492c41a219c2';
 
 final class TransactionListFamily extends $Family
     with $FunctionalFamilyOverride<Stream<List<ITransaction>>, bool> {
@@ -143,7 +262,7 @@ final class TransactionsProvider
   }
 }
 
-String _$transactionsHash() => r'991ab7155e61940e2235a2d1cfaa33af7579ca17';
+String _$transactionsHash() => r'a8598e025c2ff2857cd7429408b3afce02ee6154';
 
 final class TransactionsFamily extends $Family
     with $FunctionalFamilyOverride<Stream<List<ITransaction>>, bool> {
@@ -203,97 +322,7 @@ final class TransactionItemListProvider
 }
 
 String _$transactionItemListHash() =>
-    r'5558a8643d77d7e7a09937f6fef6a058ea001aa5';
-
-@ProviderFor(pendingTransactionStream)
-const pendingTransactionStreamProvider = PendingTransactionStreamFamily._();
-
-final class PendingTransactionStreamProvider
-    extends
-        $FunctionalProvider<
-          AsyncValue<ITransaction>,
-          ITransaction,
-          Stream<ITransaction>
-        >
-    with $FutureModifier<ITransaction>, $StreamProvider<ITransaction> {
-  const PendingTransactionStreamProvider._({
-    required PendingTransactionStreamFamily super.from,
-    required ({bool isExpense, bool forceRealData}) super.argument,
-  }) : super(
-         retry: null,
-         name: r'pendingTransactionStreamProvider',
-         isAutoDispose: true,
-         dependencies: null,
-         $allTransitiveDependencies: null,
-       );
-
-  @override
-  String debugGetCreateSourceHash() => _$pendingTransactionStreamHash();
-
-  @override
-  String toString() {
-    return r'pendingTransactionStreamProvider'
-        ''
-        '$argument';
-  }
-
-  @$internal
-  @override
-  $StreamProviderElement<ITransaction> $createElement(
-    $ProviderPointer pointer,
-  ) => $StreamProviderElement(pointer);
-
-  @override
-  Stream<ITransaction> create(Ref ref) {
-    final argument = this.argument as ({bool isExpense, bool forceRealData});
-    return pendingTransactionStream(
-      ref,
-      isExpense: argument.isExpense,
-      forceRealData: argument.forceRealData,
-    );
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return other is PendingTransactionStreamProvider &&
-        other.argument == argument;
-  }
-
-  @override
-  int get hashCode {
-    return argument.hashCode;
-  }
-}
-
-String _$pendingTransactionStreamHash() =>
-    r'361ae491b2d035f279b89e9dd076f815273218cc';
-
-final class PendingTransactionStreamFamily extends $Family
-    with
-        $FunctionalFamilyOverride<
-          Stream<ITransaction>,
-          ({bool isExpense, bool forceRealData})
-        > {
-  const PendingTransactionStreamFamily._()
-    : super(
-        retry: null,
-        name: r'pendingTransactionStreamProvider',
-        dependencies: null,
-        $allTransitiveDependencies: null,
-        isAutoDispose: true,
-      );
-
-  PendingTransactionStreamProvider call({
-    required bool isExpense,
-    bool forceRealData = true,
-  }) => PendingTransactionStreamProvider._(
-    argument: (isExpense: isExpense, forceRealData: forceRealData),
-    from: this,
-  );
-
-  @override
-  String toString() => r'pendingTransactionStreamProvider';
-}
+    r'8bb9bc488f30f9accfcac8f267b2a0f5d073856a';
 
 @ProviderFor(expensesStream)
 const expensesStreamProvider = ExpensesStreamFamily._();
@@ -371,7 +400,7 @@ final class ExpensesStreamProvider
   }
 }
 
-String _$expensesStreamHash() => r'3b6f5b5b81b8ac303aa35ddfe290e8ac18e14f71';
+String _$expensesStreamHash() => r'df2ada80401f87752f3a61690f1dd0df1acb336c';
 
 final class ExpensesStreamFamily extends $Family
     with
@@ -410,115 +439,6 @@ final class ExpensesStreamFamily extends $Family
 
   @override
   String toString() => r'expensesStreamProvider';
-}
-
-@ProviderFor(netProfitStream)
-const netProfitStreamProvider = NetProfitStreamFamily._();
-
-final class NetProfitStreamProvider
-    extends $FunctionalProvider<AsyncValue<double>, double, Stream<double>>
-    with $FutureModifier<double>, $StreamProvider<double> {
-  const NetProfitStreamProvider._({
-    required NetProfitStreamFamily super.from,
-    required ({
-      DateTime startDate,
-      DateTime endDate,
-      String? branchId,
-      bool forceRealData,
-    })
-    super.argument,
-  }) : super(
-         retry: null,
-         name: r'netProfitStreamProvider',
-         isAutoDispose: true,
-         dependencies: null,
-         $allTransitiveDependencies: null,
-       );
-
-  @override
-  String debugGetCreateSourceHash() => _$netProfitStreamHash();
-
-  @override
-  String toString() {
-    return r'netProfitStreamProvider'
-        ''
-        '$argument';
-  }
-
-  @$internal
-  @override
-  $StreamProviderElement<double> $createElement($ProviderPointer pointer) =>
-      $StreamProviderElement(pointer);
-
-  @override
-  Stream<double> create(Ref ref) {
-    final argument =
-        this.argument
-            as ({
-              DateTime startDate,
-              DateTime endDate,
-              String? branchId,
-              bool forceRealData,
-            });
-    return netProfitStream(
-      ref,
-      startDate: argument.startDate,
-      endDate: argument.endDate,
-      branchId: argument.branchId,
-      forceRealData: argument.forceRealData,
-    );
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return other is NetProfitStreamProvider && other.argument == argument;
-  }
-
-  @override
-  int get hashCode {
-    return argument.hashCode;
-  }
-}
-
-String _$netProfitStreamHash() => r'afa062f86fd1ef9316c8d7b7f1b87c49fabe6e45';
-
-final class NetProfitStreamFamily extends $Family
-    with
-        $FunctionalFamilyOverride<
-          Stream<double>,
-          ({
-            DateTime startDate,
-            DateTime endDate,
-            String? branchId,
-            bool forceRealData,
-          })
-        > {
-  const NetProfitStreamFamily._()
-    : super(
-        retry: null,
-        name: r'netProfitStreamProvider',
-        dependencies: null,
-        $allTransitiveDependencies: null,
-        isAutoDispose: true,
-      );
-
-  NetProfitStreamProvider call({
-    required DateTime startDate,
-    required DateTime endDate,
-    String? branchId,
-    bool forceRealData = true,
-  }) => NetProfitStreamProvider._(
-    argument: (
-      startDate: startDate,
-      endDate: endDate,
-      branchId: branchId,
-      forceRealData: forceRealData,
-    ),
-    from: this,
-  );
-
-  @override
-  String toString() => r'netProfitStreamProvider';
 }
 
 @ProviderFor(grossProfitStream)
@@ -589,7 +509,7 @@ final class GrossProfitStreamProvider
   }
 }
 
-String _$grossProfitStreamHash() => r'5ac613528c861bbd5a607877e25399d3afb89cfc';
+String _$grossProfitStreamHash() => r'11a1ef7820fbd64d0451d2ea712fac9875197065';
 
 final class GrossProfitStreamFamily extends $Family
     with
@@ -628,6 +548,115 @@ final class GrossProfitStreamFamily extends $Family
 
   @override
   String toString() => r'grossProfitStreamProvider';
+}
+
+@ProviderFor(netProfitStream)
+const netProfitStreamProvider = NetProfitStreamFamily._();
+
+final class NetProfitStreamProvider
+    extends $FunctionalProvider<AsyncValue<double>, double, Stream<double>>
+    with $FutureModifier<double>, $StreamProvider<double> {
+  const NetProfitStreamProvider._({
+    required NetProfitStreamFamily super.from,
+    required ({
+      DateTime startDate,
+      DateTime endDate,
+      String? branchId,
+      bool forceRealData,
+    })
+    super.argument,
+  }) : super(
+         retry: null,
+         name: r'netProfitStreamProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$netProfitStreamHash();
+
+  @override
+  String toString() {
+    return r'netProfitStreamProvider'
+        ''
+        '$argument';
+  }
+
+  @$internal
+  @override
+  $StreamProviderElement<double> $createElement($ProviderPointer pointer) =>
+      $StreamProviderElement(pointer);
+
+  @override
+  Stream<double> create(Ref ref) {
+    final argument =
+        this.argument
+            as ({
+              DateTime startDate,
+              DateTime endDate,
+              String? branchId,
+              bool forceRealData,
+            });
+    return netProfitStream(
+      ref,
+      startDate: argument.startDate,
+      endDate: argument.endDate,
+      branchId: argument.branchId,
+      forceRealData: argument.forceRealData,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is NetProfitStreamProvider && other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$netProfitStreamHash() => r'1b1b7900f3c6b0a82b754c83b09467c26bbbaa7b';
+
+final class NetProfitStreamFamily extends $Family
+    with
+        $FunctionalFamilyOverride<
+          Stream<double>,
+          ({
+            DateTime startDate,
+            DateTime endDate,
+            String? branchId,
+            bool forceRealData,
+          })
+        > {
+  const NetProfitStreamFamily._()
+    : super(
+        retry: null,
+        name: r'netProfitStreamProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  NetProfitStreamProvider call({
+    required DateTime startDate,
+    required DateTime endDate,
+    String? branchId,
+    bool forceRealData = true,
+  }) => NetProfitStreamProvider._(
+    argument: (
+      startDate: startDate,
+      endDate: endDate,
+      branchId: branchId,
+      forceRealData: forceRealData,
+    ),
+    from: this,
+  );
+
+  @override
+  String toString() => r'netProfitStreamProvider';
 }
 
 @ProviderFor(totalIncomeStream)
@@ -698,7 +727,7 @@ final class TotalIncomeStreamProvider
   }
 }
 
-String _$totalIncomeStreamHash() => r'749e7bdc79e21401efc67104d5ef345dcf936fb0';
+String _$totalIncomeStreamHash() => r'd0bc501a05f99de70d738eed17f4ce9a6bb919b9';
 
 final class TotalIncomeStreamFamily extends $Family
     with
@@ -737,6 +766,96 @@ final class TotalIncomeStreamFamily extends $Family
 
   @override
   String toString() => r'totalIncomeStreamProvider';
+}
+
+@ProviderFor(pendingTransactionStream)
+const pendingTransactionStreamProvider = PendingTransactionStreamFamily._();
+
+final class PendingTransactionStreamProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<ITransaction>,
+          ITransaction,
+          Stream<ITransaction>
+        >
+    with $FutureModifier<ITransaction>, $StreamProvider<ITransaction> {
+  const PendingTransactionStreamProvider._({
+    required PendingTransactionStreamFamily super.from,
+    required ({bool isExpense, bool forceRealData}) super.argument,
+  }) : super(
+         retry: null,
+         name: r'pendingTransactionStreamProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$pendingTransactionStreamHash();
+
+  @override
+  String toString() {
+    return r'pendingTransactionStreamProvider'
+        ''
+        '$argument';
+  }
+
+  @$internal
+  @override
+  $StreamProviderElement<ITransaction> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<ITransaction> create(Ref ref) {
+    final argument = this.argument as ({bool isExpense, bool forceRealData});
+    return pendingTransactionStream(
+      ref,
+      isExpense: argument.isExpense,
+      forceRealData: argument.forceRealData,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is PendingTransactionStreamProvider &&
+        other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$pendingTransactionStreamHash() =>
+    r'0fba69b3a7dc8c4ae8da6ec4d3653f3c107a9e0b';
+
+final class PendingTransactionStreamFamily extends $Family
+    with
+        $FunctionalFamilyOverride<
+          Stream<ITransaction>,
+          ({bool isExpense, bool forceRealData})
+        > {
+  const PendingTransactionStreamFamily._()
+    : super(
+        retry: null,
+        name: r'pendingTransactionStreamProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  PendingTransactionStreamProvider call({
+    required bool isExpense,
+    bool forceRealData = true,
+  }) => PendingTransactionStreamProvider._(
+    argument: (isExpense: isExpense, forceRealData: forceRealData),
+    from: this,
+  );
+
+  @override
+  String toString() => r'pendingTransactionStreamProvider';
 }
 
 @ProviderFor(transactionById)

@@ -336,7 +336,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     bool fetchRemote = false,
     FilterType? filterType,
     String? branchId,
-    bool? isExpense,
+    bool? isExpense = false,
     bool forceRealData = true,
     bool includeZeroSubTotal = false,
     bool includePending = false,
@@ -423,9 +423,12 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         }
 
         // Cash out / expense filter
-        if (isCashOut || (isExpense ?? false)) {
+        if (isCashOut || isExpense == true) {
           whereClauses.add('isExpense = :isExpense');
           arguments['isExpense'] = true;
+        } else if (isExpense == false) {
+          whereClauses.add('(isExpense = :isExpense OR isExpense IS NULL)');
+          arguments['isExpense'] = false;
         }
 
         // Transaction type filter
@@ -1555,182 +1558,6 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     } catch (e, s) {
       talker.error('Error in Capella mergeTransactions: $e', s);
     }
-  }
-
-  Stream<List<TransactionItem>> transactionItemsStreams({
-    String? transactionId,
-    String? branchId,
-    String? requestId,
-    bool fetchRemote = false,
-    bool? doneWithTransaction,
-    bool? active,
-    bool forceRealData = true,
-    String? branchIdString,
-    DateTime? startDate,
-    DateTime? endDate,
-  }) {
-    if (!forceRealData) {
-      return Stream.value([]);
-    }
-
-    try {
-      final ditto = dittoService.dittoInstance;
-      if (ditto == null) {
-        talker.error('Ditto not initialized for transactionItemsStreams');
-        return Stream.value([]);
-      }
-
-      final Map<String, dynamic> arguments = {'transactionId': transactionId};
-
-      String query =
-          "SELECT * FROM transaction_items WHERE transactionId = :transactionId";
-
-      if (doneWithTransaction != null) {
-        query += " AND doneWithTransaction = :doneWithTransaction";
-        arguments['doneWithTransaction'] = doneWithTransaction;
-      }
-
-      if (active != null) {
-        query += " AND active = :active";
-        arguments['active'] = active;
-      }
-
-      ditto.sync.registerSubscription(query, arguments: arguments);
-
-      final controller = StreamController<List<TransactionItem>>.broadcast();
-
-      final observer = ditto.store.registerObserver(
-        query,
-        arguments: arguments,
-        onChange: (queryResult) {
-          final items = <TransactionItem>[];
-          for (final doc in queryResult.items) {
-            try {
-              final data = Map<String, dynamic>.from(doc.value);
-              items.add(_convertTransactionItemFromDitto(data));
-            } catch (e) {
-              talker.error("Error converting transaction item", e);
-            }
-          }
-          controller.add(items);
-        },
-      );
-
-      controller.onCancel = () {
-        try {
-          observer.cancel();
-          controller.close();
-        } catch (e) {
-          talker.error("Error cancelling observer", e);
-        }
-      };
-
-      return controller.stream;
-    } catch (e, s) {
-      talker.error('Error in transactionItemsStreams: $e', s);
-      return Stream.value([]);
-    }
-  }
-
-  TransactionItem _convertTransactionItemFromDitto(Map<String, dynamic> data) {
-    return TransactionItem(
-      id: data['_id'] ?? data['id'],
-      name: data['name'] ?? '',
-      transactionId: data['transactionId'],
-      variantId: data['variantId'],
-      qty: (data['qty'] as num?) ?? 0,
-      price: (data['price'] as num?) ?? 0,
-      discount: (data['discount'] as num?) ?? 0,
-      remainingStock: (data['remainingStock'] as num?)?.toDouble(),
-      createdAt: data['createdAt'] != null
-          ? DateTime.tryParse(data['createdAt'])
-          : null,
-      updatedAt: data['updatedAt'] != null
-          ? DateTime.tryParse(data['updatedAt'])
-          : null,
-      isRefunded: data['isRefunded'] ?? false,
-      doneWithTransaction: data['doneWithTransaction'],
-      active: data['active'],
-      prc: (data['prc'] as num?) ?? 0,
-      ttCatCd: data['ttCatCd'] ?? '',
-      // Optional fields
-      quantityRequested: (data['quantityRequested'] as num?)?.toInt(),
-      quantityApproved: (data['quantityApproved'] as num?)?.toInt(),
-      quantityShipped: (data['quantityShipped'] as num?)?.toInt(),
-      dcRt: (data['dcRt'] as num?)?.toDouble(),
-      dcAmt: (data['dcAmt'] as num?)?.toDouble(),
-      taxblAmt: (data['taxblAmt'] as num?)?.toDouble(),
-      taxAmt: (data['taxAmt'] as num?)?.toDouble(),
-      totAmt: (data['totAmt'] as num?)?.toDouble(),
-      itemSeq: (data['itemSeq'] as num?)?.toInt(),
-      isrccCd: data['isrccCd'],
-      isrccNm: data['isrccNm'],
-      isrcRt: (data['isrcRt'] as num?)?.toInt(),
-      isrcAmt: (data['isrcAmt'] as num?)?.toInt(),
-      inventoryRequestId: data['inventoryRequestId'],
-      spplrItemClsCd: data['spplrItemClsCd'],
-      spplrItemCd: data['spplrItemCd'],
-      ignoreForReport: data['ignoreForReport'],
-      supplyPriceAtSale: (data['supplyPriceAtSale'] as num?)?.toDouble(),
-      compositePrice: (data['compositePrice'] as num?)?.toDouble(),
-      partOfComposite: data['partOfComposite'] ?? false,
-
-      // Additional properties from toFlipperJson that might be in data
-      itemNm: data['itemNm'],
-      taxTyCd: data['taxTyCd'],
-      bcd: data['bcd'],
-      itemClsCd: data['itemClsCd'],
-      itemTyCd: data['itemTyCd'],
-      itemStdNm: data['itemStdNm'],
-      orgnNatCd: data['orgnNatCd'],
-      pkg: (data['pkg'] as num?)?.toInt(),
-      itemCd: data['itemCd'],
-      pkgUnitCd: data['pkgUnitCd'],
-      qtyUnitCd: data['qtyUnitCd'],
-      splyAmt: (data['splyAmt'] as num?)?.toDouble(),
-      tin: (data['tin'] as num?)?.toInt(),
-      bhfId: data['bhfId'],
-      dftPrc: (data['dftPrc'] as num?)?.toDouble(),
-      addInfo: data['addInfo'],
-      isrcAplcbYn: data['isrcAplcbYn'],
-      useYn: data['useYn'],
-      regrId: data['regrId'],
-      regrNm: data['regrNm'],
-      modrId: data['modrId'],
-      modrNm: data['modrNm'],
-      lastTouched: data['lastTouched'] != null
-          ? DateTime.tryParse(data['lastTouched'])
-          : null,
-      purchaseId: data['purchaseId'],
-      taxPercentage: (data['taxPercentage'] as num?)?.toDouble(),
-      color: data['color'],
-      sku: data['sku'],
-      productId: data['productId'],
-      unit: data['unit'],
-      productName: data['productName'],
-      categoryId: data['categoryId'],
-      categoryName: data['categoryName'],
-      taxName: data['taxName'],
-      supplyPrice: (data['supplyPrice'] as num?)?.toDouble(),
-      retailPrice: (data['retailPrice'] as num?)?.toDouble(),
-      spplrItemNm: data['spplrItemNm'],
-      totWt: (data['totWt'] as num?)?.toInt(),
-      netWt: (data['netWt'] as num?)?.toInt(),
-      spplrNm: data['spplrNm'],
-      agntNm: data['agntNm'],
-      invcFcurAmt: (data['invcFcurAmt'] as num?)?.toInt(),
-      invcFcurCd: data['invcFcurCd'],
-      invcFcurExcrt: (data['invcFcurExcrt'] as num?)?.toDouble(),
-      exptNatCd: data['exptNatCd'],
-      dclNo: data['dclNo'],
-      taskCd: data['taskCd'],
-      dclDe: data['dclDe'],
-      hsCd: data['hsCd'],
-      imptItemSttsCd: data['imptItemSttsCd'],
-      isShared: data['isShared'],
-      assigned: data['assigned'],
-      ebmSynced: data['ebmSynced'],
-    );
   }
 
   Map<String, dynamic> _transactionToMap(ITransaction transaction) {

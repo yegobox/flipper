@@ -280,6 +280,31 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
       },
     );
 
+    // Seed the stream immediately — the observer only fires on *changes*, so
+    // without this initial fetch the stream would emit 0 items until the next
+    // Ditto mutation event.
+    ditto.store
+        .execute(query, arguments: arguments)
+        .then((result) {
+          if (controller.isClosed) return;
+          final items = <TransactionItem>[];
+          for (final doc in result.items) {
+            try {
+              final data = Map<String, dynamic>.from(doc.value);
+              items.add(_convertFromDittoDocument(data));
+            } catch (e) {
+              talker.error('Error converting transaction item (initial): $e');
+            }
+          }
+          talker.debug(
+            'transactionItemsStreams initial seed: ${items.length} items',
+          );
+          if (!controller.isClosed) controller.add(items);
+        })
+        .catchError((e) {
+          talker.error('Error seeding transaction items stream: $e');
+        });
+
     controller.onCancel = () async {
       await observer?.cancel();
       await controller.close();

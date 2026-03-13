@@ -1,29 +1,28 @@
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
-import 'package:flipper_models/SyncStrategy.dart'; // Add this import
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:rxdart/rxdart.dart';
 
 part 'transactions_provider.g.dart';
 
-// Create a standard provider for dashboard transactions with fixed date range
+// ---------------------------------------------------------------------------
+// dashboardTransactionsProvider — intentionally kept on the default (SQLite)
+// strategy; it has its own fixed 30-day window and must not be affected by the
+// Capella migration.
+// ---------------------------------------------------------------------------
 final dashboardTransactionsProvider = StreamProvider<List<ITransaction>>((ref) {
   final endDate = DateTime.now();
   final startDate = endDate.subtract(const Duration(days: 30));
   final branchId = ProxyService.box.getBranchId();
 
-  if (branchId == null) {
-    throw StateError('Branch ID is required');
-  }
+  if (branchId == null) throw StateError('Branch ID is required');
 
-  // Only log once when this provider is created
   talker.debug('Dashboard transactions provider initialized with 30-day range');
 
-  // Use default strategy for this data fetch
   return ProxyService.strategy.transactionsStream(
     status: COMPLETE,
     includeParked: true,
@@ -36,178 +35,311 @@ final dashboardTransactionsProvider = StreamProvider<List<ITransaction>>((ref) {
   );
 });
 
+// ---------------------------------------------------------------------------
+// CORE STREAM — single Capella query for the active date range.
+// Every derived provider below filters this list in Dart memory,
+// so we hit the database exactly once per date-range change.
+// ---------------------------------------------------------------------------
 @riverpod
-Stream<List<ITransaction>> transactionList(
+Stream<List<ITransaction>> coreTransactionsStream(
   Ref ref, {
-  required bool forceRealData,
-}) async* {
-  final dateRange = ref.watch(dateRangeProvider);
-  final startDate = dateRange.startDate;
-  final endDate = dateRange.endDate;
-
-  // Check if startDate or endDate is null, and return an empty list stream if either is null
-  if (startDate == null || endDate == null) {
-    yield [];
-    return;
-  }
-
-  try {
-    // Use default strategy for this data fetch
-    final stream = ProxyService.strategy.transactionsStream(
-      startDate: startDate,
-      endDate: endDate,
-      skipOriginalTransactionCheck: true,
-      removeAdjustmentTransactions: true,
-      branchId: ProxyService.box.getBranchId(),
-      isCashOut: false,
-      status: COMPLETE,
-      includeParked: true,
-      forceRealData: forceRealData,
-    );
-
-    // Use `switchMap` to handle potential changes in dateRangeProvider
-    await for (final transactions in stream.switchMap((transactions) {
-      // Filter for COMPLETE or PARKED with payments
-      final filtered = transactions.where((tx) {
-        if (tx.status == COMPLETE) return true;
-        if (tx.status == PARKED && (tx.cashReceived ?? 0) > 0) return true;
-        if (tx.status == WAITING_MOMO_COMPLETE) return true;
-        return false;
-      }).toList();
-      return Stream.value(filtered);
-    })) {
-      yield transactions;
-    }
-  } catch (e) {
-    // Log error and rethrow to let Riverpod handle it
-    talker.info("Error loading transactions: $e");
-    throw e;
-  }
-}
-
-// Transactions provider with optional date parameters
-@riverpod
-Stream<List<ITransaction>> transactions(Ref ref, {bool forceRealData = true}) {
-  final dateRange = ref.watch(dateRangeProvider);
-  DateTime startDate = dateRange.startDate ?? DateTime.now();
-  DateTime endDate = dateRange.endDate ?? DateTime.now();
-  final branchId = ProxyService.box.getBranchId();
-
-  // Create a cache key based on the parameters
-  final cacheKey =
-      '${startDate.toIso8601String()}_${endDate.toIso8601String()}_$branchId';
-
-  // Only log once per unique request
-  talker.debug('Transactions provider called with key: $cacheKey');
-
-  if (branchId == null) {
-    throw StateError('Branch ID is required');
-  }
-
-  // Keep provider alive
-  ref.keepAlive();
-
-  // Use default strategy
-  return ProxyService.strategy.transactionsStream(
-    status: COMPLETE,
-    branchId: branchId,
-    skipOriginalTransactionCheck: true,
+  required DateTime startDate,
+  required DateTime endDate,
+  required String branchId,
+  bool forceRealData = true,
+}) {
+  talker.debug(
+    'coreTransactionsStream: $startDate → $endDate  branch=$branchId',
+  );
+  return ProxyService.getStrategy(Strategy.capella).transactionsStream(
     startDate: startDate,
     endDate: endDate,
+    branchId: branchId,
+    // Fetch everything (income + expenses) so derived providers can split freely.
+    skipOriginalTransactionCheck: true,
     removeAdjustmentTransactions: true,
+    includeParked: true,
+    // isCashOut intentionally omitted → returns both income and expense.
     forceRealData: forceRealData,
   );
 }
 
-// Transaction items provider with pagination
+// ---------------------------------------------------------------------------
+// transactionList — visible rows in the Transaction Reports grid.
+// Filters the core stream to only confirmed sales.
+// ---------------------------------------------------------------------------
+@riverpod
+Stream<List<ITransaction>> transactionList(
+  Ref ref, {
+  required bool forceRealData,
+}) {
+  final dateRange = ref.watch(dateRangeProvider);
+  final startDate = dateRange.startDate;
+  final endDate = dateRange.endDate;
+
+  if (startDate == null || endDate == null) {
+    return Stream.value([]);
+  }
+
+  final branchId = ProxyService.box.getBranchId();
+  if (branchId == null) throw StateError('Branch ID is required');
+
+  return coreTransactionsStream(
+    ref,
+    startDate: startDate,
+    endDate: endDate,
+    branchId: branchId,
+    forceRealData: forceRealData,
+  ).map(
+    (all) => all.where((tx) {
+      if (tx.isExpense == true) return false; // exclude cash-outs
+      if (tx.status == COMPLETE) return true;
+      if (tx.status == PARKED && (tx.cashReceived ?? 0) > 0) return true;
+      if (tx.status == WAITING_MOMO_COMPLETE) return true;
+      return false;
+    }).toList(),
+  );
+}
+
+// ---------------------------------------------------------------------------
+// transactions — general-purpose COMPLETE sales stream (e.g. export / summary).
+// ---------------------------------------------------------------------------
+@riverpod
+Stream<List<ITransaction>> transactions(Ref ref, {bool forceRealData = true}) {
+  final dateRange = ref.watch(dateRangeProvider);
+  final startDate = dateRange.startDate ?? DateTime.now();
+  final endDate = dateRange.endDate ?? DateTime.now();
+  final branchId = ProxyService.box.getBranchId();
+  if (branchId == null) throw StateError('Branch ID is required');
+
+  return coreTransactionsStream(
+    ref,
+    startDate: startDate,
+    endDate: endDate,
+    branchId: branchId,
+    forceRealData: forceRealData,
+  ).map(
+    (all) => all
+        .where((tx) => tx.status == COMPLETE && !(tx.isExpense ?? false))
+        .toList(),
+  );
+}
+
+// ---------------------------------------------------------------------------
+// transactionItemList — line-items for the selected date range.
+// Kept separate because it queries a different collection (TransactionItem).
+// ---------------------------------------------------------------------------
 @riverpod
 Stream<List<TransactionItem>> transactionItemList(Ref ref) {
   final dateRange = ref.watch(dateRangeProvider);
   final startDate = dateRange.startDate;
   final endDate = dateRange.endDate;
   final branchId = ProxyService.box.branchIdString();
-  final branchIdString = ProxyService.box.branchIdString()!;
 
   talker.debug('transactionItemList called');
 
-  // Input validation
   if (branchId == null) {
     talker.error('Branch ID is required');
     throw StateError('Branch ID is required');
   }
-
   if (startDate == null || endDate == null) {
     talker.warning('startDate or endDate is null, returning empty stream');
     return Stream.value([]);
   }
 
-  // Keep provider alive
   ref.keepAlive();
 
-  talker.debug(
-    'Fetching transactions from $startDate to $endDate for branch $branchId',
-  );
-
-  // Use default strategy specifically for this data fetch
-  return ProxyService.strategy
+  return ProxyService.getStrategy(Strategy.capella)
       .transactionItemsStreams(
         startDate: startDate,
         endDate: endDate,
         branchId: branchId,
-        branchIdString: branchIdString,
+        branchIdString: branchId,
         fetchRemote: true,
       )
-      .map((transactions) {
-        talker.debug('Received ${transactions.length} transactions items');
-        return transactions;
+      .map((items) {
+        talker.debug('Received ${items.length} transaction items');
+        return items;
       })
       .handleError((error, stackTrace) {
         talker.error('Error loading transaction items: $error');
-        talker.error(stackTrace);
         throw error;
       });
 }
 
-// TEMPORARILY DISABLED: Methods not implemented in DatabaseSyncInterface
-// Get total count of transaction items for pagination
-// @riverpod
-// Future<int> transactionItemCount(Ref ref) async {
-//   final dateRange = ref.watch(dateRangeProvider);
-//   final startDate = dateRange.startDate;
-//   final endDate = dateRange.endDate;
-//   final branchId = ProxyService.box.branchIdString();
+// ---------------------------------------------------------------------------
+// expensesStream — cash-out / purchase transactions derived from coreStream.
+// ---------------------------------------------------------------------------
+@riverpod
+Stream<List<ITransaction>> expensesStream(
+  Ref ref, {
+  required DateTime startDate,
+  required DateTime endDate,
+  String? branchId,
+  bool forceRealData = true,
+}) {
+  final bid = branchId ?? ProxyService.box.getBranchId();
+  if (bid == null) {
+    talker.error('Branch ID is required for expensesStream');
+    throw StateError('Branch ID is required');
+  }
 
-//   if (branchId == null || startDate == null || endDate == null) {
-//     return 0;
-//   }
+  return coreTransactionsStream(
+    ref,
+    startDate: startDate,
+    endDate: endDate,
+    branchId: bid,
+    forceRealData: forceRealData,
+  ).map((all) => all.where((tx) => tx.isExpense == true).toList());
+}
 
-//   return await ProxyService.strategy.transactionItemsCount(
-//     startDate: startDate,
-//     endDate: endDate,
-//     branchId: branchId,
-//   );
-// }
+// ---------------------------------------------------------------------------
+// grossProfitStream — revenue from non-expense, non-refunded transactions.
+// ---------------------------------------------------------------------------
+@riverpod
+Stream<double> grossProfitStream(
+  Ref ref, {
+  required DateTime startDate,
+  required DateTime endDate,
+  String? branchId,
+  bool forceRealData = true,
+}) {
+  final bid = branchId ?? ProxyService.box.getBranchId();
+  if (bid == null) {
+    talker.error('Branch ID is required for grossProfitStream');
+    throw StateError('Branch ID is required');
+  }
 
-// // Get total count of transactions for pagination
-// @riverpod
-// Future<int> transactionCount(Ref ref) async {
-//   final dateRange = ref.watch(dateRangeProvider);
-//   final startDate = dateRange.startDate;
-//   final endDate = dateRange.endDate;
-//   final branchId = ProxyService.box.getBranchId();
+  return coreTransactionsStream(
+    ref,
+    startDate: startDate,
+    endDate: endDate,
+    branchId: bid,
+    forceRealData: forceRealData,
+  ).map((all) {
+    final income = all.where(
+      (tx) => !(tx.isExpense ?? false) && !(tx.isRefunded ?? false),
+    );
+    return income.fold<double>(
+      0.0,
+      (sum, tx) =>
+          sum +
+          (tx.status == COMPLETE
+              ? (tx.subTotal ?? 0.0)
+              : (tx.cashReceived ?? 0.0)),
+    );
+  });
+}
 
-//   if (branchId == null || startDate == null || endDate == null) {
-//     return 0;
-//   }
+// ---------------------------------------------------------------------------
+// netProfitStream — gross revenue minus COGS, expenses and taxes.
+// Both income and expenses come from the same coreTransactionsStream emission
+// so they are always in sync.
+// ---------------------------------------------------------------------------
+@riverpod
+Stream<double> netProfitStream(
+  Ref ref, {
+  required DateTime startDate,
+  required DateTime endDate,
+  String? branchId,
+  bool forceRealData = true,
+}) {
+  final bid = branchId ?? ProxyService.box.getBranchId();
+  if (bid == null) {
+    talker.error('Branch ID is required for netProfitStream');
+    throw StateError('Branch ID is required');
+  }
 
-//   return await ProxyService.strategy.transactionsCount(
-//     startDate: startDate,
-//     endDate: endDate,
-//     branchId: branchId,
-//     skipOriginalTransactionCheck: true,
-//   );
-// }
+  return coreTransactionsStream(
+    ref,
+    startDate: startDate,
+    endDate: endDate,
+    branchId: bid,
+    forceRealData: forceRealData,
+  ).map((all) {
+    final income = all
+        .where((tx) => !(tx.isExpense ?? false) && !(tx.isRefunded ?? false))
+        .toList();
 
+    final expenses = all.where((tx) => tx.isExpense == true);
+
+    final totalIncome = income.fold<double>(
+      0.0,
+      (sum, tx) =>
+          sum +
+          (tx.status == COMPLETE
+              ? (tx.subTotal ?? 0.0)
+              : (tx.cashReceived ?? 0.0)),
+    );
+
+    final totalExpenses = expenses.fold<double>(
+      0.0,
+      (sum, tx) => sum + (tx.subTotal ?? 0.0),
+    );
+
+    final totalTax = income.fold<double>(
+      0.0,
+      (sum, tx) => sum + (tx.taxAmount ?? 0.0),
+    );
+
+    // Simplified COGS: 60 % of revenue — avoids item-by-item lookups.
+    final totalCOGS = income.fold<double>(
+      0.0,
+      (sum, tx) => sum + ((tx.subTotal ?? 0.0) * 0.6),
+    );
+
+    final net = totalIncome - totalCOGS - totalExpenses - totalTax;
+
+    talker.debug(
+      'netProfit: income=$totalIncome cogs=$totalCOGS '
+      'expenses=$totalExpenses tax=$totalTax → net=$net',
+    );
+
+    return net;
+  });
+}
+
+// ---------------------------------------------------------------------------
+// totalIncomeStream — plain sum of all non-expense transactions (used by some
+// legacy callers; now just an alias over grossProfitStream logic).
+// ---------------------------------------------------------------------------
+@riverpod
+Stream<double> totalIncomeStream(
+  Ref ref, {
+  required DateTime startDate,
+  required DateTime endDate,
+  String? branchId,
+  bool forceRealData = true,
+}) {
+  final bid = branchId ?? ProxyService.box.getBranchId();
+  if (bid == null) {
+    talker.error('Branch ID is required for totalIncomeStream');
+    throw StateError('Branch ID is required');
+  }
+
+  return coreTransactionsStream(
+    ref,
+    startDate: startDate,
+    endDate: endDate,
+    branchId: bid,
+    forceRealData: forceRealData,
+  ).map((all) {
+    final income = all.where((tx) => !(tx.isExpense ?? false));
+    return income.fold<double>(
+      0.0,
+      (sum, tx) =>
+          sum +
+          (tx.status == COMPLETE
+              ? (tx.subTotal ?? 0.0)
+              : (tx.cashReceived ?? 0.0)),
+    );
+  });
+}
+
+// ---------------------------------------------------------------------------
+// pendingTransactionStream — unchanged; uses the default strategy because
+// pending/managing transactions must remain on SQLite.
+// ---------------------------------------------------------------------------
 @riverpod
 Stream<ITransaction> pendingTransactionStream(
   Ref ref, {
@@ -216,11 +348,9 @@ Stream<ITransaction> pendingTransactionStream(
 }) async* {
   String? branchId = ProxyService.box.getBranchId();
 
-  // If branch ID is null, wait a bit and retry
   if (branchId == null) {
-    await Future.delayed(Duration(milliseconds: 100));
+    await Future.delayed(const Duration(milliseconds: 100));
     branchId = ProxyService.box.getBranchId();
-
     if (branchId == null) {
       throw StateError(
         'No default branch selected. Please select a branch first.',
@@ -228,9 +358,11 @@ Stream<ITransaction> pendingTransactionStream(
     }
   }
 
-  // First, check if there's already a pending transaction
   try {
-    talker.info('Starting manageTransactionStream for branch $branchId (isExpense: $isExpense)');
+    talker.info(
+      'Starting manageTransactionStream for branch $branchId '
+      '(isExpense: $isExpense)',
+    );
     yield* ProxyService.strategy.manageTransactionStream(
       transactionType: isExpense
           ? TransactionType.purchase
@@ -244,263 +376,11 @@ Stream<ITransaction> pendingTransactionStream(
   }
 }
 
-@riverpod
-Stream<List<ITransaction>> expensesStream(
-  Ref ref, {
-  required DateTime startDate,
-  required DateTime endDate,
-  String? branchId,
-  bool forceRealData = true,
-}) {
-  branchId ??= ProxyService.box.getBranchId();
-  if (branchId == null) {
-    talker.error('Branch ID is required for expensesStream');
-    throw StateError('Branch ID is required');
-  }
-
-  ref.keepAlive();
-  talker.debug(
-    'Fetching expenses from $startDate to $endDate for branch $branchId',
-  );
-  // Use default strategy
-  return ProxyService.strategy
-      .transactionsStream(
-        skipOriginalTransactionCheck: true,
-        startDate: startDate,
-        endDate: endDate,
-        branchId: branchId,
-        isCashOut: true, // <-- This filters for expenses
-        removeAdjustmentTransactions: true,
-        forceRealData: true,
-      )
-      .map((transactions) => transactions.cast<ITransaction>())
-      .handleError((error, stackTrace) {
-        talker.error('Error loading expense items: $error');
-        talker.error(stackTrace);
-        throw error;
-      });
-}
-
-@riverpod
-Stream<double> netProfitStream(
-  Ref ref, {
-  required DateTime startDate,
-  required DateTime endDate,
-  String? branchId,
-  bool forceRealData = true,
-}) async* {
-  branchId ??= ProxyService.box.getBranchId();
-  if (branchId == null) {
-    talker.error('Branch ID is required for netProfitStream');
-    throw StateError('Branch ID is required');
-  }
-
-  // Use default strategy for better performance with complex queries
-  final strategy = ProxyService.strategy;
-
-  // Convert streams to broadcast streams to allow multiple listeners
-  final incomeStream = strategy
-      .transactionsStream(
-        startDate: startDate,
-        endDate: endDate,
-        skipOriginalTransactionCheck: false,
-        branchId: branchId,
-        forceRealData: forceRealData,
-        isCashOut: false, // Only get income transactions
-        removeAdjustmentTransactions: true,
-        includeParked: true,
-      )
-      .asBroadcastStream();
-
-  final expensesStream = strategy
-      .transactionsStream(
-        skipOriginalTransactionCheck: false,
-        startDate: startDate,
-        endDate: endDate,
-        branchId: branchId,
-        isCashOut: true, // Only get expense transactions
-        removeAdjustmentTransactions: true,
-        forceRealData: true,
-      )
-      .asBroadcastStream();
-
-  await for (final incomeTransactions in incomeStream) {
-    // Log the number of income transactions for debugging
-    talker.debug(
-      'Net Profit: Found ${incomeTransactions.length} income transactions',
-    );
-
-    final expenseTransactions = await expensesStream.first;
-    talker.debug(
-      'Net Profit: Found ${expenseTransactions.length} expense transactions',
-    );
-
-    // Filter out any transactions that are marked as expenses or refunded in the income stream
-    final filteredIncome = incomeTransactions
-        .where((tx) => !(tx.isExpense ?? false) && !(tx.isRefunded ?? false))
-        .toList();
-
-    // Calculate total from filtered income transactions (revenue)
-    final totalIncome = filteredIncome.fold<double>(
-      0.0,
-      (sum, transaction) =>
-          sum +
-          (transaction.status == COMPLETE
-              ? (transaction.subTotal ?? 0.0)
-              : (transaction.cashReceived ?? 0.0)),
-    );
-
-    // Calculate total from expense transactions
-    final totalExpenses = expenseTransactions.fold<double>(
-      0.0,
-      (sum, transaction) => sum + (transaction.subTotal ?? 0.0),
-    );
-
-    // Calculate tax payable directly from transactions
-    double totalTaxPayable = 0.0;
-    double totalCOGS = 0.0;
-
-    // Use the tax amount directly from transactions for better performance
-    for (final transaction in filteredIncome) {
-      // Add tax amount from transaction
-      totalTaxPayable += transaction.taxAmount ?? 0.0;
-    }
-
-    // For COGS, we'll use a simplified approach based on transaction subtotals
-    // This avoids the expensive item-by-item variant lookups
-    // Assuming average COGS is approximately 60% of revenue
-    totalCOGS = filteredIncome.fold<double>(
-      0.0,
-      (sum, transaction) => sum + ((transaction.subTotal ?? 0.0) * 0.6),
-    );
-
-    talker.debug('Using simplified COGS calculation: 60% of revenue');
-    talker.debug('This avoids expensive item-by-item variant lookups');
-
-    // If more accurate COGS is needed, consider pre-calculating and storing
-    // COGS values when items are added to transactions
-
-    talker.debug('Total COGS: $totalCOGS');
-    talker.debug('Total tax payable: $totalTaxPayable');
-    talker.debug('Total income: $totalIncome');
-    talker.debug('Total expenses: $totalExpenses');
-
-    // Net profit = Revenue - COGS - Operational Expenses - Taxes
-    // totalCOGS
-    final netProfit = totalIncome - totalCOGS - totalExpenses - totalTaxPayable;
-
-    // Detailed logging for debugging the calculation
-    talker.debug('Net Profit Calculation:');
-    talker.debug('  Total Income: $totalIncome');
-    talker.debug('  Total COGS: $totalCOGS');
-    talker.debug('  Total Expenses: $totalExpenses');
-    talker.debug('  Total Tax Payable: $totalTaxPayable');
-    talker.debug(
-      '  Net Profit = $totalIncome - $totalCOGS - $totalExpenses - $totalTaxPayable = $netProfit',
-    );
-
-    yield netProfit;
-  }
-}
-
-@riverpod
-Stream<double> grossProfitStream(
-  Ref ref, {
-  required DateTime startDate,
-  required DateTime endDate,
-  String? branchId,
-  bool forceRealData = true,
-}) async* {
-  branchId ??= ProxyService.box.getBranchId();
-  if (branchId == null) {
-    talker.error('Branch ID is required for grossProfitStream');
-    throw StateError('Branch ID is required');
-  }
-
-  // Use default strategy for better performance with complex queries
-  final strategy = ProxyService.strategy;
-
-  final incomeStream = strategy.transactionsStream(
-    startDate: startDate,
-    endDate: endDate,
-    forceRealData: forceRealData,
-    skipOriginalTransactionCheck: false,
-    branchId: branchId,
-    isCashOut: false, // Only get income transactions
-    removeAdjustmentTransactions: true,
-    includeParked: true,
-  );
-
-  await for (final incomeTransactions in incomeStream) {
-    // Filter out any transactions that are marked as expenses in the income stream
-    final filteredIncome = incomeTransactions
-        .where((tx) => !(tx.isExpense ?? false) && !(tx.isRefunded ?? false))
-        .toList();
-
-    // Calculate total from filtered income transactions
-    final totalIncome = filteredIncome.fold<double>(
-      0.0,
-      (sum, tx) =>
-          sum +
-          (tx.status == COMPLETE
-              ? (tx.subTotal ?? 0.0)
-              : (tx.cashReceived ?? 0.0)),
-    );
-
-    yield totalIncome;
-  }
-}
-
-@riverpod
-Stream<double> totalIncomeStream(
-  Ref ref, {
-  required DateTime startDate,
-  required DateTime endDate,
-  String? branchId,
-  bool forceRealData = true,
-}) async* {
-  branchId ??= ProxyService.box.getBranchId();
-  if (branchId == null) {
-    talker.error('Branch ID is required for totalIncomeStream');
-    throw StateError('Branch ID is required');
-  }
-
-  // Use default strategy for better performance with complex queries
-  final strategy = ProxyService.strategy;
-
-  final transactionsStream = strategy.transactionsStream(
-    startDate: startDate,
-    endDate: endDate,
-    forceRealData: forceRealData,
-    branchId: branchId,
-    skipOriginalTransactionCheck: false,
-    removeAdjustmentTransactions: true,
-    includeParked: true,
-  );
-
-  await for (final transactions in transactionsStream) {
-    // Filter out any expense transactions directly
-    final incomeTransactions = transactions
-        .where((tx) => !(tx.isExpense ?? false))
-        .toList();
-
-    // Calculate total income only from non-expense transactions
-    final totalIncome = incomeTransactions.fold<double>(
-      0.0,
-      (sum, tx) =>
-          sum +
-          (tx.status == COMPLETE
-              ? (tx.subTotal ?? 0.0)
-              : (tx.cashReceived ?? 0.0)),
-    );
-
-    yield totalIncome;
-  }
-}
-
+// ---------------------------------------------------------------------------
+// transactionById — single-transaction lookup; kept on default strategy.
+// ---------------------------------------------------------------------------
 @riverpod
 Stream<ITransaction?> transactionById(Ref ref, String transactionId) {
-  // Use default strategy
   return ProxyService.strategy
       .transactionsStream(
         id: transactionId,
