@@ -1,4 +1,4 @@
-import 'package:flutter/foundation.dart';
+// import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final class StateObserver extends ProviderObserver {
@@ -7,7 +7,7 @@ final class StateObserver extends ProviderObserver {
     ProviderObserverContext context,
     Object? value,
   ) {
-    debugPrint('Provider ${context.provider} initialized with $value');
+    // debugPrint('Provider ${context.provider} initialized with $value');
   }
 
   @override
@@ -16,15 +16,15 @@ final class StateObserver extends ProviderObserver {
     Object? previousValue,
     Object? newValue,
   ) {
-    debugPrint(
-      'Provider ${context.provider} updated from $previousValue to $newValue',
-    );
+    // debugPrint(
+    //   'Provider ${context.provider} updated from $previousValue to $newValue',
+    // );
   }
 
   @override
   void didDisposeProvider(
     ProviderObserverContext context,
   ) {
-    debugPrint('Provider ${context.provider} disposed');
+    // debugPrint('Provider ${context.provider} disposed');
   }
 }

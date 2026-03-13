@@ -33,12 +33,15 @@ class TransactionInitializationHelper {
           // Centralized Global State Update
           // 1. Update Riverpod
           if (customer.telNo != null) {
-            ref.read(customerPhoneNumberProvider.notifier).state =
-                customer.telNo;
             ProxyService.box.writeString(
               key: 'currentSaleCustomerPhoneNumber',
               value: customer.telNo!,
             );
+            // Defer state update to avoid StateController error during initState
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              ref.read(customerPhoneNumberProvider.notifier).state =
+                  customer.telNo;
+            });
           }
 
           // 2. Update Box (Name, TIN) - needed for SearchCustomer
@@ -68,14 +71,16 @@ class TransactionInitializationHelper {
     if ((currentPhone == null || currentPhone.isEmpty) &&
         phoneToUse != null &&
         phoneToUse.isNotEmpty) {
-      // Initialize the provider
-      ref.read(customerPhoneNumberProvider.notifier).state = phoneToUse;
-
       // Also ensure the ProxyService box has it
       ProxyService.box.writeString(
         key: 'currentSaleCustomerPhoneNumber',
         value: phoneToUse,
       );
+
+      // Defer state update to avoid StateController error during initState
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(customerPhoneNumberProvider.notifier).state = phoneToUse;
+      });
 
       talker.info(
         'Resumed ticket: fallback initialized customer phone $phoneToUse',

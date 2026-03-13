@@ -176,6 +176,9 @@ abstract class TransactionInterface {
     bool? receiptPrinted,
     String? customerPhone,
     String? customerType,
+    bool? isLoan,
+    double? remainingBalance,
+    bool skipDittoSync = false,
   });
   Future<ITransaction?> getTransaction({
     String? sarNo,

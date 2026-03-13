@@ -14,6 +14,7 @@ import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -40,6 +41,7 @@ class DataView extends StatefulHookConsumerWidget {
     this.onTapRowShowRefundModal = true,
     this.onTapRowShowRecountModal = false,
     this.forceEmpty = false,
+    this.disablePagination = false,
   });
 
   final List<ITransaction>? transactions;
@@ -54,6 +56,7 @@ class DataView extends StatefulHookConsumerWidget {
   final bool onTapRowShowRecountModal;
   final GlobalKey<SfDataGridState> workBookKey;
   final bool forceEmpty;
+  final bool disablePagination;
 
   @override
   DataViewState createState() => DataViewState();
@@ -220,7 +223,8 @@ class DataViewState extends ConsumerState<DataView>
             if (parsedValue != null && parsedValue != 0) {
               try {
                 // Await the updateStock call to catch any errors
-                await ProxyService.strategy.updateStock(
+                // Use Capella strategy to avoid database locks
+                await ProxyService.getStrategy(Strategy.capella).updateStock(
                   stockId: data.id,
                   qty: parsedValue,
                 );
@@ -444,7 +448,7 @@ class DataViewState extends ConsumerState<DataView>
                         },
                       ),
               ),
-              _buildDataPager(constraints),
+              if (!widget.disablePagination) _buildDataPager(constraints),
               _buildStickyFooter(),
             ],
           ),
@@ -531,7 +535,8 @@ class DataViewState extends ConsumerState<DataView>
         columnWidthMode: ColumnWidthMode.fill,
         onCellTap: _handleCellTap,
         columns: columns,
-        rowsPerPage: widget.rowsPerPage,
+        // Only set rowsPerPage if pagination is not disabled
+        rowsPerPage: widget.disablePagination ? null : widget.rowsPerPage,
       ),
     );
   }
@@ -710,7 +715,8 @@ class DataViewState extends ConsumerState<DataView>
     if (!mounted) return;
 
     try {
-      final transactions = await ProxyService.strategy.transactions(
+      // Use Capella strategy to avoid database locks
+      final transactions = await ProxyService.getStrategy(Strategy.capella).transactions(
         startDate: widget.startDate,
         endDate: widget.endDate,
         isExpense: false,
@@ -770,14 +776,14 @@ class DataViewState extends ConsumerState<DataView>
     }
 
     /// Expenses these incudes purchases,import and any other type of expenses.
-    final expenseTransactions = await ProxyService.strategy.transactions(
+    final expenseTransactions = await ProxyService.getStrategy(Strategy.capella).transactions(
       startDate: widget.startDate,
       endDate: widget.endDate,
       isExpense: true,
       skipOriginalTransactionCheck: false,
       branchId: ProxyService.box.getBranchId(),
     );
-    final sales = await ProxyService.strategy.transactions(
+    final sales = await ProxyService.getStrategy(Strategy.capella).transactions(
       startDate: widget.startDate,
       endDate: widget.endDate,
       isExpense: false,
@@ -862,8 +868,9 @@ class DataViewState extends ConsumerState<DataView>
   Future<void> _exportDirectly({required String headerTitle}) async {
     talker.info('Starting direct export process');
 
+    // Use Capella strategy to avoid database locks
     // Fetch expense transactions for the report
-    final expenseTransactions = await ProxyService.strategy.transactions(
+    final expenseTransactions = await ProxyService.getStrategy(Strategy.capella).transactions(
       startDate: widget.startDate,
       endDate: widget.endDate,
       isExpense: true,
@@ -871,7 +878,7 @@ class DataViewState extends ConsumerState<DataView>
       branchId: ProxyService.box.getBranchId(),
     );
 
-    final sales = await ProxyService.strategy.transactions(
+    final sales = await ProxyService.getStrategy(Strategy.capella).transactions(
       startDate: widget.startDate,
       endDate: widget.endDate,
       isExpense: false,
@@ -929,7 +936,7 @@ class DataViewState extends ConsumerState<DataView>
 
           // Get the correct tax rate from tax configuration based on item's tax type
           final taxType = item.taxTyCd ?? 'B'; // Default to B if not specified
-          final taxConfig = await ProxyService.strategy.getByTaxType(
+          final taxConfig = await ProxyService.getStrategy(Strategy.capella).getByTaxType(
             taxtype: taxType,
           );
           final taxPercentage =

@@ -6,7 +6,7 @@ import 'package:flipper_dashboard/mixins/previewCart.dart';
 import 'package:flipper_dashboard/product_view.dart';
 import 'package:flipper_dashboard/search_field.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
-import 'package:flipper_dashboard/bottomSheet.dart';
+import 'package:flipper_dashboard/QuickSellingMobile.dart';
 import 'package:flipper_dashboard/widgets/reset_transaction_button.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/outer_variant_provider.dart';
@@ -399,7 +399,7 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
   void _showPreviewCartBottomSheet(ITransaction transaction) {
     // Show bottom sheet like in old implementation
     print("Transaction isLoan: ${transaction.isLoan}");
-    BottomSheets.showBottom(
+    QuickSellingMobile.showBottom(
       context: context,
       ref: ref,
       transaction: transaction,

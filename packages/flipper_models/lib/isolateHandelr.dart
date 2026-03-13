@@ -33,7 +33,7 @@ class IsolateHandler {
             // talker.error('Ditto is initialized');
           }
         } else if (message['task'] == 'salesSync') {
-          print('salesSync message: $message');
+          // print('salesSync message: $message');
           String? token = message['token'];
           List<Map<String, dynamic>>? salesData =
               (message['salesData'] as List?)?.cast<Map<String, dynamic>>();
@@ -63,7 +63,7 @@ class IsolateHandler {
               }
             }
           } catch (e) {
-            print('Error in salesSync: $e');
+            // print('Error in salesSync: $e');
             if (replyTo != null) {
               replyTo.send(false);
             }

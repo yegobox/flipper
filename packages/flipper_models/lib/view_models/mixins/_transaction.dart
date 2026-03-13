@@ -113,28 +113,7 @@ mixin TransactionMixinOld {
       // Only call onComplete on success, not on error
       onComplete();
 
-      // Fire and forget receipt generation
-      handleReceiptGeneration(
-            formKey: formKey,
-            context: context,
-            transaction: transaction,
-            purchaseCode: purchaseCode,
-            onSuccess: onSuccess,
-          )
-          .then((_) {
-            talker.info(
-              "Receipt generation and printing completed in background",
-            );
-          })
-          .catchError((e) {
-            talker.error("Background receipt generation failed: $e");
-          });
-
-      // Return "Processing" status immediately to unblock UI
-      return RwApiResponse(
-        resultCd: "000",
-        resultMsg: "Processing in background",
-      );
+      return response;
     } catch (e) {
       talker.error('Error in finalizePayment: $e');
       rethrow;

@@ -283,8 +283,12 @@ mixin TransactionItemMixin implements TransactionItemInterface {
         );
       }
 
-      // Upsert the item in the repository
-      await repository.upsert<TransactionItem>(transactionItem);
+      // Upsert the item in the repository with optimisticLocal policy
+      // to avoid immediate remote sync and reduce database lock contention
+      await repository.upsert<TransactionItem>(
+        transactionItem,
+        policy: OfflineFirstUpsertPolicy.optimisticLocal,
+      );
 
       // Re-fetch the transactionItem to ensure it has its brick_id populated
       // and is fully committed before proceeding.
@@ -314,12 +318,15 @@ mixin TransactionItemMixin implements TransactionItemInterface {
         (sum, item) => sum + (item.price * item.qty),
       );
 
+      // Update transaction with skipDittoSync to avoid immediate remote sync
+      // This reduces database lock contention during rapid updates
       await ProxyService.strategy.updateTransaction(
         transaction: transaction,
         subTotal: newSubTotal,
         cashReceived: ProxyService.box.getCashReceived(),
         updatedAt: DateTime.now(),
         lastTouched: DateTime.now(),
+        skipDittoSync: true,
       );
     } catch (e, s) {
       talker.error(s);
@@ -592,27 +599,35 @@ mixin TransactionItemMixin implements TransactionItemInterface {
       item.quantityShipped = quantityShipped ?? item.quantityShipped;
       item.doneWithTransaction =
           doneWithTransaction ?? item.doneWithTransaction;
+      
+      // Batch database operations to reduce lock contention
+      // First upsert the item
       await repository.upsert(
         policy: OfflineFirstUpsertPolicy.optimisticLocal,
         item,
       );
 
       // Recalculate and update the transaction's subtotal
+      // Use localOnly to avoid remote sync during active transaction editing
       final allItems = await repository.get<TransactionItem>(
         query: Query(
           where: [Where('transactionId').isExactly(item.transactionId)],
         ),
+        policy: OfflineFirstGetPolicy.localOnly,
       );
       double newSubTotal = allItems.fold(
         0,
         (sum, item) => sum + (item.price * item.qty),
       );
 
+      // Update transaction with skipDittoSync to avoid immediate remote sync
+      // This reduces database lock contention during rapid updates
       await ProxyService.strategy.updateTransaction(
         transactionId: item.transactionId,
         subTotal: newSubTotal,
         updatedAt: DateTime.now().toUtc(),
         lastTouched: DateTime.now().toUtc(),
+        skipDittoSync: true,
       );
     }
   }

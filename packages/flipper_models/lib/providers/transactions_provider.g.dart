@@ -66,7 +66,7 @@ final class TransactionListProvider
   }
 }
 
-String _$transactionListHash() => r'52df015d6a4246e4d9bbdfb17ba8d23c4929863a';
+String _$transactionListHash() => r'ebf855dc3d7f01480dbbb0faa38f0e0316867c67';
 
 final class TransactionListFamily extends $Family
     with $FunctionalFamilyOverride<Stream<List<ITransaction>>, bool> {
@@ -203,7 +203,7 @@ final class TransactionItemListProvider
 }
 
 String _$transactionItemListHash() =>
-    r'ec1b3cabdc58cf23b937071ddcfb60abb93df1d3';
+    r'5558a8643d77d7e7a09937f6fef6a058ea001aa5';
 
 @ProviderFor(pendingTransactionStream)
 const pendingTransactionStreamProvider = PendingTransactionStreamFamily._();
@@ -480,7 +480,7 @@ final class NetProfitStreamProvider
   }
 }
 
-String _$netProfitStreamHash() => r'4704d9e926d2f9c715f4b19099a76756f0b0f145';
+String _$netProfitStreamHash() => r'afa062f86fd1ef9316c8d7b7f1b87c49fabe6e45';
 
 final class NetProfitStreamFamily extends $Family
     with
@@ -589,7 +589,7 @@ final class GrossProfitStreamProvider
   }
 }
 
-String _$grossProfitStreamHash() => r'8523dd8e6f7a0544f0eab00e00cbf1363be86979';
+String _$grossProfitStreamHash() => r'5ac613528c861bbd5a607877e25399d3afb89cfc';
 
 final class GrossProfitStreamFamily extends $Family
     with
@@ -698,7 +698,7 @@ final class TotalIncomeStreamProvider
   }
 }
 
-String _$totalIncomeStreamHash() => r'a2085be648da325f9262bf24cab5a5dfe556dd2d';
+String _$totalIncomeStreamHash() => r'749e7bdc79e21401efc67104d5ef345dcf936fb0';
 
 final class TotalIncomeStreamFamily extends $Family
     with

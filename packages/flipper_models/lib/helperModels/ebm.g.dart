@@ -8,7 +8,7 @@ part of 'ebm.dart';
 
 EBM _$EBMFromJson(Map<String, dynamic> json) =>
     EBM(
-        action: json['action'] as String,
+        action: json['action'] as String?,
         bhfId: json['bhfId'] as String,
         tinNumber: (json['tinNumber'] as num).toInt(),
         dvcSrlNo: json['dvcSrlNo'] as String,

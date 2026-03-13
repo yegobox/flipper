@@ -17,9 +17,11 @@ mixin ConversationMixin implements ConversationInterface {
     final query = brick.Query(where: [
       brick.Where('conversationId').isExactly(conversationId),
       if (startDate != null)
-        brick.Where('createdAt').isGreaterThanOrEqualTo(startDate),
+        brick.Where('createdAt').isGreaterThanOrEqualTo(
+          startDate.toIso8601String(),
+        ),
       if (endDate != null)
-        brick.Where('createdAt').isLessThanOrEqualTo(endDate),
+        brick.Where('createdAt').isLessThanOrEqualTo(endDate.toIso8601String()),
     ]);
 
     return await repository.get<Message>(query: query);

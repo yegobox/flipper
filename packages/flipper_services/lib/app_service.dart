@@ -160,78 +160,96 @@ class AppService with ListenableServiceMixin {
   }
 
   Future<void> setDefaultBusiness(Business business) async {
-    await updateAllBusinessesInactive();
-    await ProxyService.strategy.updateBusiness(
-      businessId: business.id,
-      active: true,
-      isDefault: true,
-    );
+    // Update Hive preferences first (fast, no DB locks)
     await _updateBusinessPreferences(business);
+    
+    // Defer SQLite updates to avoid blocking UI - runs in background
+    Future.delayed(Duration.zero, () async {
+      await updateAllBusinessesInactive();
+      await ProxyService.strategy.updateBusiness(
+        businessId: business.id,
+        active: true,
+        isDefault: true,
+      );
+    });
+    
     if (ProxyService.ditto.isReady()) {
       loadFeatures();
     }
   }
 
   Future<void> setDefaultBranch(Branch branch) async {
-    await updateAllBranchesInactive();
-    await ProxyService.strategy.updateBranch(
-      branchId: branch.id,
-      active: true,
-      isDefault: true,
-    );
-    await ProxyService.box.writeString(key: 'branchId', value: branch.id);
-    await ProxyService.box.writeString(key: 'branchIdString', value: branch.id);
-    await ProxyService.box.writeBool(key: 'branch_switched', value: true);
-    await ProxyService.box.writeInt(
-      key: 'last_branch_switch_timestamp',
-      value: DateTime.now().millisecondsSinceEpoch,
-    );
-    await ProxyService.box.writeString(
-      key: 'active_branch_id',
-      value: branch.id,
-    );
-    await ProxyService.box.writeString(
-      key: 'currentBusinessId',
-      value: branch.businessId ?? ProxyService.box.getBusinessId()!,
-    );
-    await ProxyService.box.writeString(
-      key: 'currentBranchId',
-      value: branch.id,
-    );
+    // Batch all Hive writes together first (fast, no DB locks)
+    await Future.wait<void>([
+      ProxyService.box.writeString(key: 'branchId', value: branch.id),
+      ProxyService.box.writeString(key: 'branchIdString', value: branch.id),
+      ProxyService.box.writeBool(key: 'branch_switched', value: true),
+      ProxyService.box.writeInt(
+        key: 'last_branch_switch_timestamp',
+        value: DateTime.now().millisecondsSinceEpoch,
+      ),
+      ProxyService.box.writeString(key: 'active_branch_id', value: branch.id),
+      ProxyService.box.writeString(
+        key: 'currentBusinessId',
+        value: branch.businessId ?? ProxyService.box.getBusinessId()!,
+      ),
+      ProxyService.box.writeString(key: 'currentBranchId', value: branch.id),
+    ]);
+
+    // Defer SQLite updates to avoid blocking UI - runs in background
+    Future.delayed(Duration.zero, () async {
+      await updateAllBranchesInactive();
+      await ProxyService.strategy.updateBranch(
+        branchId: branch.id,
+        active: true,
+        isDefault: true,
+      );
+    });
   }
 
   Future<void> _updateBusinessPreferences(Business business) async {
     final existingTin = ProxyService.box.readInt(key: 'tin');
+    final existingBusinessId = ProxyService.box.getBusinessId();
+    final existingEncryptionKey = ProxyService.box.readString(
+      key: 'encryptionKey',
+    );
+
+    // Only write if values have changed to avoid unnecessary Hive writes
     final futures = <Future>[];
 
-    futures.add(
-      ProxyService.box.writeString(key: 'businessId', value: business.id),
-    );
-    futures.add(
-      ProxyService.box.writeString(
-        key: 'bhfId',
-        value: (await ProxyService.box.bhfId()) ?? "00",
-      ),
-    );
+    if (existingBusinessId != business.id) {
+      futures.add(
+        ProxyService.box.writeString(key: 'businessId', value: business.id),
+      );
+    }
+
+    final bhfId = await ProxyService.box.bhfId();
+    if (bhfId == null) {
+      futures.add(
+        ProxyService.box.writeString(key: 'bhfId', value: bhfId ?? "00"),
+      );
+    }
 
     final resolvedTin = await effectiveTin(business: business);
     if (existingTin == null || (resolvedTin ?? -1) > 0) {
+      final newTin = resolvedTin ?? existingTin ?? 0;
+      if (existingTin != newTin) {
+        futures.add(ProxyService.box.writeInt(key: 'tin', value: newTin));
+      }
+    }
+
+    if (existingEncryptionKey != business.encryptionKey) {
       futures.add(
-        ProxyService.box.writeInt(
-          key: 'tin',
-          value: resolvedTin ?? existingTin ?? 0,
+        ProxyService.box.writeString(
+          key: 'encryptionKey',
+          value: business.encryptionKey ?? "",
         ),
       );
     }
 
-    futures.add(
-      ProxyService.box.writeString(
-        key: 'encryptionKey',
-        value: business.encryptionKey ?? "",
-      ),
-    );
-
-    await Future.wait(futures);
+    if (futures.isNotEmpty) {
+      await Future.wait(futures);
+    }
   }
 
   /// Initialize Ditto for the desktop login screen (using login code as temp ID)
@@ -257,8 +275,10 @@ class AppService with ListenableServiceMixin {
     // Check if this is a fresh signup - always show login choices
     bool isFreshSignup = ProxyService.box.readBool(key: 'freshSignup') ?? false;
     if (isFreshSignup) {
-      // Clear the flag after use
-      ProxyService.box.writeBool(key: 'freshSignup', value: false);
+      // Clear the flag after use (non-blocking)
+      Future.microtask(
+        () => ProxyService.box.writeBool(key: 'freshSignup', value: false),
+      );
       throw LoginChoicesException(term: "Choose default business");
     }
 
@@ -352,7 +372,10 @@ class AppService with ListenableServiceMixin {
         print(
           "✅ Using locally cached businessId=$businessId, branchId=$branchId",
         );
-        await checkAndStartShift(userId: userId);
+        // Defer shift check to avoid blocking startup
+        Future.delayed(Duration.zero, () async {
+          await checkAndStartShift(userId: userId);
+        });
         return;
       } else {
         // No local data and no Ditto — user must be online for first setup
@@ -365,30 +388,38 @@ class AppService with ListenableServiceMixin {
     bool hasMultipleBusinesses = businesses.length > 1;
     bool hasMultipleBranches = branches.length > 1;
 
+    // Defer SQLite updates to avoid blocking startup
+    // These will run in the background without blocking the UI
     if (businesses.length == 1) {
-      await ProxyService.strategy.updateBusiness(
-        businessId: businesses.first.id,
-        active: true,
-        isDefault: true,
-      );
+      Future.delayed(Duration.zero, () async {
+        await ProxyService.strategy.updateBusiness(
+          businessId: businesses.first.id,
+          active: true,
+          isDefault: true,
+        );
+      });
     }
     if (branches.length == 1) {
-      await ProxyService.strategy.updateBranch(
-        branchId: branches.first.id,
-        active: true,
-        isDefault: true,
-      );
+      Future.delayed(Duration.zero, () async {
+        await ProxyService.strategy.updateBranch(
+          branchId: branches.first.id,
+          active: true,
+          isDefault: true,
+        );
+      });
     }
 
     if ((hasMultipleBusinesses || hasMultipleBranches)) {
       throw LoginChoicesException(term: "Choose default business");
     }
 
-    // After successful business/branch selection, check for active shift
-    await checkAndStartShift(userId: userId);
-    if (ProxyService.ditto.isReady()) {
-      loadFeatures();
-    }
+    // After successful business/branch selection, defer shift check to avoid blocking
+    Future.delayed(Duration.zero, () async {
+      await checkAndStartShift(userId: userId);
+      if (ProxyService.ditto.isReady()) {
+        loadFeatures();
+      }
+    });
   }
 
   Future<void> checkAndStartShift({required String userId}) async {

@@ -33,6 +33,8 @@ class TransactionListState extends ConsumerState<TransactionList>
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   bool _isExporting = false;
+  int _currentPage = 0;
+  int _totalCount = 0;
 
   @override
   void initState() {
@@ -41,11 +43,196 @@ class TransactionListState extends ConsumerState<TransactionList>
     workBookKey = GlobalKey<SfDataGridState>();
     dataViewKey = GlobalKey<DataViewState>();
   }
-
+  
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  // Export all data, not just current page
+  Future<void> _exportAllData() async {
+    final showDetailed = ref.read(toggleBooleanValueProvider);
+    final dateRange = ref.read(dateRangeProvider);
+    final startDate = dateRange.startDate;
+    final endDate = dateRange.endDate;
+
+    if (startDate == null || endDate == null) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Please select a date range first'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+      return;
+    }
+
+    try {
+      // Show loading indicator
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Row(
+              children: [
+                SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                ),
+                SizedBox(width: 16),
+                Text('Fetching all data for export...'),
+              ],
+            ),
+            duration: Duration(seconds: 30),
+          ),
+        );
+      }
+
+      // Fetch ALL data without pagination for export
+      List<dynamic> allData;
+
+      if (showDetailed) {
+        // Fetch all transaction items
+        final asyncValue = ref.read(
+          transactionItemListProvider,
+        );
+
+        // Wait for the stream to emit data
+        allData = await asyncValue.when<Future<List<dynamic>>>(
+          data: (stream) async {
+            final items = await stream.first;
+            // items is already List<TransactionItem>, just return it
+            return items as List<dynamic>;
+          },
+          loading: () async => throw Exception('Still loading...'),
+          error: (error, stack) async => throw error,
+        );
+      } else {
+        // Fetch all transactions
+        final asyncValue = ref.read(
+          transactionListProvider(
+            forceRealData: !(ProxyService.box.enableDebug() ?? false),
+          ),
+        );
+
+        // Wait for the stream to emit data
+        allData = await asyncValue.when<Future<List<dynamic>>>(
+          data: (stream) async {
+            final transactions = await stream.first;
+            // transactions is already List<ITransaction>, just return it
+            return transactions as List<dynamic>;
+          },
+          loading: () async => throw Exception('Still loading...'),
+          error: (error, stack) async => throw error,
+        );
+      }
+
+      // Dismiss loading snackbar
+      if (mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
+      }
+
+      if (allData.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('No data to export'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+        return;
+      }
+
+      // Create a temporary DataView with all data for export
+      final tempDataViewKey = GlobalKey<DataViewState>();
+
+      // Build the DataView widget (not displayed, just for export)
+      final tempDataView = DataView(
+        key: tempDataViewKey,
+        transactions: showDetailed ? null : allData.cast<ITransaction>(),
+        transactionItems: showDetailed ? allData.cast<TransactionItem>() : null,
+        startDate: startDate,
+        endDate: endDate,
+        rowsPerPage: allData.length,
+        showDetailedReport: showDetailed,
+        showDetailed: showDetailed,
+        workBookKey: workBookKey,
+        forceEmpty: allData.isEmpty,
+        disablePagination: true,
+      );
+
+      // Mount the widget temporarily in an overlay to trigger export
+      final overlay = Overlay.of(context);
+      late OverlayEntry overlayEntry;
+
+      overlayEntry = OverlayEntry(
+        builder: (context) => Positioned(
+          left: -10000, // Off-screen
+          top: -10000,
+          child: Material(
+            child: SizedBox(width: 1, height: 1, child: tempDataView),
+          ),
+        ),
+      );
+
+      overlay.insert(overlayEntry);
+
+      // Wait for widget to build
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      // Trigger export
+      await tempDataViewKey.currentState?.triggerExport(headerTitle: "Report");
+
+      // Remove overlay
+      overlayEntry.remove();
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Exported ${allData.length} records successfully'),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).clearSnackBars();
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Export failed: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
+          ),
+        );
+      }
+    }
+  }
+
+  /// Debug method to verify current database strategy
+  void _debugCurrentStrategy() {
+    try {
+      // This will help us verify that Capella is being used
+      final strategy = ProxyService.strategy;
+      print('🔍 Current database strategy: ${strategy.runtimeType}');
+      
+      // If we see 'Isar' or 'SQLite' in the type name, we know it's using local DB
+      final strategyName = strategy.runtimeType.toString().toLowerCase();
+      if (strategyName.contains('isar') || strategyName.contains('sqlite')) {
+        print('⚠️ WARNING: Using local database - may cause locks!');
+        print('💡 Consider forcing Capella strategy in main.dart');
+      } else {
+        print('✅ Using cloud database - no locks expected');
+      }
+    } catch (e) {
+      print('⚠️ Could not determine database strategy: $e');
+    }
   }
 
   @override
@@ -56,6 +243,32 @@ class TransactionListState extends ConsumerState<TransactionList>
 
     // Watch the toggle value and immediately refresh the appropriate provider when it changes
     final showDetailed = ref.watch(toggleBooleanValueProvider);
+    final rowsPerPage = ref.watch(rowsPerPageProvider);
+
+    // Debug: Log current strategy to verify Capella is being used
+    _debugCurrentStrategy();
+
+    // Calculate pagination parameters
+    // TEMPORARILY DISABLED: Pagination not implemented in backend
+    // final limit = rowsPerPage;
+    // final offset = _currentPage * rowsPerPage;
+
+    // Get total count for pagination
+    // TEMPORARILY DISABLED: transactionItemCountProvider and transactionCountProvider are not implemented
+    // final countAsync = showDetailed
+    //     ? ref.watch(transactionItemCountProvider)
+    //     : ref.watch(transactionCountProvider);
+
+    // Update total count when available
+    // countAsync.whenData((count) {
+    //   if (_totalCount != count) {
+    //     WidgetsBinding.instance.addPostFrameCallback((_) {
+    //       if (mounted) {
+    //         setState(() => _totalCount = count);
+    //       }
+    //     });
+    //   }
+    // });
 
     // Use a key to force rebuild when the toggle changes
     final AsyncValue<List<dynamic>> dataProvider;
@@ -63,9 +276,11 @@ class TransactionListState extends ConsumerState<TransactionList>
     // Select and refresh the appropriate provider based on showDetailed
     if (showDetailed) {
       // For detailed view, use transactionItemListProvider
-      dataProvider = ref.watch(transactionItemListProvider);
+      dataProvider = ref.watch(
+        transactionItemListProvider,
+      );
     } else {
-      // For summary view, use transactionListProvider
+      // For summary view, use transactionListProvider with pagination
       dataProvider = ref.watch(
         transactionListProvider(
           forceRealData: !(ProxyService.box.enableDebug() ?? false),
@@ -141,13 +356,22 @@ class TransactionListState extends ConsumerState<TransactionList>
                       ],
                     ),
                     clipBehavior: Clip.antiAlias,
-                    child: _buildContent(
-                      dataProvider,
-                      transactions,
-                      transactionItems,
-                      startDate,
-                      endDate,
-                      showDetailed,
+                    child: Column(
+                      children: [
+                        Expanded(
+                          child: _buildContent(
+                            dataProvider,
+                            transactions,
+                            transactionItems,
+                            startDate,
+                            endDate,
+                            showDetailed,
+                          ),
+                        ),
+                        if (dataProvider.hasValue &&
+                            dataProvider.value!.isNotEmpty)
+                          _buildPaginationControls(rowsPerPage),
+                      ],
                     ),
                   ),
                 ),
@@ -316,9 +540,8 @@ class TransactionListState extends ConsumerState<TransactionList>
           onTap: () async {
             setState(() => _isExporting = true);
             try {
-              await dataViewKey.currentState?.triggerExport(
-                headerTitle: "Report",
-              );
+              // Fetch ALL data for export, not just current page
+              await _exportAllData();
             } finally {
               if (mounted) setState(() => _isExporting = false);
             }
@@ -427,6 +650,60 @@ class TransactionListState extends ConsumerState<TransactionList>
     );
   }
 
+  Widget _buildPaginationControls(int rowsPerPage) {
+    final totalPages = (_totalCount / rowsPerPage).ceil();
+    final currentPageDisplay = _currentPage + 1;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        border: Border(top: BorderSide(color: Colors.grey[200]!)),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            'Page $currentPageDisplay of $totalPages',
+            style: TextStyle(color: Colors.grey[700], fontSize: 14),
+          ),
+          Row(
+            children: [
+              IconButton(
+                icon: const Icon(Icons.first_page),
+                onPressed: _currentPage > 0
+                    ? () => setState(() => _currentPage = 0)
+                    : null,
+                tooltip: 'First page',
+              ),
+              IconButton(
+                icon: const Icon(Icons.chevron_left),
+                onPressed: _currentPage > 0
+                    ? () => setState(() => _currentPage--)
+                    : null,
+                tooltip: 'Previous page',
+              ),
+              IconButton(
+                icon: const Icon(Icons.chevron_right),
+                onPressed: _currentPage < totalPages - 1
+                    ? () => setState(() => _currentPage++)
+                    : null,
+                tooltip: 'Next page',
+              ),
+              IconButton(
+                icon: const Icon(Icons.last_page),
+                onPressed: _currentPage < totalPages - 1
+                    ? () => setState(() => _currentPage = totalPages - 1)
+                    : null,
+                tooltip: 'Last page',
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildContent(
     AsyncValue<List<dynamic>> dataProvider,
     List<ITransaction>? transactions,
@@ -483,6 +760,7 @@ class TransactionListState extends ConsumerState<TransactionList>
           showDetailed: showDetailed,
           workBookKey: workBookKey,
           forceEmpty: data.isEmpty,
+          disablePagination: true, // Disable internal pagination
         );
       },
       loading: () => _buildLoadingState(),
@@ -565,7 +843,7 @@ class TransactionListState extends ConsumerState<TransactionList>
               onPressed: () {
                 // Invalidate providers to retry
                 ref.invalidate(transactionItemListProvider);
-                ref.invalidate(transactionListProvider);
+                ref.invalidate(transactionListProvider(forceRealData: !(ProxyService.box.enableDebug() ?? false)));
               },
               icon: const Icon(Icons.refresh_rounded),
               label: const Text('Try Again'),

@@ -11,7 +11,7 @@ Activity _$ActivityFromJson(Map<String, dynamic> json) =>
         id: (json['id'] as num?)?.toInt(),
         timestamp: DateTime.parse(json['timestamp'] as String),
         userId: (json['userId'] as num).toInt(),
-        action: json['action'] as String,
+        action: json['action'] as String?,
         lastTouched: json['lastTouched'] == null
             ? null
             : DateTime.parse(json['lastTouched'] as String),

@@ -477,12 +477,28 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         ? dbCashReceived
         : localCashReceived;
 
+    final totalCredit = paymentMethods
+        .where((p) => p.method == "CREDIT")
+        .fold<double>(0, (sum, p) => sum + p.amount);
+
     final isFullyPaid = effectiveCashReceived >= (transaction.subTotal ?? 0);
-    final status = isFullyPaid ? COMPLETE : PARKED;
+
+    // If credit is used OR it's an under-payment, mark as PARKED (loan)
+    final shouldBeLoan = totalCredit > 0 || !isFullyPaid;
+    final status = shouldBeLoan ? PARKED : COMPLETE;
+
+    // Remaining balance is what is owed (either via Credit method or under-payment)
+    final remainingBalance = shouldBeLoan
+        ? (totalCredit > 0
+              ? totalCredit
+              : (transaction.subTotal ?? 0) - effectiveCashReceived)
+        : 0.0;
 
     await ProxyService.strategy.updateTransaction(
       transaction: transaction,
       status: status,
+      isLoan: shouldBeLoan,
+      remainingBalance: remainingBalance,
       cashReceived: effectiveCashReceived,
       subTotal: finalSubTotal,
       lastTouched: DateTime.now(),

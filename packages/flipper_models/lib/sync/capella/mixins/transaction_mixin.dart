@@ -1121,6 +1121,9 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     String? transactionId,
     String? customerPhone,
     String? customerType,
+    bool? isLoan,
+    double? remainingBalance,
+    bool skipDittoSync = false,
   }) async {
     final ditto = dittoService.dittoInstance;
     if (ditto == null) {
@@ -1164,11 +1167,15 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     addUpdate('note', note ?? transaction?.note);
     addUpdate('customerId', customerId ?? transaction?.customerId);
     addUpdate('ticketName', ticketName ?? transaction?.ticketName);
+    addUpdate('isLoan', isLoan ?? transaction?.isLoan);
+    addUpdate(
+      'remainingBalance',
+      remainingBalance ?? transaction?.remainingBalance,
+    );
 
     // Crucial for resumption: update agentId if transaction object is provided
     if (transaction != null) {
       addUpdate('agentId', transaction.agentId);
-      addUpdate('isLoan', transaction.isLoan);
       addUpdate('remainingBalance', transaction.remainingBalance);
     }
 
@@ -1198,10 +1205,22 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         'UPDATE transactions SET ${updates.join(', ')} WHERE _id = :id OR id = :id';
 
     try {
-      await ditto.store.execute(query, arguments: arguments);
-      talker.info(
-        'Updated transaction $targetId with ${updates.length} fields',
-      );
+      // Skip Ditto write if skipDittoSync is true (for batch operations)
+      if (!skipDittoSync) {
+        await ditto.store.execute(query, arguments: arguments);
+        talker.info(
+          'Updated transaction $targetId with ${updates.length} fields',
+        );
+      } else {
+        // Still update local SQLite when skipping Ditto
+        // await repository.execute(
+        //   'UPDATE transactions SET ${updates.join(', ')} WHERE id = :id',
+        //   arguments: arguments,
+        // );
+        talker.info(
+          'Updated transaction $targetId with ${updates.length} fields (Ditto sync skipped)',
+        );
+      }
     } catch (e) {
       talker.error('Error updating transaction: $e');
       rethrow;
@@ -1261,21 +1280,6 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       final ditto = dittoService.dittoInstance;
       if (ditto == null) {
         talker.error('Ditto not initialized for deleteTransaction');
-        return false;
-      }
-
-      // Prevent deleting tickets or transactions with partial payments
-      if (transaction.ticketName != null &&
-          transaction.ticketName!.isNotEmpty) {
-        talker.warning(
-          'Attempted to delete a parked transaction (ticket): ${transaction.id}',
-        );
-        return false;
-      }
-      if ((transaction.cashReceived ?? 0) > 0) {
-        talker.warning(
-          'Attempted to delete a transaction with partial payments: ${transaction.id}',
-        );
         return false;
       }
 

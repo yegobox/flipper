@@ -23,7 +23,7 @@ Customer _$CustomerFromJson(Map<String, dynamic> json) => Customer(
   modrId: json['modrId'] as String,
   ebmSynced: json['ebmSynced'] as bool? ?? false,
   id: (json['id'] as num?)?.toInt(),
-  action: json['action'] as String,
+  action: json['action'] as String?,
   lastTouched: json['lastTouched'] == null
       ? null
       : DateTime.parse(json['lastTouched'] as String),

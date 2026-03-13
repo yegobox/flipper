@@ -6,6 +6,9 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/helperModels/talker.dart';
 
 extension DateTimeExtensions on DateTime? {
   bool isNewDateCompareTo(DateTime? other) {
@@ -16,8 +19,9 @@ extension DateTimeExtensions on DateTime? {
 
 extension ColorExtension on Color {
   String toHex({bool includeAlpha = false}) {
-    final alphaHex =
-        includeAlpha ? alpha.toRadixString(16).padLeft(2, '0') : '';
+    final alphaHex = includeAlpha
+        ? alpha.toRadixString(16).padLeft(2, '0')
+        : '';
     return '#$alphaHex${red.toRadixString(16).padLeft(2, '0')}${green.toRadixString(16).padLeft(2, '0')}${blue.toRadixString(16).padLeft(2, '0')}';
   }
 }
@@ -123,8 +127,9 @@ extension StringExtensions on String {
 extension CurrencyFormatExtension on num {
   String toCurrencyFormatted({String? symbol, int decimalDigits = 2}) {
     // Ensure symbol ends with a space
-    final cleanSymbol =
-        symbol?.endsWith(' ') == true ? symbol! : '${symbol ?? 'RWF'} ';
+    final cleanSymbol = symbol?.endsWith(' ') == true
+        ? symbol!
+        : '${symbol ?? 'RWF'} ';
 
     final numberFormat = NumberFormat.currency(
       locale: 'en',
@@ -282,8 +287,12 @@ extension AccessInnerController on Widget {
     return Consumer(
       builder: (context, ref, child) {
         for (final level in accessLevels) {
-          final hasAccess = ref.watch(featureAccessLevelProvider(
-              accessLevel: level, userId: ProxyService.box.getUserId() ?? ""));
+          final hasAccess = ref.watch(
+            featureAccessLevelProvider(
+              accessLevel: level,
+              userId: ProxyService.box.getUserId() ?? "",
+            ),
+          );
           if (hasAccess) return this;
         }
         return const SizedBox.shrink();
@@ -296,9 +305,12 @@ extension AccessControlWidget on Widget {
   Widget shouldSeeTheApp(WidgetRef ref, {required String featureName}) {
     return Consumer(
       builder: (context, ref, child) {
-        final hasAccess = ref.watch(featureAccessProvider(
+        final hasAccess = ref.watch(
+          featureAccessProvider(
             featureName: featureName,
-            userId: ProxyService.box.getUserId() ?? ""));
+            userId: ProxyService.box.getUserId() ?? "",
+          ),
+        );
         return hasAccess ? this : SizedBox.shrink();
       },
     );
@@ -470,5 +482,107 @@ extension RemoveCountryCode on String {
   String withoutCountryCode() {
     final cleaned = replaceAll(RegExp(r'[^\d+]'), ''); // keep only digits and +
     return cleaned.replaceFirst(RegExp(r'^\+\d{1,3}'), '');
+  }
+}
+
+/// Extension for smart transaction deletion that works across different strategies
+extension TransactionDeletion on ITransaction {
+  /// Delete a transaction from the correct database based on its dataSource
+  /// - If dataSource is Capella, delete from Capella (Ditto) AND Supabase directly
+  /// - If dataSource is CloudSync or null, delete from CloudSync (SQLite)
+  /// - If SQLite deletion fails, tries Supabase directly as fallback
+  /// - If all else fails, tries Capella as fallback
+  Future<bool> deleteSmart() async {
+    try {
+      // Try to delete from the source database first
+      if (dataSource == Strategy.capella) {
+        talker.debug('Deleting transaction $id from Capella (Ditto)');
+        final capellaResult = await ProxyService.getStrategy(
+          Strategy.capella,
+        ).deleteTransaction(transaction: this);
+
+        // Also delete from Supabase directly to ensure consistency
+        talker.debug('Deleting transaction $id from Supabase directly');
+        try {
+          await ProxyService.supa.client!
+              .from('transactions')
+              .delete()
+              .eq('id', id);
+          talker.info('Successfully deleted $id from Supabase directly');
+        } catch (supabaseError) {
+          talker.warning('Supabase deletion failed for $id: $supabaseError');
+          // Continue even if Supabase fails, Capella succeeded
+        }
+
+        // Return Capella result (primary source)
+        return capellaResult;
+      } else {
+        // Default to CloudSync/SQLite
+        talker.debug('Deleting transaction $id from CloudSync (SQLite)');
+        try {
+          await ProxyService.getStrategy(
+            Strategy.cloudSync,
+          ).deleteTransaction(transaction: this);
+          talker.info('Successfully deleted $id from CloudSync (SQLite)');
+          return true;
+        } catch (sqliteError) {
+          // If SQLite fails, try Supabase directly
+          talker.warning(
+            'SQLite deletion failed for $id: $sqliteError. Trying Supabase...',
+          );
+          try {
+            await ProxyService.supa.client!
+                .from('transactions')
+                .delete()
+                .eq('id', id);
+            talker.info('Successfully deleted $id from Supabase directly');
+            return true;
+          } catch (supabaseError) {
+            talker.error('Supabase deletion failed for $id: $supabaseError');
+            // Continue to fallback strategies
+          }
+        }
+      }
+
+      // Fallback: if primary deletion failed, try the other strategy
+      talker.warning(
+        'Primary deletion failed for $id, trying fallback strategy',
+      );
+      if (dataSource == Strategy.capella) {
+        // Try CloudSync as fallback
+        try {
+          await ProxyService.getStrategy(
+            Strategy.cloudSync,
+          ).deleteTransaction(transaction: this);
+          talker.info('Successfully deleted $id from CloudSync as fallback');
+          return true;
+        } catch (e) {
+          // If CloudSync fails, try Supabase directly
+          talker.warning(
+            'CloudSync deletion failed for $id: $e. Trying Supabase...',
+          );
+          try {
+            await ProxyService.supa.client!
+                .from('transactions')
+                .delete()
+                .eq('id', id);
+            talker.info('Successfully deleted $id from Supabase directly');
+            return true;
+          } catch (supabaseError) {
+            talker.error('Supabase deletion failed for $id: $supabaseError');
+            return false;
+          }
+        }
+      } else {
+        // Try Capella as fallback
+        final result = await ProxyService.getStrategy(
+          Strategy.capella,
+        ).deleteTransaction(transaction: this);
+        return result;
+      }
+    } catch (e, st) {
+      talker.error('Smart deletion failed for $id: $e', st);
+      return false;
+    }
   }
 }

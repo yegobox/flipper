@@ -34,7 +34,7 @@ class GlobalSettings extends OfflineFirstWithSupabaseModel {
 
 #### Sync Direction Options
 
-- **`SyncDirection.bidirectional`** (default): Full two-way sync. The model both sends local changes to Ditto and receives remote updates.
+- **`SyncDirection.sendOnly`** (default): Full two-way sync. The model both sends local changes to Ditto and receives remote updates.
 
 - **`SyncDirection.sendOnly`**: The model pushes initial data and local changes to Ditto, but does NOT fetch remote updates back to the local database. Use this for write-only data like audit logs, telemetry, or events that you want to share but don't need to receive.
 

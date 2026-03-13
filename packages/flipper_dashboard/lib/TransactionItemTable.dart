@@ -167,6 +167,31 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       ),
       child: Column(
         children: [
+          if (internalTransactionItems.isNotEmpty)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '${internalTransactionItems.length} item${internalTransactionItems.length > 1 ? 's' : ''}',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  TextButton.icon(
+                    onPressed: () => _showDeleteAllConfirmation(isOrdering),
+                    icon: const Icon(Icons.delete_sweep, size: 18),
+                    label: const Text('Delete All'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Colors.red,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           if (internalTransactionItems.isEmpty)
             _buildEmptyState()
           else
@@ -701,6 +726,78 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   }
 
   // === ENHANCED INTERACTION METHODS ===
+  void _showDeleteAllConfirmation(bool isOrdering) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        title: Row(
+          children: [
+            Icon(Icons.warning_amber_rounded, color: Colors.orange[600]),
+            const SizedBox(width: 8),
+            const Text('Delete All Items'),
+          ],
+        ),
+        content: Text(
+          'Are you sure you want to remove all ${internalTransactionItems.length} items from this transaction?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cancel'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.of(context).pop();
+              await _deleteAllItems(isOrdering);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red[400],
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Delete All'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _deleteAllItems(bool isOrdering) async {
+    final itemsToDelete = List<TransactionItem>.from(internalTransactionItems);
+    
+    for (final item in itemsToDelete) {
+      setState(() {
+        _isItemSaving[item.id] = true;
+      });
+    }
+
+    try {
+      for (final item in itemsToDelete) {
+        if (!(item.partOfComposite ?? false)) {
+          await ProxyService.strategy.flipperDelete(
+            id: item.id,
+            endPoint: 'transactionItem',
+          );
+        }
+      }
+      
+      if (itemsToDelete.isNotEmpty) {
+        _refreshTransactionItems(
+          isOrdering,
+          transactionId: itemsToDelete.first.transactionId!,
+        );
+      }
+    } catch (e, s) {
+      talker.error('Error deleting items: $e', s);
+    } finally {
+      for (final item in itemsToDelete) {
+        setState(() {
+          _isItemSaving[item.id] = false;
+        });
+      }
+    }
+  }
+
   void _showDeleteConfirmation(TransactionItem item, bool isOrdering) {
     showDialog(
       context: context,

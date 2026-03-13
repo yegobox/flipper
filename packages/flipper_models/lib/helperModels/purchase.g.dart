@@ -13,7 +13,7 @@ Purchase _$PurchaseFromJson(Map<String, dynamic> json) =>
             .map((e) => e as String)
             .toList(),
         createdAt: DateTime.parse(json['createdAt'] as String),
-        action: json['action'] as String,
+        action: json['action'] as String?,
         lastTouched: json['lastTouched'] == null
             ? null
             : DateTime.parse(json['lastTouched'] as String),

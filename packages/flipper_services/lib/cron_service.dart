@@ -21,6 +21,7 @@ import 'package:ditto_live/ditto_live.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:supabase_models/brick/models/integration_config.model.dart';
+import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
 import 'package:flipper_models/umusada_service.dart';
 import 'dart:isolate'; // For ReceivePort
 
@@ -345,9 +346,14 @@ class CronService {
           branchId: ProxyService.box.getBranchId()!,
           fetchRemote: false,
         );
-        for (Counter counter in counters) {
-          counter.lastTouched = DateTime.now();
-          repository.upsert(counter);
+        // Batch update counters in a single transaction to avoid DB locks
+        final now = DateTime.now();
+        for (final counter in counters) {
+          counter.lastTouched = now;
+        }
+        // Removing sqliteProvider.transaction wrapper to avoid deadlocks
+        for (final counter in counters) {
+          await repository.upsert(counter, skipDittoSync: true);
         }
       }
       final uri = await ProxyService.box.getServerUrl();
@@ -614,9 +620,14 @@ class CronService {
               }
 
               // Fetch transactions
+              // Convert DateTime to ISO string to avoid JSON serialization issues
               final transactions = await repo.get<ITransaction>(
                 query: Query(
-                  where: [Where('updatedAt').isGreaterThan(lastSyncedAt)],
+                  where: [
+                    Where(
+                      'updatedAt',
+                    ).isGreaterThan(lastSyncedAt.toIso8601String()),
+                  ],
                 ),
               );
 
@@ -973,16 +984,25 @@ class CronService {
   bool get isMacOs => defaultTargetPlatform == TargetPlatform.macOS;
   bool get isIos => defaultTargetPlatform == TargetPlatform.iOS;
 
+  /// Flag to prevent concurrent executions of MoMo auto-complete
+  bool _isCompletingMomoTransactions = false;
+
   /// Automatically completes MoMo transactions that have been waiting for more than 10 minutes
   Future<void> _autoCompleteMomoTransactions() async {
+    // Prevent concurrent executions
+    if (_isCompletingMomoTransactions) {
+      talker.debug("MoMo auto-complete already running, skipping");
+      return;
+    }
+
     try {
+      _isCompletingMomoTransactions = true;
+
       final branchId = ProxyService.box.getBranchId();
       if (branchId == null) {
         talker.warning("Skipping MoMo auto-complete: Branch ID is null");
         return;
       }
-
-      talker.info("Checking for MoMo transactions to auto-complete...");
 
       // Use ProxyService.strategy for consistency with the rest of the codebase
       final momoTransactions = await ProxyService.strategy.transactions(
@@ -998,60 +1018,48 @@ class CronService {
         return;
       }
 
+      final now = DateTime.now();
+      final transactionsToComplete = momoTransactions
+          .where((transaction) {
+            if (transaction.createdAt == null) return false;
+            final waitingMinutes = now
+                .difference(transaction.createdAt!)
+                .inMinutes;
+            return waitingMinutes >= 1;
+          })
+          .take(2)
+          .toList(); // Process max 2 per cycle to avoid locks
+
+      if (transactionsToComplete.isEmpty) return;
+
       talker.info(
-        "Found ${momoTransactions.length} MoMo transaction(s) in WAITING_MOMO_COMPLETE status",
+        "Auto-completing ${transactionsToComplete.length} MoMo transaction(s)",
       );
 
-      final now = DateTime.now();
-      int completedCount = 0;
-
-      for (final transaction in momoTransactions) {
-        if (transaction.createdAt != null) {
-          final difference = now.difference(transaction.createdAt!);
-          final waitingMinutes = difference.inMinutes;
-
-          if (waitingMinutes >= 1) {
-            talker.info(
-              "Auto-completing MoMo transaction: ${transaction.id} "
-              "(Initiated at: ${transaction.createdAt}, waited: $waitingMinutes minutes)",
-            );
-
-            try {
-              // Update the transaction to COMPLETE status
-              // Ensure we preserve the subtotal and other important fields
-              await ProxyService.strategy.updateTransaction(
-                transaction: transaction,
-                status: COMPLETE,
-                subTotal: transaction.subTotal ?? transaction.cashReceived ?? 0,
-              );
-
-              completedCount++;
-              talker.info(
-                "✅ Successfully auto-completed MoMo transaction: ${transaction.id}",
-              );
-            } catch (updateError, stackTrace) {
-              talker.error(
-                "Failed to auto-complete transaction ${transaction.id}: $updateError",
-                stackTrace,
-              );
-            }
-          } else {
-            talker.debug(
-              "MoMo transaction ${transaction.id} still waiting (${waitingMinutes}/10 minutes)",
-            );
-          }
-        } else {
-          talker.warning(
-            "MoMo transaction ${transaction.id} has null createdAt, skipping",
+      // Update transactions sequentially to avoid DB lock/deadlock issues
+      for (final transaction in transactionsToComplete) {
+        try {
+          await ProxyService.strategy.updateTransaction(
+            transaction: transaction,
+            status: COMPLETE,
+            subTotal: transaction.subTotal ?? transaction.cashReceived ?? 0,
+            skipDittoSync: true, // Skip Ditto sync during batch
+          );
+        } catch (e) {
+          talker.error(
+            "Failed to auto-complete transaction ${transaction.id}: $e",
           );
         }
       }
 
-      if (completedCount > 0) {
-        talker.info("✅ Auto-completed $completedCount MoMo transaction(s)");
+      // Notify Ditto after batch completion
+      for (final transaction in transactionsToComplete) {
+        unawaited(DittoSyncCoordinator.instance.notifyLocalUpsert(transaction));
       }
     } catch (e, stackTrace) {
       talker.error("Auto-complete MoMo transactions failed: $e", stackTrace);
+    } finally {
+      _isCompletingMomoTransactions = false;
     }
   }
 }

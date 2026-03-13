@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/sync/interfaces/transaction_interface.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/sync/models/transaction_with_items.dart';
@@ -973,6 +974,9 @@ mixin TransactionMixin implements TransactionInterface {
     bool? isTrainingMode,
     String? customerPhone,
     String? customerType,
+    bool? isLoan,
+    double? remainingBalance,
+    bool skipDittoSync = false,
   }) async {
     if (transaction == null) {
       if (transactionId == null) {
@@ -1030,8 +1034,11 @@ mixin TransactionMixin implements TransactionInterface {
     transaction.customerPhone = customerPhone ?? transaction.customerPhone;
     transaction.currentSaleCustomerPhoneNumber =
         customerPhone ?? transaction.customerPhone;
+    transaction.isLoan = isLoan ?? transaction.isLoan;
+    transaction.remainingBalance =
+        remainingBalance ?? transaction.remainingBalance;
 
-    final result = await repository.upsert<ITransaction>(transaction);
+    final result = await repository.upsert<ITransaction>(transaction, skipDittoSync: skipDittoSync);
     return result;
   }
 
@@ -1214,7 +1221,17 @@ mixin TransactionMixin implements TransactionInterface {
 
   @override
   Future<bool> deleteTransaction({required ITransaction transaction}) async {
-    return await repository.delete<ITransaction>(transaction);
+    try {
+      return await repository.delete<ITransaction>(transaction);
+    } catch (e) {
+      if (e.toString().contains('does not exist in the SQLite database')) {
+        await ProxyService.getStrategy(
+          Strategy.capella,
+        ).deleteTransaction(transaction: transaction);
+        return true;
+      }
+      rethrow;
+    }
   }
 
   @override

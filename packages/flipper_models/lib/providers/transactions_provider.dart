@@ -1,6 +1,7 @@
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/SyncStrategy.dart'; // Add this import
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -22,6 +23,7 @@ final dashboardTransactionsProvider = StreamProvider<List<ITransaction>>((ref) {
   // Only log once when this provider is created
   talker.debug('Dashboard transactions provider initialized with 30-day range');
 
+  // Use default strategy for this data fetch
   return ProxyService.strategy.transactionsStream(
     status: COMPLETE,
     includeParked: true,
@@ -50,6 +52,7 @@ Stream<List<ITransaction>> transactionList(
   }
 
   try {
+    // Use default strategy for this data fetch
     final stream = ProxyService.strategy.transactionsStream(
       startDate: startDate,
       endDate: endDate,
@@ -104,6 +107,7 @@ Stream<List<ITransaction>> transactions(Ref ref, {bool forceRealData = true}) {
   // Keep provider alive
   ref.keepAlive();
 
+  // Use default strategy
   return ProxyService.strategy.transactionsStream(
     status: COMPLETE,
     branchId: branchId,
@@ -115,7 +119,7 @@ Stream<List<ITransaction>> transactions(Ref ref, {bool forceRealData = true}) {
   );
 }
 
-// Transaction items provider
+// Transaction items provider with pagination
 @riverpod
 Stream<List<TransactionItem>> transactionItemList(Ref ref) {
   final dateRange = ref.watch(dateRangeProvider);
@@ -144,6 +148,7 @@ Stream<List<TransactionItem>> transactionItemList(Ref ref) {
     'Fetching transactions from $startDate to $endDate for branch $branchId',
   );
 
+  // Use default strategy specifically for this data fetch
   return ProxyService.strategy
       .transactionItemsStreams(
         startDate: startDate,
@@ -162,6 +167,46 @@ Stream<List<TransactionItem>> transactionItemList(Ref ref) {
         throw error;
       });
 }
+
+// TEMPORARILY DISABLED: Methods not implemented in DatabaseSyncInterface
+// Get total count of transaction items for pagination
+// @riverpod
+// Future<int> transactionItemCount(Ref ref) async {
+//   final dateRange = ref.watch(dateRangeProvider);
+//   final startDate = dateRange.startDate;
+//   final endDate = dateRange.endDate;
+//   final branchId = ProxyService.box.branchIdString();
+
+//   if (branchId == null || startDate == null || endDate == null) {
+//     return 0;
+//   }
+
+//   return await ProxyService.strategy.transactionItemsCount(
+//     startDate: startDate,
+//     endDate: endDate,
+//     branchId: branchId,
+//   );
+// }
+
+// // Get total count of transactions for pagination
+// @riverpod
+// Future<int> transactionCount(Ref ref) async {
+//   final dateRange = ref.watch(dateRangeProvider);
+//   final startDate = dateRange.startDate;
+//   final endDate = dateRange.endDate;
+//   final branchId = ProxyService.box.getBranchId();
+
+//   if (branchId == null || startDate == null || endDate == null) {
+//     return 0;
+//   }
+
+//   return await ProxyService.strategy.transactionsCount(
+//     startDate: startDate,
+//     endDate: endDate,
+//     branchId: branchId,
+//     skipOriginalTransactionCheck: true,
+//   );
+// }
 
 @riverpod
 Stream<ITransaction> pendingTransactionStream(
@@ -184,13 +229,19 @@ Stream<ITransaction> pendingTransactionStream(
   }
 
   // First, check if there's already a pending transaction
-  yield* ProxyService.strategy.manageTransactionStream(
-    transactionType: isExpense
-        ? TransactionType.purchase
-        : TransactionType.sale,
-    isExpense: isExpense,
-    branchId: branchId,
-  );
+  try {
+    talker.info('Starting manageTransactionStream for branch $branchId (isExpense: $isExpense)');
+    yield* ProxyService.strategy.manageTransactionStream(
+      transactionType: isExpense
+          ? TransactionType.purchase
+          : TransactionType.sale,
+      isExpense: isExpense,
+      branchId: branchId,
+    );
+  } catch (e, stack) {
+    talker.error('FATAL: manageTransactionStream threw an error!', e, stack);
+    rethrow;
+  }
 }
 
 @riverpod
@@ -211,6 +262,7 @@ Stream<List<ITransaction>> expensesStream(
   talker.debug(
     'Fetching expenses from $startDate to $endDate for branch $branchId',
   );
+  // Use default strategy
   return ProxyService.strategy
       .transactionsStream(
         skipOriginalTransactionCheck: true,
@@ -243,8 +295,11 @@ Stream<double> netProfitStream(
     throw StateError('Branch ID is required');
   }
 
+  // Use default strategy for better performance with complex queries
+  final strategy = ProxyService.strategy;
+
   // Convert streams to broadcast streams to allow multiple listeners
-  final incomeStream = ProxyService.strategy
+  final incomeStream = strategy
       .transactionsStream(
         startDate: startDate,
         endDate: endDate,
@@ -257,7 +312,7 @@ Stream<double> netProfitStream(
       )
       .asBroadcastStream();
 
-  final expensesStream = ProxyService.strategy
+  final expensesStream = strategy
       .transactionsStream(
         skipOriginalTransactionCheck: false,
         startDate: startDate,
@@ -362,7 +417,10 @@ Stream<double> grossProfitStream(
     throw StateError('Branch ID is required');
   }
 
-  final incomeStream = ProxyService.strategy.transactionsStream(
+  // Use default strategy for better performance with complex queries
+  final strategy = ProxyService.strategy;
+
+  final incomeStream = strategy.transactionsStream(
     startDate: startDate,
     endDate: endDate,
     forceRealData: forceRealData,
@@ -407,7 +465,10 @@ Stream<double> totalIncomeStream(
     throw StateError('Branch ID is required');
   }
 
-  final transactionsStream = ProxyService.strategy.transactionsStream(
+  // Use default strategy for better performance with complex queries
+  final strategy = ProxyService.strategy;
+
+  final transactionsStream = strategy.transactionsStream(
     startDate: startDate,
     endDate: endDate,
     forceRealData: forceRealData,
@@ -439,6 +500,7 @@ Stream<double> totalIncomeStream(
 
 @riverpod
 Stream<ITransaction?> transactionById(Ref ref, String transactionId) {
+  // Use default strategy
   return ProxyService.strategy
       .transactionsStream(
         id: transactionId,

@@ -644,11 +644,24 @@ class CoreSync extends AiStrategyImpl
     TransactionItem item = (await transactionItems(
       id: transactionItemId.id,
       transactionId: transactionId,
-      branchId: (await ProxyService.strategy.activeBranch(
-        branchId: ProxyService.box.getBranchId()!,
-      )).id,
+      branchId: ProxyService.box.getBranchId()!,
     )).first;
-    await repository.delete(item);
+    await repository.delete<TransactionItem>(item);
+
+    // Check if this was the last item and reset cashReceived if needed
+    if (transactionId != null) {
+      final remainingItems = await transactionItems(
+        transactionId: transactionId,
+        branchId: ProxyService.box.getBranchId()!,
+      );
+
+      if (remainingItems.isEmpty) {
+        await updateTransaction(
+          transactionId: transactionId,
+          cashReceived: 0.0,
+        );
+      }
+    }
   }
 
   @override
@@ -3594,8 +3607,11 @@ class CoreSync extends AiStrategyImpl
         where: [
           Where('conversationId').isExactly(conversationId),
           if (startDate != null)
-            Where('timestamp').isGreaterThanOrEqualTo(startDate),
-          if (endDate != null) Where('timestamp').isLessThanOrEqualTo(endDate),
+            Where(
+              'timestamp',
+            ).isGreaterThanOrEqualTo(startDate.toIso8601String()),
+          if (endDate != null)
+            Where('timestamp').isLessThanOrEqualTo(endDate.toIso8601String()),
         ],
         limit: limit,
         offset: offset,

@@ -36,7 +36,7 @@ enum ChargeButtonState {
   failed, // "Payment Failed. Retry?"
 }
 
-class BottomSheets {
+class QuickSellingMobile {
   static void showBottom({
     required BuildContext context,
     required WidgetRef ref,
@@ -80,7 +80,7 @@ class BottomSheets {
                     ),
                   ),
                   // Header
-                  _BottomSheetHeader(
+                  _QuickSellingMobileHeader(
                     ref: ref,
                     context: context,
                     transaction: transaction,
@@ -90,7 +90,7 @@ class BottomSheets {
                   Flexible(
                     child: Padding(
                       padding: const EdgeInsets.all(20.0),
-                      child: _BottomSheetContent(
+                      child: _QuickSellingMobileContent(
                         transactionIdInt: transaction.id,
                         transaction: transaction,
                         doneDelete: doneDelete,
@@ -108,8 +108,8 @@ class BottomSheets {
   }
 }
 
-class _BottomSheetContent extends ConsumerStatefulWidget {
-  const _BottomSheetContent({
+class _QuickSellingMobileContent extends ConsumerStatefulWidget {
+  const _QuickSellingMobileContent({
     required this.transactionIdInt,
     required this.transaction,
     required this.doneDelete,
@@ -121,11 +121,12 @@ class _BottomSheetContent extends ConsumerStatefulWidget {
   final Function onCharge;
 
   @override
-  ConsumerState<_BottomSheetContent> createState() =>
-      _BottomSheetContentState();
+  ConsumerState<_QuickSellingMobileContent> createState() =>
+      _QuickSellingMobileContentState();
 }
 
-class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
+class _QuickSellingMobileContentState
+    extends ConsumerState<_QuickSellingMobileContent>
     with TickerProviderStateMixin, TransactionComputationMixin {
   ChargeButtonState _chargeState = ChargeButtonState.initial;
   bool _isImmediateCompletion = false; // Track which button was clicked
@@ -544,6 +545,12 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                                                   transactionItem,
                                               transactionId: transactionId,
                                             );
+                                        ref.invalidate(
+                                          transactionItemsStreamProvider(
+                                            transactionId: transactionId,
+                                            branchId: ProxyService.box.getBranchId()!,
+                                          ),
+                                        );
                                         Navigator.of(context).pop();
                                         doneDelete();
                                       } catch (e) {
@@ -717,40 +724,25 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
       });
     }
 
-    final alreadyPaid =
-        transactionAsync.value?.cashReceived ??
-        widget.transaction.cashReceived ??
-        0.0;
-    final pendingPayment = calculateTotalPaid(payments);
-    final totalPaid = alreadyPaid + pendingPayment;
-
-    // Calculate reliable total
-    double totalAmount = 0.0;
-    if (itemsAsync.asData?.value != null) {
-      totalAmount = calculateTransactionTotal(
-        items: itemsAsync.asData!.value,
-        transaction: transactionAsync.asData?.value ?? widget.transaction,
-      );
-    } else {
-      totalAmount = widget.transaction.subTotal ?? 0.0;
-    }
-
-    talker.warning(
-      "BottomSheet: Final TotalAmount passed to PaymentMethodsCard: $totalAmount",
-    );
-
-    final remainingBalance = calculateRemainingBalance(
-      total: totalAmount,
-      paid: totalPaid,
-    );
-
-    // Debug logging
-    talker.warning(
-      "BottomSheet: TotalAmount: $totalAmount, TotalPaid: $totalPaid, RemainingBalance: $remainingBalance",
-    );
-
     return itemsAsync.when(
       data: (items) {
+        // Calculate alreadyPaid from transaction
+        final alreadyPaid = (transactionAsync.value?.cashReceived ?? 0.0);
+        final pendingPayment = calculateTotalPaid(payments);
+        final totalPaid = alreadyPaid + pendingPayment;
+        
+        // Calculate total amount
+        final totalAmount = calculateTransactionTotal(
+          items: items,
+          transaction: transactionAsync.value ?? widget.transaction,
+        );
+        
+        // Calculate remaining balance
+        final remainingBalance = calculateRemainingBalance(
+          total: totalAmount,
+          paid: totalPaid,
+        );
+        
         // Get digital payment status, defaulting to false if loading or error
         final isDigitalPaymentEnabled =
             digitalPaymentAsync.asData?.value ?? false;
@@ -923,6 +915,12 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                             transactionItemId: transactionItem,
                             transactionId: widget.transactionIdInt.toString(),
                           );
+                          ref.invalidate(
+                            transactionItemsStreamProvider(
+                              transactionId: widget.transactionIdInt.toString(),
+                              branchId: ProxyService.box.getBranchId()!,
+                            ),
+                          );
                           setState(() {
                             _itemToDeleteId = null;
                           });
@@ -978,6 +976,83 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
     );
   }
 
+  Future<void> _deleteAllItems() async {
+    // Check if there's a partial payment
+    if ((widget.transaction.cashReceived ?? 0) > 0) {
+      showErrorNotification(
+        context,
+        'Cannot delete items from a transaction with partial payments',
+      );
+      return;
+    }
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Delete All Items'),
+        content: Text('Are you sure you want to remove all items from this transaction?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: Text('Delete All'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        final items = await ref.read(
+          transactionItemsStreamProvider(
+            transactionId: widget.transactionIdInt,
+            branchId: ProxyService.box.getBranchId()!,
+          ).future,
+        );
+
+        for (final item in items) {
+          await ProxyService.strategy.deleteItemFromCart(
+            transactionItemId: item,
+            transactionId: widget.transactionIdInt.toString(),
+          );
+        }
+
+        // Reset cashReceived when all items are deleted
+        await ProxyService.strategy.updateTransaction(
+          transactionId: widget.transactionIdInt.toString(),
+          cashReceived: 0.0,
+        );
+        
+        // Invalidate all related providers to force refresh
+        ref.invalidate(
+          transactionItemsStreamProvider(
+            transactionId: widget.transactionIdInt.toString(),
+            branchId: ProxyService.box.getBranchId()!,
+          ),
+        );
+        ref.invalidate(
+          transactionByIdProvider(widget.transactionIdInt.toString()),
+        );
+
+        widget.doneDelete();
+        if (mounted) {
+          showSuccessNotification(context, 'All items removed successfully');
+        }
+      } catch (e) {
+        if (mounted) {
+          showErrorNotification(
+            context,
+            'Error removing items: ${e.toString()}',
+          );
+        }
+      }
+    }
+  }
+
   Widget _buildItemsList(
     List<TransactionItem> items, {
     required ITransaction transaction,
@@ -1006,14 +1081,27 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.only(left: 8.0),
-          child: Text(
-            'Items (${items.length})',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey[700],
-            ),
+          padding: const EdgeInsets.symmetric(horizontal: 8.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Items (${items.length})',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey[700],
+                ),
+              ),
+              TextButton.icon(
+                onPressed: _deleteAllItems,
+                icon: Icon(Icons.delete_sweep, size: 18),
+                label: Text('Delete All'),
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.red,
+                ),
+              ),
+            ],
           ),
         ),
         SizedBox(height: 12),
@@ -1104,6 +1192,17 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
                                                 .toString(),
                                           );
                                     }
+                                    // Reset cashReceived when all items are cleared
+                                    await ProxyService.strategy.updateTransaction(
+                                      transactionId: widget.transactionIdInt.toString(),
+                                      cashReceived: 0.0,
+                                    );
+                                    // Invalidate transaction provider to force refresh
+                                    ref.invalidate(
+                                      transactionByIdProvider(
+                                        widget.transactionIdInt.toString(),
+                                      ),
+                                    );
                                     ref.refresh(
                                       transactionItemsStreamProvider(
                                         transactionId: widget.transactionIdInt,
@@ -1292,12 +1391,12 @@ class _BottomSheetContentState extends ConsumerState<_BottomSheetContent>
   }
 }
 
-class _BottomSheetHeader extends HookConsumerWidget {
+class _QuickSellingMobileHeader extends HookConsumerWidget {
   final WidgetRef ref;
   final BuildContext context;
   final ITransaction transaction;
 
-  const _BottomSheetHeader({
+  const _QuickSellingMobileHeader({
     required this.ref,
     required this.context,
     required this.transaction,

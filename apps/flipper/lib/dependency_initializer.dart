@@ -70,6 +70,7 @@ Future<void> _initializeCriticalDependencies() async {
   } else if (foundation.kIsWeb) {
     databaseFactoryOrNull = databaseFactoryFfiWeb;
   }
+
   // Font configuration
   GoogleFonts.config.allowRuntimeFetching = true;
 }
