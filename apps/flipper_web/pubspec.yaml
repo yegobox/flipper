@@ -6,6 +6,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
 version: 1.0.51+967
 
+
 environment:
   sdk: ^3.9.2
 
@@ -25,6 +26,7 @@ dependencies:
   flutter_bloc: ^9.1.1
   equatable: ^2.0.7
   firebase_auth: ^6.1.0
+  firebase_core: ^4.5.0
   firebase_core: ^4.5.0
   ditto_live: ^4.14.2
   permission_handler: ^12.0.1

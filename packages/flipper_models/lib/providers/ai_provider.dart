@@ -282,16 +282,35 @@ class GeminiResponse extends _$GeminiResponse {
           if (choices == null || choices.isEmpty) {
             throw Exception('No choices from AI API');
           }
-          final message = choices[0]['message'];
+          final message = choices[0]['message'] as Map<String, dynamic>;
+          final finishReason = choices[0]['finish_reason'] as String?;
           final content = message['content'] as String?;
+          final reasoning =
+              (message['reasoning_content'] as String?) ??
+              (message['reasoning'] as String?);
 
-          if (content == null) {
-            throw Exception('No content in AI API response');
+          String result = "";
+          if (reasoning != null && reasoning.trim().isNotEmpty) {
+            result += "{{REASONING}}\n$reasoning\n{{/REASONING}}\n";
+          }
+
+          if (content != null && content.trim().isNotEmpty) {
+            result += content;
+          }
+
+          if (result.isEmpty) {
+            throw Exception('No content or reasoning in AI API response');
+          }
+
+          // Append truncation warning if needed
+          if (finishReason == 'length') {
+            result +=
+                '\n\n> [!WARNING]\n> **Note:** The response was truncated because it reached the maximum length limit. You might want to ask a more specific question or request a shorter summary.';
           }
 
           // For successful responses, return the data even if the provider is no longer mounted
           // since we've already successfully obtained the result from the API
-          return content;
+          return result;
         }
       } else {
         // For error responses, we should still check if mounted before throwing
@@ -581,7 +600,8 @@ User Query: $enrichedUserPrompt
       model: aiModel?.modelId,
       generationConfig: GenerationConfig(
         temperature: 0.2,
-        maxOutputTokens: 2048,
+        maxOutputTokens:
+            4096, // Increased from 2048 to allow for reasoning and content
       ),
     );
 
