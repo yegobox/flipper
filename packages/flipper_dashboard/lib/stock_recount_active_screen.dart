@@ -22,6 +22,7 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
   final TextEditingController _quantityController = TextEditingController();
   Variant? _selectedVariant;
   bool _isSubmitting = false;
+  bool _isAddingItem = false;
   bool _canSubmit = true;
 
   @override
@@ -156,6 +157,10 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
       return;
     }
 
+    setState(() {
+      _isAddingItem = true;
+    });
+
     try {
       await ProxyService.strategy.addOrUpdateRecountItem(
         recountId: widget.recountId,
@@ -177,6 +182,12 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
     } catch (e) {
       if (mounted) {
         showErrorNotification(context, 'Error adding item: $e');
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isAddingItem = false;
+        });
       }
     }
   }
@@ -521,7 +532,7 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
                           ),
                           const SizedBox(width: 12),
                           ElevatedButton(
-                            onPressed: _selectedVariant != null
+                            onPressed: _selectedVariant != null && !_isAddingItem
                                 ? _addOrUpdateItem
                                 : null,
                             style: ElevatedButton.styleFrom(
@@ -537,7 +548,18 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
                               ),
                               disabledBackgroundColor: Colors.grey[300],
                             ),
-                            child: const Row(
+                            child: _isAddingItem
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        Color(0xFF0078D4),
+                                      ),
+                                    ),
+                                  )
+                                : const Row(
                               children: [
                                 Icon(Icons.add, size: 20),
                                 SizedBox(width: 6),
