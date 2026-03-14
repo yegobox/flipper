@@ -172,11 +172,30 @@ class OuterVariants extends _$OuterVariants {
   /// Returns an estimate of total pages based on loaded items and whether
   /// there are more pages available. This is an estimate because the provider
   /// does not currently have access to the absolute total count from remote.
+  /// Returns an estimate of total pages based on loaded items and whether
+  /// there are more pages available. This is an estimate because the provider
+  /// does not currently have access to the absolute total count from remote.
   int estimatedTotalPages() {
     if (_totalCount != null) {
       return (_totalCount! / itemsPerPage).ceil();
     }
     return 1;
+  }
+
+  /// Fetches all variants for the branch, bypassing pagination.
+  /// Useful for data export (e.g., Excel).
+  Future<List<Variant>> futureFetchAllVariants() async {
+    final taxTyCds = _isVatEnabled ? ['A', 'B', 'C', 'TT'] : ['D', 'TT'];
+    final currentScanMode = ref.read(scanningModeProvider);
+
+    final paged = await ProxyService.getStrategy(Strategy.capella).variants(
+      branchId: branchId,
+      taxTyCds: taxTyCds,
+      scanMode: currentScanMode,
+      fetchRemote: true, // Ensure we have latest data for export
+    );
+
+    return List<Variant>.from(paged.variants);
   }
 }
 

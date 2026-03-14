@@ -203,10 +203,11 @@ class _ItemsDialogState extends ConsumerState<ItemsDialog> {
                       onPressed: _isExporting
                           ? null
                           : () async {
-                              final variantsAsyncValue = ref.read(
-                                outerVariantsProvider(branchId),
+                              final notifier = ref.read(
+                                outerVariantsProvider(branchId).notifier,
                               );
-                              final variants = variantsAsyncValue.value ?? [];
+                              final variants =
+                                  await notifier.futureFetchAllVariants();
                               await _exportItemsToExcel(variants);
                             },
                       tooltip: 'Export to Excel',
