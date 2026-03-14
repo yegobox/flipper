@@ -169,7 +169,6 @@ Future<void> main() async {
           if (snapshot.hasError) {
             // Remove splash screen before showing error
             FlutterNativeSplash.remove();
-
             // Log full error to Sentry/monitoring
             debugPrint('❌ App initialization error: ${snapshot.error}');
             if (snapshot.stackTrace != null) {
