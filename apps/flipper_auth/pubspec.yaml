@@ -3,7 +3,7 @@ description: "A new Flutter project."
 publish_to: 'none'  # Remove this line if you wish to publish to pub.dev
 
 
-version: 1.0.54+1148
+version: 1.0.55+1149
 
 
 environment:
@@ -39,7 +39,6 @@ dependencies:
 
 #  NOTE: Review and remove obsolete dependency overrides quarterly
 dependency_overrides:
-  image: ^4.1.0  # match flipper_services image version
   image: ^4.1.0  # match flipper_services image version
   archive: ^3.6.1  # unify archive across packages
   mime: ^2.0.0  # satisfy supabase_flutter's mime requirement

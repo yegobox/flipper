@@ -1,10 +1,9 @@
 name: flipper_rw
 description: "A new Flutter project."
-publish_to: "none" 
-publish_to: "none" 
+publish_to: "none"
 
 
-version: 1.181.4252223234954+1756528959
+version: 1.181.4252223234955+1756528960
 
 
 environment:
@@ -115,7 +114,6 @@ dependencies:
   # plugin_platform_interface: ^2.1.0
   web: ^1.1.0
   archive: any
-  archive: any
   bidi: ^2.0.10
   crypto: ^3.0.7
   path_parsing: ">=0.2.0 <2.0.0"
@@ -184,27 +182,12 @@ firebase_remote_config:
   record_linux: 1.3.0
   record_web: 1.3.0
 
-# Conditional dependency: firebase_remote_config only for non-Windows platforms
-# Windows build has CRT linking issues with Firebase C++ SDK
-firebase_remote_config:
-  git:
-    url: https://github.com/firebase/flutterfire.git
-    ref: firebase_remote_config-6.2.0
-    path: packages/firebase_remote_config/firebase_remote_config
-  platforms:
-    - android
-    - ios
-    - macos
-    - web
-    - linux
-
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.0
   msix: ^3.16.12
   patrol: ^3.20.0
-  device_preview: ^1.3.1
   device_preview: ^1.3.1
   # Java interop code generation
   jnigen: ^0.14.2
@@ -231,7 +214,7 @@ msix_config:
   publisher_display_name: yegobox ltd
   identity_name: yegobox.yegoboxflipper
   # identity_name: yegobox.yegoboxflipper_6y224vs1dg1rr
-  msix_version: 1.170.5052.57
+  msix_version: 1.170.5052.58
   publisher: CN=B0F98A1E-8AE8-4B2B-BD1B-F494D4F791AE
   # publisher: CN=B0F334A1E-8AET-4B2C-BD1B-F239D4F791AE
   # B0F98A1E-8AE8-4B2B-BD1B-F494D4F791AE
