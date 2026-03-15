@@ -257,6 +257,26 @@ mixin AuthMixin implements AuthInterface {
 
     final isPaymentCompletedLocally = plan.paymentCompletedByUser ?? false;
 
+    // Check if the next billing date has passed (subscription expired)
+    final now = DateTime.now();
+    final nextBillingDate = plan.nextBillingDate;
+    if (nextBillingDate != null && now.isAfter(nextBillingDate)) {
+      talker.warning(
+        'Subscription expired: nextBillingDate ($nextBillingDate) is in the past',
+      );
+      // Update local state to reflect expired subscription
+      if (isPaymentCompletedLocally) {
+        plan.paymentCompletedByUser = false;
+        await ProxyService.strategy.upsertPlan(
+          businessId: businessId,
+          selectedPlan: plan,
+        );
+      }
+      throw PaymentIncompleteException(
+        'Payment plan expired on $nextBillingDate. Please renew your subscription.',
+      );
+    }
+
     // Always check online if fetchRemote is true, or if local is false
     if (fetchRemote || !isPaymentCompletedLocally) {
       final isPaymentComplete = await ProxyService.httpApi.isPaymentComplete(

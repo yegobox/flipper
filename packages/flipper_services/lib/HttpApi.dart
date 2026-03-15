@@ -267,6 +267,24 @@ class HttpApi implements HttpApiInterface {
           final bool isStatusCompleted =
               planData['payment_status'] == 'COMPLETED';
 
+          // Check if next_billing_date exists and is in the past
+          final String? nextBillingDateStr = planData['next_billing_date'];
+          if (nextBillingDateStr != null) {
+            try {
+              final nextBillingDate = DateTime.parse(nextBillingDateStr);
+              final now = DateTime.now();
+              if (now.isAfter(nextBillingDate)) {
+                // Subscription has expired even if marked as completed
+                print(
+                  'Subscription expired: next_billing_date ($nextBillingDate) is in the past',
+                );
+                return false;
+              }
+            } catch (e) {
+              print('Error parsing next_billing_date: $e');
+            }
+          }
+
           return isCompletedByUser || isStatusCompleted;
         }
       }

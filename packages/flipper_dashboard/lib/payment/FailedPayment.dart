@@ -1,6 +1,5 @@
 import 'dart:async';
-import 'package:flipper_ui/snack_bar_utils.dart';
-import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/helperModels/talker.dart' as talker_import;
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/PaymentHandler.dart';
@@ -13,6 +12,9 @@ import 'package:supabase_models/brick/repository.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:flipper_ui/flipper_ui.dart';
+import 'package:flipper_web/services/ditto_service.dart';
+import 'package:flipper_models/sync/capella/mixins/settings_mixin.dart';
+import 'package:talker_flutter/talker_flutter.dart';
 
 class FailedPayment extends StatefulWidget {
   const FailedPayment({Key? key}) : super(key: key);
@@ -22,12 +24,21 @@ class FailedPayment extends StatefulWidget {
 }
 
 class _FailedPaymentState extends State<FailedPayment>
-    with PaymentHandler, TickerProviderStateMixin {
+    with PaymentHandler, CapellaSettingsMixin, TickerProviderStateMixin {
   late final TextEditingController _phoneNumberController;
   late AnimationController _shakeController;
   late AnimationController _fadeController;
   late Animation<double> _shakeAnimation;
   late Animation<double> _fadeAnimation;
+
+  @override
+  Repository get repository => Repository();
+
+  @override
+  Talker get talker => talker_import.talker;
+
+  @override
+  DittoService get dittoService => DittoService.instance;
 
   @override
   void didChangeDependencies() {
@@ -50,6 +61,10 @@ class _FailedPaymentState extends State<FailedPayment>
   double _originalPrice = 0;
   bool _isValidatingCode = false;
   String? _discountError;
+
+  // Skip payment limit state - managed by CapellaSettingsMixin
+  PaymentSkipSettings? _skipSettings;
+  bool _isLoadingSkipCount = true;
 
   @override
   void initState() {
@@ -76,7 +91,84 @@ class _FailedPaymentState extends State<FailedPayment>
 
     // Keep original setup logic intact
     _setupPlanSubscription();
+    _loadSkipCount();
     _fadeController.forward();
+  }
+
+  Future<void> _loadSkipCount() async {
+    try {
+      final businessId = (await ProxyService.strategy.activeBusiness())?.id;
+      if (businessId == null) {
+        talker.error('No active business found');
+        if (mounted) {
+          setState(() {
+            _isLoadingSkipCount = false;
+          });
+        }
+        return;
+      }
+
+      // Register for realtime updates
+      final ditto = dittoService.dittoInstance;
+      if (ditto != null) {
+        ditto.sync.registerSubscription(
+          'SELECT * FROM payment_skip_settings WHERE businessId = :businessId',
+          arguments: {'businessId': businessId},
+        );
+        ditto.store.registerObserver(
+          'SELECT * FROM payment_skip_settings WHERE businessId = :businessId',
+          arguments: {'businessId': businessId},
+        );
+      }
+
+      final settings = await getPaymentSkipSettings(businessId: businessId);
+      if (mounted) {
+        setState(() {
+          _skipSettings = settings;
+          _isLoadingSkipCount = false;
+        });
+      }
+    } catch (e) {
+      talker.error('Error loading skip count: $e');
+      if (mounted) {
+        setState(() {
+          _isLoadingSkipCount = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _incrementSkipCount() async {
+    try {
+      final businessId = (await ProxyService.strategy.activeBusiness())?.id;
+      if (businessId == null) {
+        talker.error('No active business found');
+        return;
+      }
+
+      await incrementPaymentSkipCount(businessId: businessId);
+
+      // Wait a bit for Ditto to sync the change
+      await Future.delayed(const Duration(milliseconds: 300));
+
+      // Reload settings to get updated count
+      final settings = await getPaymentSkipSettings(businessId: businessId);
+      if (mounted) {
+        setState(() {
+          _skipSettings = settings;
+        });
+      }
+    } catch (e) {
+      talker.error('Error incrementing skip count: $e');
+    }
+  }
+
+  bool get _canSkip {
+    return _isLoadingSkipCount || (_skipSettings?.skipCount ?? 0) < (_skipSettings?.maxSkipsAllowed ?? 5);
+  }
+
+  int get _remainingSkips {
+    return (_skipSettings?.maxSkipsAllowed ?? 5) - (_skipSettings?.skipCount ?? 0);
   }
 
   @override
@@ -209,7 +301,9 @@ class _FailedPaymentState extends State<FailedPayment>
     try {
       final planPrice = _plan?.totalPrice?.toDouble() ?? 0;
       // Initialize _originalPrice to planPrice if it's unset (<= 0) before validation
-      final effectiveOriginalPrice = _originalPrice <= 0 ? planPrice : _originalPrice;
+      final effectiveOriginalPrice = _originalPrice <= 0
+          ? planPrice
+          : _originalPrice;
 
       final result = await ProxyService.strategy.validateDiscountCode(
         code: code.trim().toUpperCase(),
@@ -734,12 +828,49 @@ class _FailedPaymentState extends State<FailedPayment>
           ),
         ),
         const SizedBox(height: 12),
+        if (!_isLoadingSkipCount) ...[
+          if (!_canSkip)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.red.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.red.shade200),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.block, color: Colors.red.shade600, size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Maximum skip limit reached. Please complete payment to continue.',
+                      style: TextStyle(
+                        color: Colors.red.shade700,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else
+            Text(
+              'You can skip $_remainingSkips more time${_remainingSkips == 1 ? '' : 's'}',
+              style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+            ),
+          const SizedBox(height: 8),
+        ],
         SizedBox(
           width: double.infinity,
           height: 48,
           child: OutlinedButton(
-            onPressed: () =>
-                locator<RouterService>().navigateTo(FlipperAppRoute()),
+            onPressed: _isLoadingSkipCount || !_canSkip
+                ? null
+                : () async {
+                    await _incrementSkipCount();
+                    locator<RouterService>().navigateTo(FlipperAppRoute());
+                  },
             style: OutlinedButton.styleFrom(
               side: BorderSide(color: Colors.grey.shade300),
               shape: RoundedRectangleBorder(
@@ -747,11 +878,11 @@ class _FailedPaymentState extends State<FailedPayment>
               ),
             ),
             child: Text(
-              'Skip for Now',
+              _canSkip ? 'Skip for Now' : 'Skip Limit Reached',
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
-                color: Colors.grey[700],
+                color: _canSkip ? Colors.grey[700] : Colors.grey[400],
               ),
             ),
           ),
