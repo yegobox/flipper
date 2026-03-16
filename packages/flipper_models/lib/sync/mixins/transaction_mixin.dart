@@ -569,8 +569,13 @@ mixin TransactionMixin implements TransactionInterface {
       final now = DateTime.now().toUtc();
       final randomRef = randomNumber().toString();
 
+      final userId = ProxyService.box.getUserId();
+      if (userId == null) {
+        throw StateError('User ID is null. Cannot create transaction.');
+      }
+
       final newTransaction = ITransaction(
-        agentId: ProxyService.box.getUserId()!,
+        agentId: userId,
         lastTouched: now,
         reference: randomRef,
         transactionNumber: randomRef,

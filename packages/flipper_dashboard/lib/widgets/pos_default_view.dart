@@ -41,11 +41,13 @@ class PosDefaultView extends ConsumerWidget {
             return ViewModelBuilder<CoreViewModel>.reactive(
               viewModelBuilder: () => CoreViewModel(),
               builder: (context, model, child) {
-                return ListView(
+                return Column(
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: quickSellingView,
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: quickSellingView,
+                      ),
                     ),
                     Padding(
                       padding: const EdgeInsets.all(8.0),
