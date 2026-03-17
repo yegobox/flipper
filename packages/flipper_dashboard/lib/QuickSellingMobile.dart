@@ -745,7 +745,14 @@ class _QuickSellingMobileContentState
     }
 
     return itemsAsync.when(
-      data: (items) {
+      data: (rawItems) {
+        // Sort items newest-first so the last added item appears at the top
+        final items = List<TransactionItem>.from(rawItems)
+          ..sort((a, b) {
+            final aDate = a.createdAt ?? DateTime(2000);
+            final bDate = b.createdAt ?? DateTime(2000);
+            return bDate.compareTo(aDate);
+          });
         // Calculate alreadyPaid from transaction
         final alreadyPaid = (transactionAsync.value?.cashReceived ?? 0.0);
         final pendingPayment = calculateTotalPaid(payments);

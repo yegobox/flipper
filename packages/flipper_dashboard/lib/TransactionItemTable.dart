@@ -2,7 +2,6 @@
 
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart';
-import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_services/proxy.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -1084,6 +1083,8 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     bool isOrdering, {
     required String transactionId,
   }) {
-    ref.refresh(transactionItemsProvider(transactionId: transactionId));
+    // The stream-based transactionItemsStreamProvider auto-updates via
+    // Ditto observer / brick subscription when the underlying data changes.
+    // No manual refresh needed — avoids redundant DB queries and lock contention.
   }
 }

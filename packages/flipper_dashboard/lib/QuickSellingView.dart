@@ -409,8 +409,11 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       ),
       (previous, next) {
         if (next.hasValue && next.value != null) {
+          final isNewTransaction = previous?.value?.id != next.value!.id;
           _prefillCustomerDetails(next.value!);
-          _updateReceivedAmountIfNeeded(next.value!);
+          if (isNewTransaction) {
+            _updateReceivedAmountIfNeeded(next.value!);
+          }
         }
       },
     );
@@ -544,7 +547,16 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
             // Properly handle AsyncValue states instead of accessing .value directly
             internalTransactionItems = transactionItemsAsync.when(
-              data: (items) => items,
+              data: (items) {
+                // Sort newest-first so last added item appears at top
+                final sorted = List<TransactionItem>.from(items)
+                  ..sort((a, b) {
+                    final aDate = a.createdAt ?? DateTime(2000);
+                    final bDate = b.createdAt ?? DateTime(2000);
+                    return bDate.compareTo(aDate);
+                  });
+                return sorted;
+              },
               loading: () => [],
               error: (err, stack) {
                 talker.error('Error loading transaction items', err, stack);
@@ -894,18 +906,6 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           );
         }
 
-        ref.invalidate(
-          transactionItemsStreamProvider(
-            transactionId: transactionAsyncValue.value?.id ?? "",
-            branchId: ProxyService.box.getBranchId()!,
-          ),
-        );
-        ref.invalidate(
-          pendingTransactionStreamProvider(
-            isExpense: ProxyService.box.isOrdering() ?? false,
-          ),
-        );
-
         if (mounted) {
           showSuccessNotification(context, 'All items removed successfully');
         }
@@ -928,7 +928,14 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       ),
     );
     return transactionItemsAsync.when(
-      data: (items) {
+      data: (rawItems) {
+        // Sort newest-first so last added item appears at top
+        final items = List<TransactionItem>.from(rawItems)
+          ..sort((a, b) {
+            final aDate = a.createdAt ?? DateTime(2000);
+            final bDate = b.createdAt ?? DateTime(2000);
+            return bDate.compareTo(aDate);
+          });
         if (items.isEmpty) {
           return SliverToBoxAdapter(
             child: _buildEmptyStateCard(
@@ -1418,17 +1425,6 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                 active: false,
                 ignoreForReport: false,
               );
-              ref.invalidate(
-                transactionItemsStreamProvider(
-                  transactionId: transactionAsyncValue.value?.id ?? "",
-                  branchId: ProxyService.box.getBranchId()!,
-                ),
-              );
-              ref.invalidate(
-                pendingTransactionStreamProvider(
-                  isExpense: ProxyService.box.isOrdering() ?? false,
-                ),
-              );
             },
             child: Text('Remove'),
           ),
@@ -1455,17 +1451,6 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       transactionItemId: item.id.toString(),
       ignoreForReport: false,
       qty: newQty.toDouble(),
-    );
-    ref.invalidate(
-      transactionItemsStreamProvider(
-        transactionId: transactionAsyncValue.value?.id ?? "",
-        branchId: ProxyService.box.getBranchId()!,
-      ),
-    );
-    ref.invalidate(
-      pendingTransactionStreamProvider(
-        isExpense: ProxyService.box.isOrdering() ?? false,
-      ),
     );
   }
 

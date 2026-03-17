@@ -81,7 +81,7 @@ mixin TransactionComputationMixin {
     final currentRemainder = total - alreadyPaid;
     final displayRemainder = currentRemainder > 0 ? currentRemainder : 0.0;
 
-    // Only auto-update if remainder has likely changed or field is empty.
+    // Only auto-update if remainder has meaningfully changed or field is empty.
     if ((displayRemainder - lastAutoSetAmount).abs() > 0.01 ||
         (receivedAmountController != null &&
             receivedAmountController.text.isEmpty)) {
@@ -93,14 +93,8 @@ mixin TransactionComputationMixin {
         onAutoSetAmountChanged(displayRemainder);
       }
 
-      ProxyService.box.writeDouble(
-        key: 'lastSetRemainder',
-        value: displayRemainder,
-      );
-
       final payments = ref.read(paymentMethodsProvider);
       if (payments.isNotEmpty) {
-        // Reuse existing controller to prevent disposal issues
         final payment = payments[0];
         if (payment.controller.text != displayRemainder.toString()) {
           payment.controller.text = displayRemainder.toString();

@@ -276,6 +276,7 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
     if (conditions.isNotEmpty) {
       query += ' WHERE ' + conditions.join(' AND ');
     }
+    query += ' ORDER BY createdAt DESC';
 
     /// A workaround to first register to whole data instead of subset
     /// this is because after test on new device, it can't pull data using complex query
