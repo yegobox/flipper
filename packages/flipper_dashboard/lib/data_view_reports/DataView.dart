@@ -736,16 +736,136 @@ class DataViewState extends ConsumerState<DataView>
     }
   }
 
-  /// Public method to trigger export from parent widgets
+  /// Builds manual export data from the full data source (all pages) without using the grid.
+  /// This avoids exportToExcelWorkbook() hanging on large datasets and ensures all rows are exported.
+  Future<({List<dynamic> manualData, List<String> columnNames})> _buildManualDataForExport() async {
+    final columns = _getTableHeaders();
+    final columnNames = columns.map((c) => c.columnName).toList();
+
+    if (_dataGridSource is TransactionItemDataSource) {
+      final items = _dataGridSource.data.cast<TransactionItem>();
+      if (items.isEmpty) return (manualData: [], columnNames: columnNames);
+
+      // Batch tax rate lookups: one DB call per unique tax type instead of per item
+      final uniqueTaxTypes = items.map((i) => i.taxTyCd ?? 'B').toSet().toList();
+      final taxRateByType = <String, double>{};
+      for (final taxType in uniqueTaxTypes) {
+        try {
+          final config = await ProxyService.getStrategy(Strategy.capella).getByTaxType(taxtype: taxType);
+          taxRateByType[taxType] = config?.taxPercentage ?? 0.0;
+        } catch (_) {
+          taxRateByType[taxType] = 0.0;
+        }
+      }
+
+      final preparedData = <Map<String, dynamic>>[];
+      for (final item in items) {
+        final taxType = item.taxTyCd ?? 'B';
+        final taxPercentage = taxRateByType[taxType] ?? 0.0;
+        preparedData.add({
+          'ItemCode': item.itemCd,
+          'Name': (() {
+            final nameParts = item.name.split('(');
+            final name = nameParts[0].trim().toUpperCase();
+            final number = nameParts.length > 1 ? nameParts[1].split(')')[0] : '';
+            return number.isEmpty ? name : '$name-$number';
+          })(),
+          'Barcode': item.bcd ?? '',
+          'Price': item.price,
+          'TaxRate': taxPercentage,
+          'Qty': item.qty,
+          'TotalSales': item.price * item.qty,
+          'CurrentStock': item.remainingStock ?? 0.0,
+          'TaxPayable': item.taxAmt ?? 0.0,
+          'NetProfit': (item.price * item.qty) - ((item.supplyPriceAtSale ?? 0.0) * item.qty),
+        });
+      }
+      return (manualData: preparedData, columnNames: columnNames);
+    }
+
+    if (_dataGridSource is TransactionDataSource) {
+      final transactions = _dataGridSource.data.cast<ITransaction>();
+      if (transactions.isEmpty) return (manualData: [], columnNames: columnNames);
+
+      final preparedData = <Map<String, dynamic>>[];
+      for (final transaction in transactions) {
+        preparedData.add({
+          'Name': transaction.invoiceNumber?.toString() ?? transaction.id.toString(),
+          'Type': transaction.receiptType ?? 'Sale',
+          'Amount': transaction.subTotal ?? 0.0,
+          'Tax': (transaction.taxAmount ?? 0.0).toDouble(),
+          'Cash': transaction.cashReceived ?? 0.0,
+        });
+      }
+      return (manualData: preparedData, columnNames: columnNames);
+    }
+
+    if (_dataGridSource is StockDataSource) {
+      final variants = _dataGridSource.data.cast<Variant>();
+      if (variants.isEmpty) return (manualData: [], columnNames: columnNames);
+
+      final preparedData = <Map<String, dynamic>>[];
+      for (final v in variants) {
+        preparedData.add({
+          'Name': v.productName ?? '',
+          'CurrentStock': v.stock?.currentStock ?? 0.0,
+          'Price': v.retailPrice ?? 0.0,
+        });
+      }
+      return (manualData: preparedData, columnNames: columnNames);
+    }
+
+    return (manualData: [], columnNames: columnNames);
+  }
+
+  /// Public method to trigger export from parent widgets.
+  /// Exports ALL data in the selected date range (all pages) using manual data path to avoid grid hang.
   Future<void> triggerExport({String headerTitle = "Report"}) async {
-    print('🚀 EXPORT: triggerExport called: headerTitle=$headerTitle, showDetailedReport=${widget.showDetailedReport}');
-    talker.info('triggerExport called: headerTitle=$headerTitle, showDetailedReport=${widget.showDetailedReport}');
+    talker.info('triggerExport: headerTitle=$headerTitle, showDetailedReport=${widget.showDetailedReport}');
     try {
-      // Always use direct export to avoid issues with grid state
-      await _exportDirectly(headerTitle: headerTitle);
-      print('✅ EXPORT: Completed successfully');
+      final expenseTransactions = await ProxyService.getStrategy(Strategy.capella).transactions(
+        startDate: widget.startDate,
+        endDate: widget.endDate,
+        isExpense: true,
+        skipOriginalTransactionCheck: false,
+        branchId: ProxyService.box.getBranchId(),
+      );
+      final sales = await ProxyService.getStrategy(Strategy.capella).transactions(
+        startDate: widget.startDate,
+        endDate: widget.endDate,
+        isExpense: false,
+        skipOriginalTransactionCheck: true,
+        branchId: ProxyService.box.getBranchId(),
+      );
+      final expenses = await Expense.fromTransactions(expenseTransactions, sales: sales);
+
+      final isStockRecount = widget.variants != null && widget.variants!.isNotEmpty;
+      final config = ExportConfig(
+        transactions: sales,
+        endDate: widget.endDate,
+        startDate: widget.startDate,
+      );
+      if (!isStockRecount) {
+        config.grossProfit = await _calculateGrossProfit();
+        config.netProfit = await _calculateNetProfit();
+      }
+
+      final (:manualData, :columnNames) = await _buildManualDataForExport();
+
+      await exportDataGrid(
+        workBookKey: widget.workBookKey,
+        isStockRecount: isStockRecount,
+        config: config,
+        headerTitle: isStockRecount ? "Stock Recount" : headerTitle,
+        expenses: expenses,
+        bottomEndOfRowTitle: widget.showDetailedReport ? "Total Gross Profit" : "Closing balance",
+        showProfitCalculations: widget.showDetailedReport,
+        manualData: manualData.isNotEmpty ? manualData : null,
+        columnNames: manualData.isNotEmpty ? columnNames : null,
+      );
+
+      talker.info('Export completed successfully');
     } catch (e, s) {
-      print('❌ EXPORT: Failed with error: $e');
       talker.error('Export failed: $e');
       talker.error(s);
       rethrow;
@@ -1016,7 +1136,7 @@ class DataViewState extends ConsumerState<DataView>
       manualData = preparedData;
     }
 
-    talker.info('Calling exportDataGrid with manualData=${manualData != null ? manualData.length : 0} rows');
+    talker.info('Calling exportDataGrid with manualData=${manualData.length} rows');
     
     // Use the exportDataGrid method with our config and manual data
     print('📦 EXPORT: Calling exportDataGrid...');
