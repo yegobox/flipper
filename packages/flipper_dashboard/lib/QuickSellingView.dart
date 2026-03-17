@@ -14,6 +14,7 @@ import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/posthog_service.dart';
 import 'package:flipper_ui/flipper_ui.dart';
@@ -899,7 +900,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         );
 
         for (final item in items) {
-          await ProxyService.strategy.updateTransactionItem(
+          await ProxyService.getStrategy(Strategy.capella)
+              .updateTransactionItem(
             transactionItemId: item.id.toString(),
             active: false,
             ignoreForReport: false,
@@ -1420,7 +1422,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           FilledButton(
             onPressed: () async {
               Navigator.of(context).pop();
-              await ProxyService.strategy.updateTransactionItem(
+              await ProxyService.getStrategy(Strategy.capella)
+                  .updateTransactionItem(
                 transactionItemId: item.id.toString(),
                 active: false,
                 ignoreForReport: false,
@@ -1447,7 +1450,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       return;
     }
 
-    await ProxyService.strategy.updateTransactionItem(
+    await ProxyService.getStrategy(Strategy.capella).updateTransactionItem(
       transactionItemId: item.id.toString(),
       ignoreForReport: false,
       qty: newQty.toDouble(),

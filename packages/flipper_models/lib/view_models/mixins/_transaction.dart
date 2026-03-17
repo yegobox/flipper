@@ -283,7 +283,7 @@ mixin TransactionMixinOld {
     );
     if (isEbmEnabled) {
       try {
-        ProxyService.strategy.updateTransaction(
+        await ProxyService.getStrategy(Strategy.capella).updateTransaction(
           sarTyCd: sarTyCd,
           isUnclassfied: true,
           transaction: pendingTransaction,
@@ -291,8 +291,6 @@ mixin TransactionMixinOld {
           ebmSynced: false,
         );
       } catch (e) {
-        // Rethrow the error instead of silently catching it
-        // This ensures the transaction isn't marked as complete when there's an error
         talker.error('Error completing transaction: $e');
         rethrow;
       }
@@ -349,8 +347,8 @@ mixin TransactionMixinOld {
 
       // Update transaction with calculated tax amount
       transaction.taxAmount = totalTax;
-      // First collect the payment
-      ProxyService.strategy.collectPayment(
+      // Collect payment via Capella so items are read from Ditto
+      await ProxyService.getStrategy(Strategy.capella).collectPayment(
         branchId: branchId,
         isProformaMode: ProxyService.box.isProformaMode(),
         isTrainingMode: ProxyService.box.isTrainingMode(),

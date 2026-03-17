@@ -6,6 +6,7 @@ import 'package:flipper_models/helperModels/extensions.dart';
 import 'package:flipper_models/providers/digital_payment_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/view_models/coreViewModel.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/dialogs/SharedTicketDialog.dart';
 import 'package:flipper_ui/flipper_ui.dart';
@@ -539,7 +540,8 @@ class _QuickSellingMobileContentState
                                     }
                                   : () async {
                                       try {
-                                        await ProxyService.strategy
+                                        await ProxyService.getStrategy(
+                                                Strategy.capella)
                                             .deleteItemFromCart(
                                               transactionItemId:
                                                   transactionItem,
@@ -938,7 +940,8 @@ class _QuickSellingMobileContentState
                       }
                     : () async {
                         try {
-                          await ProxyService.strategy.deleteItemFromCart(
+                          await ProxyService.getStrategy(Strategy.capella)
+                              .deleteItemFromCart(
                             transactionItemId: transactionItem,
                             transactionId: widget.transactionIdInt.toString(),
                           );
@@ -1042,7 +1045,7 @@ class _QuickSellingMobileContentState
         );
 
         for (final item in items) {
-          await ProxyService.strategy.deleteItemFromCart(
+          await ProxyService.getStrategy(Strategy.capella).deleteItemFromCart(
             transactionItemId: item,
             transactionId: widget.transactionIdInt.toString(),
           );
@@ -1211,7 +1214,8 @@ class _QuickSellingMobileContentState
                                 onPressed: () async {
                                   try {
                                     for (TransactionItem item in items) {
-                                      await ProxyService.strategy
+                                      await ProxyService.getStrategy(
+                                              Strategy.capella)
                                           .deleteItemFromCart(
                                             transactionItemId: item,
                                             transactionId: widget

@@ -12,6 +12,7 @@ import 'package:flipper_models/sync/mixins/category_mixin.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:brick_core/query.dart' as brick;
 import 'package:flipper_services/Miscellaneous.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:http/src/base_request.dart';
 import 'package:http/src/response.dart';
 import 'package:http/src/streamed_response.dart';
@@ -450,9 +451,138 @@ class CapellaSync extends AiStrategyImpl
     String? customerPhone,
     required String countryCode,
     String? note,
-  }) {
-    // TODO: implement collectPayment
-    throw UnimplementedError();
+  }) async {
+    if (transaction == null) {
+      throw Exception('transaction is null');
+    }
+
+    try {
+      if (note != null) transaction.note = note;
+
+      final userId = ProxyService.box.getUserId();
+      transaction.customerTin = customerTin;
+      transaction.customerChangeDue =
+          cashReceived - (transaction.subTotal ?? 0);
+
+      // Update shift totals via SQLite (shifts aren't managed in Ditto yet)
+      if (userId != null) {
+        try {
+          final shifts = await repository.get<Shift>(
+            policy: OfflineFirstGetPolicy.localOnly,
+            query: brick.Query(
+              where: [
+                brick.Where('userId').isExactly(userId),
+                brick.Where(
+                  'businessId',
+                ).isExactly(ProxyService.box.getBusinessId()!),
+                brick.Where('status').isExactly(ShiftStatus.Open.name),
+              ],
+            ),
+          );
+          final currentShift = shifts.lastOrNull;
+          if (currentShift != null) {
+            num saleAmount = transaction.subTotal ?? 0.0;
+            if (!isIncome) saleAmount = -saleAmount;
+
+            final updatedCashSales = (currentShift.cashSales ?? 0) + saleAmount;
+            final updatedExpectedCash =
+                currentShift.openingBalance + updatedCashSales;
+
+            await repository.upsert<Shift>(
+              currentShift.copyWith(
+                cashSales: updatedCashSales,
+                expectedCash: updatedExpectedCash,
+              ),
+            );
+          }
+        } catch (e) {
+          talker.warning('Shift update during collectPayment failed: $e');
+        }
+      }
+
+      if (countryCode != "N/A" && countryCode != "") {
+        transaction.currentSaleCustomerPhoneNumber =
+            countryCode +
+            (customerPhone ??
+                ProxyService.box.currentSaleCustomerPhoneNumber())!;
+      }
+      transaction.customerPhone =
+          customerPhone ?? ProxyService.box.currentSaleCustomerPhoneNumber();
+      transaction.customerName =
+          customerName ?? ProxyService.box.customerName();
+
+      // Fetch items from Ditto (not SQLite)
+      final items = await transactionItems(transactionId: transaction.id);
+      transaction.numberOfItems = items.length;
+      transaction.discountAmount = items.fold<double>(
+        0.0,
+        (a, b) => a + (b.dcAmt?.toDouble() ?? 0.0),
+      );
+
+      final computedSubTotal = items.isEmpty
+          ? cashReceived
+          : items.fold(0.0, (a, b) => a + (b.price * b.qty));
+      transaction.subTotal = computedSubTotal;
+
+      if (transaction.isLoan == true) {
+        transaction.originalLoanAmount ??= computedSubTotal;
+        final totalPaidSoFar = (transaction.cashReceived ?? 0.0) + cashReceived;
+        transaction.cashReceived = totalPaidSoFar;
+        transaction.remainingBalance = computedSubTotal - totalPaidSoFar;
+        transaction.lastPaymentDate = DateTime.now().toUtc();
+        transaction.lastPaymentAmount = cashReceived;
+      } else {
+        transaction.cashReceived =
+            (transaction.cashReceived ?? 0.0) + cashReceived;
+        transaction.remainingBalance =
+            computedSubTotal - (transaction.cashReceived ?? 0.0);
+      }
+
+      transaction.transactionType = transactionType;
+      transaction.categoryId = categoryId;
+      transaction.isIncome = isIncome;
+      transaction.isExpense = !isIncome;
+      transaction.paymentType = ProxyService.box.paymentType() ?? paymentType;
+
+      // Write transaction to Ditto
+      await updateTransaction(
+        transaction: transaction,
+        subTotal: transaction.subTotal,
+        cashReceived: transaction.cashReceived,
+        customerName: transaction.customerName,
+        customerTin: customerTin,
+        customerPhone: transaction.customerPhone,
+        note: transaction.note,
+        updatedAt: DateTime.now(),
+        lastTouched: DateTime.now(),
+        remainingBalance: transaction.remainingBalance?.toDouble(),
+        isLoan: transaction.isLoan,
+      );
+
+      // Defer variant lastTouched updates to avoid DB contention during receipt
+      Future.delayed(const Duration(seconds: 5), () async {
+        try {
+          final variantIds = items
+              .map((i) => i.variantId)
+              .whereType<String>()
+              .toSet();
+          for (final id in variantIds) {
+            final variant = await getVariant(id: id);
+            if (variant != null) {
+              variant.lastTouched = DateTime.now().toUtc();
+              await repository.upsert<Variant>(variant);
+            }
+          }
+        } catch (e) {
+          talker.warning('Deferred variant touch failed: $e');
+        }
+      });
+
+      return transaction;
+    } catch (e, s) {
+      talker.error('Capella collectPayment failed: $e', s);
+      rethrow;
+    }
   }
 
   @override

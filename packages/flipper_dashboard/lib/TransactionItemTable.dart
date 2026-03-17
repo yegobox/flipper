@@ -1,6 +1,7 @@
 // ignore_for_file: unused_result
 
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/proxy.dart';
 
@@ -773,7 +774,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     try {
       for (final item in itemsToDelete) {
         if (!(item.partOfComposite ?? false)) {
-          await ProxyService.strategy.flipperDelete(
+          await ProxyService.getStrategy(Strategy.capella).flipperDelete(
             id: item.id,
             endPoint: 'transactionItem',
           );
@@ -863,18 +864,13 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     });
 
     try {
-      await ProxyService.strategy.updateTransactionItem(
+      await ProxyService.getStrategy(Strategy.capella).updateTransactionItem(
         transactionItemId: item.id,
-        // Only pass the specific parameter that is intended to be changed.
-        // If qty is null, it means we are updating price. If price is null, we are updating qty.
-        // If isIncrement is true, we pass null for qty and let the backend handle the increment.
         qty: isIncrement ? null : qty,
         price: price,
         incrementQty: isIncrement,
         ignoreForReport: false,
-        quantityRequested: isIncrement
-            ? null
-            : qty?.toInt(), // Only if setting exact quantity
+        quantityRequested: isIncrement ? null : qty?.toInt(),
       );
       // After successful update, refresh the provider to update the UI
       _refreshTransactionItems(isOrdering, transactionId: item.transactionId!);
@@ -1037,7 +1033,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     });
     try {
       if (!(item.partOfComposite ?? false)) {
-        await ProxyService.strategy.flipperDelete(
+        await ProxyService.getStrategy(Strategy.capella).flipperDelete(
           id: item.id,
           endPoint: 'transactionItem',
         );
@@ -1058,7 +1054,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
             final deletableItem = await ProxyService.strategy
                 .getTransactionItem(variantId: composite.variantId!);
             if (deletableItem != null) {
-              await ProxyService.strategy.flipperDelete(
+              await ProxyService.getStrategy(Strategy.capella).flipperDelete(
                 id: deletableItem.id,
                 endPoint: 'transactionItem',
               );

@@ -852,7 +852,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
           active: true,
           branchId: pendingTransaction.branchId!,
           prc: variation.retailPrice ?? 0.0,
-          ttCatCd: "B",
+          ttCatCd: variation.ttCatCd,
           itemSeq: variation.itemSeq,
           isrccCd: variation.isrccCd,
           isrccNm: variation.isrccNm,
@@ -1179,7 +1179,6 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     // Crucial for resumption: update agentId if transaction object is provided
     if (transaction != null) {
       addUpdate('agentId', transaction.agentId);
-      addUpdate('remainingBalance', transaction.remainingBalance);
     }
 
     if (receiptType != null) addUpdate('receiptType', receiptType);
