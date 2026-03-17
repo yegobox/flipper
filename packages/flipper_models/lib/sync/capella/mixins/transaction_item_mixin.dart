@@ -245,18 +245,20 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
     /// there is open issue on ditto https://support.ditto.live/hc/en-us/requests/2648?page=1
     ///
     final syncBranchId = branchId ?? ProxyService.box.getBranchId();
+    dynamic broadSubscription;
+    dynamic broadObserver;
     if (syncBranchId != null) {
-      ditto.sync.registerSubscription(
+      broadSubscription = ditto.sync.registerSubscription(
         "SELECT * FROM transaction_items WHERE branchId = :branchId",
         arguments: {'branchId': syncBranchId},
       );
-      ditto.store.registerObserver(
+      broadObserver = ditto.store.registerObserver(
         "SELECT * FROM transaction_items WHERE branchId = :branchId",
         arguments: {'branchId': syncBranchId},
       );
     }
     // Register subscription to sync data
-    ditto.sync.registerSubscription(query, arguments: arguments);
+    final specificSubscription = ditto.sync.registerSubscription(query, arguments: arguments);
 
     final controller = StreamController<List<TransactionItem>>.broadcast();
     dynamic observer;
@@ -307,6 +309,9 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
 
     controller.onCancel = () async {
       await observer?.cancel();
+      await broadObserver?.cancel();
+      broadSubscription?.cancel();
+      specificSubscription.cancel();
       await controller.close();
     };
 

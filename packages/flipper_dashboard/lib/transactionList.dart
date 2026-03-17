@@ -43,16 +43,15 @@ class TransactionListState extends ConsumerState<TransactionList>
     workBookKey = GlobalKey<SfDataGridState>();
     dataViewKey = GlobalKey<DataViewState>();
   }
-  
+
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
   }
 
-  // Export all data, not just current page
+  // Export using the already-mounted DataView on screen
   Future<void> _exportAllData() async {
-    final showDetailed = ref.read(toggleBooleanValueProvider);
     final dateRange = ref.read(dateRangeProvider);
     final startDate = dateRange.startDate;
     final endDate = dateRange.endDate;
@@ -70,128 +69,24 @@ class TransactionListState extends ConsumerState<TransactionList>
     }
 
     try {
-      // Show loading indicator
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Row(
-              children: [
-                SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                  ),
-                ),
-                SizedBox(width: 16),
-                Text('Fetching all data for export...'),
-              ],
-            ),
-            duration: Duration(seconds: 30),
-          ),
-        );
-      }
-
-      // Fetch ALL data without pagination for export
-      List<dynamic> allData;
-
-      if (showDetailed) {
-        // The provider is a StreamProvider<List<TransactionItem>>.
-        // Riverpod already unwraps the stream; the `data` callback receives
-        // the latest List<TransactionItem> directly — NOT a Stream.
-        final asyncValue = ref.read(transactionItemListProvider);
-        allData = asyncValue.when<List<dynamic>>(
-          data: (items) => items.toList(),
-          loading: () => throw Exception('Data is still loading, please try again'),
-          error: (error, stack) => throw error,
-        );
-      } else {
-        // Same for StreamProvider<List<ITransaction>>.
-        final asyncValue = ref.read(
-          transactionListProvider(
-            forceRealData: !(ProxyService.box.enableDebug() ?? false),
-          ),
-        );
-        allData = asyncValue.when<List<dynamic>>(
-          data: (transactions) => transactions.toList(),
-          loading: () => throw Exception('Data is still loading, please try again'),
-          error: (error, stack) => throw error,
-        );
-      }
-
-      // Dismiss loading snackbar
-      if (mounted) {
-        ScaffoldMessenger.of(context).clearSnackBars();
-      }
-
-      if (allData.isEmpty) {
+      if (dataViewKey.currentState == null) {
+        // DataView not yet mounted (e.g. no data / still loading)
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('No data to export'),
+              content: Text('No data to export. Please wait for data to load.'),
               backgroundColor: Colors.orange,
             ),
           );
         }
         return;
       }
-
-      // Create a temporary DataView with all data for export
-      final tempDataViewKey = GlobalKey<DataViewState>();
-
-      // Build the DataView widget (not displayed, just for export)
-      final tempDataView = DataView(
-        key: tempDataViewKey,
-        transactions: showDetailed ? null : allData.cast<ITransaction>(),
-        transactionItems: showDetailed ? allData.cast<TransactionItem>() : null,
-        startDate: startDate,
-        endDate: endDate,
-        rowsPerPage: allData.length,
-        showDetailedReport: showDetailed,
-        showDetailed: showDetailed,
-        workBookKey: workBookKey,
-        forceEmpty: allData.isEmpty,
-        disablePagination: true,
-      );
-
-      // Mount the widget temporarily in an overlay to trigger export
-      final overlay = Overlay.of(context);
-      late OverlayEntry overlayEntry;
-
-      overlayEntry = OverlayEntry(
-        builder: (context) => Positioned(
-          left: -10000, // Off-screen
-          top: -10000,
-          child: Material(
-            child: SizedBox(width: 1, height: 1, child: tempDataView),
-          ),
-        ),
-      );
-
-      overlay.insert(overlayEntry);
-
-      // Wait for widget to build
-      await Future.delayed(const Duration(milliseconds: 500));
-
-      // Trigger export
-      await tempDataViewKey.currentState?.triggerExport(headerTitle: "Report");
-
-      // Remove overlay
-      overlayEntry.remove();
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Exported ${allData.length} records successfully'),
-            backgroundColor: Colors.green,
-            duration: const Duration(seconds: 3),
-          ),
-        );
-      }
+      // Call triggerExport directly on the already-mounted DataView.
+      // This avoids creating a second overlay widget (which would open new
+      // Ditto live queries and slow the export down).
+      await dataViewKey.currentState!.triggerExport(headerTitle: 'Report');
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).clearSnackBars();
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Export failed: ${e.toString()}'),
@@ -200,26 +95,6 @@ class TransactionListState extends ConsumerState<TransactionList>
           ),
         );
       }
-    }
-  }
-
-  /// Debug method to verify current database strategy
-  void _debugCurrentStrategy() {
-    try {
-      // This will help us verify that Capella is being used
-      final strategy = ProxyService.strategy;
-      print('🔍 Current database strategy: ${strategy.runtimeType}');
-      
-      // If we see 'Isar' or 'SQLite' in the type name, we know it's using local DB
-      final strategyName = strategy.runtimeType.toString().toLowerCase();
-      if (strategyName.contains('isar') || strategyName.contains('sqlite')) {
-        print('⚠️ WARNING: Using local database - may cause locks!');
-        print('💡 Consider forcing Capella strategy in main.dart');
-      } else {
-        print('✅ Using cloud database - no locks expected');
-      }
-    } catch (e) {
-      print('⚠️ Could not determine database strategy: $e');
     }
   }
 
@@ -232,9 +107,6 @@ class TransactionListState extends ConsumerState<TransactionList>
     // Watch the toggle value and immediately refresh the appropriate provider when it changes
     final showDetailed = ref.watch(toggleBooleanValueProvider);
     final rowsPerPage = ref.watch(rowsPerPageProvider);
-
-    // Debug: Log current strategy to verify Capella is being used
-    _debugCurrentStrategy();
 
     // Calculate pagination parameters
     // TEMPORARILY DISABLED: Pagination not implemented in backend
@@ -264,9 +136,7 @@ class TransactionListState extends ConsumerState<TransactionList>
     // Select and refresh the appropriate provider based on showDetailed
     if (showDetailed) {
       // For detailed view, use transactionItemListProvider
-      dataProvider = ref.watch(
-        transactionItemListProvider,
-      );
+      dataProvider = ref.watch(transactionItemListProvider);
     } else {
       // For summary view, use transactionListProvider with pagination
       dataProvider = ref.watch(
@@ -831,7 +701,11 @@ class TransactionListState extends ConsumerState<TransactionList>
               onPressed: () {
                 // Invalidate providers to retry
                 ref.invalidate(transactionItemListProvider);
-                ref.invalidate(transactionListProvider(forceRealData: !(ProxyService.box.enableDebug() ?? false)));
+                ref.invalidate(
+                  transactionListProvider(
+                    forceRealData: !(ProxyService.box.enableDebug() ?? false),
+                  ),
+                );
               },
               icon: const Icon(Icons.refresh_rounded),
               label: const Text('Try Again'),

@@ -10,16 +10,29 @@ class ConnectedPeersWidget extends ConsumerWidget {
     final presenceAsync = ref.watch(dittoPresenceProvider);
 
     return presenceAsync.when(
-      data: (peers) {
+      data: (presenceGraph) {
+        if (presenceGraph == null) {
+          return const Tooltip(
+            message: 'Ditto not initialized',
+            child: Icon(Icons.cloud_off_outlined, color: Colors.grey, size: 20),
+          );
+        }
+
+        final peers = presenceGraph.remotePeers;
+        final localPeer = presenceGraph.localPeer;
         final count = peers.length;
         final isConnected = count > 0;
         return Tooltip(
-          message: isConnected ? '$count Peers connected' : 'No peers connected',
+          message: isConnected
+              ? 'Local: ${localPeer.deviceName}\n${localPeer.peerKeyString}\n\nRemote Peers ($count):\n${peers.map((p) => '${p.deviceName}\n${p.peerKeyString}').join('\n')}'
+              : 'No peers connected',
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
-                isConnected ? Icons.cloud_done_outlined : Icons.cloud_off_outlined,
+                isConnected
+                    ? Icons.cloud_done_outlined
+                    : Icons.cloud_off_outlined,
                 color: isConnected ? Colors.green : Colors.grey,
                 size: 20,
               ),
