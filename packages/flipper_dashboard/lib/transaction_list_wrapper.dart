@@ -157,11 +157,16 @@ class TransactionListWrapperState
         end: initialEndDate,
       ),
       builder: (context, child) {
-        return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: Theme.of(context).colorScheme,
+        return Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 400, maxHeight: 600),
+            child: Theme(
+              data: Theme.of(context).copyWith(
+                colorScheme: Theme.of(context).colorScheme,
+              ),
+              child: child!,
+            ),
           ),
-          child: child!,
         );
       },
     );
@@ -170,9 +175,11 @@ class TransactionListWrapperState
       ref.read(dateRangeProvider.notifier).setStartDate(picked.start);
       ref.read(dateRangeProvider.notifier).setEndDate(picked.end);
 
-      // Refresh transaction data
-      ref.invalidate(transactionsProvider);
-      ref.invalidate(transactionItemListProvider);
+      // Defer heavy provider invalidation to let the dialog close smoothly
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.invalidate(transactionsProvider);
+        ref.invalidate(transactionItemListProvider);
+      });
     }
   }
 }
