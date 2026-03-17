@@ -43,6 +43,62 @@ abstract class DynamicDataSource<T> extends DataGridSource {
     notifyListeners();
   }
 
+  /// Loads ALL rows into the grid (bypassing rowsPerPage) so that
+  /// SfDataGrid.exportToExcelWorkbook() can export every row, not just the current page.
+  void loadAllRowsForExport() {
+    _dataGridRows = data.map((item) {
+      if (item is TransactionItem && showPluReport) {
+        return _buildTransactionItemRow(item);
+      } else if (item is ITransaction && !showPluReport) {
+        return _buildITransactionRow(item);
+      } else if (item is Variant) {
+        return _buildStockRow(item);
+      } else {
+        final int numberOfColumns = showPluReport ? 10 : 5;
+        return DataGridRow(
+          cells: List.generate(
+            numberOfColumns,
+            (index) => DataGridCell(columnName: 'empty', value: ''),
+          ),
+        );
+      }
+    }).toList();
+    talker.info(
+      'DynamicDataSource: loadAllRowsForExport - total rows: ${_dataGridRows.length}',
+    );
+    notifyListeners();
+  }
+
+  /// Restores paginated rows after export is done.
+  void restorePagedRowsAfterExport(int pageIndex) {
+    final startIndex = pageIndex * _rowsPerPage;
+    final endIndex = (startIndex + _rowsPerPage > data.length)
+        ? data.length
+        : startIndex + _rowsPerPage;
+    if (startIndex < data.length) {
+      _dataGridRows = data.getRange(startIndex, endIndex).map((item) {
+        if (item is TransactionItem && showPluReport) {
+          return _buildTransactionItemRow(item);
+        } else if (item is ITransaction && !showPluReport) {
+          return _buildITransactionRow(item);
+        } else if (item is Variant) {
+          return _buildStockRow(item);
+        } else {
+          final int numberOfColumns = showPluReport ? 10 : 5;
+          return DataGridRow(
+            cells: List.generate(
+              numberOfColumns,
+              (index) => DataGridCell(columnName: 'empty', value: ''),
+            ),
+          );
+        }
+      }).toList();
+    } else {
+      _dataGridRows = buildPaginatedDataGridRows();
+    }
+    notifyListeners();
+  }
+
   @override
   Future<bool> handlePageChange(int oldPageIndex, int newPageIndex) async {
     talker.info(

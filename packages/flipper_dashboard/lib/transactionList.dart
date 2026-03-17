@@ -8,6 +8,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
+import 'package:flipper_ui/snack_bar_utils.dart';
 
 class TransactionList extends StatefulHookConsumerWidget {
   TransactionList({
@@ -60,11 +61,9 @@ class TransactionListState extends ConsumerState<TransactionList>
     if (startDate == null || endDate == null) {
       print('🔴 EXPORT BUTTON: No date range selected');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please select a date range first'),
-            backgroundColor: Colors.orange,
-          ),
+        showWarningNotification(
+          context,
+          'Please select a date range first',
         );
       }
       return;
@@ -78,11 +77,9 @@ class TransactionListState extends ConsumerState<TransactionList>
         // DataView not yet mounted (e.g. no data / still loading)
         print('🔴 EXPORT BUTTON: DataView not mounted');
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('No data to export. Please wait for data to load.'),
-              backgroundColor: Colors.orange,
-            ),
+          showWarningNotification(
+            context,
+            'No data to export. Please wait for data to load.',
           );
         }
         return;
@@ -91,17 +88,19 @@ class TransactionListState extends ConsumerState<TransactionList>
       // This avoids creating a second overlay widget (which would open new
       // Ditto live queries and slow the export down).
       print('🔵 EXPORT BUTTON: Calling triggerExport...');
+      
+      // Delay so the UI has time to show the loading spinner state
+      await Future.delayed(const Duration(milliseconds: 100));
+      
       await dataViewKey.currentState!.triggerExport(headerTitle: 'Report');
       print('🔵 EXPORT BUTTON: triggerExport completed');
     } catch (e) {
       print('🔴 EXPORT BUTTON: Error caught: $e');
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Export failed: ${e.toString()}'),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 5),
-          ),
+        showErrorNotification(
+          context,
+          'Export failed: ${e.toString()}',
+          duration: const Duration(seconds: 5),
         );
       }
     }

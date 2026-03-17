@@ -12,10 +12,7 @@ class Expense {
   final double amount;
 
   /// Creates a new Expense instance
-  const Expense({
-    required this.name,
-    required this.amount,
-  });
+  const Expense({required this.name, required this.amount});
 
   /// Creates an Expense from an ITransaction
   factory Expense.fromTransaction(ITransaction transaction) {
@@ -26,36 +23,35 @@ class Expense {
   }
 
   /// Creates a list of Expense objects from a list of ITransaction objects
-  static Future<List<Expense>> fromTransactions(List<ITransaction> transactions,
-      {List<ITransaction>? sales}) async {
+  static Future<List<Expense>> fromTransactions(
+    List<ITransaction> transactions, {
+    List<ITransaction>? sales,
+  }) async {
     double taxSum = 0;
     // if we have sales, then get related transaction item to get tax expenses
-    if (sales != null) {
-      print('EXPENSE TAX CALCULATION - Processing ${sales.length} sales');
-      for (var sale in sales) {
-        print(
-            'EXPENSE TAX CALCULATION - Sale ID: ${sale.id}, Amount: ${sale.subTotal}');
-        final relatedTransactionItems = await ProxyService.getStrategy(Strategy.capella)
-            .transactionItems(transactionId: sale.id);
-        print(
-            'EXPENSE TAX CALCULATION - Found ${relatedTransactionItems.length} items for sale ${sale.id}');
+    if (sales != null && sales.isNotEmpty) {
+      print('EXPENSE TAX CALCULATION - Processing ${sales.length} sales in ONE bulk query');
 
+      // Fetch ALL transaction items for all sales in a single bulk query
+      // This avoids N individual DB calls which was causing the UI hang
+      final saleIds = sales.map((s) => s.id!).toList();
+      
+      // `transactionItemsForIds` is declared on TransactionItemInterface,
+      // which DatabaseSyncInterface implements — no cast needed.
+      final strategy = ProxyService.getStrategy(Strategy.capella);
+      Map<String, List<TransactionItem>> groupedItems = {};
+      
+      try {
+        groupedItems = await strategy.transactionItemsForIds(saleIds);
+      } catch (e) {
+        print('EXPENSE TAX CALCULATION - Bulk fetch failed, skipping tax calc: $e');
+      }
+
+      // Process the grouped items in memory (no more DB calls)
+      for (final sale in sales) {
+        final relatedTransactionItems = groupedItems[sale.id] ?? [];
         for (var item in relatedTransactionItems) {
-          // Only include tax as expense if item is tax type B
-          print(
-              'EXPENSE TAX CALCULATION - Item: ${item.name}, taxTyCd: ${item.taxTyCd}, taxAmt: ${item.taxAmt}, price: ${item.price}, qty: ${item.qty}');
           if (item.taxTyCd == 'B') {
-            print(
-                'EXPENSE TAX CALCULATION - Adding tax amount ${item.taxAmt} for item ${item.name}');
-            // Calculate expected tax for comparison
-            double expectedTax = item.price * 18 / 118;
-            print(
-                'EXPENSE TAX CALCULATION - Expected tax (price * 18 / 118): $expectedTax vs actual: ${item.taxAmt}');
-            // Calculate alternative tax calculation
-            double alternativeTax = item.price * 18 / 100;
-            print(
-                'EXPENSE TAX CALCULATION - Alternative tax (price * 18 / 100): $alternativeTax');
-
             taxSum += item.taxAmt ?? 0.0;
           }
         }

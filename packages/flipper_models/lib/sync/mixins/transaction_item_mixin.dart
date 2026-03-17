@@ -504,6 +504,33 @@ mixin TransactionItemMixin implements TransactionItemInterface {
   }
 
   @override
+  Future<Map<String, List<TransactionItem>>> transactionItemsForIds(
+    List<String> transactionIds,
+  ) async {
+    if (transactionIds.isEmpty) return {};
+
+    try {
+      final items = await repository.get<TransactionItem>(
+        policy: OfflineFirstGetPolicy.localOnly,
+        query: Query(where: [Where('transactionId').isIn(transactionIds)]),
+      );
+
+      // Group by transactionId
+      final grouped = <String, List<TransactionItem>>{};
+      for (final item in items) {
+        final tid = item.transactionId;
+        if (tid != null) {
+          grouped.putIfAbsent(tid, () => []).add(item);
+        }
+      }
+      return grouped;
+    } catch (e) {
+      talker.error('Error in transactionItemsForIds: $e');
+      return {};
+    }
+  }
+
+  @override
   Future<void> updateTransactionItem({
     double? qty,
     bool? ignoreForReport,
@@ -599,7 +626,7 @@ mixin TransactionItemMixin implements TransactionItemInterface {
       item.quantityShipped = quantityShipped ?? item.quantityShipped;
       item.doneWithTransaction =
           doneWithTransaction ?? item.doneWithTransaction;
-      
+
       // Batch database operations to reduce lock contention
       // First upsert the item
       await repository.upsert(

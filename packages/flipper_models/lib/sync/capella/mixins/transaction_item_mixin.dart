@@ -50,14 +50,6 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
         talker.error('Ditto not initialized:9');
         return [];
       }
-      ditto.sync.registerSubscription(
-        "SELECT * FROM transaction_items WHERE branchId = :branchId",
-        arguments: {'branchId': branchId},
-      );
-      ditto.store.registerObserver(
-        "SELECT * FROM transaction_items WHERE branchId = :branchId",
-        arguments: {'branchId': branchId},
-      );
 
       String query = 'SELECT * FROM transaction_items';
       final arguments = <String, dynamic>{};
@@ -88,9 +80,8 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
         query += ' WHERE ' + conditions.join(' AND ');
       }
 
-      // Subscribe to ensure we have the latest data
-      await ditto.sync.registerSubscription(query, arguments: arguments);
-
+      // Simple one-time fetch - no subscriptions needed here
+      // (subscriptions are managed globally, not per-query)
       final result = await ditto.store.execute(query, arguments: arguments);
 
       return result.items.map((doc) {
@@ -100,6 +91,52 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
     } catch (e) {
       talker.error('Error getting transaction items: $e');
       return [];
+    }
+  }
+
+  /// Fetches transaction items for MULTIPLE transaction IDs in a single query.
+  /// Use this for bulk operations (e.g. export tax calculation) to avoid N+1 queries.
+  @override
+  Future<Map<String, List<TransactionItem>>> transactionItemsForIds(
+    List<String> transactionIds,
+  ) async {
+    if (transactionIds.isEmpty) return {};
+    try {
+      final ditto = dittoService.dittoInstance;
+      if (ditto == null) {
+        talker.error('Ditto not initialized for transactionItemsForIds');
+        return {};
+      }
+
+      // Build: WHERE transactionId IN (:t0, :t1, :t2, ...)
+      final placeholders = transactionIds
+          .asMap()
+          .entries
+          .map((e) => ':t${e.key}')
+          .join(', ');
+      final arguments = <String, dynamic>{
+        for (var i = 0; i < transactionIds.length; i++) 't$i': transactionIds[i]
+      };
+
+      final query =
+          'SELECT * FROM transaction_items WHERE transactionId IN ($placeholders)';
+
+      final result = await ditto.store.execute(query, arguments: arguments);
+
+      // Group by transactionId
+      final grouped = <String, List<TransactionItem>>{};
+      for (final doc in result.items) {
+        final data = Map<String, dynamic>.from(doc.value);
+        final item = _convertFromDittoDocument(data);
+        final tid = item.transactionId;
+        if (tid != null) {
+          grouped.putIfAbsent(tid, () => []).add(item);
+        }
+      }
+      return grouped;
+    } catch (e) {
+      talker.error('Error in transactionItemsForIds: $e');
+      return {};
     }
   }
 
@@ -263,7 +300,10 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
     // }
     // Register subscription to sync data
     talker.debug('Registering specific subscription: $query');
-    final specificSubscription = ditto.sync.registerSubscription(query, arguments: arguments);
+    final specificSubscription = ditto.sync.registerSubscription(
+      query,
+      arguments: arguments,
+    );
 
     final controller = StreamController<List<TransactionItem>>.broadcast();
     dynamic observer;
