@@ -39,18 +39,37 @@ class CronService {
   /// List to keep track of active timers for proper cleanup
   final List<Timer> _activeTimers = [];
 
-  /// Serializes cron DB operations so periodic timers don't cause lock contention.
-  bool _cronDbBusy = false;
+  /// Whether an exclusive cron task is currently running.
+  /// Only one DB-touching task can execute at a time; others are skipped.
+  bool _cronTaskRunning = false;
 
   /// Stream subscription for delegation monitoring (desktop only)
   StreamSubscription<List<TransactionDelegation>>? _delegationsSubscription;
 
   /// Constants for timer durations
-  // static const int _counterSyncMinutes = 40;
   static const int _isolateMessageSeconds = 40;
   static const int _analyticsSyncMinutes = 30;
-  // static const int _databaseBackupMinutes = 30;
-  // static const int _queueCleanupMinutes = 40;
+
+  /// Runs [task] only if no other exclusive cron task is active.
+  /// If another task is running, this invocation is silently skipped
+  /// so that periodic timers never queue up work.
+  Future<void> _runExclusiveTask(
+    String name,
+    Future<void> Function() task,
+  ) async {
+    if (_cronTaskRunning) {
+      talker.debug("Skipping '$name': another cron task is running");
+      return;
+    }
+    _cronTaskRunning = true;
+    try {
+      await task();
+    } catch (e, stackTrace) {
+      talker.error("Cron task '$name' failed: $e", stackTrace);
+    } finally {
+      _cronTaskRunning = false;
+    }
+  }
 
   /// Schedules various tasks and timers to handle data synchronization, device publishing,
   /// and other periodic operations.
@@ -64,15 +83,18 @@ class CronService {
   /// - Periodically attempts to publish the device to the server
   Future<void> schedule() async {
     try {
-      ProxyService.strategy.businesses(
+      await ProxyService.strategy.businesses(
         userId: ProxyService.box.getUserId() ?? "",
         fetchOnline: true,
       );
       await _initializeData();
-      _setupPeriodicTasks();
       await _configureServices();
       await _setupConnectivity();
       await _setupFirebaseMessaging();
+
+      // Start periodic timers only after every initialization step has
+      // finished so that background timers never compete with init work.
+      _setupPeriodicTasks();
 
       talker.info("CronService: All scheduled tasks initialized successfully");
     } catch (e, stackTrace) {
@@ -361,7 +383,7 @@ class CronService {
       }
       final uri = await ProxyService.box.getServerUrl();
       if (uri != null && uri.isNotEmpty) {
-        ProxyService.http.getUniversalProducts(
+        await ProxyService.http.getUniversalProducts(
           Uri.parse('${uri}itemClass/selectItemsClass'),
           headers: {"Content-Type": "application/json"},
           body: jsonEncode({
@@ -381,25 +403,21 @@ class CronService {
         return;
       }
 
-      ProxyService.strategy.ebm(branchId: branchId, fetchRemote: true);
+      await ProxyService.strategy.ebm(branchId: branchId, fetchRemote: true);
       final queueLength = await ProxyService.strategy.queueLength();
 
-      ProxyService.tax.taxConfigs(branchId: branchId).then((_) {});
-      ProxyService.strategy
-          .hydrateDate(
-            branchId: (await ProxyService.strategy.activeBranch(
-              branchId: ProxyService.box.getBranchId()!,
-            )).id,
-          )
-          .then((_) {});
-      ProxyService.strategy.access(
+      await ProxyService.tax.taxConfigs(branchId: branchId);
+
+      final activeBranch = await ProxyService.strategy.activeBranch(
+        branchId: ProxyService.box.getBranchId()!,
+      );
+      await ProxyService.strategy.hydrateDate(branchId: activeBranch.id);
+
+      await ProxyService.strategy.access(
         userId: ProxyService.box.getUserId()!,
         fetchRemote: true,
       );
 
-      // Clean up any tenant records that don't have a PIN set. This prevents
-      // orphaned tenant entries from lingering; scoped to current business if
-      // available.
       try {
         await ProxyService.strategy.deleteTenantsWithNullPin(
           businessId: ProxyService.box.getBusinessId(),
@@ -407,8 +425,9 @@ class CronService {
       } catch (e) {
         talker.error('Failed to delete tenants with null pin: $e');
       }
-      ProxyService.strategy.hydrateCodes(branchId: branchId).then((_) {});
-      ProxyService.strategy.hydrateSars(branchId: branchId).then((_) {});
+
+      await ProxyService.strategy.hydrateCodes(branchId: branchId);
+      await ProxyService.strategy.hydrateSars(branchId: branchId);
       if (queueLength == 0) {
         talker.warning("Empty queue detected, hydrating data from remote");
         final businessId = ProxyService.box.getBusinessId()!;
@@ -423,9 +442,7 @@ class CronService {
               "Skipping fetchNotices on mobile device with localhost URI",
             );
           } else {
-            await Future.wait<void>([
-              ProxyService.tax.fetchNotices(URI: uri!).then((_) {}),
-            ]);
+            await ProxyService.tax.fetchNotices(URI: uri!);
           }
         } catch (e) {
           talker.error("Error hydrating initial data: $e");
@@ -440,95 +457,20 @@ class CronService {
     }
   }
 
-  /// Fetches and updates stock quantities for unsynchronized variants
-  // Future<void> _syncStockQuantities() async {
-  //   try {
-  //     final branchId = ProxyService.box.getBranchId();
-  //     if (branchId == null) {
-  //       talker.warning('Skipping stock quantity sync: Branch ID is null');
-  //       return;
-  //     }
-
-  //     // Get all variants that haven't been synchronized yet
-  //     final paged = await ProxyService.strategy.variants(
-  //       taxTyCds: ProxyService.box.vatEnabled() ? ['A', 'B', 'C'] : ['D'],
-  //       branchId: branchId,
-  //       stockSynchronized: false,
-  //     );
-  //     final variants = List<Variant>.from(paged.variants);
-
-  //     if (variants.isEmpty) {
-  //       talker.info('No unsynchronized variants found');
-  //       return;
-  //     }
-
-  //     talker.info(
-  //       'Found ${variants.length} unsynchronized variants, syncing stock quantities...',
-  //     );
-
-  //     // Process each variant
-  //     for (final variant in variants) {
-  //       try {
-  //         bool remoteQuantityMatchLocal = await ProxyService.httpApi
-  //             .fetchRemoteStockQuantity(
-  //               variant: variant,
-  //               client: ProxyService.http,
-  //             );
-
-  //         if (remoteQuantityMatchLocal) {
-  //           // the mote match then uplodate
-  //           variant.stockSynchronized = true;
-  //           ProxyService.strategy.updateVariant(updatables: [variant]);
-  //         }
-  //       } catch (e, stackTrace) {
-  //         talker.error(
-  //           'Failed to sync stock quantity for variant ${variant.id}: $e',
-  //           stackTrace,
-  //         );
-  //         // Continue with next variant even if one fails
-  //       }
-  //     }
-
-  //     talker.info(
-  //       'Completed stock quantity sync for ${variants.length} variants',
-  //     );
-  //   } catch (e, stackTrace) {
-  //     talker.error('Stock quantity synchronization failed: $e', stackTrace);
-  //   }
-  // }
-
-  /// Sets up all periodic tasks with appropriate error handling
+  /// Sets up all periodic tasks with appropriate error handling.
+  ///
+  /// Every DB-touching task goes through [_runExclusiveTask] so that at most
+  /// one cron job is active at any given time.
   void _setupPeriodicTasks() {
-    // Setup transaction refresh timer (every 10 minutes)
-    // This ensures reports have the latest data from all machines
     _activeTimers.add(
-      Timer.periodic(Duration(minutes: 10), (Timer t) async {
-        if (_cronDbBusy) return;
-        try {
-          _cronDbBusy = true;
-          final branchId = ProxyService.box.getBranchId();
-          if (branchId != null) {
-            talker.info("Refreshing transactions for reports");
-            await ProxyService.strategy.transactions(
-              branchId: branchId,
-              fetchRemote: true,
-            );
-          } else {
-            talker.warning("Skipping transaction refresh: Branch ID is null");
-          }
-        } catch (e) {
-          talker.error("Transaction refresh failed: $e");
-        } finally {
-          _cronDbBusy = false;
-        }
+      Timer.periodic(const Duration(minutes: 10), (_) {
+        _runExclusiveTask('transactionRefresh', _refreshTransactions);
       }),
     );
 
-    // Setup isolate message timer
+    // Isolate heartbeat – lightweight send, no DB work, runs independently
     _activeTimers.add(
-      Timer.periodic(Duration(seconds: _isolateMessageSeconds), (
-        Timer t,
-      ) async {
+      Timer.periodic(Duration(seconds: _isolateMessageSeconds), (_) {
         if (ProxyService.strategy.sendPort != null) {
           try {
             ProxyService.strategy.sendMessageToIsolate();
@@ -539,270 +481,176 @@ class CronService {
       }),
     );
 
-    // Setup analytics and patching timer
     _activeTimers.add(
-      Timer.periodic(Duration(minutes: _analyticsSyncMinutes), (Timer t) async {
-        if (_cronDbBusy) return;
-        try {
-          _cronDbBusy = true;
-          await _syncAnalyticsAndPatching();
-        } finally {
-          _cronDbBusy = false;
-        }
+      Timer.periodic(Duration(minutes: _analyticsSyncMinutes), (_) {
+        _runExclusiveTask('analyticsSync', _syncAnalyticsAndPatching);
       }),
     );
 
-    // Setup stock quantity sync timer (every 10 minutes)
-    // _activeTimers.add(
-    //   Timer.periodic(const Duration(minutes: 10), (Timer t) async {
-    //     await _syncStockQuantities();
-    //   }),
-    // );
-
-    // Setup sales synchronization timer (every 3 minutes)
     _activeTimers.add(
-      Timer.periodic(const Duration(minutes: 3), (Timer t) async {
-        if (_cronDbBusy) return;
-        try {
-          _cronDbBusy = true;
-          // Fetch data for Umusada sync
-          final repo = Repository();
-          // Get Umusada config
-          final configs = await repo.get<IntegrationConfig>(
-            query: Query(where: [Where('provider').isExactly('umusada')]),
-          );
-
-          if (configs.isNotEmpty) {
-            var config = configs.first;
-            if (config.token != null) {
-              // Check if token needs refreshing (expired or within 5 min of expiry)
-              final now = DateTime.now().toUtc();
-              if (config.expiresAt != null &&
-                  config.expiresAt!.isBefore(
-                    now.add(const Duration(minutes: 5)),
-                  )) {
-                talker.info(
-                  'Umusada token expired or expiring soon, refreshing...',
-                );
-                if (config.refreshToken != null) {
-                  try {
-                    final service = UmusadaService(repository: repo);
-                    final refreshResult = await service.refreshSession(
-                      config.refreshToken!,
-                    );
-                    final newToken = refreshResult['token'] as String?;
-                    final newRefreshToken =
-                        refreshResult['refreshToken'] as String?;
-                    final newExpiresAtStr =
-                        refreshResult['expiresAt'] as String?;
-                    final newExpiresAt = newExpiresAtStr != null
-                        ? DateTime.tryParse(newExpiresAtStr)
-                        : null;
-
-                    if (newToken != null) {
-                      config = config.copyWith(
-                        token: newToken,
-                        refreshToken: newRefreshToken ?? config.refreshToken,
-                        expiresAt: newExpiresAt,
-                        updatedAt: DateTime.now(),
-                      );
-                      await repo.upsert<IntegrationConfig>(config);
-                      talker.info('Umusada token refreshed successfully');
-                    } else {
-                      talker.error(
-                        'Umusada refresh returned null token, skipping sync',
-                      );
-                      return;
-                    }
-                  } catch (e) {
-                    talker.error('Failed to refresh Umusada token: $e');
-                    return; // Skip this sync cycle
-                  }
-                } else {
-                  talker.error(
-                    'Umusada token expired but no refresh token available',
-                  );
-                  return;
-                }
-              }
-
-              // Parse lastSyncedAt
-              DateTime lastSyncedAt = DateTime.fromMillisecondsSinceEpoch(0);
-              Map<String, dynamic> configMap = {};
-              if (config.config != null) {
-                try {
-                  configMap = jsonDecode(config.config!);
-                  if (configMap.containsKey('lastSyncedAt')) {
-                    lastSyncedAt = DateTime.parse(configMap['lastSyncedAt']);
-                  }
-                } catch (e) {
-                  talker.error('Error parsing config: $e');
-                }
-              }
-
-              // Fetch transactions
-              // Convert DateTime to ISO string to avoid JSON serialization issues
-              final transactions = await repo.get<ITransaction>(
-                query: Query(
-                  where: [
-                    Where(
-                      'updatedAt',
-                    ).isGreaterThan(lastSyncedAt.toIso8601String()),
-                  ],
-                ),
-              );
-
-              if (transactions.isNotEmpty) {
-                List<Map<String, dynamic>> salesData = [];
-                DateTime maxDate = lastSyncedAt;
-
-                for (var t in transactions) {
-                  if (t.id.isNotEmpty) {
-                    salesData.add({
-                      'transactionId': t.id,
-                      'amount': t.subTotal ?? 0.0,
-                      'date':
-                          t.createdAt?.toIso8601String() ??
-                          DateTime.now().toIso8601String(),
-                      'currency': 'RWF',
-                    });
-                    if (t.updatedAt != null && t.updatedAt!.isAfter(maxDate)) {
-                      maxDate = t.updatedAt!;
-                    }
-                  }
-                }
-
-                if (salesData.isNotEmpty) {
-                  ProxyService.strategy.sendMessageToIsolate(
-                    message: {
-                      "task": "salesSync",
-                      "token": config.token,
-                      "salesData": salesData,
-                      "newLastSyncedAt": maxDate.toIso8601String(),
-                      "configId": config
-                          .id, // We might need to update config in Isolate? No, pass back?
-                      // Actually, we can update the config HERE in Main Isolate if the Isolate confirms success.
-                      // But simpler: Isolate just DOES the sync.
-                      // Issue: How do we know if it succeeded to update lastSyncedAt?
-                      // Option 1: Update lastSyncedAt here optimistically? Bad.
-                      // Option 2: Pass configId and newLastSyncedAt to Isolate, and Isolate updates DB?
-                      //      -> User said Isolate can't access DB unless RAW Query.
-                      // Option 3: Isolate sends message back.
-                    },
-                  );
-
-                  // For now, let's implement the Isolate to try to update DB using Raw Query if possible?
-                  // Or better: listening for encoded success message.
-                  // Since we don't have a robust two-way set up in this code block,
-                  // effectively we are stuck.
-                  // WAIT. usage of "salesSync" task in IsolateHandler currently does everything.
-                  // If I pass "salesData", IsolateHandler uses it.
-                  // If I pass "newLastSyncedAt", IsolateHandler knows what to save.
-                  // If IsolateHandler can't access Repository, it can't save.
-
-                  // User suggestion: "isolate can't access repository ... OR we can pass thing we need"
-                  // If we pass things we need (salesData) -> Isolate does HTTP.
-                  // Who does DB Update?
-                  // If Isolate can't access DB, Isolate CANNOT update DB.
-                  // So Main Isolate MUST update DB.
-                  // So Main Isolate needs to know when HTTP is done.
-                  // But sending message to Ioslate is fire-and-forget here?
-
-                  // Let's assume for this step we MOVE the logic here, but we still need the Network call in background.
-                  // Maybe I can just `await compute(...)`?
-                  // CronService is in Main Isolate.
-                  // `compute` spawns a temporary isolate.
-                  // It returns the result.
-                  // This is perfect.
-
-                  /*
-                      final result = await compute(UmusadaService.syncSalesStatic, {
-                        'token': config.token,
-                        'salesData': salesData
-                      });
-                      if (result == true) {
-                         // Update DB here
-                         configMap['lastSyncedAt'] = maxDate.toIso8601String();
-                         final updatedConfig = config.copyWith(config: jsonEncode(configMap));
-                         await repo.upsert<IntegrationConfig>(updatedConfig);
-                      }
-                      */
-                  // But UmusadaService.syncSalesStatic needs to be a static top-level function.
-                  // I need to add that to UmusadaService.
-
-                  // Re-evaluating: IsolateHandler is ALREADY a permanent isolate.
-                  // If I use it, I need a return channel.
-                  // The `port` variable in `IsolateHandler` is a `ReceivePort`.
-                  // `sendPort.send(port.sendPort)` sends the listener's address to Main.
-                  // Main sends message to `IsolateHandler`.
-
-                  // Does `IsolateHandler` have a way to reply to a specific message?
-                  // Usually we pass a `SendPort` in the message itself for the reply!
-                  // keys: {'task': 'salesSync', 'replyTo': receivePort.sendPort, ...}
-
-                  ReceivePort responsePort = ReceivePort();
-                  ProxyService.strategy.sendMessageToIsolate(
-                    message: {
-                      "task": "salesSync",
-                      "token": config.token,
-                      "salesData": salesData,
-                      "replyTo": responsePort.sendPort,
-                    },
-                  );
-
-                  final response = await responsePort.first.timeout(
-                    const Duration(seconds: 30),
-                    onTimeout: () {
-                      talker.warning(
-                        'Umusada salesSync isolate response timed out',
-                      );
-                      return false;
-                    },
-                  );
-                  responsePort.close();
-                  if (response == true) {
-                    configMap['lastSyncedAt'] = maxDate.toIso8601String();
-                    final updatedConfig = config.copyWith(
-                      config: jsonEncode(configMap),
-                    );
-                    await repo.upsert<IntegrationConfig>(updatedConfig);
-                  }
-                }
-              }
-            }
-          }
-        } catch (e, stackTrace) {
-          talker.error("Failed to trigger sales sync: $e", stackTrace);
-        } finally {
-          _cronDbBusy = false;
-        }
+      Timer.periodic(const Duration(minutes: 3), (_) {
+        _runExclusiveTask('salesSync', _syncSalesData);
       }),
     );
 
-    // Setup asset download timer
     _activeTimers.add(
-      Timer.periodic(_getDownloadFileSchedule(), (Timer t) {
-        try {
+      Timer.periodic(_getDownloadFileSchedule(), (_) {
+        _runExclusiveTask('assetDownload', () async {
           if (!ProxyService.box.doneDownloadingAsset()) {
             ProxyService.strategy.reDownloadAsset();
           }
-        } catch (e) {
-          talker.error("Asset download failed: $e");
-        }
+        });
       }),
     );
-    // Setup auto-complete MoMo transactions timer (every 5 minutes)
+
     _activeTimers.add(
-      Timer.periodic(const Duration(minutes: 5), (Timer t) async {
-        if (_cronDbBusy) return;
-        try {
-          _cronDbBusy = true;
-          await _autoCompleteMomoTransactions();
-        } finally {
-          _cronDbBusy = false;
-        }
+      Timer.periodic(const Duration(minutes: 5), (_) {
+        _runExclusiveTask('momoAutoComplete', _autoCompleteMomoTransactions);
       }),
     );
+  }
+
+  /// Pulls the latest transactions from remote so reports stay current.
+  Future<void> _refreshTransactions() async {
+    final branchId = ProxyService.box.getBranchId();
+    if (branchId == null) {
+      talker.warning("Skipping transaction refresh: Branch ID is null");
+      return;
+    }
+    talker.info("Refreshing transactions for reports");
+    await ProxyService.strategy.transactions(
+      branchId: branchId,
+      fetchRemote: true,
+    );
+  }
+
+  /// Syncs sales data to Umusada if configured.
+  Future<void> _syncSalesData() async {
+    final repo = Repository();
+    final configs = await repo.get<IntegrationConfig>(
+      query: Query(where: [Where('provider').isExactly('umusada')]),
+    );
+    if (configs.isEmpty) return;
+
+    var config = configs.first;
+    if (config.token == null) return;
+
+    // Refresh token if expired or expiring within 5 minutes
+    final now = DateTime.now().toUtc();
+    if (config.expiresAt != null &&
+        config.expiresAt!.isBefore(now.add(const Duration(minutes: 5)))) {
+      config = await _refreshUmusadaToken(config, repo);
+      if (config.token == null) return;
+    }
+
+    DateTime lastSyncedAt = DateTime.fromMillisecondsSinceEpoch(0);
+    Map<String, dynamic> configMap = {};
+    if (config.config != null) {
+      try {
+        configMap = jsonDecode(config.config!);
+        if (configMap.containsKey('lastSyncedAt')) {
+          lastSyncedAt = DateTime.parse(configMap['lastSyncedAt']);
+        }
+      } catch (e) {
+        talker.error('Error parsing config: $e');
+      }
+    }
+
+    final transactions = await repo.get<ITransaction>(
+      query: Query(
+        where: [
+          Where('updatedAt').isGreaterThan(lastSyncedAt.toIso8601String()),
+        ],
+      ),
+    );
+    if (transactions.isEmpty) return;
+
+    List<Map<String, dynamic>> salesData = [];
+    DateTime maxDate = lastSyncedAt;
+
+    for (var t in transactions) {
+      if (t.id.isNotEmpty) {
+        salesData.add({
+          'transactionId': t.id,
+          'amount': t.subTotal ?? 0.0,
+          'date':
+              t.createdAt?.toIso8601String() ??
+              DateTime.now().toIso8601String(),
+          'currency': 'RWF',
+        });
+        if (t.updatedAt != null && t.updatedAt!.isAfter(maxDate)) {
+          maxDate = t.updatedAt!;
+        }
+      }
+    }
+    if (salesData.isEmpty) return;
+
+    ReceivePort responsePort = ReceivePort();
+    ProxyService.strategy.sendMessageToIsolate(
+      message: {
+        "task": "salesSync",
+        "token": config.token,
+        "salesData": salesData,
+        "replyTo": responsePort.sendPort,
+      },
+    );
+
+    final response = await responsePort.first.timeout(
+      const Duration(seconds: 30),
+      onTimeout: () {
+        talker.warning('Umusada salesSync isolate response timed out');
+        return false;
+      },
+    );
+    responsePort.close();
+
+    if (response == true) {
+      configMap['lastSyncedAt'] = maxDate.toIso8601String();
+      final updatedConfig = config.copyWith(config: jsonEncode(configMap));
+      await repo.upsert<IntegrationConfig>(updatedConfig);
+    }
+  }
+
+  /// Attempts to refresh an expired Umusada token.
+  /// Returns the updated config, or a config with `token: null` on failure.
+  Future<IntegrationConfig> _refreshUmusadaToken(
+    IntegrationConfig config,
+    Repository repo,
+  ) async {
+    talker.info('Umusada token expired or expiring soon, refreshing...');
+    if (config.refreshToken == null) {
+      talker.error('Umusada token expired but no refresh token available');
+      return config.copyWith(token: null);
+    }
+
+    try {
+      final service = UmusadaService(repository: repo);
+      final refreshResult = await service.refreshSession(config.refreshToken!);
+      final newToken = refreshResult['token'] as String?;
+      final newRefreshToken = refreshResult['refreshToken'] as String?;
+      final newExpiresAtStr = refreshResult['expiresAt'] as String?;
+      final newExpiresAt = newExpiresAtStr != null
+          ? DateTime.tryParse(newExpiresAtStr)
+          : null;
+
+      if (newToken == null) {
+        talker.error('Umusada refresh returned null token, skipping sync');
+        return config.copyWith(token: null);
+      }
+
+      final updated = config.copyWith(
+        token: newToken,
+        refreshToken: newRefreshToken ?? config.refreshToken,
+        expiresAt: newExpiresAt,
+        updatedAt: DateTime.now(),
+      );
+      await repo.upsert<IntegrationConfig>(updated);
+      talker.info('Umusada token refreshed successfully');
+      return updated;
+    } catch (e) {
+      talker.error('Failed to refresh Umusada token: $e');
+      return config.copyWith(token: null);
+    }
   }
 
   /// Synchronizes analytics and handles patching operations
@@ -1022,82 +870,60 @@ class CronService {
   bool get isMacOs => defaultTargetPlatform == TargetPlatform.macOS;
   bool get isIos => defaultTargetPlatform == TargetPlatform.iOS;
 
-  /// Flag to prevent concurrent executions of MoMo auto-complete
-  bool _isCompletingMomoTransactions = false;
-
-  /// Automatically completes MoMo transactions that have been waiting for more than 10 minutes
+  /// Automatically completes MoMo transactions that have been waiting long enough.
+  /// Concurrency is already guarded by [_runExclusiveTask].
   Future<void> _autoCompleteMomoTransactions() async {
-    // Prevent concurrent executions
-    if (_isCompletingMomoTransactions) {
-      talker.debug("MoMo auto-complete already running, skipping");
+    final branchId = ProxyService.box.getBranchId();
+    if (branchId == null) {
+      talker.warning("Skipping MoMo auto-complete: Branch ID is null");
       return;
     }
 
-    try {
-      _isCompletingMomoTransactions = true;
+    final momoTransactions = await ProxyService.strategy.transactions(
+      branchId: branchId,
+      status: WAITING_MOMO_COMPLETE,
+      isExpense: null,
+      skipOriginalTransactionCheck: true,
+      includeZeroSubTotal: true,
+    );
 
-      final branchId = ProxyService.box.getBranchId();
-      if (branchId == null) {
-        talker.warning("Skipping MoMo auto-complete: Branch ID is null");
-        return;
+    if (momoTransactions.isEmpty) {
+      talker.debug("No MoMo transactions waiting for completion");
+      return;
+    }
+
+    final now = DateTime.now();
+    final transactionsToComplete = momoTransactions
+        .where((transaction) {
+          if (transaction.createdAt == null) return false;
+          return now.difference(transaction.createdAt!).inMinutes >= 1;
+        })
+        .take(2)
+        .toList();
+
+    if (transactionsToComplete.isEmpty) return;
+
+    talker.info(
+      "Auto-completing ${transactionsToComplete.length} MoMo transaction(s)",
+    );
+
+    for (final transaction in transactionsToComplete) {
+      try {
+        await ProxyService.strategy.updateTransaction(
+          transaction: transaction,
+          status: COMPLETE,
+          subTotal: transaction.subTotal ?? transaction.cashReceived ?? 0,
+          skipDittoSync: true,
+        );
+      } catch (e) {
+        talker.error(
+          "Failed to auto-complete transaction ${transaction.id}: $e",
+        );
       }
+    }
 
-      // Use ProxyService.strategy for consistency with the rest of the codebase
-      final momoTransactions = await ProxyService.strategy.transactions(
-        branchId: branchId,
-        status: WAITING_MOMO_COMPLETE,
-        isExpense: null,
-        skipOriginalTransactionCheck: true,
-        includeZeroSubTotal: true,
-      );
-
-      if (momoTransactions.isEmpty) {
-        talker.debug("No MoMo transactions waiting for completion");
-        return;
-      }
-
-      final now = DateTime.now();
-      final transactionsToComplete = momoTransactions
-          .where((transaction) {
-            if (transaction.createdAt == null) return false;
-            final waitingMinutes = now
-                .difference(transaction.createdAt!)
-                .inMinutes;
-            return waitingMinutes >= 1;
-          })
-          .take(2)
-          .toList(); // Process max 2 per cycle to avoid locks
-
-      if (transactionsToComplete.isEmpty) return;
-
-      talker.info(
-        "Auto-completing ${transactionsToComplete.length} MoMo transaction(s)",
-      );
-
-      // Update transactions sequentially to avoid DB lock/deadlock issues
-      for (final transaction in transactionsToComplete) {
-        try {
-          await ProxyService.strategy.updateTransaction(
-            transaction: transaction,
-            status: COMPLETE,
-            subTotal: transaction.subTotal ?? transaction.cashReceived ?? 0,
-            skipDittoSync: true, // Skip Ditto sync during batch
-          );
-        } catch (e) {
-          talker.error(
-            "Failed to auto-complete transaction ${transaction.id}: $e",
-          );
-        }
-      }
-
-      // Notify Ditto after batch completion
-      for (final transaction in transactionsToComplete) {
-        unawaited(DittoSyncCoordinator.instance.notifyLocalUpsert(transaction));
-      }
-    } catch (e, stackTrace) {
-      talker.error("Auto-complete MoMo transactions failed: $e", stackTrace);
-    } finally {
-      _isCompletingMomoTransactions = false;
+    for (final transaction in transactionsToComplete) {
+      unawaited(DittoSyncCoordinator.instance.notifyLocalUpsert(transaction));
     }
   }
 }
