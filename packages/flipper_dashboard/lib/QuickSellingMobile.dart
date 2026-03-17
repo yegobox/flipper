@@ -591,10 +591,8 @@ class _QuickSellingMobileContentState
     double total, {
     bool immediateCompletion = false,
   }) async {
-    // Haptic feedback
     HapticFeedback.lightImpact();
 
-    // Validate that a customer has been added
     final customerPhone = ref.read(customerPhoneNumberProvider);
     if (customerPhone == null || customerPhone.isEmpty) {
       showErrorNotification(
@@ -604,20 +602,34 @@ class _QuickSellingMobileContentState
       return;
     }
 
-    // Set appropriate state based on completion type
+    // CREDIT (loan) payments require a customer for tracking.
+    final payments = ref.read(oldProvider.paymentMethodsProvider);
+    final hasCreditPayment =
+        payments.any((p) => p.method == "CREDIT" && p.amount > 0);
+    if (hasCreditPayment) {
+      final hasCustomer = (customerPhone.isNotEmpty) ||
+          widget.transaction.customerName != null ||
+          widget.transaction.customerId != null;
+      if (!hasCustomer) {
+        showErrorNotification(
+          context,
+          'A customer name or phone is required for credit/loan payments.',
+        );
+        return;
+      }
+    }
+
     setState(() {
       _isImmediateCompletion = immediateCompletion;
       if (!immediateCompletion) {
         _chargeState = ChargeButtonState.waitingForPayment;
       } else {
-        // For immediate completion, set to printingReceipt to show loading spinner
         _chargeState = ChargeButtonState.printingReceipt;
       }
     });
     ref.read(oldProvider.loadingProvider.notifier).startLoading();
 
     try {
-      // Define callbacks for payment state changes
       void onPaymentConfirmed() {
         if (mounted) {
           setState(() {
@@ -636,7 +648,6 @@ class _QuickSellingMobileContentState
         }
       }
 
-      // Call onCharge with callbacks and immediateCompletion flag
       final shouldWaitForPayment = await widget.onCharge(
         transactionId,
         total,
@@ -645,12 +656,16 @@ class _QuickSellingMobileContentState
         immediateCompletion,
       );
 
-      // Handle immediate completion (cash payments or immediate completion button)
       if (mounted && (shouldWaitForPayment != true || immediateCompletion)) {
         setState(() {
           _chargeState = ChargeButtonState.initial;
         });
         ref.read(oldProvider.loadingProvider.notifier).stopLoading();
+
+        // Close the sheet after immediate completion (including loan parking).
+        if (immediateCompletion && mounted && Navigator.of(context).canPop()) {
+          Navigator.of(context).pop();
+        }
       }
     } catch (e) {
       talker.error('Charge failed: $e');

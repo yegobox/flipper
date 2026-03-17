@@ -2131,23 +2131,25 @@ class CoreSync extends AiStrategyImpl
             "Processing income items for transaction ${transaction.id}",
           );
         }
-        // Touch variants' lastTouched asynchronously to aid reporting without blocking the flow.
-        Future.microtask(() async {
-          final items = transaction.items ?? const <TransactionItem>[];
-          talker.info(
-            "Touching ${items.length} items for transaction ${transaction.id}",
-          );
-
-          final variantIds = items
-              .map((i) => i.variantId)
-              .whereType<String>()
-              .toSet();
-          for (final id in variantIds) {
-            final variant = await ProxyService.strategy.getVariant(id: id);
-            if (variant != null) {
-              variant.lastTouched = DateTime.now().toUtc();
-              await repository.upsert<Variant>(variant);
+        // Defer variant lastTouched updates so they don't compete for the DB lock
+        // during receipt printing. A 5-second delay gives the critical path
+        // (transaction completion + receipt) time to finish first.
+        Future.delayed(const Duration(seconds: 5), () async {
+          try {
+            final items = transaction.items ?? const <TransactionItem>[];
+            final variantIds = items
+                .map((i) => i.variantId)
+                .whereType<String>()
+                .toSet();
+            for (final id in variantIds) {
+              final variant = await ProxyService.strategy.getVariant(id: id);
+              if (variant != null) {
+                variant.lastTouched = DateTime.now().toUtc();
+                await repository.upsert<Variant>(variant);
+              }
             }
+          } catch (e) {
+            talker.warning('Deferred variant touch failed: $e');
           }
         });
 
@@ -2487,10 +2489,10 @@ class CoreSync extends AiStrategyImpl
       );
     }
 
-    // 1. Delete records with amount 0
+    // 1. Delete records with amount 0 (local-only: these are records we just created)
     final transactionPaymentRecordWithAmount0 = await repository
         .get<TransactionPaymentRecord>(
-          policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+          policy: OfflineFirstGetPolicy.localOnly,
           query: brick.Query(
             where: [
               brick.Where('transactionId').isExactly(transactionId),

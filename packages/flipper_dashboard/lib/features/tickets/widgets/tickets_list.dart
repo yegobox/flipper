@@ -723,6 +723,27 @@ class TicketCard extends StatelessWidget {
 
               const SizedBox(height: 12),
 
+              // Customer phone for loan tickets
+              if (ticket.isLoan == true &&
+                  ticket.customerPhone != null &&
+                  ticket.customerPhone!.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                  child: Row(
+                    children: [
+                      Icon(Icons.phone, size: 14, color: Colors.grey.shade600),
+                      const SizedBox(width: 6),
+                      Text(
+                        ticket.customerPhone!,
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          color: Colors.grey.shade700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
               // Ticket details
               Row(
                 children: [
@@ -742,25 +763,38 @@ class TicketCard extends StatelessWidget {
                               .getTotalPaidForTransaction(
                                 transactionId: ticket.id,
                                 branchId: ticket.branchId ?? '',
+                                excludePaymentMethod: 'CREDIT',
                               ),
                           builder: (context, snapshot) {
                             if (!snapshot.hasData) {
                               return const SizedBox.shrink();
                             }
-                            final totalPaid = snapshot.data!;
-                            final remainingBalance =
-                                (ticket.subTotal ?? 0.0) - totalPaid;
-                            if (remainingBalance > 0) {
-                              return Text(
-                                'Remaining: ${remainingBalance.toCurrencyFormatted()}',
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.redAccent,
-                                ),
-                              );
-                            }
-                            return const SizedBox.shrink();
+                            final cashPaid = snapshot.data!;
+                            final remaining =
+                                (ticket.subTotal ?? 0.0) - cashPaid;
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (cashPaid > 0 && remaining > 0)
+                                  Text(
+                                    'Paid: ${cashPaid.toCurrencyFormatted()}',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.green.shade700,
+                                    ),
+                                  ),
+                                if (remaining > 0)
+                                  Text(
+                                    'Remaining: ${remaining.toCurrencyFormatted()}',
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.redAccent,
+                                    ),
+                                  ),
+                              ],
+                            );
                           },
                         ),
                         const SizedBox(height: 4),

@@ -356,6 +356,7 @@ final transactionTotalPaidProvider = FutureProvider.autoDispose
             .getTotalPaidForTransaction(
               transactionId: transactionId,
               branchId: branchId,
+              excludePaymentMethod: 'CREDIT',
             );
         return totalPaid ?? 0.0;
       } catch (e) {

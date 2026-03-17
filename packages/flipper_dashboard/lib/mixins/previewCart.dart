@@ -245,6 +245,31 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       final isValid = formKey.currentState?.validate() ?? true;
       if (!isValid) return false;
 
+      // CREDIT (loan) payments require an attached customer for tracking.
+      final hasCreditPayment =
+          paymentMethods.any((p) => p.method == "CREDIT" && p.amount > 0);
+      if (hasCreditPayment) {
+        final hasCustomer =
+            (transaction.customerName != null &&
+                transaction.customerName!.isNotEmpty) ||
+            (transaction.customerPhone != null &&
+                transaction.customerPhone!.isNotEmpty) ||
+            transaction.customerId != null;
+
+        if (!hasCustomer) {
+          if (mounted && context.mounted) {
+            showCustomSnackBarUtil(
+              context,
+              "A customer name or phone is required for credit/loan payments.",
+              backgroundColor: Colors.red,
+              showCloseButton: true,
+            );
+          }
+          ref.read(payButtonStateProvider.notifier).stopLoading();
+          return false;
+        }
+      }
+
       // Validate stock levels before proceeding
       final transactionItems = await _getTransactionItems(
         transaction: transaction,
@@ -399,8 +424,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
             // with the database fetch.
             transaction.cashReceived = (transaction.cashReceived ?? 0) + amount;
 
-            // Show success confirmation before completing
-            await markTransactionAsCompleted(
+            final wasLoan = await markTransactionAsCompleted(
               transaction: transaction,
               finalSubTotal: finalSubTotal,
               paymentMethods: paymentMethods,
@@ -409,14 +433,16 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
             if (mounted && context.mounted) {
               showCustomSnackBarUtil(
                 context,
-                "Payment Successful",
-                backgroundColor: Colors.green,
+                wasLoan
+                    ? "Payment recorded. Transaction parked as loan."
+                    : "Payment Successful",
+                backgroundColor: wasLoan ? Colors.orange : Colors.green,
                 showCloseButton: true,
               );
               ref.read(payButtonStateProvider.notifier).stopLoading();
               completeTransaction();
             } else {
-              completeTransaction(); // Fallback if context not available
+              completeTransaction();
             }
           },
         );
@@ -456,44 +482,37 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     }
   }
 
-  Future<void> markTransactionAsCompleted({
+  /// Returns `true` when the transaction was parked as a loan (CREDIT or
+  /// under-payment), `false` when fully completed.
+  Future<bool> markTransactionAsCompleted({
     required ITransaction transaction,
     required double finalSubTotal,
     required List<Payment> paymentMethods,
     String? ticketName,
   }) async {
-    // Fetch fresh transaction to ensure we have the accumulated cashReceived
-    // from the database, which was updated in collectPayment.
-    // However, also fallback to the local transaction object's cashReceived if it's greater,
-    // to handle cases where the DB update hasn't propagated or returned yet.
-    final freshTransaction = await ProxyService.strategy.getTransaction(
-      id: transaction.id,
-      branchId: ProxyService.box.getBranchId()!,
-    );
-
-    final dbCashReceived = freshTransaction?.cashReceived ?? 0;
-    final localCashReceived = transaction.cashReceived ?? 0;
-    final effectiveCashReceived = dbCashReceived > localCashReceived
-        ? dbCashReceived
-        : localCashReceived;
+    // Use the in-memory transaction directly instead of re-fetching from DB.
+    // collectPayment already persisted the latest cashReceived, and the caller
+    // updated transaction.cashReceived before calling us.
+    final effectiveCashReceived = transaction.cashReceived ?? 0;
 
     final totalCredit = paymentMethods
         .where((p) => p.method == "CREDIT")
         .fold<double>(0, (sum, p) => sum + p.amount);
 
-    final isFullyPaid = effectiveCashReceived >= (transaction.subTotal ?? 0);
+    final nonCreditCashReceived = effectiveCashReceived - totalCredit;
+    final isFullyPaid =
+        nonCreditCashReceived >= (transaction.subTotal ?? 0);
 
-    // If credit is used OR it's an under-payment, mark as PARKED (loan)
     final shouldBeLoan = totalCredit > 0 || !isFullyPaid;
     final status = shouldBeLoan ? PARKED : COMPLETE;
 
-    // Remaining balance is what is owed (either via Credit method or under-payment)
     final remainingBalance = shouldBeLoan
         ? (totalCredit > 0
               ? totalCredit
-              : (transaction.subTotal ?? 0) - effectiveCashReceived)
+              : (transaction.subTotal ?? 0) - nonCreditCashReceived)
         : 0.0;
 
+    final now = DateTime.now();
     await ProxyService.strategy.updateTransaction(
       transaction: transaction,
       status: status,
@@ -501,23 +520,30 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       remainingBalance: remainingBalance,
       cashReceived: effectiveCashReceived,
       subTotal: finalSubTotal,
-      lastTouched: DateTime.now(),
+      lastTouched: now,
       ticketName:
           (transaction.ticketName == null || transaction.ticketName!.isEmpty)
           ? ticketName
           : transaction.ticketName,
+      customerName: transaction.customerName,
+      customerPhone: transaction.customerPhone,
     );
-    transaction.subTotal = finalSubTotal; // Update the local object's subTotal
-    transaction.lastTouched = DateTime.now();
-    // Save payment methods
-    for (var payment in paymentMethods) {
-      await ProxyService.strategy.savePaymentType(
-        singlePaymentOnly: false, // Support multiple partial payments
-        amount: payment.amount,
-        transactionId: transaction.id,
-        paymentMethod: payment.method,
-      );
-    }
+    transaction.subTotal = finalSubTotal;
+    transaction.lastTouched = now;
+
+    // Save payment methods in parallel to reduce sequential DB lock contention
+    await Future.wait(
+      paymentMethods.map((payment) async {
+        await ProxyService.strategy.savePaymentType(
+          singlePaymentOnly: false,
+          amount: payment.amount,
+          transactionId: transaction.id,
+          paymentMethod: payment.method,
+        );
+      }),
+    );
+
+    return shouldBeLoan;
   }
 
   Future<Customer?> _getCustomer(String? customerId) async {

@@ -1346,6 +1346,7 @@ mixin TransactionMixin implements TransactionInterface {
   Future<double?> getTotalPaidForTransaction({
     required String transactionId,
     required String branchId,
+    String? excludePaymentMethod,
   }) async {
     try {
       final paymentRecords = await repository.get<TransactionPaymentRecord>(
@@ -1357,7 +1358,11 @@ mixin TransactionMixin implements TransactionInterface {
         return 0.0;
       }
 
-      return paymentRecords.fold<double>(
+      final filtered = excludePaymentMethod != null
+          ? paymentRecords.where((r) => r.paymentMethod != excludePaymentMethod)
+          : paymentRecords;
+
+      return filtered.fold<double>(
         0.0,
         (sum, record) => sum + (record.amount ?? 0.0),
       );

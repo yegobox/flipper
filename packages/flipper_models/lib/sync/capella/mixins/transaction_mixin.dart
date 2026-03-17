@@ -1363,6 +1363,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
   Future<double?> getTotalPaidForTransaction({
     required String transactionId,
     required String branchId,
+    String? excludePaymentMethod,
   }) async {
     try {
       final ditto = dittoService.dittoInstance;
@@ -1387,6 +1388,10 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       double total = 0.0;
       for (final item in queryResult.items) {
         final data = Map<String, dynamic>.from(item.value);
+        if (excludePaymentMethod != null &&
+            data['paymentMethod'] == excludePaymentMethod) {
+          continue;
+        }
         final amount = data['amount'];
         if (amount != null) {
           if (amount is num) {

@@ -206,11 +206,14 @@ abstract class TransactionInterface {
     bool skipOriginalTransactionCheck = false,
   });
 
-  /// Get total amount paid for a transaction by summing all payment records
-  /// Returns null if there's an error fetching payment records
+  /// Get total amount paid for a transaction by summing all payment records.
+  /// When [excludePaymentMethod] is provided, records with that method
+  /// (e.g. "CREDIT") are excluded from the sum so only real cash is counted.
+  /// Returns null if there's an error fetching payment records.
   Future<double?> getTotalPaidForTransaction({
     required String transactionId,
     required String branchId,
+    String? excludePaymentMethod,
   });
 
   FutureOr<void> deletePaymentRecords({required String transactionId});

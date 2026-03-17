@@ -39,6 +39,9 @@ class CronService {
   /// List to keep track of active timers for proper cleanup
   final List<Timer> _activeTimers = [];
 
+  /// Serializes cron DB operations so periodic timers don't cause lock contention.
+  bool _cronDbBusy = false;
+
   /// Stream subscription for delegation monitoring (desktop only)
   StreamSubscription<List<TransactionDelegation>>? _delegationsSubscription;
 
@@ -500,7 +503,9 @@ class CronService {
     // This ensures reports have the latest data from all machines
     _activeTimers.add(
       Timer.periodic(Duration(minutes: 10), (Timer t) async {
+        if (_cronDbBusy) return;
         try {
+          _cronDbBusy = true;
           final branchId = ProxyService.box.getBranchId();
           if (branchId != null) {
             talker.info("Refreshing transactions for reports");
@@ -513,6 +518,8 @@ class CronService {
           }
         } catch (e) {
           talker.error("Transaction refresh failed: $e");
+        } finally {
+          _cronDbBusy = false;
         }
       }),
     );
@@ -535,7 +542,13 @@ class CronService {
     // Setup analytics and patching timer
     _activeTimers.add(
       Timer.periodic(Duration(minutes: _analyticsSyncMinutes), (Timer t) async {
-        await _syncAnalyticsAndPatching();
+        if (_cronDbBusy) return;
+        try {
+          _cronDbBusy = true;
+          await _syncAnalyticsAndPatching();
+        } finally {
+          _cronDbBusy = false;
+        }
       }),
     );
 
@@ -546,10 +559,12 @@ class CronService {
     //   }),
     // );
 
-    // Setup sales synchronization timer (every 30 minutes)
+    // Setup sales synchronization timer (every 3 minutes)
     _activeTimers.add(
       Timer.periodic(const Duration(minutes: 3), (Timer t) async {
+        if (_cronDbBusy) return;
         try {
+          _cronDbBusy = true;
           // Fetch data for Umusada sync
           final repo = Repository();
           // Get Umusada config
@@ -735,7 +750,16 @@ class CronService {
                     },
                   );
 
-                  final response = await responsePort.first;
+                  final response = await responsePort.first.timeout(
+                    const Duration(seconds: 30),
+                    onTimeout: () {
+                      talker.warning(
+                        'Umusada salesSync isolate response timed out',
+                      );
+                      return false;
+                    },
+                  );
+                  responsePort.close();
                   if (response == true) {
                     configMap['lastSyncedAt'] = maxDate.toIso8601String();
                     final updatedConfig = config.copyWith(
@@ -749,6 +773,8 @@ class CronService {
           }
         } catch (e, stackTrace) {
           talker.error("Failed to trigger sales sync: $e", stackTrace);
+        } finally {
+          _cronDbBusy = false;
         }
       }),
     );
@@ -765,10 +791,16 @@ class CronService {
         }
       }),
     );
-    // Setup auto-complete MoMo transactions timer (every 10 minutes)
+    // Setup auto-complete MoMo transactions timer (every 5 minutes)
     _activeTimers.add(
-      Timer.periodic(const Duration(minutes: 1), (Timer t) async {
-        await _autoCompleteMomoTransactions();
+      Timer.periodic(const Duration(minutes: 5), (Timer t) async {
+        if (_cronDbBusy) return;
+        try {
+          _cronDbBusy = true;
+          await _autoCompleteMomoTransactions();
+        } finally {
+          _cronDbBusy = false;
+        }
       }),
     );
   }
