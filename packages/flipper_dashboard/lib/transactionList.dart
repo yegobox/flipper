@@ -97,38 +97,26 @@ class TransactionListState extends ConsumerState<TransactionList>
       List<dynamic> allData;
 
       if (showDetailed) {
-        // Fetch all transaction items
-        final asyncValue = ref.read(
-          transactionItemListProvider,
-        );
-
-        // Wait for the stream to emit data
-        allData = await asyncValue.when<Future<List<dynamic>>>(
-          data: (stream) async {
-            final items = await stream.first;
-            // items is already List<TransactionItem>, just return it
-            return items as List<dynamic>;
-          },
-          loading: () async => throw Exception('Still loading...'),
-          error: (error, stack) async => throw error,
+        // The provider is a StreamProvider<List<TransactionItem>>.
+        // Riverpod already unwraps the stream; the `data` callback receives
+        // the latest List<TransactionItem> directly — NOT a Stream.
+        final asyncValue = ref.read(transactionItemListProvider);
+        allData = asyncValue.when<List<dynamic>>(
+          data: (items) => items.toList(),
+          loading: () => throw Exception('Data is still loading, please try again'),
+          error: (error, stack) => throw error,
         );
       } else {
-        // Fetch all transactions
+        // Same for StreamProvider<List<ITransaction>>.
         final asyncValue = ref.read(
           transactionListProvider(
             forceRealData: !(ProxyService.box.enableDebug() ?? false),
           ),
         );
-
-        // Wait for the stream to emit data
-        allData = await asyncValue.when<Future<List<dynamic>>>(
-          data: (stream) async {
-            final transactions = await stream.first;
-            // transactions is already List<ITransaction>, just return it
-            return transactions as List<dynamic>;
-          },
-          loading: () async => throw Exception('Still loading...'),
-          error: (error, stack) async => throw error,
+        allData = asyncValue.when<List<dynamic>>(
+          data: (transactions) => transactions.toList(),
+          loading: () => throw Exception('Data is still loading, please try again'),
+          error: (error, stack) => throw error,
         );
       }
 

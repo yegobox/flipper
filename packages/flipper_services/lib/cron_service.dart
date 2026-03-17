@@ -357,15 +357,21 @@ class CronService {
         }
       }
       final uri = await ProxyService.box.getServerUrl();
-      ProxyService.http.getUniversalProducts(
-        Uri.parse('${uri}itemClass/selectItemsClass'),
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode({
-          "tin": "999909695",
-          "bhfId": "00",
-          "lastReqDt": "20190523000000",
-        }),
-      );
+      if (uri != null && uri.isNotEmpty) {
+        ProxyService.http.getUniversalProducts(
+          Uri.parse('${uri}itemClass/selectItemsClass'),
+          headers: {"Content-Type": "application/json"},
+          body: jsonEncode({
+            "tin": "999909695",
+            "bhfId": "00",
+            "lastReqDt": "20190523000000",
+          }),
+        );
+      } else {
+        talker.warning(
+          'Skipping getUniversalProducts: server URL is not configured',
+        );
+      }
       final branchId = ProxyService.box.getBranchId();
       if (branchId == null) {
         talker.error("Cannot hydrate data: Branch ID is null");
