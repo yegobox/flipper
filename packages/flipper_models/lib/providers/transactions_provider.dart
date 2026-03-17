@@ -147,7 +147,7 @@ Stream<List<TransactionItem>> transactionItemList(Ref ref) {
     return Stream.value([]);
   }
 
-  ref.keepAlive();
+  // Removed ref.keepAlive() to allow proper disposal and prevent duplicate queries
 
   return ProxyService.getStrategy(Strategy.capella)
       .transactionItemsStreams(

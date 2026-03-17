@@ -52,11 +52,13 @@ class TransactionListState extends ConsumerState<TransactionList>
 
   // Export using the already-mounted DataView on screen
   Future<void> _exportAllData() async {
+    print('🔵 EXPORT BUTTON: _exportAllData called');
     final dateRange = ref.read(dateRangeProvider);
     final startDate = dateRange.startDate;
     final endDate = dateRange.endDate;
 
     if (startDate == null || endDate == null) {
+      print('🔴 EXPORT BUTTON: No date range selected');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -68,9 +70,13 @@ class TransactionListState extends ConsumerState<TransactionList>
       return;
     }
 
+    print('🔵 EXPORT BUTTON: Date range selected, checking dataViewKey...');
+    print('🔵 EXPORT BUTTON: dataViewKey.currentState = ${dataViewKey.currentState}');
+    
     try {
       if (dataViewKey.currentState == null) {
         // DataView not yet mounted (e.g. no data / still loading)
+        print('🔴 EXPORT BUTTON: DataView not mounted');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
@@ -84,8 +90,11 @@ class TransactionListState extends ConsumerState<TransactionList>
       // Call triggerExport directly on the already-mounted DataView.
       // This avoids creating a second overlay widget (which would open new
       // Ditto live queries and slow the export down).
+      print('🔵 EXPORT BUTTON: Calling triggerExport...');
       await dataViewKey.currentState!.triggerExport(headerTitle: 'Report');
+      print('🔵 EXPORT BUTTON: triggerExport completed');
     } catch (e) {
+      print('🔴 EXPORT BUTTON: Error caught: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

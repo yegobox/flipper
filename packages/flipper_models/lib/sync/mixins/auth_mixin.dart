@@ -260,6 +260,21 @@ mixin AuthMixin implements AuthInterface {
     // Check if the next billing date has passed (subscription expired)
     final now = DateTime.now();
     final nextBillingDate = plan.nextBillingDate;
+    final paymentStatus = plan.paymentStatus;
+    final isPaymentStatusCompleted =
+        paymentStatus?.toUpperCase() == 'COMPLETED';
+
+    // If next billing date is in the future and payment status is COMPLETED,
+    // consider subscription active without needing to check online
+    if (nextBillingDate != null &&
+        now.isBefore(nextBillingDate) &&
+        isPaymentStatusCompleted) {
+      talker.info(
+        'Subscription is active: nextBillingDate ($nextBillingDate) is in the future and payment_status is COMPLETED',
+      );
+      return true;
+    }
+
     if (nextBillingDate != null && now.isAfter(nextBillingDate)) {
       talker.warning(
         'Subscription expired: nextBillingDate ($nextBillingDate) is in the past',

@@ -240,24 +240,29 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
       query += ' WHERE ' + conditions.join(' AND ');
     }
 
-    /// a work around to first register to whole data instead of subset
+    /// A workaround to first register to whole data instead of subset
     /// this is because after test on new device, it can't pull data using complex query
     /// there is open issue on ditto https://support.ditto.live/hc/en-us/requests/2648?page=1
     ///
+    /// NOTE: Broad subscription DISABLED - causes duplicate query warnings
+    /// The specific subscription below is sufficient for most cases
     final syncBranchId = branchId ?? ProxyService.box.getBranchId();
     dynamic broadSubscription;
     dynamic broadObserver;
-    if (syncBranchId != null) {
-      broadSubscription = ditto.sync.registerSubscription(
-        "SELECT * FROM transaction_items WHERE branchId = :branchId",
-        arguments: {'branchId': syncBranchId},
-      );
-      broadObserver = ditto.store.registerObserver(
-        "SELECT * FROM transaction_items WHERE branchId = :branchId",
-        arguments: {'branchId': syncBranchId},
-      );
-    }
+    // Broad subscription commented out to prevent duplicate queries
+    // if (fetchRemote && syncBranchId != null) {
+    //   talker.debug('Registering broad subscription for transaction_items');
+    //   broadSubscription = ditto.sync.registerSubscription(
+    //     "SELECT * FROM transaction_items WHERE branchId = :branchId",
+    //     arguments: {'branchId': syncBranchId},
+    //   );
+    //   broadObserver = ditto.store.registerObserver(
+    //     "SELECT * FROM transaction_items WHERE branchId = :branchId",
+    //     arguments: {'branchId': syncBranchId},
+    //   );
+    // }
     // Register subscription to sync data
+    talker.debug('Registering specific subscription: $query');
     final specificSubscription = ditto.sync.registerSubscription(query, arguments: arguments);
 
     final controller = StreamController<List<TransactionItem>>.broadcast();
@@ -308,11 +313,14 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
         });
 
     controller.onCancel = () async {
+      talker.debug('Cleaning up transactionItemsStreams subscriptions');
       await observer?.cancel();
-      await broadObserver?.cancel();
-      broadSubscription?.cancel();
+      // Broad subscription cleanup disabled (commented out above)
+      // await broadObserver?.cancel();
+      // broadSubscription?.cancel();
       specificSubscription.cancel();
       await controller.close();
+      talker.debug('Cleanup completed for transactionItemsStreams');
     };
 
     return controller.stream;

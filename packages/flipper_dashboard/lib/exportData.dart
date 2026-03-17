@@ -183,44 +183,61 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   }) async {
     String? filePath;
     try {
+      print('📊 EXPORT: Starting exportDataGrid with ${config.transactions.length} transactions');
+      talker.info('Starting exportDataGrid with ${config.transactions.length} transactions');
+      
       // Get the system currency from settings if not provided
       final systemCurrency = currencyCode ?? ProxyService.box.defaultCurrency();
 
       // Calculate COGS for the transactions in the config
+      // SKIP COGS calculation for large datasets to avoid performance issues
       double totalCOGS = 0.0;
-      for (final transaction in config.transactions) {
-        try {
-          final transactionItems = await ProxyService.getStrategy(
-            Strategy.capella,
-          ).transactionItems(transactionId: transaction.id);
+      if (config.transactions.length < 100) {
+        print('📊 EXPORT: Calculating COGS for ${config.transactions.length} transactions...');
+        for (final transaction in config.transactions) {
+          try {
+            final transactionItems = await ProxyService.getStrategy(
+              Strategy.capella,
+            ).transactionItems(transactionId: transaction.id);
 
-          for (final item in transactionItems) {
-            if (item.variantId == null) continue;
-            try {
-              final variant = await ProxyService.strategy.getVariant(
-                id: item.variantId,
-              );
+            for (final item in transactionItems) {
+              if (item.variantId == null) continue;
+              try {
+                final variant = await ProxyService.strategy.getVariant(
+                  id: item.variantId,
+                );
 
-              if (variant != null) {
-                final supplyPrice =
-                    variant.supplyPrice ??
-                    (variant.retailPrice != null
-                        ? variant.retailPrice! * 0.7
-                        : 0.0);
+                if (variant != null) {
+                  final supplyPrice =
+                      variant.supplyPrice ??
+                      (variant.retailPrice != null
+                          ? variant.retailPrice! * 0.7
+                          : 0.0);
 
-                final itemCOGS = supplyPrice * item.qty;
+                  final itemCOGS = supplyPrice * item.qty;
+                  totalCOGS += itemCOGS;
+                }
+              } catch (e) {
+                final itemCOGS = item.price * item.qty * 0.7;
                 totalCOGS += itemCOGS;
               }
-            } catch (e) {
-              final itemCOGS = item.price * item.qty * 0.7;
-              totalCOGS += itemCOGS;
             }
+          } catch (e) {
+            talker.error(
+              'Error fetching items for transaction ${transaction.id}: $e',
+            );
           }
-        } catch (e) {
-          talker.error(
-            'Error fetching items for transaction ${transaction.id}: $e',
-          );
         }
+        print('📊 EXPORT: COGS calculation complete: $totalCOGS');
+      } else {
+        print('📊 EXPORT: Skipping COGS calculation for large dataset (${config.transactions.length} transactions)');
+        talker.info('Skipping COGS calculation for large dataset');
+        // Use estimated COGS (60% of revenue) for large datasets
+        final totalRevenue = config.transactions.fold<double>(
+          0.0,
+          (sum, tx) => sum + (tx.subTotal ?? 0.0),
+        );
+        totalCOGS = totalRevenue * 0.6;
       }
 
       // Update config with calculated COGS
@@ -236,13 +253,16 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         transactions: config.transactions,
       );
 
+      print('📊 EXPORT: Config updated, fetching business info...');
       // RESTORE ORIGINAL IMPLEMENTATION WITH WORKBOOK KEY
       ref.read(isProcessingProvider.notifier).startProcessing();
       final business = await ProxyService.strategy.getBusiness(
         businessId: ProxyService.box.getBusinessId()!,
       );
+      print('📊 EXPORT: Business fetched: ${business?.name}');
 
       if (ProxyService.box.exportAsPdf()) {
+        print('📊 EXPORT: Exporting as PDF...');
         final PdfDocument document = workBookKey.currentState!
             .exportToPdfDocument(
               fitAllColumnsInOnePage: true,
@@ -263,7 +283,9 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
         filePath = await _savePdfFile(document);
         document.dispose();
+        print('📊 EXPORT: PDF saved to $filePath');
       } else {
+        print('📊 EXPORT: Exporting as Excel...');
         excel.Workbook workbook = excel.Workbook();
 
         try {

@@ -738,7 +738,18 @@ class DataViewState extends ConsumerState<DataView>
 
   /// Public method to trigger export from parent widgets
   Future<void> triggerExport({String headerTitle = "Report"}) async {
-    await _export(headerTitle: headerTitle, workBookKey: widget.workBookKey);
+    print('🚀 EXPORT: triggerExport called: headerTitle=$headerTitle, showDetailedReport=${widget.showDetailedReport}');
+    talker.info('triggerExport called: headerTitle=$headerTitle, showDetailedReport=${widget.showDetailedReport}');
+    try {
+      // Always use direct export to avoid issues with grid state
+      await _exportDirectly(headerTitle: headerTitle);
+      print('✅ EXPORT: Completed successfully');
+    } catch (e, s) {
+      print('❌ EXPORT: Failed with error: $e');
+      talker.error('Export failed: $e');
+      talker.error(s);
+      rethrow;
+    }
   }
 
   Future<void> _export({
@@ -866,17 +877,23 @@ class DataViewState extends ConsumerState<DataView>
   /// Direct export method that doesn't rely on the DataGrid state
   /// This is used as a fallback when the DataGrid state is null
   Future<void> _exportDirectly({required String headerTitle}) async {
+    print('📦 EXPORT: Starting direct export process');
     talker.info('Starting direct export process');
-
-    // Use Capella strategy to avoid database locks
-    // Fetch expense transactions for the report
-    final expenseTransactions = await ProxyService.getStrategy(Strategy.capella).transactions(
-      startDate: widget.startDate,
-      endDate: widget.endDate,
-      isExpense: true,
-      skipOriginalTransactionCheck: false,
-      branchId: ProxyService.box.getBranchId(),
-    );
+    talker.info('Export params: startDate=${widget.startDate}, endDate=${widget.endDate}, showDetailed=${widget.showDetailedReport}');
+    
+    try {
+      // Use Capella strategy to avoid database locks
+      // Fetch expense transactions for the report
+      print('📦 EXPORT: Fetching expense transactions...');
+      final expenseTransactions = await ProxyService.getStrategy(Strategy.capella).transactions(
+        startDate: widget.startDate,
+        endDate: widget.endDate,
+        isExpense: true,
+        skipOriginalTransactionCheck: false,
+        branchId: ProxyService.box.getBranchId(),
+      );
+      talker.info('Fetched ${expenseTransactions.length} expense transactions');
+      print('📦 EXPORT: Fetched ${expenseTransactions.length} expense transactions');
 
     final sales = await ProxyService.getStrategy(Strategy.capella).transactions(
       startDate: widget.startDate,
@@ -999,7 +1016,10 @@ class DataViewState extends ConsumerState<DataView>
       manualData = preparedData;
     }
 
+    talker.info('Calling exportDataGrid with manualData=${manualData != null ? manualData.length : 0} rows');
+    
     // Use the exportDataGrid method with our config and manual data
+    print('📦 EXPORT: Calling exportDataGrid...');
     await exportDataGrid(
       workBookKey: widget.workBookKey, // Use the widget's key
       isStockRecount: isStockRecount,
@@ -1014,5 +1034,14 @@ class DataViewState extends ConsumerState<DataView>
       // Only show profit calculations in detailed report mode
       showProfitCalculations: widget.showDetailedReport,
     );
+    
+    talker.info('Export completed successfully');
+    print('✅ EXPORT: File saved successfully');
+    } catch (e, s) {
+      print('❌ EXPORT: Failed with error: $e');
+      talker.error('Export failed with error: $e');
+      talker.error(s);
+      rethrow;
+    }
   }
 }
