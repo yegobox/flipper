@@ -106,6 +106,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       ref: ref,
       transaction: transaction,
       total: _calculateTotal(items: items),
+      overrideAlreadyPaid: _cachedNonCreditPaid,
       receivedAmountController: widget.receivedAmountController,
       lastAutoSetAmount: _lastAutoSetAmount,
       onAutoSetAmountChanged: (amount) {
@@ -233,13 +234,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       );
     }
 
-    final total = totalAfterDiscountAndShipping;
-
-    standardizedPaymentInitialization(
-      ref: ref,
-      transaction: transaction,
-      total: total,
-    );
+    // Payment initialization is deferred to the builder where items
+    // are guaranteed to be loaded. Calling it here with an empty items
+    // list would produce total=0 and zero-out the payment field.
   }
 
   // Controllers for quantity inputs per item (small device view)
@@ -256,6 +253,10 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
   // Track current branch ID to detect branch changes
   String? _currentBranchId;
+
+  // Ensure payment initialization runs once when both transaction & items are ready
+  String? _lastPaymentInitTransactionId;
+  double? _cachedNonCreditPaid;
 
   bool _isPlainEnter(KeyEvent event) {
     if (event is! KeyDownEvent) {
@@ -365,6 +366,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
     // Reset UI state for the next transaction to prevent stale data
     _lastAutoSetAmount = 0.0;
+    _lastPaymentInitTransactionId = null;
+    _cachedNonCreditPaid = null;
     ref.invalidate(paymentMethodsProvider);
     widget.deliveryNoteCotroller.clear();
     widget.receivedAmountController.clear();
@@ -548,6 +551,26 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                 return [];
               },
             );
+
+            // Initialize payment fields once both transaction and items are ready.
+            if (transactionItemsAsync.hasValue &&
+                internalTransactionItems.isNotEmpty &&
+                _lastPaymentInitTransactionId != transactionId) {
+              _lastPaymentInitTransactionId = transactionId;
+              final txn = transactionAsyncValue.value!;
+              WidgetsBinding.instance.addPostFrameCallback((_) async {
+                if (!mounted) return;
+                final nonCreditPaid = await fetchNonCreditPaid(txn.id);
+                if (!mounted) return;
+                _cachedNonCreditPaid = nonCreditPaid;
+                standardizedPaymentInitialization(
+                  ref: ref,
+                  transaction: txn,
+                  total: _calculateTotal(),
+                  overrideAlreadyPaid: nonCreditPaid,
+                );
+              });
+            }
           } else {
             internalTransactionItems = [];
           }

@@ -6,6 +6,7 @@ import 'package:flipper_services/setting_service.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 
 mixin TransactionComputationMixin {
   double calculateTransactionTotal({
@@ -72,10 +73,11 @@ mixin TransactionComputationMixin {
     required ITransaction transaction,
     required double total,
     required double lastAutoSetAmount,
+    double? overrideAlreadyPaid,
     TextEditingController? receivedAmountController,
     Function(double)? onAutoSetAmountChanged,
   }) {
-    final alreadyPaid = transaction.cashReceived ?? 0.0;
+    final alreadyPaid = overrideAlreadyPaid ?? transaction.cashReceived ?? 0.0;
     final currentRemainder = total - alreadyPaid;
     final displayRemainder = currentRemainder > 0 ? currentRemainder : 0.0;
 
@@ -119,18 +121,46 @@ mixin TransactionComputationMixin {
     }
   }
 
-  double calculateCurrentRemainder(ITransaction transaction, double total) {
-    final alreadyPaid = transaction.cashReceived ?? 0.0;
+  double calculateCurrentRemainder(
+    ITransaction transaction,
+    double total, {
+    double? overrideAlreadyPaid,
+  }) {
+    final alreadyPaid = overrideAlreadyPaid ?? transaction.cashReceived ?? 0.0;
     final currentRemainder = total - alreadyPaid;
     return currentRemainder > 0.01 ? currentRemainder : 0.0;
+  }
+
+  /// Fetches the actual cash paid for a transaction from payment records,
+  /// excluding CREDIT entries so only real money received is counted.
+  /// Tries Capella (Ditto) first, falls back to CloudSync (brick/SQLite).
+  Future<double> fetchNonCreditPaid(String transactionId) async {
+    final branchId = ProxyService.box.getBranchId();
+    if (branchId == null) return 0.0;
+
+    for (final strategy in [Strategy.capella, Strategy.cloudSync]) {
+      try {
+        final paid = await ProxyService.getStrategy(strategy)
+            .getTotalPaidForTransaction(
+              transactionId: transactionId,
+              branchId: branchId,
+              excludePaymentMethod: 'CREDIT',
+            );
+        if (paid != null && paid > 0) return paid;
+      } catch (_) {
+        // try next strategy
+      }
+    }
+    return 0.0;
   }
 
   void standardizedPaymentInitialization({
     required WidgetRef ref,
     required ITransaction transaction,
     required double total,
+    double? overrideAlreadyPaid,
   }) {
-    final alreadyPaid = transaction.cashReceived ?? 0.0;
+    final alreadyPaid = overrideAlreadyPaid ?? transaction.cashReceived ?? 0.0;
     final remainder = total - alreadyPaid;
     final displayRemainder = remainder > 0.01 ? remainder : 0.0;
 

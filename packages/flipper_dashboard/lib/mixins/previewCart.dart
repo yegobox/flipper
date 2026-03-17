@@ -518,7 +518,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       status: status,
       isLoan: shouldBeLoan,
       remainingBalance: remainingBalance,
-      cashReceived: effectiveCashReceived,
+      cashReceived: nonCreditCashReceived,
       subTotal: finalSubTotal,
       lastTouched: now,
       ticketName:

@@ -672,6 +672,7 @@ class CoreViewModel extends FlipperBaseModel
     // Only park if a ticket name is provided.
     if (ticketName.isNotEmpty) {
       // Reconcile transaction.cashReceived with database records sum to handle unsaved UI edits.
+      // Exclude CREDIT payments so cashReceived reflects actual money collected.
       try {
         final totalRecordsAmount =
             await ProxyService.getStrategy(
@@ -679,6 +680,7 @@ class CoreViewModel extends FlipperBaseModel
             ).getTotalPaidForTransaction(
               transactionId: transaction.id,
               branchId: transaction.branchId ?? ProxyService.box.getBranchId()!,
+              excludePaymentMethod: 'CREDIT',
             );
 
         // Only update cashReceived if getTotalPaidForTransaction succeeded (non-null)

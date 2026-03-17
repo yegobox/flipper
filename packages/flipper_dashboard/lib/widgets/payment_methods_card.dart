@@ -32,10 +32,12 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
   bool _showPaymentMethods = false; // Toggle state for mobile
   Set<int> _userEditedFields =
       {}; // Track which fields user has manually edited
+  double? _cachedNonCreditPaid;
 
   @override
   void initState() {
     super.initState();
+    _loadNonCreditPaid();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       try {
         updatePaymentAmounts(transactionId: widget.transactionId);
@@ -43,6 +45,13 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
         talker.error(e);
       }
     });
+  }
+
+  Future<void> _loadNonCreditPaid() async {
+    final paid = await fetchNonCreditPaid(widget.transactionId);
+    if (mounted && paid > 0) {
+      setState(() => _cachedNonCreditPaid = paid);
+    }
   }
 
   @override
@@ -77,7 +86,11 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
       final effectiveTransaction =
           transaction ?? ref.read(transactionByIdProvider(transactionId)).value;
       final initialAmount = effectiveTransaction != null
-          ? calculateCurrentRemainder(effectiveTransaction, totalPayable)
+          ? calculateCurrentRemainder(
+              effectiveTransaction,
+              totalPayable,
+              overrideAlreadyPaid: _cachedNonCreditPaid,
+            )
           : totalPayable;
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -110,6 +123,7 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
             ref: ref,
             transaction: effectiveTransaction,
             total: totalPayable,
+            overrideAlreadyPaid: _cachedNonCreditPaid,
             lastAutoSetAmount: oldTotalPayable ?? payments[0].amount,
             onAutoSetAmountChanged: (amount) {
               // No local state to update here, the mixin handles the provider

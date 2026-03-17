@@ -727,14 +727,19 @@ class _QuickSellingMobileContentState
         transactionAsync.hasValue &&
         _lastTransactionId != currentTransactionId) {
       _lastTransactionId = currentTransactionId;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
+      final txn = transactionAsync.value ?? widget.transaction;
+      WidgetsBinding.instance.addPostFrameCallback((_) async {
+        if (!mounted) return;
+        final nonCreditPaid = await fetchNonCreditPaid(txn.id);
+        if (!mounted) return;
         standardizedPaymentInitialization(
           ref: ref,
-          transaction: transactionAsync.value ?? widget.transaction,
+          transaction: txn,
           total: calculateTransactionTotal(
             items: itemsAsync.value ?? [],
-            transaction: transactionAsync.value ?? widget.transaction,
+            transaction: txn,
           ),
+          overrideAlreadyPaid: nonCreditPaid,
         );
       });
     }
