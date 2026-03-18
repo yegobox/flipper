@@ -58,33 +58,28 @@ class TransactionListWrapperState
   ) {
     final dateRangeText = _formatDateRange(startDate, endDate);
 
-    return Card(
-      elevation: 2,
-      margin: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Row(
-          children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Transaction Reports',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: colorScheme.onSurface,
-                    ),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Transaction Reports',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: colorScheme.onSurface,
                   ),
-                  const SizedBox(height: 8),
-                  _buildDateDisplay(dateRangeText, colorScheme),
-                ],
-              ),
+                ),
+                const SizedBox(height: 8),
+                _buildDateDisplay(dateRangeText, colorScheme),
+              ],
             ),
-            _buildDatePickerButton(colorScheme),
-          ],
-        ),
+          ),
+          _buildDatePickerButton(colorScheme),
+        ],
       ),
     );
   }

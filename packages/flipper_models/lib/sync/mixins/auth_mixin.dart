@@ -255,14 +255,15 @@ mixin AuthMixin implements AuthInterface {
       selectedPlan: plan,
     );
 
-    final isPaymentCompletedLocally = plan.paymentCompletedByUser ?? false;
-
-    // Check if the next billing date has passed (subscription expired)
+    // Align with HttpApi.isPaymentComplete: payment is complete if EITHER
+    // paymentCompletedByUser OR paymentStatus == 'COMPLETED' (from payment processor)
     final now = DateTime.now();
     final nextBillingDate = plan.nextBillingDate;
     final paymentStatus = plan.paymentStatus;
     final isPaymentStatusCompleted =
         paymentStatus?.toUpperCase() == 'COMPLETED';
+    final isPaymentCompletedLocally =
+        (plan.paymentCompletedByUser ?? false) || isPaymentStatusCompleted;
 
     // If next billing date is in the future and payment status is COMPLETED,
     // consider subscription active without needing to check online
@@ -272,6 +273,14 @@ mixin AuthMixin implements AuthInterface {
       talker.info(
         'Subscription is active: nextBillingDate ($nextBillingDate) is in the future and payment_status is COMPLETED',
       );
+      // Sync paymentCompletedByUser so local state matches paymentStatus
+      if (!(plan.paymentCompletedByUser ?? false)) {
+        plan.paymentCompletedByUser = true;
+        await ProxyService.strategy.upsertPlan(
+          businessId: businessId,
+          selectedPlan: plan,
+        );
+      }
       return true;
     }
 

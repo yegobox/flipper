@@ -164,11 +164,13 @@ class _FailedPaymentState extends State<FailedPayment>
   }
 
   bool get _canSkip {
-    return _isLoadingSkipCount || (_skipSettings?.skipCount ?? 0) < (_skipSettings?.maxSkipsAllowed ?? 5);
+    return _isLoadingSkipCount ||
+        (_skipSettings?.skipCount ?? 0) < (_skipSettings?.maxSkipsAllowed ?? 5);
   }
 
   int get _remainingSkips {
-    return (_skipSettings?.maxSkipsAllowed ?? 5) - (_skipSettings?.skipCount ?? 0);
+    return (_skipSettings?.maxSkipsAllowed ?? 5) -
+        (_skipSettings?.skipCount ?? 0);
   }
 
   @override
@@ -251,12 +253,6 @@ class _FailedPaymentState extends State<FailedPayment>
                     _waitingForPaymentCompletion = false;
                   });
                 }
-                showCustomSnackBarUtil(
-                  context,
-                  'Payment Successful',
-                  backgroundColor: Colors.green,
-                  showCloseButton: true,
-                );
               }
             }
           });

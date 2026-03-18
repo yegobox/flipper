@@ -18,6 +18,18 @@ mixin PaymentHandler {
     if (plan.selectedPlan == "yearly") {
       timeInSeconds = kDebugMode ? 120 : 31536000;
     }
+    // Save plan with discounted price BEFORE subscribe so the backend preApprove
+    // uses the correct amount when it fetches the plan from the database.
+    ProxyService.strategy.saveOrUpdatePaymentPlan(
+      additionalDevices: plan.additionalDevices!,
+      businessId: (await ProxyService.strategy.activeBusiness())!.id,
+      flipperHttpClient: ProxyService.http,
+      isYearlyPlan: plan.isYearlyPlan!,
+      paymentMethod: "MTNMOMO",
+      plan: plan,
+      selectedPlan: plan.selectedPlan!,
+      totalPrice: finalPrice.toDouble(),
+    );
     final subscribed = await ProxyService.ht.subscribe(
       businessId: ProxyService.box.getBusinessId()!,
       amount: finalPrice,

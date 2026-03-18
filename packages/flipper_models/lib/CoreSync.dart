@@ -1305,9 +1305,7 @@ class CoreSync extends AiStrategyImpl
 
       // Use awaitRemote when explicitly requesting online data to ensure
       // remote fetch happens even if local data exists (important for new devices)
-      final policy = (fetchOnline == true)
-          ? OfflineFirstGetPolicy.awaitRemote
-          : OfflineFirstGetPolicy.alwaysHydrate;
+      final policy = OfflineFirstGetPolicy.awaitRemote;
 
       talker.info(
         'getPaymentPlan: businessId=$businessId, fetchOnline=$fetchOnline, policy=$policy',
