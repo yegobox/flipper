@@ -15,6 +15,7 @@ import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flipper_models/sync/capella/mixins/settings_mixin.dart';
 import 'package:talker_flutter/talker_flutter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class FailedPayment extends StatefulWidget {
   const FailedPayment({Key? key}) : super(key: key);
@@ -224,38 +225,83 @@ class _FailedPaymentState extends State<FailedPayment>
 
       if (!_mounted) return;
 
-      setState(() {
-        _plan = fetchedPlan;
-        _isLoading = false;
-      });
-
-      // Set up real-time subscription
-      _subscription = Repository()
-          .subscribeToRealtime<models.Plan>(
-            policy: OfflineFirstGetPolicy.alwaysHydrate,
-            query: Query(
-              where: [const Where('businessId').isExactly(businessId)],
-            ),
-          )
-          .listen((updatedPlans) {
-            if (updatedPlans.isNotEmpty) {
-              final updatedPlan = updatedPlans.first;
-              if (!_mounted) return;
-
-              setState(() {
-                _plan = updatedPlan;
-              });
-
-              if (updatedPlan.paymentCompletedByUser == true) {
-                _paymentTimeoutTimer?.cancel();
-                if (_mounted) {
-                  setState(() {
-                    _waitingForPaymentCompletion = false;
-                  });
+      // Auto-enable phone input when plan and business have no phone.
+      // Use strategy.getBusiness (local Brick cache) instead of Supabase so it works offline.
+      final planPhone = fetchedPlan?.phoneNumber?.trim();
+      String? businessPhone;
+      if ((planPhone == null || planPhone.isEmpty) &&
+          fetchedPlan?.businessId != null) {
+        try {
+          final biz = await ProxyService.strategy.getBusiness(
+            businessId: fetchedPlan!.businessId!,
+          );
+          businessPhone = biz?.phoneNumber?.trim();
+          // Fallback: try Ditto user_access when strategy returns null (e.g. Capella)
+          if ((businessPhone == null || businessPhone.isEmpty) &&
+              ProxyService.ditto.isReady()) {
+            final userId = ProxyService.box.getUserId();
+            if (userId != null) {
+              final userAccess = await ProxyService.ditto.getUserAccess(userId);
+              if (userAccess != null && userAccess.containsKey('businesses')) {
+                final businesses =
+                    userAccess['businesses'] as List<dynamic>? ?? [];
+                for (final b in businesses) {
+                  final m = Map<String, dynamic>.from(b as Map);
+                  if (m['id'] == fetchedPlan.businessId) {
+                    final raw = m['phone_number'] ?? m['phoneNumber'];
+                    businessPhone = raw != null ? raw.toString().trim() : null;
+                    break;
+                  }
                 }
               }
             }
-          });
+          }
+        } catch (_) {
+          // Offline or fetch failed: assume no business phone, enable phone input
+          businessPhone = null;
+        }
+      }
+      final needsPhoneInput =
+          (planPhone == null || planPhone.isEmpty) &&
+          (businessPhone == null || businessPhone.isEmpty);
+
+      setState(() {
+        _plan = fetchedPlan;
+        _isLoading = false;
+        if (needsPhoneInput) _usePhoneNumber = true;
+      });
+
+      // Set up real-time subscription (optional when offline - may fail)
+      try {
+        _subscription = Repository()
+            .subscribeToRealtime<models.Plan>(
+              policy: OfflineFirstGetPolicy.alwaysHydrate,
+              query: Query(
+                where: [const Where('businessId').isExactly(businessId)],
+              ),
+            )
+            .listen((updatedPlans) {
+              if (updatedPlans.isNotEmpty) {
+                final updatedPlan = updatedPlans.first;
+                if (!_mounted) return;
+
+                setState(() {
+                  _plan = updatedPlan;
+                });
+
+                if (updatedPlan.paymentCompletedByUser == true) {
+                  _paymentTimeoutTimer?.cancel();
+                  if (_mounted) {
+                    setState(() {
+                      _waitingForPaymentCompletion = false;
+                    });
+                  }
+                }
+              }
+            });
+      } catch (_) {
+        // Subscription may fail when offline; we already have the plan from Ditto/Brick
+      }
     } catch (e) {
       if (!_mounted || !context.mounted) return;
 
@@ -1091,19 +1137,50 @@ class _FailedPaymentState extends State<FailedPayment>
     required bool isLoading,
     String? phoneNumber,
   }) async {
-    // Validate phone number if using custom number
     if (_usePhoneNumber) {
-      final phoneError = _getPhoneNumberError(phoneNumber ?? '');
+      final phoneValue = (phoneNumber ?? '').trim();
+      if (phoneValue.isEmpty) {
+        throw Exception('Please enter your MTN phone number.');
+      }
+      final phoneError = _getPhoneNumberError(phoneValue);
       if (phoneError != null) {
         throw Exception(phoneError);
       }
-
-      // Store the validated phone number for payment
-      if (phoneNumber != null) {
-        await ProxyService.box.writeString(
-          key: "customPhoneNumberForPayment",
-          value: phoneNumber.replaceAll(' ', ''),
-        );
+      final cleanPhone = phoneValue.replaceAll(' ', '').replaceAll('+', '');
+      // Save to plan in Supabase
+      await Supabase.instance.client
+          .from('plans')
+          .update({'phone_number': cleanPhone})
+          .eq('id', plan.id!);
+      plan.phoneNumber = cleanPhone;
+    } else {
+      // Use plan phone, or fetch from business in Supabase
+      var planPhone = plan.phoneNumber
+          ?.replaceAll(' ', '')
+          .replaceAll('+', '')
+          .trim();
+      if (planPhone == null || planPhone.isEmpty) {
+        final biz = await Supabase.instance.client
+            .from('businesses')
+            .select('phone_number')
+            .eq('id', plan.businessId!)
+            .maybeSingle();
+        final bizPhone = (biz?['phone_number'] as String?)
+            ?.replaceAll(' ', '')
+            .replaceAll('+', '')
+            .trim();
+        if (bizPhone == null || bizPhone.isEmpty) {
+          throw Exception(
+            'Phone number is required for MTN Mobile Money. '
+            'Please enable "Use different phone number" and enter your MTN number.',
+          );
+        }
+        // Save business phone to plan in Supabase for future use
+        await Supabase.instance.client
+            .from('plans')
+            .update({'phone_number': bizPhone})
+            .eq('id', plan.id!);
+        plan.phoneNumber = bizPhone;
       }
     }
 

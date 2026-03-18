@@ -18,6 +18,18 @@ mixin PaymentHandler {
     if (plan.selectedPlan == "yearly") {
       timeInSeconds = kDebugMode ? 120 : 31536000;
     }
+    // Use phone from plan only (no local storage)
+    final phone = plan.phoneNumber
+        ?.replaceAll("+", "")
+        .replaceAll(" ", "")
+        .trim();
+    if (phone == null || phone.isEmpty) {
+      throw Exception(
+        'Phone number is required for MTN Mobile Money payment. '
+        'Please enter your MTN number in the payment screen.',
+      );
+    }
+
     // Save plan with discounted price BEFORE subscribe so the backend preApprove
     // uses the correct amount when it fetches the plan from the database.
     ProxyService.strategy.saveOrUpdatePaymentPlan(
@@ -35,14 +47,11 @@ mixin PaymentHandler {
       amount: finalPrice,
       flipperHttpClient: ProxyService.http,
       timeInSeconds: timeInSeconds,
+      phone: phone,
     );
     // delay for 20 seconds
     await Future.delayed(const Duration(seconds: 20));
     if (subscribed) {
-      final phone =
-          ProxyService.box.customPhoneNumberForPayment()?.replaceAll("+", "") ??
-              ProxyService.box.getUserPhone()!.replaceAll("+", "");
-
       /// if subscribed, this means the user will not be prompted for PIN again,
       /// if he has not subscribed he will be prompted for PIN.
       ProxyService.ht.makePayment(
@@ -50,9 +59,10 @@ mixin PaymentHandler {
         paymentType: "Subscription",
         payeemessage: "Flipper Subscription",
         branchId: "2f83b8b1-6d41-4d80-b0e7-de8ab36910af",
-        businessId: (await ProxyService.strategy
-                .getBusiness(businessId: ProxyService.box.getBusinessId()!))!
-            .id,
+        businessId: (await ProxyService.strategy.getBusiness(
+          businessId: ProxyService.box.getBusinessId()!,
+        ))!.id,
+        planId: plan.id,
         amount: finalPrice,
         flipperHttpClient: ProxyService.http,
       );
@@ -72,10 +82,12 @@ mixin PaymentHandler {
       totalPrice: finalPrice.toDouble(),
     );
 
-    final query = Query(where: [
-      Where('businessId').isExactly(ProxyService.box.getBusinessId()!),
-      Where('paymentCompletedByUser').isExactly(true),
-    ]);
+    final query = Query(
+      where: [
+        Where('businessId').isExactly(ProxyService.box.getBusinessId()!),
+        Where('paymentCompletedByUser').isExactly(true),
+      ],
+    );
     final paymentPlan = Repository().subscribeToRealtime<Plan>(query: query);
     paymentPlan.listen(
       (data) {
@@ -91,17 +103,21 @@ mixin PaymentHandler {
   }
 
   Future<void> cardPayment(
-      int finalPrice, Plan paymentPlan, String selectedPaymentMethod,
-      {required Plan plan}) async {
-    final (:url, :userId, :customerCode) =
-        await ProxyService.strategy.subscribe(
-      businessId: ProxyService.box.getBusinessId()!,
-      business: (await ProxyService.strategy
-          .getBusiness(businessId: ProxyService.box.getBusinessId()!))!,
-      agentCode: 1,
-      flipperHttpClient: ProxyService.http,
-      amount: finalPrice,
-    );
+    int finalPrice,
+    Plan paymentPlan,
+    String selectedPaymentMethod, {
+    required Plan plan,
+  }) async {
+    final (:url, :userId, :customerCode) = await ProxyService.strategy
+        .subscribe(
+          businessId: ProxyService.box.getBusinessId()!,
+          business: (await ProxyService.strategy.getBusiness(
+            businessId: ProxyService.box.getBusinessId()!,
+          ))!,
+          agentCode: 1,
+          flipperHttpClient: ProxyService.http,
+          amount: finalPrice,
+        );
 
     ProxyService.strategy.saveOrUpdatePaymentPlan(
       additionalDevices: plan.additionalDevices!,
@@ -133,8 +149,9 @@ mixin PaymentHandler {
     do {
       /// force instant update from remote db
 
-      Plan? plan = await ProxyService.strategy
-          .getPaymentPlan(businessId: paymentPlan.businessId!);
+      Plan? plan = await ProxyService.strategy.getPaymentPlan(
+        businessId: paymentPlan.businessId!,
+      );
       if (plan != null && plan.paymentCompletedByUser!) {
         talker.warning("A user has Completed payment");
         keepLoop = false;

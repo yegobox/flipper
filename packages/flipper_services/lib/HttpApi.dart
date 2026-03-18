@@ -28,6 +28,7 @@ abstract class HttpApiInterface {
     String? businessId,
     required String phoneNumber,
     String? externalId,
+    String? planId = null,
     required String branchId,
     required String paymentType,
     required String payeemessage,
@@ -39,6 +40,7 @@ abstract class HttpApiInterface {
     int? agentCode,
     int? timeInSeconds = 120,
     required int amount,
+    String? phone,
   });
   Future<Map<String, dynamic>> payNow({
     required Map<String, dynamic> paymentData,
@@ -340,26 +342,30 @@ class HttpApi implements HttpApiInterface {
     required String branchId,
     required String paymentType,
     String? externalId,
+    String? planId = null,
     required String payeemessage,
     required int amount,
     required String phoneNumber,
   }) async {
     // get active business or profile
 
+    final body = <String, dynamic>{
+      "amount": amount,
+      "currency": "RWF",
+      "payer": {"partyIdType": "MSISDN", "partyId": phoneNumber},
+      "payerMessage": "Flipper Subscription",
+      "payeeNote": payeemessage,
+      "businessId": businessId,
+      "branchId": branchId,
+      "paymentType": paymentType,
+      if (externalId != null) "externalId": externalId,
+      if (planId != null) "planId": planId,
+    };
+
     final response = await flipperHttpClient.post(
       headers: {'Content-Type': 'application/json'},
       Uri.parse('${AppSecrets.coreApi}/v2/api/payNow'),
-      body: json.encode({
-        "amount": amount,
-        "currency": "RWF",
-        "payer": {"partyIdType": "MSISDN", "partyId": phoneNumber},
-        "payerMessage": "Flipper Subscription",
-        "payeeNote": payeemessage,
-        "businessId": businessId,
-        "branchId": branchId,
-        "paymentType": paymentType,
-        "externalId": externalId,
-      }),
+      body: json.encode(body),
     );
     talker.debug(response.body);
     final status = response.statusCode;
@@ -392,14 +398,18 @@ class HttpApi implements HttpApiInterface {
     int? agentCode,
     int? timeInSeconds = 120,
     required int amount,
+    String? phone,
   }) async {
-    final phone =
+    final phoneNumber = phone ??
         ProxyService.box.customPhoneNumberForPayment()?.replaceAll("+", "") ??
-        ProxyService.box.getUserPhone()!.replaceAll("+", "");
+        ProxyService.box.getUserPhone()?.replaceAll("+", "");
+    if (phoneNumber == null || phoneNumber.isEmpty) {
+      throw Exception('Phone number is required for MTN pre-approval.');
+    }
     final response = await flipperHttpClient.post(
       Uri.parse('${AppSecrets.coreApi}/v2/api/preApprove'),
       body: json.encode({
-        "payer": {"partyIdType": "MSISDN", "partyId": phone},
+        "payer": {"partyIdType": "MSISDN", "partyId": phoneNumber},
         "payerCurrency": "RWF",
         "payerMessage": "Flipper Subscription",
         "validityTime": timeInSeconds,
@@ -598,6 +608,7 @@ class RealmViaHttpServiceMock implements HttpApiInterface {
     int? timeInSeconds,
     int? agentCode,
     required int amount,
+    String? phone,
   }) {
     // TODO: implement subscribe
     throw UnimplementedError();
@@ -610,6 +621,7 @@ class RealmViaHttpServiceMock implements HttpApiInterface {
     required String paymentType,
     required String phoneNumber,
     String? externalId,
+    String? planId,
     required String branchId,
     required String payeemessage,
     required int amount,

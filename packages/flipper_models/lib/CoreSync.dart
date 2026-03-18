@@ -1299,13 +1299,29 @@ class CoreSync extends AiStrategyImpl
     bool? fetchOnline,
   }) async {
     try {
+      // Prefer Ditto when available: plans are synced from Supabase by the Kotlin
+      // PlanSyncJob, so we get server-authoritative data even when offline.
+      if (dittoService.isReady()) {
+        final plan = await dittoService.getPaymentPlanFromDitto(businessId);
+        if (plan != null) {
+          talker.info(
+            'getPaymentPlan: found plan from Ditto for businessId=$businessId',
+          );
+          return plan;
+        }
+        talker.info(
+          'getPaymentPlan: no plan in Ditto for businessId=$businessId, falling back to Brick',
+        );
+      }
+
+      // Fallback to Brick (SQLite/Supabase) when Ditto is not ready or has no plan
       final query = brick.Query(
         where: [brick.Where('businessId').isExactly(businessId)],
       );
 
-      // Use awaitRemote when explicitly requesting online data to ensure
-      // remote fetch happens even if local data exists (important for new devices)
-      final policy = OfflineFirstGetPolicy.awaitRemote;
+      final policy = (fetchOnline == true)
+          ? OfflineFirstGetPolicy.awaitRemote
+          : OfflineFirstGetPolicy.awaitRemoteWhenNoneExist;
 
       talker.info(
         'getPaymentPlan: businessId=$businessId, fetchOnline=$fetchOnline, policy=$policy',

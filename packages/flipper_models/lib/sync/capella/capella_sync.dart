@@ -1443,9 +1443,13 @@ class CapellaSync extends AiStrategyImpl
   Future<Plan?> getPaymentPlan({
     required String businessId,
     bool? fetchOnline,
-  }) {
-    // TODO: implement getPaymentPlan
-    throw UnimplementedError();
+  }) async {
+    // Use Ditto when available (plans synced from Supabase by Kotlin PlanSyncJob)
+    if (dittoService.isReady()) {
+      return dittoService.getPaymentPlanFromDitto(businessId);
+    }
+    // CapellaSync does not use Brick for plans; return null when Ditto unavailable
+    return null;
   }
 
   @override
