@@ -238,13 +238,14 @@ mixin GetterOperationsMixin implements GetterOperationsInterface {
   Future<Plan?> getPaymentPlan({
     required String businessId,
     bool? fetchOnline,
+    bool? preferFresh,
   }) async {
     try {
       final query = Query(where: [Where('businessId').isExactly(businessId)]);
 
       // Use awaitRemote when explicitly requesting online data to ensure
       // remote fetch happens even if local data exists (important for new devices)
-      final policy = (fetchOnline == true)
+      final policy = (fetchOnline == true || preferFresh == true)
           ? OfflineFirstGetPolicy.awaitRemote
           : OfflineFirstGetPolicy.awaitRemoteWhenNoneExist;
 

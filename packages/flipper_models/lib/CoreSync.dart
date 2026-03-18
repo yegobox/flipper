@@ -1297,11 +1297,13 @@ class CoreSync extends AiStrategyImpl
   Future<models.Plan?> getPaymentPlan({
     required String businessId,
     bool? fetchOnline,
+    bool? preferFresh,
   }) async {
     try {
-      // Prefer Ditto when available: plans are synced from Supabase by the Kotlin
-      // PlanSyncJob, so we get server-authoritative data even when offline.
-      if (dittoService.isReady()) {
+      // When preferFresh (e.g. polling for payment completion), skip Ditto and
+      // fetch directly from Supabase via Brick to get the latest backend state.
+      final skipDitto = preferFresh == true;
+      if (!skipDitto && dittoService.isReady()) {
         final plan = await dittoService.getPaymentPlanFromDitto(businessId);
         if (plan != null) {
           talker.info(
@@ -1319,7 +1321,7 @@ class CoreSync extends AiStrategyImpl
         where: [brick.Where('businessId').isExactly(businessId)],
       );
 
-      final policy = (fetchOnline == true)
+      final policy = (fetchOnline == true || preferFresh == true)
           ? OfflineFirstGetPolicy.awaitRemote
           : OfflineFirstGetPolicy.awaitRemoteWhenNoneExist;
 

@@ -29,8 +29,10 @@ class _FailedPaymentState extends State<FailedPayment>
   late final TextEditingController _phoneNumberController;
   late AnimationController _shakeController;
   late AnimationController _fadeController;
+  late AnimationController _pulseController;
   late Animation<double> _shakeAnimation;
   late Animation<double> _fadeAnimation;
+  late Animation<double> _pulseAnimation;
 
   @override
   Repository get repository => Repository();
@@ -54,6 +56,7 @@ class _FailedPaymentState extends State<FailedPayment>
   bool _mounted = true;
   bool _waitingForPaymentCompletion = false;
   Timer? _paymentTimeoutTimer;
+  Timer? _paymentCompletionPollTimer;
   StreamSubscription<List<models.Plan>>? _subscription;
 
   // Discount code state
@@ -88,6 +91,14 @@ class _FailedPaymentState extends State<FailedPayment>
 
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _fadeController, curve: Curves.easeInOut),
+    );
+
+    _pulseController = AnimationController(
+      duration: const Duration(milliseconds: 1500),
+      vsync: this,
+    )..repeat(reverse: true);
+    _pulseAnimation = Tween<double>(begin: 0.85, end: 1.05).animate(
+      CurvedAnimation(parent: _pulseController, curve: Curves.easeInOut),
     );
 
     // Keep original setup logic intact
@@ -181,7 +192,9 @@ class _FailedPaymentState extends State<FailedPayment>
     _phoneNumberController.dispose();
     _shakeController.dispose();
     _fadeController.dispose();
+    _pulseController.dispose();
     _paymentTimeoutTimer?.cancel();
+    _paymentCompletionPollTimer?.cancel();
     super.dispose();
   }
 
@@ -291,10 +304,12 @@ class _FailedPaymentState extends State<FailedPayment>
 
                 if (updatedPlan.paymentCompletedByUser == true) {
                   _paymentTimeoutTimer?.cancel();
+                  _paymentCompletionPollTimer?.cancel();
                   if (_mounted) {
                     setState(() {
                       _waitingForPaymentCompletion = false;
                     });
+                    locator<RouterService>().navigateTo(FlipperAppRoute());
                   }
                 }
               }
@@ -410,21 +425,29 @@ class _FailedPaymentState extends State<FailedPayment>
       appBar: AppBar(
         automaticallyImplyLeading: false,
         elevation: 0,
+        scrolledUnderElevation: 0,
         backgroundColor: Colors.transparent,
         title: Text(
           'Payment Issue',
-          style: TextStyle(
+          style: theme.textTheme.titleLarge?.copyWith(
             color: colorScheme.onSurface,
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w700,
+            letterSpacing: -0.3,
           ),
         ),
         centerTitle: true,
       ),
-      body: _isLoading
-          ? _buildLoadingState()
-          : _waitingForPaymentCompletion
-          ? _buildPaymentWaitingState()
-          : FadeTransition(
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 400),
+        switchInCurve: Curves.easeOut,
+        switchOutCurve: Curves.easeIn,
+        child: _isLoading
+            ? KeyedSubtree(key: const ValueKey('loading'), child: _buildLoadingState())
+            : _waitingForPaymentCompletion
+                ? KeyedSubtree(key: const ValueKey('waiting'), child: _buildPaymentWaitingState())
+                : KeyedSubtree(
+                    key: const ValueKey('content'),
+                    child: FadeTransition(
               opacity: _fadeAnimation,
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(24.0),
@@ -451,26 +474,55 @@ class _FailedPaymentState extends State<FailedPayment>
                 ),
               ),
             ),
+        ),
+      ),
     );
   }
 
   Widget _buildLoadingState() {
+    final theme = Theme.of(context);
+    final primary = theme.colorScheme.primary;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          CircularProgressIndicator(
-            strokeWidth: 3,
-            color: Theme.of(context).colorScheme.primary,
+          Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              color: primary.withValues(alpha: 0.08),
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: primary.withValues(alpha: 0.2),
+                  blurRadius: 20,
+                  spreadRadius: 0,
+                ),
+              ],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: CircularProgressIndicator(
+                strokeWidth: 2.5,
+                color: primary,
+              ),
+            ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 24),
           Text(
-            'Loading payment details...',
-            style: TextStyle(
-              color: Theme.of(
-                context,
-              ).colorScheme.onSurface.withValues(alpha: 0.7),
-              fontSize: 16,
+            'Loading payment details',
+            style: theme.textTheme.titleMedium?.copyWith(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.2,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Please wait a moment...',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+              fontSize: 14,
             ),
           ),
         ],
@@ -479,67 +531,129 @@ class _FailedPaymentState extends State<FailedPayment>
   }
 
   Widget _buildPaymentWaitingState() {
-    return Center(
+    final theme = Theme.of(context);
+    final primary = theme.colorScheme.primary;
+    return SingleChildScrollView(
+      padding: const EdgeInsets.symmetric(horizontal: 32),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            width: 80,
-            height: 80,
-            decoration: BoxDecoration(
-              color: Colors.blue.shade50,
-              borderRadius: BorderRadius.circular(40),
-              border: Border.all(color: Colors.blue.shade200, width: 2),
-            ),
-            child: const Icon(
-              Icons.hourglass_top,
-              size: 40,
-              color: Colors.blue,
-            ),
-          ),
-          const SizedBox(height: 24),
-          Text(
-            'Waiting for Payment Completion',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Theme.of(context).colorScheme.onSurface,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'Please complete the payment in your\npayment app or browser.',
-            style: TextStyle(
-              fontSize: 16,
-              color: Theme.of(
-                context,
-              ).colorScheme.onSurface.withValues(alpha: 0.7),
-              height: 1.4,
-            ),
-            textAlign: TextAlign.center,
+          const SizedBox(height: 48),
+          AnimatedBuilder(
+            animation: _pulseAnimation,
+            builder: (context, child) {
+              return Transform.scale(
+                scale: _pulseAnimation.value,
+                child: Container(
+                  width: 100,
+                  height: 100,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        primary.withValues(alpha: 0.15),
+                        primary.withValues(alpha: 0.06),
+                      ],
+                    ),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: primary.withValues(alpha: 0.25),
+                        blurRadius: 24,
+                        spreadRadius: -4,
+                      ),
+                      BoxShadow(
+                        color: primary.withValues(alpha: 0.1),
+                        blurRadius: 40,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                    border: Border.all(
+                      color: primary.withValues(alpha: 0.3),
+                      width: 2,
+                    ),
+                  ),
+                  child: Icon(
+                    Icons.phone_android_rounded,
+                    size: 44,
+                    color: primary,
+                  ),
+                ),
+              );
+            },
           ),
           const SizedBox(height: 32),
-          CircularProgressIndicator(
-            strokeWidth: 2,
-            color: Theme.of(context).colorScheme.primary,
-          ),
-          const SizedBox(height: 16),
           Text(
-            'This may take a few moments...',
-            style: TextStyle(
-              fontSize: 14,
-              color: Theme.of(
-                context,
-              ).colorScheme.onSurface.withValues(alpha: 0.6),
+            'Complete Payment on Your Phone',
+            style: theme.textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: theme.colorScheme.onSurface,
+              letterSpacing: -0.3,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'A payment request has been sent to your MTN Mobile Money.\nOpen your phone and approve the transaction.',
+            style: theme.textTheme.bodyLarge?.copyWith(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.65),
+              height: 1.5,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 40),
+          SizedBox(
+            width: 48,
+            height: 48,
+            child: CircularProgressIndicator(
+              strokeWidth: 3,
+              color: primary,
             ),
           ),
+          const SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildWaitingDot(0),
+              const SizedBox(width: 8),
+              _buildWaitingDot(1),
+              const SizedBox(width: 8),
+              _buildWaitingDot(2),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'Checking payment status...',
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+              letterSpacing: 0.3,
+            ),
+          ),
+          const SizedBox(height: 48),
         ],
       ),
     );
   }
 
+  Widget _buildWaitingDot(int index) {
+    final opacities = [0.5, 0.75, 1.0];
+    return Container(
+      width: 8,
+      height: 8,
+      decoration: BoxDecoration(
+        color: Theme.of(context)
+            .colorScheme
+            .primary
+            .withValues(alpha: opacities[index]),
+        shape: BoxShape.circle,
+      ),
+    );
+  }
+
   Widget _buildHeaderSection() {
+    final theme = Theme.of(context);
     return AnimatedBuilder(
       animation: _shakeAnimation,
       builder: (context, child) {
@@ -554,39 +668,52 @@ class _FailedPaymentState extends State<FailedPayment>
           child: Column(
             children: [
               Container(
-                width: 80,
-                height: 80,
+                width: 88,
+                height: 88,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFFFEBEE),
-                  borderRadius: BorderRadius.circular(40),
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      const Color(0xFFFFF5F5),
+                      const Color(0xFFFFEBEE),
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFFE53E3E).withValues(alpha: 0.15),
+                      blurRadius: 20,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
                   border: Border.all(
                     color: const Color(0xFFE53E3E).withValues(alpha: 0.2),
                     width: 2,
                   ),
                 ),
                 child: const Icon(
-                  Icons.payment_outlined,
-                  size: 40,
+                  Icons.payment_rounded,
+                  size: 44,
                   color: Color(0xFFE53E3E),
                 ),
               ),
-              const SizedBox(height: 16),
-              const Text(
+              const SizedBox(height: 20),
+              Text(
                 'Payment Needs Attention',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1A1A1A),
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: theme.colorScheme.onSurface,
+                  letterSpacing: -0.5,
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 10),
               Text(
                 'Don\'t worry, this happens sometimes.\nLet\'s get you sorted out quickly.',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey[600],
-                  height: 1.4,
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                  height: 1.5,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -598,23 +725,47 @@ class _FailedPaymentState extends State<FailedPayment>
   }
 
   Widget _buildErrorMessage() {
+    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.only(top: 16.0),
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.red.shade50,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: Colors.red.shade200),
+          color: const Color(0xFFFFF5F5),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: const Color(0xFFE53E3E).withValues(alpha: 0.25),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: const Color(0xFFE53E3E).withValues(alpha: 0.06),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
         ),
         child: Row(
           children: [
-            Icon(Icons.error_outline, color: Colors.red.shade600, size: 20),
-            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: const Color(0xFFE53E3E).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                Icons.error_outline_rounded,
+                color: Colors.red.shade600,
+                size: 22,
+              ),
+            ),
+            const SizedBox(width: 14),
             Expanded(
               child: Text(
                 _errorMessage!,
-                style: TextStyle(color: Colors.red.shade700),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: Colors.red.shade700,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ),
           ],
@@ -624,56 +775,72 @@ class _FailedPaymentState extends State<FailedPayment>
   }
 
   Widget _buildPhoneNumberSection() {
-    // Mobile money payment section
+    final theme = Theme.of(context);
+    final primary = theme.colorScheme.primary;
+    final surface = theme.colorScheme.surface;
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
+        color: surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: theme.colorScheme.outline.withValues(alpha: 0.15),
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(
-                Icons.phone_android,
-                color: Theme.of(context).colorScheme.primary,
-                size: 20,
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  Icons.phone_android_rounded,
+                  color: primary,
+                  size: 22,
+                ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 12),
               Text(
                 'Mobile Money Payment',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.grey[800],
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: theme.colorScheme.onSurface,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
           Text(
             'Payment will be processed using MTN Mobile Money',
-            style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+            ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           SwitchListTile(
-            title: const Text(
+            title: Text(
               'Use different phone number',
-              style: TextStyle(fontSize: 15),
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
             ),
             subtitle: Text(
               'Try with another MTN number if the current one failed',
-              style: TextStyle(color: Colors.grey[600], fontSize: 12),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.55),
+              ),
             ),
             value: _usePhoneNumber,
             onChanged: (value) {
@@ -705,10 +872,10 @@ class _FailedPaymentState extends State<FailedPayment>
                       )
                     : null,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8.0),
+                  borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(
                     color: Theme.of(context).colorScheme.primary,
                     width: 2,
@@ -749,11 +916,13 @@ class _FailedPaymentState extends State<FailedPayment>
   }
 
   Widget _buildRetryButton(BuildContext context) {
+    final theme = Theme.of(context);
+    final primary = theme.colorScheme.primary;
     return Column(
       children: [
         SizedBox(
           width: double.infinity,
-          height: 48,
+          height: 52,
           child: ElevatedButton(
             onPressed:
                 _isLoading || _plan == null || _waitingForPaymentCompletion
@@ -765,7 +934,7 @@ class _FailedPaymentState extends State<FailedPayment>
                     });
 
                     try {
-                      await _retryPayment(
+                      final paymentRef = await _retryPayment(
                         context,
                         plan: _plan!,
                         isLoading: _isLoading,
@@ -785,6 +954,7 @@ class _FailedPaymentState extends State<FailedPayment>
                           const Duration(minutes: 5),
                           () {
                             if (_mounted) {
+                              _paymentCompletionPollTimer?.cancel();
                               setState(() {
                                 _waitingForPaymentCompletion = false;
                                 _errorMessage =
@@ -799,6 +969,15 @@ class _FailedPaymentState extends State<FailedPayment>
                             }
                           },
                         );
+                        final businessId = _plan!.businessId;
+                        final planId = _plan!.id;
+                        if (businessId != null && planId != null) {
+                          _startPaymentCompletionPolling(
+                            businessId,
+                            paymentRef,
+                            planId,
+                          );
+                        }
                       }
                     } catch (e) {
                       _paymentTimeoutTimer?.cancel();
@@ -828,11 +1007,12 @@ class _FailedPaymentState extends State<FailedPayment>
                     }
                   },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.primary,
-              foregroundColor: Colors.white,
-              elevation: 0,
+              backgroundColor: primary,
+              foregroundColor: theme.colorScheme.onPrimary,
+              elevation: 2,
+              shadowColor: primary.withValues(alpha: 0.4),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(14),
               ),
             ),
             child: _isLoading
@@ -840,29 +1020,40 @@ class _FailedPaymentState extends State<FailedPayment>
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       SizedBox(
-                        width: 20,
-                        height: 20,
+                        width: 22,
+                        height: 22,
                         child: CircularProgressIndicator(
-                          strokeWidth: 2,
+                          strokeWidth: 2.5,
                           valueColor: AlwaysStoppedAnimation<Color>(
-                            Theme.of(context).colorScheme.onPrimary,
+                            theme.colorScheme.onPrimary,
                           ),
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      const Text('Processing...'),
+                      const SizedBox(width: 14),
+                      Text(
+                        'Processing...',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: theme.colorScheme.onPrimary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ],
                   )
                 : Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.refresh, size: 20),
-                      const SizedBox(width: 8),
-                      const Text(
+                      Icon(
+                        Icons.refresh_rounded,
+                        size: 22,
+                        color: theme.colorScheme.onPrimary,
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
                         'Try Again',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: theme.colorScheme.onPrimary,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 0.3,
                         ),
                       ),
                     ],
@@ -874,22 +1065,28 @@ class _FailedPaymentState extends State<FailedPayment>
           if (!_canSkip)
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
-                color: Colors.red.shade50,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.red.shade200),
+                color: const Color(0xFFFFF5F5),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: const Color(0xFFE53E3E).withValues(alpha: 0.2),
+                ),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.block, color: Colors.red.shade600, size: 20),
-                  const SizedBox(width: 8),
+                  Icon(
+                    Icons.block_rounded,
+                    color: Colors.red.shade600,
+                    size: 22,
+                  ),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       'Maximum skip limit reached. Please complete payment to continue.',
-                      style: TextStyle(
+                      style: theme.textTheme.bodyMedium?.copyWith(
                         color: Colors.red.shade700,
-                        fontSize: 14,
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
                   ),
@@ -899,13 +1096,15 @@ class _FailedPaymentState extends State<FailedPayment>
           else
             Text(
               'You can skip $_remainingSkips more time${_remainingSkips == 1 ? '' : 's'}',
-              style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+              ),
             ),
           const SizedBox(height: 8),
         ],
         SizedBox(
           width: double.infinity,
-          height: 48,
+          height: 52,
           child: OutlinedButton(
             onPressed: _isLoadingSkipCount || !_canSkip
                 ? null
@@ -914,17 +1113,22 @@ class _FailedPaymentState extends State<FailedPayment>
                     locator<RouterService>().navigateTo(FlipperAppRoute());
                   },
             style: OutlinedButton.styleFrom(
-              side: BorderSide(color: Colors.grey.shade300),
+              side: BorderSide(
+                color: _canSkip
+                    ? theme.colorScheme.outline.withValues(alpha: 0.5)
+                    : theme.colorScheme.outline.withValues(alpha: 0.3),
+              ),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(14),
               ),
             ),
             child: Text(
               _canSkip ? 'Skip for Now' : 'Skip Limit Reached',
-              style: TextStyle(
-                fontSize: 16,
+              style: theme.textTheme.titleMedium?.copyWith(
                 fontWeight: FontWeight.w600,
-                color: _canSkip ? Colors.grey[700] : Colors.grey[400],
+                color: _canSkip
+                    ? theme.colorScheme.onSurface.withValues(alpha: 0.7)
+                    : theme.colorScheme.onSurface.withValues(alpha: 0.4),
               ),
             ),
           ),
@@ -934,46 +1138,61 @@ class _FailedPaymentState extends State<FailedPayment>
   }
 
   Widget _buildPlanDetails(models.Plan plan) {
+    final theme = Theme.of(context);
+    final primary = theme.colorScheme.primary;
     return Container(
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            Theme.of(context).colorScheme.primary.withValues(alpha: 0.05),
-            Theme.of(context).colorScheme.primary.withValues(alpha: 0.02),
+            primary.withValues(alpha: 0.06),
+            primary.withValues(alpha: 0.02),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+          color: primary.withValues(alpha: 0.12),
+          width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 10,
+            color: primary.withValues(alpha: 0.06),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 12,
             offset: const Offset(0, 2),
           ),
         ],
       ),
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(
-                Icons.receipt_long_outlined,
-                color: Theme.of(context).colorScheme.primary,
-                size: 20,
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: primary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  Icons.receipt_long_rounded,
+                  color: primary,
+                  size: 22,
+                ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 12),
               Text(
                 'Payment Summary',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: Theme.of(context).colorScheme.primary,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: primary,
+                  letterSpacing: 0.2,
                 ),
               ),
             ],
@@ -1079,49 +1298,84 @@ class _FailedPaymentState extends State<FailedPayment>
   }
 
   Widget _buildHelpSection() {
+    final theme = Theme.of(context);
+    final primary = theme.colorScheme.primary;
     return Container(
       decoration: BoxDecoration(
-        color: Colors.blue.shade50,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.blue.shade100),
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            primary.withValues(alpha: 0.06),
+            primary.withValues(alpha: 0.02),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: primary.withValues(alpha: 0.15),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: primary.withValues(alpha: 0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
       child: Column(
         children: [
           Row(
             children: [
-              Icon(Icons.help_outline, color: Colors.blue.shade700, size: 20),
-              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: primary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  Icons.help_outline_rounded,
+                  color: primary,
+                  size: 22,
+                ),
+              ),
+              const SizedBox(width: 12),
               Text(
                 'Need Help?',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.blue.shade700,
+                style: theme.textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: primary,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           Text(
             'Common issues:\n• Insufficient funds\n• Network connectivity\n• Incorrect phone number\n• Payment method restrictions',
-            style: TextStyle(
-              color: Colors.blue.shade700,
-              fontSize: 14,
-              height: 1.4,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+              height: 1.5,
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           TextButton(
             onPressed: () {
               // Handle contact support
             },
+            style: TextButton.styleFrom(
+              foregroundColor: primary,
+            ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.support_agent, size: 16),
-                const SizedBox(width: 4),
-                const Text('Contact Support'),
+                Icon(Icons.support_agent_rounded, size: 18, color: primary),
+                const SizedBox(width: 6),
+                Text(
+                  'Contact Support',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
               ],
             ),
           ),
@@ -1130,8 +1384,8 @@ class _FailedPaymentState extends State<FailedPayment>
     );
   }
 
-  // Retry payment with mobile money
-  Future<void> _retryPayment(
+  // Retry payment with mobile money. Returns payment reference when successful.
+  Future<String?> _retryPayment(
     BuildContext context, {
     required models.Plan plan,
     required bool isLoading,
@@ -1189,7 +1443,78 @@ class _FailedPaymentState extends State<FailedPayment>
     final finalPrice = planPrice - _discountAmount;
     final finalPriceInt = finalPrice > 0 ? finalPrice.toInt() : 0;
 
-    // Handle mobile money payment with the discounted price
-    await handleMomoPayment(finalPriceInt, plan: plan);
+    // Handle mobile money payment with the discounted price.
+    // Returns payment reference when successful, for polling status.
+    return handleMomoPayment(finalPriceInt, plan: plan);
+  }
+
+  /// Polls for payment completion when we have a reference or can check plan.
+  /// When MTN confirms success via checkPaymentStatus, we update the plan in
+  /// Supabase ourselves (backend PaymentChecker may not have run yet).
+  void _startPaymentCompletionPolling(
+    String businessId, [
+    String? paymentReference,
+    String? planId,
+  ]) {
+    const pollInterval = Duration(seconds: 12);
+
+    void poll() async {
+      if (!_mounted || !_waitingForPaymentCompletion) return;
+
+      try {
+        // Fast path: check MTN API directly when we have the reference.
+        // Backend PaymentChecker may not have updated the plan yet, so we
+        // update Supabase ourselves when MTN confirms success.
+        if (paymentReference != null && paymentReference.isNotEmpty) {
+          final completed = await ProxyService.ht.checkPaymentStatus(
+            flipperHttpClient: ProxyService.http,
+            paymentReference: paymentReference,
+          );
+          if (completed && _mounted) {
+            _paymentTimeoutTimer?.cancel();
+            _paymentCompletionPollTimer?.cancel();
+            if (planId != null) {
+              try {
+                await ProxyService.ht.finalizePaymentOnSuccess(
+                  flipperHttpClient: ProxyService.http,
+                  planId: planId,
+                  paymentReference: paymentReference,
+                );
+              } catch (e) {
+                talker.error('Failed to finalize payment on backend: $e');
+              }
+            }
+            setState(() => _waitingForPaymentCompletion = false);
+            locator<RouterService>().navigateTo(FlipperAppRoute());
+            return;
+          }
+        }
+
+        // Backup: fetch fresh plan from backend (skip Ditto cache)
+        final plan = await ProxyService.strategy.getPaymentPlan(
+          businessId: businessId,
+          fetchOnline: true,
+          preferFresh: true,
+        );
+        if (plan != null &&
+            (plan.paymentCompletedByUser == true ||
+                (plan.paymentStatus?.toUpperCase() == 'COMPLETED'))) {
+          if (_mounted) {
+            _paymentTimeoutTimer?.cancel();
+            _paymentCompletionPollTimer?.cancel();
+            setState(() => _waitingForPaymentCompletion = false);
+            locator<RouterService>().navigateTo(FlipperAppRoute());
+          }
+        }
+      } catch (e) {
+        talker.error('Payment completion poll error: $e');
+      }
+
+      if (_mounted && _waitingForPaymentCompletion) {
+        _paymentCompletionPollTimer = Timer(pollInterval, poll);
+      }
+    }
+
+    _paymentCompletionPollTimer = Timer(pollInterval, poll);
   }
 }

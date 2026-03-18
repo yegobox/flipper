@@ -9,7 +9,9 @@ import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
 
 mixin PaymentHandler {
-  Future<void> handleMomoPayment(int finalPrice, {required Plan plan}) async {
+  /// Initiates MTN Mobile Money payment. Returns the payment reference when
+  /// successful, for use in polling payment status.
+  Future<String?> handleMomoPayment(int finalPrice, {required Plan plan}) async {
     /// given  plan.selectedPlan compute time in seconds
     int timeInSeconds = 120;
     if (plan.selectedPlan == "monthly") {
@@ -51,10 +53,11 @@ mixin PaymentHandler {
     );
     // delay for 20 seconds
     await Future.delayed(const Duration(seconds: 20));
+    String? paymentReference;
     if (subscribed) {
       /// if subscribed, this means the user will not be prompted for PIN again,
       /// if he has not subscribed he will be prompted for PIN.
-      ProxyService.ht.makePayment(
+      final result = await ProxyService.ht.makePaymentWithReference(
         phoneNumber: phone,
         paymentType: "Subscription",
         payeemessage: "Flipper Subscription",
@@ -66,6 +69,7 @@ mixin PaymentHandler {
         amount: finalPrice,
         flipperHttpClient: ProxyService.http,
       );
+      paymentReference = result.paymentReference;
     }
     // upsert plan with new payment method
     // refresh a plan as it might have updted remotely.
@@ -100,6 +104,7 @@ mixin PaymentHandler {
         talker.warning(error);
       },
     );
+    return paymentReference;
   }
 
   Future<void> cardPayment(

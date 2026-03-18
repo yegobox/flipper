@@ -1443,6 +1443,7 @@ class CapellaSync extends AiStrategyImpl
   Future<Plan?> getPaymentPlan({
     required String businessId,
     bool? fetchOnline,
+    bool? preferFresh,
   }) async {
     // Use Ditto when available (plans synced from Supabase by Kotlin PlanSyncJob)
     if (dittoService.isReady()) {

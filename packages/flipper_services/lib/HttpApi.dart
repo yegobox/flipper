@@ -51,6 +51,28 @@ abstract class HttpApiInterface {
     required String paymentReference,
   });
 
+  /// Ask backend to finalize a successful payment (next billing date, invoice).
+  /// Call when MTN confirms success but PaymentChecker has not yet updated the plan.
+  Future<bool> finalizePaymentOnSuccess({
+    required HttpClientInterface flipperHttpClient,
+    required String planId,
+    required String paymentReference,
+  });
+
+  /// Like makePayment but returns the payment reference from the response when successful.
+  /// Use this when you need to poll payment status (e.g. MTN Mobile Money confirmation).
+  Future<({bool success, String? paymentReference})> makePaymentWithReference({
+    required HttpClientInterface flipperHttpClient,
+    String? businessId,
+    required String branchId,
+    required String paymentType,
+    String? externalId,
+    String? planId = null,
+    required String payeemessage,
+    required int amount,
+    required String phoneNumber,
+  });
+
   /// Uploads a PDF document and extracts company information from it
   /// Returns a Map containing the extracted company information
   Future<Map<String, dynamic>> extractCompanyInfoFromPdf({
@@ -392,6 +414,59 @@ class HttpApi implements HttpApiInterface {
   }
 
   @override
+  Future<({bool success, String? paymentReference})> makePaymentWithReference({
+    required HttpClientInterface flipperHttpClient,
+    String? businessId,
+    required String branchId,
+    required String paymentType,
+    String? externalId,
+    String? planId = null,
+    required String payeemessage,
+    required int amount,
+    required String phoneNumber,
+  }) async {
+    final body = <String, dynamic>{
+      "amount": amount,
+      "currency": "RWF",
+      "payer": {"partyIdType": "MSISDN", "partyId": phoneNumber},
+      "payerMessage": "Flipper Subscription",
+      "payeeNote": payeemessage,
+      "businessId": businessId,
+      "branchId": branchId,
+      "paymentType": paymentType,
+      if (externalId != null) "externalId": externalId,
+      if (planId != null) "planId": planId,
+    };
+
+    final response = await flipperHttpClient.post(
+      headers: {'Content-Type': 'application/json'},
+      Uri.parse('${AppSecrets.coreApi}/v2/api/payNow'),
+      body: json.encode(body),
+    );
+    talker.debug(response.body);
+    final status = response.statusCode;
+    if (status == 400) throw Exception("Bad request");
+    if (status == 401) throw Exception("Unauthorized");
+    if (status == 403) throw Exception("Forbidden");
+    if (status == 404) throw Exception("Not found");
+    if (status == 409) throw Exception("Duplicate payment Id");
+    if (status == 500) throw Exception("Internal server error");
+    if (status == 502) throw Exception("Payment gateway down");
+    if (status == 503) throw Exception("Service unavailable");
+    if (status == 504) throw Exception("Gateway timeout");
+
+    String? paymentReference;
+    if (status == 200 || status == 202) {
+      try {
+        final data = json.decode(response.body) as Map<String, dynamic>?;
+        paymentReference = data?['paymentReference']?.toString() ??
+            data?['externalId']?.toString();
+      } catch (_) {}
+    }
+    return (success: status == 200 || status == 202, paymentReference: paymentReference);
+  }
+
+  @override
   Future<bool> subscribe({
     required HttpClientInterface flipperHttpClient,
     required String businessId,
@@ -448,6 +523,35 @@ class HttpApi implements HttpApiInterface {
       }
     } catch (e, stackTrace) {
       talker.error('Error checking payment status', e, stackTrace);
+      return false;
+    }
+  }
+
+  @override
+  Future<bool> finalizePaymentOnSuccess({
+    required HttpClientInterface flipperHttpClient,
+    required String planId,
+    required String paymentReference,
+  }) async {
+    try {
+      final response = await flipperHttpClient.post(
+        Uri.parse('${AppSecrets.apihubProd}/v2/api/payment/finalize-on-success'),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({
+          'planId': planId,
+          'paymentReference': paymentReference,
+        }),
+      );
+      if (response.statusCode == 200) {
+        talker.info('Payment finalized successfully for plan $planId');
+        return true;
+      }
+      talker.error(
+        'finalizePaymentOnSuccess failed: ${response.statusCode} ${response.body}',
+      );
+      return false;
+    } catch (e, stackTrace) {
+      talker.error('Error finalizing payment', e, stackTrace);
       return false;
     }
   }
@@ -631,6 +735,21 @@ class RealmViaHttpServiceMock implements HttpApiInterface {
   }
 
   @override
+  Future<({bool success, String? paymentReference})> makePaymentWithReference({
+    required HttpClientInterface flipperHttpClient,
+    String? businessId,
+    required String branchId,
+    required String paymentType,
+    String? externalId,
+    String? planId,
+    required String payeemessage,
+    required int amount,
+    required String phoneNumber,
+  }) async {
+    return (success: false, paymentReference: null);
+  }
+
+  @override
   Future<Map<String, dynamic>> payNow({
     required Map<String, dynamic> paymentData,
     required HttpClientInterface flipperHttpClient,
@@ -646,6 +765,15 @@ class RealmViaHttpServiceMock implements HttpApiInterface {
   }) {
     // TODO: implement checkPaymentStatus
     throw UnimplementedError();
+  }
+
+  @override
+  Future<bool> finalizePaymentOnSuccess({
+    required HttpClientInterface flipperHttpClient,
+    required String planId,
+    required String paymentReference,
+  }) async {
+    return true;
   }
 
   @override

@@ -36,6 +36,7 @@ abstract class GetterOperationsInterface {
   Future<Plan?> getPaymentPlan({
     required String businessId,
     bool? fetchOnline,
+    bool? preferFresh,
   });
 
   // Required methods that should be provided by other mixins
