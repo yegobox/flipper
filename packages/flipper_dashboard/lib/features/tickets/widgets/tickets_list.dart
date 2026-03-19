@@ -20,10 +20,87 @@ import 'package:flipper_ui/dialogs/ResumeTicketDialog.dart';
 import '../models/ticket_status.dart';
 // import 'ticket_tile.dart';
 
+/// Search bar for filtering tickets by metadata (customer name, phone, etc.)
+class TicketSearchBar extends StatefulWidget {
+  final String hintText;
+  final ValueChanged<String> onChanged;
+
+  const TicketSearchBar({
+    super.key,
+    required this.hintText,
+    required this.onChanged,
+  });
+
+  @override
+  State<TicketSearchBar> createState() => _TicketSearchBarState();
+}
+
+class _TicketSearchBarState extends State<TicketSearchBar> {
+  late final TextEditingController _controller;
+  late final VoidCallback _listener;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController();
+    _listener = () => setState(() {});
+    _controller.addListener(_listener);
+  }
+
+  @override
+  void dispose() {
+    _controller.removeListener(_listener);
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: _controller,
+      onChanged: widget.onChanged,
+      decoration: InputDecoration(
+        hintText: widget.hintText,
+        hintStyle: GoogleFonts.inter(
+          fontSize: 14,
+          color: Colors.grey[600],
+        ),
+        prefixIcon: Icon(Icons.search, color: Colors.grey[600], size: 22),
+        suffixIcon: _controller.text.isNotEmpty
+            ? IconButton(
+                icon: Icon(Icons.clear, size: 20, color: Colors.grey[600]),
+                onPressed: () {
+                  _controller.clear();
+                  widget.onChanged('');
+                },
+              )
+            : null,
+        filled: true,
+        fillColor: Colors.grey[50],
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey[200]!),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Theme.of(context).primaryColor),
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      ),
+      style: GoogleFonts.inter(fontSize: 15),
+    );
+  }
+}
+
 mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   final _routerService = locator<RouterService>();
   final _dialogService = locator<DialogService>();
   List<ITransaction> _currentTickets = [];
+  String _searchQuery = '';
 
   List<ITransaction> getCurrentTickets() => _currentTickets;
 
@@ -112,6 +189,24 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     }
   }
 
+  /// Returns true if ticket matches the search query (case-insensitive)
+  bool _matchesSearch(ITransaction t, String query) {
+    if (query.isEmpty) return true;
+    final q = query.trim().toLowerCase();
+    final fields = [
+      t.id,
+      t.reference,
+      t.customerName,
+      t.customerPhone,
+      t.ticketName,
+      t.note,
+      t.transactionNumber,
+      t.subTotal?.toString(),
+      t.invoiceNumber?.toString(),
+    ];
+    return fields.any((f) => f != null && f.toString().toLowerCase().contains(q));
+  }
+
   /// Builds the main ticket section with responsive layout
   Widget buildTicketSection(BuildContext context) {
     final isDesktop = MediaQuery.sizeOf(context).width >= 900;
@@ -131,6 +226,16 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                     ),
                     value: _totalCount > 0 ? _deletedCount / _totalCount : null,
                   ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 8.0,
+                  ),
+                  child: TicketSearchBar(
+                    hintText: 'Search by customer name, phone, ticket name, note...',
+                    onChanged: (value) => setState(() => _searchQuery = value),
+                  ),
+                ),
                 Expanded(
                   child: ticketsAsync.when(
                     data: (tickets) =>
@@ -183,14 +288,20 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     List<ITransaction> tickets,
     bool isDesktop,
   ) {
+    // Apply search filter
+    final filteredTickets = tickets
+        .where((t) => _matchesSearch(t, _searchQuery))
+        .toList();
+
     // Show empty state if there's no data
-    if (tickets.isEmpty) {
-      return _buildNoTickets(context);
+    if (filteredTickets.isEmpty) {
+      return _buildEmptySearchOrNoTickets(context, tickets.isEmpty);
     }
 
-    _currentTickets = tickets;
-    final loanTickets = tickets.where((t) => t.isLoan == true).toList();
-    final nonLoanTickets = tickets.where((t) => t.isLoan != true).toList();
+    _currentTickets = filteredTickets;
+    final loanTickets = filteredTickets.where((t) => t.isLoan == true).toList();
+    final nonLoanTickets =
+        filteredTickets.where((t) => t.isLoan != true).toList();
 
     Widget buildSection(String title, Color color, List<ITransaction> list) {
       if (list.isEmpty) return const SizedBox.shrink();
@@ -506,6 +617,34 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           ),
           Text(
             'Create a new ticket to get started',
+            style: GoogleFonts.inter(fontSize: 14, color: Colors.grey[600]),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Empty state for no search results vs no tickets at all
+  Widget _buildEmptySearchOrNoTickets(BuildContext context, bool hasNoTickets) {
+    if (hasNoTickets) {
+      return _buildNoTickets(context);
+    }
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.search_off, size: 60, color: Colors.grey[400]),
+          const SizedBox(height: 12),
+          Text(
+            'No tickets match your search',
+            style: GoogleFonts.inter(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey,
+            ),
+          ),
+          Text(
+            'Try a different search term',
             style: GoogleFonts.inter(fontSize: 14, color: Colors.grey[600]),
           ),
         ],
