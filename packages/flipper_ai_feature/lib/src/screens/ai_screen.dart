@@ -20,6 +20,8 @@ import '../providers/conversation_provider.dart';
 import 'package:flipper_services/whatsapp_service.dart';
 import '../widgets/excel_analysis_modal.dart';
 import '../widgets/data_source/data_source_list_screen.dart';
+import '../providers/data_source_provider.dart';
+import '../services/data_source/ai_connected_data_context.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 
 /// Main screen for the AI feature with a modern, polished UI.
@@ -50,6 +52,9 @@ class _AiScreenState extends ConsumerState<AiScreen> {
       []; // To store conversation history for AI
   AIModel? _selectedModel; // State for selected AI model
   String _selectedUseCase = 'business'; // State for selected mode
+
+  /// Connections whose schema/samples were included in the last AI reply (for attribution UI).
+  List<String>? _lastExternalDataSourcesAttribution;
 
   String _cleanResponse(String text) {
     return text
@@ -95,6 +100,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
     // The provider uses keepAlive to maintain lifecycle
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(whatsappMessageSyncProvider);
+      ref.read(initDataSourceManagerProvider.future).catchError((_) {});
     });
   }
 
@@ -284,6 +290,23 @@ class _AiScreenState extends ConsumerState<AiScreen> {
 
       // --- AI Logic (Only if NOT WhatsApp) ---
 
+      setState(() => _lastExternalDataSourcesAttribution = null);
+
+      String? connectedExternalDataContext;
+      var externalSourceNames = <String>[];
+      try {
+        await ref.read(initDataSourceManagerProvider.future);
+        final manager = ref.read(dataSourceManagerProvider);
+        final built = await buildConnectedDataContextForAi(manager);
+        connectedExternalDataContext = built.context;
+        externalSourceNames = built.sourceNames;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          ref.invalidate(dataSourceManagerProvider);
+        });
+      } catch (e) {
+        debugPrint('Connected data context: $e');
+      }
+
       // Prepare parts for the AI prompt
       String processedText = text;
       String? fileToAnalyzePath = _attachedFilePath;
@@ -322,6 +345,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
           history: _conversationHistory, // Pass conversation history
           aiModel: _selectedModel, // Pass the selected model
           useCase: currentUseCase, // Pass the useCase
+          connectedExternalDataContext: connectedExternalDataContext,
         ).future,
       )
           .catchError((e) {
@@ -351,6 +375,13 @@ class _AiScreenState extends ConsumerState<AiScreen> {
         aiContext: text,
         messageSource: 'ai',
       );
+
+      if (mounted) {
+        setState(() {
+          _lastExternalDataSourcesAttribution =
+              externalSourceNames.isNotEmpty ? externalSourceNames : null;
+        });
+      }
 
       // Clean the response for conversation history to avoid confusing the AI.
       final cleanedForHistory = _cleanResponse(aiResponseText);
@@ -690,31 +721,34 @@ class _AiScreenState extends ConsumerState<AiScreen> {
       }
     }
 
-    // Handle initial selection if needed
+    // Handle initial selection if needed — defer setState so we never mutate layout mid-layout.
     ref.listen(conversationProvider, (previous, next) {
       next.whenData((conversations) {
-        if (conversations.isEmpty) {
-          // If no conversations exist, reset state and start a new one
-          if (_currentConversationId.isNotEmpty) {
-            setState(() {
-              _currentConversationId = '';
-              _messages = [];
-            });
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          if (conversations.isEmpty) {
+            // If no conversations exist, reset state and start a new one
+            if (_currentConversationId.isNotEmpty) {
+              setState(() {
+                _currentConversationId = '';
+                _messages = [];
+              });
+            }
+            _startNewConversation();
+            return;
           }
-          _startNewConversation();
-          return;
-        }
 
-        // We have conversations
-        if (_currentConversationId.isEmpty ||
-            !conversations.any((c) => c.id == _currentConversationId)) {
-          // Auto-select first conversation if none selected or current is gone
-          setState(() {
-            _currentConversationId = conversations.first.id;
-            _messages = []; // Will be populated by stream
-          });
-          _subscribeToCurrentConversation();
-        }
+          // We have conversations
+          if (_currentConversationId.isEmpty ||
+              !conversations.any((c) => c.id == _currentConversationId)) {
+            // Auto-select first conversation if none selected or current is gone
+            setState(() {
+              _currentConversationId = conversations.first.id;
+              _messages = []; // Will be populated by stream
+            });
+            _subscribeToCurrentConversation();
+          }
+        });
       });
     });
 
@@ -727,34 +761,33 @@ class _AiScreenState extends ConsumerState<AiScreen> {
         final availableModels = next.value!;
         if (_selectedModel != null &&
             !availableModels.any((model) => model.id == _selectedModel!.id)) {
-          setState(() {
-            // Set to first available model if current selection is not in the list
-            _selectedModel =
-                availableModels.isNotEmpty ? availableModels.first : null;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            setState(() {
+              // Set to first available model if current selection is not in the list
+              _selectedModel =
+                  availableModels.isNotEmpty ? availableModels.first : null;
+            });
           });
         }
       }
     });
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isMobile = constraints.maxWidth < 600;
-        return Scaffold(
-          key: _scaffoldKey,
-          backgroundColor: AiTheme.backgroundColor,
-          appBar: isMobile
-              ? _buildMobileAppBar(availableModelsAsync.value ?? [])
-              : null,
-          drawer:
-              isMobile ? _buildDrawer(conversationsAsync.value ?? []) : null,
-          body: isMobile
-              ? _buildMobileLayout()
-              : _buildDesktopLayout(
-                  conversationsAsync.value ?? [],
-                  availableModelsAsync.value ?? [],
-                ),
-        );
-      },
+    final isMobile = MediaQuery.sizeOf(context).width < 600;
+
+    return Scaffold(
+      key: _scaffoldKey,
+      backgroundColor: AiTheme.backgroundColor,
+      appBar: isMobile
+          ? _buildMobileAppBar(availableModelsAsync.value ?? [])
+          : null,
+      drawer: isMobile ? _buildDrawer(conversationsAsync.value ?? []) : null,
+      body: isMobile
+          ? _buildMobileLayout()
+          : _buildDesktopLayout(
+              conversationsAsync.value ?? [],
+              availableModelsAsync.value ?? [],
+            ),
     );
   }
 
@@ -770,21 +803,7 @@ class _AiScreenState extends ConsumerState<AiScreen> {
       ),
       actions: [
         _buildModeSelector(),
-        // Data Source Connection Button
-        Tooltip(
-          message: 'Data Sources',
-          child: IconButton(
-            icon: const Icon(Icons.storage, color: AiTheme.secondaryColor),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const DataSourceListScreen(),
-                ),
-              );
-            },
-          ),
-        ),
+        _buildDataSourcesNavButton(mobile: true),
         if (availableModels.isNotEmpty)
           Padding(
             padding: const EdgeInsets.only(right: 8.0),
@@ -820,10 +839,88 @@ class _AiScreenState extends ConsumerState<AiScreen> {
     );
   }
 
+  Widget _buildDataSourceAttributionBanner() {
+    final names = _lastExternalDataSourcesAttribution;
+    if (names == null || names.isEmpty) return const SizedBox.shrink();
+
+    return Material(
+      color: AiTheme.surfaceColor,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Row(
+          children: [
+            Icon(Icons.dataset_linked_outlined, size: 18, color: AiTheme.primaryColor),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'This reply used schema and samples from your connected data: '
+                '${names.join(', ')}',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: AiTheme.textColor.withValues(alpha: 0.85),
+                    ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDataSourcesNavButton({required bool mobile}) {
+    final hasConnected = ref.watch(hasConnectedDataSourceProvider);
+
+    return Tooltip(
+      message: 'Data Sources',
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.center,
+        children: [
+          IconButton(
+            icon: Icon(
+              Icons.storage_rounded,
+              color: mobile ? AiTheme.secondaryColor : AiTheme.primaryColor,
+            ),
+            onPressed: () {
+              // Defer push to after layout — avoids nested LayoutBuilder mutation
+              // (DevicePreview/MaterialApp) when the new route builds immediately.
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (!context.mounted) return;
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const DataSourceListScreen(),
+                  ),
+                );
+              });
+            },
+          ),
+          if (hasConnected)
+            Positioned(
+              right: 10,
+              top: 10,
+              child: Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: AiTheme.primaryColor,
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: AiTheme.surfaceColor,
+                    width: 1.5,
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildMobileLayout() {
     return Column(
       children: [
         Expanded(child: _buildMessageList()),
+        _buildDataSourceAttributionBanner(),
         AiInputField(
           controller: _controller,
           onSend: (text) =>
@@ -882,27 +979,14 @@ class _AiScreenState extends ConsumerState<AiScreen> {
                     ),
                     Row(
                       children: [
-                        // Data Source Connection Button
-                        Tooltip(
-                          message: 'Data Sources',
-                          child: IconButton(
-                            icon: const Icon(Icons.storage),
-                            onPressed: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const DataSourceListScreen(),
-                                ),
-                              );
-                            },
-                          ),
-                        ),
+                        _buildDataSourcesNavButton(mobile: false),
                       ],
                     ),
                   ],
                 ),
               ),
               Expanded(child: _buildMessageList()),
+              _buildDataSourceAttributionBanner(),
               AiInputField(
                 controller: _controller,
                 onSend: (text) =>

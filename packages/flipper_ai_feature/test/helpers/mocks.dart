@@ -49,6 +49,7 @@ class GeminiBusinessAnalyticsMock extends Mock
     List<Content>? history,
     AIModel? aiModel,
     String useCase = 'business',
+    String? connectedExternalDataContext,
   }) async {
     return 'Mocked response';
   }

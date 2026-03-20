@@ -185,7 +185,7 @@ final class TransactionListProvider
   }
 }
 
-String _$transactionListHash() => r'ed4fa8d5e42fc112afdff70eb949492c41a219c2';
+String _$transactionListHash() => r'b08a64782f6946d3dd8cb28194e9e067291e64c8';
 
 final class TransactionListFamily extends $Family
     with $FunctionalFamilyOverride<Stream<List<ITransaction>>, bool> {
@@ -262,7 +262,7 @@ final class TransactionsProvider
   }
 }
 
-String _$transactionsHash() => r'a8598e025c2ff2857cd7429408b3afce02ee6154';
+String _$transactionsHash() => r'e7bdac77e49e750203974771e4eec3e4aa2af7de';
 
 final class TransactionsFamily extends $Family
     with $FunctionalFamilyOverride<Stream<List<ITransaction>>, bool> {
@@ -322,7 +322,7 @@ final class TransactionItemListProvider
 }
 
 String _$transactionItemListHash() =>
-    r'8bb9bc488f30f9accfcac8f267b2a0f5d073856a';
+    r'35992fbce1f66e0c58d0c516d0ec6a9393264b06';
 
 @ProviderFor(expensesStream)
 const expensesStreamProvider = ExpensesStreamFamily._();
@@ -400,7 +400,7 @@ final class ExpensesStreamProvider
   }
 }
 
-String _$expensesStreamHash() => r'df2ada80401f87752f3a61690f1dd0df1acb336c';
+String _$expensesStreamHash() => r'8fd11314a0605d7727e1306728996338ba771db4';
 
 final class ExpensesStreamFamily extends $Family
     with
@@ -509,7 +509,7 @@ final class GrossProfitStreamProvider
   }
 }
 
-String _$grossProfitStreamHash() => r'11a1ef7820fbd64d0451d2ea712fac9875197065';
+String _$grossProfitStreamHash() => r'36e377586fbf56b3fbf1aecec4e827819d9612be';
 
 final class GrossProfitStreamFamily extends $Family
     with
@@ -618,7 +618,7 @@ final class NetProfitStreamProvider
   }
 }
 
-String _$netProfitStreamHash() => r'1b1b7900f3c6b0a82b754c83b09467c26bbbaa7b';
+String _$netProfitStreamHash() => r'335bf64d9c290aee8db30ea38db80ee09cc9430b';
 
 final class NetProfitStreamFamily extends $Family
     with
@@ -727,7 +727,7 @@ final class TotalIncomeStreamProvider
   }
 }
 
-String _$totalIncomeStreamHash() => r'd0bc501a05f99de70d738eed17f4ce9a6bb919b9';
+String _$totalIncomeStreamHash() => r'ba09b4bc51619e47d0d69c13bb93afb1ee2e17a9';
 
 final class TotalIncomeStreamFamily extends $Family
     with

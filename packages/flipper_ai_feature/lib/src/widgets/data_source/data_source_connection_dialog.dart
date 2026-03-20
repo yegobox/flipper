@@ -238,8 +238,8 @@ class DataSourceConnectionDialog extends HookConsumerWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      'Your data will be used to answer questions in the AI chat. '
-                      'Credentials are stored securely on your device.',
+                      'When connected, the assistant can use schema and sample rows from '
+                      'this source in your chats. Credentials are stored only on this device.',
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ),

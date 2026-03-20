@@ -22,9 +22,12 @@ class DataSourceListScreen extends HookConsumerWidget {
     final connectionStatuses = ref.watch(connectionStatusesProvider);
     final notifier = ref.watch(dataSourceNotifierProvider);
 
-    // Listen for initialization
+    // Initialize after first layout so FutureProvider completion cannot rebuild
+    // during the route's initial performLayout (nested LayoutBuilder assert).
     useEffect(() {
-      ref.read(initDataSourceManagerProvider.future);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(initDataSourceManagerProvider.future);
+      });
       return null;
     }, []);
 
@@ -90,7 +93,8 @@ class DataSourceListScreen extends HookConsumerWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Connect your data source to ask questions\nabout your data in the AI chat',
+            'Connect a database so the AI can include its schema and sample rows\n'
+            'when answering in Business or Personal chat.',
             textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Theme.of(context).colorScheme.outline,

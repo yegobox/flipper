@@ -341,8 +341,12 @@ class GeminiBusinessAnalytics extends _$GeminiBusinessAnalytics {
     List<Content>? history,
     AIModel? aiModel,
     String useCase = 'business',
+    /// Schema/samples from user-connected databases (e.g. Supabase), built in the app layer.
+    String? connectedExternalDataContext,
   }) async {
     final bool isPersonal = useCase == 'personal';
+    final externalContext = connectedExternalDataContext?.trim() ?? '';
+    final hasExternalContext = externalContext.isNotEmpty;
 
     final List<models.BusinessAnalytic> businessAnalyticsData = isPersonal
         ? []
@@ -572,6 +576,14 @@ User Query: $enrichedUserPrompt
     // Only add business context if not in personal mode
     if (!isPersonal) {
       currentTurnParts.add(Part.text(csvData));
+      if (hasExternalContext) {
+        currentTurnParts.add(
+          Part.text(
+            'Connected external data (user-linked databases; use for questions about this data '
+            'and mention which connection/table you relied on when relevant):\n\n$externalContext',
+          ),
+        );
+      }
       currentTurnParts.add(Part.text(basePrompt));
     } else {
       currentTurnParts.add(
@@ -579,6 +591,14 @@ User Query: $enrichedUserPrompt
           "You are a helpful personal assistant. Provide clear, concise, and accurate responses to the user's queries.",
         ),
       );
+      if (hasExternalContext) {
+        currentTurnParts.add(
+          Part.text(
+            'The user has connected external database(s). Relevant schema and sample rows:\n\n'
+            '$externalContext',
+          ),
+        );
+      }
     }
 
     final List<Content> contents = [];
@@ -587,8 +607,11 @@ User Query: $enrichedUserPrompt
     }
     contents.add(Content(role: "user", parts: currentTurnParts));
 
-    if (!isPersonal && businessAnalyticsData.isEmpty && filePath == null) {
-      return "I don't have enough data to analyze at the moment. Please make sure you have some sales or inventory data in your system.";
+    if (!isPersonal &&
+        businessAnalyticsData.isEmpty &&
+        filePath == null &&
+        !hasExternalContext) {
+      return "I don't have enough data to analyze at the moment. Please make sure you have some sales or inventory data in your system, or connect a data source from the Data Sources menu.";
     }
 
     // For now we assume Gemini for Business Analytics unless specialized model logic is added

@@ -93,7 +93,7 @@ final class GeminiResponseProvider
   }
 }
 
-String _$geminiResponseHash() => r'8f8093f1ed97aa93a4d979bbeb2f78fea0f664a5';
+String _$geminiResponseHash() => r'1d19ecaa1fe3f137234dd10effded08b211ab853';
 
 /// Providers
 
@@ -163,6 +163,7 @@ final class GeminiBusinessAnalyticsProvider
       List<Content>? history,
       AIModel? aiModel,
       String useCase,
+      String? connectedExternalDataContext,
     })
     super.argument,
   }) : super(
@@ -200,7 +201,7 @@ final class GeminiBusinessAnalyticsProvider
 }
 
 String _$geminiBusinessAnalyticsHash() =>
-    r'bc902cb011f1526d539742944dbb114e0143e36b';
+    r'c2128c783c3956fc5261bb9198e1890fbfb13b19';
 
 final class GeminiBusinessAnalyticsFamily extends $Family
     with
@@ -216,6 +217,7 @@ final class GeminiBusinessAnalyticsFamily extends $Family
             List<Content>? history,
             AIModel? aiModel,
             String useCase,
+            String? connectedExternalDataContext,
           })
         > {
   const GeminiBusinessAnalyticsFamily._()
@@ -234,6 +236,7 @@ final class GeminiBusinessAnalyticsFamily extends $Family
     List<Content>? history,
     AIModel? aiModel,
     String useCase = 'business',
+    String? connectedExternalDataContext,
   }) => GeminiBusinessAnalyticsProvider._(
     argument: (
       branchId,
@@ -242,6 +245,7 @@ final class GeminiBusinessAnalyticsFamily extends $Family
       history: history,
       aiModel: aiModel,
       useCase: useCase,
+      connectedExternalDataContext: connectedExternalDataContext,
     ),
     from: this,
   );
@@ -260,6 +264,7 @@ abstract class _$GeminiBusinessAnalytics extends $AsyncNotifier<String> {
             List<Content>? history,
             AIModel? aiModel,
             String useCase,
+            String? connectedExternalDataContext,
           });
   String get branchId => _$args.$1;
   String get userPrompt => _$args.$2;
@@ -268,6 +273,10 @@ abstract class _$GeminiBusinessAnalytics extends $AsyncNotifier<String> {
   AIModel? get aiModel => _$args.aiModel;
   String get useCase => _$args.useCase;
 
+  /// Schema/samples from user-connected databases (e.g. Supabase), built in the app layer.
+  String? get connectedExternalDataContext =>
+      _$args.connectedExternalDataContext;
+
   FutureOr<String> build(
     String branchId,
     String userPrompt, {
@@ -275,6 +284,7 @@ abstract class _$GeminiBusinessAnalytics extends $AsyncNotifier<String> {
     List<Content>? history,
     AIModel? aiModel,
     String useCase = 'business',
+    String? connectedExternalDataContext,
   });
   @$mustCallSuper
   @override
@@ -286,6 +296,7 @@ abstract class _$GeminiBusinessAnalytics extends $AsyncNotifier<String> {
       history: _$args.history,
       aiModel: _$args.aiModel,
       useCase: _$args.useCase,
+      connectedExternalDataContext: _$args.connectedExternalDataContext,
     );
     final ref = this.ref as $Ref<AsyncValue<String>, String>;
     final element =
