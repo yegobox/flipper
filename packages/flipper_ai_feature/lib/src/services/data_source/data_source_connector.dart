@@ -128,13 +128,16 @@ abstract class BaseDataSourceConnector implements DataSourceConnector {
   void _validateSupabaseConfig(DataSourceConfig config) {
     final supabaseUrl = config.getCredential<String>('supabaseUrl');
     final anonKey = config.getCredential<String>('anonKey');
+    final serviceKey = config.getCredential<String>('serviceKey');
 
     if (supabaseUrl == null || supabaseUrl.isEmpty) {
       throw ArgumentError('Supabase URL is required');
     }
 
-    if (anonKey == null || anonKey.isEmpty) {
-      throw ArgumentError('Supabase Anon Key is required');
+    final hasAnon = anonKey != null && anonKey.isNotEmpty;
+    final hasService = serviceKey != null && serviceKey.isNotEmpty;
+    if (!hasAnon && !hasService) {
+      throw ArgumentError('Supabase Anon Key or Service Key is required');
     }
 
     // Validate URL format

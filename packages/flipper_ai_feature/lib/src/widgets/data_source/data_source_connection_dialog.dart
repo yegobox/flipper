@@ -159,16 +159,16 @@ class DataSourceConnectionDialog extends HookConsumerWidget {
                               errorMessage.value = null;
 
                               try {
+                                final anon = anonKeyController.text.trim();
+                                final service = serviceKeyController.text.trim();
                                 final config = DataSourceConfig.supabase(
                                   id: initialConfig?.id ??
                                       DateTime.now().toString(),
                                   name: nameController.text,
                                   supabaseUrl: supabaseUrlController.text,
-                                  anonKey: anonKeyController.text,
+                                  anonKey: anon.isNotEmpty ? anon : '',
                                   serviceKey:
-                                      serviceKeyController.text.isNotEmpty
-                                          ? serviceKeyController.text
-                                          : null,
+                                      service.isNotEmpty ? service : null,
                                 );
 
                                 final result =
@@ -265,9 +265,15 @@ class DataSourceConnectionDialog extends HookConsumerWidget {
                   }
 
                   if (dataSourceType.value == DataSourceType.supabase) {
-                    if (supabaseUrlController.text.trim().isEmpty ||
-                        anonKeyController.text.trim().isEmpty) {
-                      errorMessage.value = 'Please fill in all required fields';
+                    if (supabaseUrlController.text.trim().isEmpty) {
+                      errorMessage.value = 'Please enter the Supabase URL';
+                      return;
+                    }
+                    final hasAnon = anonKeyController.text.trim().isNotEmpty;
+                    final hasService = serviceKeyController.text.trim().isNotEmpty;
+                    if (!hasAnon && !hasService) {
+                      errorMessage.value =
+                          'Please enter an Anon/Public Key or Service Role Key';
                       return;
                     }
                   }
@@ -280,8 +286,10 @@ class DataSourceConnectionDialog extends HookConsumerWidget {
                       id: initialConfig?.id ?? DateTime.now().toString(),
                       name: nameController.text.trim(),
                       supabaseUrl: supabaseUrlController.text.trim(),
-                      anonKey: anonKeyController.text.trim(),
-                      serviceKey: serviceKeyController.text.isNotEmpty
+                      anonKey: anonKeyController.text.trim().isNotEmpty
+                          ? anonKeyController.text.trim()
+                          : '', // Service key used when anon empty
+                      serviceKey: serviceKeyController.text.trim().isNotEmpty
                           ? serviceKeyController.text.trim()
                           : null,
                       isActive: true,

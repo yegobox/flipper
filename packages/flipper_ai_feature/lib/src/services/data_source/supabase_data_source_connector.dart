@@ -2,6 +2,9 @@
 ///
 /// Implements connection to Supabase databases for AI feature.
 
+import 'dart:convert';
+
+import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:logging/logging.dart';
 
@@ -27,7 +30,17 @@ class SupabaseDataSourceConnector extends BaseDataSourceConnector {
       validateConfig(config);
 
       final supabaseUrl = getCredential<String>(config, 'supabaseUrl')!;
-      final anonKey = getCredential<String>(config, 'anonKey')!;
+      var anonKey = getCredential<String>(config, 'anonKey');
+      final serviceKey = getCredential<String>(config, 'serviceKey');
+
+      // Use service key if anon key is empty (e.g. user only has sb_secret_)
+      if ((anonKey == null || anonKey.isEmpty) && serviceKey != null && serviceKey.isNotEmpty) {
+        anonKey = serviceKey;
+        _logger.info('Using service key for connection (anon key not provided)');
+      }
+      if (anonKey == null || anonKey.isEmpty) {
+        throw ArgumentError('Supabase Anon Key or Service Key is required');
+      }
 
       // Create or get existing client
       final clientKey = config.id;
@@ -38,7 +51,7 @@ class SupabaseDataSourceConnector extends BaseDataSourceConnector {
         // Verify client is still valid
         try {
           if (client != null) {
-            await _testClient(client);
+            await _testConnection(supabaseUrl, anonKey);
             _logger.info('Reusing existing Supabase client');
           } else {
             client = null;
@@ -58,7 +71,7 @@ class SupabaseDataSourceConnector extends BaseDataSourceConnector {
       }
 
       // Test the connection
-      final isConnected = await _testClient(client);
+      final isConnected = await _testConnection(supabaseUrl, anonKey);
 
       if (isConnected) {
         _logger.info('Successfully connected to Supabase: ${config.name}');
@@ -112,39 +125,40 @@ class SupabaseDataSourceConnector extends BaseDataSourceConnector {
   }) async {
     try {
       final client = await _getClient(config);
+      final supabaseUrl = getCredential<String>(config, 'supabaseUrl')!;
+      final apiKey = _getEffectiveKey(config);
 
-      // Query information schema for tables
-      final schemas = getOption<List<String>>(config, 'schemas') ?? ['public'];
-      final targetSchemas = schema != null ? [schema] : schemas;
+      // PostgREST does NOT expose information_schema - use OpenAPI spec instead
+      final openApi = await _fetchOpenApiSchema(supabaseUrl, apiKey);
+      final targetSchema = schema ?? getOption<List<String>>(config, 'schemas')?.first ?? 'public';
 
       final tables = <DataSourceTable>[];
 
-      for (final tableSchema in targetSchemas) {
-        final response = await client
-            .from('information_schema.tables')
-            .select('table_name, table_type')
-            .eq('table_schema', tableSchema)
-            .eq('table_type', 'BASE TABLE');
+      final paths = openApi['paths'] as Map<String, dynamic>? ?? {};
+      for (final path in paths.keys) {
+        // Skip RPC and non-table paths (e.g. /rpc/function_name)
+        if (path.startsWith('/rpc/') || path.contains('(')) continue;
 
-        for (final tableData in response) {
-          final tableName = tableData['table_name'] as String;
+        // Paths are like "/table_name" or "/schema.table_name"
+        final pathContent = path.startsWith('/') ? path.substring(1) : path;
+        final tableSchema = pathContent.contains('.') ? pathContent.split('.').first : 'public';
+        final name = pathContent.contains('.') ? pathContent.split('.').last : pathContent;
 
-          // Get columns for this table
-          final columns = await _getTableColumns(client, tableName, tableSchema);
+        // Filter by schema when specific schema requested
+        if (schema != null && tableSchema != schema) continue;
+        if (schema == null && targetSchema != 'public' && tableSchema != targetSchema) continue;
 
-          // Get row count
-          final rowCount = await _getTableRowCount(client, tableName, tableSchema);
+        final tableRef = tableSchema == 'public' ? name : '$tableSchema.$name';
+        final columns = _parseColumnsFromOpenApi(openApi, tableRef, tableSchema);
+        final rowCount = await _getTableRowCount(client, name, tableSchema);
 
-          tables.add(DataSourceTable(
-            name: tableName,
-            schema: tableSchema,
-            columns: columns,
-            rowCount: rowCount,
-            metadata: {
-              'table_type': tableData['table_type'],
-            },
-          ));
-        }
+        tables.add(DataSourceTable(
+          name: name,
+          schema: tableSchema,
+          columns: columns,
+          rowCount: rowCount,
+          metadata: {'table_type': 'BASE TABLE'},
+        ));
       }
 
       _logger.info('Retrieved ${tables.length} tables from Supabase');
@@ -165,7 +179,7 @@ class SupabaseDataSourceConnector extends BaseDataSourceConnector {
       final client = await _getClient(config);
       final tableSchema = schema ?? getOption<List<String>>(config, 'schemas')?.first ?? 'public';
 
-      final columns = await _getTableColumns(client, tableName, tableSchema);
+      final columns = await _getTableColumns(config, client, tableName, tableSchema);
       final rowCount = await _getTableRowCount(client, tableName, tableSchema);
 
       return DataSourceTable(
@@ -237,7 +251,7 @@ class SupabaseDataSourceConnector extends BaseDataSourceConnector {
       stopwatch.stop();
 
       // Get column info
-      final columns = await _getTableColumns(client, tableName, tableSchema);
+      final columns = await _getTableColumns(config, client, tableName, tableSchema);
 
       return DataSourceQueryResult(
         data: response,
@@ -351,46 +365,101 @@ class SupabaseDataSourceConnector extends BaseDataSourceConnector {
     return _clients[clientKey]!;
   }
 
-  Future<bool> _testClient(SupabaseClient client) async {
+  Future<bool> _testConnection(String supabaseUrl, String apiKey) async {
     try {
-      // Try to query a system table to verify connection
-      await client.from('information_schema.tables').select('table_name').limit(1);
-      return true;
+      // PostgREST does NOT expose information_schema.
+      // Validate key by fetching OpenAPI schema - returns 401 if key is invalid.
+      final baseUrl = supabaseUrl.endsWith('/') ? supabaseUrl : '$supabaseUrl/';
+      final uri = Uri.parse('${baseUrl}rest/v1/');
+      final response = await http.get(
+        uri,
+        headers: {
+          'apikey': apiKey,
+          'Authorization': 'Bearer $apiKey',
+          'Accept': 'application/openapi+json',
+        },
+      );
+      return response.statusCode == 200;
     } catch (e) {
-      _logger.warning('Client test failed: $e');
+      _logger.warning('Connection test failed: $e');
       return false;
     }
   }
 
+  String _getEffectiveKey(DataSourceConfig config) {
+    final anonKey = getCredential<String>(config, 'anonKey');
+    final serviceKey = getCredential<String>(config, 'serviceKey');
+    if (anonKey != null && anonKey.isNotEmpty) return anonKey;
+    if (serviceKey != null && serviceKey.isNotEmpty) return serviceKey;
+    throw ArgumentError('Supabase Anon Key or Service Key is required');
+  }
+
+  Future<Map<String, dynamic>> _fetchOpenApiSchema(String supabaseUrl, String apiKey) async {
+    final baseUrl = supabaseUrl.endsWith('/') ? supabaseUrl : '$supabaseUrl/';
+    final uri = Uri.parse('${baseUrl}rest/v1/');
+    final response = await http.get(
+      uri,
+      headers: {
+        'apikey': apiKey,
+        'Authorization': 'Bearer $apiKey',
+        'Accept': 'application/openapi+json',
+      },
+    );
+    if (response.statusCode != 200) {
+      throw Exception('Failed to fetch schema: ${response.statusCode}');
+    }
+    return jsonDecode(response.body) as Map<String, dynamic>;
+  }
+
+  List<DataSourceColumn> _parseColumnsFromOpenApi(
+    Map<String, dynamic> openApi,
+    String tableRef,
+    String schema,
+  ) {
+    // OpenAPI definitions: "public.table_name" or "table_name"
+    final definitions = openApi['definitions'] as Map<String, dynamic>? ?? {};
+    final schemaKey = tableRef.contains('.') ? tableRef : 'public.$tableRef';
+    var def = definitions[schemaKey] ?? definitions[tableRef];
+
+    if (def == null) {
+      for (final key in definitions.keys) {
+        if (key.toString().toLowerCase().endsWith('.${tableRef.toLowerCase()}')) {
+          def = definitions[key];
+          break;
+        }
+      }
+    }
+
+    final properties = def?['properties'] as Map<String, dynamic>? ?? {};
+    return properties.entries.map((e) {
+      final colName = e.key;
+      final colDef = e.value as Map<String, dynamic>? ?? {};
+      final type = colDef['type']?.toString() ?? 'unknown';
+      final format = colDef['format']?.toString() ?? '';
+      final pgType = format.isNotEmpty ? '$type ($format)' : type;
+
+      return DataSourceColumn(
+        name: colName,
+        type: pgType,
+        isNullable: colDef['nullable'] != false,
+        isPrimaryKey: false, // OpenAPI doesn't expose PK directly
+        defaultValue: colDef['default'],
+        metadata: {'description': colDef['description']},
+      );
+    }).toList();
+  }
+
   Future<List<DataSourceColumn>> _getTableColumns(
+    DataSourceConfig config,
     SupabaseClient client,
     String tableName,
     String schema,
   ) async {
-    final response = await client
-        .from('information_schema.columns')
-        .select()
-        .eq('table_name', tableName)
-        .eq('table_schema', schema)
-        .order('ordinal_position');
-
-    return response.map((col) {
-      // Check if primary key
-      final isPrimaryKey = col['column_key'] == 'PRI';
-
-      return DataSourceColumn(
-        name: col['column_name'] as String,
-        type: col['data_type'] as String,
-        isNullable: col['is_nullable'] == 'YES',
-        isPrimaryKey: isPrimaryKey,
-        defaultValue: col['column_default'],
-        metadata: {
-          'character_maximum_length': col['character_maximum_length'],
-          'numeric_precision': col['numeric_precision'],
-          'is_identity': col['is_identity'],
-        },
-      );
-    }).toList();
+    final supabaseUrl = getCredential<String>(config, 'supabaseUrl')!;
+    final apiKey = _getEffectiveKey(config);
+    final openApi = await _fetchOpenApiSchema(supabaseUrl, apiKey);
+    final tableRef = schema == 'public' ? tableName : '$schema.$tableName';
+    return _parseColumnsFromOpenApi(openApi, tableRef, schema);
   }
 
   Future<int> _getTableRowCount(
