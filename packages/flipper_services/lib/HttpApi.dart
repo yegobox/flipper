@@ -88,6 +88,13 @@ abstract class HttpApiInterface {
     required HttpClientInterface client,
     required String businessId,
   });
+
+  /// Same total as backend MTN validation ([calculateAccumulatedDueAmount]).
+  /// Returns null if the request fails — caller may fall back to [Plan.totalPrice].
+  Future<Map<String, dynamic>?> getPlanAmountDue({
+    required HttpClientInterface flipperHttpClient,
+    required String planId,
+  });
 }
 
 class HttpApi implements HttpApiInterface {
@@ -459,11 +466,15 @@ class HttpApi implements HttpApiInterface {
     if (status == 200 || status == 202) {
       try {
         final data = json.decode(response.body) as Map<String, dynamic>?;
-        paymentReference = data?['paymentReference']?.toString() ??
+        paymentReference =
+            data?['paymentReference']?.toString() ??
             data?['externalId']?.toString();
       } catch (_) {}
     }
-    return (success: status == 200 || status == 202, paymentReference: paymentReference);
+    return (
+      success: status == 200 || status == 202,
+      paymentReference: paymentReference,
+    );
   }
 
   @override
@@ -475,7 +486,8 @@ class HttpApi implements HttpApiInterface {
     required int amount,
     String? phone,
   }) async {
-    final phoneNumber = phone ??
+    final phoneNumber =
+        phone ??
         ProxyService.box.customPhoneNumberForPayment()?.replaceAll("+", "") ??
         ProxyService.box.getUserPhone()?.replaceAll("+", "");
     if (phoneNumber == null || phoneNumber.isEmpty) {
@@ -535,7 +547,9 @@ class HttpApi implements HttpApiInterface {
   }) async {
     try {
       final response = await flipperHttpClient.post(
-        Uri.parse('${AppSecrets.apihubProd}/v2/api/payment/finalize-on-success'),
+        Uri.parse(
+          '${AppSecrets.apihubProd}/v2/api/payment/finalize-on-success',
+        ),
         headers: {'Content-Type': 'application/json'},
         body: json.encode({
           'planId': planId,
@@ -667,6 +681,28 @@ class HttpApi implements HttpApiInterface {
   }) {
     // TODO: implement getBusinessId
     throw UnimplementedError();
+  }
+
+  @override
+  Future<Map<String, dynamic>?> getPlanAmountDue({
+    required HttpClientInterface flipperHttpClient,
+    required String planId,
+  }) async {
+    try {
+      final response = await flipperHttpClient.get(
+        Uri.parse('${AppSecrets.apihubProd}/v2/api/plans/$planId/amount-due'),
+      );
+      if (response.statusCode == 200) {
+        return json.decode(response.body) as Map<String, dynamic>;
+      }
+      talker.warning(
+        'getPlanAmountDue failed: ${response.statusCode} ${response.body}',
+      );
+      return null;
+    } catch (e, stackTrace) {
+      talker.error('getPlanAmountDue error', e, stackTrace);
+      return null;
+    }
   }
 }
 
@@ -810,5 +846,18 @@ class RealmViaHttpServiceMock implements HttpApiInterface {
   }) {
     // TODO: implement getBusinessId
     throw UnimplementedError();
+  }
+
+  @override
+  Future<Map<String, dynamic>?> getPlanAmountDue({
+    required HttpClientInterface flipperHttpClient,
+    required String planId,
+  }) async {
+    return {
+      'amountDue': 5000,
+      'periodsBucket': 1,
+      'partialDays': 0,
+      'basePeriodPrice': 5000,
+    };
   }
 }

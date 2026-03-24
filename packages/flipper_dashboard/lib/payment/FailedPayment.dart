@@ -79,6 +79,9 @@ class _FailedPaymentState extends State<FailedPayment>
   List<String> _switchPlanAdditionalServices = [];
   bool _planWasActive = false;
 
+  /// Matches backend [calculateAccumulatedDueAmount] / MTN validation; null until loaded.
+  double? _chargeBaseRwf;
+
   @override
   void initState() {
     super.initState();
@@ -216,6 +219,43 @@ class _FailedPaymentState extends State<FailedPayment>
       return d.isAfter(DateTime.now());
     } catch (_) {
       return false;
+    }
+  }
+
+  /// Charge base before discounts: server accumulated due, or catalogue when switching plan.
+  double _baseChargeBeforeDiscount(models.Plan plan) {
+    if (_switchUiDiffersFromPlan(plan)) {
+      return _calculateSwitchPlanPrice();
+    }
+    return _chargeBaseRwf ?? plan.totalPrice?.toDouble() ?? 0.0;
+  }
+
+  double _totalDisplayAmount(models.Plan plan) {
+    if (_discountAmount > 0) {
+      final sub = _originalPrice > 0
+          ? _originalPrice
+          : _baseChargeBeforeDiscount(plan);
+      return sub - _discountAmount;
+    }
+    return _baseChargeBeforeDiscount(plan);
+  }
+
+  Future<void> _refreshAmountDue(String planId) async {
+    try {
+      final data = await ProxyService.ht.getPlanAmountDue(
+        flipperHttpClient: ProxyService.http,
+        planId: planId,
+      );
+      if (!_mounted) return;
+      final raw = data?['amountDue'];
+      final amt = raw is num ? raw.toDouble() : double.tryParse('$raw');
+      if (amt != null) {
+        setState(() {
+          _chargeBaseRwf = amt;
+        });
+      }
+    } catch (e) {
+      talker.error('Failed to load amount due: $e');
     }
   }
 
@@ -390,6 +430,11 @@ class _FailedPaymentState extends State<FailedPayment>
         _initSwitchPlanFromPlan(fetchedPlan);
       });
 
+      final pid = fetchedPlan?.id;
+      if (pid != null) {
+        unawaited(_refreshAmountDue(pid));
+      }
+
       // Realtime from Supabase (plans are not in local Brick/SQLite)
       try {
         _subscription = Supabase.instance.client
@@ -406,6 +451,8 @@ class _FailedPaymentState extends State<FailedPayment>
               setState(() {
                 _plan = updatedPlan;
               });
+
+              unawaited(_refreshAmountDue(updatedPlan.id!));
 
               if (updatedPlan.paymentCompletedByUser == true) {
                 _paymentTimeoutTimer?.cancel();
@@ -460,7 +507,8 @@ class _FailedPaymentState extends State<FailedPayment>
     });
 
     try {
-      final planPrice = _plan?.totalPrice?.toDouble() ?? 0;
+      final planPrice =
+          _plan != null ? _baseChargeBeforeDiscount(_plan!) : 0.0;
       // Initialize _originalPrice to planPrice if it's unset (<= 0) before validation
       final effectiveOriginalPrice = _originalPrice <= 0
           ? planPrice
@@ -1821,13 +1869,9 @@ class _FailedPaymentState extends State<FailedPayment>
           ],
           _buildDetailRow(
             _discountAmount > 0 ? 'Total' : 'Price',
-            (_discountAmount > 0
-                        ? (_originalPrice - _discountAmount)
-                        : plan.totalPrice)
-                    ?.toCurrencyFormatted(
-                      symbol: ProxyService.box.defaultCurrency(),
-                    ) ??
-                'N/A',
+            _totalDisplayAmount(plan).toCurrencyFormatted(
+              symbol: ProxyService.box.defaultCurrency(),
+            ),
             isTotal: _discountAmount > 0,
           ),
           _buildDetailRow(
@@ -2030,8 +2074,10 @@ class _FailedPaymentState extends State<FailedPayment>
       );
     }
 
-    // Calculate the discounted price for payment
-    final planPrice = effectivePlan.totalPrice?.toDouble() ?? 0.0;
+    // Charge accumulated due from server when not switching plans (matches MTN validation).
+    final planPrice = _switchUiDiffersFromPlan(plan)
+        ? _calculateSwitchPlanPrice()
+        : _baseChargeBeforeDiscount(plan);
     final finalPrice = planPrice - _discountAmount;
     final finalPriceInt = finalPrice > 0 ? finalPrice.toInt() : 0;
 
