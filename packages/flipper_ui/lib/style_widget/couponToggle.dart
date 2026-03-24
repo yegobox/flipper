@@ -106,8 +106,14 @@ class CouponToggle extends HookConsumerWidget {
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const Text('Apply Discount Code'),
+            Expanded(
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: const Text('Apply Discount Code'),
+              ),
+            ),
             Switch(
               value: isToggled.value,
               onChanged: _toggleSwitch,

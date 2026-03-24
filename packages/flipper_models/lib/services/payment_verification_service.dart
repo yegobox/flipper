@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:supabase_models/brick/models/plans.model.dart';
+import 'package:supabase_models/brick/models/plan.dart';
 import 'package:flipper_models/exceptions.dart';
 
 /// Represents the different states of payment verification
@@ -109,7 +109,11 @@ class PaymentVerificationService {
 
       // First check if a payment plan exists at all
       final plan = await ProxyService.strategy
-          .getPaymentPlan(businessId: businessId, fetchOnline: true)
+          .getPaymentPlan(
+            businessId: businessId,
+            fetchOnline: true,
+            preferFresh: true,
+          )
           .timeout(const Duration(seconds: 15));
 
       if (plan == null) {
@@ -163,9 +167,7 @@ class PaymentVerificationService {
           exception: e,
         );
       } on FailedPaymentException catch (e) {
-        debugPrint(
-          '🚀 [PaymentVerificationService] Payment failed: $e',
-        );
+        debugPrint('🚀 [PaymentVerificationService] Payment failed: $e');
         return PaymentVerificationResponse(
           result: PaymentVerificationResult.planExistsButInactive,
           errorMessage: e.message,

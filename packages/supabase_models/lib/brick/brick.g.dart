@@ -94,7 +94,6 @@ import '../brick/models/permission.model.dart';
 import '../brick/models/pin.model.dart';
 import '../brick/models/plan_addon.model.dart';
 import '../brick/models/plan_discount.model.dart';
-import '../brick/models/plans.model.dart';
 import '../brick/models/product.model.dart';
 import '../brick/models/purchase.model.dart';
 import '../brick/models/receipt.model.dart';
@@ -159,7 +158,6 @@ part 'adapters/l_permission_adapter.g.dart';
 part 'adapters/pin_adapter.g.dart';
 part 'adapters/plan_addon_adapter.g.dart';
 part 'adapters/plan_discount_adapter.g.dart';
-part 'adapters/plan_adapter.g.dart';
 part 'adapters/product_adapter.g.dart';
 part 'adapters/purchase_adapter.g.dart';
 part 'adapters/receipt_adapter.g.dart';
@@ -226,7 +224,6 @@ final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
   Pin: PinAdapter(),
   PlanAddon: PlanAddonAdapter(),
   PlanDiscount: PlanDiscountAdapter(),
-  Plan: PlanAdapter(),
   Product: ProductAdapter(),
   Purchase: PurchaseAdapter(),
   Receipt: ReceiptAdapter(),
@@ -295,7 +292,6 @@ final Map<Type, SqliteAdapter<SqliteModel>> sqliteMappings = {
   Pin: PinAdapter(),
   PlanAddon: PlanAddonAdapter(),
   PlanDiscount: PlanDiscountAdapter(),
-  Plan: PlanAdapter(),
   Product: ProductAdapter(),
   Purchase: PurchaseAdapter(),
   Receipt: ReceiptAdapter(),

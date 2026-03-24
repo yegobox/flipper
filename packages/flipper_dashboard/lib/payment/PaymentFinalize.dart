@@ -8,7 +8,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flipper_services/PaymentHandler.dart';
-import 'package:supabase_models/brick/repository.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flipper_models/helperModels/extensions.dart';
 
@@ -22,7 +22,7 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
   bool useCustomPhoneNumber = false;
   TextEditingController phoneNumberController = TextEditingController();
 
-  StreamSubscription<List<models.Plan>>? _subscription;
+  StreamSubscription<List<Map<String, dynamic>>>? _subscription;
   bool _mounted = true;
 
   // Discount code state
@@ -63,26 +63,23 @@ class _PaymentFinalizeState extends State<PaymentFinalize> with PaymentHandler {
         });
       }
 
-      // Set up real-time subscription
-      _subscription = Repository()
-          .subscribeToRealtime<models.Plan>(
-            query: Query(
-              where: [const Where('businessId').isExactly(businessId)],
-            ),
-          )
-          .listen((updatedPlans) {
-            if (updatedPlans.isNotEmpty) {
-              final updatedPlan = updatedPlans.first;
-              if (!_mounted) return;
+      _subscription = Supabase.instance.client
+          .from('plans')
+          .stream(primaryKey: ['id'])
+          .eq('business_id', businessId)
+          .listen((rows) {
+            if (rows.isEmpty) return;
+            final updatedPlan = models.Plan.fromSupabaseJson(
+              Map<String, dynamic>.from(rows.first),
+            );
+            if (!_mounted) return;
 
-              setState(() {
-                _plan = updatedPlan;
-              });
+            setState(() {
+              _plan = updatedPlan;
+            });
 
-              // Check if payment was completed
-              if (updatedPlan.paymentCompletedByUser == true) {
-                locator<RouterService>().navigateTo(FlipperAppRoute());
-              }
+            if (updatedPlan.paymentCompletedByUser == true) {
+              locator<RouterService>().navigateTo(FlipperAppRoute());
             }
           });
     } catch (e) {

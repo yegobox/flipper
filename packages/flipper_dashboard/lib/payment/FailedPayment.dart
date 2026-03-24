@@ -10,7 +10,6 @@ import 'package:flutter/services.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as models;
 import 'package:supabase_models/brick/repository.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flipper_models/sync/capella/mixins/settings_mixin.dart';
@@ -57,7 +56,7 @@ class _FailedPaymentState extends State<FailedPayment>
   bool _waitingForPaymentCompletion = false;
   Timer? _paymentTimeoutTimer;
   Timer? _paymentCompletionPollTimer;
-  StreamSubscription<List<models.Plan>>? _subscription;
+  StreamSubscription<List<Map<String, dynamic>>>? _subscription;
 
   // Discount code state
   String? _discountCode;
@@ -69,6 +68,16 @@ class _FailedPaymentState extends State<FailedPayment>
   // Skip payment limit state - managed by CapellaSettingsMixin
   PaymentSkipSettings? _skipSettings;
   bool _isLoadingSkipCount = true;
+
+  // Plan switching state - allows user to switch/upgrade plan before retry
+  bool _showSwitchPlan = false;
+  String _switchPlanSelected = 'Mobile';
+  bool _switchPlanIsYearly = false;
+  bool _switchPlanExtraSupport = false;
+  bool _switchPlanTaxReporting = false;
+  bool _switchPlanUnlimitedBranches = false;
+  List<String> _switchPlanAdditionalServices = [];
+  bool _planWasActive = false;
 
   @override
   void initState() {
@@ -185,6 +194,102 @@ class _FailedPaymentState extends State<FailedPayment>
         (_skipSettings?.skipCount ?? 0);
   }
 
+  /// Initialize plan switch state from current plan
+  void _initSwitchPlanFromPlan(models.Plan? plan) {
+    if (plan == null) return;
+    final name = plan.selectedPlan ?? 'Mobile';
+    final validPlans = ['Mobile', 'Mobile + Desktop', 'Entreprise'];
+    _switchPlanSelected = validPlans.contains(name) ? name : 'Mobile';
+    _switchPlanIsYearly = plan.isYearlyPlan ?? false;
+    _switchPlanExtraSupport = false;
+    _switchPlanTaxReporting = false;
+    _switchPlanUnlimitedBranches = false;
+    _switchPlanAdditionalServices = [];
+    _planWasActive = _isPlanStillActive(plan);
+  }
+
+  bool _isPlanStillActive(models.Plan plan) {
+    final next = plan.nextBillingDate;
+    if (next == null) return false;
+    try {
+      final d = DateTime.parse(next.toString().split('T')[0]);
+      return d.isAfter(DateTime.now());
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Calculate price for switched plan (matches PaymentPlan pricing)
+  double _calculateSwitchPlanPrice() {
+    double basePrice;
+    switch (_switchPlanSelected) {
+      case 'Mobile':
+        basePrice = 5000;
+        if (_switchPlanTaxReporting) basePrice += 30000;
+        break;
+      case 'Mobile + Desktop':
+        basePrice = 120000;
+        if (_switchPlanTaxReporting) basePrice += 30000;
+        break;
+      case 'Entreprise':
+        basePrice = 1500000;
+        if (_switchPlanExtraSupport) basePrice += 800000;
+        if (_switchPlanTaxReporting) basePrice += 400000;
+        if (_switchPlanUnlimitedBranches) basePrice += 600000;
+        break;
+      default:
+        basePrice = 5000;
+    }
+    return _switchPlanIsYearly ? basePrice * 12 * 0.8 : basePrice;
+  }
+
+  /// True when the switch-plan UI does not match the saved plan (user changed tier, billing cycle, or add-ons).
+  bool _switchUiDiffersFromPlan(models.Plan p) {
+    if (_switchPlanSelected != (p.selectedPlan ?? '')) return true;
+    if (_switchPlanIsYearly != (p.isYearlyPlan ?? false)) return true;
+    if (_switchPlanExtraSupport ||
+        _switchPlanTaxReporting ||
+        _switchPlanUnlimitedBranches) {
+      return true;
+    }
+    if (_switchPlanAdditionalServices.isNotEmpty) return true;
+    return false;
+  }
+
+  /// Build plan for retry: when the user did not change anything in the switch UI, keep the saved
+  /// plan's [totalPrice], [rule], and tiers — do not replace with catalogue [_calculateSwitchPlanPrice].
+  models.Plan _buildEffectivePlanForRetry() {
+    final base = _plan!;
+    if (!_switchUiDiffersFromPlan(base)) {
+      return base;
+    }
+    final price = _calculateSwitchPlanPrice();
+    return models.Plan(
+      id: base.id,
+      businessId: base.businessId,
+      branchId: base.branchId,
+      selectedPlan: _switchPlanSelected,
+      additionalDevices: base.additionalDevices ?? 0,
+      isYearlyPlan: _switchPlanIsYearly,
+      totalPrice: price.toInt(),
+      createdAt: base.createdAt,
+      paymentCompletedByUser: base.paymentCompletedByUser,
+      rule: _switchPlanIsYearly ? 'yearly' : 'monthly',
+      paymentMethod: base.paymentMethod ?? 'MTNMOMO',
+      nextBillingDate: base.nextBillingDate,
+      numberOfPayments: base.numberOfPayments ?? 1,
+      addons: base.addons,
+      phoneNumber: base.phoneNumber,
+      externalId: base.externalId,
+      paymentStatus: base.paymentStatus,
+      lastProcessedAt: base.lastProcessedAt,
+      lastError: base.lastError,
+      updatedAt: base.updatedAt,
+      lastUpdated: base.lastUpdated,
+      processingStatus: base.processingStatus,
+    );
+  }
+
   @override
   void dispose() {
     _mounted = false;
@@ -282,40 +387,39 @@ class _FailedPaymentState extends State<FailedPayment>
         _plan = fetchedPlan;
         _isLoading = false;
         if (needsPhoneInput) _usePhoneNumber = true;
+        _initSwitchPlanFromPlan(fetchedPlan);
       });
 
-      // Set up real-time subscription (optional when offline - may fail)
+      // Realtime from Supabase (plans are not in local Brick/SQLite)
       try {
-        _subscription = Repository()
-            .subscribeToRealtime<models.Plan>(
-              policy: OfflineFirstGetPolicy.alwaysHydrate,
-              query: Query(
-                where: [const Where('businessId').isExactly(businessId)],
-              ),
-            )
-            .listen((updatedPlans) {
-              if (updatedPlans.isNotEmpty) {
-                final updatedPlan = updatedPlans.first;
-                if (!_mounted) return;
+        _subscription = Supabase.instance.client
+            .from('plans')
+            .stream(primaryKey: ['id'])
+            .eq('business_id', businessId)
+            .listen((rows) {
+              if (rows.isEmpty) return;
+              final updatedPlan = models.Plan.fromSupabaseJson(
+                Map<String, dynamic>.from(rows.first),
+              );
+              if (!_mounted) return;
 
-                setState(() {
-                  _plan = updatedPlan;
-                });
+              setState(() {
+                _plan = updatedPlan;
+              });
 
-                if (updatedPlan.paymentCompletedByUser == true) {
-                  _paymentTimeoutTimer?.cancel();
-                  _paymentCompletionPollTimer?.cancel();
-                  if (_mounted) {
-                    setState(() {
-                      _waitingForPaymentCompletion = false;
-                    });
-                    locator<RouterService>().navigateTo(FlipperAppRoute());
-                  }
+              if (updatedPlan.paymentCompletedByUser == true) {
+                _paymentTimeoutTimer?.cancel();
+                _paymentCompletionPollTimer?.cancel();
+                if (_mounted) {
+                  setState(() {
+                    _waitingForPaymentCompletion = false;
+                  });
+                  locator<RouterService>().navigateTo(FlipperAppRoute());
                 }
               }
             });
       } catch (_) {
-        // Subscription may fail when offline; we already have the plan from Ditto/Brick
+        // Subscription fails when offline; initial plan came from Ditto / getPaymentPlan
       }
     } catch (e) {
       if (!_mounted || !context.mounted) return;
@@ -442,39 +546,46 @@ class _FailedPaymentState extends State<FailedPayment>
         switchInCurve: Curves.easeOut,
         switchOutCurve: Curves.easeIn,
         child: _isLoading
-            ? KeyedSubtree(key: const ValueKey('loading'), child: _buildLoadingState())
+            ? KeyedSubtree(
+                key: const ValueKey('loading'),
+                child: _buildLoadingState(),
+              )
             : _waitingForPaymentCompletion
-                ? KeyedSubtree(key: const ValueKey('waiting'), child: _buildPaymentWaitingState())
-                : KeyedSubtree(
-                    key: const ValueKey('content'),
-                    child: FadeTransition(
-              opacity: _fadeAnimation,
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24.0),
-                child: Column(
-                  children: [
-                    _buildHeaderSection(),
-                    const SizedBox(height: 32),
-                    if (_plan != null) _buildPlanDetails(_plan!),
-                    if (_errorMessage != null) _buildErrorMessage(),
-                    const SizedBox(height: 16),
-                    if (_plan != null)
-                      CouponToggle(
-                        onCodeChanged: _validateDiscountCode,
-                        errorMessage: _discountError,
-                        isValidating: _isValidatingCode,
-                      ),
-                    const SizedBox(height: 24),
-                    if (_plan != null) _buildPhoneNumberSection(),
-                    const SizedBox(height: 32),
-                    _buildRetryButton(context),
-                    const SizedBox(height: 24),
-                    _buildHelpSection(),
-                  ],
+            ? KeyedSubtree(
+                key: const ValueKey('waiting'),
+                child: _buildPaymentWaitingState(),
+              )
+            : KeyedSubtree(
+                key: const ValueKey('content'),
+                child: FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Column(
+                      children: [
+                        _buildHeaderSection(),
+                        const SizedBox(height: 32),
+                        if (_plan != null) _buildPlanDetails(_plan!),
+                        if (_errorMessage != null) _buildErrorMessage(),
+                        const SizedBox(height: 16),
+                        if (_plan != null) _buildSwitchPlanSection(),
+                        if (_plan != null)
+                          CouponToggle(
+                            onCodeChanged: _validateDiscountCode,
+                            errorMessage: _discountError,
+                            isValidating: _isValidatingCode,
+                          ),
+                        const SizedBox(height: 24),
+                        if (_plan != null) _buildPhoneNumberSection(),
+                        const SizedBox(height: 32),
+                        _buildRetryButton(context),
+                        const SizedBox(height: 24),
+                        _buildHelpSection(),
+                      ],
+                    ),
+                  ),
                 ),
               ),
-            ),
-        ),
       ),
     );
   }
@@ -607,10 +718,7 @@ class _FailedPaymentState extends State<FailedPayment>
           SizedBox(
             width: 48,
             height: 48,
-            child: CircularProgressIndicator(
-              strokeWidth: 3,
-              color: primary,
-            ),
+            child: CircularProgressIndicator(strokeWidth: 3, color: primary),
           ),
           const SizedBox(height: 20),
           Row(
@@ -643,10 +751,9 @@ class _FailedPaymentState extends State<FailedPayment>
       width: 8,
       height: 8,
       decoration: BoxDecoration(
-        color: Theme.of(context)
-            .colorScheme
-            .primary
-            .withValues(alpha: opacities[index]),
+        color: Theme.of(
+          context,
+        ).colorScheme.primary.withValues(alpha: opacities[index]),
         shape: BoxShape.circle,
       ),
     );
@@ -674,10 +781,7 @@ class _FailedPaymentState extends State<FailedPayment>
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [
-                      const Color(0xFFFFF5F5),
-                      const Color(0xFFFFEBEE),
-                    ],
+                    colors: [const Color(0xFFFFF5F5), const Color(0xFFFFEBEE)],
                   ),
                   borderRadius: BorderRadius.circular(24),
                   boxShadow: [
@@ -721,6 +825,479 @@ class _FailedPaymentState extends State<FailedPayment>
           ),
         );
       },
+    );
+  }
+
+  Widget _buildSwitchPlanSection() {
+    final theme = Theme.of(context);
+    final primary = theme.colorScheme.primary;
+    final surface = theme.colorScheme.surface;
+    return Container(
+      decoration: BoxDecoration(
+        color: surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: theme.colorScheme.outline.withValues(alpha: 0.15),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          InkWell(
+            onTap: () {
+              setState(() {
+                _showSwitchPlan = !_showSwitchPlan;
+              });
+            },
+            borderRadius: BorderRadius.circular(20),
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Icon(
+                      Icons.swap_horiz_rounded,
+                      color: primary,
+                      size: 22,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Switch or upgrade plan',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: theme.colorScheme.onSurface,
+                          ),
+                        ),
+                        Text(
+                          _showSwitchPlan
+                              ? 'Tap to collapse'
+                              : 'Choose a different plan before retrying',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.6,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    _showSwitchPlan
+                        ? Icons.keyboard_arrow_up_rounded
+                        : Icons.keyboard_arrow_down_rounded,
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          if (_showSwitchPlan) ...[
+            if (_planWasActive)
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 8,
+                ),
+                child: Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: primary.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: primary.withValues(alpha: 0.2)),
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.info_outline_rounded,
+                        color: primary,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'Your plan is still active. You can upgrade or switch plans below. The new plan will apply from your next billing cycle.',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.onSurface.withValues(
+                              alpha: 0.85,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: _buildSwitchPlanDurationToggle(theme),
+            ),
+            const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: _buildSwitchPlanCards(theme),
+            ),
+            if (_switchPlanSelected == 'Entreprise') ...[
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: _buildSwitchPlanEnterpriseServices(theme),
+              ),
+            ] else ...[
+              const SizedBox(height: 16),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: _buildSwitchPlanTaxReporting(theme),
+              ),
+            ],
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'New plan total',
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                    ),
+                  ),
+                  Text(
+                    _calculateSwitchPlanPrice().toCurrencyFormatted(
+                      symbol: ProxyService.box.defaultCurrency(),
+                    ),
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: primary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSwitchPlanDurationToggle(ThemeData theme) {
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: GestureDetector(
+              onTap: () {
+                setState(() {
+                  _switchPlanIsYearly = false;
+                });
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: !_switchPlanIsYearly
+                      ? theme.colorScheme.primary
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  'Monthly',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: !_switchPlanIsYearly
+                        ? theme.colorScheme.onPrimary
+                        : theme.colorScheme.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Expanded(
+            child: GestureDetector(
+              onTap: () {
+                setState(() {
+                  _switchPlanIsYearly = true;
+                });
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                decoration: BoxDecoration(
+                  color: _switchPlanIsYearly
+                      ? theme.colorScheme.primary
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  'Yearly (20% off)',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: _switchPlanIsYearly
+                        ? theme.colorScheme.onPrimary
+                        : theme.colorScheme.primary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSwitchPlanCards(ThemeData theme) {
+    return Column(
+      children: [
+        _buildSwitchPlanCard(
+          theme,
+          'Mobile',
+          'Mobile only',
+          _switchPlanIsYearly ? '48,000 RWF/year' : '5,000 RWF/month',
+          Icons.phone_iphone,
+        ),
+        const SizedBox(height: 8),
+        _buildSwitchPlanCard(
+          theme,
+          'Mobile + Desktop',
+          'Mobile + Desktop',
+          _switchPlanIsYearly ? '1,152,000 RWF/year' : '120,000 RWF/month',
+          Icons.devices,
+        ),
+        const SizedBox(height: 8),
+        _buildSwitchPlanCard(
+          theme,
+          'Entreprise',
+          'Entreprise',
+          _switchPlanIsYearly ? '14,400,000+ RWF/year' : '1,500,000+ RWF/month',
+          Icons.business_rounded,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSwitchPlanCard(
+    ThemeData theme,
+    String value,
+    String title,
+    String price,
+    IconData icon,
+  ) {
+    final isSelected = _switchPlanSelected == value;
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _switchPlanSelected = value;
+          if (value != 'Entreprise') {
+            _switchPlanExtraSupport = false;
+            _switchPlanTaxReporting = false;
+            _switchPlanUnlimitedBranches = false;
+            _switchPlanAdditionalServices = [];
+          }
+          // Clear discount when plan changes - it was validated for previous plan
+          _discountCode = null;
+          _discountAmount = 0;
+        });
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: isSelected
+              ? theme.colorScheme.primary
+              : theme.colorScheme.surfaceContainerHighest.withValues(
+                  alpha: 0.3,
+                ),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected
+                ? Colors.transparent
+                : theme.colorScheme.outline.withValues(alpha: 0.3),
+          ),
+        ),
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              size: 24,
+              color: isSelected
+                  ? theme.colorScheme.onPrimary
+                  : theme.colorScheme.primary,
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: isSelected
+                          ? theme.colorScheme.onPrimary
+                          : theme.colorScheme.onSurface,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    price,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: isSelected
+                          ? theme.colorScheme.onPrimary.withValues(alpha: 0.9)
+                          : theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSwitchPlanEnterpriseServices(ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Enterprise Services',
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.w700,
+            color: theme.colorScheme.onSurface,
+          ),
+        ),
+        const SizedBox(height: 8),
+        _buildSwitchPlanServiceToggle(
+          theme,
+          'Extra Support',
+          '800,000 RWF${_switchPlanIsYearly ? '/year' : '/month'}',
+          _switchPlanExtraSupport,
+          (v) {
+            setState(() {
+              _switchPlanExtraSupport = v;
+              if (v &&
+                  !_switchPlanAdditionalServices.contains('Extra Support')) {
+                _switchPlanAdditionalServices.add('Extra Support');
+              } else {
+                _switchPlanAdditionalServices.remove('Extra Support');
+              }
+            });
+          },
+        ),
+        const SizedBox(height: 8),
+        _buildSwitchPlanServiceToggle(
+          theme,
+          'Premium Tax Reporting Consulting',
+          '400,000 RWF${_switchPlanIsYearly ? '/year' : '/month'}',
+          _switchPlanTaxReporting,
+          (v) {
+            setState(() {
+              _switchPlanTaxReporting = v;
+              const name = 'Premium Tax Reporting Consulting';
+              if (v && !_switchPlanAdditionalServices.contains(name)) {
+                _switchPlanAdditionalServices.add(name);
+              } else {
+                _switchPlanAdditionalServices.remove(name);
+              }
+            });
+          },
+        ),
+        const SizedBox(height: 8),
+        _buildSwitchPlanServiceToggle(
+          theme,
+          'Unlimited Branches & Agents',
+          '600,000 RWF${_switchPlanIsYearly ? '/year' : '/month'}',
+          _switchPlanUnlimitedBranches,
+          (v) {
+            setState(() {
+              _switchPlanUnlimitedBranches = v;
+              const name = 'Unlimited Branches & Agents';
+              if (v && !_switchPlanAdditionalServices.contains(name)) {
+                _switchPlanAdditionalServices.add(name);
+              } else {
+                _switchPlanAdditionalServices.remove(name);
+              }
+            });
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSwitchPlanTaxReporting(ThemeData theme) {
+    return _buildSwitchPlanServiceToggle(
+      theme,
+      'Tax Reporting Consulting',
+      '30,000 RWF${_switchPlanIsYearly ? '/year' : '/month'}',
+      _switchPlanTaxReporting,
+      (v) => setState(() => _switchPlanTaxReporting = v),
+    );
+  }
+
+  Widget _buildSwitchPlanServiceToggle(
+    ThemeData theme,
+    String title,
+    String price,
+    bool value,
+    void Function(bool) onChanged,
+  ) {
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                Text(
+                  price,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Switch(
+            value: value,
+            onChanged: onChanged,
+            activeTrackColor: theme.colorScheme.primary.withValues(alpha: 0.5),
+            activeThumbColor: theme.colorScheme.primary,
+          ),
+        ],
+      ),
     );
   }
 
@@ -1151,10 +1728,7 @@ class _FailedPaymentState extends State<FailedPayment>
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: primary.withValues(alpha: 0.12),
-          width: 1.5,
-        ),
+        border: Border.all(color: primary.withValues(alpha: 0.12), width: 1.5),
         boxShadow: [
           BoxShadow(
             color: primary.withValues(alpha: 0.06),
@@ -1311,9 +1885,7 @@ class _FailedPaymentState extends State<FailedPayment>
           ],
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: primary.withValues(alpha: 0.15),
-        ),
+        border: Border.all(color: primary.withValues(alpha: 0.15)),
         boxShadow: [
           BoxShadow(
             color: primary.withValues(alpha: 0.04),
@@ -1362,9 +1934,7 @@ class _FailedPaymentState extends State<FailedPayment>
             onPressed: () {
               // Handle contact support
             },
-            style: TextButton.styleFrom(
-              foregroundColor: primary,
-            ),
+            style: TextButton.styleFrom(foregroundColor: primary),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -1438,14 +2008,36 @@ class _FailedPaymentState extends State<FailedPayment>
       }
     }
 
+    // Use effective plan (includes any plan switch/upgrade from UI)
+    final effectivePlan = _buildEffectivePlanForRetry();
+    effectivePlan.phoneNumber = plan.phoneNumber;
+
+    // Save switched plan to backend before payment (handleMomoPayment also saves,
+    // but we ensure plan is persisted with switched values). Include add-on-only changes.
+    if (_switchUiDiffersFromPlan(plan)) {
+      await ProxyService.strategy.saveOrUpdatePaymentPlan(
+        businessId: (await ProxyService.strategy.activeBusiness())!.id,
+        selectedPlan: _switchPlanSelected,
+        additionalDevices: effectivePlan.additionalDevices ?? 0,
+        isYearlyPlan: _switchPlanIsYearly,
+        totalPrice: _calculateSwitchPlanPrice(),
+        paymentMethod: 'MTNMOMO',
+        plan: effectivePlan,
+        addons: _switchPlanAdditionalServices.isNotEmpty
+            ? _switchPlanAdditionalServices
+            : null,
+        flipperHttpClient: ProxyService.http,
+      );
+    }
+
     // Calculate the discounted price for payment
-    final planPrice = plan.totalPrice?.toDouble() ?? 0.0;
+    final planPrice = effectivePlan.totalPrice?.toDouble() ?? 0.0;
     final finalPrice = planPrice - _discountAmount;
     final finalPriceInt = finalPrice > 0 ? finalPrice.toInt() : 0;
 
     // Handle mobile money payment with the discounted price.
     // Returns payment reference when successful, for polling status.
-    return handleMomoPayment(finalPriceInt, plan: plan);
+    return handleMomoPayment(finalPriceInt, plan: effectivePlan);
   }
 
   /// Polls for payment completion when we have a reference or can check plan.

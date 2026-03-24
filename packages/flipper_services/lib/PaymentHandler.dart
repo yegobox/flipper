@@ -2,7 +2,7 @@ import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:supabase_models/brick/models/all_models.dart';
-import 'package:supabase_models/brick/repository.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -11,14 +11,33 @@ import 'package:stacked_services/stacked_services.dart';
 mixin PaymentHandler {
   /// Initiates MTN Mobile Money payment. Returns the payment reference when
   /// successful, for use in polling payment status.
-  Future<String?> handleMomoPayment(int finalPrice, {required Plan plan}) async {
-    /// given  plan.selectedPlan compute time in seconds
-    int timeInSeconds = 120;
-    if (plan.selectedPlan == "monthly") {
-      timeInSeconds = kDebugMode ? 120 : 2628000;
-    }
-    if (plan.selectedPlan == "yearly") {
-      timeInSeconds = kDebugMode ? 120 : 31536000;
+  Future<String?> handleMomoPayment(
+    int finalPrice, {
+    required Plan plan,
+  }) async {
+    /// Pre-approval validity time in seconds. Must exceed plan duration to give
+    /// billing software enough time to charge the user before expiry.
+    /// Debug mode uses 120s for quick testing.
+    const int secondsPerDay = 86400;
+    const int monthlyPlanDays = 30;
+    const int yearlyPlanDays = 365;
+    const int billingBufferDays = 15; // Buffer for billing to run before expiry
+
+    int timeInSeconds;
+    if (kDebugMode) {
+      timeInSeconds = 120;
+    } else {
+      switch (plan.selectedPlan) {
+        case "monthly":
+          timeInSeconds = (monthlyPlanDays + billingBufferDays) * secondsPerDay;
+          break;
+        case "yearly":
+          timeInSeconds = (yearlyPlanDays + billingBufferDays) * secondsPerDay;
+          break;
+        default:
+          // Unknown plan: default to yearly + buffer to avoid premature expiry
+          timeInSeconds = (yearlyPlanDays + billingBufferDays) * secondsPerDay;
+      }
     }
     // Use phone from plan only (no local storage)
     final phone = plan.phoneNumber
@@ -86,24 +105,27 @@ mixin PaymentHandler {
       totalPrice: finalPrice.toDouble(),
     );
 
-    final query = Query(
-      where: [
-        Where('businessId').isExactly(ProxyService.box.getBusinessId()!),
-        Where('paymentCompletedByUser').isExactly(true),
-      ],
-    );
-    final paymentPlan = Repository().subscribeToRealtime<Plan>(query: query);
-    paymentPlan.listen(
-      (data) {
-        if (data.isNotEmpty) {
-          talker.warning(data);
-          locator<RouterService>().navigateTo(FlipperAppRoute());
-        }
-      },
-      onError: (error) {
-        talker.warning(error);
-      },
-    );
+    final businessId = ProxyService.box.getBusinessId()!;
+    // `.stream()` allows only one PostgREST filter; narrow by business_id and
+    // check completion in the listener (matches prior Brick query intent).
+    Supabase.instance.client
+        .from('plans')
+        .stream(primaryKey: ['id'])
+        .eq('business_id', businessId)
+        .listen(
+          (rows) {
+            final completed = rows.any(
+              (r) => r['payment_completed_by_user'] == true,
+            );
+            if (completed) {
+              talker.warning(rows);
+              locator<RouterService>().navigateTo(FlipperAppRoute());
+            }
+          },
+          onError: (error) {
+            talker.warning(error);
+          },
+        );
     return paymentReference;
   }
 

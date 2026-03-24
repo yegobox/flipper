@@ -1,5 +1,5 @@
 import 'package:flutter/foundation.dart' hide Category;
-import 'package:supabase_models/brick/models/plans.model.dart';
+import 'package:supabase_models/brick/models/plan.dart';
 import 'ditto_core_mixin.dart';
 
 mixin PlanMixin on DittoCore {
@@ -53,6 +53,7 @@ mixin PlanMixin on DittoCore {
       updatedAt: _parseDateTime(document["updatedAt"]),
       lastUpdated: _parseDateTime(document["lastUpdated"]),
       processingStatus: document["processingStatus"],
+      lastPaymentDate: _parseDateTime(document["lastPaymentDate"]),
     );
   }
 
