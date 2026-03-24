@@ -14,6 +14,7 @@ import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/posthog_service.dart';
 import 'package:flipper_ui/flipper_ui.dart';
@@ -106,6 +107,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       ref: ref,
       transaction: transaction,
       total: _calculateTotal(items: items),
+      overrideAlreadyPaid: _cachedNonCreditPaid,
       receivedAmountController: widget.receivedAmountController,
       lastAutoSetAmount: _lastAutoSetAmount,
       onAutoSetAmountChanged: (amount) {
@@ -233,13 +235,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       );
     }
 
-    final total = totalAfterDiscountAndShipping;
-
-    standardizedPaymentInitialization(
-      ref: ref,
-      transaction: transaction,
-      total: total,
-    );
+    // Payment initialization is deferred to the builder where items
+    // are guaranteed to be loaded. Calling it here with an empty items
+    // list would produce total=0 and zero-out the payment field.
   }
 
   // Controllers for quantity inputs per item (small device view)
@@ -256,6 +254,10 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
   // Track current branch ID to detect branch changes
   String? _currentBranchId;
+
+  // Ensure payment initialization runs once when both transaction & items are ready
+  String? _lastPaymentInitTransactionId;
+  double? _cachedNonCreditPaid;
 
   bool _isPlainEnter(KeyEvent event) {
     if (event is! KeyDownEvent) {
@@ -356,7 +358,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     }
 
     // Clear stale cart items for the completed transaction.
-    ref.refresh(
+    ref.invalidate(
       transactionItemsStreamProvider(
         transactionId: transaction.id,
         branchId: ProxyService.box.getBranchId() ?? '0',
@@ -365,6 +367,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
     // Reset UI state for the next transaction to prevent stale data
     _lastAutoSetAmount = 0.0;
+    _lastPaymentInitTransactionId = null;
+    _cachedNonCreditPaid = null;
     ref.invalidate(paymentMethodsProvider);
     widget.deliveryNoteCotroller.clear();
     widget.receivedAmountController.clear();
@@ -377,7 +381,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     );
 
     // Refresh the pending transaction provider to pick up the new transaction
-    ref.refresh(
+    ref.invalidate(
       pendingTransactionStreamProvider(
         isExpense: ProxyService.box.isOrdering() ?? false,
       ),
@@ -406,8 +410,11 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       ),
       (previous, next) {
         if (next.hasValue && next.value != null) {
+          final isNewTransaction = previous?.value?.id != next.value!.id;
           _prefillCustomerDetails(next.value!);
-          _updateReceivedAmountIfNeeded(next.value!);
+          if (isNewTransaction) {
+            _updateReceivedAmountIfNeeded(next.value!);
+          }
         }
       },
     );
@@ -541,13 +548,42 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
             // Properly handle AsyncValue states instead of accessing .value directly
             internalTransactionItems = transactionItemsAsync.when(
-              data: (items) => items,
+              data: (items) {
+                // Sort newest-first so last added item appears at top
+                final sorted = List<TransactionItem>.from(items)
+                  ..sort((a, b) {
+                    final aDate = a.createdAt ?? DateTime(2000);
+                    final bDate = b.createdAt ?? DateTime(2000);
+                    return bDate.compareTo(aDate);
+                  });
+                return sorted;
+              },
               loading: () => [],
               error: (err, stack) {
                 talker.error('Error loading transaction items', err, stack);
                 return [];
               },
             );
+
+            // Initialize payment fields once both transaction and items are ready.
+            if (transactionItemsAsync.hasValue &&
+                internalTransactionItems.isNotEmpty &&
+                _lastPaymentInitTransactionId != transactionId) {
+              _lastPaymentInitTransactionId = transactionId;
+              final txn = transactionAsyncValue.value!;
+              WidgetsBinding.instance.addPostFrameCallback((_) async {
+                if (!mounted) return;
+                final nonCreditPaid = await fetchNonCreditPaid(txn.id);
+                if (!mounted) return;
+                _cachedNonCreditPaid = nonCreditPaid;
+                standardizedPaymentInitialization(
+                  ref: ref,
+                  transaction: txn,
+                  total: _calculateTotal(),
+                  overrideAlreadyPaid: nonCreditPaid,
+                );
+              });
+            }
           } else {
             internalTransactionItems = [];
           }
@@ -821,6 +857,71 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     );
   }
 
+  Future<void> _deleteAllItems(
+    AsyncValue<ITransaction> transactionAsyncValue,
+  ) async {
+    // Check if there's a partial payment
+    if ((transactionAsyncValue.value?.cashReceived ?? 0) > 0) {
+      showErrorNotification(
+        context,
+        'Cannot delete items from a transaction with partial payments',
+      );
+      return;
+    }
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text('Delete All Items'),
+        content: Text(
+          'Are you sure you want to remove all items from this transaction?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: Text('Delete All'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      try {
+        final items = await ref.read(
+          transactionItemsStreamProvider(
+            transactionId: transactionAsyncValue.value?.id ?? "",
+            branchId: ProxyService.box.getBranchId()!,
+          ).future,
+        );
+
+        for (final item in items) {
+          await ProxyService.getStrategy(Strategy.capella)
+              .updateTransactionItem(
+            transactionItemId: item.id.toString(),
+            active: false,
+            ignoreForReport: false,
+          );
+        }
+
+        if (mounted) {
+          showSuccessNotification(context, 'All items removed successfully');
+        }
+      } catch (e) {
+        if (mounted) {
+          showErrorNotification(
+            context,
+            'Error removing items: ${e.toString()}',
+          );
+        }
+      }
+    }
+  }
+
   Widget _buildItemsList(AsyncValue<ITransaction> transactionAsyncValue) {
     final transactionItemsAsync = ref.watch(
       transactionItemsStreamProvider(
@@ -829,7 +930,14 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       ),
     );
     return transactionItemsAsync.when(
-      data: (items) {
+      data: (rawItems) {
+        // Sort newest-first so last added item appears at top
+        final items = List<TransactionItem>.from(rawItems)
+          ..sort((a, b) {
+            final aDate = a.createdAt ?? DateTime(2000);
+            final bDate = b.createdAt ?? DateTime(2000);
+            return bDate.compareTo(aDate);
+          });
         if (items.isEmpty) {
           return SliverToBoxAdapter(
             child: _buildEmptyStateCard(
@@ -839,11 +947,38 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
             ),
           );
         }
-        return SliverList(
-          delegate: SliverChildBuilderDelegate(
-            (context, index) =>
-                _buildModernItemCard(items[index], transactionAsyncValue),
-            childCount: items.length,
+        return SliverToBoxAdapter(
+          child: Column(
+            children: [
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '${items.length} item${items.length > 1 ? 's' : ''}',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey[600],
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    TextButton.icon(
+                      onPressed: (transactionAsyncValue.value?.cashReceived ?? 0) > 0
+                          ? null
+                          : () => _deleteAllItems(transactionAsyncValue),
+                      icon: Icon(Icons.delete_sweep, size: 18),
+                      label: Text('Delete All'),
+                      style: TextButton.styleFrom(
+                        foregroundColor: Colors.red,
+                        disabledForegroundColor: Colors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              ...items.map((item) => _buildModernItemCard(item, transactionAsyncValue)).toList(),
+            ],
           ),
         );
       },
@@ -1263,6 +1398,15 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     TransactionItem item,
     AsyncValue<ITransaction> transactionAsyncValue,
   ) {
+    // Check if there's a partial payment
+    if ((transactionAsyncValue.value?.cashReceived ?? 0) > 0) {
+      showErrorNotification(
+        context,
+        'Cannot delete items from a transaction with partial payments',
+      );
+      return;
+    }
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -1278,20 +1422,11 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           FilledButton(
             onPressed: () async {
               Navigator.of(context).pop();
-              await ProxyService.strategy.updateTransactionItem(
+              await ProxyService.getStrategy(Strategy.capella)
+                  .updateTransactionItem(
                 transactionItemId: item.id.toString(),
                 active: false,
                 ignoreForReport: false,
-              );
-              ref.invalidate(
-                transactionItemsStreamProvider(
-                  transactionId: transactionAsyncValue.value?.id ?? "",
-                ),
-              );
-              ref.invalidate(
-                pendingTransactionStreamProvider(
-                  isExpense: ProxyService.box.isOrdering() ?? false,
-                ),
               );
             },
             child: Text('Remove'),
@@ -1306,20 +1441,19 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     int newQty,
     AsyncValue<ITransaction> transactionAsyncValue,
   ) async {
-    await ProxyService.strategy.updateTransactionItem(
+    // Check if there's a partial payment
+    if ((transactionAsyncValue.value?.cashReceived ?? 0) > 0) {
+      showErrorNotification(
+        context,
+        'Cannot modify items in a transaction with partial payments',
+      );
+      return;
+    }
+
+    await ProxyService.getStrategy(Strategy.capella).updateTransactionItem(
       transactionItemId: item.id.toString(),
       ignoreForReport: false,
       qty: newQty.toDouble(),
-    );
-    ref.invalidate(
-      transactionItemsStreamProvider(
-        transactionId: transactionAsyncValue.value?.id ?? "",
-      ),
-    );
-    ref.invalidate(
-      pendingTransactionStreamProvider(
-        isExpense: ProxyService.box.isOrdering() ?? false,
-      ),
     );
   }
 

@@ -26,28 +26,21 @@ mixin UserAccessMixin on DittoCore {
   }
 
   /// Retrieve the user access object from Ditto.
+  /// Note: This performs a one-time fetch without registering subscriptions/observers
+  /// to avoid duplicate live queries. Use watchUserAccessStream for reactive updates.
   Future<Map<String, dynamic>?> getUserAccess(String userId) async {
     debugPrint('🔍 getUserAccess called for userId: $userId');
     debugPrint(
       '🔍 dittoInstance state: ${dittoInstance != null ? "SET (${dittoInstance.hashCode})" : "NULL"}',
     );
-    debugPrint(
-      '🔍 Call stack: ${StackTrace.current.toString().split('\n').take(5).join('\n')}',
-    );
 
-    if (dittoInstance == null)
+    if (dittoInstance == null) {
       return handleNotInitializedAndReturn('getUserAccess', null);
+    }
 
     try {
-      dittoInstance!.sync.registerSubscription(
-        "SELECT * FROM user_access WHERE _id = :id",
-        arguments: {'id': userId},
-      );
-      dittoInstance!.store.registerObserver(
-        "SELECT * FROM user_access WHERE _id = :id",
-        arguments: {'id': userId},
-      );
-
+      // Simple one-time query - no subscription/observer registration
+      // to avoid duplicate live queries
       final result = await dittoInstance!.store.execute(
         "SELECT * FROM user_access WHERE _id = :id",
         arguments: {"id": userId},

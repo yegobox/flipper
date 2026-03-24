@@ -531,27 +531,26 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     Query? query,
   }) async {
     try {
-      final result = await super.delete(instance,
-          policy: OfflineFirstDeletePolicy.optimisticLocal, query: query);
+      final result = await super.delete(
+        instance,
+        policy: OfflineFirstDeletePolicy.optimisticLocal,
+        query: query,
+      );
       if (result) {
         unawaited(DittoSyncCoordinator.instance.notifyLocalDelete(instance));
       }
       return result;
     } on PostgrestException catch (e) {
-      unawaited(DittoSyncCoordinator.instance.notifyLocalDelete(instance));
-
       logger.warning('#delete supabase failure: $e');
-      if (policy == OfflineFirstDeletePolicy.requireRemote) {
-        throw OfflineFirstException(e);
-      }
+      unawaited(DittoSyncCoordinator.instance.notifyLocalDelete(instance));
+      throw OfflineFirstException(e);
     } on AuthRetryableFetchException catch (e) {
       logger.warning('#delete supabase failure: $e');
-      if (policy == OfflineFirstDeletePolicy.requireRemote) {
-        throw OfflineFirstException(e);
-      }
+      throw OfflineFirstException(e);
+    } catch (e, stackTrace) {
+      logger.severe('#delete unexpected failure: $e', e, stackTrace);
+      rethrow;
     }
-
-    return false;
   }
 
   @override
@@ -559,6 +558,7 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     TModel instance, {
     OfflineFirstUpsertPolicy policy = OfflineFirstUpsertPolicy.optimisticLocal,
     Query? query,
+    bool skipDittoSync = false,
   }) async {
     if (_isDisposed) {
       _logger.warning(
@@ -566,21 +566,24 @@ class Repository extends OfflineFirstWithSupabaseRepository {
       throw StateError('Repository is disposed');
     }
     try {
+      debugPrint('Upserting: ${instance.toString()}');
       try {
         if (instance is ITransaction) {
           instance.items ??= [];
         }
         instance = await super.upsert(instance, policy: policy, query: query);
-        // Notify Ditto for all models
-        if (instance is Stock) {
-          debugPrint('New Current Stock: ${instance.currentStock}');
+        // Notify Ditto for all models (unless explicitly skipped)
+        if (!skipDittoSync) {
+          if (instance is Stock) {
+            debugPrint('New Current Stock: ${instance.currentStock}');
+          }
+          if (instance is TransactionItem) {
+            debugPrint('We got item to save: ${instance.toString()}');
+          }
+          unawaited(
+            DittoSyncCoordinator.instance.notifyLocalUpsert(instance),
+          );
         }
-        if (instance is TransactionItem) {
-          debugPrint('We got item to save: ${instance.toString()}');
-        }
-        unawaited(
-          DittoSyncCoordinator.instance.notifyLocalUpsert(instance),
-        );
       } catch (e, stackTrace) {
         _logger.warning(
             'Error notifying Ditto of local change: $e', stackTrace);

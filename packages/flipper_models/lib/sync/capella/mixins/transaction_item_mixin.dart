@@ -50,14 +50,6 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
         talker.error('Ditto not initialized:9');
         return [];
       }
-      ditto.sync.registerSubscription(
-        "SELECT * FROM transaction_items WHERE branchId = :branchId",
-        arguments: {'branchId': branchId},
-      );
-      ditto.store.registerObserver(
-        "SELECT * FROM transaction_items WHERE branchId = :branchId",
-        arguments: {'branchId': branchId},
-      );
 
       String query = 'SELECT * FROM transaction_items';
       final arguments = <String, dynamic>{};
@@ -88,9 +80,8 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
         query += ' WHERE ' + conditions.join(' AND ');
       }
 
-      // Subscribe to ensure we have the latest data
-      await ditto.sync.registerSubscription(query, arguments: arguments);
-
+      // Simple one-time fetch - no subscriptions needed here
+      // (subscriptions are managed globally, not per-query)
       final result = await ditto.store.execute(query, arguments: arguments);
 
       return result.items.map((doc) {
@@ -100,6 +91,52 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
     } catch (e) {
       talker.error('Error getting transaction items: $e');
       return [];
+    }
+  }
+
+  /// Fetches transaction items for MULTIPLE transaction IDs in a single query.
+  /// Use this for bulk operations (e.g. export tax calculation) to avoid N+1 queries.
+  @override
+  Future<Map<String, List<TransactionItem>>> transactionItemsForIds(
+    List<String> transactionIds,
+  ) async {
+    if (transactionIds.isEmpty) return {};
+    try {
+      final ditto = dittoService.dittoInstance;
+      if (ditto == null) {
+        talker.error('Ditto not initialized for transactionItemsForIds');
+        return {};
+      }
+
+      // Build: WHERE transactionId IN (:t0, :t1, :t2, ...)
+      final placeholders = transactionIds
+          .asMap()
+          .entries
+          .map((e) => ':t${e.key}')
+          .join(', ');
+      final arguments = <String, dynamic>{
+        for (var i = 0; i < transactionIds.length; i++) 't$i': transactionIds[i]
+      };
+
+      final query =
+          'SELECT * FROM transaction_items WHERE transactionId IN ($placeholders)';
+
+      final result = await ditto.store.execute(query, arguments: arguments);
+
+      // Group by transactionId
+      final grouped = <String, List<TransactionItem>>{};
+      for (final doc in result.items) {
+        final data = Map<String, dynamic>.from(doc.value);
+        final item = _convertFromDittoDocument(data);
+        final tid = item.transactionId;
+        if (tid != null) {
+          grouped.putIfAbsent(tid, () => []).add(item);
+        }
+      }
+      return grouped;
+    } catch (e) {
+      talker.error('Error in transactionItemsForIds: $e');
+      return {};
     }
   }
 
@@ -239,24 +276,35 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
     if (conditions.isNotEmpty) {
       query += ' WHERE ' + conditions.join(' AND ');
     }
+    query += ' ORDER BY createdAt DESC';
 
-    /// a work around to first register to whole data instead of subset
+    /// A workaround to first register to whole data instead of subset
     /// this is because after test on new device, it can't pull data using complex query
     /// there is open issue on ditto https://support.ditto.live/hc/en-us/requests/2648?page=1
     ///
+    /// NOTE: Broad subscription DISABLED - causes duplicate query warnings
+    /// The specific subscription below is sufficient for most cases
     final syncBranchId = branchId ?? ProxyService.box.getBranchId();
-    if (syncBranchId != null) {
-      ditto.sync.registerSubscription(
-        "SELECT * FROM transaction_items WHERE branchId = :branchId",
-        arguments: {'branchId': syncBranchId},
-      );
-      ditto.store.registerObserver(
-        "SELECT * FROM transaction_items WHERE branchId = :branchId",
-        arguments: {'branchId': syncBranchId},
-      );
-    }
+    dynamic broadSubscription;
+    dynamic broadObserver;
+    // Broad subscription commented out to prevent duplicate queries
+    // if (fetchRemote && syncBranchId != null) {
+    //   talker.debug('Registering broad subscription for transaction_items');
+    //   broadSubscription = ditto.sync.registerSubscription(
+    //     "SELECT * FROM transaction_items WHERE branchId = :branchId",
+    //     arguments: {'branchId': syncBranchId},
+    //   );
+    //   broadObserver = ditto.store.registerObserver(
+    //     "SELECT * FROM transaction_items WHERE branchId = :branchId",
+    //     arguments: {'branchId': syncBranchId},
+    //   );
+    // }
     // Register subscription to sync data
-    ditto.sync.registerSubscription(query, arguments: arguments);
+    talker.debug('Registering specific subscription: $query');
+    final specificSubscription = ditto.sync.registerSubscription(
+      query,
+      arguments: arguments,
+    );
 
     final controller = StreamController<List<TransactionItem>>.broadcast();
     dynamic observer;
@@ -280,9 +328,40 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
       },
     );
 
+    // Seed the stream immediately — the observer only fires on *changes*, so
+    // without this initial fetch the stream would emit 0 items until the next
+    // Ditto mutation event.
+    ditto.store
+        .execute(query, arguments: arguments)
+        .then((result) {
+          if (controller.isClosed) return;
+          final items = <TransactionItem>[];
+          for (final doc in result.items) {
+            try {
+              final data = Map<String, dynamic>.from(doc.value);
+              items.add(_convertFromDittoDocument(data));
+            } catch (e) {
+              talker.error('Error converting transaction item (initial): $e');
+            }
+          }
+          talker.debug(
+            'transactionItemsStreams initial seed: ${items.length} items',
+          );
+          if (!controller.isClosed) controller.add(items);
+        })
+        .catchError((e) {
+          talker.error('Error seeding transaction items stream: $e');
+        });
+
     controller.onCancel = () async {
+      talker.debug('Cleaning up transactionItemsStreams subscriptions');
       await observer?.cancel();
+      // Broad subscription cleanup disabled (commented out above)
+      // await broadObserver?.cancel();
+      // broadSubscription?.cancel();
+      specificSubscription.cancel();
       await controller.close();
+      talker.debug('Cleanup completed for transactionItemsStreams');
     };
 
     return controller.stream;

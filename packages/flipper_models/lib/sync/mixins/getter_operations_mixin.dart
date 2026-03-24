@@ -6,6 +6,8 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/sync/interfaces/getter_operations_interface.dart';
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:brick_offline_first/brick_offline_first.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:supabase_models/brick/models/plan.dart';
 import 'package:supabase_models/brick/repository.dart';
 
 mixin GetterOperationsMixin implements GetterOperationsInterface {
@@ -238,29 +240,20 @@ mixin GetterOperationsMixin implements GetterOperationsInterface {
   Future<Plan?> getPaymentPlan({
     required String businessId,
     bool? fetchOnline,
+    bool? preferFresh,
   }) async {
     try {
-      final query = Query(where: [Where('businessId').isExactly(businessId)]);
-
-      // Use awaitRemote when explicitly requesting online data to ensure
-      // remote fetch happens even if local data exists (important for new devices)
-      final policy = (fetchOnline == true)
-          ? OfflineFirstGetPolicy.awaitRemote
-          : OfflineFirstGetPolicy.awaitRemoteWhenNoneExist;
-
+      // Plan is not stored in Brick/SQLite — read from Supabase directly when this
+      // mixin is used (CoreSync overrides with Ditto-first).
       talker.info(
-          'getPaymentPlan: businessId=$businessId, fetchOnline=$fetchOnline, policy=$policy');
-
-      final result = await repository.get<Plan>(
-        query: query,
-        policy: policy,
-      );
-
-      final plan = result.firstOrNull;
-      talker.info(
-          'getPaymentPlan: found plan=${plan != null}, planId=${plan?.id}');
-
-      return plan;
+          'getPaymentPlan (mixin): businessId=$businessId fetchOnline=$fetchOnline preferFresh=$preferFresh');
+      final row = await Supabase.instance.client
+          .from('plans')
+          .select()
+          .eq('business_id', businessId)
+          .maybeSingle();
+      if (row == null) return null;
+      return Plan.fromSupabaseJson(Map<String, dynamic>.from(row));
     } catch (e) {
       talker.error('getPaymentPlan error: $e');
       rethrow;

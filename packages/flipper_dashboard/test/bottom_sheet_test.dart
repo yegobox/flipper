@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import '../lib/bottomSheet.dart';
+import '../lib/QuickSellingMobile.dart';
 // flutter test test/bottom_sheet_test.dart
 void main() {
   group('ChargeButtonState Enum Tests', () {
@@ -119,11 +119,11 @@ void main() {
 
   group('BottomSheets Class Tests', () {
     test('BottomSheets class exists', () {
-      expect(BottomSheets, isNotNull);
+      expect(QuickSellingMobile, isNotNull);
     });
 
     test('BottomSheets has showBottom method', () {
-      expect(BottomSheets.showBottom, isNotNull);
+      expect(QuickSellingMobile.showBottom, isNotNull);
     });
   });
 

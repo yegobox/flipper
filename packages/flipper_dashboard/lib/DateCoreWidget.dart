@@ -9,7 +9,7 @@ import 'package:overlay_support/overlay_support.dart';
 mixin DateCoreWidget<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   IconButton datePicker() {
     return IconButton(
-      onPressed: _handleDateTimePicker,
+      onPressed: handleDateTimePicker,
       icon: const Icon(
         Icons.calendar_today_rounded,
         color: Colors.blue,
@@ -32,7 +32,7 @@ mixin DateCoreWidget<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     }
   }
 
-  void _handleDateTimePicker() {
+  void handleDateTimePicker() {
     showDialog(
       barrierDismissible: true,
       context: context,
@@ -44,10 +44,7 @@ mixin DateCoreWidget<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             children: [
               const Text(
                 'Select Date Range',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
               CalendarDatePicker(
@@ -55,8 +52,19 @@ mixin DateCoreWidget<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                 firstDate: DateTime(2020),
                 lastDate: DateTime(2030),
                 onDateChanged: (date) {
-                  // This will handle single date selection
-                  // For range selection, we'll use the action buttons below
+                  final startOfDay = DateTime(date.year, date.month, date.day);
+                  final endOfDay = DateTime(
+                    date.year,
+                    date.month,
+                    date.day,
+                    23,
+                    59,
+                    59,
+                  );
+                  _onDateRangeSelected(
+                    DateTimeRange(start: startOfDay, end: endOfDay),
+                  );
+                  Navigator.maybePop(context);
                 },
               ),
               const SizedBox(height: 16),
@@ -70,17 +78,17 @@ mixin DateCoreWidget<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                         firstDate: DateTime(2020),
                         lastDate: DateTime(2030),
                         initialDateRange: DateTimeRange(
-                          start:
-                              DateTime.now().subtract(const Duration(days: 4)),
+                          start: DateTime.now().subtract(
+                            const Duration(days: 4),
+                          ),
                           end: DateTime.now().add(const Duration(days: 3)),
                         ),
                         builder: (context, child) {
                           return Theme(
                             data: Theme.of(context).copyWith(
-                              colorScheme:
-                                  Theme.of(context).colorScheme.copyWith(
-                                        primary: Colors.blue,
-                                      ),
+                              colorScheme: Theme.of(
+                                context,
+                              ).colorScheme.copyWith(primary: Colors.blue),
                             ),
                             child: child!,
                           );

@@ -237,9 +237,12 @@ mixin AuthMixin implements AuthInterface {
     required bool fetchRemote,
   }) async {
     // if (isTestEnvironment()) return true;
+    // Plan reads are Ditto-first (see CoreSync / CapellaSync); [preferFresh] is
+    // ignored there but kept for API compatibility.
     final Plan? plan = await ProxyService.strategy.getPaymentPlan(
       businessId: businessId,
       fetchOnline: true,
+      preferFresh: true,
     );
 
     // there might be cases where plan is not in supabase
@@ -255,7 +258,51 @@ mixin AuthMixin implements AuthInterface {
       selectedPlan: plan,
     );
 
-    final isPaymentCompletedLocally = plan.paymentCompletedByUser ?? false;
+    // Align with HttpApi.isPaymentComplete: payment is complete if EITHER
+    // paymentCompletedByUser OR paymentStatus == 'COMPLETED' (from payment processor)
+    final now = DateTime.now();
+    final nextBillingDate = plan.nextBillingDate;
+    final paymentStatus = plan.paymentStatus;
+    final isPaymentStatusCompleted =
+        paymentStatus?.toUpperCase() == 'COMPLETED';
+    final isPaymentCompletedLocally =
+        (plan.paymentCompletedByUser ?? false) || isPaymentStatusCompleted;
+
+    // If next billing date is in the future and payment status is COMPLETED,
+    // consider subscription active without needing to check online
+    if (nextBillingDate != null &&
+        now.isBefore(nextBillingDate) &&
+        isPaymentStatusCompleted) {
+      talker.info(
+        'Subscription is active: nextBillingDate ($nextBillingDate) is in the future and payment_status is COMPLETED',
+      );
+      // Sync paymentCompletedByUser so local state matches paymentStatus
+      if (!(plan.paymentCompletedByUser ?? false)) {
+        plan.paymentCompletedByUser = true;
+        await ProxyService.strategy.upsertPlan(
+          businessId: businessId,
+          selectedPlan: plan,
+        );
+      }
+      return true;
+    }
+
+    if (nextBillingDate != null && now.isAfter(nextBillingDate)) {
+      talker.warning(
+        'Subscription expired: nextBillingDate ($nextBillingDate) is in the past',
+      );
+      // Update local state to reflect expired subscription
+      if (isPaymentCompletedLocally) {
+        plan.paymentCompletedByUser = false;
+        await ProxyService.strategy.upsertPlan(
+          businessId: businessId,
+          selectedPlan: plan,
+        );
+      }
+      throw PaymentIncompleteException(
+        'Payment plan expired on $nextBillingDate. Please renew your subscription.',
+      );
+    }
 
     // Always check online if fetchRemote is true, or if local is false
     if (fetchRemote || !isPaymentCompletedLocally) {

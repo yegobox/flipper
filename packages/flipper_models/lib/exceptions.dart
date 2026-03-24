@@ -112,6 +112,11 @@ class FailedPaymentException implements Exception {
   FailedPaymentException(this.message);
 }
 
+class PaymentIncompleteException implements Exception {
+  final String message;
+  PaymentIncompleteException(this.message);
+}
+
 class NoPaymentPlanFound implements Exception {
   final String message;
   NoPaymentPlanFound(this.message);

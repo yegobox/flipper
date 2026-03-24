@@ -1,11 +1,13 @@
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_dashboard/new_ticket.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/providers/ticket_selection_provider.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -92,7 +94,10 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
       }
     }
 
-    if (deletableTickets.isEmpty && nonDeletableTickets.isNotEmpty) {
+    if (deletableTickets.isEmpty &&
+        nonDeletableTickets.isNotEmpty &&
+        !kDebugMode &&
+        ProxyService.box.enableDebug() != true) {
       if (mounted) {
         showCustomSnackBarUtil(
           context,
@@ -112,7 +117,10 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
           final deletableIds = deletableTickets.map((t) => t.id).toSet();
           await deleteSelectedTickets(deletableIds);
           ref.read(ticketSelectionProvider.notifier).clearSelection();
+          // Force refresh the transaction provider to update the stream
+          ref.invalidate(pendingTransactionStreamProvider(isExpense: false));
           if (mounted) {
+            setState(() {});
             showCustomSnackBarUtil(
               context,
               '${deletableIds.length} ticket${deletableIds.length == 1 ? '' : 's'} deleted successfully',
@@ -121,6 +129,7 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
           }
         } catch (e) {
           if (mounted) {
+            setState(() {});
             showCustomSnackBarUtil(
               context,
               'Failed to delete selected tickets',

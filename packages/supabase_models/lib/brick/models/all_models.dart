@@ -1,6 +1,6 @@
 export 'branch.model.dart';
 export 'counter.model.dart';
-export 'plans.model.dart';
+export 'plan.dart';
 export 'plan_addon.model.dart';
 export 'ebm.model.dart';
 export 'variant.model.dart';
@@ -33,7 +33,7 @@ export 'package:supabase_models/brick/models/transactionItem.model.dart';
 // export 'access.model.dart';
 export 'inventory_request.model.dart';
 export 'transaction_payment_record.model.dart';
-export 'flipperSaleCompagin.dart';
+export 'flipperSaleCompagin.model.dart';
 export 'discount.model.dart';
 export 'token.model.dart';
 export 'conversation.model.dart';

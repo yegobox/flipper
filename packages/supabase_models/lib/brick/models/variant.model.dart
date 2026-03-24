@@ -20,7 +20,7 @@ part 'variant.model.ditto_sync_adapter.g.dart';
 )
 @DittoAdapter(
   'variants',
-  syncDirection: SyncDirection.bidirectional,
+  syncDirection: SyncDirection.sendOnly,
 )
 class Variant extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)

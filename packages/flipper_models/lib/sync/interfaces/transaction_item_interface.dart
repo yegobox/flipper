@@ -46,6 +46,12 @@ abstract class TransactionItemInterface {
     bool forceRealData = true,
   });
 
+  /// Fetches transaction items for MULTIPLE transaction IDs in a single bulk query.
+  /// Returns a map of transactionId → list of items for that transaction.
+  Future<Map<String, List<TransactionItem>>> transactionItemsForIds(
+    List<String> transactionIds,
+  );
+
   Future<void> updateTransactionItem({
     double? qty,
     required String transactionItemId,

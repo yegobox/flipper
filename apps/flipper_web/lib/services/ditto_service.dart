@@ -16,6 +16,7 @@ import 'ditto_mixins/sync_mixin.dart';
 import 'ditto_mixins/observation_mixin.dart';
 import 'ditto_mixins/user_access_mixin.dart';
 import 'ditto_mixins/feature_mixin.dart';
+import 'ditto_mixins/plan_mixin.dart';
 
 // Global singleton instance of DittoService
 final DittoService _dittoServiceInstance = DittoService._internal();
@@ -61,7 +62,8 @@ class DittoService extends DittoCore
         SyncMixin,
         ObservationMixin,
         UserAccessMixin,
-        FeatureMixin {
+        FeatureMixin,
+        PlanMixin {
   // Private constructor for singleton implementation
   DittoService._internal();
 

@@ -3,6 +3,22 @@ import 'package:supabase_models/brick/repository.dart';
 import 'package:talker/talker.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 
+class PaymentSkipSettings {
+  final String businessId;
+  final int skipCount;
+  final int maxSkipsAllowed;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
+
+  PaymentSkipSettings({
+    required this.businessId,
+    required this.skipCount,
+    required this.maxSkipsAllowed,
+    this.createdAt,
+    this.updatedAt,
+  });
+}
+
 mixin CapellaSettingsMixin {
   Repository get repository;
   Talker get talker;
@@ -55,6 +71,152 @@ mixin CapellaSettingsMixin {
     } catch (e) {
       talker.error('Error in patchSettings: $e');
       rethrow;
+    }
+  }
+
+  Future<PaymentSkipSettings> getPaymentSkipSettings({
+    required String businessId,
+  }) async {
+    try {
+      final ditto = dittoService.dittoInstance;
+      if (ditto == null) {
+        talker.error('Ditto not initialized in getPaymentSkipSettings');
+        return PaymentSkipSettings(
+          businessId: businessId,
+          skipCount: 0,
+          maxSkipsAllowed: 5,
+        );
+      }
+
+      final result = await ditto.store.execute(
+        'SELECT * FROM payment_skip_settings WHERE businessId = :businessId LIMIT 1',
+        arguments: {'businessId': businessId},
+      );
+
+      if (result.items.isNotEmpty) {
+        final data = Map<String, dynamic>.from(result.items.first.value);
+        return PaymentSkipSettings(
+          businessId: data['businessId'] ?? businessId,
+          skipCount: (data['skipCount'] as num?)?.toInt() ?? 0,
+          maxSkipsAllowed: (data['maxSkipsAllowed'] as num?)?.toInt() ?? 5,
+          createdAt: data['createdAt'] != null
+              ? DateTime.tryParse(data['createdAt'])
+              : null,
+          updatedAt: data['updatedAt'] != null
+              ? DateTime.tryParse(data['updatedAt'])
+              : null,
+        );
+      } else {
+        // Create default settings for this business
+        await ditto.store.execute(
+          '''
+          INSERT INTO payment_skip_settings DOCUMENTS (:doc)
+          ''',
+          arguments: {
+            'doc': {
+              '_id': 'skip_settings_$businessId',
+              'businessId': businessId,
+              'skipCount': 0,
+              'maxSkipsAllowed': 5,
+              'createdAt': DateTime.now().toIso8601String(),
+              'updatedAt': DateTime.now().toIso8601String(),
+            },
+          },
+        );
+        return PaymentSkipSettings(
+          businessId: businessId,
+          skipCount: 0,
+          maxSkipsAllowed: 5,
+          createdAt: DateTime.now(),
+          updatedAt: DateTime.now(),
+        );
+      }
+    } catch (e) {
+      talker.error('Error loading payment skip settings: $e');
+      return PaymentSkipSettings(
+        businessId: businessId,
+        skipCount: 0,
+        maxSkipsAllowed: 5,
+      );
+    }
+  }
+
+  Future<void> incrementPaymentSkipCount({required String businessId}) async {
+    try {
+      final ditto = dittoService.dittoInstance;
+      if (ditto == null) {
+        talker.error('Ditto not initialized in incrementPaymentSkipCount');
+        return;
+      }
+
+      // First, get the existing document
+      final result = await ditto.store.execute(
+        'SELECT * FROM payment_skip_settings WHERE businessId = :businessId LIMIT 1',
+        arguments: {'businessId': businessId},
+      );
+
+      if (result.items.isNotEmpty) {
+        final data = Map<String, dynamic>.from(result.items.first.value);
+        final docId = data['_id'] as String;
+        final currentSkipCount = (data['skipCount'] as num?)?.toInt() ?? 0;
+        final maxSkipsAllowed = (data['maxSkipsAllowed'] as num?)?.toInt() ?? 5;
+
+        // Update using INSERT ... ON ID CONFLICT DO UPDATE pattern
+        await ditto.store.execute(
+          '''
+          INSERT INTO payment_skip_settings DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE
+          ''',
+          arguments: {
+            'doc': {
+              '_id': docId,
+              'businessId': businessId,
+              'skipCount': currentSkipCount + 1,
+              'maxSkipsAllowed': maxSkipsAllowed,
+              'createdAt': data['createdAt'],
+              'updatedAt': DateTime.now().toIso8601String(),
+            },
+          },
+        );
+      } else {
+        // If document doesn't exist, create it with skipCount = 1
+        await ditto.store.execute(
+          '''
+          INSERT INTO payment_skip_settings DOCUMENTS (:doc) ON ID CONFLICT DO UPDATE
+          ''',
+          arguments: {
+            'doc': {
+              '_id': 'skip_settings_$businessId',
+              'businessId': businessId,
+              'skipCount': 1,
+              'maxSkipsAllowed': 5,
+              'createdAt': DateTime.now().toIso8601String(),
+              'updatedAt': DateTime.now().toIso8601String(),
+            },
+          },
+        );
+      }
+    } catch (e) {
+      talker.error('Error incrementing payment skip count: $e');
+    }
+  }
+
+  Future<bool> canSkipPayment({required String businessId}) async {
+    try {
+      final settings = await getPaymentSkipSettings(businessId: businessId);
+      return settings.skipCount < settings.maxSkipsAllowed;
+    } catch (e) {
+      talker.error('Error checking if payment can be skipped: $e');
+      return false;
+    }
+  }
+
+  Future<int> getRemainingSkips({required String businessId}) async {
+    try {
+      final settings = await getPaymentSkipSettings(businessId: businessId);
+      return (settings.maxSkipsAllowed - settings.skipCount).clamp(0, 999);
+    } catch (e) {
+      talker.error('Error getting remaining skips: $e');
+      return 0;
     }
   }
 }

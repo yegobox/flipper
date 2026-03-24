@@ -168,7 +168,6 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
         if (businesses.hasValue &&
             !businesses.isLoading &&
             (businesses.value?.isEmpty ?? false)) {
-
           // One-shot guard: bail out if logout is already scheduled.
           if (_isSigningOut) {
             return Scaffold(
@@ -346,14 +345,23 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
 
     ref.read(selectedBusinessIdProvider.notifier).state = business.id;
     try {
-      // Save business ID to local storage
+      // Save business ID to local storage (Hive - fast)
       await ProxyService.box.writeString(key: 'businessId', value: business.id);
+
+      // Set default business (Hive write + deferred SQLite)
       await locator<AppService>().setDefaultBusiness(business);
-      // Get the latest payment plan online.
-      await ProxyService.strategy.getPaymentPlan(
-        businessId: business.id,
-        fetchOnline: true,
+
+      // Small delay to prevent SQLite lock from previous operation
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      // Get the latest payment plan online (non-blocking, doesn't block UI)
+      unawaited(
+        ProxyService.strategy.getPaymentPlan(
+          businessId: business.id,
+          fetchOnline: true,
+        ),
       );
+
       final userId = ProxyService.box.getUserId();
       final List<Map<String, dynamic>> branchesJson = await ProxyService.ditto
           .getBranches(userId!, business.id);
@@ -363,6 +371,8 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
       if (branches.length == 1) {
         // If there's only one branch, set it as default and complete login
         await locator<AppService>().setDefaultBranch(branches.first);
+        // Small delay to allow Hive writes to complete
+        await Future.delayed(const Duration(milliseconds: 100));
         _invalidateProviders();
         _completeAuthenticationFlow();
       } else {
@@ -403,22 +413,25 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
     );
 
     try {
-      // Initialization is now handled centrally in AppService.appInit
-      // which is called when navigating to the main app or starting up.
-      // Removed manual setUserId/logout here.
       final userId = ProxyService.box.getUserId();
 
+      // Step 1: Set default branch (Hive writes are synchronous, SQLite is deferred)
       await locator<AppService>().setDefaultBranch(branch);
 
-      // Save device being logged in
-      await _saveDeviceRecord();
+      // Small delay to allow Hive writes to complete
+      await Future.delayed(const Duration(milliseconds: 100));
 
-      // Ensure counters are hydrated now that the branch context is known.
+      // Step 2: Save device record (deferred to avoid blocking)
+      unawaited(_saveDeviceRecord());
+
+      // Small delay to prevent SQLite lock
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      // Step 3: Hydrate counters after branch context is set
       await DittoSyncCoordinator.instance.hydrate<Counter>();
 
-      // Observers are now registered in _setDefaultBranch
-      // They will automatically pull data and listen for changes
-      // No need for manual pull, diagnostics, or delays here!
+      // Small delay to allow DB to settle
+      await Future.delayed(const Duration(milliseconds: 100));
 
       if (!isMobile) {
         // Choose default app if not set
@@ -441,8 +454,13 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
       }
 
       if (userId != null) {
-        await ProxyService.app.checkAndStartShift(userId: userId);
+        // Step 4: Check and start shift (deferred to avoid blocking)
+        unawaited(ProxyService.app.checkAndStartShift(userId: userId));
       }
+
+      // Final delay before navigation
+      await Future.delayed(const Duration(milliseconds: 100));
+
       _completeAuthenticationFlow();
     } catch (e) {
       talker.error('Error handling branch selection: $e');

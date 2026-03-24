@@ -21,7 +21,7 @@ part 'business.model.ditto_sync_adapter.g.dart';
 )
 @DittoAdapter(
   'businesses',
-  syncDirection: SyncDirection.bidirectional,
+  syncDirection: SyncDirection.sendOnly,
 )
 class Business extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)

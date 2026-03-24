@@ -644,11 +644,24 @@ class CoreSync extends AiStrategyImpl
     TransactionItem item = (await transactionItems(
       id: transactionItemId.id,
       transactionId: transactionId,
-      branchId: (await ProxyService.strategy.activeBranch(
-        branchId: ProxyService.box.getBranchId()!,
-      )).id,
+      branchId: ProxyService.box.getBranchId()!,
     )).first;
-    await repository.delete(item);
+    await repository.delete<TransactionItem>(item);
+
+    // Check if this was the last item and reset cashReceived if needed
+    if (transactionId != null) {
+      final remainingItems = await transactionItems(
+        transactionId: transactionId,
+        branchId: ProxyService.box.getBranchId()!,
+      );
+
+      if (remainingItems.isEmpty) {
+        await updateTransaction(
+          transactionId: transactionId,
+          cashReceived: 0.0,
+        );
+      }
+    }
   }
 
   @override
@@ -1284,27 +1297,29 @@ class CoreSync extends AiStrategyImpl
   Future<models.Plan?> getPaymentPlan({
     required String businessId,
     bool? fetchOnline,
+    bool? preferFresh,
   }) async {
     try {
-      final query = brick.Query(
-        where: [brick.Where('businessId').isExactly(businessId)],
-      );
+      // Backend syncs plans to Ditto (e.g. PlanSyncJob); treat Ditto as authoritative for reads.
+      // Avoid relying on direct Supabase via Brick alwaysHydrate — Supabase is not the preferred source here.
+      if (dittoService.isReady()) {
+        final plan = await dittoService.getPaymentPlanFromDitto(businessId);
+        if (plan != null) {
+          talker.info(
+            'getPaymentPlan: from Ditto businessId=$businessId',
+          );
+          return plan;
+        }
+        talker.info(
+          'getPaymentPlan: no plan in Ditto for businessId=$businessId, trying local Brick cache only',
+        );
+      } else {
+        talker.info(
+          'getPaymentPlan: Ditto not ready for businessId=$businessId — no local Plan in SQLite (Supabase-only model)',
+        );
+      }
 
-      // Use awaitRemote when explicitly requesting online data to ensure
-      // remote fetch happens even if local data exists (important for new devices)
-      final policy = (fetchOnline == true)
-          ? OfflineFirstGetPolicy.awaitRemote
-          : OfflineFirstGetPolicy.alwaysHydrate;
-
-      talker.info(
-        'getPaymentPlan: businessId=$businessId, fetchOnline=$fetchOnline, policy=$policy',
-      );
-
-      final result = await repository.get<models.Plan>(
-        query: query,
-        policy: policy,
-      );
-      return result.firstOrNull;
+      return null;
     } catch (e) {
       talker.error('getPaymentPlan error: $e');
       rethrow;
@@ -1314,11 +1329,38 @@ class CoreSync extends AiStrategyImpl
   @override
   Future<void> upsertPlan({
     required String businessId,
-    required Plan selectedPlan,
+    required models.Plan selectedPlan,
   }) async {
     try {
       selectedPlan.updatedAt = DateTime.now();
-      await repository.upsert(selectedPlan);
+      final id = selectedPlan.id;
+      if (id == null) {
+        throw ArgumentError('upsertPlan: plan id is required');
+      }
+      await Supabase.instance.client.from('plans').upsert({
+        'id': id,
+        'business_id': businessId,
+        'branch_id': selectedPlan.branchId,
+        'selected_plan': selectedPlan.selectedPlan,
+        'additional_devices': selectedPlan.additionalDevices,
+        'is_yearly_plan': selectedPlan.isYearlyPlan,
+        'total_price': selectedPlan.totalPrice,
+        'created_at': selectedPlan.createdAt?.toIso8601String(),
+        'payment_completed_by_user': selectedPlan.paymentCompletedByUser,
+        'rule': selectedPlan.rule,
+        'payment_method': selectedPlan.paymentMethod,
+        'next_billing_date': selectedPlan.nextBillingDate?.toIso8601String(),
+        'number_of_payments': selectedPlan.numberOfPayments,
+        'phone_number': selectedPlan.phoneNumber,
+        'external_id': selectedPlan.externalId,
+        'payment_status': selectedPlan.paymentStatus,
+        'last_processed_at': selectedPlan.lastProcessedAt?.toIso8601String(),
+        'last_error': selectedPlan.lastError,
+        'updated_at': selectedPlan.updatedAt?.toIso8601String(),
+        'last_updated': selectedPlan.lastUpdated?.toIso8601String(),
+        'processing_status': selectedPlan.processingStatus,
+        'last_payment_date': selectedPlan.lastPaymentDate?.toIso8601String(),
+      });
     } catch (e) {
       talker.error('upsertPlan error: $e');
       rethrow;
@@ -1545,7 +1587,7 @@ class CoreSync extends AiStrategyImpl
 
     await Supabase.instance.client.from('plans').upsert(planData);
 
-    return models.Plan(
+    final savedPlan = models.Plan(
       id: planId,
       businessId: businessId,
       selectedPlan: selectedPlan,
@@ -1561,6 +1603,8 @@ class CoreSync extends AiStrategyImpl
       paymentCompletedByUser: false,
       updatedAt: now,
     );
+
+    return savedPlan;
   }
 
   @override
@@ -2118,23 +2162,25 @@ class CoreSync extends AiStrategyImpl
             "Processing income items for transaction ${transaction.id}",
           );
         }
-        // Touch variants' lastTouched asynchronously to aid reporting without blocking the flow.
-        Future.microtask(() async {
-          final items = transaction.items ?? const <TransactionItem>[];
-          talker.info(
-            "Touching ${items.length} items for transaction ${transaction.id}",
-          );
-
-          final variantIds = items
-              .map((i) => i.variantId)
-              .whereType<String>()
-              .toSet();
-          for (final id in variantIds) {
-            final variant = await ProxyService.strategy.getVariant(id: id);
-            if (variant != null) {
-              variant.lastTouched = DateTime.now().toUtc();
-              await repository.upsert<Variant>(variant);
+        // Defer variant lastTouched updates so they don't compete for the DB lock
+        // during receipt printing. A 5-second delay gives the critical path
+        // (transaction completion + receipt) time to finish first.
+        Future.delayed(const Duration(seconds: 5), () async {
+          try {
+            final items = transaction.items ?? const <TransactionItem>[];
+            final variantIds = items
+                .map((i) => i.variantId)
+                .whereType<String>()
+                .toSet();
+            for (final id in variantIds) {
+              final variant = await ProxyService.strategy.getVariant(id: id);
+              if (variant != null) {
+                variant.lastTouched = DateTime.now().toUtc();
+                await repository.upsert<Variant>(variant);
+              }
             }
+          } catch (e) {
+            talker.warning('Deferred variant touch failed: $e');
           }
         });
 
@@ -2474,10 +2520,10 @@ class CoreSync extends AiStrategyImpl
       );
     }
 
-    // 1. Delete records with amount 0
+    // 1. Delete records with amount 0 (local-only: these are records we just created)
     final transactionPaymentRecordWithAmount0 = await repository
         .get<TransactionPaymentRecord>(
-          policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+          policy: OfflineFirstGetPolicy.localOnly,
           query: brick.Query(
             where: [
               brick.Where('transactionId').isExactly(transactionId),
@@ -3594,8 +3640,11 @@ class CoreSync extends AiStrategyImpl
         where: [
           Where('conversationId').isExactly(conversationId),
           if (startDate != null)
-            Where('timestamp').isGreaterThanOrEqualTo(startDate),
-          if (endDate != null) Where('timestamp').isLessThanOrEqualTo(endDate),
+            Where(
+              'timestamp',
+            ).isGreaterThanOrEqualTo(startDate.toIso8601String()),
+          if (endDate != null)
+            Where('timestamp').isLessThanOrEqualTo(endDate.toIso8601String()),
         ],
         limit: limit,
         offset: offset,
@@ -3692,50 +3741,46 @@ class CoreSync extends AiStrategyImpl
     final businessId = ProxyService.box.getBusinessId();
     if (businessId == null) return;
 
-    List<Plan> plans = await repository.get<Plan>(
-      query: brick.Query(
-        where: [brick.Where('businessId').isExactly(businessId)],
-      ),
+    final raw = await Supabase.instance.client
+        .from('plans')
+        .select()
+        .eq('business_id', businessId);
+    final rows = List<Map<String, dynamic>>.from(
+      (raw as List).map((e) => Map<String, dynamic>.from(e as Map)),
     );
+    final plans = rows.map(models.Plan.fromSupabaseJson).toList();
 
     if (plans.length < 2) return;
 
-    // Separate paid and unpaid plans
-    final paidPlans = plans
-        .where((p) => p.paymentCompletedByUser ?? false)
-        .toList();
-    final unpaidPlans = plans
-        .where((p) => !(p.paymentCompletedByUser ?? false))
-        .toList();
+    final paidPlans =
+        plans.where((p) => p.paymentCompletedByUser ?? false).toList();
+    final unpaidPlans =
+        plans.where((p) => !(p.paymentCompletedByUser ?? false)).toList();
 
-    Plan? planToKeep;
+    models.Plan? planToKeep;
 
     if (paidPlans.isNotEmpty) {
-      // If there are paid plans, keep the most recent one
       paidPlans.sort(
         (a, b) =>
             (b.createdAt ?? DateTime(0)).compareTo(a.createdAt ?? DateTime(0)),
       );
       planToKeep = paidPlans.first;
 
-      // Delete all other paid plans and all unpaid plans
       for (final plan in plans) {
-        if (plan.id != planToKeep.id) {
-          await repository.delete<Plan>(plan);
+        if (plan.id != planToKeep!.id && plan.id != null) {
+          await Supabase.instance.client.from('plans').delete().eq('id', plan.id!);
         }
       }
     } else if (unpaidPlans.isNotEmpty) {
-      // If there are only unpaid plans, keep the most recent one
       unpaidPlans.sort(
         (a, b) =>
             (b.createdAt ?? DateTime(0)).compareTo(a.createdAt ?? DateTime(0)),
       );
       planToKeep = unpaidPlans.first;
 
-      // Delete all other unpaid plans
       for (final plan in unpaidPlans) {
-        if (plan.id != planToKeep.id) {
-          await repository.delete<Plan>(plan);
+        if (plan.id != planToKeep!.id && plan.id != null) {
+          await Supabase.instance.client.from('plans').delete().eq('id', plan.id!);
         }
       }
     }

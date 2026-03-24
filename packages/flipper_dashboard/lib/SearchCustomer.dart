@@ -237,7 +237,7 @@ class _SearchInputWithDropdownState
       _searchController.text = existingCustomerName;
     } else {
       _searchController.clear();
-      Future(() {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
         ref.read(customerPhoneNumberProvider.notifier).state = null;
       });
     }

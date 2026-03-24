@@ -427,6 +427,7 @@ abstract class DatabaseSyncInterface extends AiStrategy
   Future<models.Plan?> getPaymentPlan({
     required String businessId,
     bool? fetchOnline,
+    bool? preferFresh,
   });
   Future<void> upsertPlan({
     required String businessId,

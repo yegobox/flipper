@@ -13,7 +13,7 @@ IUnit _$IUnitFromJson(Map<String, dynamic> json) =>
         name: json['name'] as String,
         value: json['value'] as String,
         active: json['active'] as bool,
-        action: json['action'] as String,
+        action: json['action'] as String?,
         lastTouched: IUnit._dateTimeFromJson(json['lastTouched'] as String?),
       )
       ..deletedAt = json['deletedAt'] == null

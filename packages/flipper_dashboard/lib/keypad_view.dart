@@ -433,13 +433,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
 
         talker.info("Processing transaction with subtotal: $subTotal");
 
-        // First update the transaction with the correct subtotal
-        await ProxyService.strategy.updateTransaction(
-          transaction: pendingTransaction,
-          subTotal: subTotal,
-        );
-
-        // Ensure the transaction is properly updated with the subtotal and marked as complete
+        // collectPayment recalculates subTotal from items internally
         ITransaction updatedTransaction = await ProxyService.strategy
             .collectPayment(
               cashReceived: cashReceived,
@@ -459,22 +453,6 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
               categoryId: category?.id.toString(),
             );
 
-        // Always explicitly update the transaction status to ensure it's marked as complete
-        updatedTransaction.status = COMPLETE;
-        updatedTransaction.subTotal = subTotal;
-
-        // Use updateTransaction method to ensure the transaction is properly saved
-        // Call it twice to ensure the transaction is properly saved
-        await ProxyService.strategy.updateTransaction(
-          transaction: updatedTransaction,
-          status: COMPLETE,
-          subTotal: subTotal,
-        );
-
-        // Wait a short time to ensure the first update completes
-        await Future.delayed(const Duration(milliseconds: 100));
-
-        // Call update again to ensure it's properly saved
         await ProxyService.strategy.updateTransaction(
           transaction: updatedTransaction,
           status: COMPLETE,

@@ -3,8 +3,8 @@ import 'package:flutter/foundation.dart';
 
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:meta/meta.dart';
-import 'package:supabase_models/brick/models/plans.model.dart';
+import 'package:supabase_models/brick/models/plan.dart';
+import 'package:flipper_models/exceptions.dart';
 
 /// Represents the different states of payment verification
 enum PaymentVerificationResult { active, noPlan, planExistsButInactive, error }
@@ -28,24 +28,6 @@ class PaymentVerificationResponse {
   bool get requiresPaymentResolution =>
       result == PaymentVerificationResult.planExistsButInactive;
   bool get hasError => result == PaymentVerificationResult.error;
-}
-
-/// Exception thrown when a payment plan is not found.
-class NoPaymentPlanFoundException implements Exception {
-  final String message;
-  NoPaymentPlanFoundException(this.message);
-
-  @override
-  String toString() => message;
-}
-
-/// Exception thrown when payment has failed or is incomplete.
-class PaymentIncompleteException implements Exception {
-  final String message;
-  PaymentIncompleteException(this.message);
-
-  @override
-  String toString() => message;
 }
 
 /// Service responsible for verifying payment status throughout the app lifecycle.
@@ -127,7 +109,11 @@ class PaymentVerificationService {
 
       // First check if a payment plan exists at all
       final plan = await ProxyService.strategy
-          .getPaymentPlan(businessId: businessId, fetchOnline: true)
+          .getPaymentPlan(
+            businessId: businessId,
+            fetchOnline: true,
+            preferFresh: true,
+          )
           .timeout(const Duration(seconds: 15));
 
       if (plan == null) {
@@ -170,6 +156,24 @@ class PaymentVerificationService {
             plan: plan,
           );
         }
+      } on PaymentIncompleteException catch (e) {
+        debugPrint(
+          '🚀 [PaymentVerificationService] Payment incomplete/expired: $e',
+        );
+        return PaymentVerificationResponse(
+          result: PaymentVerificationResult.planExistsButInactive,
+          errorMessage: e.message,
+          plan: plan,
+          exception: e,
+        );
+      } on FailedPaymentException catch (e) {
+        debugPrint('🚀 [PaymentVerificationService] Payment failed: $e');
+        return PaymentVerificationResponse(
+          result: PaymentVerificationResult.planExistsButInactive,
+          errorMessage: e.message,
+          plan: plan,
+          exception: e,
+        );
       } catch (e) {
         debugPrint(
           '🚀 [PaymentVerificationService] Error checking subscription status: $e',

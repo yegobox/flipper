@@ -18,7 +18,7 @@ part 'ebm.model.ditto_sync_adapter.g.dart';
 )
 @DittoAdapter(
   'ebms',
-  syncDirection: SyncDirection.bidirectional,
+  syncDirection: SyncDirection.sendOnly,
 )
 class Ebm extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)

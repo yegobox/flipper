@@ -19,7 +19,7 @@ part 'transaction_payment_record.model.ditto_sync_adapter.g.dart';
 )
 @DittoAdapter(
   'transaction_payment_records',
-  syncDirection: SyncDirection.bidirectional,
+  syncDirection: SyncDirection.sendOnly,
 )
 class TransactionPaymentRecord extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)

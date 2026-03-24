@@ -4,14 +4,13 @@ import 'package:supabase_models/brick/models/stock_recount.model.dart';
 import 'package:supabase_models/brick/models/stock_recount_item.model.dart';
 import 'package:supabase_models/brick/models/variant.model.dart';
 import 'package:intl/intl.dart';
+import 'package:flipper_ui/snack_bar_utils.dart';
 
 class StockRecountActiveScreen extends StatefulWidget {
   final String recountId;
 
-  const StockRecountActiveScreen({
-    Key? key,
-    required this.recountId,
-  }) : super(key: key);
+  const StockRecountActiveScreen({Key? key, required this.recountId})
+    : super(key: key);
 
   @override
   State<StockRecountActiveScreen> createState() =>
@@ -23,6 +22,7 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
   final TextEditingController _quantityController = TextEditingController();
   Variant? _selectedVariant;
   bool _isSubmitting = false;
+  bool _isAddingItem = false;
   bool _canSubmit = true;
 
   @override
@@ -43,8 +43,9 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
 
   Future<void> _checkCanSubmit() async {
     try {
-      final items = await ProxyService.strategy
-          .getRecountItems(recountId: widget.recountId);
+      final items = await ProxyService.strategy.getRecountItems(
+        recountId: widget.recountId,
+      );
 
       // Check if any item has counted quantity less than previous quantity
       final hasLowerCount = items.any((item) => item.difference < 0);
@@ -61,14 +62,9 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
 
   Future<void> _submitRecount() async {
     if (!_canSubmit) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Cannot submit: Some items have counts lower than current stock. Please adjust or remove these items.',
-          ),
-          backgroundColor: Colors.orange,
-          duration: Duration(seconds: 4),
-        ),
+      showWarningNotification(
+        context,
+        'Cannot submit: Some items have counts lower than current stock. Please adjust or remove these items.',
       );
       return;
     }
@@ -85,8 +81,11 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
                 color: Colors.blue.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(Icons.check_circle_outline,
-                  color: Colors.blue, size: 24),
+              child: const Icon(
+                Icons.check_circle_outline,
+                color: Colors.blue,
+                size: 24,
+              ),
             ),
             const SizedBox(width: 12),
             const Text('Submit Stock Recount'),
@@ -127,22 +126,12 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
     try {
       await ProxyService.strategy.submitRecount(recountId: widget.recountId);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Recount submitted successfully'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        showSuccessNotification(context, 'Recount submitted successfully');
         Navigator.of(context).pop();
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error submitting recount: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        showErrorNotification(context, 'Error submitting recount: $e');
       }
     } finally {
       if (mounted) {
@@ -155,20 +144,22 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
 
   Future<void> _addOrUpdateItem() async {
     if (_selectedVariant == null || _quantityController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Please select a product and enter quantity')),
+      showWarningNotification(
+        context,
+        'Please select a product and enter quantity',
       );
       return;
     }
 
     final quantity = double.tryParse(_quantityController.text);
     if (quantity == null || quantity < 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a valid quantity')),
-      );
+      showWarningNotification(context, 'Please enter a valid quantity');
       return;
     }
+
+    setState(() {
+      _isAddingItem = true;
+    });
 
     try {
       await ProxyService.strategy.addOrUpdateRecountItem(
@@ -186,24 +177,17 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
           _searchController.clear();
         });
         await _checkCanSubmit();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Row(
-              children: [
-                Icon(Icons.check_circle, color: Colors.white),
-                SizedBox(width: 8),
-                Text('Item added to recount'),
-              ],
-            ),
-            backgroundColor: Colors.green,
-          ),
-        );
+        showSuccessNotification(context, 'Item added to recount');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error adding item: $e')),
-        );
+        showErrorNotification(context, 'Error adding item: $e');
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isAddingItem = false;
+        });
       }
     }
   }
@@ -213,27 +197,11 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
       await ProxyService.strategy.removeRecountItem(itemId: itemId);
       if (mounted) {
         await _checkCanSubmit();
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Row(
-              children: [
-                Icon(Icons.check_circle, color: Colors.white),
-                SizedBox(width: 8),
-                Text('Item removed'),
-              ],
-            ),
-            backgroundColor: Colors.green,
-          ),
-        );
+        showSuccessNotification(context, 'Item removed');
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error removing item: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        showErrorNotification(context, 'Error removing item: $e');
       }
     }
   }
@@ -267,10 +235,7 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
             foregroundColor: Colors.black87,
             title: Text(
               isDraft ? 'Stock Recount' : 'View Recount',
-              style: const TextStyle(
-                fontWeight: FontWeight.w600,
-                fontSize: 20,
-              ),
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 20),
             ),
             actions: [
               if (isDraft && !_isSubmitting)
@@ -281,8 +246,9 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
                     icon: const Icon(Icons.check_circle_outline, size: 20),
                     label: const Text('Submit Recount'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor:
-                          _canSubmit ? const Color(0xFF0078D4) : Colors.grey,
+                      backgroundColor: _canSubmit
+                          ? const Color(0xFF0078D4)
+                          : Colors.grey,
                       foregroundColor: Colors.white,
                       elevation: 0,
                       padding: const EdgeInsets.symmetric(
@@ -303,8 +269,9 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
                     height: 20,
                     child: CircularProgressIndicator(
                       strokeWidth: 2,
-                      valueColor:
-                          AlwaysStoppedAnimation<Color>(Color(0xFF0078D4)),
+                      valueColor: AlwaysStoppedAnimation<Color>(
+                        Color(0xFF0078D4),
+                      ),
                     ),
                   ),
                 ),
@@ -335,8 +302,9 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
                         Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color:
-                                const Color(0xFF0078D4).withValues(alpha: 0.1),
+                            color: const Color(
+                              0xFF0078D4,
+                            ).withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(10),
                           ),
                           child: const Icon(
@@ -405,8 +373,11 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.notes,
-                                size: 16, color: Colors.grey[600]),
+                            Icon(
+                              Icons.notes,
+                              size: 16,
+                              color: Colors.grey[600],
+                            ),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
@@ -481,8 +452,9 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
                           Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF0078D4)
-                                  .withValues(alpha: 0.1),
+                              color: const Color(
+                                0xFF0078D4,
+                              ).withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: const Icon(
@@ -524,20 +496,23 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
                               controller: _quantityController,
                               keyboardType:
                                   const TextInputType.numberWithOptions(
-                                      decimal: true),
+                                    decimal: true,
+                                  ),
                               decoration: InputDecoration(
                                 labelText: 'Counted Qty',
                                 labelStyle: const TextStyle(fontSize: 14),
                                 hintText: '0',
                                 border: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
-                                  borderSide:
-                                      BorderSide(color: Colors.grey[300]!),
+                                  borderSide: BorderSide(
+                                    color: Colors.grey[300]!,
+                                  ),
                                 ),
                                 enabledBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
-                                  borderSide:
-                                      BorderSide(color: Colors.grey[300]!),
+                                  borderSide: BorderSide(
+                                    color: Colors.grey[300]!,
+                                  ),
                                 ),
                                 focusedBorder: OutlineInputBorder(
                                   borderRadius: BorderRadius.circular(8),
@@ -557,7 +532,7 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
                           ),
                           const SizedBox(width: 12),
                           ElevatedButton(
-                            onPressed: _selectedVariant != null
+                            onPressed: _selectedVariant != null && !_isAddingItem
                                 ? _addOrUpdateItem
                                 : null,
                             style: ElevatedButton.styleFrom(
@@ -573,7 +548,18 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
                               ),
                               disabledBackgroundColor: Colors.grey[300],
                             ),
-                            child: const Row(
+                            child: _isAddingItem
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        Color(0xFF0078D4),
+                                      ),
+                                    ),
+                                  )
+                                : const Row(
                               children: [
                                 Icon(Icons.add, size: 20),
                                 SizedBox(width: 6),
@@ -669,8 +655,9 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
                     ),
                     const Spacer(),
                     FutureBuilder<List<StockRecountItem>>(
-                      future: ProxyService.strategy
-                          .getRecountItems(recountId: widget.recountId),
+                      future: ProxyService.strategy.getRecountItems(
+                        recountId: widget.recountId,
+                      ),
                       builder: (context, snapshot) {
                         final items = snapshot.data ?? [];
                         return Container(
@@ -702,8 +689,9 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
               // Items List
               Expanded(
                 child: FutureBuilder<List<StockRecountItem>>(
-                  future: ProxyService.strategy
-                      .getRecountItems(recountId: widget.recountId),
+                  future: ProxyService.strategy.getRecountItems(
+                    recountId: widget.recountId,
+                  ),
                   builder: (context, snapshot) {
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return const Center(child: CircularProgressIndicator());
@@ -810,8 +798,9 @@ class _ProductSearchFieldState extends State<_ProductSearchField> {
 
       // Search for variants with proper tax type codes based on VAT settings
       final ebm = await ProxyService.strategy.ebm(branchId: branchId);
-      final taxTyCds =
-          ebm?.vatEnabled == true ? ['A', 'B', 'C', 'TT'] : ['D', 'TT'];
+      final taxTyCds = ebm?.vatEnabled == true
+          ? ['A', 'B', 'C', 'TT']
+          : ['D', 'TT'];
       final paged = await ProxyService.strategy.variants(
         branchId: branchId,
         taxTyCds: taxTyCds,
@@ -825,8 +814,9 @@ class _ProductSearchFieldState extends State<_ProductSearchField> {
             // Exclude service items (service, "3" = service)
             final isService = v.itemTyCd == "3";
             // Match search query
-            final matchesQuery =
-                v.name.toLowerCase().contains(query.toLowerCase());
+            final matchesQuery = v.name.toLowerCase().contains(
+              query.toLowerCase(),
+            );
             return !isService && matchesQuery;
           })
           .take(10)
@@ -864,10 +854,7 @@ class _ProductSearchFieldState extends State<_ProductSearchField> {
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(
-                color: Color(0xFF0078D4),
-                width: 2,
-              ),
+              borderSide: const BorderSide(color: Color(0xFF0078D4), width: 2),
             ),
             prefixIcon: const Icon(Icons.search, size: 20),
             contentPadding: const EdgeInsets.symmetric(
@@ -908,10 +895,8 @@ class _ProductSearchFieldState extends State<_ProductSearchField> {
             child: ListView.separated(
               shrinkWrap: true,
               itemCount: _searchResults.length,
-              separatorBuilder: (context, index) => Divider(
-                height: 1,
-                color: Colors.grey[200],
-              ),
+              separatorBuilder: (context, index) =>
+                  Divider(height: 1, color: Colors.grey[200]),
               itemBuilder: (context, index) {
                 final variant = _searchResults[index];
                 return ListTile(
@@ -940,10 +925,7 @@ class _ProductSearchFieldState extends State<_ProductSearchField> {
                   ),
                   subtitle: Text(
                     'SKU: ${variant.sku ?? 'N/A'}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[600],
-                    ),
+                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                   ),
                   trailing: const Icon(
                     Icons.arrow_forward_ios,
@@ -1047,8 +1029,10 @@ class _RecountItemCard extends StatelessWidget {
                 ),
                 if (isDraft)
                   IconButton(
-                    icon: const Icon(Icons.delete_outline,
-                        color: Color(0xFFEF4444)),
+                    icon: const Icon(
+                      Icons.delete_outline,
+                      color: Color(0xFFEF4444),
+                    ),
                     onPressed: onRemove,
                     tooltip: 'Remove item',
                   ),
@@ -1094,8 +1078,9 @@ class _RecountItemCard extends StatelessWidget {
                     label: 'Variance',
                     value: '${diff > 0 ? '+' : ''}${diff.toStringAsFixed(0)}',
                     color: _getDifferenceColor(),
-                    backgroundColor:
-                        _getDifferenceColor().withValues(alpha: 0.1),
+                    backgroundColor: _getDifferenceColor().withValues(
+                      alpha: 0.1,
+                    ),
                     icon: _getDifferenceIcon(),
                   ),
                 ),

@@ -82,6 +82,7 @@ import '../brick/models/ebm.model.dart';
 import '../brick/models/favorite.model.dart';
 import '../brick/models/finance_provider.model.dart';
 import '../brick/models/financing.model.dart';
+import '../brick/models/flipperSaleCompagin.model.dart';
 import '../brick/models/import_purchase_dates.model.dart';
 import '../brick/models/integration_config.model.dart';
 import '../brick/models/itemCode.model.dart';
@@ -93,7 +94,6 @@ import '../brick/models/permission.model.dart';
 import '../brick/models/pin.model.dart';
 import '../brick/models/plan_addon.model.dart';
 import '../brick/models/plan_discount.model.dart';
-import '../brick/models/plans.model.dart';
 import '../brick/models/product.model.dart';
 import '../brick/models/purchase.model.dart';
 import '../brick/models/receipt.model.dart';
@@ -146,6 +146,7 @@ part 'adapters/ebm_adapter.g.dart';
 part 'adapters/favorite_adapter.g.dart';
 part 'adapters/finance_provider_adapter.g.dart';
 part 'adapters/financing_adapter.g.dart';
+part 'adapters/flipper_sale_compaign_adapter.g.dart';
 part 'adapters/import_purchase_dates_adapter.g.dart';
 part 'adapters/integration_config_adapter.g.dart';
 part 'adapters/item_code_adapter.g.dart';
@@ -157,7 +158,6 @@ part 'adapters/l_permission_adapter.g.dart';
 part 'adapters/pin_adapter.g.dart';
 part 'adapters/plan_addon_adapter.g.dart';
 part 'adapters/plan_discount_adapter.g.dart';
-part 'adapters/plan_adapter.g.dart';
 part 'adapters/product_adapter.g.dart';
 part 'adapters/purchase_adapter.g.dart';
 part 'adapters/receipt_adapter.g.dart';
@@ -212,6 +212,7 @@ final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
   Favorite: FavoriteAdapter(),
   FinanceProvider: FinanceProviderAdapter(),
   Financing: FinancingAdapter(),
+  FlipperSaleCompaign: FlipperSaleCompaignAdapter(),
   ImportPurchaseDates: ImportPurchaseDatesAdapter(),
   IntegrationConfig: IntegrationConfigAdapter(),
   ItemCode: ItemCodeAdapter(),
@@ -223,7 +224,6 @@ final Map<Type, SupabaseAdapter<SupabaseModel>> supabaseMappings = {
   Pin: PinAdapter(),
   PlanAddon: PlanAddonAdapter(),
   PlanDiscount: PlanDiscountAdapter(),
-  Plan: PlanAdapter(),
   Product: ProductAdapter(),
   Purchase: PurchaseAdapter(),
   Receipt: ReceiptAdapter(),
@@ -280,6 +280,7 @@ final Map<Type, SqliteAdapter<SqliteModel>> sqliteMappings = {
   Favorite: FavoriteAdapter(),
   FinanceProvider: FinanceProviderAdapter(),
   Financing: FinancingAdapter(),
+  FlipperSaleCompaign: FlipperSaleCompaignAdapter(),
   ImportPurchaseDates: ImportPurchaseDatesAdapter(),
   IntegrationConfig: IntegrationConfigAdapter(),
   ItemCode: ItemCodeAdapter(),
@@ -291,7 +292,6 @@ final Map<Type, SqliteAdapter<SqliteModel>> sqliteMappings = {
   Pin: PinAdapter(),
   PlanAddon: PlanAddonAdapter(),
   PlanDiscount: PlanDiscountAdapter(),
-  Plan: PlanAdapter(),
   Product: ProductAdapter(),
   Purchase: PurchaseAdapter(),
   Receipt: ReceiptAdapter(),

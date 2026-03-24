@@ -20,3 +20,4 @@ export 'access_provider.dart';
 export 'credit_provider.dart';
 export 'product_sort_provider.dart';
 export 'counter_provider.dart';
+export 'ditto_presence_provider.dart';

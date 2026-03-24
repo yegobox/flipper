@@ -183,44 +183,61 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   }) async {
     String? filePath;
     try {
+      print('📊 EXPORT: Starting exportDataGrid with ${config.transactions.length} transactions');
+      talker.info('Starting exportDataGrid with ${config.transactions.length} transactions');
+      
       // Get the system currency from settings if not provided
       final systemCurrency = currencyCode ?? ProxyService.box.defaultCurrency();
 
       // Calculate COGS for the transactions in the config
+      // SKIP COGS calculation for large datasets to avoid performance issues
       double totalCOGS = 0.0;
-      for (final transaction in config.transactions) {
-        try {
-          final transactionItems = await ProxyService.getStrategy(
-            Strategy.capella,
-          ).transactionItems(transactionId: transaction.id);
+      if (config.transactions.length < 100) {
+        print('📊 EXPORT: Calculating COGS for ${config.transactions.length} transactions...');
+        for (final transaction in config.transactions) {
+          try {
+            final transactionItems = await ProxyService.getStrategy(
+              Strategy.capella,
+            ).transactionItems(transactionId: transaction.id);
 
-          for (final item in transactionItems) {
-            if (item.variantId == null) continue;
-            try {
-              final variant = await ProxyService.strategy.getVariant(
-                id: item.variantId,
-              );
+            for (final item in transactionItems) {
+              if (item.variantId == null) continue;
+              try {
+                final variant = await ProxyService.strategy.getVariant(
+                  id: item.variantId,
+                );
 
-              if (variant != null) {
-                final supplyPrice =
-                    variant.supplyPrice ??
-                    (variant.retailPrice != null
-                        ? variant.retailPrice! * 0.7
-                        : 0.0);
+                if (variant != null) {
+                  final supplyPrice =
+                      variant.supplyPrice ??
+                      (variant.retailPrice != null
+                          ? variant.retailPrice! * 0.7
+                          : 0.0);
 
-                final itemCOGS = supplyPrice * item.qty;
+                  final itemCOGS = supplyPrice * item.qty;
+                  totalCOGS += itemCOGS;
+                }
+              } catch (e) {
+                final itemCOGS = item.price * item.qty * 0.7;
                 totalCOGS += itemCOGS;
               }
-            } catch (e) {
-              final itemCOGS = item.price * item.qty * 0.7;
-              totalCOGS += itemCOGS;
             }
+          } catch (e) {
+            talker.error(
+              'Error fetching items for transaction ${transaction.id}: $e',
+            );
           }
-        } catch (e) {
-          talker.error(
-            'Error fetching items for transaction ${transaction.id}: $e',
-          );
         }
+        print('📊 EXPORT: COGS calculation complete: $totalCOGS');
+      } else {
+        print('📊 EXPORT: Skipping COGS calculation for large dataset (${config.transactions.length} transactions)');
+        talker.info('Skipping COGS calculation for large dataset');
+        // Use estimated COGS (60% of revenue) for large datasets
+        final totalRevenue = config.transactions.fold<double>(
+          0.0,
+          (sum, tx) => sum + (tx.subTotal ?? 0.0),
+        );
+        totalCOGS = totalRevenue * 0.6;
       }
 
       // Update config with calculated COGS
@@ -236,13 +253,16 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         transactions: config.transactions,
       );
 
+      print('📊 EXPORT: Config updated, fetching business info...');
       // RESTORE ORIGINAL IMPLEMENTATION WITH WORKBOOK KEY
       ref.read(isProcessingProvider.notifier).startProcessing();
       final business = await ProxyService.strategy.getBusiness(
         businessId: ProxyService.box.getBusinessId()!,
       );
+      print('📊 EXPORT: Business fetched: ${business?.name}');
 
       if (ProxyService.box.exportAsPdf()) {
+        print('📊 EXPORT: Exporting as PDF...');
         final PdfDocument document = workBookKey.currentState!
             .exportToPdfDocument(
               fitAllColumnsInOnePage: true,
@@ -263,32 +283,33 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
         filePath = await _savePdfFile(document);
         document.dispose();
+        print('📊 EXPORT: PDF saved to $filePath');
       } else {
+        print('📊 EXPORT: Exporting as Excel...');
         excel.Workbook workbook = excel.Workbook();
 
-        try {
-          if (workBookKey.currentState != null) {
-            try {
-              workbook = workBookKey.currentState!.exportToExcelWorkbook();
-            } catch (e) {
-              // If we get an error, create a fresh workbook
-              talker.warning('Error using DataGrid export: $e');
-              workbook = excel.Workbook();
-              talker.info('Created fresh workbook after DataGrid export error');
-            }
-          } else {
-            // For detailed view, we need to create a workbook manually
-            talker.warning(
-              'DataGrid state is null, using manual workbook creation',
-            );
+        // When manualData is provided, build workbook from data only (no grid export).
+        // This avoids exportToExcelWorkbook() hanging on large datasets and ensures all rows are exported.
+        final useManualData = manualData != null &&
+            manualData.isNotEmpty &&
+            columnNames != null &&
+            columnNames.isNotEmpty;
 
-            // Keep using the manually created workbook
-            // We'll add the data to it in the subsequent steps
+        if (!useManualData) {
+          try {
+            if (workBookKey.currentState != null) {
+              try {
+                workbook =
+                    workBookKey.currentState!.exportToExcelWorkbook();
+              } catch (e) {
+                talker.warning('Error using DataGrid export: $e');
+                workbook = excel.Workbook();
+              }
+            }
+          } catch (e) {
+            talker.error('Error during export preparation: $e');
+            workbook = excel.Workbook();
           }
-        } catch (e) {
-          talker.error('Error during export preparation: $e');
-          // Ensure we have a valid workbook to continue with
-          workbook = excel.Workbook();
         }
 
         // Get the worksheet from the workbook
@@ -773,7 +794,8 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       final paymentMethodSheet = workbook.worksheets.addWithName(sheetName);
       await _initializeSheet(paymentMethodSheet, styler);
 
-      final paymentData = await _processTransactions(config.transactions);
+      // Use in-memory summary from transaction.paymentType/cashReceived (no DB calls)
+      final paymentData = _processTransactionsFromList(config.transactions);
 
       if (paymentData.isEmpty) {
         talker.warning('No payment totals to write to sheet');
@@ -818,67 +840,43 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     headerRange.cellStyle = headerStyle;
   }
 
-  Future<List<PaymentSummary>> _processTransactions(
+  /// Builds payment summary from transaction list in memory (no DB calls).
+  /// Uses transaction.paymentType and cashReceived/subTotal from each ITransaction.
+  List<PaymentSummary> _processTransactionsFromList(
     List<ITransaction> transactions,
-  ) async {
+  ) {
     final paymentTotals = <String, PaymentSummary>{};
-    talker.debug('Processing ${transactions.length} transactions');
 
     for (final transaction in transactions) {
-      try {
-        final paymentTypes = await ProxyService.strategy.getPaymentType(
-          transactionId: transaction.id,
-        );
+      final method = normalizePaymentMethod(
+        transaction.paymentType?.trim().isNotEmpty == true
+            ? transaction.paymentType!
+            : 'Cash',
+      );
+      final amount = transaction.cashReceived ?? transaction.subTotal ?? 0.0;
 
-        talker.debug(
-          'Transaction ${transaction.id}: Found ${paymentTypes.length} payment records',
-        );
-
-        for (final paymentType in paymentTypes) {
-          if (!_isValidPayment(paymentType)) {
-            talker.warning(
-              'Invalid payment data for transaction: ${transaction.id}',
-            );
-            continue;
-          }
-
-          _updatePaymentTotals(paymentTotals, paymentType);
-        }
-      } catch (e, stack) {
-        talker.error('Error processing transaction ${transaction.id}: $e');
-        talker.error(stack);
-      }
+      paymentTotals.update(
+        method,
+        (existing) => PaymentSummary(
+          method: method,
+          amount: existing.amount + amount,
+          count: existing.count + 1,
+        ),
+        ifAbsent: () => PaymentSummary(
+          method: method,
+          amount: amount,
+          count: 1,
+        ),
+      );
     }
 
     final sortedData = paymentTotals.values.toList()
       ..sort((a, b) => b.amount.compareTo(a.amount));
 
-    talker.debug('Final payment totals processed: ${sortedData.length}');
-    return sortedData;
-  }
-
-  bool _isValidPayment(TransactionPaymentRecord payment) {
-    return payment.paymentMethod != null && payment.amount != null;
-  }
-
-  void _updatePaymentTotals(
-    Map<String, PaymentSummary> totals,
-    TransactionPaymentRecord payment,
-  ) {
-    final method = normalizePaymentMethod(payment.paymentMethod!);
-    final amount = payment.amount!;
-
-    totals.update(
-      method,
-      (existing) => PaymentSummary(
-        method: method,
-        amount: existing.amount + amount,
-        count: existing.count + 1,
-      ),
-      ifAbsent: () => PaymentSummary(method: method, amount: amount, count: 1),
+    talker.debug(
+      'Payment summary from ${transactions.length} transactions: ${sortedData.length} methods',
     );
-
-    talker.debug('Updated payment total: $method = ${totals[method]?.amount}');
+    return sortedData;
   }
 
   Future<void> _writeDataToSheet({

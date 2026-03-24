@@ -1,6 +1,7 @@
 import 'package:flipper_dashboard/ribbon.dart';
 import 'package:flipper_dashboard/SearchFieldWidget.dart';
 import 'package:flipper_dashboard/widgets/user_info_widget.dart';
+import 'package:flipper_dashboard/widgets/connected_peers_widget.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -64,6 +65,8 @@ class UnifiedTopBar extends ConsumerWidget {
                         child: const IconRow(),
                       ),
                     ),
+                    const SizedBox(width: 8),
+                    const ConnectedPeersWidget(),
                     const SizedBox(width: 16),
                     const UserInfoWidget(),
                   ],

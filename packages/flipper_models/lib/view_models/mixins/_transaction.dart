@@ -58,12 +58,13 @@ mixin TransactionMixinOld {
           (transaction.subTotal ?? 0);
       final shouldComplete = !isLoan || isFullyPaid;
 
-      // Update receipt generation logic to only trigger when fully paid.
-      // This prevents printing receipts for partial payments as per user request.
+      // Skip receipt generation entirely for loan tickets — additional payments
+      // on resumed loans should never trigger a receipt.
       if (taxEnabled &&
           ebm?.taxServerUrl != null &&
           hasUser &&
           !isTaxServiceStoped &&
+          !isLoan &&
           shouldComplete &&
           isFullyPaid) {
         ProxyService.box.writeString(
@@ -113,28 +114,7 @@ mixin TransactionMixinOld {
       // Only call onComplete on success, not on error
       onComplete();
 
-      // Fire and forget receipt generation
-      handleReceiptGeneration(
-            formKey: formKey,
-            context: context,
-            transaction: transaction,
-            purchaseCode: purchaseCode,
-            onSuccess: onSuccess,
-          )
-          .then((_) {
-            talker.info(
-              "Receipt generation and printing completed in background",
-            );
-          })
-          .catchError((e) {
-            talker.error("Background receipt generation failed: $e");
-          });
-
-      // Return "Processing" status immediately to unblock UI
-      return RwApiResponse(
-        resultCd: "000",
-        resultMsg: "Processing in background",
-      );
+      return response;
     } catch (e) {
       talker.error('Error in finalizePayment: $e');
       rethrow;
@@ -303,7 +283,7 @@ mixin TransactionMixinOld {
     );
     if (isEbmEnabled) {
       try {
-        ProxyService.strategy.updateTransaction(
+        await ProxyService.getStrategy(Strategy.capella).updateTransaction(
           sarTyCd: sarTyCd,
           isUnclassfied: true,
           transaction: pendingTransaction,
@@ -311,8 +291,6 @@ mixin TransactionMixinOld {
           ebmSynced: false,
         );
       } catch (e) {
-        // Rethrow the error instead of silently catching it
-        // This ensures the transaction isn't marked as complete when there's an error
         talker.error('Error completing transaction: $e');
         rethrow;
       }
@@ -369,8 +347,8 @@ mixin TransactionMixinOld {
 
       // Update transaction with calculated tax amount
       transaction.taxAmount = totalTax;
-      // First collect the payment
-      ProxyService.strategy.collectPayment(
+      // Collect payment via Capella so items are read from Ditto
+      await ProxyService.getStrategy(Strategy.capella).collectPayment(
         branchId: branchId,
         isProformaMode: ProxyService.box.isProformaMode(),
         isTrainingMode: ProxyService.box.isTrainingMode(),

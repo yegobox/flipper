@@ -168,8 +168,13 @@ class _ResumeTicketSummaryState extends ConsumerState<ResumeTicketSummary> {
             if (widget.ticket.customerName != null &&
                 widget.ticket.customerName!.isNotEmpty)
               _buildInfoRow('Customer', widget.ticket.customerName!),
+            if (widget.ticket.customerPhone != null &&
+                widget.ticket.customerPhone!.isNotEmpty)
+              _buildInfoRow('Phone', widget.ticket.customerPhone!),
             _buildInfoRow('Created', _formatDate(widget.ticket.createdAt)),
             _buildInfoRow('Status', widget.ticket.status ?? 'N/A'),
+            if (widget.ticket.isLoan == true)
+              _buildInfoRow('Type', 'Loan'),
           ],
         ),
         const SizedBox(height: 24),

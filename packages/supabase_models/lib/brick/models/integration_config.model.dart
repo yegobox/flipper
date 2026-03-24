@@ -18,7 +18,7 @@ part 'integration_config.model.ditto_sync_adapter.g.dart';
 )
 @DittoAdapter(
   'integration_configs',
-  syncDirection: SyncDirection.bidirectional,
+  syncDirection: SyncDirection.sendOnly,
 )
 class IntegrationConfig extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)

@@ -601,16 +601,6 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
           "Called collectPayment, got updated transaction with ID: ${updatedTransaction.id}",
         );
 
-        // Explicitly update the transaction status to ensure it's marked as complete
-        await ProxyService.strategy.updateTransaction(
-          transaction: updatedTransaction,
-          status: COMPLETE,
-        );
-
-        // Wait a short time to ensure the first update completes
-        await Future.delayed(const Duration(milliseconds: 100));
-
-        // Call update again to ensure it's properly saved
         await ProxyService.strategy.updateTransaction(
           transaction: updatedTransaction,
           status: COMPLETE,

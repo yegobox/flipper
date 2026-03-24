@@ -4,29 +4,110 @@ import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/ticket_selection_provider.dart';
+import 'package:flipper_models/providers/tickets_provider.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:rxdart/rxdart.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:stacked/stacked.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_ui/dialogs/ResumeTicketDialog.dart';
 import '../models/ticket_status.dart';
 // import 'ticket_tile.dart';
 
+/// Search bar for filtering tickets by metadata (customer name, phone, etc.)
+class TicketSearchBar extends StatefulWidget {
+  final String hintText;
+  final ValueChanged<String> onChanged;
+
+  const TicketSearchBar({
+    super.key,
+    required this.hintText,
+    required this.onChanged,
+  });
+
+  @override
+  State<TicketSearchBar> createState() => _TicketSearchBarState();
+}
+
+class _TicketSearchBarState extends State<TicketSearchBar> {
+  late final TextEditingController _controller;
+  late final VoidCallback _listener;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController();
+    _listener = () => setState(() {});
+    _controller.addListener(_listener);
+  }
+
+  @override
+  void dispose() {
+    _controller.removeListener(_listener);
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: _controller,
+      onChanged: widget.onChanged,
+      decoration: InputDecoration(
+        hintText: widget.hintText,
+        hintStyle: GoogleFonts.inter(
+          fontSize: 14,
+          color: Colors.grey[600],
+        ),
+        prefixIcon: Icon(Icons.search, color: Colors.grey[600], size: 22),
+        suffixIcon: _controller.text.isNotEmpty
+            ? IconButton(
+                icon: Icon(Icons.clear, size: 20, color: Colors.grey[600]),
+                onPressed: () {
+                  _controller.clear();
+                  widget.onChanged('');
+                },
+              )
+            : null,
+        filled: true,
+        fillColor: Colors.grey[50],
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey[200]!),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Theme.of(context).primaryColor),
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      ),
+      style: GoogleFonts.inter(fontSize: 15),
+    );
+  }
+}
+
 mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   final _routerService = locator<RouterService>();
   final _dialogService = locator<DialogService>();
   List<ITransaction> _currentTickets = [];
+  String _searchQuery = '';
 
   List<ITransaction> getCurrentTickets() => _currentTickets;
 
   Future<bool> canDeleteTicket(ITransaction ticket) async {
+    if (kDebugMode || ProxyService.box.enableDebug() == true) {
+      return true;
+    }
     final totalPaid = await ProxyService.getStrategy(Strategy.capella)
         .getTotalPaidForTransaction(
           transactionId: ticket.id,
@@ -35,48 +116,95 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     return (totalPaid ?? 0.0) <= 0;
   }
 
+  bool _isDeleting = false;
+  int _deletedCount = 0;
+  int _totalCount = 0;
+
   Future<void> deleteSelectedTickets(Set<String> selectedIds) async {
     final List<String> failedDeletions = [];
     final List<String> skippedTickets = [];
+    final List<String> successfulDeletions = [];
 
-    for (final ticketId in selectedIds) {
-      try {
-        final ticket = _currentTickets.firstWhere((t) => t.id == ticketId);
-
-        if (!(await canDeleteTicket(ticket))) {
-          skippedTickets.add(
-            'Ticket #${ticket.reference ?? ticket.id.substring(0, 6).toUpperCase()}',
-          );
-          continue;
-        }
-
-        await ProxyService.strategy.deleteTransaction(transaction: ticket);
-      } catch (e) {
-        talker.error('Failed to delete ticket $ticketId: $e');
-        failedDeletions.add(ticketId);
-      }
-    }
-
-    // Refresh the UI after deletion attempts
+    // Initialize progress tracking
+    _isDeleting = true;
+    _totalCount = selectedIds.length;
+    _deletedCount = 0;
     if (mounted) setState(() {});
 
-    if (skippedTickets.isNotEmpty && mounted) {
-      showCustomSnackBarUtil(
-        context,
-        'Skipped ${skippedTickets.length} ticket(s) with partial payments',
-        backgroundColor: Colors.orange,
-      );
-    }
+    try {
+      for (final ticketId in selectedIds) {
+        try {
+          final ticket = _currentTickets.firstWhere((t) => t.id == ticketId);
 
-    // Throw error only if all deletions failed
-    if (failedDeletions.length == selectedIds.length &&
-        selectedIds.length > skippedTickets.length) {
-      throw Exception('Failed to delete all selected tickets');
-    } else if (failedDeletions.isNotEmpty) {
-      throw Exception(
-        'Failed to delete ${failedDeletions.length} out of ${selectedIds.length} tickets',
-      );
+          if (!(await canDeleteTicket(ticket))) {
+            skippedTickets.add(
+              'Ticket #${ticket.reference ?? ticket.id.substring(0, 6).toUpperCase()}',
+            );
+            continue;
+          }
+
+          // Use smart deletion that works across Capella and CloudSync
+          final success = await ticket.deleteSmart();
+          if (success) {
+            successfulDeletions.add(ticketId);
+          } else {
+            failedDeletions.add(ticketId);
+          }
+        } catch (e) {
+          talker.error('Failed to delete ticket $ticketId: $e');
+          failedDeletions.add(ticketId);
+        }
+
+        // Update progress after each deletion
+        _deletedCount++;
+        if (mounted) setState(() {});
+      }
+
+      // Refresh the UI after deletion attempts
+      if (mounted) setState(() {});
+
+      if (skippedTickets.isNotEmpty && mounted) {
+        showCustomSnackBarUtil(
+          context,
+          'Skipped ${skippedTickets.length} ticket(s) with partial payments',
+          backgroundColor: Colors.orange,
+        );
+      }
+
+      // Throw error only if all deletions failed
+      if (failedDeletions.length == selectedIds.length &&
+          selectedIds.length > skippedTickets.length) {
+        throw Exception('Failed to delete all selected tickets');
+      } else if (failedDeletions.isNotEmpty) {
+        throw Exception(
+          'Failed to delete ${failedDeletions.length} out of ${selectedIds.length} tickets',
+        );
+      }
+    } finally {
+      // Reset progress tracking
+      _isDeleting = false;
+      _totalCount = 0;
+      _deletedCount = 0;
+      if (mounted) setState(() {});
     }
+  }
+
+  /// Returns true if ticket matches the search query (case-insensitive)
+  bool _matchesSearch(ITransaction t, String query) {
+    if (query.isEmpty) return true;
+    final q = query.trim().toLowerCase();
+    final fields = [
+      t.id,
+      t.reference,
+      t.customerName,
+      t.customerPhone,
+      t.ticketName,
+      t.note,
+      t.transactionNumber,
+      t.subTotal?.toString(),
+      t.invoiceNumber?.toString(),
+    ];
+    return fields.any((f) => f != null && f.toString().toLowerCase().contains(q));
   }
 
   /// Builds the main ticket section with responsive layout
@@ -85,27 +213,39 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     return ViewModelBuilder.nonReactive(
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
-        return StreamBuilder<List<ITransaction>>(
-          stream: _getTicketsStream(),
-          builder: (context, snapshot) {
-            // Show loading indicator while data is loading
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return _buildLoadingState(context);
-            }
-
-            // Show error state if there's an error
-            if (snapshot.hasError) {
-              return _buildErrorState(snapshot.error.toString());
-            }
-
-            // Show empty state if there's no data
-            if (!snapshot.hasData || snapshot.data?.isEmpty == true) {
-              return _buildNoTickets(context);
-            }
-
-            // Show ticket list when data is available
-            _currentTickets = snapshot.data!;
-            return _buildTicketList(context, snapshot.data!, isDesktop);
+        return Consumer(
+          builder: (context, ref, _) {
+            final ticketsAsync = ref.watch(ticketsStreamProvider);
+            return Column(
+              children: [
+                if (_isDeleting)
+                  LinearProgressIndicator(
+                    backgroundColor: Colors.grey[200],
+                    valueColor: const AlwaysStoppedAnimation<Color>(
+                      Colors.blue,
+                    ),
+                    value: _totalCount > 0 ? _deletedCount / _totalCount : null,
+                  ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16.0,
+                    vertical: 8.0,
+                  ),
+                  child: TicketSearchBar(
+                    hintText: 'Search by customer name, phone, ticket name, note...',
+                    onChanged: (value) => setState(() => _searchQuery = value),
+                  ),
+                ),
+                Expanded(
+                  child: ticketsAsync.when(
+                    data: (tickets) =>
+                        _buildTicketList(context, tickets, isDesktop),
+                    loading: () => _buildLoadingState(context),
+                    error: (error, stack) => _buildErrorState(error.toString()),
+                  ),
+                ),
+              ],
+            );
           },
         );
       },
@@ -148,8 +288,20 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     List<ITransaction> tickets,
     bool isDesktop,
   ) {
-    final loanTickets = tickets.where((t) => t.isLoan == true).toList();
-    final nonLoanTickets = tickets.where((t) => t.isLoan != true).toList();
+    // Apply search filter
+    final filteredTickets = tickets
+        .where((t) => _matchesSearch(t, _searchQuery))
+        .toList();
+
+    // Show empty state if there's no data
+    if (filteredTickets.isEmpty) {
+      return _buildEmptySearchOrNoTickets(context, tickets.isEmpty);
+    }
+
+    _currentTickets = filteredTickets;
+    final loanTickets = filteredTickets.where((t) => t.isLoan == true).toList();
+    final nonLoanTickets =
+        filteredTickets.where((t) => t.isLoan != true).toList();
 
     Widget buildSection(String title, Color color, List<ITransaction> list) {
       if (list.isEmpty) return const SizedBox.shrink();
@@ -196,35 +348,71 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
     if (isDesktop) {
       // Desktop layout with scrollable columns
-      return SingleChildScrollView(
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: buildSection(
-                'Loan Tickets',
-                Colors.deepPurple,
-                loanTickets,
+      return Column(
+        children: [
+          // Progress indicator during deletion
+          if (_isDeleting)
+            LinearProgressIndicator(
+              value: _totalCount > 0 ? _deletedCount / _totalCount : null,
+              backgroundColor: Colors.grey[200],
+              valueColor: AlwaysStoppedAnimation<Color>(
+                Theme.of(context).primaryColor,
+              ),
+              minHeight: 3,
+            ),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: buildSection(
+                      'Loan Tickets',
+                      Colors.deepPurple,
+                      loanTickets,
+                    ),
+                  ),
+                  const VerticalDivider(
+                    width: 20,
+                    thickness: 1,
+                    color: Colors.grey,
+                  ),
+                  Expanded(
+                    child: buildSection(
+                      'Regular Tickets',
+                      Colors.blue,
+                      nonLoanTickets,
+                    ),
+                  ),
+                ],
               ),
             ),
-            const VerticalDivider(width: 20, thickness: 1, color: Colors.grey),
-            Expanded(
-              child: buildSection(
-                'Regular Tickets',
-                Colors.blue,
-                nonLoanTickets,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       );
     } else {
       // Mobile layout with scrollable list
-      return ListView(
-        padding: EdgeInsets.zero,
+      return Column(
         children: [
-          buildSection('Loan Tickets', Colors.deepPurple, loanTickets),
-          buildSection('Regular Tickets', Colors.blue, nonLoanTickets),
+          // Progress indicator during deletion
+          if (_isDeleting)
+            LinearProgressIndicator(
+              value: _totalCount > 0 ? _deletedCount / _totalCount : null,
+              backgroundColor: Colors.grey[200],
+              valueColor: AlwaysStoppedAnimation<Color>(
+                Theme.of(context).primaryColor,
+              ),
+              minHeight: 3,
+            ),
+          Expanded(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                buildSection('Loan Tickets', Colors.deepPurple, loanTickets),
+                buildSection('Regular Tickets', Colors.blue, nonLoanTickets),
+              ],
+            ),
+          ),
         ],
       );
     }
@@ -381,30 +569,24 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     }
     if (!confirmed) return;
 
-    if (mounted) {
-      showDialog(
-        context: context,
-        barrierDismissible: true,
-        builder: (ctx) => const AlertDialog(
-          content: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              CircularProgressIndicator(),
-              SizedBox(width: 16),
-              Text('Deleting...'),
-            ],
-          ),
-        ),
-      );
-    }
+    setState(() => _isDeleting = true);
 
     try {
-      await ProxyService.strategy.deleteTransaction(transaction: ticket);
-      showCustomSnackBarUtil(
-        context,
-        'Ticket deleted',
-        backgroundColor: Colors.red,
-      );
+      // Use smart deletion that works across Capella and CloudSync
+      final success = await ticket.deleteSmart();
+      if (success) {
+        showCustomSnackBarUtil(
+          context,
+          'Ticket deleted',
+          backgroundColor: Colors.red,
+        );
+      } else {
+        showCustomSnackBarUtil(
+          context,
+          'Failed to delete ticket',
+          backgroundColor: Colors.red,
+        );
+      }
     } catch (e, st) {
       talker.error('Delete failed: $e', st);
       showCustomSnackBarUtil(
@@ -413,7 +595,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         backgroundColor: Colors.red,
       );
     } finally {
-      if (mounted) Navigator.of(context, rootNavigator: true).maybePop();
+      if (mounted) setState(() => _isDeleting = false);
     }
   }
 
@@ -435,6 +617,34 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           ),
           Text(
             'Create a new ticket to get started',
+            style: GoogleFonts.inter(fontSize: 14, color: Colors.grey[600]),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Empty state for no search results vs no tickets at all
+  Widget _buildEmptySearchOrNoTickets(BuildContext context, bool hasNoTickets) {
+    if (hasNoTickets) {
+      return _buildNoTickets(context);
+    }
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.search_off, size: 60, color: Colors.grey[400]),
+          const SizedBox(height: 12),
+          Text(
+            'No tickets match your search',
+            style: GoogleFonts.inter(
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey,
+            ),
+          ),
+          Text(
+            'Try a different search term',
             style: GoogleFonts.inter(fontSize: 14, color: Colors.grey[600]),
           ),
         ],
@@ -469,79 +679,6 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         ],
       ),
     );
-  }
-
-  /// Real-time stream combining WAITING, PARKED, IN_PROGRESS
-  Stream<List<ITransaction>> _getTicketsStream() {
-    final waitingStream = ProxyService.strategy
-        .transactionsStream(
-          status: WAITING,
-          branchId: ProxyService.box.getBranchId(),
-          removeAdjustmentTransactions: true,
-          forceRealData: true,
-          skipOriginalTransactionCheck: false,
-        )
-        .startWith(const <ITransaction>[]);
-
-    final parkedStream = ProxyService.strategy
-        .transactionsStream(
-          status: PARKED,
-          removeAdjustmentTransactions: true,
-          forceRealData: true,
-          branchId: ProxyService.box.getBranchId(),
-          skipOriginalTransactionCheck: false,
-        )
-        .startWith(const <ITransaction>[]);
-
-    final inProgressStream = ProxyService.strategy
-        .transactionsStream(
-          status: IN_PROGRESS,
-          removeAdjustmentTransactions: true,
-          forceRealData: true,
-          branchId: ProxyService.box.getBranchId(),
-          skipOriginalTransactionCheck: false,
-        )
-        .startWith(const <ITransaction>[]);
-
-    return Rx.combineLatest3<
-          List<ITransaction>,
-          List<ITransaction>,
-          List<ITransaction>,
-          List<ITransaction>
-        >(waitingStream, parkedStream, inProgressStream, (
-          waiting,
-          parked,
-          inProgress,
-        ) {
-          // Combine all transactions
-          final allTickets = <ITransaction>[
-            ...waiting,
-            ...parked,
-            ...inProgress,
-          ];
-
-          // Sort by priority and creation date
-          allTickets.sort((a, b) {
-            final priority = <String, int>{
-              WAITING: 3,
-              PARKED: 2,
-              IN_PROGRESS: 1,
-            };
-            final aPrio = priority[a.status] ?? 0;
-            final bPrio = priority[b.status] ?? 0;
-            if (aPrio != bPrio) return bPrio.compareTo(aPrio);
-
-            final aDate = a.createdAt ?? DateTime(1970);
-            final bDate = b.createdAt ?? DateTime(1970);
-            return bDate.compareTo(aDate);
-          });
-
-          return allTickets;
-        })
-        .handleError((e, st) {
-          talker.error('Ticket stream error: $e', st);
-          throw e;
-        });
   }
 }
 
@@ -725,6 +862,27 @@ class TicketCard extends StatelessWidget {
 
               const SizedBox(height: 12),
 
+              // Customer phone for loan tickets
+              if (ticket.isLoan == true &&
+                  ticket.customerPhone != null &&
+                  ticket.customerPhone!.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                  child: Row(
+                    children: [
+                      Icon(Icons.phone, size: 14, color: Colors.grey.shade600),
+                      const SizedBox(width: 6),
+                      Text(
+                        ticket.customerPhone!,
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          color: Colors.grey.shade700,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
               // Ticket details
               Row(
                 children: [
@@ -744,25 +902,38 @@ class TicketCard extends StatelessWidget {
                               .getTotalPaidForTransaction(
                                 transactionId: ticket.id,
                                 branchId: ticket.branchId ?? '',
+                                excludePaymentMethod: 'CREDIT',
                               ),
                           builder: (context, snapshot) {
                             if (!snapshot.hasData) {
                               return const SizedBox.shrink();
                             }
-                            final totalPaid = snapshot.data!;
-                            final remainingBalance =
-                                (ticket.subTotal ?? 0.0) - totalPaid;
-                            if (remainingBalance > 0) {
-                              return Text(
-                                'Remaining: ${remainingBalance.toCurrencyFormatted()}',
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.redAccent,
-                                ),
-                              );
-                            }
-                            return const SizedBox.shrink();
+                            final cashPaid = snapshot.data!;
+                            final remaining =
+                                (ticket.subTotal ?? 0.0) - cashPaid;
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (cashPaid > 0 && remaining > 0)
+                                  Text(
+                                    'Paid: ${cashPaid.toCurrencyFormatted()}',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                      color: Colors.green.shade700,
+                                    ),
+                                  ),
+                                if (remaining > 0)
+                                  Text(
+                                    'Remaining: ${remaining.toCurrencyFormatted()}',
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.redAccent,
+                                    ),
+                                  ),
+                              ],
+                            );
                           },
                         ),
                         const SizedBox(height: 4),

@@ -16,7 +16,7 @@ part 'device.model.ditto_sync_adapter.g.dart';
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(tableName: 'devices'),
 )
-@DittoAdapter('devices', syncDirection: SyncDirection.bidirectional)
+@DittoAdapter('devices', syncDirection: SyncDirection.sendOnly)
 class Device extends OfflineFirstWithSupabaseModel {
   @Supabase(unique: true)
   @Sqlite(index: true, unique: true)

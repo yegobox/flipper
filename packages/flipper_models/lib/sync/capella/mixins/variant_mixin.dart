@@ -92,21 +92,6 @@ mixin CapellaVariantMixin implements VariantInterface {
         return PagedVariants(variants: [], totalCount: 0);
       }
 
-      /// a work around to first register to whole data instead of subset
-      /// this is because after test on new device, it can't pull data using complex query
-      /// there is open issue on ditto https://support.ditto.live/hc/en-us/requests/2648?page=1
-      ///
-      ditto.sync.registerSubscription(
-        "SELECT * FROM variants WHERE branchId = :branchId",
-        arguments: {'branchId': branchId},
-      );
-      ditto.store.registerObserver(
-        "SELECT * FROM variants WHERE branchId = :branchId",
-        arguments: {'branchId': branchId},
-      );
-
-      /// end of workaround
-      ///
       if (ProxyService.box.getUserLoggingEnabled() ?? false) {
         await logService.logException(
           'Ditto instance available',
@@ -216,135 +201,18 @@ mixin CapellaVariantMixin implements VariantInterface {
 
       talker.info('Executing Ditto query: $query with args: $arguments');
 
-      // Subscribe to ensure we have the latest data from Ditto mesh
-      if (ProxyService.box.getUserLoggingEnabled() ?? false) {
-        await logService.logException(
-          'Registering Ditto subscription',
-          type: 'business_fetch',
-          tags: {
-            'userId':
-                (ProxyService.box
-                    .getUserId()
-                    ?.toString()
-                    .hashCode
-                    .toString()) ??
-                'unknown',
-            'method': 'variants',
-            'branchId': branchId.toString(),
-          },
-          extra: {'query_metadata': 'redacted', 'args_count': arguments.length},
-        );
-      }
-      await ditto.sync.registerSubscription(query, arguments: arguments);
-
-      // Use registerObserver to wait for data
-      final completer = Completer<List<dynamic>>();
-      if (ProxyService.box.getUserLoggingEnabled() ?? false) {
-        await logService.logException(
-          'Registering Ditto observer',
-          type: 'business_fetch',
-          tags: {
-            'userId':
-                (ProxyService.box
-                    .getUserId()
-                    ?.toString()
-                    .hashCode
-                    .toString()) ??
-                'unknown',
-            'method': 'variants',
-            'branchId': branchId.toString(),
-          },
-          extra: {'query_metadata': 'redacted', 'args_count': arguments.length},
-        );
-      }
-      final observer = ditto.store.registerObserver(
-        query,
-        arguments: arguments,
-        onChange: (result) {
-          if (!completer.isCompleted) {
-            final itemCount = result.items.length;
-            // Complete the completer to avoid hanging
-            // If fetchRemote is true and we have no items, we might want to wait,
-            // but usually the first call is local data.
-            completer.complete(result.items.toList());
-
-            // Log asynchronously without waiting for completion
-            if (ProxyService.box.getUserLoggingEnabled() ?? false) {
-              logService.logException(
-                'Observer onChange triggered with $itemCount items',
-                type: 'business_fetch',
-                tags: {
-                  'userId':
-                      (ProxyService.box
-                          .getUserId()
-                          ?.toString()
-                          .hashCode
-                          .toString()) ??
-                      'unknown',
-                  'method': 'variants',
-                  'branchId': branchId.toString(),
-                  'itemCount': itemCount.toString(),
-                },
-              );
-            }
-          }
-        },
-      );
-
+      // Use execute instead of registerObserver to avoid database locks
+      // registerObserver creates continuous subscriptions that cause lock contention
       List<dynamic> items = [];
-      if (ProxyService.box.getUserLoggingEnabled() ?? false) {
-        await logService.logException(
-          'Waiting for observer data',
-          type: 'business_fetch',
-          tags: {
-            'userId':
-                (ProxyService.box
-                    .getUserId()
-                    ?.toString()
-                    .hashCode
-                    .toString()) ??
-                'unknown',
-            'method': 'variants',
-            'branchId': branchId.toString(),
-          },
-        );
-      }
-      try {
-        // Wait for data or timeout
-        items = await completer.future.timeout(
-          const Duration(seconds: 10),
-          onTimeout: () {
-            if (!completer.isCompleted) {
-              talker.warning('Timeout waiting for variants list');
-              if (ProxyService.box.getUserLoggingEnabled() ?? false) {
-                logService.logException(
-                  'Observer timeout waiting for variants',
-                  type: 'business_fetch',
-                  tags: {
-                    'userId':
-                        (ProxyService.box
-                            .getUserId()
-                            ?.toString()
-                            .hashCode
-                            .toString()) ??
-                        'unknown',
-                    'method': 'variants',
-                    'branchId': branchId.toString(),
-                  },
-                );
-              }
-              completer.complete([]);
-            }
-            return [];
-          },
-        );
-      } finally {
-        observer.cancel();
-      }
+      int? totalCount;
+
+      // Execute query directly without creating observer subscription
+      final result = await ditto.store.execute(query, arguments: arguments);
+      items = result.items.toList();
 
       if (ProxyService.box.getUserLoggingEnabled() ?? false) {
         await logService.logException(
-          'Received ${items.length} items from observer',
+          'Executed query successfully',
           type: 'business_fetch',
           tags: {
             'userId':
@@ -362,7 +230,6 @@ mixin CapellaVariantMixin implements VariantInterface {
       }
 
       // Prepare count query if pagination enabled
-      int? totalCount;
       if (page != null && itemsPerPage != null) {
         try {
           String countQuery =
@@ -414,6 +281,7 @@ mixin CapellaVariantMixin implements VariantInterface {
           talker.info(
             'Executing count query: $countQuery with args: $countArgs',
           );
+
           final countResult = await ditto.store.execute(
             countQuery,
             arguments: countArgs,
@@ -469,18 +337,24 @@ mixin CapellaVariantMixin implements VariantInterface {
       );
     } catch (e, st) {
       talker.error('Error fetching variants from Ditto: $e\n$st');
-      await logService.logException(
-        'Failed to fetch variants from Ditto',
-        stackTrace: st,
-        type: 'business_fetch',
-        tags: {
-          'userId':
-              (ProxyService.box.getUserId()?.toString().hashCode.toString()) ??
-              'unknown',
-          'method': 'variants',
-          'error': e.toString(),
-        },
-      );
+      if (ProxyService.box.getUserLoggingEnabled() ?? false) {
+        await logService.logException(
+          'Failed to fetch variants from Ditto',
+          stackTrace: st,
+          type: 'business_fetch',
+          tags: {
+            'userId':
+                (ProxyService.box
+                    .getUserId()
+                    ?.toString()
+                    .hashCode
+                    .toString()) ??
+                'unknown',
+            'method': 'variants',
+            'error': e.toString(),
+          },
+        );
+      }
       return PagedVariants(variants: [], totalCount: 0);
     }
   }

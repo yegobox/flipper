@@ -62,6 +62,30 @@ mixin DeleteOperationsMixin implements DeleteOperationsInterface {
 
     if (items.isNotEmpty) {
       await repository.delete(items.first);
+      
+      // Check if this was the last item in the transaction
+      if (transactionId != null) {
+        final remainingItems = await repository.get<TransactionItem>(
+          query: Query(where: [
+            Where('transactionId').isExactly(transactionId),
+            Where('branchId').isExactly(ProxyService.box.getBranchId()!),
+          ]),
+        );
+        
+        // If no items remain, reset cashReceived to 0
+        if (remainingItems.isEmpty) {
+          final transactions = await repository.get<ITransaction>(
+            query: Query(where: [Where('id').isExactly(transactionId)]),
+          );
+          
+          if (transactions.isNotEmpty) {
+            final transaction = transactions.first;
+            await repository.upsert<ITransaction>(
+              transaction.copyWith(cashReceived: 0.0),
+            );
+          }
+        }
+      }
     }
   }
 

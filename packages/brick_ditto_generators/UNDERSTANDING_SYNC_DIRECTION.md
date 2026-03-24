@@ -26,7 +26,7 @@
 
 ## 📋 The Three Sync Directions
 
-### 1. `SyncDirection.bidirectional` (Default)
+### 1. `SyncDirection.sendOnly` (Default)
 
 **Full two-way sync - Send AND Receive**
 

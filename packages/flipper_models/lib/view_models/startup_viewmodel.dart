@@ -109,7 +109,7 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
         _handlePaymentStatusChange,
       );
       _paymentVerificationService.startPeriodicVerification(
-        intervalMinutes: kDebugMode ? 2 : 15,
+        intervalMinutes: kDebugMode ? 2 : 240,
       );
 
       _internetConnectionService.startPeriodicConnectionCheck();
@@ -264,10 +264,11 @@ class StartupViewModel extends FlipperBaseModel with CoreMiscellaneous {
     }
 
     // Handle specific error types
-    if (response.exception is NoPaymentPlanFoundException) {
+    if (response.exception is NoPaymentPlanFound) {
       _setOnPaymentScreen();
       _routerService.navigateTo(PaymentPlanUIRoute());
-    } else if (response.exception is PaymentIncompleteException) {
+    } else if (response.exception is PaymentIncompleteException ||
+        response.exception is FailedPaymentException) {
       _setOnPaymentScreen();
       _routerService.navigateTo(FailedPaymentRoute());
     } else {

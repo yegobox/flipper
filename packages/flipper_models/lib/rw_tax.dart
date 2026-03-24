@@ -83,7 +83,8 @@ Map<String, double> calculateTaxTotals(List<Map<String, dynamic>> items) {
 
       // Optional: Add debug print to verify calculations
       print(
-          'Processing item - Tax Type: $taxType, Amount: $totalTaxableAmount, New Total: ${taxTotals[taxType]}');
+        'Processing item - Tax Type: $taxType, Amount: $totalTaxableAmount, New Total: ${taxTotals[taxType]}',
+      );
     } catch (e) {
       print('Error processing item: $item');
       print('Error details: $e');
@@ -105,23 +106,27 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
   get talkerInstance => _talker;
   RWTax() {
     _talker = Talker();
-    _dio = Dio(BaseOptions(
-      // Set default connect timeout to 5 seconds
-      connectTimeout: const Duration(seconds: 5),
-      // Set default receive timeout to 3 seconds
-      receiveTimeout: const Duration(seconds: 30),
-      // Set default send timeout to 3 seconds
-      sendTimeout: const Duration(seconds: 3),
-    ));
-
-    _dio!.interceptors.add(TalkerDioLogger(
-      talker: _talker,
-      settings: const TalkerDioLoggerSettings(
-        printRequestHeaders: false,
-        printResponseHeaders: false,
-        printResponseMessage: true,
+    _dio = Dio(
+      BaseOptions(
+        // Set default connect timeout to 5 seconds
+        connectTimeout: const Duration(seconds: 5),
+        // Set default receive timeout to 3 seconds
+        receiveTimeout: const Duration(seconds: 30),
+        // Set default send timeout to 3 seconds
+        sendTimeout: const Duration(seconds: 3),
       ),
-    ));
+    );
+
+    _dio!.interceptors.add(
+      TalkerDioLogger(
+        talker: _talker,
+        settings: const TalkerDioLoggerSettings(
+          printRequestHeaders: false,
+          printResponseHeaders: false,
+          printResponseMessage: true,
+        ),
+      ),
+    );
   }
 
   @override
@@ -133,16 +138,23 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
   }) async {
     String? token = ProxyService.box.readString(key: 'bearerToken');
     final branchId = ProxyService.box.getBranchId()!;
-    models.Ebm? ebm =
-        await ProxyService.strategy.ebm(branchId: branchId, fetchRemote: true);
+    models.Ebm? ebm = await ProxyService.strategy.ebm(
+      branchId: branchId,
+      fetchRemote: true,
+    );
     if (ebm == null) {
       throw Exception("Ebm not found for branch $branchId");
     }
     var headers = {'Authorization': token!, 'Content-Type': 'application/json'};
     var request = http.Request(
-        'POST', Uri.parse(ebm.taxServerUrl + 'initializer/selectInitInfo'));
-    request.body =
-        json.encode({"tin": tinNumber, "bhfId": bhfId, "dvcSrlNo": dvcSrlNo});
+      'POST',
+      Uri.parse(ebm.taxServerUrl + 'initializer/selectInitInfo'),
+    );
+    request.body = json.encode({
+      "tin": tinNumber,
+      "bhfId": bhfId,
+      "dvcSrlNo": dvcSrlNo,
+    });
     request.headers.addAll(headers);
 
     http.StreamedResponse streamedResponse = await request.send();
@@ -164,12 +176,14 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       // If we get here, it's a successful response
       if (streamedResponse.statusCode == 200) {
         // Create a BusinessInfoResponse object from the response
-        BusinessInfoResponse response =
-            BusinessInfoResponse.fromJson(jsonResponse);
+        BusinessInfoResponse response = BusinessInfoResponse.fromJson(
+          jsonResponse,
+        );
         return response.data.info;
       } else {
         throw Exception(
-            'Failed to load BusinessInfo: HTTP ${streamedResponse.statusCode}');
+          'Failed to load BusinessInfo: HTTP ${streamedResponse.statusCode}',
+        );
       }
     } catch (e) {
       // If JSON parsing fails or any other error occurs, rethrow with the original response
@@ -196,51 +210,64 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
   /// - Other codes for different stock movement types
   /// This update stock IO given on the input data.
   @override
-  Future<RwApiResponse> saveStockItems(
-      {required List<TransactionItem> items,
-      required String tinNumber,
-      required String bhFId,
-      String? customerName,
-      String? custTin,
-      String? regTyCd = "A",
-      //sarTyCd 11 is for sale
-      required String sarTyCd,
-      bool isStockIn = false,
-      String? custBhfId,
-      required double totalSupplyPrice,
-      required double totalvat,
-      required double totalAmount,
-      required String remark,
-      required DateTime ocrnDt,
-      num? invoiceNumber,
-      String? sarNo,
-      num? approvedQty,
-      bool updateMaster = true,
-      required String URI}) async {
+  Future<RwApiResponse> saveStockItems({
+    required List<TransactionItem> items,
+    required String tinNumber,
+    required String bhFId,
+    String? customerName,
+    String? custTin,
+    String? regTyCd = "A",
+    //sarTyCd 11 is for sale
+    required String sarTyCd,
+    bool isStockIn = false,
+    String? custBhfId,
+    required double totalSupplyPrice,
+    required double totalvat,
+    required double totalAmount,
+    required String remark,
+    required DateTime ocrnDt,
+    num? invoiceNumber,
+    String? sarNo,
+    num? approvedQty,
+    bool updateMaster = true,
+    required String URI,
+  }) async {
     if ((isAndroid || isIos) && URI.contains('localhost')) {
       return RwApiResponse(
-          resultCd: "000", resultMsg: "Skipped localhost call on mobile");
+        resultCd: "000",
+        resultMsg: "Skipped localhost call on mobile",
+      );
     }
     try {
-      final url = Uri.parse(URI)
-          .replace(path: Uri.parse(URI).path + 'stock/saveStockItems')
-          .toString();
+      final url = Uri.parse(
+        URI,
+      ).replace(path: Uri.parse(URI).path + 'stock/saveStockItems').toString();
       final mod = randomNumber().toString();
 
       /// Filter out service items as they cannot be saved in IO
       items = items.where((item) => item.itemTyCd != "3").toList();
       // TOTAL D:
-      List<Map<String, dynamic>> itemsList = await Future.wait(items
-          .asMap()
-          .entries
-          .map((entry) async => await mapItemToJson(entry.value,
-              bhfId: bhFId,
-              approvedQty: entry.value.qty == 0 ? approvedQty : entry.value.qty,
-              itemSeq: entry.key + 1))
-          .toList());
+      List<Map<String, dynamic>> itemsList = await Future.wait(
+        items
+            .asMap()
+            .entries
+            .map(
+              (entry) async => await mapItemToJson(
+                entry.value,
+                bhfId: bhFId,
+                approvedQty: entry.value.qty == 0
+                    ? approvedQty
+                    : entry.value.qty,
+                itemSeq: entry.key + 1,
+              ),
+            )
+            .toList(),
+      );
       if (itemsList.isEmpty) {
         return RwApiResponse(
-            resultCd: "000", resultMsg: "No stock items to save");
+          resultCd: "000",
+          resultMsg: "No stock items to save",
+        );
       }
 
       itemsList.forEach((item) {
@@ -249,7 +276,8 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       // Log the customer name for debugging
       talker.info('Customer name from parameter: $customerName');
       talker.info(
-          'Customer name from storage: ${ProxyService.box.customerName()}');
+        'Customer name from storage: ${ProxyService.box.customerName()}',
+      );
 
       // Always use the customer name from ProxyService.box.customerName()
       // This ensures consistency with what's entered in QuickSellingView
@@ -276,7 +304,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         "modrNm": mod,
         "sarNo": sarNo,
         "orgSarNo": invoiceNumber,
-        "itemList": itemsList
+        "itemList": itemsList,
       };
       // if custTin is invalid remove it from the json
       if (custTin != null && !custTin.isValidTin()) {
@@ -285,16 +313,15 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       talker.info(json);
       Response response = await sendPostRequest(url, json);
 
-      final data = RwApiResponse.fromJson(
-        response.data,
-      );
+      final data = RwApiResponse.fromJson(response.data);
 
       /// save stock master for  the involved variants
       /// to keep stock master in sync
       if (updateMaster) {
         for (var item in items) {
-          Variant? variant =
-              await ProxyService.strategy.getVariant(id: item.variantId!);
+          Variant? variant = await ProxyService.strategy.getVariant(
+            id: item.variantId!,
+          );
           if (variant != null) {
             await saveStockMaster(variant: variant, URI: URI);
           }
@@ -318,14 +345,17 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
   /// we ended up mixing data for stock and variant but data stay in related model
   /// we just borrow properties to simplify the accesibility
   @override
-  Future<RwApiResponse> saveStockMaster(
-      {required Variant variant,
-      required String URI,
-      num? approvedQty,
-      double? stockMasterQty}) async {
+  Future<RwApiResponse> saveStockMaster({
+    required Variant variant,
+    required String URI,
+    num? approvedQty,
+    double? stockMasterQty,
+  }) async {
     if ((isAndroid || isIos) && URI.contains('localhost')) {
       return RwApiResponse(
-          resultCd: "000", resultMsg: "Skipped localhost call on mobile");
+        resultCd: "000",
+        resultMsg: "Skipped localhost call on mobile",
+      );
     }
     try {
       final url = Uri.parse(URI)
@@ -335,12 +365,14 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       /// update the remaining stock of this item in rra
       // Prefer approvedQty when provided (assignment path). Otherwise use stock.currentStock
       if (approvedQty != null) {
-        variant.rsdQty =
-            double.parse(approvedQty.toDouble().toStringAsFixed(2));
+        variant.rsdQty = double.parse(
+          approvedQty.toDouble().toStringAsFixed(2),
+        );
       } else if (variant.stock?.currentStock != null) {
         // Truncate/round to 2 decimal places for RRA compatibility
-        variant.rsdQty =
-            double.parse(variant.stock!.currentStock!.toStringAsFixed(2));
+        variant.rsdQty = double.parse(
+          variant.stock!.currentStock!.toStringAsFixed(2),
+        );
       } else {
         variant.rsdQty = null;
       }
@@ -350,7 +382,9 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
 
       if (variant.rsdQty == null) {
         return RwApiResponse(
-            resultCd: "000", resultMsg: "Missing remaining stock quantity");
+          resultCd: "000",
+          resultMsg: "Missing remaining stock quantity",
+        );
       }
 
       if (variant.itemCd == 'null' || variant.itemCd == null) {
@@ -358,7 +392,9 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       }
       if (variant.itemCd!.isEmpty) {
         return RwApiResponse(
-            resultCd: "000", resultMsg: "Invalid data while saving stock");
+          resultCd: "000",
+          resultMsg: "Invalid data while saving stock",
+        );
       }
       if (variant.productName == TEMP_PRODUCT) {
         return RwApiResponse(resultCd: "000", resultMsg: "Invalid product");
@@ -367,11 +403,13 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       // Do not overwrite rsdQty here — it was set above, preferring approvedQty when provided.
       // Ensure qty prefers approvedQty, then falls back to the variant's current stock,
       // and finally to any existing variant.qty to avoid breaking prior behavior.
-      variant.qty = approvedQty?.toDouble() ??
+      variant.qty =
+          approvedQty?.toDouble() ??
           variant.stock?.currentStock?.toDouble() ??
           variant.qty;
-      final rsdSource =
-          approvedQty != null ? 'approvedQty' : 'stock.currentStock';
+      final rsdSource = approvedQty != null
+          ? 'approvedQty'
+          : 'stock.currentStock';
       talker.warning("RSD QTY (from $rsdSource): ${variant.toFlipperJson()}");
 
       /// the stockMasterQty is set when during refund to provide acturate stock qty
@@ -383,13 +421,13 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       if (variant.itemTyCd == '3') {
         variant.rsdQty = 0;
         return RwApiResponse(
-            resultCd: "000", resultMsg: "Invalid data while saving stock");
+          resultCd: "000",
+          resultMsg: "Invalid data while saving stock",
+        );
       }
       Response response = await sendPostRequest(url, variant.toFlipperJson());
 
-      final data = RwApiResponse.fromJson(
-        response.data,
-      );
+      final data = RwApiResponse.fromJson(response.data);
       return data;
     } catch (e, s) {
       talker.warning("Invalid Stock ${s}");
@@ -432,12 +470,15 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     }
   }
 
-  void sendEmailLogging(
-      {required dynamic requestBody,
-      required String subject,
-      required String body}) async {
+  void sendEmailLogging({
+    required dynamic requestBody,
+    required String subject,
+    required String body,
+  }) async {
     sendEmailNotification(
-        requestBody: json.encode(requestBody).toString(), response: body);
+      requestBody: json.encode(requestBody).toString(),
+      response: body,
+    );
   }
 
   void logError(dynamic error, StackTrace stackTrace) {
@@ -461,55 +502,67 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
   ///
   /// For more details, refer to RRA API documentation section '3.2.4.1 ItemSaveReq/Res'.
   @override
-  Future<RwApiResponse> saveItem(
-      {required Variant variation, required String URI}) async {
+  Future<RwApiResponse> saveItem({
+    required Variant variation,
+    required String URI,
+  }) async {
     if ((isAndroid || isIos) && URI.contains('localhost')) {
       return RwApiResponse(
-          resultCd: "000", resultMsg: "Skipped localhost call on mobile");
+        resultCd: "000",
+        resultMsg: "Skipped localhost call on mobile",
+      );
     }
-    final url = Uri.parse(URI)
-        .replace(path: Uri.parse(URI).path + 'items/saveItems')
-        .toString();
+    final url = Uri.parse(
+      URI,
+    ).replace(path: Uri.parse(URI).path + 'items/saveItems').toString();
 
     try {
       if (variation.tin == null) {
         return RwApiResponse(
-            resultCd: "001", resultMsg: "Invalid Tin Number ${variation.name}");
+          resultCd: "001",
+          resultMsg: "Invalid Tin Number ${variation.name}",
+        );
       }
       if (variation.itemTyCd == null) {
         return RwApiResponse(
-            resultCd: "001", resultMsg: "itemTyCd is null ${variation.name}");
+          resultCd: "001",
+          resultMsg: "itemTyCd is null ${variation.name}",
+        );
       }
       if (variation.itemTyCd?.isEmpty == true) {
         return RwApiResponse(
-            resultCd: "001", resultMsg: "Empty itemTyCd ${variation.name}");
+          resultCd: "001",
+          resultMsg: "Empty itemTyCd ${variation.name}",
+        );
       }
 
       /// first remove fields for imports
       final itemJson = variation.toFlipperJson();
-      itemJson.removeWhere((key, value) =>
-          [
-            "totWt",
-            "netWt",
-            "spplrNm",
-            "agntNm",
-            "invcFcurAmt",
-            "invcFcurCd",
-            "invcFcurExcrt",
-            "exptNatCd",
-            "dclNo",
-            "taskCd",
-            "dclDe",
-            "hsCd",
-            "imptItemSttsCd",
-            "purchaseId",
-            "totAmt",
-            "taxblAmt",
-            "taxAmt",
-            "dcAmt"
-          ].contains(key) ||
-          value == null ||
-          value == "");
+      itemJson.removeWhere(
+        (key, value) =>
+            [
+              "totWt",
+              "netWt",
+              "spplrNm",
+              "agntNm",
+              "invcFcurAmt",
+              "invcFcurCd",
+              "invcFcurExcrt",
+              "exptNatCd",
+              "dclNo",
+              "taskCd",
+              "dclDe",
+              "hsCd",
+              "imptItemSttsCd",
+              "purchaseId",
+              "totAmt",
+              "taxblAmt",
+              "taxAmt",
+              "dcAmt",
+            ].contains(key) ||
+            value == null ||
+            value == "",
+      );
       final response = await sendPostRequest(url, itemJson);
       if (response.statusCode == 200) {
         final data = RwApiResponse.fromJson(response.data);
@@ -536,20 +589,17 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
   }) async {
     // Use current date if lastReqDt is not provided
     lastReqDt ??= DateFormat('yyyyMMddHHmmss').format(DateTime.now());
-    models.Ebm? ebm = await ProxyService.strategy
-        .ebm(branchId: ProxyService.box.getBranchId()!);
+    models.Ebm? ebm = await ProxyService.strategy.ebm(
+      branchId: ProxyService.box.getBranchId()!,
+    );
     if (ebm == null) {
       return false;
     }
-    final url = Uri.parse(URI)
-        .replace(path: Uri.parse(URI).path + 'items/selectItems')
-        .toString();
+    final url = Uri.parse(
+      URI,
+    ).replace(path: Uri.parse(URI).path + 'items/selectItems').toString();
 
-    final data = {
-      "tin": tinNumber,
-      "bhfId": bhfId,
-      "lastReqDt": lastReqDt,
-    };
+    final data = {"tin": tinNumber, "bhfId": bhfId, "lastReqDt": lastReqDt};
 
     try {
       final response = await sendPostRequest(url, data);
@@ -579,20 +629,24 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
   }) async {
     if ((isAndroid || isIos) && URI.contains('localhost')) {
       return RwApiResponse(
-          resultCd: "000", resultMsg: "Skipped localhost call on mobile");
+        resultCd: "000",
+        resultMsg: "Skipped localhost call on mobile",
+      );
     }
     final repository = Repository();
     // Get business details
-    Business? business = await ProxyService.strategy
-        .getBusiness(businessId: ProxyService.box.getBusinessId()!);
-    String branchId = (await ProxyService.strategy
-            .activeBranch(branchId: ProxyService.box.getBranchId()!))
-        .id;
-    Ebm? ebm = await ProxyService.strategy
-        .ebm(branchId: ProxyService.box.getBranchId()!);
-    List<TransactionItem> items =
-        await ProxyService.getStrategy(Strategy.capella).transactionItems(
-            transactionId: transaction.id, branchId: branchId);
+    Business? business = await ProxyService.strategy.getBusiness(
+      businessId: ProxyService.box.getBusinessId()!,
+    );
+    String branchId = (await ProxyService.strategy.activeBranch(
+      branchId: ProxyService.box.getBranchId()!,
+    )).id;
+    Ebm? ebm = await ProxyService.strategy.ebm(
+      branchId: ProxyService.box.getBranchId()!,
+    );
+    List<TransactionItem> items = await ProxyService.getStrategy(
+      Strategy.capella,
+    ).transactionItems(transactionId: transaction.id, branchId: branchId);
 
     // Get the current date and time in the required format yyyyMMddHHmmss
     String date = timeToUser
@@ -604,8 +658,10 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     List<Future<Map<String, dynamic>>> itemsFutures = items
         .asMap()
         .entries
-        .map((entry) =>
-            mapItemToJson(entry.value, bhfId: bhfId, itemSeq: entry.key + 1))
+        .map(
+          (entry) =>
+              mapItemToJson(entry.value, bhfId: bhfId, itemSeq: entry.key + 1),
+        )
         .toList();
     List<Map<String, dynamic>> itemsList = await Future.wait(itemsFutures);
 
@@ -615,8 +671,10 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     double totalTaxable = items.fold(0.0, (sum, item) {
       double discountedPrice = item.dcRt?.toDouble() != 0
           ? item.price.toDouble() *
-              item.qty.toDouble() *
-              (1 - (item.dcRt!.toDouble() / 100)) // Fixed: Discount calculation
+                item.qty.toDouble() *
+                (1 -
+                    (item.dcRt!.toDouble() /
+                        100)) // Fixed: Discount calculation
           : item.price.toDouble() * item.qty.toDouble();
       return sum + discountedPrice; // Fixed: Add to sum
     });
@@ -641,38 +699,43 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
 
     List<odm.Counter> _counters =
         await ProxyService.getStrategy(Strategy.capella).getCounters(
-            branchId: ProxyService.box.getBranchId()!, fetchRemote: false);
-    final int highestInvcNo =
-        _counters.fold<int>(0, (prev, c) => math.max(prev, c.invcNo ?? 0));
+          branchId: ProxyService.box.getBranchId()!,
+          fetchRemote: false,
+        );
+    final int highestInvcNo = _counters.fold<int>(
+      0,
+      (prev, c) => math.max(prev, c.invcNo ?? 0),
+    );
 
     // Retrieve customer information
 
     // Build request data
     Map<String, dynamic> requestData = await buildRequestData(
-        business: business,
-        custMblNo: custMblNo,
-        customerName: customerName,
-        customer: customer,
-        highestInvcNo: highestInvcNo,
-        ebm: ebm,
-        bhFId: bhfId,
-        salesSttsCd: salesSttsCd,
-        transaction: transaction,
-        date: date,
-        originalInvoiceNumber: originalInvoiceNumber,
-        totalTaxable: totalTaxable,
-        taxTotals: taxTotals,
-        receiptCodes: receiptCodes,
-        itemsList: itemsList,
-        purchaseCode: purchaseCode,
-        timeToUse: timeToUser,
-        receiptType: receiptType);
+      business: business,
+      custMblNo: custMblNo,
+      customerName: customerName,
+      customer: customer,
+      highestInvcNo: highestInvcNo,
+      ebm: ebm,
+      bhFId: bhfId,
+      salesSttsCd: salesSttsCd,
+      transaction: transaction,
+      date: date,
+      originalInvoiceNumber: originalInvoiceNumber,
+      totalTaxable: totalTaxable,
+      taxTotals: taxTotals,
+      receiptCodes: receiptCodes,
+      itemsList: itemsList,
+      purchaseCode: purchaseCode,
+      timeToUse: timeToUser,
+      receiptType: receiptType,
+    );
 
     try {
       // Send request
-      final url = Uri.parse(URI)
-          .replace(path: Uri.parse(URI).path + 'trnsSales/saveSales')
-          .toString();
+      final url = Uri.parse(
+        URI,
+      ).replace(path: Uri.parse(URI).path + 'trnsSales/saveSales').toString();
 
       final response = await sendPostRequest(url, requestData);
 
@@ -728,11 +791,13 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
               URI: ebm.taxServerUrl,
             );
             for (var item in items) {
-              Variant? variant =
-                  await ProxyService.getStrategy(Strategy.capella)
-                      .getVariant(id: item.variantId!);
-              Stock stock = await ProxyService.strategy
-                  .getStockById(id: variant!.stockId!);
+              Variant? variant = await ProxyService.getStrategy(
+                Strategy.capella,
+              ).getVariant(id: item.variantId!);
+              Stock stock = await ProxyService.getStrategy(
+                Strategy.capella,
+              ).getStockById(id: variant?.stockId ?? "");
+              if (variant == null) continue;
 
               await ProxyService.tax.saveStockMaster(
                 variant: variant,
@@ -741,8 +806,9 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
               );
             }
           } else if (receiptType == 'NR' || receiptType == 'TR') {
-            final sar = await ProxyService.strategy
-                .getSar(branchId: ProxyService.box.getBranchId()!);
+            final sar = await ProxyService.strategy.getSar(
+              branchId: ProxyService.box.getBranchId()!,
+            );
 
             sar!.sarNo = sar.sarNo + 1;
             await repository.upsert<Sar>(sar);
@@ -771,7 +837,8 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         }
       } else {
         throw Exception(
-            "Failed to send request. Status Code: ${response.statusCode}");
+          "Failed to send request. Status Code: ${response.statusCode}",
+        );
       }
     } catch (e, s) {
       _talker?.error(e);
@@ -780,17 +847,24 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     }
   }
 
-// Helper function to map TransactionItem to JSON
-  Future<Map<String, dynamic>> mapItemToJson(TransactionItem item,
-      {required String bhfId, num? approvedQty, int? itemSeq}) async {
+  // Helper function to map TransactionItem to JSON
+  Future<Map<String, dynamic>> mapItemToJson(
+    TransactionItem item, {
+    required String bhfId,
+    num? approvedQty,
+    int? itemSeq,
+  }) async {
     final repository = Repository();
 
     List<Configurations> taxConfigs = await repository.get<Configurations>(
-        policy: OfflineFirstGetPolicy.localOnly,
-        query: Query(where: [
+      policy: OfflineFirstGetPolicy.localOnly,
+      query: Query(
+        where: [
           Where('taxType').isExactly(item.taxTyCd ?? "B"),
           Where('branchId').isExactly(ProxyService.box.getBranchId()!),
-        ]));
+        ],
+      ),
+    );
     Configurations? taxConfig;
     try {
       taxConfig = taxConfigs.first;
@@ -827,11 +901,14 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     if (item.ttCatCd == 'TT') {
       // Get TT tax configuration
       List<Configurations> ttTaxConfigs = await repository.get<Configurations>(
-          policy: OfflineFirstGetPolicy.localOnly,
-          query: Query(where: [
+        policy: OfflineFirstGetPolicy.localOnly,
+        query: Query(
+          where: [
             Where('taxType').isExactly('TT'),
             Where('branchId').isExactly(ProxyService.box.getBranchId()!),
-          ]));
+          ],
+        ),
+      );
       Configurations? ttTaxConfig;
       try {
         ttTaxConfig = ttTaxConfigs.first;
@@ -911,29 +988,32 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       name: item.name,
     ).toFlipperJson();
 
-    itemJson.removeWhere((key, value) =>
-        [
-          "active",
-          "doneWithTransaction",
-          "isRefunded",
-          "isTaxExempted",
-          "updatedAt",
-          "createdAt",
-          "remainingStock",
-          "discount",
-          "transactionId",
-          "bhfId",
-          "lastTouched",
-          "deletedAt",
-          "action",
-          "branchId"
-        ].contains(key) ||
-        value == null ||
-        value == "");
+    itemJson.removeWhere(
+      (key, value) =>
+          [
+            "active",
+            "doneWithTransaction",
+            "isRefunded",
+            "isTaxExempted",
+            "updatedAt",
+            "createdAt",
+            "remainingStock",
+            "discount",
+            "transactionId",
+            "bhfId",
+            "lastTouched",
+            "deletedAt",
+            "action",
+            "branchId",
+          ].contains(key) ||
+          value == null ||
+          value == "",
+    );
 
     if (itemJson["isrccCd"] == "" || itemJson["isrccNm"] == "") {
-      itemJson
-          .removeWhere((key, value) => key == "isrccCd" || key == "isrccNm");
+      itemJson.removeWhere(
+        (key, value) => key == "isrccCd" || key == "isrccNm",
+      );
     }
 
     // Add ttTaxAmt and ttTaxblAmt to the JSON if it's a TT item (after cleanup)
@@ -970,7 +1050,8 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         // Ensure taxType is one of the valid types
         if (!taxTotals.containsKey(taxType)) {
           print(
-              'Warning: Invalid tax type $taxType found. Using default type B');
+            'Warning: Invalid tax type $taxType found. Using default type B',
+          );
           taxType = 'B';
         }
 
@@ -1001,7 +1082,8 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
 
         // Optional: Add debug print to verify calculations
         print(
-            'Processing item - Tax Type: $taxType, Amount: $totalTaxableAmount, New Total: ${taxTotals[taxType]}');
+          'Processing item - Tax Type: $taxType, Amount: $totalTaxableAmount, New Total: ${taxTotals[taxType]}',
+        );
       } catch (e) {
         print('Error processing item: $item');
         print('Error details: $e');
@@ -1011,7 +1093,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     return taxTotals;
   }
 
-// Helper function to determine receipt type codes
+  // Helper function to determine receipt type codes
   Map<String, String> getReceiptCodes(String receiptType) {
     switch (receiptType) {
       case 'NR':
@@ -1033,7 +1115,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     }
   }
 
-// Helper function to build request data
+  // Helper function to build request data
   Future<Map<String, dynamic>> buildRequestData({
     required Business? business,
     required Ebm? ebm,
@@ -1054,16 +1136,16 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     String? custMblNo,
     required String customerName,
   }) async {
-    odm.Configurations? taxConfigTaxB =
-        await ProxyService.strategy.getByTaxType(taxtype: "B");
-    odm.Configurations? taxConfigTaxA =
-        await ProxyService.strategy.getByTaxType(taxtype: "A");
-    odm.Configurations? taxConfigTaxC =
-        await ProxyService.strategy.getByTaxType(taxtype: "C");
-    odm.Configurations? taxConfigTaxD =
-        await ProxyService.strategy.getByTaxType(taxtype: "D");
-    odm.Configurations? taxConfigTaxTT =
-        await ProxyService.strategy.getByTaxType(taxtype: "TT");
+    odm.Configurations? taxConfigTaxB = await ProxyService.strategy
+        .getByTaxType(taxtype: "B");
+    odm.Configurations? taxConfigTaxA = await ProxyService.strategy
+        .getByTaxType(taxtype: "A");
+    odm.Configurations? taxConfigTaxC = await ProxyService.strategy
+        .getByTaxType(taxtype: "C");
+    odm.Configurations? taxConfigTaxD = await ProxyService.strategy
+        .getByTaxType(taxtype: "D");
+    odm.Configurations? taxConfigTaxTT = await ProxyService.strategy
+        .getByTaxType(taxtype: "TT");
 
     /// TODO: for totalTax we are not accounting other taxes only B
     /// so need to account them in future
@@ -1076,7 +1158,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       'TEL: ${business?.phoneNumber?.replaceAll("+", "") ?? '0780000000'}',
       'Email: ${business?.email ?? 'info@yegobox.com'}',
       'TIN: ${ebm?.tinNumber ?? '999909695'}',
-      'WELCOME TO OUR SHOP'
+      'WELCOME TO OUR SHOP',
     ].join('\n');
 
     talker.error("TopMessage: $topMessage");
@@ -1113,20 +1195,26 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       "taxblAmtD": (taxTotals['D'] ?? 0.0).roundToTwoDecimalPlaces(),
       "taxblAmtTt": (taxTotals['ttTaxblAmt'] ?? 0.0).roundToTwoDecimalPlaces(),
 
-      "taxAmtA": ((taxTotals['A'] ?? 0.0) *
-              (taxConfigTaxA!.taxPercentage ?? 0) /
-              (100 + (taxConfigTaxA.taxPercentage ?? 0)))
-          .toStringAsFixed(2),
-      "taxAmtB":
-          double.parse(((taxTotals['B'] ?? 0.0) * 18 / 118).toStringAsFixed(2)),
-      "taxAmtC": double.parse(((taxTotals['C'] ?? 0.0) *
-              (taxConfigTaxC!.taxPercentage ?? 0) /
-              (100 + (taxConfigTaxC.taxPercentage ?? 0)))
-          .toStringAsFixed(2)),
-      "taxAmtD": double.parse(((taxTotals['D'] ?? 0.0) *
-              (taxConfigTaxD!.taxPercentage ?? 0) /
-              (100 + (taxConfigTaxD.taxPercentage ?? 0)))
-          .toStringAsFixed(2)),
+      "taxAmtA":
+          ((taxTotals['A'] ?? 0.0) *
+                  (taxConfigTaxA!.taxPercentage ?? 0) /
+                  (100 + (taxConfigTaxA.taxPercentage ?? 0)))
+              .toStringAsFixed(2),
+      "taxAmtB": double.parse(
+        ((taxTotals['B'] ?? 0.0) * 18 / 118).toStringAsFixed(2),
+      ),
+      "taxAmtC": double.parse(
+        ((taxTotals['C'] ?? 0.0) *
+                (taxConfigTaxC!.taxPercentage ?? 0) /
+                (100 + (taxConfigTaxC.taxPercentage ?? 0)))
+            .toStringAsFixed(2),
+      ),
+      "taxAmtD": double.parse(
+        ((taxTotals['D'] ?? 0.0) *
+                (taxConfigTaxD!.taxPercentage ?? 0) /
+                (100 + (taxConfigTaxD.taxPercentage ?? 0)))
+            .toStringAsFixed(2),
+      ),
       "ttTaxAmt": (taxTotals['ttTaxAmt'] ?? 0.0),
 
       "taxRtA": taxConfigTaxA.taxPercentage,
@@ -1179,10 +1267,11 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     }
     if (transaction.customerId != null) {
       json = addFieldIfCondition(
-          customer: customer,
-          json: json,
-          transaction: transaction,
-          purchaseCode: purchaseCode ?? ProxyService.box.purchaseCode());
+        customer: customer,
+        json: json,
+        transaction: transaction,
+        purchaseCode: purchaseCode ?? ProxyService.box.purchaseCode(),
+      );
     }
     // print(json);
     return json;
@@ -1194,18 +1283,20 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
   String custNmKey = "custNm";
   String prcOrdCd = "prcOrdCd";
 
-  Map<String, dynamic> addFieldIfCondition(
-      {required Map<String, dynamic> json,
-      required ITransaction transaction,
-      Customer? customer,
-      String? purchaseCode}) {
+  Map<String, dynamic> addFieldIfCondition({
+    required Map<String, dynamic> json,
+    required ITransaction transaction,
+    Customer? customer,
+    String? purchaseCode,
+  }) {
     if (transaction.customerId != null &&
         purchaseCode != null &&
         transaction.customerTin != null &&
         transaction.customerTin!.isNotEmpty) {
       json[custTinKey] = transaction.customerTin;
       ProxyService.box.customerTin();
-      json[custNmKey] = transaction.customerName ??
+      json[custNmKey] =
+          transaction.customerName ??
           customer?.custNm ??
           ProxyService.box.customerName() ??
           "";
@@ -1217,8 +1308,10 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
   }
 
   @override
-  Future<RwApiResponse> saveCustomer(
-      {required ICustomer customer, required String URI}) async {
+  Future<RwApiResponse> saveCustomer({
+    required ICustomer customer,
+    required String URI,
+  }) async {
     talker.info("URI::1:${URI}");
     final url = Uri.parse(URI)
         .replace(path: Uri.parse(URI).path + 'branches/saveBrancheCustomers')
@@ -1241,7 +1334,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         "modrId": customer.modrId,
         "modrNm": customer.custNm,
         "regrId": customer.regrId,
-        "regrNm": customer.custNm
+        "regrNm": customer.custNm,
       };
       final response = await sendPostRequest(url, requiredObjc);
 
@@ -1287,8 +1380,9 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     final url = Uri.parse(URI)
         .replace(path: Uri.parse(URI).path + 'trnsPurchase/savePurchases')
         .toString();
-    Ebm? ebm = await ProxyService.strategy
-        .ebm(branchId: ProxyService.box.getBranchId()!);
+    Ebm? ebm = await ProxyService.strategy.ebm(
+      branchId: ProxyService.box.getBranchId()!,
+    );
     Map<String, dynamic> data = item.toFlipperJson();
     data['tin'] = ebm?.tinNumber ?? 999909695;
     data['bhfId'] = bhfId;
@@ -1326,7 +1420,8 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         return respond;
       } else {
         throw Exception(
-            'Failed to fetch import items. Status code: ${response.statusCode}');
+          'Failed to fetch import items. Status code: ${response.statusCode}',
+        );
       }
     } catch (e, s) {
       talker.warning(s);
@@ -1335,14 +1430,16 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
   }
 
   @override
-  Future<RwApiResponse> selectImportItems(
-      {required int tin,
-      required String bhfId,
-      required String lastReqDt,
-      required String URI}) async {
+  Future<RwApiResponse> selectImportItems({
+    required int tin,
+    required String bhfId,
+    required String lastReqDt,
+    required String URI,
+  }) async {
     if (ProxyService.box.enableDebug() ?? false) {
-      final String jsonString = await rootBundle
-          .loadString('packages/flipper_models/jsons/import.json');
+      final String jsonString = await rootBundle.loadString(
+        'packages/flipper_models/jsons/import.json',
+      );
       final Map<String, dynamic> jsonMap = json.decode(jsonString);
       return RwApiResponse.fromJson(jsonMap);
     }
@@ -1351,11 +1448,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         .toString();
 
     final talker = Talker();
-    final data = {
-      'tin': tin,
-      'bhfId': bhfId,
-      'lastReqDt': lastReqDt,
-    };
+    final data = {'tin': tin, 'bhfId': bhfId, 'lastReqDt': lastReqDt};
 
     try {
       final response = await sendPostRequest(url, data);
@@ -1368,7 +1461,8 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         return respond;
       } else {
         throw Exception(
-            'Failed to fetch import items. Status code: ${response.statusCode}');
+          'Failed to fetch import items. Status code: ${response.statusCode}',
+        );
       }
     } catch (e, s) {
       talker.warning(s);
@@ -1377,28 +1471,27 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
   }
 
   @override
-  Future<RwApiResponse> selectTrnsPurchaseSales(
-      {required int tin,
-      required String bhfId,
-      required String URI,
-      required String lastReqDt}) async {
+  Future<RwApiResponse> selectTrnsPurchaseSales({
+    required int tin,
+    required String bhfId,
+    required String URI,
+    required String lastReqDt,
+  }) async {
     print("selectTrnsPurchaseSales ${ProxyService.box.enableDebug()}");
     if (ProxyService.box.enableDebug() ?? false) {
-      final String jsonString = await rootBundle
-          .loadString('packages/flipper_models/jsons/purchase.json');
+      final String jsonString = await rootBundle.loadString(
+        'packages/flipper_models/jsons/purchase.json',
+      );
       final Map<String, dynamic> jsonMap = json.decode(jsonString);
       return RwApiResponse.fromJson(jsonMap);
     }
     final url = Uri.parse(URI)
         .replace(
-            path: Uri.parse(URI).path + 'trnsPurchase/selectTrnsPurchaseSales')
+          path: Uri.parse(URI).path + 'trnsPurchase/selectTrnsPurchaseSales',
+        )
         .toString();
 
-    final data = {
-      'tin': tin,
-      'bhfId': bhfId,
-      'lastReqDt': lastReqDt,
-    };
+    final data = {'tin': tin, 'bhfId': bhfId, 'lastReqDt': lastReqDt};
     final talker = Talker();
     try {
       final response = await sendPostRequest(url, data);
@@ -1411,7 +1504,8 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         return respond;
       } else {
         throw Exception(
-            'Failed to fetch import items. Status code: ${response.statusCode}');
+          'Failed to fetch import items. Status code: ${response.statusCode}',
+        );
       }
     } catch (e, s) {
       talker.warning(s);
@@ -1420,8 +1514,10 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
   }
 
   @override
-  Future<RwApiResponse> updateImportItems(
-      {required Variant item, required String URI}) async {
+  Future<RwApiResponse> updateImportItems({
+    required Variant item,
+    required String URI,
+  }) async {
     final url = Uri.parse(URI)
         .replace(path: Uri.parse(URI).path + 'imports/updateImportItems')
         .toString();
@@ -1444,7 +1540,8 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         return respond;
       } else {
         throw Exception(
-            'Failed to fetch import items. Status code: ${response.statusCode}');
+          'Failed to fetch import items. Status code: ${response.statusCode}',
+        );
       }
     } catch (e, s) {
       talker.warning(s);
@@ -1453,53 +1550,55 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
   }
 
   @override
-  Future<bool> stockIn(
-      {required Map<String, Object?> json,
-      required String URI,
-      required String sarTyCd}) async {
+  Future<bool> stockIn({
+    required Map<String, Object?> json,
+    required String URI,
+    required String sarTyCd,
+  }) async {
     talker.warning("Processing stockIn");
-    final url = Uri.parse(URI)
-        .replace(path: Uri.parse(URI).path + 'stock/saveStockItems')
-        .toString();
+    final url = Uri.parse(
+      URI,
+    ).replace(path: Uri.parse(URI).path + 'stock/saveStockItems').toString();
     await sendPostRequest(url, json);
     return true;
   }
 
   @override
-  Future<bool> stockOut(
-      {required Map<String, Object?> json,
-      required String URI,
-      required String sarTyCd}) async {
+  Future<bool> stockOut({
+    required Map<String, Object?> json,
+    required String URI,
+    required String sarTyCd,
+  }) async {
     talker.warning("Processing stockOut");
-    final url = Uri.parse(URI)
-        .replace(path: Uri.parse(URI).path + 'stock/saveStockItems')
-        .toString();
+    final url = Uri.parse(
+      URI,
+    ).replace(path: Uri.parse(URI).path + 'stock/saveStockItems').toString();
     await sendPostRequest(url, json);
     return true;
   }
 
   @override
-  Future<List<odm.Configurations>> taxConfigs(
-      {required String branchId}) async {
+  Future<List<odm.Configurations>> taxConfigs({
+    required String branchId,
+  }) async {
     final repository = Repository();
     List<Configurations> taxConfigs = await repository.get<Configurations>(
-        policy: OfflineFirstGetPolicy.alwaysHydrate,
-        query: Query(where: [
-          Where('branchId').isExactly(branchId),
-        ]));
+      policy: OfflineFirstGetPolicy.alwaysHydrate,
+      query: Query(where: [Where('branchId').isExactly(branchId)]),
+    );
     return taxConfigs;
   }
 
   @override
   Future<List<Notice>> fetchNotices({required String URI}) async {
     talker.warning("Processing stockOut");
-    final url = Uri.parse(URI)
-        .replace(path: Uri.parse(URI).path + 'notices/selectNotices')
-        .toString();
+    final url = Uri.parse(
+      URI,
+    ).replace(path: Uri.parse(URI).path + 'notices/selectNotices').toString();
     final data = {
-      "tin": (await ProxyService.strategy
-              .ebm(branchId: ProxyService.box.getBranchId()!))
-          ?.tinNumber,
+      "tin": (await ProxyService.strategy.ebm(
+        branchId: ProxyService.box.getBranchId()!,
+      ))?.tinNumber,
       "bhfId": await ProxyService.box.bhfId(),
       "lastReqDt": "20200218191141",
     };
@@ -1515,9 +1614,9 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         }
         // The response contains a data object with noticeList
         final noticeList = jsonResponse['data']['noticeList'] as List<dynamic>;
-        String branchId = (await ProxyService.strategy
-                .branch(serverId: ProxyService.box.getBranchId()!))!
-            .id;
+        String branchId = (await ProxyService.strategy.branch(
+          serverId: ProxyService.box.getBranchId()!,
+        ))!.id;
         noticeList.map((noticeJson) {
           // Generate a UUID for each notice since it's required by the model
           final id = Uuid().v4();
@@ -1540,11 +1639,14 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
 
           // Check if notice exists with same noticeNo and branchId
           final noticeExists = await repository.get<Notice>(
-              policy: OfflineFirstGetPolicy.awaitRemote,
-              query: Query(where: [
+            policy: OfflineFirstGetPolicy.awaitRemote,
+            query: Query(
+              where: [
                 Where('noticeNo').isExactly(notice.noticeNo),
                 Where('branchId').isExactly(branchId),
-              ]));
+              ],
+            ),
+          );
 
           if (noticeExists.isEmpty) {
             await repository.upsert<Notice>(notice);
@@ -1559,7 +1661,8 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
       }
     } else {
       throw Exception(
-          'Failed to fetch import items. Status code: ${response.statusCode}');
+        'Failed to fetch import items. Status code: ${response.statusCode}',
+      );
     }
   }
 
@@ -1567,9 +1670,8 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
   Future<List<Notice>> notices({required String branchId}) {
     final repository = Repository();
     return repository.get<Notice>(
-        policy: OfflineFirstGetPolicy.alwaysHydrate,
-        query: Query(where: [
-          Where('branchId').isExactly(branchId),
-        ]));
+      policy: OfflineFirstGetPolicy.alwaysHydrate,
+      query: Query(where: [Where('branchId').isExactly(branchId)]),
+    );
   }
 }
