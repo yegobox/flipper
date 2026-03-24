@@ -237,8 +237,8 @@ mixin AuthMixin implements AuthInterface {
     required bool fetchRemote,
   }) async {
     // if (isTestEnvironment()) return true;
-    // preferFresh: skip Ditto and load from Brick/Supabase — Ditto can lag behind
-    // renewed payments so next_billing_date would still look "expired" locally.
+    // Plan reads are Ditto-first (see CoreSync / CapellaSync); [preferFresh] is
+    // ignored there but kept for API compatibility.
     final Plan? plan = await ProxyService.strategy.getPaymentPlan(
       businessId: businessId,
       fetchOnline: true,
