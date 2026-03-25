@@ -65,10 +65,10 @@ mixin PaymentHandler {
     );
     final subscribed = await ProxyService.ht.subscribe(
       businessId: ProxyService.box.getBusinessId()!,
+      phoneNumber: phone,
       amount: finalPrice,
       flipperHttpClient: ProxyService.http,
       timeInSeconds: timeInSeconds,
-      phone: phone,
     );
     // delay for 20 seconds
     await Future.delayed(const Duration(seconds: 20));
