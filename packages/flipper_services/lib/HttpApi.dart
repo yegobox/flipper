@@ -11,6 +11,8 @@ import 'package:supabase_models/brick/models/customer_payments.model.dart';
 import 'package:supabase_models/brick/models/variant.model.dart';
 
 /// Response from [HttpApiInterface.makePaymentWithReference] (`/v2/api/payNow` with `planId`).
+///
+/// [HttpApi] only returns this on HTTP 200/202 when `paymentReference` is non-empty; otherwise it throws.
 class MakePaymentWithReferenceResult {
   final String? paymentReference;
 
@@ -658,16 +660,39 @@ class HttpApi implements HttpApiInterface {
 
     final status = response.statusCode;
     if (status == 200 || status == 202) {
+      dynamic decoded;
       try {
-        final decoded = json.decode(response.body);
-        if (decoded is Map<String, dynamic>) {
-          final ref = decoded['paymentReference']?.toString();
-          return MakePaymentWithReferenceResult(paymentReference: ref);
-        }
+        decoded = json.decode(response.body);
       } catch (e, st) {
-        talker.error('makePaymentWithReference parse error', e, st);
+        talker.error(
+          'makePaymentWithReference: invalid JSON on HTTP $status (body: ${response.body})',
+          e,
+          st,
+        );
+        throw Exception(
+          'makePaymentWithReference: invalid JSON response (HTTP $status)',
+        );
       }
-      return const MakePaymentWithReferenceResult();
+      if (decoded is! Map<String, dynamic>) {
+        talker.error(
+          'makePaymentWithReference: HTTP $status but body is not a JSON object '
+          '(got ${decoded.runtimeType}). body=${response.body}',
+        );
+        throw Exception(
+          'makePaymentWithReference: unexpected response shape (HTTP $status)',
+        );
+      }
+      final ref = decoded['paymentReference']?.toString().trim();
+      if (ref == null || ref.isEmpty) {
+        talker.error(
+          'makePaymentWithReference: HTTP $status but paymentReference is null or empty. '
+          'body=${response.body}',
+        );
+        throw Exception(
+          'makePaymentWithReference: missing paymentReference (HTTP $status)',
+        );
+      }
+      return MakePaymentWithReferenceResult(paymentReference: ref);
     }
     if (status == 400) {
       throw Exception('Bad request');
