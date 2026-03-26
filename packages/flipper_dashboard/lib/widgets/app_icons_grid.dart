@@ -1,5 +1,6 @@
 import 'package:flipper_ai_feature/flipper_ai_feature.dart';
 import 'package:flipper_dashboard/features/production_output/production_output_app.dart';
+import 'package:flipper_dashboard/features/services_gigs/services_gigs_app.dart';
 import 'package:flipper_models/providers/all_providers.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
@@ -87,6 +88,12 @@ class AppIconsGrid extends ConsumerWidget {
           MaterialPageRoute(builder: (context) => const ProductionOutputApp()),
         );
         break;
+      case "ServicesGigs":
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const ServicesGigsApp()),
+        );
+        break;
       case "Orders":
         await _routerService.navigateTo(InventoryRequestMobileViewRoute());
         break;
@@ -165,11 +172,20 @@ class AppIconsGrid extends ConsumerWidget {
           'label': "Orders",
           'feature': 'Orders',
         },
+      if (!isBigScreen)
+        {
+          'icon': FluentIcons.handshake_24_regular,
+          'color': const Color(0xFF0D9488),
+          'page': "ServicesGigs",
+          'label': "Services hub",
+          'feature': 'ServicesGigs',
+        },
     ];
 
     // Filtering out apps the user does not have access to
     final filteredApps = rippleApps.where((app) {
       if (app['feature'] == 'Orders') return true;
+      if (app['feature'] == 'ServicesGigs') return true;
       final hasAccess = ref.watch(
         featureAccessProvider(
           featureName: app['feature'],
