@@ -1,4 +1,6 @@
 import 'package:flipper_dashboard/features/services_gigs/models/service_gig_request.dart';
+import 'package:flipper_dashboard/features/services_gigs/screens/gig_request_detail_screen.dart';
+import 'package:flipper_dashboard/features/services_gigs/services/service_gig_provider_repository.dart';
 import 'package:flipper_dashboard/features/services_gigs/services/service_gig_request_repository.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flutter/material.dart';
@@ -15,7 +17,9 @@ class ProviderInboxScreen extends StatefulWidget {
 
 class _ProviderInboxScreenState extends State<ProviderInboxScreen> {
   final _repo = ServiceGigRequestRepository();
+  final _providerRepo = ServiceGigProviderRepository();
   List<ServiceGigRequest> _items = [];
+  Map<String, String?> _customerNames = {};
   bool _loading = true;
   String? _actingOnId;
 
@@ -29,11 +33,37 @@ class _ProviderInboxScreenState extends State<ProviderInboxScreen> {
     setState(() => _loading = true);
     final list = await _repo.listIncomingForProvider();
     list.sort(_sortIncoming);
+    final ids = list.map((e) => e.customerUserId).toSet();
+    final names = <String, String?>{};
+    for (final id in ids) {
+      names[id] = await _providerRepo.getDisplayNameForUserId(id);
+    }
     if (!mounted) return;
     setState(() {
       _items = list;
+      _customerNames = names;
       _loading = false;
     });
+  }
+
+  String _customerLabel(ServiceGigRequest r) {
+    final n = _customerNames[r.customerUserId];
+    if (n != null && n.isNotEmpty) return n;
+    final id = r.customerUserId;
+    if (id.length > 10) return 'Customer · …${id.substring(id.length - 6)}';
+    return 'Customer';
+  }
+
+  Future<void> _openDetail(ServiceGigRequest r) async {
+    final changed = await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (context) => GigRequestDetailScreen(
+          requestId: r.id,
+          headline: 'Request from ${_customerLabel(r)}',
+        ),
+      ),
+    );
+    if (changed == true && mounted) await _load();
   }
 
   int _sortIncoming(ServiceGigRequest a, ServiceGigRequest b) {
@@ -211,11 +241,22 @@ class _ProviderInboxScreenState extends State<ProviderInboxScreen> {
                           borderRadius: BorderRadius.circular(14),
                           side: BorderSide(color: Colors.grey.shade200),
                         ),
-                        child: Padding(
+                        child: InkWell(
+                          onTap: () => _openDetail(r),
+                          borderRadius: BorderRadius.circular(14),
+                          child: Padding(
                           padding: const EdgeInsets.all(16),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              Text(
+                                _customerLabel(r),
+                                style: GoogleFonts.poppins(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 15,
+                                ),
+                              ),
+                              const SizedBox(height: 6),
                               Row(
                                 children: [
                                   Expanded(
@@ -268,6 +309,18 @@ class _ProviderInboxScreenState extends State<ProviderInboxScreen> {
                                   color: Colors.grey.shade800,
                                 ),
                               ),
+                              if (r.paymentAmountRwf != null &&
+                                  r.paymentAmountRwf! >= 100) ...[
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Customer budget: ${r.paymentAmountRwf} RWF',
+                                  style: GoogleFonts.poppins(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.grey.shade800,
+                                  ),
+                                ),
+                              ],
                               const SizedBox(height: 10),
                               Text(
                                 'Received ${df.format(r.createdAt.toLocal())}',
@@ -354,6 +407,7 @@ class _ProviderInboxScreenState extends State<ProviderInboxScreen> {
                               ],
                             ],
                           ),
+                        ),
                         ),
                       );
                     },

@@ -1,8 +1,8 @@
 import 'package:flipper_dashboard/features/services_gigs/models/service_gig_provider.dart';
+import 'package:flipper_dashboard/features/services_gigs/models/service_gig_request.dart';
+import 'package:flipper_dashboard/features/services_gigs/screens/provider_detail_screen.dart';
 import 'package:flipper_dashboard/features/services_gigs/services/service_gig_provider_repository.dart';
-import 'package:flipper_dashboard/features/services_gigs/widgets/request_service_sheet.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -23,6 +23,12 @@ class _ProviderBrowseScreenState extends State<ProviderBrowseScreen> {
 
   /// Selected service label from provider profiles (null = show all).
   String? _selectedService;
+
+  double _minRating = 0;
+  bool _verifiedOnly = false;
+  bool _availableOnly = false;
+  int? _maxPriceRwf;
+  String? _catalogCategoryId;
 
   @override
   void initState() {
@@ -90,11 +96,34 @@ class _ProviderBrowseScreenState extends State<ProviderBrowseScreen> {
     return p.services.any((s) => s.toLowerCase() == want);
   }
 
+  ServiceCategory? _catalogCategoryById(String? id) {
+    if (id == null) return null;
+    for (final c in ServiceCategory.defaultCategories) {
+      if (c.id == id) return c;
+    }
+    return null;
+  }
+
+  bool _matchesAdvancedFilters(ServiceGigProvider p) {
+    if (_minRating > 0 && p.averageRating < _minRating) return false;
+    if (_verifiedOnly && !p.isVerified) return false;
+    if (_availableOnly && !p.isAvailable) return false;
+    if (_maxPriceRwf != null &&
+        p.basePriceRwf != null &&
+        p.basePriceRwf! > _maxPriceRwf!) {
+      return false;
+    }
+    final cat = _catalogCategoryById(_catalogCategoryId);
+    if (cat != null && !cat.matchesProvider(p)) return false;
+    return true;
+  }
+
   List<ServiceGigProvider> get _filteredProviders {
     final q = _searchController.text.trim().toLowerCase();
     return _providers.where((p) {
       return _providerMatchesSearch(p, q) &&
-          _providerMatchesService(p, _selectedService);
+          _providerMatchesService(p, _selectedService) &&
+          _matchesAdvancedFilters(p);
     }).toList();
   }
 
@@ -141,26 +170,158 @@ class _ProviderBrowseScreenState extends State<ProviderBrowseScreen> {
   }
 
   Future<void> _openProvider(ServiceGigProvider p) async {
-    final sent = await showModalBottomSheet<bool>(
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute<void>(
+        builder: (ctx) => ProviderDetailScreen(provider: p),
+      ),
+    );
+  }
+
+  Future<void> _openAdvancedFilters() async {
+    var minR = _minRating;
+    var ver = _verifiedOnly;
+    var avail = _availableOnly;
+    final maxCtrl = TextEditingController(
+      text: _maxPriceRwf?.toString() ?? '',
+    );
+    var catId = _catalogCategoryId;
+
+    await showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      builder: (ctx) => RequestServiceSheet(provider: p),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (ctx, setSt) {
+            final bottom = MediaQuery.viewInsetsOf(ctx).bottom;
+            return Padding(
+              padding: EdgeInsets.only(
+                left: 20,
+                right: 20,
+                top: 16,
+                bottom: 24 + bottom,
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Text(
+                      'Advanced filters',
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 17,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      'Minimum average rating: ${minR.toStringAsFixed(1)}',
+                      style: GoogleFonts.poppins(fontSize: 13),
+                    ),
+                    Slider(
+                      value: minR,
+                      max: 5,
+                      divisions: 50,
+                      activeColor: const Color(0xFF0D9488),
+                      onChanged: (v) => setSt(() => minR = v),
+                    ),
+                    SwitchListTile(
+                      title: Text(
+                        'Verified providers only',
+                        style: GoogleFonts.poppins(fontSize: 14),
+                      ),
+                      value: ver,
+                      onChanged: (v) => setSt(() => ver = v),
+                      activeThumbColor: const Color(0xFF0D9488),
+                    ),
+                    SwitchListTile(
+                      title: Text(
+                        'Available for booking',
+                        style: GoogleFonts.poppins(fontSize: 14),
+                      ),
+                      value: avail,
+                      onChanged: (v) => setSt(() => avail = v),
+                      activeThumbColor: const Color(0xFF0D9488),
+                    ),
+                    TextField(
+                      controller: maxCtrl,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: 'Max base price (RWF), optional',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String?>(
+                      initialValue: catId,
+                      decoration: InputDecoration(
+                        labelText: 'Category',
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      items: [
+                        const DropdownMenuItem<String?>(
+                          value: null,
+                          child: Text('All categories'),
+                        ),
+                        ...ServiceCategory.defaultCategories.map(
+                          (c) => DropdownMenuItem<String?>(
+                            value: c.id,
+                            child: Text(c.name),
+                          ),
+                        ),
+                      ],
+                      onChanged: (v) => setSt(() => catId = v),
+                    ),
+                    const SizedBox(height: 20),
+                    FilledButton(
+                      onPressed: () {
+                        final raw = maxCtrl.text.replaceAll(RegExp(r'[\s,]'), '');
+                        final maxP = int.tryParse(raw);
+                        Navigator.of(ctx).pop();
+                        setState(() {
+                          _minRating = minR;
+                          _verifiedOnly = ver;
+                          _availableOnly = avail;
+                          _maxPriceRwf =
+                              maxP != null && maxP > 0 ? maxP : null;
+                          _catalogCategoryId = catId;
+                        });
+                      },
+                      style: FilledButton.styleFrom(
+                        backgroundColor: const Color(0xFF0D9488),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                      child: Text(
+                        'Apply filters',
+                        style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
     );
-    if (sent == true && mounted) {
-      showSuccessNotification(
-        context,
-        'Request sent. The provider has 30 minutes to accept. Track and pay under My requests.',
-      );
-    }
+    maxCtrl.dispose();
   }
 
   void _clearFilters() {
     setState(() {
       _searchController.clear();
       _selectedService = null;
+      _minRating = 0;
+      _verifiedOnly = false;
+      _availableOnly = false;
+      _maxPriceRwf = null;
+      _catalogCategoryId = null;
     });
   }
 
@@ -182,6 +343,13 @@ class _ProviderBrowseScreenState extends State<ProviderBrowseScreen> {
           fontSize: 18,
           fontWeight: FontWeight.w600,
         ),
+        actions: [
+          IconButton(
+            tooltip: 'Advanced filters',
+            icon: const Icon(Icons.tune),
+            onPressed: _openAdvancedFilters,
+          ),
+        ],
       ),
       body: RefreshIndicator(
         onRefresh: _load,
@@ -532,6 +700,30 @@ class _ProviderListTile extends StatelessWidget {
                         height: 1.3,
                       ),
                     ),
+                    if (p.averageRating > 0) ...[
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          Icon(Icons.star, size: 15, color: Colors.amber.shade700),
+                          const SizedBox(width: 4),
+                          Text(
+                            p.averageRating.toStringAsFixed(1),
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          if (p.isVerified) ...[
+                            const SizedBox(width: 10),
+                            Icon(
+                              Icons.verified,
+                              size: 15,
+                              color: Colors.blue.shade700,
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
                   ],
                 ),
               ),

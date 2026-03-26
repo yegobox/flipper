@@ -119,4 +119,26 @@ class ServiceGigProviderRepository {
       value: jsonEncode(profile.toJson()),
     );
   }
+
+  /// Updates [is_available] on Supabase (browse filter). Returns false if sync failed.
+  Future<bool> updateAvailability({
+    required String userId,
+    required bool isAvailable,
+  }) async {
+    if (userId.isEmpty) return false;
+    final now = DateTime.now().toUtc().toIso8601String();
+    try {
+      await Supabase.instance.client.from(_table).update({
+        'is_available': isAvailable,
+        'updated_at': now,
+      }).eq('user_id', userId);
+      final cached = _readLocal(userId);
+      if (cached != null) {
+        await _writeLocal(cached.copyWith(isAvailable: isAvailable, updatedAt: DateTime.now().toUtc()));
+      }
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
 }

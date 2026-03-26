@@ -2,6 +2,7 @@ import 'package:flipper_dashboard/features/services_gigs/models/service_gig_prov
 import 'package:flipper_dashboard/features/services_gigs/services/service_gig_request_repository.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 /// Bottom-sheet content: pick an offered service (if listed), describe the job, submit request.
@@ -17,6 +18,7 @@ class RequestServiceSheet extends StatefulWidget {
 class _RequestServiceSheetState extends State<RequestServiceSheet> {
   final _formKey = GlobalKey<FormState>();
   final _messageController = TextEditingController();
+  final _amountController = TextEditingController();
   final _repo = ServiceGigRequestRepository();
 
   String? _selectedService;
@@ -36,6 +38,7 @@ class _RequestServiceSheetState extends State<RequestServiceSheet> {
   @override
   void dispose() {
     _messageController.dispose();
+    _amountController.dispose();
     super.dispose();
   }
 
@@ -48,12 +51,21 @@ class _RequestServiceSheetState extends State<RequestServiceSheet> {
       return;
     }
 
+    final rawAmount =
+        _amountController.text.replaceAll(RegExp(r'[\s,]'), '');
+    final amount = int.tryParse(rawAmount);
+    if (amount == null || amount < 100) {
+      showWarningNotification(context, 'Enter an amount of at least 100 RWF.');
+      return;
+    }
+
     setState(() => _submitting = true);
     try {
       await _repo.createRequest(
         providerUserId: _p.userId,
         requestedService: _selectedService,
         customerMessage: _messageController.text,
+        paymentAmountRwf: amount,
       );
       if (!mounted) return;
       Navigator.of(context).pop(true);
@@ -161,6 +173,53 @@ class _RequestServiceSheetState extends State<RequestServiceSheet> {
                   }).toList(),
                 ),
               ],
+              const SizedBox(height: 18),
+              Text(
+                'Amount you will pay (RWF)',
+                style: GoogleFonts.poppins(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _amountController,
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                style: GoogleFonts.poppins(fontSize: 15),
+                decoration: InputDecoration(
+                  hintText: 'e.g. 5000',
+                  hintStyle: GoogleFonts.poppins(
+                    fontSize: 13,
+                    color: Colors.grey.shade500,
+                  ),
+                  filled: true,
+                  fillColor: Colors.grey.shade50,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.shade300),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(
+                      color: Color(0xFF0D9488),
+                      width: 2,
+                    ),
+                  ),
+                  prefixIcon: const Icon(Icons.payments_outlined),
+                ),
+                validator: (v) {
+                  final t = v?.replaceAll(RegExp(r'[\s,]'), '') ?? '';
+                  final n = int.tryParse(t);
+                  if (n == null || n < 100) {
+                    return 'Minimum 100 RWF';
+                  }
+                  return null;
+                },
+              ),
               const SizedBox(height: 18),
               Text(
                 'Describe what you need',

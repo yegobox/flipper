@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/features/services_gigs/models/service_gig_chat_message.dart';
 import 'package:flipper_dashboard/features/services_gigs/models/service_gig_request.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -15,12 +16,15 @@ class ServiceGigRequestRepository {
   ServiceGigRequestRepository();
 
   static const _table = 'service_gig_requests';
+  static const _messagesTable = 'service_gig_request_messages';
 
   /// Inserts a new request. Server sets [accept_deadline_at] to now + 30 minutes.
+  /// [paymentAmountRwf] is stored as the agreed budget and prefills MTN payment later.
   Future<ServiceGigRequest> createRequest({
     required String providerUserId,
     String? requestedService,
     required String customerMessage,
+    required int paymentAmountRwf,
   }) async {
     final customerId = ProxyService.box.getUserId();
     if (customerId == null || customerId.isEmpty) {
@@ -29,6 +33,9 @@ class ServiceGigRequestRepository {
     if (customerId == providerUserId) {
       throw ServiceGigRequestException('You cannot request a service from yourself.');
     }
+    if (paymentAmountRwf < 100) {
+      throw ServiceGigRequestException('Enter an amount of at least 100 RWF.');
+    }
 
     final payload = <String, dynamic>{
       'customer_user_id': customerId,
@@ -36,6 +43,7 @@ class ServiceGigRequestRepository {
       'customer_message': customerMessage.trim(),
       'customer_business_id': ProxyService.box.getBusinessId(),
       'customer_branch_id': ProxyService.box.getBranchId(),
+      'payment_amount_rwf': paymentAmountRwf,
     };
     if (requestedService != null && requestedService.trim().isNotEmpty) {
       payload['requested_service'] = requestedService.trim();
@@ -243,6 +251,263 @@ class ServiceGigRequestRepository {
       throw ServiceGigRequestException(
         'Could not accept the request. Check your connection and try again.',
       );
+    }
+  }
+
+  /// Single request if the signed-in user is the customer or provider.
+  Future<ServiceGigRequest?> getRequestForParticipant(String requestId) async {
+    final uid = ProxyService.box.getUserId();
+    if (uid == null || uid.isEmpty) return null;
+    try {
+      final row = await Supabase.instance.client
+          .from(_table)
+          .select()
+          .eq('id', requestId)
+          .maybeSingle();
+      if (row == null) return null;
+      final r = ServiceGigRequest.fromJson(Map<String, dynamic>.from(row));
+      if (r.customerUserId != uid && r.providerUserId != uid) return null;
+      return r;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Jobs with recorded payment: count and sum of [payment_amount_rwf] for dashboard.
+  Future<ProviderGigEarningsSummary> summarizeProviderEarnings(
+    String providerUserId,
+  ) async {
+    if (providerUserId.isEmpty) {
+      return const ProviderGigEarningsSummary(
+        fundedJobCount: 0,
+        totalPaymentRwf: 0,
+      );
+    }
+    try {
+      final response = await Supabase.instance.client
+              .from(_table)
+              .select('status,payment_amount_rwf')
+              .eq('provider_user_id', providerUserId) as List<dynamic>;
+
+      const active = {'paid', 'in_progress', 'completed'};
+      var count = 0;
+      var sum = 0;
+      for (final e in response) {
+        final map = Map<String, dynamic>.from(e as Map);
+        final st = map['status']?.toString() ?? '';
+        if (!active.contains(st)) continue;
+        final amt = map['payment_amount_rwf'];
+        final n = amt is int
+            ? amt
+            : int.tryParse(amt?.toString() ?? '') ?? 0;
+        if (n > 0) {
+          count++;
+          sum += n;
+        }
+      }
+      return ProviderGigEarningsSummary(
+        fundedJobCount: count,
+        totalPaymentRwf: sum,
+      );
+    } catch (_) {
+      return const ProviderGigEarningsSummary(
+        fundedJobCount: 0,
+        totalPaymentRwf: 0,
+      );
+    }
+  }
+
+  Future<List<ServiceGigChatMessage>> listMessages(String requestId) async {
+    final r = await getRequestForParticipant(requestId);
+    if (r == null) return [];
+    try {
+      final response = await Supabase.instance.client
+              .from(_messagesTable)
+              .select()
+              .eq('request_id', requestId)
+              .order('created_at', ascending: true) as List<dynamic>;
+
+      return response
+          .map(
+            (e) => ServiceGigChatMessage.fromJson(
+              Map<String, dynamic>.from(e as Map),
+            ),
+          )
+          .toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  Future<void> sendMessage({
+    required String requestId,
+    required String body,
+  }) async {
+    final uid = ProxyService.box.getUserId();
+    if (uid == null || uid.isEmpty) {
+      throw ServiceGigRequestException('Sign in to send a message.');
+    }
+    final trimmed = body.trim();
+    if (trimmed.isEmpty) {
+      throw ServiceGigRequestException('Message cannot be empty.');
+    }
+    final r = await getRequestForParticipant(requestId);
+    if (r == null) {
+      throw ServiceGigRequestException('Request not found.');
+    }
+    const blocked = {'declined', 'expired', 'cancelled'};
+    if (blocked.contains(r.status)) {
+      throw ServiceGigRequestException('This request is closed.');
+    }
+    try {
+      await Supabase.instance.client.from(_messagesTable).insert({
+        'request_id': requestId,
+        'sender_user_id': uid,
+        'body': trimmed,
+      });
+    } on PostgrestException catch (e) {
+      throw ServiceGigRequestException(
+        e.message.isNotEmpty ? e.message : 'Could not send message.',
+      );
+    } catch (_) {
+      throw ServiceGigRequestException('Could not send message.');
+    }
+  }
+
+  Future<ServiceGigRequest> providerStartJob(String requestId) async {
+    final providerId = ProxyService.box.getUserId();
+    if (providerId == null || providerId.isEmpty) {
+      throw ServiceGigRequestException('Sign in to update this request.');
+    }
+    final now = DateTime.now().toUtc().toIso8601String();
+    try {
+      final rows = await Supabase.instance.client
+              .from(_table)
+              .update({
+                'status': 'in_progress',
+                'provider_started_at': now,
+                'updated_at': now,
+              })
+              .eq('id', requestId)
+              .eq('provider_user_id', providerId)
+              .eq('status', 'paid')
+              .select()
+          as List<dynamic>;
+
+      if (rows.isEmpty) {
+        throw ServiceGigRequestException(
+          'Only paid requests that have not started can be moved to in progress.',
+        );
+      }
+      return ServiceGigRequest.fromJson(
+        Map<String, dynamic>.from(rows.first as Map),
+      );
+    } on ServiceGigRequestException {
+      rethrow;
+    } on PostgrestException catch (e) {
+      throw ServiceGigRequestException(
+        e.message.isNotEmpty ? e.message : 'Could not update status.',
+      );
+    } catch (_) {
+      throw ServiceGigRequestException('Could not update status.');
+    }
+  }
+
+  Future<ServiceGigRequest> providerCompleteJob(String requestId) async {
+    final providerId = ProxyService.box.getUserId();
+    if (providerId == null || providerId.isEmpty) {
+      throw ServiceGigRequestException('Sign in to update this request.');
+    }
+    final now = DateTime.now().toUtc().toIso8601String();
+    try {
+      final rows = await Supabase.instance.client
+              .from(_table)
+              .update({
+                'status': 'completed',
+                'provider_completed_at': now,
+                'updated_at': now,
+              })
+              .eq('id', requestId)
+              .eq('provider_user_id', providerId)
+              .inFilter('status', ['paid', 'in_progress'])
+              .select()
+          as List<dynamic>;
+
+      if (rows.isEmpty) {
+        throw ServiceGigRequestException(
+          'Could not mark complete. It may already be finished.',
+        );
+      }
+      return ServiceGigRequest.fromJson(
+        Map<String, dynamic>.from(rows.first as Map),
+      );
+    } on ServiceGigRequestException {
+      rethrow;
+    } on PostgrestException catch (e) {
+      throw ServiceGigRequestException(
+        e.message.isNotEmpty ? e.message : 'Could not update status.',
+      );
+    } catch (_) {
+      throw ServiceGigRequestException('Could not update status.');
+    }
+  }
+
+  Future<ServiceGigRequest> submitCustomerReview({
+    required String requestId,
+    required int rating,
+    required String comment,
+  }) async {
+    final customerId = ProxyService.box.getUserId();
+    if (customerId == null || customerId.isEmpty) {
+      throw ServiceGigRequestException('Sign in to leave a review.');
+    }
+    if (rating < 1 || rating > 5) {
+      throw ServiceGigRequestException('Pick a rating from 1 to 5.');
+    }
+    final c = comment.trim();
+    if (c.length < 4) {
+      throw ServiceGigRequestException('Please add a short comment.');
+    }
+    final before = await getRequestForParticipant(requestId);
+    if (before == null || before.customerUserId != customerId) {
+      throw ServiceGigRequestException('Request not found.');
+    }
+    if (before.status != 'completed') {
+      throw ServiceGigRequestException('Only completed jobs can be reviewed.');
+    }
+    if (before.customerRating != null) {
+      throw ServiceGigRequestException('You already left a review.');
+    }
+    final now = DateTime.now().toUtc().toIso8601String();
+    try {
+      final rows = await Supabase.instance.client
+              .from(_table)
+              .update({
+                'customer_rating': rating,
+                'customer_review': c,
+                'review_submitted_at': now,
+                'updated_at': now,
+              })
+              .eq('id', requestId)
+              .eq('customer_user_id', customerId)
+              .eq('status', 'completed')
+              .select()
+          as List<dynamic>;
+
+      if (rows.isEmpty) {
+        throw ServiceGigRequestException('Could not save review. Try again.');
+      }
+      return ServiceGigRequest.fromJson(
+        Map<String, dynamic>.from(rows.first as Map),
+      );
+    } on ServiceGigRequestException {
+      rethrow;
+    } on PostgrestException catch (e) {
+      throw ServiceGigRequestException(
+        e.message.isNotEmpty ? e.message : 'Could not save review.',
+      );
+    } catch (_) {
+      throw ServiceGigRequestException('Could not save review.');
     }
   }
 

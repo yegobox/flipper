@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/features/services_gigs/models/service_gig_provider.dart';
+import 'package:flipper_dashboard/features/services_gigs/models/service_gig_request.dart';
 import 'package:flipper_dashboard/features/services_gigs/services/service_gig_provider_repository.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
@@ -30,6 +31,7 @@ class _ProviderRegistrationScreenState extends State<ProviderRegistrationScreen>
   bool _submitting = false;
   bool _hasExistingProfile = false;
   DateTime? _preservedCreatedAt;
+  final Set<String> _categoryIds = {};
 
   @override
   void initState() {
@@ -54,6 +56,9 @@ class _ProviderRegistrationScreenState extends State<ProviderRegistrationScreen>
           _servicesController.text = profile.services.join('\n');
           _areaController.text = profile.serviceArea ?? '';
           _phoneController.text = phone;
+          _categoryIds
+            ..clear()
+            ..addAll(profile.serviceCategories);
         } else {
           _phoneController.text = phone;
         }
@@ -110,6 +115,7 @@ class _ProviderRegistrationScreenState extends State<ProviderRegistrationScreen>
       displayName: _displayNameController.text.trim(),
       bio: _bioController.text.trim(),
       services: services,
+      serviceCategories: _categoryIds.toList(),
       serviceArea: _areaController.text.trim().isEmpty
           ? null
           : _areaController.text.trim(),
@@ -248,6 +254,50 @@ class _ProviderRegistrationScreenState extends State<ProviderRegistrationScreen>
                         hint: 'Neighborhood, city, or radius',
                       ),
                       style: GoogleFonts.poppins(fontSize: 15),
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      'Categories (optional)',
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                        color: Colors.grey.shade800,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      'Helps customers filter the directory.',
+                      style: GoogleFonts.poppins(
+                        fontSize: 12,
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: ServiceCategory.defaultCategories.map((c) {
+                        final selected = _categoryIds.contains(c.id);
+                        return FilterChip(
+                          label: Text(
+                            c.name,
+                            style: GoogleFonts.poppins(fontSize: 12),
+                          ),
+                          selected: selected,
+                          onSelected: (_) {
+                            setState(() {
+                              if (selected) {
+                                _categoryIds.remove(c.id);
+                              } else {
+                                _categoryIds.add(c.id);
+                              }
+                            });
+                          },
+                          selectedColor:
+                              const Color(0xFF0D9488).withValues(alpha: 0.25),
+                          checkmarkColor: const Color(0xFF0D9488),
+                        );
+                      }).toList(),
                     ),
                     const SizedBox(height: 28),
                     FilledButton(

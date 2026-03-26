@@ -1,6 +1,8 @@
 import 'package:flipper_dashboard/features/services_gigs/models/service_gig_provider.dart';
 import 'package:flipper_dashboard/features/services_gigs/screens/customer_my_requests_screen.dart';
+import 'package:flipper_dashboard/features/services_gigs/screens/gig_activity_screen.dart';
 import 'package:flipper_dashboard/features/services_gigs/screens/provider_browse_screen.dart';
+import 'package:flipper_dashboard/features/services_gigs/screens/provider_dashboard_screen.dart';
 import 'package:flipper_dashboard/features/services_gigs/screens/provider_inbox_screen.dart';
 import 'package:flipper_dashboard/features/services_gigs/screens/provider_registration_screen.dart';
 import 'package:flipper_dashboard/features/services_gigs/services/service_gig_provider_repository.dart';
@@ -75,6 +77,24 @@ class _ServicesGigsScreenState extends State<ServicesGigsScreen> {
     );
   }
 
+  void _openActivity() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const GigActivityScreen(),
+      ),
+    );
+  }
+
+  void _openProviderDashboard() {
+    final p = _provider;
+    if (p == null) return;
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => ProviderDashboardScreen(profile: p),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -137,18 +157,39 @@ class _ServicesGigsScreenState extends State<ServicesGigsScreen> {
               padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
             ),
           ),
+          const SizedBox(height: 10),
+          OutlinedButton.icon(
+            onPressed: _openActivity,
+            icon: const Icon(Icons.notifications_active_outlined),
+            label: const Text('Notifications'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: const Color(0xFF0F766E),
+              side: const BorderSide(color: Color(0xFF0F766E)),
+              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+            ),
+          ),
           const SizedBox(height: 12),
           if (_loadingProfile)
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 12),
               child: Center(child: CircularProgressIndicator()),
             )
-          else if (_provider != null)
+          else if (_provider != null) ...[
             _RegisteredProviderCard(
               profile: _provider!,
               onEdit: _openRegistration,
-            )
-          else
+            ),
+            const SizedBox(height: 10),
+            FilledButton.icon(
+              onPressed: _openProviderDashboard,
+              icon: const Icon(Icons.dashboard_customize_outlined),
+              label: const Text('Provider dashboard'),
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF0D9488),
+                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+              ),
+            ),
+          ] else
             _BecomeProviderCallout(onRegister: _openRegistration),
           const SizedBox(height: 20),
           _SectionCard(
