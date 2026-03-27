@@ -21,26 +21,41 @@ class TransactionItemPluMetrics {
     return profitMade(item) - taxPayable(item);
   }
 
+  /// Prefer live variant stock (column is "current stock"); else historical [remainingStock].
   static double currentStockDisplay(TransactionItem item) {
-    return item.remainingStock?.toDouble() ??
-        item.stock?.currentStock?.toDouble() ??
-        0.0;
+    final fromVariant = item.stock?.currentStock;
+    if (fromVariant != null) return fromVariant.toDouble();
+    return item.remainingStock?.toDouble() ?? 0.0;
   }
 
-  /// Uses persisted [TransactionItem.taxAmt] when positive; otherwise derives VAT
-  /// from line total and [taxTyCd] (same rules as sale line creation).
-  static double taxPayable(TransactionItem item) {
-    final existing = item.taxAmt?.toDouble();
-    if (existing != null && existing > 0) return existing;
+  /// Percentage for the Tax Rate column (not the RRA [taxTyCd] letter code).
+  static double taxRatePercent(TransactionItem item) {
+    final p = item.taxPercentage?.toDouble();
+    if (p != null && p > 0) return p;
+    return 18.0;
+  }
 
-    final ty = item.taxTyCd ?? 'B';
+  /// Uses persisted [TransactionItem.taxAmt] when positive; else [totAmt]-[taxblAmt]
+  /// when both set; otherwise derives VAT from line total (same rules as sale line creation).
+  static double taxPayable(TransactionItem item) {
+    final rawTax = item.taxAmt;
+    if (rawTax != null && rawTax > 0) return rawTax.toDouble();
+
+    final tot = item.totAmt?.toDouble();
+    final taxbl = item.taxblAmt?.toDouble();
+    if (tot != null && taxbl != null && tot > taxbl + 0.0001) {
+      return double.parse((tot - taxbl).toStringAsFixed(2));
+    }
+
+    var ty = item.taxTyCd?.trim();
+    if (ty == null || ty.isEmpty) ty = 'B';
     if (ty == 'D') return 0.0;
 
     final lineGross = item.price.toDouble() * item.qty.toDouble();
     final base = lineGross - item.discount.toDouble();
     if (base <= 0) return 0.0;
 
-    final pct = item.taxPercentage?.toDouble() ?? 18.0;
+    final pct = taxRatePercent(item);
     if (ty == 'B' || ty == 'C') {
       return double.parse((base * pct / (100 + pct)).toStringAsFixed(2));
     }
@@ -253,9 +268,7 @@ abstract class DynamicDataSource<T> extends DataGridSource {
         ),
         DataGridCell<double>(
           columnName: 'TaxRate',
-          value: transactionItem.taxTyCd != null
-              ? double.tryParse(transactionItem.taxTyCd!) ?? 18.0
-              : 18.0,
+          value: TransactionItemPluMetrics.taxRatePercent(transactionItem),
         ),
         DataGridCell<double>(
           columnName: 'Qty',

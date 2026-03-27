@@ -140,6 +140,12 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
     }
   }
 
+  num? _dittoOptNum(dynamic v) {
+    if (v == null) return null;
+    if (v is num) return v;
+    return num.tryParse(v.toString());
+  }
+
   /// Convert Ditto document to TransactionItem model
   TransactionItem _convertFromDittoDocument(Map<String, dynamic> data) {
     DateTime? lastTouched;
@@ -159,8 +165,8 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
       qty: (data['qty'] as num?)?.toDouble() ?? 0.0,
       price: (data['price'] as num?)?.toDouble() ?? 0.0,
       discount: (data['discount'] as num?)?.toDouble() ?? 0.0,
-      taxAmt: (data['taxAmt'] as num?)?.toDouble() ?? 0.0,
-      remainingStock: (data['remainingStock'] as num?)?.toDouble() ?? 0.0,
+      taxAmt: _dittoOptNum(data['taxAmt']),
+      remainingStock: _dittoOptNum(data['remainingStock']),
       active: data['active'] ?? true,
       doneWithTransaction: data['doneWithTransaction'] ?? false,
       lastTouched: lastTouched,
@@ -173,9 +179,9 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
       orgnNatCd: data['orgnNatCd'],
       pkgUnitCd: data['pkgUnitCd'],
       qtyUnitCd: data['qtyUnitCd'],
-      totAmt: (data['totAmt'] as num?)?.toDouble() ?? 0.0,
+      totAmt: _dittoOptNum(data['totAmt']),
       prc: (data['prc'] as num?)?.toDouble() ?? 0.0,
-      splyAmt: (data['splyAmt'] as num?)?.toDouble() ?? 0.0,
+      splyAmt: _dittoOptNum(data['splyAmt']),
       tin: data['tin'],
       bhfId: data['bhfId'],
       dftPrc: (data['dftPrc'] as num?)?.toDouble() ?? 0.0,
@@ -184,7 +190,7 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
       isrccNm: data['isrccNm'],
       isrcRt: (data['isrcRt'] as num?)?.toInt() ?? 0,
       isrcAmt: (data['isrcAmt'] as num?)?.toInt() ?? 0,
-      taxblAmt: (data['taxblAmt'] as num?)?.toDouble() ?? 0.0,
+      taxblAmt: _dittoOptNum(data['taxblAmt']),
       dcRt: (data['dcRt'] as num?)?.toDouble() ?? 0.0,
       dcAmt: (data['dcAmt'] as num?)?.toDouble() ?? 0.0,
       isrcAplcbYn: data['isrccAplcbYn'],
@@ -200,6 +206,8 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
       ebmSynced: data['ebmSynced'],
       isRefunded: data['isRefunded'],
       ttCatCd: data['ttCatCd'],
+      taxPercentage: _dittoOptNum(data['taxPercentage']),
+      supplyPriceAtSale: _dittoOptNum(data['supplyPriceAtSale']),
       createdAt: data['createdAt'] != null
           ? DateTime.parse(data['createdAt'])
           : null,

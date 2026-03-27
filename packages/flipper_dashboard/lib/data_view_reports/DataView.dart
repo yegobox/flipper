@@ -918,16 +918,19 @@ class DataViewState extends ConsumerState<DataView>
       for (final taxType in uniqueTaxTypes) {
         try {
           final config = await ProxyService.getStrategy(Strategy.capella).getByTaxType(taxtype: taxType);
-          taxRateByType[taxType] = config?.taxPercentage ?? 0.0;
+          taxRateByType[taxType] = config?.taxPercentage ?? 18.0;
         } catch (_) {
-          taxRateByType[taxType] = 0.0;
+          taxRateByType[taxType] = 18.0;
         }
       }
 
       final preparedData = <Map<String, dynamic>>[];
       for (final item in items) {
         final taxType = item.taxTyCd ?? 'B';
-        final taxPercentage = taxRateByType[taxType] ?? 0.0;
+        final fromItem = item.taxPercentage?.toDouble();
+        final taxPercentage = (fromItem != null && fromItem > 0)
+            ? fromItem
+            : (taxRateByType[taxType] ?? 18.0);
         preparedData.add({
           'ItemCode': item.itemCd,
           'Name': (() {
@@ -1220,14 +1223,16 @@ class DataViewState extends ConsumerState<DataView>
           rowData['Barcode'] = item.bcd ?? '';
           rowData['Price'] = item.price;
 
-          // Get the correct tax rate from tax configuration based on item's tax type
-          final taxType = item.taxTyCd ?? 'B'; // Default to B if not specified
-          final taxConfig = await ProxyService.getStrategy(Strategy.capella).getByTaxType(
-            taxtype: taxType,
-          );
-          final taxPercentage =
-              taxConfig?.taxPercentage ??
-              0.0; // Default to 0 if config not found
+          final taxType = item.taxTyCd ?? 'B';
+          final fromItem = item.taxPercentage?.toDouble();
+          double taxPercentage;
+          if (fromItem != null && fromItem > 0) {
+            taxPercentage = fromItem;
+          } else {
+            final taxConfig = await ProxyService.getStrategy(Strategy.capella)
+                .getByTaxType(taxtype: taxType);
+            taxPercentage = taxConfig?.taxPercentage ?? 18.0;
+          }
 
           rowData['TaxRate'] = taxPercentage;
           rowData['Qty'] = item.qty;

@@ -129,6 +129,46 @@ Stream<List<ITransaction>> transactions(Ref ref, {bool forceRealData = true}) {
 // transactionItemList — line-items for the selected date range.
 // Kept separate because it queries a different collection (TransactionItem).
 // ---------------------------------------------------------------------------
+
+/// Attaches live [Stock] from each line's variant so "Current stock" / export match inventory.
+Future<List<TransactionItem>> _enrichTransactionItemsWithVariantStock(
+  List<TransactionItem> items,
+) async {
+  if (items.isEmpty) return items;
+  final strategy = ProxyService.getStrategy(Strategy.capella);
+  final variantIds = items.map((e) => e.variantId).whereType<String>().toSet();
+  if (variantIds.isEmpty) return items;
+
+  final stockByVariantId = <String, Stock>{};
+  await Future.wait(
+    variantIds.map((vid) async {
+      try {
+        final v = await strategy.getVariant(id: vid);
+        if (v == null) return;
+        Stock? stock = v.stock;
+        final stockId = v.stockId;
+        if (stock == null &&
+            stockId != null &&
+            stockId.toString().isNotEmpty) {
+          stock = await strategy.getStockById(id: stockId.toString());
+        }
+        if (stock != null) stockByVariantId[vid] = stock;
+      } catch (_) {}
+    }),
+  );
+  if (stockByVariantId.isEmpty) return items;
+
+  return items
+      .map((item) {
+        final vid = item.variantId;
+        if (vid == null) return item;
+        final stock = stockByVariantId[vid];
+        if (stock == null) return item;
+        return item.copyWith(stock: stock);
+      })
+      .toList();
+}
+
 @riverpod
 Stream<List<TransactionItem>> transactionItemList(Ref ref) {
   final dateRange = ref.watch(dateRangeProvider);
@@ -157,9 +197,9 @@ Stream<List<TransactionItem>> transactionItemList(Ref ref) {
         branchIdString: branchId,
         fetchRemote: true,
       )
-      .map((items) {
+      .asyncMap((items) async {
         talker.debug('Received ${items.length} transaction items');
-        return items;
+        return _enrichTransactionItemsWithVariantStock(items);
       })
       .handleError((error, stackTrace) {
         talker.error('Error loading transaction items: $error');
