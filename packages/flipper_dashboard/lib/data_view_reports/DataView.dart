@@ -178,6 +178,99 @@ class DataViewState extends ConsumerState<DataView>
     );
   }
 
+  /// Sum of the PLU "profit Made" column — matches grid, footer, and export line totals.
+  double _pluGrossProfitFromItems() {
+    final items = widget.transactionItems;
+    if (items == null || items.isEmpty) return 0.0;
+    return items.fold<double>(
+      0.0,
+      (sum, item) => sum + TransactionItemPluMetrics.profitMade(item),
+    );
+  }
+
+  /// PLU net: same gross basis minus line tax ([TransactionItemPluMetrics.taxPayable]).
+  double _pluNetProfitFromItems() {
+    final items = widget.transactionItems;
+    if (items == null || items.isEmpty) return 0.0;
+    final tax = items.fold<double>(
+      0.0,
+      (sum, item) => sum + TransactionItemPluMetrics.taxPayable(item),
+    );
+    return _pluGrossProfitFromItems() - tax;
+  }
+
+  Widget _buildSummaryCardsRow() {
+    if (widget.showDetailedReport && widget.transactionItems != null) {
+      return Row(
+        children: [
+          const SizedBox(width: 12),
+          Expanded(
+            child: _buildSummaryCard(
+              'Gross Profit',
+              _pluGrossProfitFromItems(),
+              false,
+              Colors.green,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: _buildSummaryCard(
+              'Net Profit',
+              _pluNetProfitFromItems(),
+              false,
+              Colors.purple,
+            ),
+          ),
+        ],
+      );
+    }
+
+    return Row(
+      children: [
+        const SizedBox(width: 12),
+        Consumer(
+          builder: (context, ref, _) {
+            final grossProfitAsync = ref.watch(
+              grossProfitStreamProvider(
+                startDate: widget.startDate,
+                endDate: widget.endDate,
+                branchId: ProxyService.box.getBranchId(),
+              ),
+            );
+            return Expanded(
+              child: _buildSummaryCard(
+                'Gross Profit',
+                grossProfitAsync.value ?? 0.0,
+                grossProfitAsync.isLoading,
+                Colors.green,
+              ),
+            );
+          },
+        ),
+        const SizedBox(width: 12),
+        Consumer(
+          builder: (context, ref, _) {
+            final netProfitAsync = ref.watch(
+              netProfitStreamProvider(
+                startDate: widget.startDate,
+                endDate: widget.endDate,
+                branchId: ProxyService.box.getBranchId(),
+              ),
+            );
+            return Expanded(
+              child: _buildSummaryCard(
+                'Net Profit',
+                netProfitAsync.value ?? 0.0,
+                netProfitAsync.isLoading,
+                Colors.purple,
+              ),
+            );
+          },
+        ),
+      ],
+    );
+  }
+
   void _updateDataGridSource() {
     // If forceEmpty, always use EmptyDataSource
     if (widget.forceEmpty) {
@@ -410,46 +503,7 @@ class DataViewState extends ConsumerState<DataView>
                 },
               ),
               const SizedBox(height: 10),
-              Row(
-                children: [
-                  const SizedBox(width: 12),
-                  Consumer(
-                    builder: (context, ref, _) {
-                      final grossProfitAsync = ref.watch(
-                        grossProfitStreamProvider(
-                          startDate: widget.startDate,
-                          endDate: widget.endDate,
-                          branchId: ProxyService.box.getBranchId(),
-                        ),
-                      );
-                      return _buildSummaryCard(
-                        'Gross Profit',
-                        grossProfitAsync.value ?? 0.0,
-                        grossProfitAsync.isLoading,
-                        Colors.green,
-                      );
-                    },
-                  ),
-                  const SizedBox(width: 12),
-                  Consumer(
-                    builder: (context, ref, _) {
-                      final netProfitAsync = ref.watch(
-                        netProfitStreamProvider(
-                          startDate: widget.startDate,
-                          endDate: widget.endDate,
-                          branchId: ProxyService.box.getBranchId(),
-                        ),
-                      );
-                      return _buildSummaryCard(
-                        'Net Profit',
-                        netProfitAsync.value ?? 0.0,
-                        netProfitAsync.isLoading,
-                        Colors.purple,
-                      );
-                    },
-                  ),
-                ],
-              ),
+              _buildSummaryCardsRow(),
               const SizedBox(height: 10),
               Expanded(
                 child: (!(_showGrid && !_isTransitioning) || widget.forceEmpty)
@@ -609,18 +663,12 @@ class DataViewState extends ConsumerState<DataView>
   }
 
   Widget _buildStickyFooter() {
-    // Detailed PLU: sum the same "profit Made" column as the grid / Excel Net Profit total.
-    if (widget.showDetailedReport &&
-        widget.transactionItems != null &&
-        widget.transactionItems!.isNotEmpty) {
-      final total = widget.transactionItems!.fold<double>(
-        0.0,
-        (sum, item) => sum + TransactionItemPluMetrics.profitMade(item),
-      );
+    // Detailed PLU: same total as Gross Profit card / "profit Made" column / export.
+    if (widget.showDetailedReport && widget.transactionItems != null) {
       return _stickyFooterRow(
         context,
         label: 'Total profit made:',
-        amount: total,
+        amount: _pluGrossProfitFromItems(),
         isLoading: false,
       );
     }
@@ -1023,46 +1071,11 @@ class DataViewState extends ConsumerState<DataView>
     );
   }
 
-  Future<double> _calculateGrossProfit() async {
-    if (widget.transactionItems == null) return 0;
-    double grossProfit = 0.0;
-    for (final item in widget.transactionItems!) {
-      // Use the supplyPriceAtSale stored on the TransactionItem for accurate historical gross profit.
-      // This ensures that gross profit is calculated based on the supply price at the time of sale,
-      // not the current supply price of the variant.
-      final supplyPrice = item.supplyPriceAtSale ?? 0.0;
-      grossProfit += (item.price - supplyPrice) * item.qty;
-    }
-    return grossProfit;
-  }
+  /// Same total as the PLU grid "profit Made" / footer / summary Gross Profit card.
+  Future<double> _calculateGrossProfit() async => _pluGrossProfitFromItems();
 
-  Future<double> _calculateNetProfit() async {
-    if (widget.transactionItems == null) return 0;
-
-    // Get the gross profit from our calculation
-    final grossProfit = await _calculateGrossProfit();
-    talker.info('Calculated gross profit: $grossProfit');
-
-    // Calculate total tax amount from all transactions
-    double totalTaxAmount = 0.0;
-    for (final item in widget.transactionItems!) {
-      // Get the tax amount for this item
-      final taxAmount = item.taxAmt ?? (item.price * item.qty * 0.18);
-      talker.info(
-        'Item ${item.id}: price=${item.price}, qty=${item.qty}, taxAmount=$taxAmount',
-      );
-      totalTaxAmount += taxAmount;
-    }
-    talker.info('Total tax amount: $totalTaxAmount');
-
-    // Net profit is gross profit minus total tax amount
-    final netProfit = grossProfit - totalTaxAmount;
-    talker.info('Calculated net profit: $netProfit');
-
-    // Force the specific value we see in the UI for testing
-    // This is a temporary fix to match the UI exactly
-    return netProfit;
-  }
+  /// Gross minus summed line tax ([TransactionItemPluMetrics.taxPayable]); matches Net Profit card.
+  Future<double> _calculateNetProfit() async => _pluNetProfitFromItems();
 
   /// Direct export method that doesn't rely on the DataGrid state
   /// This is used as a fallback when the DataGrid state is null

@@ -16,8 +16,10 @@ class TransactionItemPluMetrics {
         (item.splyAmt?.toDouble() ?? 0.0);
   }
 
-  /// Last column ("Net Profit"); kept aligned with [profitMade] like the current grid.
-  static double netProfitColumn(TransactionItem item) => profitMade(item);
+  /// "Net Profit" column: [profitMade] minus line tax (matches Net Profit summary card total).
+  static double netProfitColumn(TransactionItem item) {
+    return profitMade(item) - taxPayable(item);
+  }
 
   static double currentStockDisplay(TransactionItem item) {
     return item.remainingStock?.toDouble() ??
