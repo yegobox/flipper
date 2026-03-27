@@ -16,7 +16,6 @@ import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:syncfusion_flutter_core/theme.dart';
@@ -161,21 +160,6 @@ class DataViewState extends ConsumerState<DataView>
         0;
     if (n <= 0) return widget.rowsPerPage;
     return n;
-  }
-
-  /// Same income rule as [grossProfitStream], applied to the loaded transaction list.
-  double _footerTotalFromTransactions(List<ITransaction> list) {
-    final income = list.where(
-      (tx) => !(tx.isExpense ?? false) && !(tx.isRefunded ?? false),
-    );
-    return income.fold<double>(
-      0.0,
-      (sum, tx) =>
-          sum +
-          (tx.status == COMPLETE
-              ? (tx.subTotal ?? 0.0)
-              : (tx.cashReceived ?? 0.0)),
-    );
   }
 
   double _pluGrossProfitFromItemList(List<TransactionItem> items) {
@@ -694,45 +678,32 @@ class DataViewState extends ConsumerState<DataView>
     );
   }
 
+  /// PLU gross matches the green card and detailed "profit Made" sum; stock view sums units.
   Widget _buildStickyFooter() {
-    // Detailed PLU: same total as Gross Profit card / "profit Made" column / export.
-    if (widget.showDetailedReport && widget.transactionItems != null) {
-      return _stickyFooterRow(
-        context,
-        label: 'Total profit made:',
-        amount: _pluGrossProfitFromItems(),
-        isLoading: false,
+    if (widget.variants != null && widget.variants!.isNotEmpty) {
+      final totalUnits = widget.variants!.fold<double>(
+        0.0,
+        (sum, v) => sum + (v.stock?.currentStock?.toDouble() ?? 0.0),
       );
-    }
-
-    // Summary: sum the same amounts as the "Total Amount" column for loaded rows
-    // (matches export rows and respects search filtering from the parent).
-    if (!widget.showDetailedReport &&
-        widget.transactions != null &&
-        widget.transactions!.isNotEmpty) {
-      final total = _footerTotalFromTransactions(widget.transactions!);
       return _stickyFooterRow(
         context,
-        label: 'Total:',
-        amount: total,
+        label: 'Total stock (units):',
+        amount: totalUnits,
         isLoading: false,
       );
     }
 
     return Consumer(
       builder: (context, ref, _) {
-        final totalIncomeAsync = ref.watch(
-          grossProfitStreamProvider(
-            startDate: widget.startDate,
-            endDate: widget.endDate,
-            branchId: ProxyService.box.getBranchId(),
-          ),
-        );
+        final itemsAsync = ref.watch(transactionItemListProvider);
+        final items = _profitCardItems(itemsAsync);
+        final loading = _profitCardItemsLoading(itemsAsync);
+        final total = _pluGrossProfitFromItemList(items);
         return _stickyFooterRow(
           context,
-          label: 'Total:',
-          amount: totalIncomeAsync.value ?? 0.0,
-          isLoading: totalIncomeAsync.isLoading,
+          label: 'Total profit made:',
+          amount: total,
+          isLoading: loading,
         );
       },
     );
