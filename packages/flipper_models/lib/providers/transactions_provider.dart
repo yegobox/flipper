@@ -6,6 +6,7 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:rxdart/rxdart.dart';
 
 part 'transactions_provider.g.dart';
 
@@ -25,7 +26,7 @@ final dashboardTransactionsProvider = StreamProvider<List<ITransaction>>((ref) {
 
   return ProxyService.strategy.transactionsStream(
     status: COMPLETE,
-    includeParked: true,
+    includeParked: false,
     branchId: branchId,
     skipOriginalTransactionCheck: true,
     startDate: startDate,
@@ -55,10 +56,10 @@ Stream<List<ITransaction>> coreTransactionsStream(
     startDate: startDate,
     endDate: endDate,
     branchId: branchId,
-    // Fetch everything (income + expenses) so derived providers can split freely.
+    // Income + expenses in range; COMPLETE only (no parked / in-progress).
     skipOriginalTransactionCheck: true,
     removeAdjustmentTransactions: true,
-    includeParked: true,
+    includeParked: false,
     // isCashOut intentionally omitted → returns both income and expense.
     forceRealData: forceRealData,
   );
@@ -66,7 +67,7 @@ Stream<List<ITransaction>> coreTransactionsStream(
 
 // ---------------------------------------------------------------------------
 // transactionList — visible rows in the Transaction Reports grid.
-// Filters the core stream to only confirmed sales.
+// Non-expense, COMPLETE only (core stream is already COMPLETE-only).
 // ---------------------------------------------------------------------------
 @riverpod
 Stream<List<ITransaction>> transactionList(
@@ -91,13 +92,9 @@ Stream<List<ITransaction>> transactionList(
     branchId: branchId,
     forceRealData: forceRealData,
   ).map(
-    (all) => all.where((tx) {
-      if (tx.isExpense == true) return false; // exclude cash-outs
-      if (tx.status == COMPLETE) return true;
-      if (tx.status == PARKED && (tx.cashReceived ?? 0) > 0) return true;
-      if (tx.status == WAITING_MOMO_COMPLETE) return true;
-      return false;
-    }).toList(),
+    (all) => all
+        .where((tx) => tx.isExpense != true && tx.status == COMPLETE)
+        .toList(),
   );
 }
 
@@ -126,8 +123,8 @@ Stream<List<ITransaction>> transactions(Ref ref, {bool forceRealData = true}) {
 }
 
 // ---------------------------------------------------------------------------
-// transactionItemList — line-items for the selected date range.
-// Kept separate because it queries a different collection (TransactionItem).
+// transactionItemList — line-items for COMPLETE non-expense sales in range.
+// Joins items with [transactionList] so PLU rows match summary / export.
 // ---------------------------------------------------------------------------
 @riverpod
 Stream<List<TransactionItem>> transactionItemList(Ref ref) {
@@ -135,6 +132,7 @@ Stream<List<TransactionItem>> transactionItemList(Ref ref) {
   final startDate = dateRange.startDate;
   final endDate = dateRange.endDate;
   final branchId = ProxyService.box.branchIdString();
+  final forceRealData = !(ProxyService.box.enableDebug() ?? false);
 
   talker.debug('transactionItemList called');
 
@@ -147,9 +145,7 @@ Stream<List<TransactionItem>> transactionItemList(Ref ref) {
     return Stream.value([]);
   }
 
-  // Removed ref.keepAlive() to allow proper disposal and prevent duplicate queries
-
-  return ProxyService.getStrategy(Strategy.capella)
+  final itemStream = ProxyService.getStrategy(Strategy.capella)
       .transactionItemsStreams(
         startDate: startDate,
         endDate: endDate,
@@ -157,14 +153,44 @@ Stream<List<TransactionItem>> transactionItemList(Ref ref) {
         branchIdString: branchId,
         fetchRemote: true,
       )
-      .map((items) {
-        talker.debug('Received ${items.length} transaction items');
-        return items;
-      })
-      .handleError((error, stackTrace) {
-        talker.error('Error loading transaction items: $error');
-        throw error;
-      });
+      .startWith(const <TransactionItem>[]);
+
+  final completedSalesStream = coreTransactionsStream(
+    ref,
+    startDate: startDate,
+    endDate: endDate,
+    branchId: branchId,
+    forceRealData: forceRealData,
+  )
+      .map(
+        (all) => all
+            .where((tx) => tx.isExpense != true && tx.status == COMPLETE)
+            .toList(),
+      )
+      .startWith(const <ITransaction>[]);
+
+  return Rx.combineLatest2<List<TransactionItem>, List<ITransaction>,
+      List<TransactionItem>>(
+    itemStream,
+    completedSalesStream,
+    (items, txs) {
+      final allowed =
+          txs.map((t) => t.id.toString()).toSet();
+      final filtered = items
+          .where((i) {
+            final tid = i.transactionId?.toString();
+            return tid != null && allowed.contains(tid);
+          })
+          .toList();
+      talker.debug(
+        'transactionItemList: ${items.length} raw → ${filtered.length} completed-sale lines',
+      );
+      return filtered;
+    },
+  ).handleError((error, stackTrace) {
+    talker.error('Error loading transaction items: $error');
+    throw error;
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -222,11 +248,7 @@ Stream<double> grossProfitStream(
     );
     return income.fold<double>(
       0.0,
-      (sum, tx) =>
-          sum +
-          (tx.status == COMPLETE
-              ? (tx.subTotal ?? 0.0)
-              : (tx.cashReceived ?? 0.0)),
+      (sum, tx) => sum + (tx.subTotal ?? 0.0),
     );
   });
 }
@@ -265,11 +287,7 @@ Stream<double> netProfitStream(
 
     final totalIncome = income.fold<double>(
       0.0,
-      (sum, tx) =>
-          sum +
-          (tx.status == COMPLETE
-              ? (tx.subTotal ?? 0.0)
-              : (tx.cashReceived ?? 0.0)),
+      (sum, tx) => sum + (tx.subTotal ?? 0.0),
     );
 
     final totalExpenses = expenses.fold<double>(
@@ -327,11 +345,7 @@ Stream<double> totalIncomeStream(
     final income = all.where((tx) => !(tx.isExpense ?? false));
     return income.fold<double>(
       0.0,
-      (sum, tx) =>
-          sum +
-          (tx.status == COMPLETE
-              ? (tx.subTotal ?? 0.0)
-              : (tx.cashReceived ?? 0.0)),
+      (sum, tx) => sum + (tx.subTotal ?? 0.0),
     );
   });
 }

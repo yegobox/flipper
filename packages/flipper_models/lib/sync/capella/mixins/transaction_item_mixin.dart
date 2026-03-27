@@ -146,6 +146,20 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
     return num.tryParse(v.toString());
   }
 
+  String? _dittoOptString(dynamic v) {
+    if (v == null) return null;
+    final s = v.toString().trim();
+    return s.isEmpty ? null : s;
+  }
+
+  String? _dittoFirstString(Map<String, dynamic> data, List<String> keys) {
+    for (final k in keys) {
+      final s = _dittoOptString(data[k]);
+      if (s != null) return s;
+    }
+    return null;
+  }
+
   /// Convert Ditto document to TransactionItem model
   TransactionItem _convertFromDittoDocument(Map<String, dynamic> data) {
     DateTime? lastTouched;
@@ -172,7 +186,13 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
       lastTouched: lastTouched,
       branchId: data['branchId'],
       taxTyCd: data['taxTyCd'],
-      bcd: data['bcd'],
+      bcd: _dittoFirstString(data, [
+        'bcd',
+        'barcode',
+        'Barcode',
+        'barCode',
+      ]),
+      sku: _dittoOptString(data['sku']),
       itemClsCd: data['itemClsCd'],
       itemTyCd: data['itemTyCd'],
       itemStdNm: data['itemStdNm'],

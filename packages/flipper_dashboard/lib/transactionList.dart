@@ -138,6 +138,11 @@ class TransactionListState extends ConsumerState<TransactionList>
     //   }
     // });
 
+    final forceRealData = !(ProxyService.box.enableDebug() ?? false);
+    final transactionListAsync = ref.watch(
+      transactionListProvider(forceRealData: forceRealData),
+    );
+
     // Use a key to force rebuild when the toggle changes
     final AsyncValue<List<dynamic>> dataProvider;
 
@@ -146,12 +151,7 @@ class TransactionListState extends ConsumerState<TransactionList>
       // For detailed view, use transactionItemListProvider
       dataProvider = ref.watch(transactionItemListProvider);
     } else {
-      // For summary view, use transactionListProvider with pagination
-      dataProvider = ref.watch(
-        transactionListProvider(
-          forceRealData: !(ProxyService.box.enableDebug() ?? false),
-        ),
-      );
+      dataProvider = transactionListAsync;
     }
 
     // Conditionally cast the data based on the `showDetailed` flag
@@ -175,6 +175,7 @@ class TransactionListState extends ConsumerState<TransactionList>
             transactions = allTransactions;
           }
         } else {
+          // [transactionItemListProvider] already keeps lines for COMPLETE non-expense sales only.
           transactionItems = dataProvider.value!.cast<TransactionItem>();
         }
       } catch (e) {

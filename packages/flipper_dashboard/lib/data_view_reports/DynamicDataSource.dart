@@ -27,6 +27,17 @@ class TransactionItemPluMetrics {
     return item.remainingStock?.toDouble() ?? 0.0;
   }
 
+  /// Barcode column: RRA [bcd] when set; else [sku] (often populated when [bcd] is not).
+  static String barcodeForReport(TransactionItem item) {
+    String? nonEmpty(String? s) {
+      if (s == null) return null;
+      final t = s.trim();
+      return t.isEmpty ? null : t;
+    }
+
+    return nonEmpty(item.bcd) ?? nonEmpty(item.sku) ?? '';
+  }
+
   /// Percentage for the Tax Rate column (not the RRA [taxTyCd] letter code).
   static double taxRatePercent(TransactionItem item) {
     final p = item.taxPercentage?.toDouble();
@@ -274,7 +285,7 @@ abstract class DynamicDataSource<T> extends DataGridSource {
         ),
         DataGridCell<String>(
           columnName: 'Barcode',
-          value: transactionItem.bcd ?? '',
+          value: TransactionItemPluMetrics.barcodeForReport(transactionItem),
         ),
         DataGridCell<double>(
           columnName: 'Price',
