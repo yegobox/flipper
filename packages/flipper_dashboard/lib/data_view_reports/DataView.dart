@@ -178,23 +178,33 @@ class DataViewState extends ConsumerState<DataView>
     );
   }
 
-  /// Sum of the PLU "profit Made" column — matches grid, footer, and export line totals.
-  double _pluGrossProfitFromItems() {
-    final items = widget.transactionItems;
-    if (items == null || items.isEmpty) return 0.0;
+  double _pluGrossProfitFromItemList(List<TransactionItem> items) {
+    if (items.isEmpty) return 0.0;
     return items.fold<double>(
       0.0,
       (sum, item) => sum + TransactionItemPluMetrics.profitMade(item),
     );
   }
 
-  double _pluTotalLineTax() {
-    final items = widget.transactionItems;
-    if (items == null || items.isEmpty) return 0.0;
+  double _pluTotalLineTaxFromList(List<TransactionItem> items) {
+    if (items.isEmpty) return 0.0;
     return items.fold<double>(
       0.0,
       (sum, item) => sum + TransactionItemPluMetrics.taxPayable(item),
     );
+  }
+
+  /// Sum of PLU "profit Made" from parent grid items only (footer / export when detailed).
+  double _pluGrossProfitFromItems() {
+    final items = widget.transactionItems;
+    if (items == null || items.isEmpty) return 0.0;
+    return _pluGrossProfitFromItemList(items);
+  }
+
+  double _pluTotalLineTax() {
+    final items = widget.transactionItems;
+    if (items == null || items.isEmpty) return 0.0;
+    return _pluTotalLineTaxFromList(items);
   }
 
   double _sumExpenseSubtotals(List<ITransaction> expenseTransactions) {
@@ -204,116 +214,90 @@ class DataViewState extends ConsumerState<DataView>
     );
   }
 
-  /// PLU net after line tax and period expenses ([expensesStream] / Capella expense txs).
-  double _pluNetAfterTaxAndExpenses(double expenseTotal) {
-    return _pluGrossProfitFromItems() - _pluTotalLineTax() - expenseTotal;
+  /// Line items for cards: grid payload when present, else full range from [transactionItemListProvider].
+  List<TransactionItem> _profitCardItems(
+    AsyncValue<List<TransactionItem>> itemsAsync,
+  ) {
+    return widget.transactionItems ?? itemsAsync.value ?? [];
   }
 
-  Widget _buildSummaryCardsRow() {
-    if (widget.showDetailedReport && widget.transactionItems != null) {
-      return Row(
-        children: [
-          const SizedBox(width: 12),
-          Expanded(
-            child: _buildSummaryCard(
-              'Gross Profit',
-              _pluGrossProfitFromItems(),
-              false,
-              Colors.green,
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Consumer(
-              builder: (context, ref, _) {
-                final bid = ProxyService.box.getBranchId();
-                final gross = _pluGrossProfitFromItems();
-                final tax = _pluTotalLineTax();
-                if (bid == null) {
-                  return _buildSummaryCard(
-                    'Net Profit',
-                    gross - tax,
-                    false,
-                    Colors.purple,
-                  );
-                }
-                final expAsync = ref.watch(
-                  expensesStreamProvider(
-                    startDate: widget.startDate,
-                    endDate: widget.endDate,
-                    branchId: bid,
-                  ),
-                );
-                return expAsync.when(
-                  data: (expenseTxs) => _buildSummaryCard(
-                    'Net Profit',
-                    _pluNetAfterTaxAndExpenses(
-                      _sumExpenseSubtotals(expenseTxs),
-                    ),
-                    false,
-                    Colors.purple,
-                  ),
-                  loading: () => _buildSummaryCard(
-                    'Net Profit',
-                    gross - tax,
-                    true,
-                    Colors.purple,
-                  ),
-                  error: (_, __) => _buildSummaryCard(
-                    'Net Profit',
-                    gross - tax,
-                    false,
-                    Colors.purple,
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-      );
-    }
+  bool _profitCardItemsLoading(AsyncValue<List<TransactionItem>> itemsAsync) {
+    return widget.transactionItems == null && itemsAsync.isLoading;
+  }
 
+  /// Summary + detailed use the same PLU totals as the detailed grid (full-period line items).
+  Widget _buildSummaryCardsRow() {
     return Row(
       children: [
         const SizedBox(width: 12),
-        Consumer(
-          builder: (context, ref, _) {
-            final grossProfitAsync = ref.watch(
-              grossProfitStreamProvider(
-                startDate: widget.startDate,
-                endDate: widget.endDate,
-                branchId: ProxyService.box.getBranchId(),
-              ),
-            );
-            return Expanded(
-              child: _buildSummaryCard(
+        Expanded(
+          child: Consumer(
+            builder: (context, ref, _) {
+              final itemsAsync = ref.watch(transactionItemListProvider);
+              final items = _profitCardItems(itemsAsync);
+              final loading = _profitCardItemsLoading(itemsAsync);
+              final gross = _pluGrossProfitFromItemList(items);
+              return _buildSummaryCard(
                 'Gross Profit',
-                grossProfitAsync.value ?? 0.0,
-                grossProfitAsync.isLoading,
+                gross,
+                loading,
                 Colors.green,
-              ),
-            );
-          },
+              );
+            },
+          ),
         ),
         const SizedBox(width: 12),
-        Consumer(
-          builder: (context, ref, _) {
-            final netProfitAsync = ref.watch(
-              netProfitStreamProvider(
-                startDate: widget.startDate,
-                endDate: widget.endDate,
-                branchId: ProxyService.box.getBranchId(),
-              ),
-            );
-            return Expanded(
-              child: _buildSummaryCard(
-                'Net Profit',
-                netProfitAsync.value ?? 0.0,
-                netProfitAsync.isLoading,
-                Colors.purple,
-              ),
-            );
-          },
+        Expanded(
+          child: Consumer(
+            builder: (context, ref, _) {
+              final itemsAsync = ref.watch(transactionItemListProvider);
+              final items = _profitCardItems(itemsAsync);
+              final itemsLoading = _profitCardItemsLoading(itemsAsync);
+              final gross = _pluGrossProfitFromItemList(items);
+              final tax = _pluTotalLineTaxFromList(items);
+              final bid = ProxyService.box.getBranchId();
+
+              if (bid == null) {
+                return _buildSummaryCard(
+                  'Net Profit',
+                  gross - tax,
+                  itemsLoading,
+                  Colors.purple,
+                );
+              }
+
+              final expAsync = ref.watch(
+                expensesStreamProvider(
+                  startDate: widget.startDate,
+                  endDate: widget.endDate,
+                  branchId: bid,
+                ),
+              );
+
+              return expAsync.when(
+                data: (expenseTxs) => _buildSummaryCard(
+                  'Net Profit',
+                  gross -
+                      tax -
+                      _sumExpenseSubtotals(expenseTxs),
+                  itemsLoading,
+                  Colors.purple,
+                ),
+                loading: () => _buildSummaryCard(
+                  'Net Profit',
+                  gross - tax,
+                  true,
+                  Colors.purple,
+                ),
+                error: (_, __) => _buildSummaryCard(
+                  'Net Profit',
+                  gross - tax,
+                  itemsLoading,
+                  Colors.purple,
+                ),
+              );
+            },
+          ),
         ),
       ],
     );

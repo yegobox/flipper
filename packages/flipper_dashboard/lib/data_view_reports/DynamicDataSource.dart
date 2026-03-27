@@ -21,10 +21,8 @@ class TransactionItemPluMetrics {
     return profitMade(item) - taxPayable(item);
   }
 
-  /// Prefer live variant stock (column is "current stock"); else historical [remainingStock].
+  /// Stock left right after this sale ([TransactionItem.remainingStock]), not live shelf qty.
   static double currentStockDisplay(TransactionItem item) {
-    final fromVariant = item.stock?.currentStock;
-    if (fromVariant != null) return fromVariant.toDouble();
     return item.remainingStock?.toDouble() ?? 0.0;
   }
 
