@@ -48,6 +48,7 @@ class PaymentService {
     required String phoneNumber,
     required int finalPrice,
     String? branchId,
+    String payerMessage = 'Service gig payment',
   }) async {
     final branch = (branchId != null && branchId.trim().isNotEmpty)
         ? branchId.trim()
@@ -65,6 +66,7 @@ class PaymentService {
         branchId: branch,
         paymentType: 'PaymentNormal',
         payeemessage: 'Pay for Goods',
+        payerMessage: payerMessage,
         amount: finalPrice,
         phoneNumber: msisdn,
       );
@@ -95,6 +97,7 @@ class PaymentService {
             settledAmountRwf: settled,
           );
         }
+        await Future<void>.delayed(_gigMomoPollInterval);
       }
       talker.warning(
         'MTN payment not confirmed within ${_gigMomoMaxWait.inMinutes} minutes',

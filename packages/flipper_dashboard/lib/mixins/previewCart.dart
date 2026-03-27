@@ -890,6 +890,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     try {
       final response = await ProxyService.ht.makePayment(
         payeemessage: "Pay for Goods",
+        payerMessage: "Pay for Goods",
         paymentType: "PaymentNormal",
         externalId: externalId,
         phoneNumber: phoneNumber.replaceAll("+", ""),

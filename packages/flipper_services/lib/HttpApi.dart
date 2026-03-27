@@ -75,6 +75,7 @@ abstract class HttpApiInterface {
     required String branchId,
     required String paymentType,
     required String payeemessage,
+    required String payerMessage,
     required int amount,
   });
 
@@ -86,6 +87,7 @@ abstract class HttpApiInterface {
     required String paymentType,
     String? externalId,
     required String payeemessage,
+    required String payerMessage,
     required int amount,
     required String phoneNumber,
   });
@@ -157,6 +159,7 @@ abstract class HttpApiInterface {
     required String phoneNumber,
     required String paymentType,
     required String payeemessage,
+    required String payerMessage,
     required String branchId,
     String? planId,
     required int amount,
@@ -466,6 +469,7 @@ class HttpApi implements HttpApiInterface {
     required String paymentType,
     String? externalId,
     required String payeemessage,
+    required String payerMessage,
     required int amount,
     required String phoneNumber,
   }) async {
@@ -474,7 +478,7 @@ class HttpApi implements HttpApiInterface {
       "amount": amount,
       "currency": "RWF",
       "payer": {"partyIdType": "MSISDN", "partyId": partyId},
-      "payerMessage": "Flipper Subscription",
+      "payerMessage": payerMessage,
       "payeeNote": payeemessage,
       "branchId": branchId,
       "paymentType": paymentType,
@@ -526,6 +530,7 @@ class HttpApi implements HttpApiInterface {
     required String paymentType,
     String? externalId,
     required String payeemessage,
+    required String payerMessage,
     required int amount,
     required String phoneNumber,
   }) async {
@@ -536,6 +541,7 @@ class HttpApi implements HttpApiInterface {
       paymentType: paymentType,
       externalId: externalId,
       payeemessage: payeemessage,
+      payerMessage: payerMessage,
       amount: amount,
       phoneNumber: phoneNumber,
     );
@@ -552,6 +558,7 @@ class HttpApi implements HttpApiInterface {
     required String paymentType,
     String? externalId,
     required String payeemessage,
+    required String payerMessage,
     required int amount,
     required String phoneNumber,
   }) async {
@@ -562,6 +569,7 @@ class HttpApi implements HttpApiInterface {
       paymentType: paymentType,
       externalId: externalId,
       payeemessage: payeemessage,
+      payerMessage: payerMessage,
       amount: amount,
       phoneNumber: phoneNumber,
     );
@@ -875,6 +883,7 @@ class HttpApi implements HttpApiInterface {
     required String phoneNumber,
     required String paymentType,
     required String payeemessage,
+    required String payerMessage,
     required String branchId,
     String? planId,
     required int amount,
@@ -883,7 +892,7 @@ class HttpApi implements HttpApiInterface {
       'amount': amount,
       'currency': 'RWF',
       'payer': {'partyIdType': 'MSISDN', 'partyId': phoneNumber},
-      'payerMessage': 'Flipper Subscription',
+      'payerMessage': payerMessage,
       'payeeNote': payeemessage,
       'businessId': '$businessId',
       'branchId': branchId,
@@ -1018,6 +1027,7 @@ class RealmViaHttpServiceMock implements HttpApiInterface {
     String? externalId,
     required String branchId,
     required String payeemessage,
+    required String payerMessage,
     required int amount,
   }) {
     // TODO: implement makePayment
@@ -1032,6 +1042,7 @@ class RealmViaHttpServiceMock implements HttpApiInterface {
     required String paymentType,
     String? externalId,
     required String payeemessage,
+    required String payerMessage,
     required int amount,
     required String phoneNumber,
   }) {
@@ -1129,6 +1140,7 @@ class RealmViaHttpServiceMock implements HttpApiInterface {
     required String phoneNumber,
     required String paymentType,
     required String payeemessage,
+    required String payerMessage,
     required String branchId,
     String? planId,
     required int amount,

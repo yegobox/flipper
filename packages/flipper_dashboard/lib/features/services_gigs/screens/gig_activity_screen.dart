@@ -52,11 +52,14 @@ class _GigActivityScreenState extends State<GigActivityScreen> {
     }
     for (final r in inc) {
       if (!seen.add(r.id)) continue;
-      final other = await nameFor(r.customerUserId);
+      final persisted = r.customerDisplayName?.trim();
+      final other = (persisted != null && persisted.isNotEmpty)
+          ? persisted
+          : 'Customer';
       rows.add(_ActivityRow(
         request: r,
         asCustomer: false,
-        otherPartyLabel: other ?? 'Customer',
+        otherPartyLabel: other,
       ));
     }
     rows.sort((a, b) => b.request.updatedAt.compareTo(a.request.updatedAt));

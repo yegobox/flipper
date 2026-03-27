@@ -2,6 +2,7 @@ import 'package:flipper_dashboard/features/services_gigs/models/service_gig_chat
 import 'package:flipper_dashboard/features/services_gigs/models/service_gig_provider.dart';
 import 'package:flipper_dashboard/features/services_gigs/services/service_gig_provider_repository.dart';
 import 'package:flipper_dashboard/features/services_gigs/services/service_gig_request_repository.dart';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flutter/material.dart';
@@ -37,25 +38,31 @@ class _ProviderDashboardScreenState extends State<ProviderDashboardScreen> {
   Future<void> _load() async {
     setState(() => _loading = true);
     final uid = widget.profile.userId;
-    final earnings = await _requestRepo.summarizeProviderEarnings(uid);
-    final incoming = await _requestRepo.listIncomingForProvider();
-    var open = 0;
-    var active = 0;
-    for (final r in incoming) {
-      if (r.status == 'requested' || r.status == 'pending_payment') {
-        open++;
+    try {
+      final earnings = await _requestRepo.summarizeProviderEarnings(uid);
+      final incoming = await _requestRepo.listIncomingForProvider();
+      var open = 0;
+      var active = 0;
+      for (final r in incoming) {
+        if (r.status == 'requested' || r.status == 'pending_payment') {
+          open++;
+        }
+        if (r.status == 'paid' || r.status == 'in_progress') {
+          active++;
+        }
       }
-      if (r.status == 'paid' || r.status == 'in_progress') {
-        active++;
-      }
+      if (!mounted) return;
+      setState(() {
+        _earnings = earnings;
+        _openRequests = open;
+        _activeJobs = active;
+      });
+    } catch (e, st) {
+      talker.error('ProviderDashboardScreen._load failed', e, st);
+    } finally {
+      if (!mounted) return;
+      setState(() => _loading = false);
     }
-    if (!mounted) return;
-    setState(() {
-      _earnings = earnings;
-      _openRequests = open;
-      _activeJobs = active;
-      _loading = false;
-    });
   }
 
   Future<void> _toggleAvailability(bool v) async {

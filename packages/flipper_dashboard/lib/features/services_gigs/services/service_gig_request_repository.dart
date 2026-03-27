@@ -127,11 +127,19 @@ class ServiceGigRequestRepository {
         'This request is not waiting for payment.',
       );
     }
+    // Block stale pay attempts without MoMo proof. If MTN already succeeded, still record payment
+    // even when the UI deadline passed (clock skew / slow polling / user paid at the last minute).
     if (current.paymentDeadlineAt != null &&
         DateTime.now().toUtc().isAfter(current.paymentDeadlineAt!)) {
-      throw ServiceGigRequestException(
-        'The payment window has ended. Contact the provider to send a new request.',
-      );
+      final hasMtnProof = (mtnFinancialTransactionId != null &&
+              mtnFinancialTransactionId.trim().isNotEmpty) ||
+          (mtnPaymentReference != null &&
+              mtnPaymentReference.trim().isNotEmpty);
+      if (!hasMtnProof) {
+        throw ServiceGigRequestException(
+          'The payment window has ended. Contact the provider to send a new request.',
+        );
+      }
     }
 
     final now = DateTime.now().toUtc();

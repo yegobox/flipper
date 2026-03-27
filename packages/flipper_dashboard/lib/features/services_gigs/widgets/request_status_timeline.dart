@@ -84,7 +84,7 @@ class RequestStatusTimeline extends StatelessWidget {
     final ti = order.indexOf(threshold);
     final ci = order.indexOf(current);
     if (ti < 0 || ci < 0) return false;
-    return ci > ti;
+    return ci >= ti;
   }
 }
 

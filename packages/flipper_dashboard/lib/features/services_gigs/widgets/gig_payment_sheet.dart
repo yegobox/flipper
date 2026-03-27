@@ -32,6 +32,9 @@ class _GigPaymentSheetState extends State<GigPaymentSheet> {
 
   ServiceGigRequest get _r => widget.request;
 
+  /// Agreed budget from the request; when set, amount field is read-only and submission uses this value.
+  bool get _amountLocked => _r.paymentAmountRwf != null;
+
   @override
   void initState() {
     super.initState();
@@ -40,7 +43,7 @@ class _GigPaymentSheetState extends State<GigPaymentSheet> {
       _phoneController.text = phone;
     }
     final budget = _r.paymentAmountRwf;
-    if (budget != null && budget >= 100) {
+    if (budget != null) {
       _amountController.text = budget.toString();
     }
   }
@@ -55,10 +58,23 @@ class _GigPaymentSheetState extends State<GigPaymentSheet> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final rawAmount =
-        _amountController.text.replaceAll(RegExp(r'[\s,]'), '');
-    final amount = int.tryParse(rawAmount);
-    if (amount == null || amount < 100) {
+    final int amount;
+    if (_amountLocked) {
+      amount = _r.paymentAmountRwf!;
+    } else {
+      final rawAmount =
+          _amountController.text.replaceAll(RegExp(r'[\s,]'), '');
+      final parsed = int.tryParse(rawAmount);
+      if (parsed == null || parsed < 100) {
+        showWarningNotification(
+          context,
+          'Enter an amount of at least 100 RWF.',
+        );
+        return;
+      }
+      amount = parsed;
+    }
+    if (amount < 100) {
       showWarningNotification(
         context,
         'Enter an amount of at least 100 RWF.',
@@ -84,6 +100,7 @@ class _GigPaymentSheetState extends State<GigPaymentSheet> {
     final settlement = await paymentService.waitForPaymentConfirmation(
       phoneNumber: phone,
       finalPrice: amount,
+      payerMessage: 'Gig service payment',
     );
 
     if (!mounted) return;
@@ -188,18 +205,30 @@ class _GigPaymentSheetState extends State<GigPaymentSheet> {
               const SizedBox(height: 20),
               TextFormField(
                 controller: _amountController,
+                readOnly: _amountLocked,
+                enableInteractiveSelection: !_amountLocked,
                 keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                inputFormatters: _amountLocked
+                    ? const <TextInputFormatter>[]
+                    : [FilteringTextInputFormatter.digitsOnly],
                 style: GoogleFonts.poppins(fontSize: 16),
                 decoration: InputDecoration(
                   labelText: 'Amount (RWF)',
-                  hintText: 'e.g. 5000',
+                  hintText: _amountLocked ? null : 'e.g. 5000',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
                   prefixIcon: const Icon(Icons.payments_outlined),
+                  filled: _amountLocked,
+                  fillColor:
+                      _amountLocked ? Colors.grey.shade100 : null,
                 ),
                 validator: (v) {
+                  if (_amountLocked) {
+                    final n = _r.paymentAmountRwf;
+                    if (n == null || n < 100) return 'Minimum 100 RWF';
+                    return null;
+                  }
                   final t = v?.replaceAll(RegExp(r'[\s,]'), '') ?? '';
                   final n = int.tryParse(t);
                   if (n == null || n < 100) {

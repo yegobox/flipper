@@ -334,7 +334,7 @@ class ServiceGigProvider {
     }
     final distribution = <int, int>{5: 0, 4: 0, 3: 0, 2: 0, 1: 0};
     for (final review in recentReviews!) {
-      final stars = review.rating.clamp(1, 5);
+      final stars = review.rating.clamp(1, 5).toInt();
       distribution[stars] = (distribution[stars] ?? 0) + 1;
     }
     return distribution;

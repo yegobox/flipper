@@ -387,8 +387,17 @@ class RequestMessage {
     );
   }
 
-  bool get isFromCustomer => !isSystemMessage && senderUserId.startsWith('customer_');
-  bool get isFromProvider => !isSystemMessage && senderUserId.startsWith('provider_');
+  /// Compares [senderUserId] to the owning request’s ids (raw UUIDs). False for system messages or if [request] is null.
+  bool isFromCustomer(ServiceGigRequest? request) {
+    if (isSystemMessage || request == null) return false;
+    return senderUserId == request.customerUserId;
+  }
+
+  /// Compares [senderUserId] to the owning request’s ids (raw UUIDs). False for system messages or if [request] is null.
+  bool isFromProvider(ServiceGigRequest? request) {
+    if (isSystemMessage || request == null) return false;
+    return senderUserId == request.providerUserId;
+  }
 }
 
 /// Service category for better organization
