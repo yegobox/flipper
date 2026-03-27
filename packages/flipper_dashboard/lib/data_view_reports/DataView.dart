@@ -188,15 +188,25 @@ class DataViewState extends ConsumerState<DataView>
     );
   }
 
-  /// PLU net: same gross basis minus line tax ([TransactionItemPluMetrics.taxPayable]).
-  double _pluNetProfitFromItems() {
+  double _pluTotalLineTax() {
     final items = widget.transactionItems;
     if (items == null || items.isEmpty) return 0.0;
-    final tax = items.fold<double>(
+    return items.fold<double>(
       0.0,
       (sum, item) => sum + TransactionItemPluMetrics.taxPayable(item),
     );
-    return _pluGrossProfitFromItems() - tax;
+  }
+
+  double _sumExpenseSubtotals(List<ITransaction> expenseTransactions) {
+    return expenseTransactions.fold<double>(
+      0.0,
+      (sum, tx) => sum + (tx.subTotal ?? 0.0),
+    );
+  }
+
+  /// PLU net after line tax and period expenses ([expensesStream] / Capella expense txs).
+  double _pluNetAfterTaxAndExpenses(double expenseTotal) {
+    return _pluGrossProfitFromItems() - _pluTotalLineTax() - expenseTotal;
   }
 
   Widget _buildSummaryCardsRow() {
@@ -214,11 +224,49 @@ class DataViewState extends ConsumerState<DataView>
           ),
           const SizedBox(width: 12),
           Expanded(
-            child: _buildSummaryCard(
-              'Net Profit',
-              _pluNetProfitFromItems(),
-              false,
-              Colors.purple,
+            child: Consumer(
+              builder: (context, ref, _) {
+                final bid = ProxyService.box.getBranchId();
+                final gross = _pluGrossProfitFromItems();
+                final tax = _pluTotalLineTax();
+                if (bid == null) {
+                  return _buildSummaryCard(
+                    'Net Profit',
+                    gross - tax,
+                    false,
+                    Colors.purple,
+                  );
+                }
+                final expAsync = ref.watch(
+                  expensesStreamProvider(
+                    startDate: widget.startDate,
+                    endDate: widget.endDate,
+                    branchId: bid,
+                  ),
+                );
+                return expAsync.when(
+                  data: (expenseTxs) => _buildSummaryCard(
+                    'Net Profit',
+                    _pluNetAfterTaxAndExpenses(
+                      _sumExpenseSubtotals(expenseTxs),
+                    ),
+                    false,
+                    Colors.purple,
+                  ),
+                  loading: () => _buildSummaryCard(
+                    'Net Profit',
+                    gross - tax,
+                    true,
+                    Colors.purple,
+                  ),
+                  error: (_, __) => _buildSummaryCard(
+                    'Net Profit',
+                    gross - tax,
+                    false,
+                    Colors.purple,
+                  ),
+                );
+              },
             ),
           ),
         ],
@@ -1074,8 +1122,26 @@ class DataViewState extends ConsumerState<DataView>
   /// Same total as the PLU grid "profit Made" / footer / summary Gross Profit card.
   Future<double> _calculateGrossProfit() async => _pluGrossProfitFromItems();
 
-  /// Gross minus summed line tax ([TransactionItemPluMetrics.taxPayable]); matches Net Profit card.
-  Future<double> _calculateNetProfit() async => _pluNetProfitFromItems();
+  /// Matches detailed Net Profit card: gross − line tax − expense [subTotal]s in range.
+  Future<double> _calculateNetProfit() async {
+    final gross = _pluGrossProfitFromItems();
+    final tax = _pluTotalLineTax();
+    final bid = ProxyService.box.getBranchId();
+    if (bid == null) return gross - tax;
+    try {
+      final expenseTxs = await ProxyService.getStrategy(Strategy.capella).transactions(
+        startDate: widget.startDate,
+        endDate: widget.endDate,
+        isExpense: true,
+        skipOriginalTransactionCheck: false,
+        branchId: bid,
+      );
+      return gross - tax - _sumExpenseSubtotals(expenseTxs);
+    } catch (e) {
+      talker.error('Net profit (export): expense fetch failed: $e');
+      return gross - tax;
+    }
+  }
 
   /// Direct export method that doesn't rely on the DataGrid state
   /// This is used as a fallback when the DataGrid state is null
