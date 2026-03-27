@@ -16,6 +16,7 @@ import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:syncfusion_flutter_core/theme.dart';
@@ -108,7 +109,7 @@ class DataViewState extends ConsumerState<DataView>
             transactionItems: widget.transactionItems,
             transactions: widget.transactions,
             variants: widget.variants,
-            rowsPerPage: widget.rowsPerPage,
+            rowsPerPage: _effectiveRowsPerPage(),
             currentPageIndex: pageIndex,
           );
     _fetchExportAccurateTotal();
@@ -145,9 +146,36 @@ class DataViewState extends ConsumerState<DataView>
         widget.transactions != oldWidget.transactions ||
         widget.variants != oldWidget.variants ||
         widget.rowsPerPage != oldWidget.rowsPerPage ||
-        widget.showDetailedReport != oldWidget.showDetailedReport;
+        widget.showDetailedReport != oldWidget.showDetailedReport ||
+        widget.disablePagination != oldWidget.disablePagination;
     talker.info('DataView: _shouldUpdateDataSource - changed: $changed');
     return changed;
+  }
+
+  /// When pagination is disabled, show every row so totals match export and the footer.
+  int _effectiveRowsPerPage() {
+    if (!widget.disablePagination) return widget.rowsPerPage;
+    final n = widget.transactionItems?.length ??
+        widget.transactions?.length ??
+        widget.variants?.length ??
+        0;
+    if (n <= 0) return widget.rowsPerPage;
+    return n;
+  }
+
+  /// Same income rule as [grossProfitStream], applied to the loaded transaction list.
+  double _footerTotalFromTransactions(List<ITransaction> list) {
+    final income = list.where(
+      (tx) => !(tx.isExpense ?? false) && !(tx.isRefunded ?? false),
+    );
+    return income.fold<double>(
+      0.0,
+      (sum, tx) =>
+          sum +
+          (tx.status == COMPLETE
+              ? (tx.subTotal ?? 0.0)
+              : (tx.cashReceived ?? 0.0)),
+    );
   }
 
   void _updateDataGridSource() {
@@ -160,7 +188,7 @@ class DataViewState extends ConsumerState<DataView>
         transactionItems: widget.transactionItems,
         transactions: widget.transactions,
         variants: widget.variants,
-        rowsPerPage: widget.rowsPerPage,
+        rowsPerPage: _effectiveRowsPerPage(),
         currentPageIndex: pageIndex, // Pass the current page index
       );
     }
@@ -581,6 +609,36 @@ class DataViewState extends ConsumerState<DataView>
   }
 
   Widget _buildStickyFooter() {
+    // Detailed PLU: sum the same "profit Made" column as the grid / Excel Net Profit total.
+    if (widget.showDetailedReport &&
+        widget.transactionItems != null &&
+        widget.transactionItems!.isNotEmpty) {
+      final total = widget.transactionItems!.fold<double>(
+        0.0,
+        (sum, item) => sum + TransactionItemPluMetrics.profitMade(item),
+      );
+      return _stickyFooterRow(
+        context,
+        label: 'Total profit made:',
+        amount: total,
+        isLoading: false,
+      );
+    }
+
+    // Summary: sum the same amounts as the "Total Amount" column for loaded rows
+    // (matches export rows and respects search filtering from the parent).
+    if (!widget.showDetailedReport &&
+        widget.transactions != null &&
+        widget.transactions!.isNotEmpty) {
+      final total = _footerTotalFromTransactions(widget.transactions!);
+      return _stickyFooterRow(
+        context,
+        label: 'Total:',
+        amount: total,
+        isLoading: false,
+      );
+    }
+
     return Consumer(
       builder: (context, ref, _) {
         final totalIncomeAsync = ref.watch(
@@ -590,53 +648,65 @@ class DataViewState extends ConsumerState<DataView>
             branchId: ProxyService.box.getBranchId(),
           ),
         );
-
-        return Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border(top: BorderSide(color: Colors.grey.shade300)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withValues(alpha: 0.3),
-                spreadRadius: 2,
-                blurRadius: 5,
-                offset: const Offset(0, -3),
-              ),
-            ],
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
-          child: SafeArea(
-            top: false,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "Total:",
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                totalIncomeAsync.isLoading
-                    ? const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Text(
-                        (totalIncomeAsync.value ?? 0.0).toCurrencyFormatted(
-                          symbol: ProxyService.box.defaultCurrency(),
-                        ),
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).primaryColor,
-                            ),
-                      ),
-              ],
-            ),
-          ),
+        return _stickyFooterRow(
+          context,
+          label: 'Total:',
+          amount: totalIncomeAsync.value ?? 0.0,
+          isLoading: totalIncomeAsync.isLoading,
         );
       },
+    );
+  }
+
+  Widget _stickyFooterRow(
+    BuildContext context, {
+    required String label,
+    required double amount,
+    required bool isLoading,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(top: BorderSide(color: Colors.grey.shade300)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withValues(alpha: 0.3),
+            spreadRadius: 2,
+            blurRadius: 5,
+            offset: const Offset(0, -3),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+      child: SafeArea(
+        top: false,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              label,
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+            isLoading
+                ? const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Text(
+                    amount.toCurrencyFormatted(
+                      symbol: ProxyService.box.defaultCurrency(),
+                    ),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).primaryColor,
+                        ),
+                  ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -774,10 +844,10 @@ class DataViewState extends ConsumerState<DataView>
           'Price': item.price,
           'TaxRate': taxPercentage,
           'Qty': item.qty,
-          'TotalSales': item.price * item.qty,
-          'CurrentStock': item.remainingStock ?? 0.0,
-          'TaxPayable': item.taxAmt ?? 0.0,
-          'NetProfit': (item.price * item.qty) - ((item.supplyPriceAtSale ?? 0.0) * item.qty),
+          'TotalSales': TransactionItemPluMetrics.profitMade(item),
+          'CurrentStock': TransactionItemPluMetrics.currentStockDisplay(item),
+          'TaxPayable': TransactionItemPluMetrics.taxPayable(item),
+          'NetProfit': TransactionItemPluMetrics.netProfitColumn(item),
         });
       }
       return (manualData: preparedData, columnNames: columnNames);
@@ -1082,17 +1152,12 @@ class DataViewState extends ConsumerState<DataView>
 
           rowData['TaxRate'] = taxPercentage;
           rowData['Qty'] = item.qty;
-          rowData['TotalSales'] = item.price * item.qty; // profit made
-          rowData['CurrentStock'] = item.remainingStock ?? 0.0;
-          // Always calculate tax based on configured percentage
-          // Calculate tax using configured rate
-
-          // Ensure zero values are properly formatted (avoid 'RF-' display in Excel)
-          rowData['TaxPayable'] = item.taxAmt ?? 0.0;
-          // Calculate net profit per item: TotalSales - (SupplyPrice * Qty)
+          rowData['TotalSales'] = TransactionItemPluMetrics.profitMade(item);
+          rowData['CurrentStock'] =
+              TransactionItemPluMetrics.currentStockDisplay(item);
+          rowData['TaxPayable'] = TransactionItemPluMetrics.taxPayable(item);
           rowData['NetProfit'] =
-              (item.price * item.qty) -
-              ((item.supplyPriceAtSale ?? 0.0) * item.qty);
+              TransactionItemPluMetrics.netProfitColumn(item);
 
           preparedData.add(rowData);
         }
