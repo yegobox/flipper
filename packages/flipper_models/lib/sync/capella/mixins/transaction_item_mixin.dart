@@ -115,7 +115,8 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
           .map((e) => ':t${e.key}')
           .join(', ');
       final arguments = <String, dynamic>{
-        for (var i = 0; i < transactionIds.length; i++) 't$i': transactionIds[i]
+        for (var i = 0; i < transactionIds.length; i++)
+          't$i': transactionIds[i],
       };
 
       final query =
@@ -176,9 +177,9 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
       name: data['name'] ?? '',
       transactionId: data['transactionId'],
       variantId: data['variantId'],
-      qty: (data['qty'] as num?)?.toDouble() ?? 0.0,
-      price: (data['price'] as num?)?.toDouble() ?? 0.0,
-      discount: (data['discount'] as num?)?.toDouble() ?? 0.0,
+      qty: _dittoOptNum(data['qty']) ?? 0,
+      price: _dittoOptNum(data['price']) ?? 0,
+      discount: _dittoOptNum(data['discount']) ?? 0,
       taxAmt: _dittoOptNum(data['taxAmt']),
       remainingStock: _dittoOptNum(data['remainingStock']),
       active: data['active'] ?? true,
@@ -186,12 +187,7 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
       lastTouched: lastTouched,
       branchId: data['branchId'],
       taxTyCd: data['taxTyCd'],
-      bcd: _dittoFirstString(data, [
-        'bcd',
-        'barcode',
-        'Barcode',
-        'barCode',
-      ]),
+      bcd: _dittoFirstString(data, ['bcd', 'barcode', 'Barcode', 'barCode']),
       sku: _dittoOptString(data['sku']),
       itemClsCd: data['itemClsCd'],
       itemTyCd: data['itemTyCd'],
@@ -200,19 +196,19 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
       pkgUnitCd: data['pkgUnitCd'],
       qtyUnitCd: data['qtyUnitCd'],
       totAmt: _dittoOptNum(data['totAmt']),
-      prc: (data['prc'] as num?)?.toDouble() ?? 0.0,
+      prc: _dittoOptNum(data['prc']) ?? 0,
       splyAmt: _dittoOptNum(data['splyAmt']),
       tin: data['tin'],
       bhfId: data['bhfId'],
-      dftPrc: (data['dftPrc'] as num?)?.toDouble() ?? 0.0,
+      dftPrc: _dittoOptNum(data['dftPrc']) ?? 0,
       addInfo: data['addInfo'],
       isrccCd: data['isrccCd'],
       isrccNm: data['isrccNm'],
-      isrcRt: (data['isrcRt'] as num?)?.toInt() ?? 0,
-      isrcAmt: (data['isrcAmt'] as num?)?.toInt() ?? 0,
+      isrcRt: _dittoOptNum(data['isrcRt'])?.toInt() ?? 0,
+      isrcAmt: _dittoOptNum(data['isrcAmt'])?.toInt() ?? 0,
       taxblAmt: _dittoOptNum(data['taxblAmt']),
-      dcRt: (data['dcRt'] as num?)?.toDouble() ?? 0.0,
-      dcAmt: (data['dcAmt'] as num?)?.toDouble() ?? 0.0,
+      dcRt: _dittoOptNum(data['dcRt']) ?? 0,
+      dcAmt: _dittoOptNum(data['dcAmt']) ?? 0,
       isrcAplcbYn: data['isrccAplcbYn'],
       useYn: data['useYn'],
       regrId: data['regrId'],
