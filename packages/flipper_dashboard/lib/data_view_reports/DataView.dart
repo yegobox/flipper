@@ -917,7 +917,7 @@ class DataViewState extends ConsumerState<DataView>
           'Name': transaction.invoiceNumber?.toString() ?? transaction.id.toString(),
           'Type': transaction.receiptType ?? 'Sale',
           'Amount': transaction.subTotal ?? 0.0,
-          'Tax': (transaction.taxAmount ?? 0.0).toDouble(),
+          'Tax': TransactionSummaryTax.taxColumn(transaction),
           'Cash': transaction.cashReceived ?? 0.0,
         });
       }
@@ -1222,11 +1222,7 @@ class DataViewState extends ConsumerState<DataView>
         rowData['Type'] = transaction.receiptType ?? 'Sale';
         rowData['Amount'] = transaction.subTotal ?? 0.0;
 
-        // Get tax amount directly from the transaction
-        // The taxAmount property has been added to ITransaction and is populated with the sum of all transaction items' tax amounts
-        double totalTax = (transaction.taxAmount ?? 0.0).toDouble();
-
-        rowData['Tax'] = totalTax;
+        rowData['Tax'] = TransactionSummaryTax.taxColumn(transaction);
         rowData['Cash'] = transaction.cashReceived ?? 0.0;
 
         preparedData.add(rowData);
