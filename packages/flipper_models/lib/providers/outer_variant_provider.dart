@@ -44,10 +44,44 @@ class OuterVariants extends _$OuterVariants {
       _currentPage = 0;
     }
 
-    final paged = await _fetchVariants(branchId, _currentPage, _currentSearch);
+    // First page + no search: Ditto may still be pulling from the mesh after
+    // app start. A single empty success would cache forever unless we retry.
+    final PagedVariants paged;
+    if (_currentPage == 0 &&
+        _currentSearch.isEmpty &&
+        branchId.isNotEmpty) {
+      paged = await _fetchVariantsWithColdStartGrace(branchId);
+    } else {
+      paged = await _fetchVariants(branchId, _currentPage, _currentSearch);
+    }
     _totalCount = paged.totalCount;
 
     return List<Variant>.from(paged.variants);
+  }
+
+  /// Extra backoff after an empty first fetch so products appear on cold start
+  /// without requiring the user to search or navigate away.
+  Future<PagedVariants> _fetchVariantsWithColdStartGrace(
+    String branchId,
+  ) async {
+    var paged = await _fetchVariants(branchId, 0, '');
+    if (paged.variants.isNotEmpty) return paged;
+
+    const delays = <Duration>[
+      Duration(milliseconds: 2000),
+      Duration(milliseconds: 3500),
+      Duration(milliseconds: 5000),
+    ];
+    for (final d in delays) {
+      talker.info(
+        'OuterVariants: first load empty, retry after ${d.inMilliseconds}ms '
+        '(Ditto / cloud sync)',
+      );
+      await Future.delayed(d);
+      paged = await _fetchVariants(branchId, 0, '');
+      if (paged.variants.isNotEmpty) break;
+    }
+    return paged;
   }
 
   Future<PagedVariants> _fetchVariants(

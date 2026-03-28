@@ -1,9 +1,25 @@
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
 final talker = TalkerFlutter.init();
+
+/// Summarized report: Tax column matches stored totals or VAT-included extraction from [subTotal].
+class TransactionSummaryTax {
+  TransactionSummaryTax._();
+
+  static double taxColumn(ITransaction tx) {
+    final stored = tx.taxAmount;
+    if (stored != null && stored > 0) return stored.toDouble();
+    if (tx.isExpense == true) return 0.0;
+    final sub = tx.subTotal ?? 0.0;
+    if (sub <= 0) return 0.0;
+    if (!ProxyService.box.vatEnabled()) return 0.0;
+    return double.parse((sub * 18 / 118).toStringAsFixed(2));
+  }
+}
 
 abstract class DynamicDataSource<T> extends DataGridSource {
   List<T> data = [];
@@ -202,7 +218,7 @@ abstract class DynamicDataSource<T> extends DataGridSource {
         ),
         DataGridCell<String>(
           columnName: 'Barcode',
-          value: transactionItem.bcd ?? '',
+          value: TransactionItemPluMetrics.barcodeForReport(transactionItem),
         ),
         DataGridCell<double>(
           columnName: 'Price',
@@ -210,9 +226,7 @@ abstract class DynamicDataSource<T> extends DataGridSource {
         ),
         DataGridCell<double>(
           columnName: 'TaxRate',
-          value: transactionItem.taxTyCd != null
-              ? double.tryParse(transactionItem.taxTyCd!) ?? 18.0
-              : 18.0,
+          value: TransactionItemPluMetrics.taxRatePercent(transactionItem),
         ),
         DataGridCell<double>(
           columnName: 'Qty',
@@ -220,32 +234,26 @@ abstract class DynamicDataSource<T> extends DataGridSource {
         ),
         DataGridCell<double>(
           columnName: 'TotalSales',
-          value:
-              (transactionItem.price.toDouble()) *
-                  (transactionItem.qty.toDouble()) -
-              (transactionItem.splyAmt?.toDouble() ?? 0.0),
+          value: TransactionItemPluMetrics.profitMade(transactionItem),
         ),
         DataGridCell<double>(
           columnName: 'CurrentStock',
-          value: transactionItem.remainingStock?.toDouble() ?? 0.0,
+          value: TransactionItemPluMetrics.currentStockDisplay(transactionItem),
         ),
         DataGridCell<double>(
           columnName: 'TaxPayable',
-          value: transactionItem.taxAmt?.toDouble() ?? 0.0,
+          value: TransactionItemPluMetrics.taxPayable(transactionItem),
         ),
         DataGridCell<double>(
-          columnName: 'GrossProfit',
-          value:
-              (transactionItem.price.toDouble()) *
-                  (transactionItem.qty.toDouble()) -
-              (transactionItem.splyAmt ?? 0.0),
+          columnName: 'NetProfit',
+          value: TransactionItemPluMetrics.netProfitColumn(transactionItem),
         ),
       ],
     );
   }
 
   DataGridRow _buildITransactionRow(ITransaction trans) {
-    final taxValue = (trans.taxAmount ?? 0.0).toDouble();
+    final taxValue = TransactionSummaryTax.taxColumn(trans);
 
     return DataGridRow(
       cells: [

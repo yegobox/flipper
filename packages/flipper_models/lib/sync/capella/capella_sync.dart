@@ -1445,12 +1445,25 @@ class CapellaSync extends AiStrategyImpl
     bool? fetchOnline,
     bool? preferFresh,
   }) async {
-    // Use Ditto when available (plans synced from Supabase by Kotlin PlanSyncJob)
+    // Ditto first when available; Plan is not in local SQLite — fall back to Supabase `plans` table.
     if (dittoService.isReady()) {
-      return dittoService.getPaymentPlanFromDitto(businessId);
+      final fromDitto = await dittoService.getPaymentPlanFromDitto(businessId);
+      if (fromDitto != null) return fromDitto;
+      _talker.info(
+        'getPaymentPlan: no plan in Ditto for businessId=$businessId — fetching from Supabase',
+      );
+    } else {
+      _talker.info(
+        'getPaymentPlan: Ditto not ready for businessId=$businessId — fetching plan from Supabase',
+      );
     }
-    // CapellaSync does not use Brick for plans; return null when Ditto unavailable
-    return null;
+    final row = await Supabase.instance.client
+        .from('plans')
+        .select()
+        .eq('business_id', businessId)
+        .maybeSingle();
+    if (row == null) return null;
+    return Plan.fromSupabaseJson(Map<String, dynamic>.from(row));
   }
 
   @override

@@ -108,7 +108,7 @@ class DataViewState extends ConsumerState<DataView>
             transactionItems: widget.transactionItems,
             transactions: widget.transactions,
             variants: widget.variants,
-            rowsPerPage: widget.rowsPerPage,
+            rowsPerPage: _effectiveRowsPerPage(),
             currentPageIndex: pageIndex,
           );
     _fetchExportAccurateTotal();
@@ -145,9 +145,145 @@ class DataViewState extends ConsumerState<DataView>
         widget.transactions != oldWidget.transactions ||
         widget.variants != oldWidget.variants ||
         widget.rowsPerPage != oldWidget.rowsPerPage ||
-        widget.showDetailedReport != oldWidget.showDetailedReport;
+        widget.showDetailedReport != oldWidget.showDetailedReport ||
+        widget.disablePagination != oldWidget.disablePagination;
     talker.info('DataView: _shouldUpdateDataSource - changed: $changed');
     return changed;
+  }
+
+  /// When pagination is disabled, show every row so totals match export and the footer.
+  int _effectiveRowsPerPage() {
+    if (!widget.disablePagination) return widget.rowsPerPage;
+    final n =
+        widget.transactionItems?.length ??
+        widget.transactions?.length ??
+        widget.variants?.length ??
+        0;
+    if (n <= 0) return widget.rowsPerPage;
+    return n;
+  }
+
+  double _pluGrossProfitFromItemList(List<TransactionItem> items) {
+    if (items.isEmpty) return 0.0;
+    return items.fold<double>(
+      0.0,
+      (sum, item) => sum + TransactionItemPluMetrics.profitMade(item),
+    );
+  }
+
+  double _pluTotalLineTaxFromList(List<TransactionItem> items) {
+    if (items.isEmpty) return 0.0;
+    return items.fold<double>(
+      0.0,
+      (sum, item) => sum + TransactionItemPluMetrics.taxPayable(item),
+    );
+  }
+
+  /// Sum of PLU "profit Made" from parent grid items only (footer / export when detailed).
+  double _pluGrossProfitFromItems() {
+    final items = widget.transactionItems;
+    if (items == null || items.isEmpty) return 0.0;
+    return _pluGrossProfitFromItemList(items);
+  }
+
+  double _pluTotalLineTax() {
+    final items = widget.transactionItems;
+    if (items == null || items.isEmpty) return 0.0;
+    return _pluTotalLineTaxFromList(items);
+  }
+
+  double _sumExpenseSubtotals(List<ITransaction> expenseTransactions) {
+    return expenseTransactions.fold<double>(
+      0.0,
+      (sum, tx) => sum + (tx.subTotal ?? 0.0),
+    );
+  }
+
+  /// Line items for cards: grid payload when present, else full range from [transactionItemListProvider].
+  List<TransactionItem> _profitCardItems(
+    AsyncValue<List<TransactionItem>> itemsAsync,
+  ) {
+    return widget.transactionItems ?? itemsAsync.value ?? [];
+  }
+
+  bool _profitCardItemsLoading(AsyncValue<List<TransactionItem>> itemsAsync) {
+    return widget.transactionItems == null && itemsAsync.isLoading;
+  }
+
+  /// Summary + detailed use the same PLU totals as the detailed grid (full-period line items).
+  Widget _buildSummaryCardsRow() {
+    return Row(
+      children: [
+        const SizedBox(width: 12),
+        Expanded(
+          child: Consumer(
+            builder: (context, ref, _) {
+              final itemsAsync = ref.watch(transactionItemListProvider);
+              final items = _profitCardItems(itemsAsync);
+              final loading = _profitCardItemsLoading(itemsAsync);
+              final gross = _pluGrossProfitFromItemList(items);
+              return _buildSummaryCard(
+                'Gross Profit',
+                gross,
+                loading,
+                Colors.green,
+              );
+            },
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Consumer(
+            builder: (context, ref, _) {
+              final itemsAsync = ref.watch(transactionItemListProvider);
+              final items = _profitCardItems(itemsAsync);
+              final itemsLoading = _profitCardItemsLoading(itemsAsync);
+              final gross = _pluGrossProfitFromItemList(items);
+              final tax = _pluTotalLineTaxFromList(items);
+              final bid = ProxyService.box.getBranchId();
+
+              if (bid == null) {
+                return _buildSummaryCard(
+                  'Net Profit',
+                  gross - tax,
+                  itemsLoading,
+                  Colors.purple,
+                );
+              }
+
+              final expAsync = ref.watch(
+                expensesStreamProvider(
+                  startDate: widget.startDate,
+                  endDate: widget.endDate,
+                  branchId: bid,
+                ),
+              );
+
+              return expAsync.when(
+                data: (expenseTxs) => _buildSummaryCard(
+                  'Net Profit',
+                  gross - tax - _sumExpenseSubtotals(expenseTxs),
+                  itemsLoading,
+                  Colors.purple,
+                ),
+                loading: () => _buildSummaryCard(
+                  'Net Profit',
+                  gross - tax,
+                  true,
+                  Colors.purple,
+                ),
+                error: (_, __) => _buildSummaryCard(
+                  'Net Profit',
+                  gross - tax,
+                  itemsLoading,
+                  Colors.purple,
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
   }
 
   void _updateDataGridSource() {
@@ -160,7 +296,7 @@ class DataViewState extends ConsumerState<DataView>
         transactionItems: widget.transactionItems,
         transactions: widget.transactions,
         variants: widget.variants,
-        rowsPerPage: widget.rowsPerPage,
+        rowsPerPage: _effectiveRowsPerPage(),
         currentPageIndex: pageIndex, // Pass the current page index
       );
     }
@@ -224,10 +360,9 @@ class DataViewState extends ConsumerState<DataView>
               try {
                 // Await the updateStock call to catch any errors
                 // Use Capella strategy to avoid database locks
-                await ProxyService.getStrategy(Strategy.capella).updateStock(
-                  stockId: data.id,
-                  qty: parsedValue,
-                );
+                await ProxyService.getStrategy(
+                  Strategy.capella,
+                ).updateStock(stockId: data.id, qty: parsedValue);
 
                 // Log success for diagnostics
                 talker.info(
@@ -382,46 +517,7 @@ class DataViewState extends ConsumerState<DataView>
                 },
               ),
               const SizedBox(height: 10),
-              Row(
-                children: [
-                  const SizedBox(width: 12),
-                  Consumer(
-                    builder: (context, ref, _) {
-                      final grossProfitAsync = ref.watch(
-                        grossProfitStreamProvider(
-                          startDate: widget.startDate,
-                          endDate: widget.endDate,
-                          branchId: ProxyService.box.getBranchId(),
-                        ),
-                      );
-                      return _buildSummaryCard(
-                        'Gross Profit',
-                        grossProfitAsync.value ?? 0.0,
-                        grossProfitAsync.isLoading,
-                        Colors.green,
-                      );
-                    },
-                  ),
-                  const SizedBox(width: 12),
-                  Consumer(
-                    builder: (context, ref, _) {
-                      final netProfitAsync = ref.watch(
-                        netProfitStreamProvider(
-                          startDate: widget.startDate,
-                          endDate: widget.endDate,
-                          branchId: ProxyService.box.getBranchId(),
-                        ),
-                      );
-                      return _buildSummaryCard(
-                        'Net Profit',
-                        netProfitAsync.value ?? 0.0,
-                        netProfitAsync.isLoading,
-                        Colors.purple,
-                      );
-                    },
-                  ),
-                ],
-              ),
+              _buildSummaryCardsRow(),
               const SizedBox(height: 10),
               Expanded(
                 child: (!(_showGrid && !_isTransitioning) || widget.forceEmpty)
@@ -464,42 +560,40 @@ class DataViewState extends ConsumerState<DataView>
     Color color,
   ) {
     final displayTotal = value ?? 0.0;
-    return Expanded(
-      child: Card(
-        color: color.withValues(alpha: 0.07),
-        elevation: 0,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                label,
-                style: TextStyle(fontWeight: FontWeight.bold, color: color),
-              ),
-              const SizedBox(height: 6),
-              isLoading
-                  ? SizedBox(
-                      height: 18,
-                      width: 18,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: color,
-                      ),
-                    )
-                  : Text(
-                      displayTotal.toCurrencyFormatted(
-                        symbol: ProxyService.box.defaultCurrency(),
-                      ),
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: color,
-                      ),
+    return Card(
+      color: color.withValues(alpha: 0.07),
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              label,
+              style: TextStyle(fontWeight: FontWeight.bold, color: color),
+            ),
+            const SizedBox(height: 6),
+            isLoading
+                ? SizedBox(
+                    height: 18,
+                    width: 18,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: color,
                     ),
-            ],
-          ),
+                  )
+                : Text(
+                    displayTotal.toCurrencyFormatted(
+                      symbol: ProxyService.box.defaultCurrency(),
+                    ),
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: color,
+                    ),
+                  ),
+          ],
         ),
       ),
     );
@@ -580,63 +674,86 @@ class DataViewState extends ConsumerState<DataView>
     );
   }
 
+  /// PLU gross matches the green card and detailed "profit Made" sum; stock view sums units.
   Widget _buildStickyFooter() {
+    if (widget.variants != null && widget.variants!.isNotEmpty) {
+      final totalUnits = widget.variants!.fold<double>(
+        0.0,
+        (sum, v) => sum + (v.stock?.currentStock?.toDouble() ?? 0.0),
+      );
+      return _stickyFooterRow(
+        context,
+        label: 'Total stock (units):',
+        amount: totalUnits,
+        isLoading: false,
+      );
+    }
+
     return Consumer(
       builder: (context, ref, _) {
-        final totalIncomeAsync = ref.watch(
-          grossProfitStreamProvider(
-            startDate: widget.startDate,
-            endDate: widget.endDate,
-            branchId: ProxyService.box.getBranchId(),
-          ),
-        );
-
-        return Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border(top: BorderSide(color: Colors.grey.shade300)),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withValues(alpha: 0.3),
-                spreadRadius: 2,
-                blurRadius: 5,
-                offset: const Offset(0, -3),
-              ),
-            ],
-          ),
-          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
-          child: SafeArea(
-            top: false,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  "Total:",
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                totalIncomeAsync.isLoading
-                    ? const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : Text(
-                        (totalIncomeAsync.value ?? 0.0).toCurrencyFormatted(
-                          symbol: ProxyService.box.defaultCurrency(),
-                        ),
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(
-                              fontWeight: FontWeight.bold,
-                              color: Theme.of(context).primaryColor,
-                            ),
-                      ),
-              ],
-            ),
-          ),
+        final itemsAsync = ref.watch(transactionItemListProvider);
+        final items = _profitCardItems(itemsAsync);
+        final loading = _profitCardItemsLoading(itemsAsync);
+        final total = _pluGrossProfitFromItemList(items);
+        return _stickyFooterRow(
+          context,
+          label: 'Total profit made:',
+          amount: total,
+          isLoading: loading,
         );
       },
+    );
+  }
+
+  Widget _stickyFooterRow(
+    BuildContext context, {
+    required String label,
+    required double amount,
+    required bool isLoading,
+  }) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border(top: BorderSide(color: Colors.grey.shade300)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withValues(alpha: 0.3),
+            spreadRadius: 2,
+            blurRadius: 5,
+            offset: const Offset(0, -3),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+      child: SafeArea(
+        top: false,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              label,
+              style: Theme.of(
+                context,
+              ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            ),
+            isLoading
+                ? const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Text(
+                    amount.toCurrencyFormatted(
+                      symbol: ProxyService.box.defaultCurrency(),
+                    ),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).primaryColor,
+                    ),
+                  ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -716,13 +833,14 @@ class DataViewState extends ConsumerState<DataView>
 
     try {
       // Use Capella strategy to avoid database locks
-      final transactions = await ProxyService.getStrategy(Strategy.capella).transactions(
-        startDate: widget.startDate,
-        endDate: widget.endDate,
-        isExpense: false,
-        skipOriginalTransactionCheck: false,
-        branchId: ProxyService.box.getBranchId(),
-      );
+      final transactions = await ProxyService.getStrategy(Strategy.capella)
+          .transactions(
+            startDate: widget.startDate,
+            endDate: widget.endDate,
+            isExpense: false,
+            skipOriginalTransactionCheck: false,
+            branchId: ProxyService.box.getBranchId(),
+          );
 
       if (!mounted) return;
 
@@ -736,48 +854,82 @@ class DataViewState extends ConsumerState<DataView>
     }
   }
 
-  /// Builds manual export data from the full data source (all pages) without using the grid.
-  /// This avoids exportToExcelWorkbook() hanging on large datasets and ensures all rows are exported.
-  Future<({List<dynamic> manualData, List<String> columnNames})> _buildManualDataForExport() async {
+  /// Builds manual export data without using the grid.
+  ///
+  /// [fullSummaryTransactions]: when non-null (summary mode), every row in range — same as Capella
+  /// `transactions()` used for [ExportConfig], not the filtered/paginated grid list.
+  Future<({List<dynamic> manualData, List<String> columnNames})>
+  _buildManualDataForExport({
+    List<ITransaction>? fullSummaryTransactions,
+  }) async {
     final columns = _getTableHeaders();
     final columnNames = columns.map((c) => c.columnName).toList();
+
+    // Summary range from Capella — do not depend on [_dataGridSource] type. If this were
+    // skipped, [manualData] stays empty and Excel falls back to exportToExcelWorkbook()
+    // (current grid page only).
+    if (fullSummaryTransactions != null && fullSummaryTransactions.isNotEmpty) {
+      final preparedData = <Map<String, dynamic>>[];
+      for (final transaction in fullSummaryTransactions) {
+        preparedData.add({
+          'Name':
+              transaction.invoiceNumber?.toString() ??
+              transaction.id.toString(),
+          'Type': transaction.receiptType ?? 'Sale',
+          'Amount': transaction.subTotal ?? 0.0,
+          'Tax': TransactionSummaryTax.taxColumn(transaction),
+          'Cash': transaction.cashReceived ?? 0.0,
+        });
+      }
+      return (manualData: preparedData, columnNames: columnNames);
+    }
 
     if (_dataGridSource is TransactionItemDataSource) {
       final items = _dataGridSource.data.cast<TransactionItem>();
       if (items.isEmpty) return (manualData: [], columnNames: columnNames);
 
       // Batch tax rate lookups: one DB call per unique tax type instead of per item
-      final uniqueTaxTypes = items.map((i) => i.taxTyCd ?? 'B').toSet().toList();
+      final uniqueTaxTypes = items
+          .map((i) => i.taxTyCd ?? 'B')
+          .toSet()
+          .toList();
       final taxRateByType = <String, double>{};
       for (final taxType in uniqueTaxTypes) {
         try {
-          final config = await ProxyService.getStrategy(Strategy.capella).getByTaxType(taxtype: taxType);
-          taxRateByType[taxType] = config?.taxPercentage ?? 0.0;
+          final config = await ProxyService.getStrategy(
+            Strategy.capella,
+          ).getByTaxType(taxtype: taxType);
+          taxRateByType[taxType] = config?.taxPercentage ?? 18.0;
         } catch (_) {
-          taxRateByType[taxType] = 0.0;
+          taxRateByType[taxType] = 18.0;
         }
       }
 
       final preparedData = <Map<String, dynamic>>[];
       for (final item in items) {
         final taxType = item.taxTyCd ?? 'B';
-        final taxPercentage = taxRateByType[taxType] ?? 0.0;
+        final fromItem = item.taxPercentage?.toDouble();
+        final taxPercentage = (fromItem != null && fromItem > 0)
+            ? fromItem
+            : (taxRateByType[taxType] ?? 18.0);
         preparedData.add({
           'ItemCode': item.itemCd,
           'Name': (() {
             final nameParts = item.name.split('(');
             final name = nameParts[0].trim().toUpperCase();
-            final number = nameParts.length > 1 ? nameParts[1].split(')')[0] : '';
+            final number = nameParts.length > 1
+                ? nameParts[1].split(')')[0]
+                : '';
             return number.isEmpty ? name : '$name-$number';
           })(),
-          'Barcode': item.bcd ?? '',
+          'Barcode': TransactionItemPluMetrics.barcodeForReport(item),
           'Price': item.price,
           'TaxRate': taxPercentage,
           'Qty': item.qty,
-          'TotalSales': item.price * item.qty,
-          'CurrentStock': item.remainingStock ?? 0.0,
-          'TaxPayable': item.taxAmt ?? 0.0,
-          'NetProfit': (item.price * item.qty) - ((item.supplyPriceAtSale ?? 0.0) * item.qty),
+          'TotalSales': TransactionItemPluMetrics.profitMade(item),
+          'CurrentStock': TransactionItemPluMetrics.currentStockDisplay(item),
+          'TaxPayable': TransactionItemPluMetrics.taxPayable(item),
+          'NetProfit': TransactionItemPluMetrics.netProfitColumn(item),
         });
       }
       return (manualData: preparedData, columnNames: columnNames);
@@ -785,15 +937,18 @@ class DataViewState extends ConsumerState<DataView>
 
     if (_dataGridSource is TransactionDataSource) {
       final transactions = _dataGridSource.data.cast<ITransaction>();
-      if (transactions.isEmpty) return (manualData: [], columnNames: columnNames);
+      if (transactions.isEmpty)
+        return (manualData: [], columnNames: columnNames);
 
       final preparedData = <Map<String, dynamic>>[];
       for (final transaction in transactions) {
         preparedData.add({
-          'Name': transaction.invoiceNumber?.toString() ?? transaction.id.toString(),
+          'Name':
+              transaction.invoiceNumber?.toString() ??
+              transaction.id.toString(),
           'Type': transaction.receiptType ?? 'Sale',
           'Amount': transaction.subTotal ?? 0.0,
-          'Tax': (transaction.taxAmount ?? 0.0).toDouble(),
+          'Tax': TransactionSummaryTax.taxColumn(transaction),
           'Cash': transaction.cashReceived ?? 0.0,
         });
       }
@@ -818,28 +973,58 @@ class DataViewState extends ConsumerState<DataView>
     return (manualData: [], columnNames: columnNames);
   }
 
+  /// Non-expense COMPLETE sales for reports — same as [transactionListProvider] / summary grid.
+  Future<List<ITransaction>> _salesTransactionsForReport() {
+    final forceRealData = !(ProxyService.box.enableDebug() ?? false);
+    return ref.read(
+      transactionListProvider(forceRealData: forceRealData).future,
+    );
+  }
+
+  /// PDF export uses the live grid only; expand to all rows first so summary is not one page.
+  Future<void> _withSummaryPdfFullGridRows(
+    Future<void> Function() runExport,
+  ) async {
+    final expandForPdf =
+        ProxyService.box.exportAsPdf() &&
+        !widget.showDetailedReport &&
+        _dataGridSource is TransactionDataSource;
+
+    if (expandForPdf) {
+      _dataGridSource.loadAllRowsForExport();
+    }
+    try {
+      await runExport();
+    } finally {
+      if (expandForPdf) {
+        _dataGridSource.restorePagedRowsAfterExport(pageIndex);
+      }
+    }
+  }
+
   /// Public method to trigger export from parent widgets.
   /// Exports ALL data in the selected date range (all pages) using manual data path to avoid grid hang.
   Future<void> triggerExport({String headerTitle = "Report"}) async {
-    talker.info('triggerExport: headerTitle=$headerTitle, showDetailedReport=${widget.showDetailedReport}');
+    talker.info(
+      'triggerExport: headerTitle=$headerTitle, showDetailedReport=${widget.showDetailedReport}',
+    );
     try {
-      final expenseTransactions = await ProxyService.getStrategy(Strategy.capella).transactions(
-        startDate: widget.startDate,
-        endDate: widget.endDate,
-        isExpense: true,
-        skipOriginalTransactionCheck: false,
-        branchId: ProxyService.box.getBranchId(),
+      final expenseTransactions =
+          await ProxyService.getStrategy(Strategy.capella).transactions(
+            startDate: widget.startDate,
+            endDate: widget.endDate,
+            isExpense: true,
+            skipOriginalTransactionCheck: false,
+            branchId: ProxyService.box.getBranchId(),
+          );
+      final sales = await _salesTransactionsForReport();
+      final expenses = await Expense.fromTransactions(
+        expenseTransactions,
+        sales: sales,
       );
-      final sales = await ProxyService.getStrategy(Strategy.capella).transactions(
-        startDate: widget.startDate,
-        endDate: widget.endDate,
-        isExpense: false,
-        skipOriginalTransactionCheck: true,
-        branchId: ProxyService.box.getBranchId(),
-      );
-      final expenses = await Expense.fromTransactions(expenseTransactions, sales: sales);
 
-      final isStockRecount = widget.variants != null && widget.variants!.isNotEmpty;
+      final isStockRecount =
+          widget.variants != null && widget.variants!.isNotEmpty;
       final config = ExportConfig(
         transactions: sales,
         endDate: widget.endDate,
@@ -850,19 +1035,25 @@ class DataViewState extends ConsumerState<DataView>
         config.netProfit = await _calculateNetProfit();
       }
 
-      final (:manualData, :columnNames) = await _buildManualDataForExport();
-
-      await exportDataGrid(
-        workBookKey: widget.workBookKey,
-        isStockRecount: isStockRecount,
-        config: config,
-        headerTitle: isStockRecount ? "Stock Recount" : headerTitle,
-        expenses: expenses,
-        bottomEndOfRowTitle: widget.showDetailedReport ? "Total Gross Profit" : "Closing balance",
-        showProfitCalculations: widget.showDetailedReport,
-        manualData: manualData.isNotEmpty ? manualData : null,
-        columnNames: manualData.isNotEmpty ? columnNames : null,
+      final (:manualData, :columnNames) = await _buildManualDataForExport(
+        fullSummaryTransactions: widget.showDetailedReport ? null : sales,
       );
+
+      await _withSummaryPdfFullGridRows(() async {
+        await exportDataGrid(
+          workBookKey: widget.workBookKey,
+          isStockRecount: isStockRecount,
+          config: config,
+          headerTitle: isStockRecount ? "Stock Recount" : headerTitle,
+          expenses: expenses,
+          bottomEndOfRowTitle: widget.showDetailedReport
+              ? "Total Gross Profit"
+              : "Closing balance",
+          showProfitCalculations: widget.showDetailedReport,
+          manualData: manualData.isNotEmpty ? manualData : null,
+          columnNames: manualData.isNotEmpty ? columnNames : null,
+        );
+      });
 
       talker.info('Export completed successfully');
     } catch (e, s) {
@@ -907,20 +1098,15 @@ class DataViewState extends ConsumerState<DataView>
     }
 
     /// Expenses these incudes purchases,import and any other type of expenses.
-    final expenseTransactions = await ProxyService.getStrategy(Strategy.capella).transactions(
-      startDate: widget.startDate,
-      endDate: widget.endDate,
-      isExpense: true,
-      skipOriginalTransactionCheck: false,
-      branchId: ProxyService.box.getBranchId(),
-    );
-    final sales = await ProxyService.getStrategy(Strategy.capella).transactions(
-      startDate: widget.startDate,
-      endDate: widget.endDate,
-      isExpense: false,
-      skipOriginalTransactionCheck: true,
-      branchId: ProxyService.box.getBranchId(),
-    );
+    final expenseTransactions = await ProxyService.getStrategy(Strategy.capella)
+        .transactions(
+          startDate: widget.startDate,
+          endDate: widget.endDate,
+          isExpense: true,
+          skipOriginalTransactionCheck: false,
+          branchId: ProxyService.box.getBranchId(),
+        );
+    final sales = await _salesTransactionsForReport();
     // Convert transactions to Expense model
     final expenses = await Expense.fromTransactions(
       expenseTransactions,
@@ -940,58 +1126,50 @@ class DataViewState extends ConsumerState<DataView>
       config.netProfit = await _calculateNetProfit();
     }
 
-    exportDataGrid(
-      workBookKey: workBookKey,
-      isStockRecount: isStockRecount,
-      config: config,
-      headerTitle: isStockRecount ? "Stock Recount" : headerTitle,
-      expenses: expenses,
-      showProfitCalculations: widget.showDetailedReport,
-      bottomEndOfRowTitle: widget.showDetailed == true
-          ? "Total Gross Profit"
-          : "Closing balance",
+    final (:manualData, :columnNames) = await _buildManualDataForExport(
+      fullSummaryTransactions: sales,
     );
-  }
 
-  Future<double> _calculateGrossProfit() async {
-    if (widget.transactionItems == null) return 0;
-    double grossProfit = 0.0;
-    for (final item in widget.transactionItems!) {
-      // Use the supplyPriceAtSale stored on the TransactionItem for accurate historical gross profit.
-      // This ensures that gross profit is calculated based on the supply price at the time of sale,
-      // not the current supply price of the variant.
-      final supplyPrice = item.supplyPriceAtSale ?? 0.0;
-      grossProfit += (item.price - supplyPrice) * item.qty;
-    }
-    return grossProfit;
-  }
-
-  Future<double> _calculateNetProfit() async {
-    if (widget.transactionItems == null) return 0;
-
-    // Get the gross profit from our calculation
-    final grossProfit = await _calculateGrossProfit();
-    talker.info('Calculated gross profit: $grossProfit');
-
-    // Calculate total tax amount from all transactions
-    double totalTaxAmount = 0.0;
-    for (final item in widget.transactionItems!) {
-      // Get the tax amount for this item
-      final taxAmount = item.taxAmt ?? (item.price * item.qty * 0.18);
-      talker.info(
-        'Item ${item.id}: price=${item.price}, qty=${item.qty}, taxAmount=$taxAmount',
+    await _withSummaryPdfFullGridRows(() async {
+      await exportDataGrid(
+        workBookKey: workBookKey,
+        isStockRecount: isStockRecount,
+        config: config,
+        headerTitle: isStockRecount ? "Stock Recount" : headerTitle,
+        expenses: expenses,
+        showProfitCalculations: widget.showDetailedReport,
+        bottomEndOfRowTitle: widget.showDetailed == true
+            ? "Total Gross Profit"
+            : "Closing balance",
+        manualData: manualData.isNotEmpty ? manualData : null,
+        columnNames: manualData.isNotEmpty ? columnNames : null,
       );
-      totalTaxAmount += taxAmount;
+    });
+  }
+
+  /// Same total as the PLU grid "profit Made" / footer / summary Gross Profit card.
+  Future<double> _calculateGrossProfit() async => _pluGrossProfitFromItems();
+
+  /// Matches detailed Net Profit card: gross − line tax − expense [subTotal]s in range.
+  Future<double> _calculateNetProfit() async {
+    final gross = _pluGrossProfitFromItems();
+    final tax = _pluTotalLineTax();
+    final bid = ProxyService.box.getBranchId();
+    if (bid == null) return gross - tax;
+    try {
+      final expenseTxs = await ProxyService.getStrategy(Strategy.capella)
+          .transactions(
+            startDate: widget.startDate,
+            endDate: widget.endDate,
+            isExpense: true,
+            skipOriginalTransactionCheck: false,
+            branchId: bid,
+          );
+      return gross - tax - _sumExpenseSubtotals(expenseTxs);
+    } catch (e) {
+      talker.error('Net profit (export): expense fetch failed: $e');
+      return gross - tax;
     }
-    talker.info('Total tax amount: $totalTaxAmount');
-
-    // Net profit is gross profit minus total tax amount
-    final netProfit = grossProfit - totalTaxAmount;
-    talker.info('Calculated net profit: $netProfit');
-
-    // Force the specific value we see in the UI for testing
-    // This is a temporary fix to match the UI exactly
-    return netProfit;
   }
 
   /// Direct export method that doesn't rely on the DataGrid state
@@ -999,164 +1177,162 @@ class DataViewState extends ConsumerState<DataView>
   Future<void> _exportDirectly({required String headerTitle}) async {
     print('📦 EXPORT: Starting direct export process');
     talker.info('Starting direct export process');
-    talker.info('Export params: startDate=${widget.startDate}, endDate=${widget.endDate}, showDetailed=${widget.showDetailedReport}');
-    
+    talker.info(
+      'Export params: startDate=${widget.startDate}, endDate=${widget.endDate}, showDetailed=${widget.showDetailedReport}',
+    );
+
     try {
       // Use Capella strategy to avoid database locks
       // Fetch expense transactions for the report
       print('📦 EXPORT: Fetching expense transactions...');
-      final expenseTransactions = await ProxyService.getStrategy(Strategy.capella).transactions(
-        startDate: widget.startDate,
-        endDate: widget.endDate,
-        isExpense: true,
-        skipOriginalTransactionCheck: false,
-        branchId: ProxyService.box.getBranchId(),
-      );
+      final expenseTransactions =
+          await ProxyService.getStrategy(Strategy.capella).transactions(
+            startDate: widget.startDate,
+            endDate: widget.endDate,
+            isExpense: true,
+            skipOriginalTransactionCheck: false,
+            branchId: ProxyService.box.getBranchId(),
+          );
       talker.info('Fetched ${expenseTransactions.length} expense transactions');
-      print('📦 EXPORT: Fetched ${expenseTransactions.length} expense transactions');
+      print(
+        '📦 EXPORT: Fetched ${expenseTransactions.length} expense transactions',
+      );
 
-    final sales = await ProxyService.getStrategy(Strategy.capella).transactions(
-      startDate: widget.startDate,
-      endDate: widget.endDate,
-      isExpense: false,
+      final sales = await _salesTransactionsForReport();
 
-      /// this include NR,CR etc.. in the list needed for full report X,Z report.
-      skipOriginalTransactionCheck: true,
-      branchId: ProxyService.box.getBranchId(),
-    );
+      // Convert transactions to Expense model
+      final expenses = await Expense.fromTransactions(
+        expenseTransactions,
+        sales: sales,
+      );
 
-    // Convert transactions to Expense model
-    final expenses = await Expense.fromTransactions(
-      expenseTransactions,
-      sales: sales,
-    );
+      final isStockRecount =
+          widget.variants != null && widget.variants!.isNotEmpty;
 
-    final isStockRecount =
-        widget.variants != null && widget.variants!.isNotEmpty;
+      // Create export config
+      final config = ExportConfig(
+        transactions: sales,
+        endDate: widget.endDate,
+        startDate: widget.startDate,
+      );
 
-    // Create export config
-    final config = ExportConfig(
-      transactions: sales,
-      endDate: widget.endDate,
-      startDate: widget.startDate,
-    );
+      if (!isStockRecount) {
+        config.grossProfit = await _calculateGrossProfit();
+        config.netProfit = await _calculateNetProfit();
+      }
 
-    if (!isStockRecount) {
-      config.grossProfit = await _calculateGrossProfit();
-      config.netProfit = await _calculateNetProfit();
-    }
+      // Extract data and column names from the data source for manual export
+      List<dynamic> manualData = [];
+      List<String> columnNames = [];
+      List<Map<String, dynamic>> preparedData = [];
 
-    // Extract data and column names from the data source for manual export
-    List<dynamic> manualData = [];
-    List<String> columnNames = [];
-    List<Map<String, dynamic>> preparedData = [];
+      // Get data from the appropriate data source based on view type
+      if (_dataGridSource is TransactionItemDataSource) {
+        // Use transaction items directly from widget
+        manualData = widget.transactionItems ?? [];
 
-    // Get data from the appropriate data source based on view type
-    if (_dataGridSource is TransactionItemDataSource) {
-      // Use transaction items directly from widget
-      manualData = widget.transactionItems ?? [];
+        // Get column names from the headers
+        final headers = _getTableHeaders();
+        columnNames = headers.map((col) => col.columnName).toList();
 
-      // Get column names from the headers
-      final headers = _getTableHeaders();
-      columnNames = headers.map((col) => col.columnName).toList();
+        // Prepare data with explicit mapping to ensure all columns are included
+        for (final item in manualData) {
+          if (item is TransactionItem) {
+            final Map<String, dynamic> rowData = {};
 
-      // Prepare data with explicit mapping to ensure all columns are included
-      for (final item in manualData) {
-        if (item is TransactionItem) {
+            // Map all the columns explicitly based on the actual TransactionItem properties
+            rowData['ItemCode'] = item.itemCd;
+            rowData['Name'] = item.name;
+            final barcode = TransactionItemPluMetrics.barcodeForReport(item);
+            rowData['Barcode'] = barcode.isEmpty ? '-' : barcode;
+            rowData['Price'] = item.price;
+
+            final taxType = item.taxTyCd ?? 'B';
+            final fromItem = item.taxPercentage?.toDouble();
+            double taxPercentage;
+            if (fromItem != null && fromItem > 0) {
+              taxPercentage = fromItem;
+            } else {
+              final taxConfig = await ProxyService.getStrategy(
+                Strategy.capella,
+              ).getByTaxType(taxtype: taxType);
+              taxPercentage = taxConfig?.taxPercentage ?? 18.0;
+            }
+
+            rowData['TaxRate'] = taxPercentage;
+            rowData['Qty'] = item.qty;
+            rowData['TotalSales'] = TransactionItemPluMetrics.profitMade(item);
+            rowData['CurrentStock'] =
+                TransactionItemPluMetrics.currentStockDisplay(item);
+            rowData['TaxPayable'] = TransactionItemPluMetrics.taxPayable(item);
+            rowData['NetProfit'] = TransactionItemPluMetrics.netProfitColumn(
+              item,
+            );
+
+            preparedData.add(rowData);
+          }
+        }
+
+        talker.info(
+          'Prepared ${preparedData.length} transaction items for export with ${columnNames.length} columns',
+        );
+        manualData = preparedData;
+      } else if (_dataGridSource is TransactionDataSource) {
+        // Full date-range list (same as [ExportConfig.transactions]), not grid/widget subset.
+        final transactions = sales;
+
+        // Prepare data with explicit mapping to ensure all columns are included
+        List<Map<String, dynamic>> preparedData = [];
+
+        for (final transaction in transactions) {
           final Map<String, dynamic> rowData = {};
 
-          // Map all the columns explicitly based on the actual TransactionItem properties
-          rowData['ItemCode'] = item.itemCd;
-          rowData['Name'] = item.name;
-          rowData['Barcode'] = item.bcd ?? '';
-          rowData['Price'] = item.price;
+          // Map all the columns explicitly based on the actual Transaction properties
+          rowData['Name'] =
+              transaction.invoiceNumber?.toString() ??
+              transaction.id.toString();
+          rowData['Type'] = transaction.receiptType ?? 'Sale';
+          rowData['Amount'] = transaction.subTotal ?? 0.0;
 
-          // Get the correct tax rate from tax configuration based on item's tax type
-          final taxType = item.taxTyCd ?? 'B'; // Default to B if not specified
-          final taxConfig = await ProxyService.getStrategy(Strategy.capella).getByTaxType(
-            taxtype: taxType,
-          );
-          final taxPercentage =
-              taxConfig?.taxPercentage ??
-              0.0; // Default to 0 if config not found
-
-          rowData['TaxRate'] = taxPercentage;
-          rowData['Qty'] = item.qty;
-          rowData['TotalSales'] = item.price * item.qty; // profit made
-          rowData['CurrentStock'] = item.remainingStock ?? 0.0;
-          // Always calculate tax based on configured percentage
-          // Calculate tax using configured rate
-
-          // Ensure zero values are properly formatted (avoid 'RF-' display in Excel)
-          rowData['TaxPayable'] = item.taxAmt ?? 0.0;
-          // Calculate net profit per item: TotalSales - (SupplyPrice * Qty)
-          rowData['NetProfit'] =
-              (item.price * item.qty) -
-              ((item.supplyPriceAtSale ?? 0.0) * item.qty);
+          rowData['Tax'] = TransactionSummaryTax.taxColumn(transaction);
+          rowData['Cash'] = transaction.cashReceived ?? 0.0;
 
           preparedData.add(rowData);
         }
+
+        // Get column names from the headers
+        columnNames = _getTableHeaders().map((col) => col.columnName).toList();
+        talker.info(
+          'Prepared ${preparedData.length} transactions for export with ${columnNames.length} columns',
+        );
+        manualData = preparedData;
       }
 
       talker.info(
-        'Prepared ${preparedData.length} transaction items for export with ${columnNames.length} columns',
+        'Calling exportDataGrid with manualData=${manualData.length} rows',
       );
-      manualData = preparedData;
-    } else if (_dataGridSource is TransactionDataSource) {
-      // Use transactions directly from widget
-      final transactions = widget.transactions ?? [];
 
-      // Prepare data with explicit mapping to ensure all columns are included
-      List<Map<String, dynamic>> preparedData = [];
+      // Use the exportDataGrid method with our config and manual data
+      print('📦 EXPORT: Calling exportDataGrid...');
+      await _withSummaryPdfFullGridRows(() async {
+        await exportDataGrid(
+          workBookKey: widget.workBookKey, // Use the widget's key
+          isStockRecount: isStockRecount,
+          config: config,
+          headerTitle: isStockRecount ? "Stock Recount" : headerTitle,
+          expenses: expenses,
+          bottomEndOfRowTitle: widget.showDetailedReport
+              ? "Total Gross Profit"
+              : "Closing balance",
+          manualData: manualData,
+          columnNames: columnNames,
+          // Only show profit calculations in detailed report mode
+          showProfitCalculations: widget.showDetailedReport,
+        );
+      });
 
-      for (final transaction in transactions) {
-        final Map<String, dynamic> rowData = {};
-
-        // Map all the columns explicitly based on the actual Transaction properties
-        rowData['Name'] =
-            transaction.invoiceNumber?.toString() ?? transaction.id.toString();
-        rowData['Type'] = transaction.receiptType ?? 'Sale';
-        rowData['Amount'] = transaction.subTotal ?? 0.0;
-
-        // Get tax amount directly from the transaction
-        // The taxAmount property has been added to ITransaction and is populated with the sum of all transaction items' tax amounts
-        double totalTax = (transaction.taxAmount ?? 0.0).toDouble();
-
-        rowData['Tax'] = totalTax;
-        rowData['Cash'] = transaction.cashReceived ?? 0.0;
-
-        preparedData.add(rowData);
-      }
-
-      // Get column names from the headers
-      columnNames = _getTableHeaders().map((col) => col.columnName).toList();
-      talker.info(
-        'Prepared ${preparedData.length} transactions for export with ${columnNames.length} columns',
-      );
-      manualData = preparedData;
-    }
-
-    talker.info('Calling exportDataGrid with manualData=${manualData.length} rows');
-    
-    // Use the exportDataGrid method with our config and manual data
-    print('📦 EXPORT: Calling exportDataGrid...');
-    await exportDataGrid(
-      workBookKey: widget.workBookKey, // Use the widget's key
-      isStockRecount: isStockRecount,
-      config: config,
-      headerTitle: isStockRecount ? "Stock Recount" : headerTitle,
-      expenses: expenses,
-      bottomEndOfRowTitle: widget.showDetailedReport
-          ? "Total Gross Profit"
-          : "Closing balance",
-      manualData: manualData,
-      columnNames: columnNames,
-      // Only show profit calculations in detailed report mode
-      showProfitCalculations: widget.showDetailedReport,
-    );
-    
-    talker.info('Export completed successfully');
-    print('✅ EXPORT: File saved successfully');
+      talker.info('Export completed successfully');
+      print('✅ EXPORT: File saved successfully');
     } catch (e, s) {
       print('❌ EXPORT: Failed with error: $e');
       talker.error('Export failed with error: $e');

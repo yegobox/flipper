@@ -817,12 +817,19 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         final double currentQty = (existingItemData['qty'] as num).toDouble();
         final double newQty = updatableQty ?? (currentQty + 1);
         final double newTotal = amountTotal * newQty;
+        final double qtyDelta = newQty - currentQty;
+        final prevRem =
+            (existingItemData['remainingStock'] as num?)?.toDouble();
+        final double newRemainingStock = prevRem != null
+            ? prevRem - qtyDelta
+            : currentStock - newQty;
 
         await ditto.store.execute(
-          "UPDATE transaction_items SET qty = :qty, totAmt = :totAmt, updatedAt = :updatedAt WHERE _id = :id",
+          "UPDATE transaction_items SET qty = :qty, totAmt = :totAmt, remainingStock = :remainingStock, updatedAt = :updatedAt WHERE _id = :id",
           arguments: {
             'qty': newQty,
             'totAmt': newTotal,
+            'remainingStock': newRemainingStock,
             'updatedAt': DateTime.now().toIso8601String(),
             'id': existingItemData['_id'] ?? existingItemData['id'],
           },
@@ -842,6 +849,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
           transactionId: pendingTransaction.id,
           variantId: variation.id,
           qty: qty,
+          remainingStock: currentStock - qty,
           price: amountTotal, // Unit price
           totAmt: itemTotal,
           discount: 0.0,
@@ -860,6 +868,9 @@ mixin CapellaTransactionMixin implements TransactionInterface {
           isrcAmt: variation.isrcAmt,
           taxTyCd: variation.taxTyCd,
           bcd: variation.bcd,
+          sku: variation.sku,
+          taxPercentage: variation.taxPercentage,
+          supplyPriceAtSale: variation.supplyPrice,
           itemClsCd: variation.itemClsCd,
           itemTyCd: variation.itemTyCd,
           itemStdNm: variation.itemStdNm,
@@ -972,6 +983,37 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         if (value != null) {
           updates.add('$field = :$field');
           arguments[field] = value;
+        }
+      }
+
+      if (qty != null) {
+        final itemBefore = await ditto.store.execute(
+          "SELECT * FROM transaction_items WHERE _id = :id OR id = :id",
+          arguments: {'id': transactionItemId},
+        );
+        if (itemBefore.items.isNotEmpty) {
+          final d = Map<String, dynamic>.from(itemBefore.items.first.value);
+          final oldQty = (d['qty'] as num).toDouble();
+          final newQty = qty;
+          final qtyDelta = newQty - oldQty;
+          if (qtyDelta != 0) {
+            final oldRem = (d['remainingStock'] as num?)?.toDouble();
+            double? newRem;
+            if (oldRem != null) {
+              newRem = oldRem - qtyDelta;
+            } else {
+              final vid = d['variantId'] as String?;
+              if (vid != null) {
+                try {
+                  final v = await ProxyService.getStrategy(Strategy.capella)
+                      .getVariant(id: vid);
+                  final shelf = v?.stock?.currentStock?.toDouble();
+                  if (shelf != null) newRem = shelf - newQty;
+                } catch (_) {}
+              }
+            }
+            addUpdate('remainingStock', newRem);
+          }
         }
       }
 

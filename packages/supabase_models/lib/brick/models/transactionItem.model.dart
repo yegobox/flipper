@@ -500,6 +500,7 @@ class TransactionItem extends OfflineFirstWithSupabaseModel {
       'pkgUnitCd': pkgUnitCd,
       'qtyUnitCd': qtyUnitCd,
       'itemNm': itemNm,
+      'bcd': bcd,
       'splyAmt': splyAmt,
       'tin': tin,
       'bhfId': bhfId,
