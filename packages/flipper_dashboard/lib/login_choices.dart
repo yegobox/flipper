@@ -1,3 +1,4 @@
+import 'package:flipper_models/providers/active_branch_provider.dart';
 import 'package:flipper_models/providers/branch_business_provider.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flutter/material.dart';
@@ -421,6 +422,8 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
       // Small delay to allow Hive writes to complete
       await Future.delayed(const Duration(milliseconds: 100));
 
+      ref.invalidate(activeBranchProvider);
+
       // Step 2: Save device record (deferred to avoid blocking)
       unawaited(_saveDeviceRecord());
 
@@ -508,6 +511,7 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
   void _invalidateProviders() {
     // Refresh providers to reflect changes
     ref.invalidate(businessesProvider);
+    ref.invalidate(activeBranchProvider);
     final businessId = ref.read(selectedBusinessIdProvider);
     if (businessId != null) {
       ref.invalidate(branchesProvider(businessId: businessId));
