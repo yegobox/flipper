@@ -406,3 +406,125 @@ Stream<ITransaction?> transactionById(Ref ref, String transactionId) {
       )
       .map((list) => list.firstOrNull);
 }
+
+// ---------------------------------------------------------------------------
+// Dashboard gauge — PLU gross / deductions aligned with DataView summary cards
+// (Capella line items + expenses; same formulas as Transaction Reports).
+// ---------------------------------------------------------------------------
+
+class DashboardGaugeSnapshot {
+  const DashboardGaugeSnapshot({
+    required this.grossProfit,
+    required this.deductions,
+  });
+
+  /// Sum of line-level (price×qty − supply) for completed non-expense sales.
+  final double grossProfit;
+
+  /// Line VAT + expense transaction [subTotal]s in the period.
+  final double deductions;
+
+  double get netProfit => grossProfit - deductions;
+}
+
+/// Inclusive start of the dashboard filter window (matches [DashboardView] chips).
+DateTime dashboardPeriodStart(String period) {
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  if (period == 'Today') return today;
+  if (period == 'This Week') {
+    return today.subtract(const Duration(days: 7));
+  }
+  if (period == 'This Month') {
+    var y = now.year;
+    var m = now.month - 1;
+    if (m < 1) {
+      y -= 1;
+      m = 12;
+    }
+    final lastDay = DateTime(y, m + 1, 0).day;
+    final d = now.day > lastDay ? lastDay : now.day;
+    return DateTime(y, m, d);
+  }
+  final lastDayYear = DateTime(now.year - 1, now.month + 1, 0).day;
+  final d = now.day > lastDayYear ? lastDayYear : now.day;
+  return DateTime(now.year - 1, now.month, d);
+}
+
+final dashboardGaugeSnapshotProvider =
+    StreamProvider.family<DashboardGaugeSnapshot, String>((ref, period) {
+      final start = dashboardPeriodStart(period);
+      final end = DateTime.now();
+      final branchId = ProxyService.box.branchIdString();
+      if (branchId == null) {
+        return Stream.value(
+          const DashboardGaugeSnapshot(grossProfit: 0, deductions: 0),
+        );
+      }
+
+      final itemStream = ProxyService.getStrategy(Strategy.capella)
+          .transactionItemsStreams(
+            startDate: start,
+            endDate: end,
+            branchId: branchId,
+            branchIdString: branchId,
+            fetchRemote: true,
+          )
+          .startWith(const <TransactionItem>[]);
+
+      final completedSalesStream = coreTransactionsStream(
+        ref,
+        startDate: start,
+        endDate: end,
+        branchId: branchId,
+        forceRealData: true,
+      )
+          .map(
+            (all) => all
+                .where((tx) => tx.isExpense != true && tx.status == COMPLETE)
+                .toList(),
+          )
+          .startWith(const <ITransaction>[]);
+
+      final expenseTxStream = expensesStream(
+        ref,
+        startDate: start,
+        endDate: end,
+        branchId: branchId,
+        forceRealData: true,
+      ).startWith(const <ITransaction>[]);
+
+      return Rx.combineLatest3<
+        List<TransactionItem>,
+        List<ITransaction>,
+        List<ITransaction>,
+        DashboardGaugeSnapshot
+      >(
+        itemStream,
+        completedSalesStream,
+        expenseTxStream,
+        (items, txs, exps) {
+          final allowed = txs.map((t) => t.id.toString()).toSet();
+          final filtered = items.where((i) {
+            final tid = i.transactionId?.toString();
+            return tid != null && allowed.contains(tid);
+          }).toList();
+          final gross = filtered.fold<double>(
+            0.0,
+            (s, i) => s + TransactionItemPluMetrics.profitMade(i),
+          );
+          final tax = filtered.fold<double>(
+            0.0,
+            (s, i) => s + TransactionItemPluMetrics.taxPayable(i),
+          );
+          final expSum = exps.fold<double>(
+            0.0,
+            (s, e) => s + (e.subTotal ?? 0.0),
+          );
+          return DashboardGaugeSnapshot(
+            grossProfit: gross,
+            deductions: tax + expSum,
+          );
+        },
+      );
+    });

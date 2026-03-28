@@ -42,7 +42,9 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
         Expanded(
           child: RefreshIndicator(
             onRefresh: () async {
-              ref.invalidate(dashboardTransactionsProvider);
+              ref.invalidate(
+                dashboardGaugeSnapshotProvider(transactionPeriod),
+              );
             },
             child: SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
@@ -177,26 +179,15 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
   }
 
   Widget _buildGauge(BuildContext context, WidgetRef ref) {
-    final transactionsData = ref.watch(dashboardTransactionsProvider);
+    final gaugeAsync = ref.watch(
+      dashboardGaugeSnapshotProvider(transactionPeriod),
+    );
 
-    return transactionsData.when(
-      data: (value) {
-        final filteredTransactions = _filterTransactionsByPeriod(
-          value,
-          transactionPeriod,
-        );
-        final cashIn = _calculateCashIn(
-          filteredTransactions,
-          transactionPeriod,
-        );
-        final cashOut = _calculateCashOut(
-          filteredTransactions,
-          transactionPeriod,
-        );
-
+    return gaugeAsync.when(
+      data: (snapshot) {
         return SemiCircleGauge(
-          dataOnGreenSide: cashIn,
-          dataOnRedSide: cashOut,
+          dataOnGreenSide: snapshot.grossProfit,
+          dataOnRedSide: snapshot.deductions,
           startPadding: 50.0,
           profitType: profitType,
           areValueColumnsVisible: true,
@@ -219,83 +210,5 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
         ),
       ),
     );
-  }
-
-  List<ITransaction> _filterTransactionsByPeriod(
-    List<ITransaction> transactions,
-    String period,
-  ) {
-    log(transactions.length.toString(), name: 'render transactions on gauge');
-    DateTime startingDate = _calculateStartingDate(transactionPeriod);
-    return transactions
-        .where(
-          (transaction) =>
-              transaction.createdAt?.isAfter(startingDate) == true ||
-              transaction.createdAt?.isAtSameMomentAs(startingDate) == true,
-        )
-        .toList();
-  }
-
-  DateTime _calculateStartingDate(String transactionPeriod) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-
-    if (transactionPeriod == 'Today') {
-      return today;
-    } else if (transactionPeriod == 'This Week') {
-      // Last 7 days
-      return today.subtract(const Duration(days: 7));
-    } else if (transactionPeriod == 'This Month') {
-      // Last Month (Same day or clamped)
-      // Logic: subtract 1 from month, handle year rollover, clamp day to valid range
-      int targetYear = now.year;
-      int targetMonth = now.month - 1;
-      if (targetMonth < 1) {
-        targetYear -= 1;
-        targetMonth = 12;
-      }
-      return _safeDateTime(targetYear, targetMonth, now.day);
-    } else {
-      // This Year (Last Year Same day or clamped)
-      return _safeDateTime(now.year - 1, now.month, now.day);
-    }
-  }
-
-  /// Helper to construct a valid DateTime, clamping the day if necessary
-  /// (e.g. Feb 30 -> Feb 28/29)
-  DateTime _safeDateTime(int year, int month, int day) {
-    // Determine the last day of the target month
-    // by going to the next month's 0th day (which is the last day of current month)
-    final lastDayOfMonth = DateTime(year, month + 1, 0).day;
-    final clampedDay = day > lastDayOfMonth ? lastDayOfMonth : day;
-    return DateTime(year, month, clampedDay);
-  }
-
-  double _calculateCashIn(List<ITransaction> transactions, String period) {
-    DateTime oldDate = _calculateStartingDate(transactionPeriod);
-    List<ITransaction> filteredTransactions = transactions
-        .where((transaction) => transaction.createdAt!.isAfter(oldDate))
-        .toList();
-    double sumCashIn = 0;
-    for (final transaction in filteredTransactions) {
-      if (transaction.isIncome != null && transaction.isIncome!) {
-        sumCashIn += transaction.subTotal!;
-      }
-    }
-    return sumCashIn;
-  }
-
-  double _calculateCashOut(List<ITransaction> transactions, String period) {
-    DateTime oldDate = _calculateStartingDate(transactionPeriod);
-    List<ITransaction> filteredTransactions = transactions
-        .where((transaction) => transaction.createdAt!.isAfter(oldDate))
-        .toList();
-    double sumCashOut = 0;
-    for (final transaction in filteredTransactions) {
-      if (transaction.isExpense != null && transaction.isExpense!) {
-        sumCashOut += transaction.subTotal!;
-      }
-    }
-    return sumCashOut;
   }
 }
