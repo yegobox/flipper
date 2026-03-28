@@ -35,6 +35,7 @@ import 'package:flipper_models/sync/mixins/discount_mixin.dart';
 import 'package:flipper_models/sync/mixins/settings_mixin.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_models/secrets.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/helper_models.dart' as ext;
@@ -1315,9 +1316,7 @@ class CoreSync extends AiStrategyImpl
       if (dittoService.isReady()) {
         final plan = await dittoService.getPaymentPlanFromDitto(businessId);
         if (plan != null) {
-          talker.info(
-            'getPaymentPlan: from Ditto businessId=$businessId',
-          );
+          talker.info('getPaymentPlan: from Ditto businessId=$businessId');
           return plan;
         }
         talker.info(
@@ -3324,10 +3323,13 @@ class CoreSync extends AiStrategyImpl
     throw UnimplementedError();
   }
 
+  @override
   Future<Stock> getStockById({required String id}) async {
-    return (await repository.get<Stock>(
-      query: brick.Query(where: [brick.Where('id').isExactly(id)]),
-    )).first;
+    // Must match Capella/Ditto reads: StockMixin delegates here, but this method
+    // previously shadowed the mixin and queried Brick only — empty when Ditto is
+    // ahead of SQLite (e.g. checkout reads stock via Strategy.capella then
+    // updateStock via ProxyService.strategy / CoreSync).
+    return ProxyService.getStrategy(Strategy.capella).getStockById(id: id);
   }
 
   @override
@@ -3766,10 +3768,12 @@ class CoreSync extends AiStrategyImpl
 
     if (plans.length < 2) return;
 
-    final paidPlans =
-        plans.where((p) => p.paymentCompletedByUser ?? false).toList();
-    final unpaidPlans =
-        plans.where((p) => !(p.paymentCompletedByUser ?? false)).toList();
+    final paidPlans = plans
+        .where((p) => p.paymentCompletedByUser ?? false)
+        .toList();
+    final unpaidPlans = plans
+        .where((p) => !(p.paymentCompletedByUser ?? false))
+        .toList();
 
     models.Plan? planToKeep;
 
@@ -3782,7 +3786,10 @@ class CoreSync extends AiStrategyImpl
 
       for (final plan in plans) {
         if (plan.id != planToKeep!.id && plan.id != null) {
-          await Supabase.instance.client.from('plans').delete().eq('id', plan.id!);
+          await Supabase.instance.client
+              .from('plans')
+              .delete()
+              .eq('id', plan.id!);
         }
       }
     } else if (unpaidPlans.isNotEmpty) {
@@ -3794,7 +3801,10 @@ class CoreSync extends AiStrategyImpl
 
       for (final plan in unpaidPlans) {
         if (plan.id != planToKeep!.id && plan.id != null) {
-          await Supabase.instance.client.from('plans').delete().eq('id', plan.id!);
+          await Supabase.instance.client
+              .from('plans')
+              .delete()
+              .eq('id', plan.id!);
         }
       }
     }

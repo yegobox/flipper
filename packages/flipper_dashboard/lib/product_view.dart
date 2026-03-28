@@ -334,6 +334,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
             .when(
               data: (variants) {
                 if (variants.isEmpty) {
+                  final hasBranch = branchId.isNotEmpty;
                   return Center(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 180.0),
@@ -347,7 +348,9 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                           ),
                           const SizedBox(height: 16),
                           Text(
-                            'Products not available',
+                            hasBranch
+                                ? 'No products yet'
+                                : 'No branch selected',
                             style: Theme.of(context).textTheme.titleLarge
                                 ?.copyWith(
                                   color: Theme.of(
@@ -356,6 +359,30 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                                   fontWeight: FontWeight.w500,
                                 ),
                           ),
+                          if (hasBranch) ...[
+                            const SizedBox(height: 8),
+                            Text(
+                              'If you just opened the app, products may still '
+                              'be syncing — tap refresh.',
+                              textAlign: TextAlign.center,
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
+                            const SizedBox(height: 20),
+                            FilledButton.icon(
+                              onPressed: () => ref.invalidate(
+                                outerVariantsProvider(branchId),
+                              ),
+                              icon: const Icon(
+                                FluentIcons.arrow_sync_20_filled,
+                              ),
+                              label: const Text('Refresh products'),
+                            ),
+                          ],
                         ],
                       ),
                     ),

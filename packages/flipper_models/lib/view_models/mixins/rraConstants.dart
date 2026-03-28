@@ -58,7 +58,7 @@ mixin RRADEFAULTS {
     "VT:49:Extra Bulk Item:Extra Bulk Item",
     "VY:50:Bulk, fine particles(powder):Bulk, fine particles(powder)",
     "ML:51:Mills cigarette:Mills",
-    "TN:52:TAN 1TAN REFER TO 20BAGS:TAN 1TAN REFER TO 20BAGS"
+    "TN:52:TAN 1TAN REFER TO 20BAGS:TAN 1TAN REFER TO 20BAGS",
   ];
   static const List<String> unityOfQuantity = [
     "4B:1:Pair:Pair",
@@ -103,6 +103,6 @@ mixin RRADEFAULTS {
     "TNE:40:tonne (metric ton):tonne (metric ton)",
     "TU:41:tube:tube",
     "U:42:Pieces/item [Number]:Pieces/item [Number]",
-    "YRD:43:yard:yard"
+    "YRD:43:yard:yard",
   ];
 }
