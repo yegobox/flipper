@@ -1293,6 +1293,16 @@ class CoreSync extends AiStrategyImpl
     return const bool.fromEnvironment('FLUTTER_TEST_ENV') == true;
   }
 
+  Future<models.Plan?> _paymentPlanFromSupabase(String businessId) async {
+    final row = await Supabase.instance.client
+        .from('plans')
+        .select()
+        .eq('business_id', businessId)
+        .maybeSingle();
+    if (row == null) return null;
+    return models.Plan.fromSupabaseJson(Map<String, dynamic>.from(row));
+  }
+
   @override
   Future<models.Plan?> getPaymentPlan({
     required String businessId,
@@ -1300,8 +1310,8 @@ class CoreSync extends AiStrategyImpl
     bool? preferFresh,
   }) async {
     try {
-      // Backend syncs plans to Ditto (e.g. PlanSyncJob); treat Ditto as authoritative for reads.
-      // Avoid relying on direct Supabase via Brick alwaysHydrate — Supabase is not the preferred source here.
+      // Prefer Ditto when live (e.g. PlanSyncJob). Plan is not in Brick/SQLite — if Ditto misses
+      // or is not ready, read the `plans` row from Supabase (same as GetterOperationsMixin).
       if (dittoService.isReady()) {
         final plan = await dittoService.getPaymentPlanFromDitto(businessId);
         if (plan != null) {
@@ -1311,15 +1321,19 @@ class CoreSync extends AiStrategyImpl
           return plan;
         }
         talker.info(
-          'getPaymentPlan: no plan in Ditto for businessId=$businessId, trying local Brick cache only',
+          'getPaymentPlan: no plan in Ditto for businessId=$businessId — fetching from Supabase',
         );
       } else {
         talker.info(
-          'getPaymentPlan: Ditto not ready for businessId=$businessId — no local Plan in SQLite (Supabase-only model)',
+          'getPaymentPlan: Ditto not ready for businessId=$businessId — fetching plan from Supabase',
         );
       }
 
-      return null;
+      final remote = await _paymentPlanFromSupabase(businessId);
+      if (remote != null) {
+        talker.info('getPaymentPlan: from Supabase businessId=$businessId');
+      }
+      return remote;
     } catch (e) {
       talker.error('getPaymentPlan error: $e');
       rethrow;
