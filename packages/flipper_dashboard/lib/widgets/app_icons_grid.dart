@@ -107,6 +107,14 @@ class AppIconsGrid extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final List<Map<String, dynamic>> rippleApps = [
+      if (!isBigScreen)
+        {
+          'icon': FluentIcons.handshake_24_regular,
+          'color': const Color(0xFF0D9488),
+          'page': "ServicesGigs",
+          'label': "Services hub",
+          'feature': 'ServicesGigs',
+        },
       {
         'icon': FluentIcons.calculator_24_regular,
         'color': const Color(0xff006AFE),
@@ -171,14 +179,6 @@ class AppIconsGrid extends ConsumerWidget {
           'page': "Orders",
           'label': "Orders",
           'feature': 'Orders',
-        },
-      if (!isBigScreen)
-        {
-          'icon': FluentIcons.handshake_24_regular,
-          'color': const Color(0xFF0D9488),
-          'page': "ServicesGigs",
-          'label': "Services hub",
-          'feature': 'ServicesGigs',
         },
     ];
 
