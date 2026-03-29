@@ -183,9 +183,13 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   }) async {
     String? filePath;
     try {
-      print('📊 EXPORT: Starting exportDataGrid with ${config.transactions.length} transactions');
-      talker.info('Starting exportDataGrid with ${config.transactions.length} transactions');
-      
+      print(
+        '📊 EXPORT: Starting exportDataGrid with ${config.transactions.length} transactions',
+      );
+      talker.info(
+        'Starting exportDataGrid with ${config.transactions.length} transactions',
+      );
+
       // Get the system currency from settings if not provided
       final systemCurrency = currencyCode ?? ProxyService.box.defaultCurrency();
 
@@ -193,7 +197,9 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       // SKIP COGS calculation for large datasets to avoid performance issues
       double totalCOGS = 0.0;
       if (config.transactions.length < 100) {
-        print('📊 EXPORT: Calculating COGS for ${config.transactions.length} transactions...');
+        print(
+          '📊 EXPORT: Calculating COGS for ${config.transactions.length} transactions...',
+        );
         for (final transaction in config.transactions) {
           try {
             final transactionItems = await ProxyService.getStrategy(
@@ -230,7 +236,9 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         }
         print('📊 EXPORT: COGS calculation complete: $totalCOGS');
       } else {
-        print('📊 EXPORT: Skipping COGS calculation for large dataset (${config.transactions.length} transactions)');
+        print(
+          '📊 EXPORT: Skipping COGS calculation for large dataset (${config.transactions.length} transactions)',
+        );
         talker.info('Skipping COGS calculation for large dataset');
         // Use estimated COGS (60% of revenue) for large datasets
         final totalRevenue = config.transactions.fold<double>(
@@ -290,7 +298,8 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
         // When manualData is provided, build workbook from data only (no grid export).
         // This avoids exportToExcelWorkbook() hanging on large datasets and ensures all rows are exported.
-        final useManualData = manualData != null &&
+        final useManualData =
+            manualData != null &&
             manualData.isNotEmpty &&
             columnNames != null &&
             columnNames.isNotEmpty;
@@ -299,8 +308,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           try {
             if (workBookKey.currentState != null) {
               try {
-                workbook =
-                    workBookKey.currentState!.exportToExcelWorkbook();
+                workbook = workBookKey.currentState!.exportToExcelWorkbook();
               } catch (e) {
                 talker.warning('Error using DataGrid export: $e');
                 workbook = excel.Workbook();
@@ -424,6 +432,17 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
           // Add data rows (starting at row 5 due to the added header information)
 
+          // TotalSales in detailed line export: Excel formula Price*Qty (column positions from headers).
+          int? priceColIndex0;
+          int? qtyColIndex0;
+          for (int i = 0; i < columnNames.length; i++) {
+            final key = columnNames[i].toLowerCase();
+            if (key == 'price') priceColIndex0 = i;
+            if (key == 'qty') qtyColIndex0 = i;
+          }
+          final useTotalSalesFormula =
+              priceColIndex0 != null && qtyColIndex0 != null;
+
           for (int rowIndex = 0; rowIndex < manualData.length; rowIndex++) {
             final item = manualData[rowIndex];
             Map<String, dynamic> rowData;
@@ -454,6 +473,16 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                 rowIndex + 5,
                 colIndex + 1,
               );
+
+              if (useTotalSalesFormula &&
+                  colName.toLowerCase() == 'totalsales') {
+                final excelRow = rowIndex + 5;
+                final priceLetter = _getColumnLetter(priceColIndex0 + 1);
+                final qtyLetter = _getColumnLetter(qtyColIndex0 + 1);
+                cell.setFormula('=$priceLetter$excelRow*$qtyLetter$excelRow');
+                cell.cellStyle = numericStyle;
+                continue;
+              }
 
               // Get the value for this column
               var value = rowData[colName];
@@ -862,11 +891,8 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           amount: existing.amount + amount,
           count: existing.count + 1,
         ),
-        ifAbsent: () => PaymentSummary(
-          method: method,
-          amount: amount,
-          count: 1,
-        ),
+        ifAbsent: () =>
+            PaymentSummary(method: method, amount: amount, count: 1),
       );
     }
 

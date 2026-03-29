@@ -116,27 +116,7 @@ class TransactionListState extends ConsumerState<TransactionList>
     final showDetailed = ref.watch(toggleBooleanValueProvider);
     final rowsPerPage = ref.watch(rowsPerPageProvider);
 
-    // Calculate pagination parameters
-    // TEMPORARILY DISABLED: Pagination not implemented in backend
-    // final limit = rowsPerPage;
-    // final offset = _currentPage * rowsPerPage;
-
-    // Get total count for pagination
-    // TEMPORARILY DISABLED: transactionItemCountProvider and transactionCountProvider are not implemented
-    // final countAsync = showDetailed
-    //     ? ref.watch(transactionItemCountProvider)
-    //     : ref.watch(transactionCountProvider);
-
-    // Update total count when available
-    // countAsync.whenData((count) {
-    //   if (_totalCount != count) {
-    //     WidgetsBinding.instance.addPostFrameCallback((_) {
-    //       if (mounted) {
-    //         setState(() => _totalCount = count);
-    //       }
-    //     });
-    //   }
-    // });
+ 
 
     final forceRealData = !(ProxyService.box.enableDebug() ?? false);
     final transactionListAsync = ref.watch(
