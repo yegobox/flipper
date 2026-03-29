@@ -237,6 +237,10 @@ abstract class DynamicDataSource<T> extends DataGridSource {
           value: TransactionItemPluMetrics.profitMade(transactionItem),
         ),
         DataGridCell<double>(
+          columnName: 'SupplyAmount',
+          value: transactionItem.splyAmt?.toDouble() ?? 0.0,
+        ),
+        DataGridCell<double>(
           columnName: 'CurrentStock',
           value: TransactionItemPluMetrics.currentStockDisplay(transactionItem),
         ),

@@ -197,6 +197,18 @@ mixin Headers<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         ),
       ),
       GridColumn(
+        columnName: 'SupplyAmount',
+        label: Container(
+          decoration: BoxDecoration(
+            color: Colors.grey.shade200,
+            borderRadius: BorderRadius.circular(4.0),
+          ),
+          padding: headerPadding,
+          alignment: Alignment.center,
+          child: const Text('Supply amount', overflow: TextOverflow.ellipsis),
+        ),
+      ),
+      GridColumn(
         columnName: 'CurrentStock',
         label: Container(
           decoration: BoxDecoration(

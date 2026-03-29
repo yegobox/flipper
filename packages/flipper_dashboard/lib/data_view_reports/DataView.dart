@@ -784,7 +784,7 @@ class DataViewState extends ConsumerState<DataView>
         (widget.transactions == null || widget.transactions!.isEmpty) &&
         (widget.transactionItems == null || widget.transactionItems!.isEmpty)) {
       if (widget.showDetailedReport) {
-        columns = pluReportTableHeader(headerPadding); // 10 columns
+        columns = pluReportTableHeader(headerPadding); // 11 columns
       } else {
         columns = zReportTableHeader(headerPadding); // 5 columns
       }
@@ -927,9 +927,17 @@ class DataViewState extends ConsumerState<DataView>
           'TaxRate': taxPercentage,
           'Qty': item.qty,
           'TotalSales': TransactionItemPluMetrics.profitMade(item),
+          'SupplyAmount': item.splyAmt?.toDouble() ?? 0.0,
           'CurrentStock': TransactionItemPluMetrics.currentStockDisplay(item),
           'TaxPayable': TransactionItemPluMetrics.taxPayable(item),
           'NetProfit': TransactionItemPluMetrics.netProfitColumn(item),
+          // Not DataGrid columns — used only by Excel manual export formulas
+          '__excelRowTaxTyCd': item.taxTyCd,
+          '__excelRowDiscount': item.discount.toDouble(),
+          '__excelRowSplyAmt': item.splyAmt?.toDouble() ?? 0.0,
+          '__excelRowTaxAmt': item.taxAmt,
+          '__excelRowTotAmt': item.totAmt,
+          '__excelRowTaxblAmt': item.taxblAmt,
         });
       }
       return (manualData: preparedData, columnNames: columnNames);
@@ -1262,12 +1270,19 @@ class DataViewState extends ConsumerState<DataView>
             rowData['TaxRate'] = taxPercentage;
             rowData['Qty'] = item.qty;
             rowData['TotalSales'] = TransactionItemPluMetrics.profitMade(item);
+            rowData['SupplyAmount'] = item.splyAmt?.toDouble() ?? 0.0;
             rowData['CurrentStock'] =
                 TransactionItemPluMetrics.currentStockDisplay(item);
             rowData['TaxPayable'] = TransactionItemPluMetrics.taxPayable(item);
             rowData['NetProfit'] = TransactionItemPluMetrics.netProfitColumn(
               item,
             );
+            rowData['__excelRowTaxTyCd'] = item.taxTyCd;
+            rowData['__excelRowDiscount'] = item.discount.toDouble();
+            rowData['__excelRowSplyAmt'] = item.splyAmt?.toDouble() ?? 0.0;
+            rowData['__excelRowTaxAmt'] = item.taxAmt;
+            rowData['__excelRowTotAmt'] = item.totAmt;
+            rowData['__excelRowTaxblAmt'] = item.taxblAmt;
 
             preparedData.add(rowData);
           }

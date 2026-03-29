@@ -20,6 +20,14 @@ import 'package:syncfusion_flutter_pdf/pdf.dart';
 import 'package:flipper_dashboard/export/models/expense.dart';
 import 'package:flipper_dashboard/features/config/widgets/currency_options.dart';
 
+/// Keys on PLU manual-export row maps (not DataGrid columns); used for Excel formulas.
+const String _excelRowTaxTyCd = '__excelRowTaxTyCd';
+const String _excelRowDiscount = '__excelRowDiscount';
+const String _excelRowSplyAmt = '__excelRowSplyAmt';
+const String _excelRowTaxAmt = '__excelRowTaxAmt';
+const String _excelRowTotAmt = '__excelRowTotAmt';
+const String _excelRowTaxblAmt = '__excelRowTaxblAmt';
+
 class PaymentSummary {
   final String method;
   final double amount;
@@ -432,16 +440,47 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
           // Add data rows (starting at row 5 due to the added header information)
 
-          // TotalSales in detailed line export: Excel formula Price*Qty (column positions from headers).
+          // PLU line export: column letters for Excel formulas (Price*Qty, tax, net profit).
           int? priceColIndex0;
           int? qtyColIndex0;
+          int? taxRateColIndex0;
+          int? totalSalesColIndex0;
+          int? taxPayableColIndex0;
+          int? netProfitColIndex0;
+          int? supplyAmountColIndex0;
           for (int i = 0; i < columnNames.length; i++) {
             final key = columnNames[i].toLowerCase();
-            if (key == 'price') priceColIndex0 = i;
-            if (key == 'qty') qtyColIndex0 = i;
+            switch (key) {
+              case 'price':
+                priceColIndex0 = i;
+                break;
+              case 'qty':
+                qtyColIndex0 = i;
+                break;
+              case 'taxrate':
+                taxRateColIndex0 = i;
+                break;
+              case 'totalsales':
+                totalSalesColIndex0 = i;
+                break;
+              case 'supplyamount':
+                supplyAmountColIndex0 = i;
+                break;
+              case 'taxpayable':
+                taxPayableColIndex0 = i;
+                break;
+              case 'netprofit':
+                netProfitColIndex0 = i;
+                break;
+            }
           }
           final useTotalSalesFormula =
               priceColIndex0 != null && qtyColIndex0 != null;
+          final usePluTaxNetFormulas = useTotalSalesFormula &&
+              taxRateColIndex0 != null &&
+              totalSalesColIndex0 != null &&
+              taxPayableColIndex0 != null &&
+              netProfitColIndex0 != null;
 
           for (int rowIndex = 0; rowIndex < manualData.length; rowIndex++) {
             final item = manualData[rowIndex];
@@ -480,6 +519,46 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                 final priceLetter = _getColumnLetter(priceColIndex0 + 1);
                 final qtyLetter = _getColumnLetter(qtyColIndex0 + 1);
                 cell.setFormula('=$priceLetter$excelRow*$qtyLetter$excelRow');
+                cell.cellStyle = numericStyle;
+                continue;
+              }
+
+              if (usePluTaxNetFormulas &&
+                  colName.toLowerCase() == 'taxpayable') {
+                final excelRow = rowIndex + 5;
+                final taxFormula = _pluTaxPayableExcelFormula(
+                  rowData: rowData,
+                  excelRow: excelRow,
+                  priceLetter: _getColumnLetter(priceColIndex0 + 1),
+                  qtyLetter: _getColumnLetter(qtyColIndex0 + 1),
+                  taxRateLetter: _getColumnLetter(taxRateColIndex0 + 1),
+                );
+                if (taxFormula != null) {
+                  cell.setFormula(taxFormula);
+                  cell.cellStyle = numericStyle;
+                  continue;
+                }
+              }
+
+              if (usePluTaxNetFormulas &&
+                  colName.toLowerCase() == 'netprofit') {
+                final excelRow = rowIndex + 5;
+                final tsL = _getColumnLetter(totalSalesColIndex0 + 1);
+                final tpL = _getColumnLetter(taxPayableColIndex0 + 1);
+                cell.setFormula(
+                  _pluNetProfitExcelFormula(
+                    excelRow: excelRow,
+                    totalSalesLetter: tsL,
+                    taxPayableLetter: tpL,
+                    supplyLetter: supplyAmountColIndex0 != null
+                        ? _getColumnLetter(supplyAmountColIndex0 + 1)
+                        : null,
+                    splyAmtLiteral: supplyAmountColIndex0 == null
+                        ? ((rowData[_excelRowSplyAmt] as num?)?.toDouble() ??
+                            0.0)
+                        : null,
+                  ),
+                );
                 cell.cellStyle = numericStyle;
                 continue;
               }
@@ -675,6 +754,82 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
     // Note: Final Net Profit (after expenses) calculation is now handled by the _addFinalNetProfitRow method
     // which is called after the Expenses sheet has been created
+  }
+
+  /// Numeric literal for embedding in Excel formulas (en-US decimal point).
+  String _excelLiteralNum(num n) {
+    final d = n.toDouble();
+    if (d == 0) return '0';
+    if (d == d.roundToDouble()) return '${d.round()}';
+    return d.toString();
+  }
+
+  /// Matches [TransactionItemPluMetrics.taxPayable] when tax is derived from rate;
+  /// returns `null` when the app uses [taxAmt] or (tot - taxbl) — then the static cell value is used.
+  String? _pluTaxPayableExcelFormula({
+    required Map<String, dynamic> rowData,
+    required int excelRow,
+    required String priceLetter,
+    required String qtyLetter,
+    required String taxRateLetter,
+  }) {
+    final taxAmt = rowData[_excelRowTaxAmt];
+    if (taxAmt is num && taxAmt.toDouble() > 0) {
+      return null;
+    }
+    final tot = rowData[_excelRowTotAmt];
+    final taxbl = rowData[_excelRowTaxblAmt];
+    if (tot is num &&
+        taxbl is num &&
+        tot.toDouble() > taxbl.toDouble() + 0.0001) {
+      return null;
+    }
+
+    var ty = rowData[_excelRowTaxTyCd]?.toString().trim();
+    if (ty == null || ty.isEmpty) ty = 'B';
+    ty = ty.toUpperCase();
+    final discount =
+        (rowData[_excelRowDiscount] as num?)?.toDouble() ?? 0.0;
+    final dLit = _excelLiteralNum(discount);
+
+    final p = priceLetter;
+    final q = qtyLetter;
+    final tr = taxRateLetter;
+    final r = excelRow;
+
+    final baseExpr = 'MAX(0,$p$r*$q$r-$dLit)';
+
+    if (ty == 'D') {
+      return '=0';
+    }
+    if (ty == 'B' || ty == 'C') {
+      return '=IF($baseExpr<=0,0,ROUND($baseExpr*$tr$r/(100+$tr$r),2))';
+    }
+    return '=IF($baseExpr<=0,0,ROUND($baseExpr*$tr$r/100,2))';
+  }
+
+  /// Matches [TransactionItemPluMetrics.netProfitColumn]:
+  /// (price×qty − splyAmt) − taxPayable; [totalSalesLetter] is the P×Q cell.
+  ///
+  /// Prefer [supplyLetter] so cost is visible and editable in Excel; otherwise
+  /// [splyAmtLiteral] is embedded (legacy layouts without SupplyAmount column).
+  String _pluNetProfitExcelFormula({
+    required int excelRow,
+    required String totalSalesLetter,
+    required String taxPayableLetter,
+    String? supplyLetter,
+    double? splyAmtLiteral,
+  }) {
+    final ts = totalSalesLetter;
+    final tp = taxPayableLetter;
+    final r = excelRow;
+    if (supplyLetter != null) {
+      final s = supplyLetter;
+      return '=ROUND($ts$r-$s$r-$tp$r,2)';
+    }
+    final lit = splyAmtLiteral ?? 0.0;
+    final sLit = _excelLiteralNum(lit);
+    return '=ROUND($ts$r-$sLit-$tp$r,2)';
   }
 
   // Helper method to convert column index to Excel column letter (e.g., 1 -> A, 2 -> B, etc.)
