@@ -31,6 +31,10 @@ const String _excelRowTaxblAmt = '__excelRowTaxblAmt';
 /// PLU line amounts in Excel (manual export + footer sums); keep in sync with [ManualNumericStyle].
 const String _excelPluAmountNumberFormat = '#,##0.00';
 
+/// Manual PLU workbook layout (no reserved blank rows above the table).
+const int _manualPluHeaderRow = 1;
+const int _manualPluFirstDataRow = 2;
+
 class PaymentSummary {
   final String method;
   final double amount;
@@ -428,9 +432,10 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             },
           );
 
-          // Add column headers (starting at row 4 due to the added header information)
+          // Column headers row 1; data from row 2 (matches DataGrid export layout).
           for (int i = 0; i < columnNames.length; i++) {
-            final cell = reportSheet.getRangeByIndex(4, i + 1);
+            final cell =
+                reportSheet.getRangeByIndex(_manualPluHeaderRow, i + 1);
             cell.setText(columnNames[i]);
             cell.cellStyle = headerStyle;
 
@@ -441,7 +446,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             ); // Initial width before auto-fit
           }
 
-          // Add data rows (starting at row 5 due to the added header information)
+          // Data rows
 
           // PLU line export: column letters for Excel formulas (Price*Qty, tax, net profit).
           int? priceColIndex0;
@@ -511,14 +516,15 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             // Add each cell in the row
             for (int colIndex = 0; colIndex < columnNames.length; colIndex++) {
               final colName = columnNames[colIndex];
+              final dataRow = rowIndex + _manualPluFirstDataRow;
               final cell = reportSheet.getRangeByIndex(
-                rowIndex + 5,
+                dataRow,
                 colIndex + 1,
               );
 
               if (useTotalSalesFormula &&
                   colName.toLowerCase() == 'totalsales') {
-                final excelRow = rowIndex + 5;
+                final excelRow = dataRow;
                 final priceLetter = _getColumnLetter(priceColIndex0 + 1);
                 final qtyLetter = _getColumnLetter(qtyColIndex0 + 1);
                 cell.setFormula('=$priceLetter$excelRow*$qtyLetter$excelRow');
@@ -528,7 +534,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
               if (usePluTaxNetFormulas &&
                   colName.toLowerCase() == 'taxpayable') {
-                final excelRow = rowIndex + 5;
+                final excelRow = dataRow;
                 final taxFormula = _pluTaxPayableExcelFormula(
                   rowData: rowData,
                   excelRow: excelRow,
@@ -545,7 +551,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
               if (usePluTaxNetFormulas &&
                   colName.toLowerCase() == 'netprofit') {
-                final excelRow = rowIndex + 5;
+                final excelRow = dataRow;
                 final tsL = _getColumnLetter(totalSalesColIndex0 + 1);
                 final tpL = _getColumnLetter(taxPayableColIndex0 + 1);
                 cell.setFormula(
@@ -600,10 +606,9 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           }
         } else {
           // Add a header row to ensure the workbook has some content
-          if (workbook.worksheets[0].getLastRow() < 4) {
-            // Adjusted for header rows
+          if (workbook.worksheets[0].getLastRow() < 1) {
             talker.info('Adding basic structure to empty workbook');
-            reportSheet.getRangeByName('A4').setText('Report');
+            reportSheet.getRangeByName('A1').setText('Report');
           }
         }
 
@@ -697,15 +702,19 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     final lastRow = sheet.getLastRow();
     final lastColumn = sheet.getLastColumn();
 
-    int dataStartRow = 2; // DataGrid: headers row 1
-    final row4Header = sheet.getRangeByIndex(4, 1).getText();
-    if (row4Header != null && row4Header.isNotEmpty) {
-      dataStartRow = 5; // Manual PLU: headers row 4, data from row 5
+    // DataGrid and current manual PLU: headers row 1, first data row 2.
+    int dataStartRow = 2;
+    final row1Header = sheet.getRangeByIndex(1, 1).getText();
+    if (row1Header == null || row1Header.isEmpty) {
+      final legacyRow4 = sheet.getRangeByIndex(4, 1).getText();
+      if (legacyRow4 != null && legacyRow4.isNotEmpty) {
+        dataStartRow = 5;
+      }
     }
 
     // TotalSales column — manual export uses header "TotalSales" (same as app Total Sales card)
     int? totalSalesColumn;
-    for (final headerRow in [4, 1]) {
+    for (final headerRow in [1, 4]) {
       for (int col = 1; col <= lastColumn; col++) {
         final raw = sheet.getRangeByIndex(headerRow, col).getText();
         if (raw == null) continue;
@@ -721,7 +730,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     // NetProfit column
     int netProfitColumn = 10;
     var foundNetProfitCol = false;
-    for (final headerRow in [4, 1]) {
+    for (final headerRow in [1, 4]) {
       for (int col = 1; col <= lastColumn; col++) {
         final cellValue = sheet.getRangeByIndex(headerRow, col).getText();
         if (cellValue != null &&
@@ -920,8 +929,8 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       int netProfitColumn = 10;
 
       // Check if we can find a better match for the NetProfit column by header name
-      // Check both row 1 (for DataGrid export) and row 4 (for manual data export)
-      for (int headerRow in [4, 1]) {
+      // Row 1 = current layout; row 4 = legacy manual export
+      for (int headerRow in [1, 4]) {
         for (int col = 1; col <= reportSheet.getLastColumn(); col++) {
           final cellValue = reportSheet
               .getRangeByIndex(headerRow, col)
