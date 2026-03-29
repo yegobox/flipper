@@ -171,6 +171,15 @@ class DataViewState extends ConsumerState<DataView>
     );
   }
 
+  /// Sum of line revenue (price × qty); matches Excel exported [TotalSales] column (P×Q per row).
+  double _pluLineRevenueFromItemList(List<TransactionItem> items) {
+    if (items.isEmpty) return 0.0;
+    return items.fold<double>(
+      0.0,
+      (sum, item) => sum + item.price.toDouble() * item.qty.toDouble(),
+    );
+  }
+
   double _pluTotalLineTaxFromList(List<TransactionItem> items) {
     if (items.isEmpty) return 0.0;
     return items.fold<double>(
@@ -221,10 +230,10 @@ class DataViewState extends ConsumerState<DataView>
               final itemsAsync = ref.watch(transactionItemListProvider);
               final items = _profitCardItems(itemsAsync);
               final loading = _profitCardItemsLoading(itemsAsync);
-              final gross = _pluGrossProfitFromItemList(items);
+              final lineSales = _pluLineRevenueFromItemList(items);
               return _buildSummaryCard(
-                'Gross Profit',
-                gross,
+                'Total Sales',
+                lineSales,
                 loading,
                 Colors.green,
               );
@@ -674,7 +683,7 @@ class DataViewState extends ConsumerState<DataView>
     );
   }
 
-  /// PLU gross matches the green card and detailed "profit Made" sum; stock view sums units.
+  /// PLU detailed: total line revenue (price×qty), same as summing Excel [TotalSales]; stock view sums units.
   Widget _buildStickyFooter() {
     if (widget.variants != null && widget.variants!.isNotEmpty) {
       final totalUnits = widget.variants!.fold<double>(
@@ -694,10 +703,10 @@ class DataViewState extends ConsumerState<DataView>
         final itemsAsync = ref.watch(transactionItemListProvider);
         final items = _profitCardItems(itemsAsync);
         final loading = _profitCardItemsLoading(itemsAsync);
-        final total = _pluGrossProfitFromItemList(items);
+        final total = _pluLineRevenueFromItemList(items);
         return _stickyFooterRow(
           context,
-          label: 'Total profit made:',
+          label: 'Total sales (lines):',
           amount: total,
           isLoading: loading,
         );
@@ -1155,7 +1164,7 @@ class DataViewState extends ConsumerState<DataView>
     });
   }
 
-  /// Same total as the PLU grid "profit Made" / footer / summary Gross Profit card.
+  /// Sum of [TransactionItemPluMetrics.profitMade] (margin before tax); used for export [ExportConfig] / net-profit math, not the green "Gross Profit" card (that uses line revenue like Excel TotalSales).
   Future<double> _calculateGrossProfit() async => _pluGrossProfitFromItems();
 
   /// Matches detailed Net Profit card: gross − line tax − expense [subTotal]s in range.
