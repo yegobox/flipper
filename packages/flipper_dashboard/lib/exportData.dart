@@ -690,65 +690,106 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     // Ensure all columns are properly sized
     talker.debug('Auto-fitting all columns in the report sheet');
 
-    // Add NetProfit sum at the end of all rows
+    // Summary rows after data (one blank row gap: last data row + 1 empty)
     final lastRow = sheet.getLastRow();
     final lastColumn = sheet.getLastColumn();
 
-    // Find the NetProfit column - typically column 10 based on the PLU report structure
-    // But let's look for a header with 'NetProfit' or 'Net Profit' to be sure
-    int netProfitColumn = 10; // Default based on PLU report structure
+    int dataStartRow = 2; // DataGrid: headers row 1
+    final row4Header = sheet.getRangeByIndex(4, 1).getText();
+    if (row4Header != null && row4Header.isNotEmpty) {
+      dataStartRow = 5; // Manual PLU: headers row 4, data from row 5
+    }
 
-    // Check if we can find a better match for the NetProfit column by header name
-    // Check both row 1 (for DataGrid export) and row 4 (for manual data export)
-    for (int headerRow in [4, 1]) {
+    // TotalSales column — manual export uses header "TotalSales" (same as app Total Sales card)
+    int? totalSalesColumn;
+    for (final headerRow in [4, 1]) {
       for (int col = 1; col <= lastColumn; col++) {
-        final cellValue = sheet.getRangeByIndex(headerRow, col).getText();
-        if (cellValue != null &&
-            (cellValue.toLowerCase().contains('net') &&
-                cellValue.toLowerCase().contains('profit'))) {
-          netProfitColumn = col;
+        final raw = sheet.getRangeByIndex(headerRow, col).getText();
+        if (raw == null) continue;
+        final norm = raw.toLowerCase().replaceAll(RegExp(r'\s+'), '');
+        if (norm == 'totalsales' || norm.contains('totalsales')) {
+          totalSalesColumn = col;
           break;
         }
       }
-      if (netProfitColumn != 10) break; // Found it, stop searching
+      if (totalSalesColumn != null) break;
     }
 
-    // Add a total row at the bottom
-    final totalRowIndex = lastRow + 2; // Leave one blank row
+    // NetProfit column
+    int netProfitColumn = 10;
+    var foundNetProfitCol = false;
+    for (final headerRow in [4, 1]) {
+      for (int col = 1; col <= lastColumn; col++) {
+        final cellValue = sheet.getRangeByIndex(headerRow, col).getText();
+        if (cellValue != null &&
+            cellValue.toLowerCase().contains('net') &&
+            cellValue.toLowerCase().contains('profit')) {
+          netProfitColumn = col;
+          foundNetProfitCol = true;
+          break;
+        }
+      }
+      if (foundNetProfitCol) break;
+    }
 
-    // Create a style for the total row
-    final style = sheet.workbook.styles.add('NetProfitTotalStyle');
-    style.fontName = 'Calibri';
-    style.fontSize = 12;
-    style.bold = true;
-    style.hAlign = excel.HAlignType.left;
-    style.borders.top.lineStyle = excel.LineStyle.none;
-    style.borders.bottom.lineStyle = excel.LineStyle.thin;
+    final summaryStyle = sheet.workbook.styles.add('NetProfitTotalStyle');
+    summaryStyle.fontName = 'Calibri';
+    summaryStyle.fontSize = 12;
+    summaryStyle.bold = true;
+    summaryStyle.hAlign = excel.HAlignType.left;
+    summaryStyle.borders.top.lineStyle = excel.LineStyle.none;
+    summaryStyle.borders.bottom.lineStyle = excel.LineStyle.thin;
 
-    // Add 'Total Net Profit (Before Expenses):' label
+    int netProfitTotalRowIndex = lastRow + 2;
+
+    if (totalSalesColumn != null) {
+      final totalSalesRowIndex = lastRow + 2;
+      netProfitTotalRowIndex = lastRow + 3;
+
+      final totalSalesStyle = sheet.workbook.styles.add('TotalSalesSumStyle');
+      totalSalesStyle.fontName = 'Calibri';
+      totalSalesStyle.fontSize = 12;
+      totalSalesStyle.bold = true;
+      totalSalesStyle.hAlign = excel.HAlignType.left;
+      totalSalesStyle.borders.top.lineStyle = excel.LineStyle.none;
+      totalSalesStyle.borders.bottom.lineStyle = excel.LineStyle.thin;
+
+      final labelCol =
+          totalSalesColumn > 1 ? totalSalesColumn - 1 : totalSalesColumn;
+      sheet
+          .getRangeByIndex(totalSalesRowIndex, labelCol)
+          .setText('Total Sales (lines):');
+      sheet.getRangeByIndex(totalSalesRowIndex, labelCol).cellStyle =
+          totalSalesStyle;
+
+      final tsLetter = _getColumnLetter(totalSalesColumn);
+      final totalSalesSumCell =
+          sheet.getRangeByIndex(totalSalesRowIndex, totalSalesColumn);
+      totalSalesSumCell.setFormula(
+        '=SUM($tsLetter$dataStartRow:$tsLetter$lastRow)',
+      );
+      totalSalesSumCell.numberFormat = currencyFormat;
+      totalSalesSumCell.cellStyle = totalSalesStyle;
+
+      sheet.autoFitColumn(labelCol);
+      sheet.autoFitColumn(totalSalesColumn);
+    }
+
     sheet
-        .getRangeByIndex(totalRowIndex, netProfitColumn - 1)
+        .getRangeByIndex(netProfitTotalRowIndex, netProfitColumn - 1)
         .setText('Total Net Profit (Before Expenses):');
-    sheet.getRangeByIndex(totalRowIndex, netProfitColumn - 1).cellStyle = style;
+    sheet
+        .getRangeByIndex(netProfitTotalRowIndex, netProfitColumn - 1)
+        .cellStyle = summaryStyle;
 
-    // Add the SUM formula for the NetProfit column
-    final sumCell = sheet.getRangeByIndex(totalRowIndex, netProfitColumn);
-
-    // Determine the starting row for the SUM formula based on where the headers are
-    int dataStartRow = 2; // Default for DataGrid export (headers in row 1)
-    // Check if headers are in row 4 (manual data export)
-    final row4Header = sheet.getRangeByIndex(4, 1).getText();
-    if (row4Header != null && row4Header.isNotEmpty) {
-      dataStartRow = 5; // Data starts in row 5 for manual export
-    }
-
+    final sumCell =
+        sheet.getRangeByIndex(netProfitTotalRowIndex, netProfitColumn);
     sumCell.setFormula(
       '=SUM(${_getColumnLetter(netProfitColumn)}$dataStartRow:${_getColumnLetter(netProfitColumn)}$lastRow)',
     );
     sumCell.numberFormat = currencyFormat;
-    sumCell.cellStyle = style;
+    sumCell.cellStyle = summaryStyle;
 
-    // Auto-fit the columns again after adding the total row
     sheet.autoFitColumn(netProfitColumn - 1);
     sheet.autoFitColumn(netProfitColumn);
 
