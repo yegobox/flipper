@@ -28,6 +28,9 @@ const String _excelRowTaxAmt = '__excelRowTaxAmt';
 const String _excelRowTotAmt = '__excelRowTotAmt';
 const String _excelRowTaxblAmt = '__excelRowTaxblAmt';
 
+/// PLU line amounts in Excel (manual export + footer sums); keep in sync with [ManualNumericStyle].
+const String _excelPluAmountNumberFormat = '#,##0.00';
+
 class PaymentSummary {
   final String method;
   final double amount;
@@ -419,7 +422,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
               style.fontSize = 11;
               style.hAlign = excel.HAlignType.left;
               style.vAlign = excel.VAlignType.center;
-              style.numberFormat = '#,##0.00';
+              style.numberFormat = _excelPluAmountNumberFormat;
               style.borders.all.lineStyle = excel.LineStyle.none;
               style.borders.all.color = '#A6A6A6';
             },
@@ -739,6 +742,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     summaryStyle.hAlign = excel.HAlignType.left;
     summaryStyle.borders.top.lineStyle = excel.LineStyle.none;
     summaryStyle.borders.bottom.lineStyle = excel.LineStyle.thin;
+    summaryStyle.numberFormat = _excelPluAmountNumberFormat;
 
     int netProfitTotalRowIndex = lastRow + 2;
 
@@ -753,6 +757,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       totalSalesStyle.hAlign = excel.HAlignType.left;
       totalSalesStyle.borders.top.lineStyle = excel.LineStyle.none;
       totalSalesStyle.borders.bottom.lineStyle = excel.LineStyle.thin;
+      totalSalesStyle.numberFormat = _excelPluAmountNumberFormat;
 
       final labelCol =
           totalSalesColumn > 1 ? totalSalesColumn - 1 : totalSalesColumn;
@@ -768,8 +773,9 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       totalSalesSumCell.setFormula(
         '=SUM($tsLetter$dataStartRow:$tsLetter$lastRow)',
       );
-      totalSalesSumCell.numberFormat = currencyFormat;
+      // Apply style then number format — assigning [cellStyle] clears a prior [numberFormat].
       totalSalesSumCell.cellStyle = totalSalesStyle;
+      totalSalesSumCell.numberFormat = _excelPluAmountNumberFormat;
 
       sheet.autoFitColumn(labelCol);
       sheet.autoFitColumn(totalSalesColumn);
@@ -787,8 +793,8 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     sumCell.setFormula(
       '=SUM(${_getColumnLetter(netProfitColumn)}$dataStartRow:${_getColumnLetter(netProfitColumn)}$lastRow)',
     );
-    sumCell.numberFormat = currencyFormat;
     sumCell.cellStyle = summaryStyle;
+    sumCell.numberFormat = _excelPluAmountNumberFormat;
 
     sheet.autoFitColumn(netProfitColumn - 1);
     sheet.autoFitColumn(netProfitColumn);
@@ -945,6 +951,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       finalNetProfitStyle.borders.bottom.lineStyle = excel.LineStyle.double;
       finalNetProfitStyle.backColor =
           '#E2EFDA'; // Light green background for Final Net Profit
+      finalNetProfitStyle.numberFormat = _excelPluAmountNumberFormat;
 
       // Add 'Final Net Profit (After Expenses):' label
       reportSheet
@@ -995,9 +1002,9 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         );
       }
 
-      // Apply formatting to the Final Net Profit cell
-      finalNetProfitCell.numberFormat = currencyFormat;
+      // Style then number format so the amount displays like PLU line cells.
       finalNetProfitCell.cellStyle = finalNetProfitStyle;
+      finalNetProfitCell.numberFormat = _excelPluAmountNumberFormat;
 
       // Auto-fit all columns after adding the Net Profit row
       for (int i = 1; i <= reportSheet.getLastColumn(); i++) {
