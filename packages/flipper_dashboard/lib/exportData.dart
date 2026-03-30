@@ -1089,8 +1089,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       final paymentMethodSheet = workbook.worksheets.addWithName(sheetName);
       await _initializeSheet(paymentMethodSheet, styler);
 
-      // Split amounts from transaction_payment_records (same as [ExcelUtils]); fallback
-      // to subTotal + paymentType when a sale has no payment rows.
+      // Payment sheet from Capella payment rows only (no subTotal/cashReceived fallback).
       final paymentData = await ExcelUtils.processTransactions(
         config.transactions,
       );

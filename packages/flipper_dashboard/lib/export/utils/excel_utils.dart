@@ -301,14 +301,12 @@ class ExcelUtils {
     headerRange.cellStyle = headerStyle;
   }
 
-  /// Processes transactions using Capella [TransactionPaymentRecord] rows.
-  /// Payment method and amount for each split come only from those records.
-  /// When there are **no** rows for a transaction, optionally falls back to one
-  /// line from [ITransaction.paymentType] and [ITransaction.subTotal] (legacy).
+  /// Processes transactions using Capella [TransactionPaymentRecord] rows only.
+  /// No fallback from [ITransaction.subTotal] or [ITransaction.cashReceived] — those
+  /// can exceed line revenue (e.g. tender vs sale); sales without payment rows are skipped.
   static Future<List<PaymentSummary>> processTransactions(
-    List<ITransaction> transactions, {
-    bool fallbackWhenNoPaymentRecords = true,
-  }) async {
+    List<ITransaction> transactions,
+  ) async {
     final paymentTotals = <String, PaymentSummary>{};
     final capella = ProxyService.getStrategy(Strategy.capella);
     talker.debug('Processing ${transactions.length} transactions');
@@ -324,16 +322,9 @@ class ExcelUtils {
         );
 
         if (paymentRecords.isEmpty) {
-          if (fallbackWhenNoPaymentRecords) {
-            final method = normalizePaymentMethod(
-              transaction.paymentType?.trim().isNotEmpty == true
-                  ? transaction.paymentType!
-                  : 'Cash',
-            );
-            final sub = transaction.subTotal;
-            final amount = sub ?? transaction.cashReceived ?? 0.0;
-            _addToPaymentTotals(paymentTotals, method, amount, 1);
-          }
+          talker.debug(
+            'processTransactions: no payment rows for ${transaction.id} — skipped (no fallback)',
+          );
           continue;
         }
 

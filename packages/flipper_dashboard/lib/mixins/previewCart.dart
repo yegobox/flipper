@@ -20,6 +20,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -47,6 +48,65 @@ Future<List<TransactionItem>> _getTransactionItems({
         active: true,
       );
   return items;
+}
+
+/// Scales non-CREDIT payment rows so their sum does not exceed [saleTotal].
+/// Tender can exceed the sale (change); persisted payment rows must not, or
+/// payment-method reports sum above line revenue.
+List<Payment> _normalizePaymentMethodsToSaleTotal({
+  required List<Payment> paymentMethods,
+  required double saleTotal,
+  required bool shouldBeLoan,
+}) {
+  if (shouldBeLoan || saleTotal <= 0) return paymentMethods;
+
+  final nonCredit = paymentMethods
+      .where((p) => p.method.toUpperCase() != 'CREDIT')
+      .toList();
+  final sumNonCredit = nonCredit.fold<double>(0, (s, p) => s + p.amount);
+  if (sumNonCredit <= saleTotal + 0.0001) return paymentMethods;
+
+  final factor = saleTotal / sumNonCredit;
+  final adjusted = <Payment>[];
+  for (final p in paymentMethods) {
+    if (p.method.toUpperCase() == 'CREDIT') {
+      adjusted.add(p);
+      continue;
+    }
+    adjusted.add(
+      Payment(
+        amount: (p.amount * factor).roundToTwoDecimalPlaces(),
+        method: p.method,
+        id: p.id,
+        controller: p.controller,
+      ),
+    );
+  }
+
+  var sumAdj = 0.0;
+  for (final p in adjusted) {
+    if (p.method.toUpperCase() != 'CREDIT') sumAdj += p.amount;
+  }
+  final drift = saleTotal - sumAdj;
+  if (drift.abs() > 0.0001) {
+    for (var i = adjusted.length - 1; i >= 0; i--) {
+      if (adjusted[i].method.toUpperCase() == 'CREDIT') continue;
+      final p = adjusted[i];
+      adjusted[i] = Payment(
+        amount: (p.amount + drift).roundToTwoDecimalPlaces(),
+        method: p.method,
+        id: p.id,
+        controller: p.controller,
+      );
+      break;
+    }
+  }
+
+  talker.info(
+    'Normalized payment rows to sale total: saleTotal=$saleTotal '
+    'wasNonCreditSum=$sumNonCredit',
+  );
+  return adjusted;
 }
 
 mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
@@ -531,9 +591,15 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     transaction.subTotal = finalSubTotal;
     transaction.lastTouched = now;
 
+    final paymentsToPersist = _normalizePaymentMethodsToSaleTotal(
+      paymentMethods: paymentMethods,
+      saleTotal: finalSubTotal,
+      shouldBeLoan: shouldBeLoan,
+    );
+
     // Save payment methods in parallel to reduce sequential DB lock contention
     await Future.wait(
-      paymentMethods.map((payment) async {
+      paymentsToPersist.map((payment) async {
         await ProxyService.strategy.savePaymentType(
           singlePaymentOnly: false,
           amount: payment.amount,

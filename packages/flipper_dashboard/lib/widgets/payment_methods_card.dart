@@ -83,15 +83,9 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
     if (totalPayable == 0) return;
 
     if (payments.isEmpty) {
-      final effectiveTransaction =
-          transaction ?? ref.read(transactionByIdProvider(transactionId)).value;
-      final initialAmount = effectiveTransaction != null
-          ? calculateCurrentRemainder(
-              effectiveTransaction,
-              totalPayable,
-              overrideAlreadyPaid: _cachedNonCreditPaid,
-            )
-          : totalPayable;
+      // [totalPayable] is already outstanding (sale total − recorded non-credit paid).
+      // Do not subtract [alreadyPaid] again via calculateCurrentRemainder.
+      final initialAmount = totalPayable;
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ref
@@ -119,10 +113,12 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
             ref.read(transactionByIdProvider(transactionId)).value;
 
         if (effectiveTransaction != null) {
+          final alreadyPaid =
+              _cachedNonCreditPaid ?? effectiveTransaction.cashReceived ?? 0.0;
           updatePaymentRemainder(
             ref: ref,
             transaction: effectiveTransaction,
-            total: totalPayable,
+            total: totalPayable + alreadyPaid,
             overrideAlreadyPaid: _cachedNonCreditPaid,
             lastAutoSetAmount: oldTotalPayable ?? payments[0].amount,
             onAutoSetAmountChanged: (amount) {
@@ -774,9 +770,8 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
 
   @override
   Widget build(BuildContext context) {
-    final transactionAsync = ref.watch(
-      transactionByIdProvider(widget.transactionId),
-    );
+    // Rebuild when the transaction updates (e.g. cashReceived) while syncing amounts via listen.
+    ref.watch(transactionByIdProvider(widget.transactionId));
 
     // Initial load/re-synchronization
     ref.listen(transactionByIdProvider(widget.transactionId), (previous, next) {
