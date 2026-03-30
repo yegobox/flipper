@@ -625,7 +625,13 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
           // Only format columns with profit calculations if showProfitCalculations is true
           if (showProfitCalculations) {
-            _formatColumns(reportSheet);
+            _formatColumns(
+              reportSheet,
+              manualPluDataRowCount:
+                  manualData != null && columnNames != null
+                      ? manualData.length
+                      : null,
+            );
           } else {
             // Just auto-fit columns without adding profit calculations
             for (int i = 1; i <= reportSheet.getLastColumn(); i++) {
@@ -692,7 +698,10 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     }
   }
 
-  void _formatColumns(excel.Worksheet sheet) {
+  void _formatColumns(
+    excel.Worksheet sheet, {
+    int? manualPluDataRowCount,
+  }) {
     // PLU manual export already uses [_excelPluAmountNumberFormat] on numeric cells.
     // Do not blanket-apply account currency to column 9 — that is [CurrentStock] (units).
 
@@ -705,7 +714,6 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     talker.debug('Auto-fitting all columns in the report sheet');
 
     // Summary rows after data (one blank row gap: last data row + 1 empty)
-    final lastRow = sheet.getLastRow();
     final lastColumn = sheet.getLastColumn();
 
     // DataGrid and current manual PLU: headers row 1, first data row 2.
@@ -716,6 +724,17 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       if (legacyRow4 != null && legacyRow4.isNotEmpty) {
         dataStartRow = 5;
       }
+    }
+
+    // Last row of PLU/data (for SUM). XlsIO [getLastRow] can be wrong vs written
+    // rows; manual export passes an explicit count so Google Sheets never sees
+    // invalid ranges like G2:G1.
+    final int dataEndRow;
+    if (manualPluDataRowCount != null && manualPluDataRowCount > 0) {
+      dataEndRow = _manualPluFirstDataRow + manualPluDataRowCount - 1;
+    } else {
+      final raw = sheet.getLastRow();
+      dataEndRow = raw < dataStartRow ? dataStartRow : raw;
     }
 
     // TotalSales column — manual export uses header "TotalSales" (same as app Total Sales card)
@@ -733,21 +752,37 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       if (totalSalesColumn != null) break;
     }
 
-    // NetProfit column
-    int netProfitColumn = 10;
+    // NetProfit column — prefer exact [NetProfit] header; default 10 was wrong for
+    // 11-column PLU (TaxPayable is 10, NetProfit is 11).
+    int netProfitColumn = lastColumn >= 11 ? 11 : (lastColumn >= 1 ? lastColumn : 10);
     var foundNetProfitCol = false;
     for (final headerRow in [1, 4]) {
       for (int col = 1; col <= lastColumn; col++) {
         final cellValue = sheet.getRangeByIndex(headerRow, col).getText();
-        if (cellValue != null &&
-            cellValue.toLowerCase().contains('net') &&
-            cellValue.toLowerCase().contains('profit')) {
+        if (cellValue == null) continue;
+        final norm = cellValue.toLowerCase().replaceAll(RegExp(r'\s+'), '');
+        if (norm == 'netprofit') {
           netProfitColumn = col;
           foundNetProfitCol = true;
           break;
         }
       }
       if (foundNetProfitCol) break;
+    }
+    if (!foundNetProfitCol) {
+      for (final headerRow in [1, 4]) {
+        for (int col = 1; col <= lastColumn; col++) {
+          final cellValue = sheet.getRangeByIndex(headerRow, col).getText();
+          if (cellValue == null) continue;
+          final lower = cellValue.toLowerCase();
+          if (lower.contains('net') && lower.contains('profit')) {
+            netProfitColumn = col;
+            foundNetProfitCol = true;
+            break;
+          }
+        }
+        if (foundNetProfitCol) break;
+      }
     }
 
     final summaryStyle = sheet.workbook.styles.add('NetProfitTotalStyle');
@@ -759,11 +794,12 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     summaryStyle.borders.bottom.lineStyle = excel.LineStyle.thin;
     summaryStyle.numberFormat = _excelPluAmountNumberFormat;
 
-    int netProfitTotalRowIndex = lastRow + 2;
+    // Place footers two rows below the last data row (one blank row).
+    int netProfitTotalRowIndex = dataEndRow + 2;
 
     if (totalSalesColumn != null) {
-      final totalSalesRowIndex = lastRow + 2;
-      netProfitTotalRowIndex = lastRow + 3;
+      final totalSalesRowIndex = dataEndRow + 2;
+      netProfitTotalRowIndex = dataEndRow + 3;
 
       final totalSalesStyle = sheet.workbook.styles.add('TotalSalesSumStyle');
       totalSalesStyle.fontName = 'Calibri';
@@ -786,7 +822,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       final totalSalesSumCell =
           sheet.getRangeByIndex(totalSalesRowIndex, totalSalesColumn);
       totalSalesSumCell.setFormula(
-        '=SUM($tsLetter$dataStartRow:$tsLetter$lastRow)',
+        '=SUM($tsLetter$dataStartRow:$tsLetter$dataEndRow)',
       );
       // Apply style then number format — assigning [cellStyle] clears a prior [numberFormat].
       totalSalesSumCell.cellStyle = totalSalesStyle;
@@ -806,7 +842,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     final sumCell =
         sheet.getRangeByIndex(netProfitTotalRowIndex, netProfitColumn);
     sumCell.setFormula(
-      '=SUM(${_getColumnLetter(netProfitColumn)}$dataStartRow:${_getColumnLetter(netProfitColumn)}$lastRow)',
+      '=SUM(${_getColumnLetter(netProfitColumn)}$dataStartRow:${_getColumnLetter(netProfitColumn)}$dataEndRow)',
     );
     sumCell.cellStyle = summaryStyle;
     sumCell.numberFormat = _excelPluAmountNumberFormat;
@@ -927,28 +963,53 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     String currencyFormat,
   ) {
     try {
-      // Find the last row in the report sheet (where the Net Profit Before Expenses is)
-      final lastRow = reportSheet.getLastRow();
-      final totalRowIndex = lastRow;
+      final lastCol = reportSheet.getLastColumn();
 
-      // Find the column with the Net Profit value (typically column 10 based on PLU report structure)
-      int netProfitColumn = 10;
-
-      // Check if we can find a better match for the NetProfit column by header name
-      // Row 1 = current layout; row 4 = legacy manual export
-      for (int headerRow in [1, 4]) {
-        for (int col = 1; col <= reportSheet.getLastColumn(); col++) {
-          final cellValue = reportSheet
-              .getRangeByIndex(headerRow, col)
-              .getText();
-          if (cellValue != null &&
-              (cellValue.toLowerCase().contains('net') &&
-                  cellValue.toLowerCase().contains('profit'))) {
+      int netProfitColumn =
+          lastCol >= 11 ? 11 : (lastCol >= 1 ? lastCol : 10);
+      var foundNetCol = false;
+      for (final headerRow in [1, 4]) {
+        for (int col = 1; col <= lastCol; col++) {
+          final cellValue =
+              reportSheet.getRangeByIndex(headerRow, col).getText();
+          if (cellValue == null) continue;
+          final norm = cellValue.toLowerCase().replaceAll(RegExp(r'\s+'), '');
+          if (norm == 'netprofit') {
             netProfitColumn = col;
+            foundNetCol = true;
             break;
           }
         }
-        if (netProfitColumn != 10) break; // Found it, stop searching
+        if (foundNetCol) break;
+      }
+      if (!foundNetCol) {
+        for (final headerRow in [1, 4]) {
+          for (int col = 1; col <= lastCol; col++) {
+            final cellValue =
+                reportSheet.getRangeByIndex(headerRow, col).getText();
+            if (cellValue == null) continue;
+            final lower = cellValue.toLowerCase();
+            if (lower.contains('net') && lower.contains('profit')) {
+              netProfitColumn = col;
+              foundNetCol = true;
+              break;
+            }
+          }
+          if (foundNetCol) break;
+        }
+      }
+
+      // Row holding "Total Net Profit (Before Expenses):" amount — do not trust
+      // [getLastRow] alone (XlsIO used range can lag the footer row).
+      var totalRowIndex = reportSheet.getLastRow();
+      final labelCol = netProfitColumn > 1 ? netProfitColumn - 1 : 1;
+      for (var r = totalRowIndex; r >= 1; r--) {
+        final label =
+            reportSheet.getRangeByIndex(r, labelCol).getText() ?? '';
+        if (label.contains('Total Net Profit (Before Expenses)')) {
+          totalRowIndex = r;
+          break;
+        }
       }
 
       // Add Final Net Profit row below Net Profit (Before Expenses)

@@ -277,9 +277,6 @@ class DetailedTransactionReportExportHostState
       showProfitCalculations: true,
       manualData: manualData.isNotEmpty ? manualData : null,
       columnNames: manualData.isNotEmpty ? columnNames : null,
-      // Google Sheets often fails to parse nested PLU formulas in XlsIO .xlsx;
-      // static values match the app and keep footer SUMs working.
-      staticPluLineValues: true,
     );
     if (path == null || path.isEmpty) {
       throw StateError('export_failed');
