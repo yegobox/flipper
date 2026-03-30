@@ -196,12 +196,9 @@ class ExcelUtils {
         .cellStyle = balanceStyle;
   }
 
-  /// Formats columns in the Excel worksheet
-  static void formatColumns(excel.Worksheet sheet, String currencyFormat) {
-    for (int row = 1; row <= sheet.getLastRow(); row++) {
-      sheet.getRangeByIndex(row, 9).numberFormat = currencyFormat;
-    }
-
+  /// Auto-fits report sheet columns. Do not force column 9 to account currency —
+  /// in PLU layout that column is [CurrentStock] (units), not money.
+  static void formatColumns(excel.Worksheet sheet) {
     for (int i = 1; i <= sheet.getLastColumn(); i++) {
       sheet.autoFitColumn(i);
     }

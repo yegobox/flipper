@@ -617,7 +617,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
           // Only format columns with profit calculations if showProfitCalculations is true
           if (showProfitCalculations) {
-            _formatColumns(reportSheet, config.currencyFormat);
+            _formatColumns(reportSheet);
           } else {
             // Just auto-fit columns without adding profit calculations
             for (int i = 1; i <= reportSheet.getLastColumn(); i++) {
@@ -684,11 +684,9 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     }
   }
 
-  void _formatColumns(excel.Worksheet sheet, String currencyFormat) {
-    // Format currency columns
-    for (int row = 1; row <= sheet.getLastRow(); row++) {
-      sheet.getRangeByIndex(row, 9).numberFormat = currencyFormat;
-    }
+  void _formatColumns(excel.Worksheet sheet) {
+    // PLU manual export already uses [_excelPluAmountNumberFormat] on numeric cells.
+    // Do not blanket-apply account currency to column 9 — that is [CurrentStock] (units).
 
     // Auto-fit all columns for better readability
     for (int i = 1; i <= sheet.getLastColumn(); i++) {

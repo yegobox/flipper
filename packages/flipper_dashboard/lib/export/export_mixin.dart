@@ -32,23 +32,28 @@ mixin ExportMixin on ConsumerState {
     try {
       ref.read(isProcessingProvider.notifier).startProcessing();
       String filePath;
-      final business = await ProxyService.strategy
-          .getBusiness(businessId: ProxyService.box.getBusinessId()!);
+      final business = await ProxyService.strategy.getBusiness(
+        businessId: ProxyService.box.getBusinessId()!,
+      );
 
       if (ProxyService.box.exportAsPdf()) {
         // Export to PDF using the SfDataGrid's built-in functionality
-        final PdfDocument document =
-            await workBookKey.currentState!.exportToPdfDocument(
-          fitAllColumnsInOnePage: true,
-          canRepeatHeaders: false,
-          exportStackedHeaders: false,
-          exportTableSummaries: true,
-          headerFooterExport: (headerFooterExport) {
-            PdfUtils.exportToPdf(headerFooterExport, business!, config,
-                headerTitle: headerTitle);
-            PdfUtils.addFooter(headerFooterExport, config: config);
-          },
-        );
+        final PdfDocument document = await workBookKey.currentState!
+            .exportToPdfDocument(
+              fitAllColumnsInOnePage: true,
+              canRepeatHeaders: false,
+              exportStackedHeaders: false,
+              exportTableSummaries: true,
+              headerFooterExport: (headerFooterExport) {
+                PdfUtils.exportToPdf(
+                  headerFooterExport,
+                  business!,
+                  config,
+                  headerTitle: headerTitle,
+                );
+                PdfUtils.addFooter(headerFooterExport, config: config);
+              },
+            );
 
         filePath = await FileUtils.savePdfFile(document);
         document.dispose();
@@ -93,7 +98,7 @@ mixin ExportMixin on ConsumerState {
           );
 
           // Format columns
-          ExcelUtils.formatColumns(reportSheet, config.currencyFormat);
+          ExcelUtils.formatColumns(reportSheet);
 
           // Add expenses sheet if available
           if (expenses != null && expenses.isNotEmpty) {
@@ -106,11 +111,7 @@ mixin ExportMixin on ConsumerState {
           }
 
           // Add payment method sheet
-          await ExcelUtils.addPaymentMethodSheet(
-            workbook,
-            config,
-            styler,
-          );
+          await ExcelUtils.addPaymentMethodSheet(workbook, config, styler);
         }
 
         filePath = await FileUtils.saveExcelFile(workbook);
@@ -129,7 +130,9 @@ mixin ExportMixin on ConsumerState {
 
   /// Helper method to add transactions to Excel
   void _addTransactionsToExcel(
-      excel.Worksheet sheet, List<ITransaction> transactions) {
+    excel.Worksheet sheet,
+    List<ITransaction> transactions,
+  ) {
     if (transactions.isEmpty) {
       print("No transactions to add to Excel");
       return;
@@ -142,7 +145,7 @@ mixin ExportMixin on ConsumerState {
       'Customer',
       'Total',
       'Payment Method',
-      'Status'
+      'Status',
     ];
 
     // Add header row with column names
@@ -210,7 +213,8 @@ mixin ExportMixin on ConsumerState {
 
     print("Finished adding ${transactions.length} transactions to Excel");
     print(
-        "Sheet now has ${sheet.getLastRow()} rows and ${sheet.getLastColumn()} columns");
+      "Sheet now has ${sheet.getLastRow()} rows and ${sheet.getLastColumn()} columns",
+    );
   }
 
   /// Helper function for requesting permissions
