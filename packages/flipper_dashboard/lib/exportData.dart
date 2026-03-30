@@ -1270,22 +1270,50 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     }
   }
 
+  /// iOS / iPadOS require a non-zero [Rect] inside the source view for the share popover.
+  Rect _shareSheetPopoverOrigin() {
+    if (!mounted) {
+      return const Rect.fromLTWH(16, 80, 48, 48);
+    }
+    final mq = MediaQuery.maybeOf(context);
+    final size = mq?.size ?? const Size(400, 800);
+    final padding = mq?.padding ?? EdgeInsets.zero;
+    const double wh = 48;
+    // Top-trailing: typical app bar action area; clamp so rect stays inside screen.
+    var left = size.width - wh - 16;
+    if (left < 8) left = 8;
+    if (left + wh > size.width) left = (size.width - wh).clamp(0.0, size.width);
+    var top = padding.top + 8;
+    if (top + wh > size.height) top = (size.height - wh - 8).clamp(0.0, size.height);
+    return Rect.fromLTWH(left, top, wh, wh);
+  }
+
   Future<void> shareFileAsAttachment(String filePath) async {
     final now = DateTime.now();
     final formattedDate = DateFormat('yyyy-MM-dd').format(now);
     final file = File(filePath);
     final fileName = p.basename(file.path);
 
+    final shareOrigin = Platform.isIOS ? _shareSheetPopoverOrigin() : null;
+
     if (Platform.isWindows || Platform.isLinux) {
       final bytes = await file.readAsBytes();
       final mimeType = _lookupMimeType(filePath);
-      await Share.shareXFiles([
-        XFile.fromData(bytes, mimeType: mimeType, name: fileName),
-      ], subject: 'Report Download - $formattedDate');
+      await Share.shareXFiles(
+        [
+          XFile.fromData(bytes, mimeType: mimeType, name: fileName),
+        ],
+        subject: 'Report Download - $formattedDate',
+        sharePositionOrigin: shareOrigin,
+      );
     } else {
-      await Share.shareXFiles([
-        XFile(filePath),
-      ], subject: 'Report Download - $formattedDate');
+      await Share.shareXFiles(
+        [
+          XFile(filePath),
+        ],
+        subject: 'Report Download - $formattedDate',
+        sharePositionOrigin: shareOrigin,
+      );
     }
   }
 

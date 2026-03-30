@@ -28,6 +28,7 @@ mixin DateCoreWidget<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       ref.read(dateRangeProvider.notifier).setStartDate(dateRange.start);
       ref.read(dateRangeProvider.notifier).setEndDate(dateRange.end);
       ref.refresh(transactionListProvider(forceRealData: true));
+      ref.invalidate(transactionItemListProvider);
       toast('Date selected');
     }
   }

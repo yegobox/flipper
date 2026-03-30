@@ -1,10 +1,12 @@
 import 'package:flipper_dashboard/DateCoreWidget.dart';
+import 'package:flipper_dashboard/export/headless_detailed_transaction_export_host.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -27,9 +29,72 @@ class TransactionsState extends ConsumerState<Transactions>
   int displayedTransactionType = 0;
   List<String> transactionTypeOptions = ["All", "Sales", "Purchases"];
 
+  final GlobalKey<DetailedTransactionReportExportHostState> _exportHostKey =
+      GlobalKey<DetailedTransactionReportExportHostState>();
+  bool _isExportingReport = false;
+
   @override
   void initState() {
     super.initState();
+  }
+
+  Future<void> _onDownloadDetailedReport() async {
+    final host = _exportHostKey.currentState;
+    if (host == null) {
+      if (mounted) {
+        showWarningNotification(
+          context,
+          'Export is not ready yet. Try again in a moment.',
+        );
+      }
+      return;
+    }
+
+    final range = ref.read(dateRangeProvider);
+    if (range.startDate == null || range.endDate == null) {
+      if (mounted) {
+        showWarningNotification(
+          context,
+          'Please select a date range first',
+        );
+      }
+      return;
+    }
+
+    setState(() => _isExportingReport = true);
+    try {
+      await host.exportDetailedReport(headerTitle: 'Report');
+    } on UnsupportedError catch (e) {
+      if (mounted) {
+        showWarningNotification(context, e.message ?? e.toString());
+      }
+    } on StateError catch (e) {
+      if (!mounted) return;
+      if (e.message == 'missing_date_range') {
+        showWarningNotification(context, 'Please select a date range first');
+      } else if (e.message == 'no_line_items') {
+        showWarningNotification(
+          context,
+          'No line items to export for this period.',
+        );
+      } else {
+        showErrorNotification(
+          context,
+          'Export failed: ${e.message}',
+          duration: const Duration(seconds: 5),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        showErrorNotification(
+          context,
+          'Export failed: $e',
+          duration: const Duration(seconds: 5),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isExportingReport = false);
+    }
   }
 
   Widget _buildTransactionFilterButtons() {
@@ -61,7 +126,7 @@ class TransactionsState extends ConsumerState<Transactions>
               const SizedBox(width: 8),
               Text(
                 'Filter Transactions',
-                style: GoogleFonts.inter(
+                style: GoogleFonts.poppins(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                   color: const Color(0xFF1A1A1A),
@@ -90,13 +155,37 @@ class TransactionsState extends ConsumerState<Transactions>
       builder: (context, model, child) {
         return Scaffold(
           appBar: AppBar(
-            actions: [datePicker()],
+            actions: [
+              IconButton(
+                tooltip: 'Export detailed report (Excel)',
+                onPressed: _isExportingReport ? null : _onDownloadDetailedReport,
+                icon: _isExportingReport
+                    ? const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.download_outlined),
+              ),
+              datePicker(),
+            ],
             title: const Text('Transactions'),
           ),
-          body: Column(
+          body: Stack(
+            fit: StackFit.expand,
             children: [
-              _buildTransactionFilterButtons(),
-              Expanded(child: _buildTransactionContent(context)),
+              Column(
+                children: [
+                  _buildTransactionFilterButtons(),
+                  Expanded(child: _buildTransactionContent(context)),
+                ],
+              ),
+              // Same export pipeline as TransactionList/DataView, without showing the grid.
+              Visibility(
+                visible: false,
+                maintainState: true,
+                child: DetailedTransactionReportExportHost(key: _exportHostKey),
+              ),
             ],
           ),
         );
@@ -289,7 +378,7 @@ Widget _buildModernTransactionItem({
                           .last
                           .replaceAll(RegExp(r'([a-z])([A-Z])'), r'$1 $2')
                           .toUpperCase(),
-                      style: GoogleFonts.inter(
+                      style: GoogleFonts.poppins(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                         color: const Color(0xFF374151),
@@ -301,7 +390,7 @@ Widget _buildModernTransactionItem({
                           : isIncome == false
                               ? '-$amount RWF'
                               : '$amount RWF', // No prefix for unclassified
-                      style: GoogleFonts.inter(
+                      style: GoogleFonts.poppins(
                         fontSize: 16,
                         fontWeight: FontWeight.w700,
                         color: isIncome == true
@@ -326,7 +415,7 @@ Widget _buildModernTransactionItem({
                       DateFormat(
                         'MMM dd, yyyy',
                       ).format(transaction.lastTouched!),
-                      style: GoogleFonts.inter(
+                      style: GoogleFonts.poppins(
                         fontSize: 13,
                         fontWeight: FontWeight.w400,
                         color: Colors.grey.shade600,
@@ -341,7 +430,7 @@ Widget _buildModernTransactionItem({
                     const SizedBox(width: 6),
                     Text(
                       DateFormat('HH:mm').format(transaction.lastTouched!),
-                      style: GoogleFonts.inter(
+                      style: GoogleFonts.poppins(
                         fontSize: 13,
                         fontWeight: FontWeight.w400,
                         color: Colors.grey.shade600,
@@ -442,7 +531,7 @@ Widget _buildLoadingState(BuildContext context) {
         const SizedBox(height: 24),
         Text(
           'Loading transactions...',
-          style: GoogleFonts.inter(
+          style: GoogleFonts.poppins(
             fontSize: 16,
             fontWeight: FontWeight.w500,
             color: const Color(0xFF605E5C),
@@ -476,7 +565,7 @@ Widget _buildErrorState(BuildContext context, String error) {
         const SizedBox(height: 20),
         Text(
           'Something went wrong',
-          style: GoogleFonts.inter(
+          style: GoogleFonts.poppins(
             fontSize: 18,
             fontWeight: FontWeight.w600,
             color: const Color(0xFF1F2937),
@@ -486,7 +575,7 @@ Widget _buildErrorState(BuildContext context, String error) {
         Text(
           error,
           textAlign: TextAlign.center,
-          style: GoogleFonts.inter(
+          style: GoogleFonts.poppins(
             fontSize: 14,
             fontWeight: FontWeight.w400,
             color: const Color(0xFF6B7280),
