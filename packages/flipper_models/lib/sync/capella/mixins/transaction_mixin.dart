@@ -824,12 +824,22 @@ mixin CapellaTransactionMixin implements TransactionInterface {
             ? prevRem - qtyDelta
             : currentStock - newQty;
 
+        final unitSupply =
+            (existingItemData['supplyPriceAtSale'] as num?)?.toDouble() ??
+            (existingItemData['supplyPrice'] as num?)?.toDouble() ??
+            variation.supplyPrice ??
+            0;
+        final newSplyAmt = unitSupply * newQty;
+
         await ditto.store.execute(
-          "UPDATE transaction_items SET qty = :qty, totAmt = :totAmt, remainingStock = :remainingStock, updatedAt = :updatedAt WHERE _id = :id",
+          "UPDATE transaction_items SET qty = :qty, totAmt = :totAmt, remainingStock = :remainingStock, splyAmt = :splyAmt, supplyPriceAtSale = :supplyPriceAtSale, supplyPrice = :supplyPrice, updatedAt = :updatedAt WHERE _id = :id",
           arguments: {
             'qty': newQty,
             'totAmt': newTotal,
             'remainingStock': newRemainingStock,
+            'splyAmt': newSplyAmt,
+            'supplyPriceAtSale': unitSupply,
+            'supplyPrice': unitSupply,
             'updatedAt': DateTime.now().toIso8601String(),
             'id': existingItemData['_id'] ?? existingItemData['id'],
           },
@@ -842,6 +852,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         // Insert new item
         final double qty = updatableQty ?? 1.0;
         final double itemTotal = amountTotal * qty;
+        final unitSupply = variation.supplyPrice ?? 0;
+        final lineSupplyAmt = unitSupply * qty;
 
         final newItem = TransactionItem(
           id: DateTime.now().millisecondsSinceEpoch.toString(), // Generate ID
@@ -870,6 +882,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
           bcd: variation.bcd,
           sku: variation.sku,
           taxPercentage: variation.taxPercentage,
+          supplyPrice: variation.supplyPrice,
           supplyPriceAtSale: variation.supplyPrice,
           itemClsCd: variation.itemClsCd,
           itemTyCd: variation.itemTyCd,
@@ -880,7 +893,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
           pkgUnitCd: variation.pkgUnitCd,
           qtyUnitCd: variation.qtyUnitCd,
           itemNm: variation.itemNm,
-          splyAmt: variation.splyAmt,
+          splyAmt: lineSupplyAmt,
           tin: variation.tin,
           bhfId: variation.bhfId,
           dftPrc: variation.dftPrc,
@@ -976,6 +989,14 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         return;
       }
 
+      final itemRow = await ditto.store.execute(
+        "SELECT * FROM transaction_items WHERE _id = :id OR id = :id",
+        arguments: {'id': transactionItemId},
+      );
+      if (itemRow.items.isEmpty) return;
+
+      final d = Map<String, dynamic>.from(itemRow.items.first.value);
+
       final Map<String, dynamic> arguments = {'id': transactionItemId};
       final List<String> updates = [];
 
@@ -987,33 +1008,26 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       }
 
       if (qty != null) {
-        final itemBefore = await ditto.store.execute(
-          "SELECT * FROM transaction_items WHERE _id = :id OR id = :id",
-          arguments: {'id': transactionItemId},
-        );
-        if (itemBefore.items.isNotEmpty) {
-          final d = Map<String, dynamic>.from(itemBefore.items.first.value);
-          final oldQty = (d['qty'] as num).toDouble();
-          final newQty = qty;
-          final qtyDelta = newQty - oldQty;
-          if (qtyDelta != 0) {
-            final oldRem = (d['remainingStock'] as num?)?.toDouble();
-            double? newRem;
-            if (oldRem != null) {
-              newRem = oldRem - qtyDelta;
-            } else {
-              final vid = d['variantId'] as String?;
-              if (vid != null) {
-                try {
-                  final v = await ProxyService.getStrategy(Strategy.capella)
-                      .getVariant(id: vid);
-                  final shelf = v?.stock?.currentStock?.toDouble();
-                  if (shelf != null) newRem = shelf - newQty;
-                } catch (_) {}
-              }
+        final oldQty = (d['qty'] as num).toDouble();
+        final newQty = qty;
+        final qtyDelta = newQty - oldQty;
+        if (qtyDelta != 0) {
+          final oldRem = (d['remainingStock'] as num?)?.toDouble();
+          double? newRem;
+          if (oldRem != null) {
+            newRem = oldRem - qtyDelta;
+          } else {
+            final vid = d['variantId'] as String?;
+            if (vid != null) {
+              try {
+                final v = await ProxyService.getStrategy(Strategy.capella)
+                    .getVariant(id: vid);
+                final shelf = v?.stock?.currentStock?.toDouble();
+                if (shelf != null) newRem = shelf - newQty;
+              } catch (_) {}
             }
-            addUpdate('remainingStock', newRem);
           }
+          addUpdate('remainingStock', newRem);
         }
       }
 
@@ -1025,25 +1039,34 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       addUpdate('doneWithTransaction', doneWithTransaction);
       addUpdate('updatedAt', DateTime.now().toIso8601String());
 
-      // If quantity or price changed, update totals locally for the item
-      // Note: This logic assumes the caller handles valid inputs.
-      // Ideally, we fetch the item first to get current price if only qty changed, etc.
-      // But for speed, if we assume the caller provided what changed...
-
-      // However, to be safe and correct (especially for totals), we should probably
-      // update totAmt if qty or price is updated.
-      if (qty != null || price != null) {
-        // This is tricky without current values. But let's see typically usage.
-        // Usually updateTransactionItem is called with just qty upgrade.
-        // We might need to fetch the item first to do this correctly, OR
-        // use a Ditto update query that calculates fields (not standard SQL usually in these embedded DBs).
-        // Let's do a fetch-modify-write for safety on totals if critical fields change.
+      // Unit snapshot: supplyPriceAtSale (and supplyPrice) = cost per unit at sale.
+      // Line COGS splyAmt = unit × qty so when qty==1, splyAmt equals supplyPriceAtSale.
+      double? resolvedSplyAmt = splyAmt;
+      double? unitSupplySynced;
+      if (resolvedSplyAmt == null && qty != null) {
+        final rawSup = d['supplyPriceAtSale'] ?? d['supplyPrice'];
+        double unitSupply;
+        if (rawSup != null) {
+          unitSupply = (rawSup as num).toDouble();
+        } else {
+          unitSupply = 0;
+          final vid = d['variantId'] as String?;
+          if (vid != null) {
+            try {
+              final v = await ProxyService.getStrategy(Strategy.capella)
+                  .getVariant(id: vid);
+              unitSupply = v?.supplyPrice ?? 0;
+            } catch (_) {}
+          }
+        }
+        unitSupplySynced = unitSupply;
+        resolvedSplyAmt = unitSupply * qty;
       }
-
-      // We'll proceed with direct updates for now, assuming the sync strategy
-      // relies on the simple field updates.
-      // If `totAmt` needs calc, the caller might need to supply it or we fetch.
-      // The classic implementation often just updates what is passed.
+      addUpdate('splyAmt', resolvedSplyAmt);
+      if (unitSupplySynced != null) {
+        addUpdate('supplyPriceAtSale', unitSupplySynced);
+        addUpdate('supplyPrice', unitSupplySynced);
+      }
 
       if (updates.isEmpty) return;
 
@@ -1052,26 +1075,9 @@ mixin CapellaTransactionMixin implements TransactionInterface {
 
       await ditto.store.execute(query, arguments: arguments);
 
-      // Update transaction totals if needed (e.g. if active changed to false)
-      // We might need to fetch the transactionId from the item to update the parent transaction subTotal.
-      // This is expensive: Fetch Item -> Get TransId -> Fetch All Items -> Calc SubTotal -> Update Trans.
-      // For fast path, maybe we defer this or assume the stream listener on items
-      // handles UI, and we eventually reconcile?
-      // But `updateTransaction` logic earlier did recalculations.
-
-      // Let's trying to fetch the item to get transactionId so we can update the transaction subtotal.
-      final itemResult = await ditto.store.execute(
-        "SELECT * FROM transaction_items WHERE _id = :id OR id = :id",
-        arguments: {'id': transactionItemId},
-      );
-
-      if (itemResult.items.isNotEmpty) {
-        final itemData = itemResult.items.first.value;
-        final String? transactionId = itemData['transactionId'];
-        if (transactionId != null) {
-          // Recalculate Transaction subTotal
-          await _recalculateTransactionSubTotal(transactionId);
-        }
+      final String? transactionId = d['transactionId'];
+      if (transactionId != null) {
+        await _recalculateTransactionSubTotal(transactionId);
       }
 
       // Background Sync

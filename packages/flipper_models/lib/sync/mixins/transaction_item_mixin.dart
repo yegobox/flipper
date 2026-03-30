@@ -110,6 +110,11 @@ mixin TransactionItemMixin implements TransactionItemInterface {
             'Retail price is required for transaction item calculations',
           );
         }
+        final unitSupply = transactionItem.supplyPriceAtSale?.toDouble() ??
+            variation.supplyPrice ??
+            0;
+        transactionItem.splyAmt = unitSupply * quantity;
+        transactionItem.supplyPriceAtSale ??= variation.supplyPrice;
       } else {
         // Create a new `TransactionItem` from the `variation` object
         final double price = variation!.retailPrice!;
@@ -199,7 +204,7 @@ mixin TransactionItemMixin implements TransactionItemInterface {
           discount:
               dcAmt, // Use the calculated discount amount instead of the passed parameter
           prc: price, // Required
-          splyAmt: variation.supplyPrice,
+          splyAmt: (variation.supplyPrice ?? 0) * quantity,
           taxTyCd: variation.taxTyCd,
           bcd: variation.bcd,
           itemClsCd: variation.itemClsCd,
@@ -573,12 +578,12 @@ mixin TransactionItemMixin implements TransactionItemInterface {
 
       // Recalculate based on potentially updated price and quantity
       num currentPrice = item.price;
-      num currentQty = qty ?? item.qty.toDouble();
+      final lineQty = item.qty.toDouble();
       num currentTaxPercentage = item.taxPercentage ?? 0.0;
       String currentTaxTyCd = item.taxTyCd ?? 'B'; // Default to 'B'
 
       // Recalculate discount amount (dcAmt) and price after discount
-      double originalAmount = (currentPrice * currentQty).toDouble();
+      double originalAmount = (currentPrice * lineQty).toDouble();
       num currentDcRt = item.dcRt ?? 0.0;
       double calculatedDcAmt = (originalAmount * currentDcRt) / 100;
       double priceAfterDiscount = originalAmount - calculatedDcAmt;
@@ -621,7 +626,8 @@ mixin TransactionItemMixin implements TransactionItemInterface {
       );
 
       item.splyAmt =
-          (item.supplyPriceAtSale ?? variant?.supplyPrice ?? 1) * currentQty;
+          (item.supplyPriceAtSale?.toDouble() ?? variant?.supplyPrice ?? 0) *
+          lineQty;
 
       item.quantityShipped = quantityShipped ?? item.quantityShipped;
       item.doneWithTransaction =
