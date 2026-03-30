@@ -289,6 +289,15 @@ abstract class DynamicDataSource<T> extends DataGridSource {
     return null;
   }
 
+  /// Two decimal places for numeric cells (currency / PLU metrics); ints unchanged.
+  static String _displayCellValue(dynamic value) {
+    if (value == null) return '';
+    if (value is int) return value.toString();
+    if (value is double) return value.toStringAsFixed(2);
+    if (value is num) return value.toDouble().toStringAsFixed(2);
+    return value.toString();
+  }
+
   @override
   DataGridRowAdapter buildRow(DataGridRow row) {
     return DataGridRowAdapter(
@@ -296,7 +305,7 @@ abstract class DynamicDataSource<T> extends DataGridSource {
         return Container(
           alignment: Alignment.center,
           padding: const EdgeInsets.all(8.0),
-          child: Text(e.value.toString()),
+          child: Text(_displayCellValue(e.value)),
         );
       }).toList(),
     );

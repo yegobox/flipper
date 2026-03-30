@@ -568,7 +568,8 @@ class DataViewState extends ConsumerState<DataView>
     bool isLoading,
     Color color,
   ) {
-    final displayTotal = value ?? 0.0;
+    final raw = value ?? 0.0;
+    final displayTotal = double.parse(raw.toStringAsFixed(2));
     return Card(
       color: color.withValues(alpha: 0.07),
       elevation: 0,
@@ -752,7 +753,7 @@ class DataViewState extends ConsumerState<DataView>
                     child: CircularProgressIndicator(strokeWidth: 2),
                   )
                 : Text(
-                    amount.toCurrencyFormatted(
+                    double.parse(amount.toStringAsFixed(2)).toCurrencyFormatted(
                       symbol: ProxyService.box.defaultCurrency(),
                     ),
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
