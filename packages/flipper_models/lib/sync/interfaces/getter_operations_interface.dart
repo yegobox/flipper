@@ -31,7 +31,7 @@ abstract class GetterOperationsInterface {
       {String? key, int? prodIndex, required String branchId});
   Future<Receipt?> getReceipt({required String transactionId});
   FutureOr<Tenant?> getTenant({String? userId, int? pin});
-  Future<({double expense, double income})> getTransactionsAmountsSum(
+  FutureOr<({double income, double expense})> getTransactionsAmountsSum(
       {required String period});
   Future<Plan?> getPaymentPlan({
     required String businessId,

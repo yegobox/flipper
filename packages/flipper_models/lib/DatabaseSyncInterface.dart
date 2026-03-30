@@ -36,6 +36,7 @@ import 'package:supabase_models/brick/models/credit.model.dart';
 import 'package:flipper_services/ai_strategy.dart';
 // import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/sync/interfaces/production_output_interface.dart';
+import 'package:flipper_models/sync/interfaces/getter_operations_interface.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as models;
 // import 'package:flipper_services/database_provider.dart'
@@ -83,7 +84,8 @@ abstract class DatabaseSyncInterface extends AiStrategy
         ConversationInterface,
         ReceiptInterface,
         ProductionOutputInterface,
-        LogInterface {
+        LogInterface,
+        GetterOperationsInterface {
   // Repository get repository;
   // DatabaseProvider? capella;
   // AsyncCollection? branchCollection;
@@ -506,9 +508,6 @@ abstract class DatabaseSyncInterface extends AiStrategy
     double amount = 0.0,
     String? paymentMethod,
     required bool singlePaymentOnly,
-  });
-  FutureOr<List<TransactionPaymentRecord>> getPaymentType({
-    required String transactionId,
   });
 
   SendPort? sendPort;

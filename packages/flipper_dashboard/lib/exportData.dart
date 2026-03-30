@@ -18,6 +18,8 @@ import 'package:permission_handler/permission_handler.dart' as permission;
 import 'package:open_filex/open_filex.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 import 'package:flipper_dashboard/export/models/expense.dart';
+import 'package:flipper_dashboard/export/models/payment_summary.dart';
+import 'package:flipper_dashboard/export/utils/excel_utils.dart';
 import 'package:flipper_dashboard/features/config/widgets/currency_options.dart';
 
 /// Keys on PLU manual-export row maps (not DataGrid columns); used for Excel formulas.
@@ -34,18 +36,6 @@ const String _excelPluAmountNumberFormat = '#,##0.00';
 /// Manual PLU workbook layout (no reserved blank rows above the table).
 const int _manualPluHeaderRow = 1;
 const int _manualPluFirstDataRow = 2;
-
-class PaymentSummary {
-  final String method;
-  final double amount;
-  final int count;
-
-  const PaymentSummary({
-    required this.method,
-    required this.amount,
-    required this.count,
-  });
-}
 
 mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   void addFooter(
@@ -941,10 +931,6 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     return columnLetter;
   }
 
-  String normalizePaymentMethod(String method) {
-    return method.trim().toUpperCase();
-  }
-
   // Helper method to find a worksheet by name
   excel.Worksheet? _findWorksheetByName(excel.Workbook workbook, String name) {
     for (int i = 0; i < workbook.worksheets.count; i++) {
@@ -1103,8 +1089,11 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       final paymentMethodSheet = workbook.worksheets.addWithName(sheetName);
       await _initializeSheet(paymentMethodSheet, styler);
 
-      // Use in-memory summary from transaction.paymentType/cashReceived (no DB calls)
-      final paymentData = _processTransactionsFromList(config.transactions);
+      // Split amounts from transaction_payment_records (same as [ExcelUtils]); fallback
+      // to subTotal + paymentType when a sale has no payment rows.
+      final paymentData = await ExcelUtils.processTransactions(
+        config.transactions,
+      );
 
       if (paymentData.isEmpty) {
         talker.warning('No payment totals to write to sheet');
@@ -1141,48 +1130,12 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     );
 
     sheet.getRangeByIndex(1, 1).setText('Payment Type');
-    sheet.getRangeByIndex(1, 2).setText('Amount Received');
+    sheet.getRangeByIndex(1, 2).setText('Sale amount');
     sheet.getRangeByIndex(1, 3).setText('Transaction Count');
     sheet.getRangeByIndex(1, 4).setText('% of Total');
 
     final headerRange = sheet.getRangeByIndex(1, 1, 1, 4);
     headerRange.cellStyle = headerStyle;
-  }
-
-  /// Builds payment summary from transaction list in memory (no DB calls).
-  /// Uses transaction.paymentType and cashReceived/subTotal from each ITransaction.
-  List<PaymentSummary> _processTransactionsFromList(
-    List<ITransaction> transactions,
-  ) {
-    final paymentTotals = <String, PaymentSummary>{};
-
-    for (final transaction in transactions) {
-      final method = normalizePaymentMethod(
-        transaction.paymentType?.trim().isNotEmpty == true
-            ? transaction.paymentType!
-            : 'Cash',
-      );
-      final amount = transaction.cashReceived ?? transaction.subTotal ?? 0.0;
-
-      paymentTotals.update(
-        method,
-        (existing) => PaymentSummary(
-          method: method,
-          amount: existing.amount + amount,
-          count: existing.count + 1,
-        ),
-        ifAbsent: () =>
-            PaymentSummary(method: method, amount: amount, count: 1),
-      );
-    }
-
-    final sortedData = paymentTotals.values.toList()
-      ..sort((a, b) => b.amount.compareTo(a.amount));
-
-    talker.debug(
-      'Payment summary from ${transactions.length} transactions: ${sortedData.length} methods',
-    );
-    return sortedData;
   }
 
   Future<void> _writeDataToSheet({

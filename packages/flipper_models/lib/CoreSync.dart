@@ -33,6 +33,7 @@ import 'package:flipper_models/sync/mixins/transaction_mixin.dart';
 import 'package:flipper_models/sync/mixins/variant_mixin.dart';
 import 'package:flipper_models/sync/mixins/discount_mixin.dart';
 import 'package:flipper_models/sync/mixins/settings_mixin.dart';
+import 'package:flipper_models/sync/mixins/getter_operations_mixin.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_models/SyncStrategy.dart';
@@ -98,7 +99,8 @@ class CoreSync extends AiStrategyImpl
         DelegationMixin,
         ProductionOutputMixin,
         DiscountMixin,
-        SettingsMixin
+        SettingsMixin,
+        GetterOperationsMixin
     implements DatabaseSyncInterface {
   final String apihub = AppSecrets.apihubProd;
 

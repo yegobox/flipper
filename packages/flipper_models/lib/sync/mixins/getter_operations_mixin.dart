@@ -243,8 +243,8 @@ mixin GetterOperationsMixin implements GetterOperationsInterface {
     bool? preferFresh,
   }) async {
     try {
-      // Plan is not stored in Brick/SQLite — read from Supabase directly when this
-      // mixin is used (CoreSync overrides with Ditto-first).
+      // Plan is not stored in Brick/SQLite — read from Supabase (CoreSync uses this
+      // mixin; CapellaSync uses [CapellaGetterOperationsMixin] for Ditto-first).
       talker.info(
           'getPaymentPlan (mixin): businessId=$businessId fetchOnline=$fetchOnline preferFresh=$preferFresh');
       final row = await Supabase.instance.client

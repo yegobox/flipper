@@ -1440,33 +1440,6 @@ class CapellaSync extends AiStrategyImpl
   Talker get talker => _talker;
 
   @override
-  Future<Plan?> getPaymentPlan({
-    required String businessId,
-    bool? fetchOnline,
-    bool? preferFresh,
-  }) async {
-    // Ditto first when available; Plan is not in local SQLite — fall back to Supabase `plans` table.
-    if (dittoService.isReady()) {
-      final fromDitto = await dittoService.getPaymentPlanFromDitto(businessId);
-      if (fromDitto != null) return fromDitto;
-      _talker.info(
-        'getPaymentPlan: no plan in Ditto for businessId=$businessId — fetching from Supabase',
-      );
-    } else {
-      _talker.info(
-        'getPaymentPlan: Ditto not ready for businessId=$businessId — fetching plan from Supabase',
-      );
-    }
-    final row = await Supabase.instance.client
-        .from('plans')
-        .select()
-        .eq('business_id', businessId)
-        .maybeSingle();
-    if (row == null) return null;
-    return Plan.fromSupabaseJson(Map<String, dynamic>.from(row));
-  }
-
-  @override
   FutureOr<Pin?> getPinLocal({
     String? userId,
     String? phoneNumber,

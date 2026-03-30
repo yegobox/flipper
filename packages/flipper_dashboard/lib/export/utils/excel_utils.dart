@@ -1,5 +1,6 @@
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/ebm_helper.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:syncfusion_flutter_xlsio/xlsio.dart' as excel;
@@ -31,13 +32,20 @@ class ExcelUtils {
     int startRow = 1, // Add optional startRow parameter with default value of 1
   }) async {
     final headerStyle = styler.createStyle(
-        fontColor: '#FFFFFF', backColor: '#4472C4', fontSize: 14);
+      fontColor: '#FFFFFF',
+      backColor: '#4472C4',
+      fontSize: 14,
+    );
     final infoStyle = styler.createStyle(
-        fontColor: '#000000', backColor: '#E7E6E6', fontSize: 12);
+      fontColor: '#000000',
+      backColor: '#E7E6E6',
+      fontSize: 12,
+    );
 
     reportSheet.insertRow(startRow);
     final titleRange = reportSheet.getRangeByName(
-        'A$startRow:${String.fromCharCode(64 + reportSheet.getLastColumn())}$startRow');
+      'A$startRow:${String.fromCharCode(64 + reportSheet.getLastColumn())}$startRow',
+    );
     titleRange.merge();
     titleRange.setText(headerTitle);
     titleRange.cellStyle = headerStyle;
@@ -61,9 +69,11 @@ class ExcelUtils {
 
     Map<String, excel.Range> namedRanges = {};
 
-    for (var i = 0, infoRow = startRow + 1;
-        i < infoData.length;
-        i++, infoRow++) {
+    for (
+      var i = 0, infoRow = startRow + 1;
+      i < infoData.length;
+      i++, infoRow++
+    ) {
       // Insert Net Profit row just after Gross Profit
       if (infoData[i][0] == 'Gross Profit') {
         // Write Gross Profit row
@@ -101,7 +111,8 @@ class ExcelUtils {
         cell.setFormula('=SUM(C$firstDataRow:C$lastDataRow)');
         cell.numberFormat = config.currencyFormat;
         final infoRange = reportSheet.getRangeByName(
-            'A$infoRow:${String.fromCharCode(64 + reportSheet.getLastColumn())}$infoRow');
+          'A$infoRow:${String.fromCharCode(64 + reportSheet.getLastColumn())}$infoRow',
+        );
         infoRange.cellStyle = infoStyle;
         reportSheet.workbook.names.add('GrossProfit', cell);
         namedRanges['GrossProfit'] = cell;
@@ -115,7 +126,8 @@ class ExcelUtils {
         netProfitCell.setFormula('=GrossProfit - TotalExpenses');
         netProfitCell.numberFormat = config.currencyFormat;
         final netProfitRange = reportSheet.getRangeByName(
-            'A$netProfitRow:${String.fromCharCode(64 + reportSheet.getLastColumn())}$netProfitRow');
+          'A$netProfitRow:${String.fromCharCode(64 + reportSheet.getLastColumn())}$netProfitRow',
+        );
         netProfitRange.cellStyle = infoStyle;
         reportSheet.workbook.names.add('NetProfit', netProfitCell);
         namedRanges['NetProfit'] = netProfitCell;
@@ -137,7 +149,8 @@ class ExcelUtils {
         }
       } catch (e) {}
       final infoRange = reportSheet.getRangeByName(
-          'A$infoRow:${String.fromCharCode(64 + reportSheet.getLastColumn())}$infoRow');
+        'A$infoRow:${String.fromCharCode(64 + reportSheet.getLastColumn())}$infoRow',
+      );
       infoRange.cellStyle = infoStyle;
     }
 
@@ -153,7 +166,10 @@ class ExcelUtils {
     int startRow = 1, // Add optional startRow parameter with default value of 1
   }) {
     final balanceStyle = styler.createStyle(
-        fontColor: '#FFFFFF', backColor: '#70AD47', fontSize: 12);
+      fontColor: '#FFFFFF',
+      backColor: '#70AD47',
+      fontSize: 12,
+    );
     final firstDataRow = getFirstDataRow(sheet);
     final lastDataRow = sheet.getLastRow();
     final closingBalanceRow = lastDataRow + 1;
@@ -166,17 +182,21 @@ class ExcelUtils {
     sheet.getRangeByName('A$closingBalanceRow').setText(bottomEndOfRowTitle);
     sheet.getRangeByName('A$closingBalanceRow').cellStyle = balanceStyle;
 
-    final closingBalanceCell =
-        sheet.getRangeByName('$amountColLetter$closingBalanceRow');
+    final closingBalanceCell = sheet.getRangeByName(
+      '$amountColLetter$closingBalanceRow',
+    );
     closingBalanceCell.setFormula(
-        '=SUM($amountColLetter$firstDataRow:$amountColLetter$lastDataRow)');
+      '=SUM($amountColLetter$firstDataRow:$amountColLetter$lastDataRow)',
+    );
     closingBalanceCell.cellStyle = balanceStyle;
     closingBalanceCell.numberFormat = currencyFormat;
 
     sheet
-        .getRangeByName(
-            'A$closingBalanceRow:$amountColLetter$closingBalanceRow')
-        .cellStyle = balanceStyle;
+            .getRangeByName(
+              'A$closingBalanceRow:$amountColLetter$closingBalanceRow',
+            )
+            .cellStyle =
+        balanceStyle;
 
     // --- ADD Net Profit row below Total Gross Profit ---
     final netProfitRow = closingBalanceRow + 1;
@@ -186,14 +206,16 @@ class ExcelUtils {
 
     final netProfitCell = sheet.getRangeByName('$amountColLetter$netProfitRow');
     // Reference the actual gross profit cell in the summary/footer, not the header named range
-    netProfitCell
-        .setFormula('=${amountColLetter}${closingBalanceRow} - TotalExpenses');
+    netProfitCell.setFormula(
+      '=${amountColLetter}${closingBalanceRow} - TotalExpenses',
+    );
     netProfitCell.cellStyle = balanceStyle;
     netProfitCell.numberFormat = currencyFormat;
 
     sheet
-        .getRangeByName('A$netProfitRow:$amountColLetter$netProfitRow')
-        .cellStyle = balanceStyle;
+            .getRangeByName('A$netProfitRow:$amountColLetter$netProfitRow')
+            .cellStyle =
+        balanceStyle;
   }
 
   /// Auto-fits report sheet columns. Do not force column 9 to account currency —
@@ -223,7 +245,7 @@ class ExcelUtils {
       final paymentMethodSheet = workbook.worksheets.addWithName(sheetName);
       await initializeSheet(paymentMethodSheet, styler);
 
-      // Process transactions
+      // Process transactions (split rows from transaction_payment_records)
       final paymentData = await processTransactions(config.transactions);
 
       if (paymentData.isEmpty) {
@@ -265,41 +287,64 @@ class ExcelUtils {
 
     // Set headers
     sheet.getRangeByIndex(_headerRow, _colPaymentType).setText('Payment Type');
-    sheet.getRangeByIndex(_headerRow, _colAmount).setText('Amount Received');
+    sheet.getRangeByIndex(_headerRow, _colAmount).setText('Sale amount');
     sheet.getRangeByIndex(_headerRow, _colCount).setText('Transaction Count');
     sheet.getRangeByIndex(_headerRow, _colPercentage).setText('% of Total');
 
     // Apply header style
     final headerRange = sheet.getRangeByIndex(
-        _headerRow, _colPaymentType, _headerRow, _colPercentage);
+      _headerRow,
+      _colPaymentType,
+      _headerRow,
+      _colPercentage,
+    );
     headerRange.cellStyle = headerStyle;
   }
 
-  /// Processes transactions to extract payment data
+  /// Processes transactions using Capella [TransactionPaymentRecord] rows.
+  /// Payment method and amount for each split come only from those records.
+  /// When there are **no** rows for a transaction, optionally falls back to one
+  /// line from [ITransaction.paymentType] and [ITransaction.subTotal] (legacy).
   static Future<List<PaymentSummary>> processTransactions(
-    List<ITransaction> transactions,
-  ) async {
+    List<ITransaction> transactions, {
+    bool fallbackWhenNoPaymentRecords = true,
+  }) async {
     final paymentTotals = <String, PaymentSummary>{};
+    final capella = ProxyService.getStrategy(Strategy.capella);
     talker.debug('Processing ${transactions.length} transactions');
 
     for (final transaction in transactions) {
       try {
-        final paymentTypes = await ProxyService.strategy.getPaymentType(
+        final paymentRecords = await capella.getPaymentType(
           transactionId: transaction.id,
         );
 
         talker.debug(
-          'Transaction ${transaction.id}: Found ${paymentTypes.length} payment records',
+          'Transaction ${transaction.id}: ${paymentRecords.length} payment record(s)',
         );
 
-        for (final paymentType in paymentTypes) {
-          if (!isValidPayment(paymentType)) {
+        if (paymentRecords.isEmpty) {
+          if (fallbackWhenNoPaymentRecords) {
+            final method = normalizePaymentMethod(
+              transaction.paymentType?.trim().isNotEmpty == true
+                  ? transaction.paymentType!
+                  : 'Cash',
+            );
+            final sub = transaction.subTotal;
+            final amount = sub ?? transaction.cashReceived ?? 0.0;
+            _addToPaymentTotals(paymentTotals, method, amount, 1);
+          }
+          continue;
+        }
+
+        for (final record in paymentRecords) {
+          if (!isValidPayment(record)) {
             talker.warning(
-                'Invalid payment data for transaction: ${transaction.id}');
+              'Skipping invalid payment row for transaction ${transaction.id}',
+            );
             continue;
           }
-
-          updatePaymentTotals(paymentTotals, paymentType);
+          updatePaymentTotals(paymentTotals, record);
         }
       } catch (e, stack) {
         talker.error('Error processing transaction ${transaction.id}: $e');
@@ -315,6 +360,24 @@ class ExcelUtils {
     return sortedData;
   }
 
+  static void _addToPaymentTotals(
+    Map<String, PaymentSummary> totals,
+    String method,
+    double amount,
+    int countDelta,
+  ) {
+    totals.update(
+      method,
+      (existing) => PaymentSummary(
+        method: method,
+        amount: existing.amount + amount,
+        count: existing.count + countDelta,
+      ),
+      ifAbsent: () =>
+          PaymentSummary(method: method, amount: amount, count: countDelta),
+    );
+  }
+
   /// Checks if a payment is valid
   static bool isValidPayment(TransactionPaymentRecord payment) {
     return payment.paymentMethod != null && payment.amount != null;
@@ -327,21 +390,7 @@ class ExcelUtils {
   ) {
     final method = normalizePaymentMethod(payment.paymentMethod!);
     final amount = payment.amount!;
-
-    totals.update(
-      method,
-      (existing) => PaymentSummary(
-        method: method,
-        amount: existing.amount + amount,
-        count: existing.count + 1,
-      ),
-      ifAbsent: () => PaymentSummary(
-        method: method,
-        amount: amount,
-        count: 1,
-      ),
-    );
-
+    _addToPaymentTotals(totals, method, amount, 1);
     talker.debug('Updated payment total: $method = ${totals[method]?.amount}');
   }
 
@@ -432,13 +481,23 @@ class ExcelUtils {
   }
 
   /// Adds an expenses sheet to the workbook
-  static void addExpensesSheet(excel.Workbook workbook, List<Expense> expenses,
-      ExcelStyler styler, String currencyFormat) {
+  static void addExpensesSheet(
+    excel.Workbook workbook,
+    List<Expense> expenses,
+    ExcelStyler styler,
+    String currencyFormat,
+  ) {
     final expenseSheet = workbook.worksheets.addWithName('Expenses');
     final expenseHeaderStyle = styler.createStyle(
-        fontColor: '#FFFFFF', backColor: '#4472C4', fontSize: 14);
+      fontColor: '#FFFFFF',
+      backColor: '#4472C4',
+      fontSize: 14,
+    );
     final balanceStyle = styler.createStyle(
-        fontColor: '#FFFFFF', backColor: '#70AD47', fontSize: 12);
+      fontColor: '#FFFFFF',
+      backColor: '#70AD47',
+      fontSize: 12,
+    );
 
     expenseSheet.getRangeByIndex(1, 1).setText('Expense');
     expenseSheet.getRangeByIndex(1, 2).setText('Amount');
@@ -467,7 +526,8 @@ class ExcelUtils {
 
     final netProfitCell = workbook.names['NetProfit'].refersToRange;
     netProfitCell.setFormula(
-        '=${workbook.names['GrossProfit'].refersToRange.addressGlobal} - TotalExpenses');
+      '=${workbook.names['GrossProfit'].refersToRange.addressGlobal} - TotalExpenses',
+    );
     netProfitCell.numberFormat = currencyFormat;
   }
 
