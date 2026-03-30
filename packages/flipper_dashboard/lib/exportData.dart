@@ -195,6 +195,11 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     List<String>? columnNames, // Added parameter for column names
     required bool showProfitCalculations,
     String? currencyCode,
+    /// When true, PLU line columns [TotalSales], [TaxPayable], [NetProfit] are
+    /// written as numeric values from row data instead of Excel formulas.
+    /// Nested IF/MAX/ROUND formulas often show "Formula parse error" in Google Sheets
+    /// for .xlsx from XlsIO; values match app calculations and open everywhere.
+    bool staticPluLineValues = false,
   }) async {
     String? filePath;
     try {
@@ -522,7 +527,8 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                 colIndex + 1,
               );
 
-              if (useTotalSalesFormula &&
+              if (!staticPluLineValues &&
+                  useTotalSalesFormula &&
                   colName.toLowerCase() == 'totalsales') {
                 final excelRow = dataRow;
                 final priceLetter = _getColumnLetter(priceColIndex0 + 1);
@@ -532,7 +538,8 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                 continue;
               }
 
-              if (usePluTaxNetFormulas &&
+              if (!staticPluLineValues &&
+                  usePluTaxNetFormulas &&
                   colName.toLowerCase() == 'taxpayable') {
                 final excelRow = dataRow;
                 final taxFormula = _pluTaxPayableExcelFormula(
@@ -549,7 +556,8 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                 }
               }
 
-              if (usePluTaxNetFormulas &&
+              if (!staticPluLineValues &&
+                  usePluTaxNetFormulas &&
                   colName.toLowerCase() == 'netprofit') {
                 final excelRow = dataRow;
                 final tsL = _getColumnLetter(totalSalesColIndex0 + 1);
@@ -984,8 +992,9 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         final totalExpensesRowIndex = lastExpenseRow;
 
         // Create a direct cell reference formula to subtract expenses from net profit (before expenses)
+        // Quoted sheet name improves cross-app compatibility (e.g. Google Sheets).
         final formula =
-            '=${_getColumnLetter(netProfitColumn)}$totalRowIndex-Expenses!B$totalExpensesRowIndex';
+            '=${_getColumnLetter(netProfitColumn)}$totalRowIndex-\'Expenses\'!B$totalExpensesRowIndex';
 
         // This is a properly constructed Dart string with proper interpolation
         finalNetProfitCell.setFormula(formula);

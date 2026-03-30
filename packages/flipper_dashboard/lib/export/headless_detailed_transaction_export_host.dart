@@ -107,9 +107,12 @@ double _pluTotalLineTaxFromList(List<TransactionItem> items) {
 
 /// Same row mapping as [DataView._buildManualDataForExport] for [TransactionItemDataSource].
 Future<({List<dynamic> manualData, List<String> columnNames})>
-    buildPluManualExportRows(List<TransactionItem> items) async {
+buildPluManualExportRows(List<TransactionItem> items) async {
   if (items.isEmpty) {
-    return (manualData: <dynamic>[], columnNames: kPluDetailedExportColumnNames);
+    return (
+      manualData: <dynamic>[],
+      columnNames: kPluDetailedExportColumnNames,
+    );
   }
 
   final uniqueTaxTypes = items.map((i) => i.taxTyCd ?? 'B').toSet().toList();
@@ -137,8 +140,7 @@ Future<({List<dynamic> manualData, List<String> columnNames})>
       'Name': (() {
         final nameParts = item.name.split('(');
         final name = nameParts[0].trim().toUpperCase();
-        final number =
-            nameParts.length > 1 ? nameParts[1].split(')')[0] : '';
+        final number = nameParts.length > 1 ? nameParts[1].split(')')[0] : '';
         return number.isEmpty ? name : '$name-$number';
       })(),
       'Barcode': TransactionItemPluMetrics.barcodeForReport(item),
@@ -158,10 +160,7 @@ Future<({List<dynamic> manualData, List<String> columnNames})>
       '__excelRowTaxblAmt': item.taxblAmt,
     });
   }
-  return (
-    manualData: preparedData,
-    columnNames: kPluDetailedExportColumnNames,
-  );
+  return (manualData: preparedData, columnNames: kPluDetailedExportColumnNames);
 }
 
 Future<double> _calculateNetProfitForItems(
@@ -174,7 +173,8 @@ Future<double> _calculateNetProfitForItems(
   final bid = ProxyService.box.getBranchId();
   if (bid == null) return gross - tax;
   try {
-    final expenseTxs = await ProxyService.getStrategy(Strategy.capella).transactions(
+    final expenseTxs = await ProxyService.getStrategy(Strategy.capella)
+        .transactions(
           startDate: startDate,
           endDate: endDate,
           isExpense: true,
@@ -235,14 +235,14 @@ class DetailedTransactionReportExportHostState
       forceRealData: forceRealData,
     );
 
-    final expenseTransactions =
-        await ProxyService.getStrategy(Strategy.capella).transactions(
-      startDate: startDate,
-      endDate: endDate,
-      isExpense: true,
-      skipOriginalTransactionCheck: false,
-      branchId: branchId,
-    );
+    final expenseTransactions = await ProxyService.getStrategy(Strategy.capella)
+        .transactions(
+          startDate: startDate,
+          endDate: endDate,
+          isExpense: true,
+          skipOriginalTransactionCheck: false,
+          branchId: branchId,
+        );
     final expenses = await Expense.fromTransactions(
       expenseTransactions,
       sales: sales,
@@ -261,8 +261,11 @@ class DetailedTransactionReportExportHostState
       startDate: startDate,
     );
     config.grossProfit = _pluGrossProfitFromItemList(items);
-    config.netProfit =
-        await _calculateNetProfitForItems(items, startDate, endDate);
+    config.netProfit = await _calculateNetProfitForItems(
+      items,
+      startDate,
+      endDate,
+    );
 
     final path = await exportDataGrid(
       workBookKey: _dummyWorkBookKey,
@@ -274,6 +277,9 @@ class DetailedTransactionReportExportHostState
       showProfitCalculations: true,
       manualData: manualData.isNotEmpty ? manualData : null,
       columnNames: manualData.isNotEmpty ? columnNames : null,
+      // Google Sheets often fails to parse nested PLU formulas in XlsIO .xlsx;
+      // static values match the app and keep footer SUMs working.
+      staticPluLineValues: true,
     );
     if (path == null || path.isEmpty) {
       throw StateError('export_failed');
