@@ -12,11 +12,19 @@ abstract final class PluExcelRowKeys {
 /// Pure helpers for PLU line Excel formulas (Excel + Google Sheets .xlsx import).
 abstract final class PluExcelFormulaBuilder {
   /// Numeric literal for embedding in Excel formulas (en-US decimal point).
+  ///
+  /// Never uses scientific notation ([double.toString] can emit `1e-7`), which
+  /// Google Sheets often rejects inside imported .xlsx formulas.
   static String excelLiteralNumForFormula(num n) {
     final d = n.toDouble();
     if (d == 0) return '0';
     if (d == d.roundToDouble()) return '${d.round()}';
-    return d.toString();
+    var s = d.toStringAsFixed(12);
+    if (s.contains('.')) {
+      s = s.replaceFirst(RegExp(r'0+$'), '');
+      s = s.replaceFirst(RegExp(r'\.$'), '');
+    }
+    return s;
   }
 
   /// `Sheet!` or `'My Sheet'!` for cross-sheet formulas (Excel + Google Sheets import).

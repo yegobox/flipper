@@ -8,11 +8,11 @@ void main() {
       expect(PluExcelFormulaBuilder.excelLiteralNumForFormula(18), '18');
     });
 
-    test('fractions use toString', () {
-      expect(
-        PluExcelFormulaBuilder.excelLiteralNumForFormula(1.5),
-        '1.5',
-      );
+    test('fractions avoid scientific notation', () {
+      expect(PluExcelFormulaBuilder.excelLiteralNumForFormula(1.5), '1.5');
+      final tiny = PluExcelFormulaBuilder.excelLiteralNumForFormula(1e-7);
+      expect(tiny, isNot(contains('e')));
+      expect(tiny, isNot(contains('E')));
     });
   });
 
