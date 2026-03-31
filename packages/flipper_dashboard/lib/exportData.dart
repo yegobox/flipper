@@ -189,7 +189,9 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     /// written as numeric values from row data instead of Excel formulas.
     /// Nested IF/MAX/ROUND formulas often show "Formula parse error" in Google Sheets
     /// for .xlsx from XlsIO; values match app calculations and open everywhere.
-    bool staticPluLineValues = false,
+    /// Default [true] so manual PLU exports open cleanly in Sheets and Excel.
+    /// Pass [false] only if you need recalculable formulas in desktop Excel.
+    bool staticPluLineValues = true,
   }) async {
     String? filePath;
     try {

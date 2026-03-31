@@ -1204,14 +1204,14 @@ mixin CapellaTransactionMixin implements TransactionInterface {
 
     addUpdate('status', status ?? transaction?.status);
     addUpdate('subTotal', subTotal ?? transaction?.subTotal);
-    addUpdate(
-      'updatedAt',
-      updatedAt ?? transaction?.updatedAt ?? DateTime.now(),
-    );
-    addUpdate(
-      'lastTouched',
-      lastTouched ?? transaction?.lastTouched ?? DateTime.now(),
-    );
+    final resolvedUpdatedAt =
+        updatedAt ?? transaction?.updatedAt ?? DateTime.now();
+    final resolvedLastTouched =
+        lastTouched ?? transaction?.lastTouched ?? DateTime.now();
+    addUpdate('updatedAt', resolvedUpdatedAt);
+    addUpdate('lastTouched', resolvedLastTouched);
+    // Keep transaction createdAt aligned with last activity (same as lastTouched).
+    addUpdate('createdAt', resolvedLastTouched);
     addUpdate('cashReceived', cashReceived ?? transaction?.cashReceived);
     addUpdate('customerPhone', customerPhone ?? transaction?.customerPhone);
     addUpdate('customerType', customerType ?? transaction?.customerType);

@@ -147,7 +147,9 @@ buildPluManualExportRows(List<TransactionItem> items) async {
       'Price': item.price,
       'TaxRate': taxPercentage,
       'Qty': item.qty,
-      'TotalSales': TransactionItemPluMetrics.profitMade(item),
+      // Line gross (price × qty); matches Excel formula path and footer SUM(TotalSales).
+      'TotalSales': (item.price.toDouble() * item.qty.toDouble())
+          .roundToTwoDecimalPlaces(),
       'SupplyAmount': item.splyAmt?.toDouble() ?? 0.0,
       'CurrentStock': TransactionItemPluMetrics.currentStockDisplay(item),
       'TaxPayable': TransactionItemPluMetrics.taxPayable(item),

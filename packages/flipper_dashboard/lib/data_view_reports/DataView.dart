@@ -936,7 +936,9 @@ class DataViewState extends ConsumerState<DataView>
           'Price': item.price,
           'TaxRate': taxPercentage,
           'Qty': item.qty,
-          'TotalSales': TransactionItemPluMetrics.profitMade(item),
+          // Line gross (price × qty); matches Excel formula path and footer SUM(TotalSales).
+          'TotalSales': (item.price.toDouble() * item.qty.toDouble())
+              .roundToTwoDecimalPlaces(),
           'SupplyAmount': item.splyAmt?.toDouble() ?? 0.0,
           'CurrentStock': TransactionItemPluMetrics.currentStockDisplay(item),
           'TaxPayable': TransactionItemPluMetrics.taxPayable(item),
@@ -1279,7 +1281,9 @@ class DataViewState extends ConsumerState<DataView>
 
             rowData['TaxRate'] = taxPercentage;
             rowData['Qty'] = item.qty;
-            rowData['TotalSales'] = TransactionItemPluMetrics.profitMade(item);
+            rowData['TotalSales'] =
+                (item.price.toDouble() * item.qty.toDouble())
+                    .roundToTwoDecimalPlaces();
             rowData['SupplyAmount'] = item.splyAmt?.toDouble() ?? 0.0;
             rowData['CurrentStock'] =
                 TransactionItemPluMetrics.currentStockDisplay(item);

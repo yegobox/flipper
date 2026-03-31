@@ -590,6 +590,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     );
     transaction.subTotal = finalSubTotal;
     transaction.lastTouched = now;
+    transaction.createdAt = now;
 
     final paymentsToPersist = _normalizePaymentMethodsToSaleTotal(
       paymentMethods: paymentMethods,

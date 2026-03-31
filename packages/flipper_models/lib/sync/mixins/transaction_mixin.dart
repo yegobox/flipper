@@ -250,24 +250,6 @@ mixin TransactionMixin implements TransactionInterface {
     List<TransactionItem> items = []; // Default to empty list
 
     if (transactionIds.isNotEmpty) {
-      // Construct the list of OR conditions for transaction IDs
-      // final List<WhereCondition> orConditions = transactionIds.map((id) {
-      //   // Each Where condition for an ID is optional (OR'd with the next)
-      //   return Where('transactionId',
-      //       value: id, compare: Compare.exact, isRequired: false);
-      // }).toList();
-
-      // Create a WherePhrase to group these OR conditions.
-      // This phrase itself is required for the query.
-      // final WherePhrase transactionIdInPhrase =
-      //     WherePhrase(orConditions, isRequired: true);
-
-      // items = await repository.get<TransactionItem>(
-      //   policy: fetchRemote
-      //       ? OfflineFirstGetPolicy.awaitRemoteWhenNoneExist
-      //       : OfflineFirstGetPolicy.localOnly,
-      //   query: Query(where: [transactionIdInPhrase]),
-      // );
       final where = Where('transactionId').isIn(transactionIds);
       items = await repository.get<TransactionItem>(
         policy: fetchRemote
@@ -842,12 +824,6 @@ mixin TransactionMixin implements TransactionInterface {
         amountTotal: amountTotal,
         item: item,
       );
-
-      // Redundant update removed. `ProxyService.strategy.addTransactionItem` already updates the transaction.
-      // await updatePendingTransactionTotals(
-      //   pendingTransaction,
-      //   sarTyCd: sarTyCd ?? "11",
-      // );
     } catch (e, s) {
       talker.warning(e);
       talker.error(s);
@@ -930,6 +906,7 @@ mixin TransactionMixin implements TransactionInterface {
       pendingTransaction.copyWith(
         updatedAt: newUpdatedAt,
         lastTouched: newLastTouched,
+        createdAt: newLastTouched,
         receiptType: "NS",
         sarTyCd: sarTyCd,
       ),
@@ -1033,6 +1010,9 @@ mixin TransactionMixin implements TransactionInterface {
     transaction.cashReceived = cashReceived ?? transaction.cashReceived;
     transaction.customerName = customerName ?? transaction.customerName;
     transaction.lastTouched = lastTouched ?? transaction.lastTouched;
+    if (lastTouched != null) {
+      transaction.createdAt = lastTouched;
+    }
     transaction.receiptPrinted = receiptPrinted ?? transaction.receiptPrinted;
     transaction.isExpense = isUnclassfied ? null : transaction.isExpense;
     transaction.isIncome = isUnclassfied ? null : transaction.isIncome;
@@ -1043,7 +1023,10 @@ mixin TransactionMixin implements TransactionInterface {
     transaction.remainingBalance =
         remainingBalance ?? transaction.remainingBalance;
 
-    final result = await repository.upsert<ITransaction>(transaction, skipDittoSync: skipDittoSync);
+    final result = await repository.upsert<ITransaction>(
+      transaction,
+      skipDittoSync: skipDittoSync,
+    );
     return result;
   }
 
@@ -1336,6 +1319,7 @@ mixin TransactionMixin implements TransactionInterface {
     final now = DateTime.now();
     to.updatedAt = now;
     to.lastTouched = now;
+    to.createdAt = now;
     await repository.upsert<ITransaction>(to);
 
     // Delete the 'from' transaction
