@@ -187,11 +187,9 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     String? currencyCode,
     /// When true, PLU line columns [TotalSales], [TaxPayable], [NetProfit] are
     /// written as numeric values from row data instead of Excel formulas.
-    /// Nested IF/MAX/ROUND formulas often show "Formula parse error" in Google Sheets
-    /// for .xlsx from XlsIO; values match app calculations and open everywhere.
-    /// Default [true] so manual PLU exports open cleanly in Sheets and Excel.
-    /// Pass [false] only if you need recalculable formulas in desktop Excel.
-    bool staticPluLineValues = true,
+    /// Use [true] for Google Sheets if you see "Formula parse error" on line cells;
+    /// default [false] keeps line formulas (bottom [SUM] totals are always formulas).
+    bool staticPluLineValues = false,
   }) async {
     String? filePath;
     try {
