@@ -279,6 +279,8 @@ class DetailedTransactionReportExportHostState
       showProfitCalculations: true,
       manualData: manualData.isNotEmpty ? manualData : null,
       columnNames: manualData.isNotEmpty ? columnNames : null,
+      // Line formulas use Sheets-compatible syntax in exportData; set true if a client still errors.
+      staticPluLineValues: false,
     );
     if (path == null || path.isEmpty) {
       throw StateError('export_failed');

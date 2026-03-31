@@ -852,8 +852,20 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     return d.toString();
   }
 
+  /// `Sheet!` or `'My Sheet'!` for cross-sheet formulas (Excel + Google Sheets import).
+  String _formulaSheetPrefix(String sheetName) {
+    final t = sheetName.trim();
+    if (t.isEmpty) return '';
+    final simple = RegExp(r'^[A-Za-z_][A-Za-z0-9_]*$').hasMatch(t);
+    if (simple) return '$t!';
+    return "'${t.replaceAll("'", "''")}'!";
+  }
+
   /// Matches [TransactionItemPluMetrics.taxPayable] when tax is derived from rate;
   /// returns `null` when the app uses [taxAmt] or (tot - taxbl) — then the static cell value is used.
+  ///
+  /// Uses a single [IF(base<=0,0,ROUND(base*…,2))] form (no nested [MAX]) so Google Sheets
+  /// reliably parses .xlsx from XlsIO; matches prior [MAX(0,base)] behavior.
   String? _pluTaxPayableExcelFormula({
     required Map<String, dynamic> rowData,
     required int excelRow,
@@ -884,23 +896,22 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     final q = qtyLetter;
     final tr = taxRateLetter;
     final r = excelRow;
-
-    final baseExpr = 'MAX(0,$p$r*$q$r-$dLit)';
+    final base = '$p$r*$q$r-$dLit';
 
     if (ty == 'D') {
       return '=0';
     }
+    // IF(base<=0,0,…) matches MAX(0,base) for tax math without nested MAX (Sheets-friendly).
     if (ty == 'B' || ty == 'C') {
-      return '=IF($baseExpr<=0,0,ROUND($baseExpr*$tr$r/(100+$tr$r),2))';
+      return '=IF($base<=0,0,ROUND(($base)*$tr$r/(100+$tr$r),2))';
     }
-    return '=IF($baseExpr<=0,0,ROUND($baseExpr*$tr$r/100,2))';
+    return '=IF($base<=0,0,ROUND(($base)*$tr$r/100,2))';
   }
 
   /// Matches [TransactionItemPluMetrics.netProfitColumn]:
   /// (price×qty − splyAmt) − taxPayable; [totalSalesLetter] is the P×Q cell.
   ///
-  /// Prefer [supplyLetter] so cost is visible and editable in Excel; otherwise
-  /// [splyAmtLiteral] is embedded (legacy layouts without SupplyAmount column).
+  /// Parentheses group subtractions so Google Sheets does not misparse chained `-`.
   String _pluNetProfitExcelFormula({
     required int excelRow,
     required String totalSalesLetter,
@@ -913,11 +924,11 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     final r = excelRow;
     if (supplyLetter != null) {
       final s = supplyLetter;
-      return '=ROUND($ts$r-$s$r-$tp$r,2)';
+      return '=ROUND(($ts$r-$s$r)-$tp$r,2)';
     }
     final lit = splyAmtLiteral ?? 0.0;
     final sLit = _excelLiteralNum(lit);
-    return '=ROUND($ts$r-$sLit-$tp$r,2)';
+    return '=ROUND(($ts$r-$sLit)-$tp$r,2)';
   }
 
   // Helper method to convert column index to Excel column letter (e.g., 1 -> A, 2 -> B, etc.)
@@ -1033,35 +1044,28 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       // Find the Expenses sheet which we know exists at this point
       final expensesSheet = _findWorksheetByName(workbook, 'Expenses');
       if (expensesSheet != null) {
-        // Get the last row in the Expenses sheet
         final lastExpenseRow = expensesSheet.getLastRow();
-        // The total expenses are in the cell below the last expense item
         final totalExpensesRowIndex = lastExpenseRow;
 
-        // Create a direct cell reference formula to subtract expenses from net profit (before expenses)
-        // Quoted sheet name improves cross-app compatibility (e.g. Google Sheets).
+        // Qualified sheet refs (no XML-escaped \'…\'): Sheets imports handle Report!A1 / Expenses!B1 reliably.
+        final reportPrefix = _formulaSheetPrefix(reportSheet.name);
+        final expensesPrefix = _formulaSheetPrefix(expensesSheet.name);
+        final npCol = _getColumnLetter(netProfitColumn);
         final formula =
-            '=${_getColumnLetter(netProfitColumn)}$totalRowIndex-\'Expenses\'!B$totalExpensesRowIndex';
+            '=$reportPrefix$npCol$totalRowIndex-$expensesPrefix'
+            'B$totalExpensesRowIndex';
 
-        // This is a properly constructed Dart string with proper interpolation
         finalNetProfitCell.setFormula(formula);
 
-        // Log the formula for debugging
         talker.debug('Created Final Net Profit formula: $formula');
-        talker.debug(
-          'Referencing Net Profit (Before Expenses) cell: ${_getColumnLetter(netProfitColumn)}$totalRowIndex',
-        );
-        talker.debug(
-          'Referencing Total Expenses cell: Expenses!B$totalExpensesRowIndex',
-        );
       } else {
-        // This shouldn't happen since we only call this method when the Expenses sheet exists
         talker.error(
           'Expenses sheet not found when adding Final Net Profit row',
         );
-        // Fallback to just using the Net Profit (Before Expenses) value
+        final reportPrefix = _formulaSheetPrefix(reportSheet.name);
+        final npCol = _getColumnLetter(netProfitColumn);
         finalNetProfitCell.setFormula(
-          '=${_getColumnLetter(netProfitColumn)}$totalRowIndex',
+          '=$reportPrefix$npCol$totalRowIndex',
         );
       }
 
