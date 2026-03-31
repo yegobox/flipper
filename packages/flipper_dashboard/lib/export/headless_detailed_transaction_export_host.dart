@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flipper_dashboard/export/models/expense.dart';
+import 'package:flipper_dashboard/export/utils/plu_excel_formula_builder.dart';
 import 'package:flipper_dashboard/exportData.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -154,12 +155,12 @@ buildPluManualExportRows(List<TransactionItem> items) async {
       'CurrentStock': TransactionItemPluMetrics.currentStockDisplay(item),
       'TaxPayable': TransactionItemPluMetrics.taxPayable(item),
       'NetProfit': TransactionItemPluMetrics.netProfitColumn(item),
-      '__excelRowTaxTyCd': item.taxTyCd,
-      '__excelRowDiscount': item.discount.toDouble(),
-      '__excelRowSplyAmt': item.splyAmt?.toDouble() ?? 0.0,
-      '__excelRowTaxAmt': item.taxAmt,
-      '__excelRowTotAmt': item.totAmt,
-      '__excelRowTaxblAmt': item.taxblAmt,
+      PluExcelRowKeys.taxTyCd: item.taxTyCd,
+      PluExcelRowKeys.discount: item.discount.toDouble(),
+      PluExcelRowKeys.splyAmt: item.splyAmt?.toDouble() ?? 0.0,
+      PluExcelRowKeys.taxAmt: item.taxAmt,
+      PluExcelRowKeys.totAmt: item.totAmt,
+      PluExcelRowKeys.taxblAmt: item.taxblAmt,
     });
   }
   return (manualData: preparedData, columnNames: kPluDetailedExportColumnNames);

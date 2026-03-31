@@ -8,6 +8,7 @@ import 'package:flipper_dashboard/data_view_reports/TransactionItemDataSource.da
 import 'package:flipper_dashboard/export/sale_report.dart';
 import 'package:flipper_dashboard/export/report_service.dart';
 
+import 'package:flipper_dashboard/export/utils/plu_excel_formula_builder.dart';
 import 'package:flipper_dashboard/exportData.dart';
 import 'package:flipper_dashboard/export/models/expense.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
@@ -944,12 +945,12 @@ class DataViewState extends ConsumerState<DataView>
           'TaxPayable': TransactionItemPluMetrics.taxPayable(item),
           'NetProfit': TransactionItemPluMetrics.netProfitColumn(item),
           // Not DataGrid columns — used only by Excel manual export formulas
-          '__excelRowTaxTyCd': item.taxTyCd,
-          '__excelRowDiscount': item.discount.toDouble(),
-          '__excelRowSplyAmt': item.splyAmt?.toDouble() ?? 0.0,
-          '__excelRowTaxAmt': item.taxAmt,
-          '__excelRowTotAmt': item.totAmt,
-          '__excelRowTaxblAmt': item.taxblAmt,
+          PluExcelRowKeys.taxTyCd: item.taxTyCd,
+          PluExcelRowKeys.discount: item.discount.toDouble(),
+          PluExcelRowKeys.splyAmt: item.splyAmt?.toDouble() ?? 0.0,
+          PluExcelRowKeys.taxAmt: item.taxAmt,
+          PluExcelRowKeys.totAmt: item.totAmt,
+          PluExcelRowKeys.taxblAmt: item.taxblAmt,
         });
       }
       return (manualData: preparedData, columnNames: columnNames);
@@ -1291,12 +1292,12 @@ class DataViewState extends ConsumerState<DataView>
             rowData['NetProfit'] = TransactionItemPluMetrics.netProfitColumn(
               item,
             );
-            rowData['__excelRowTaxTyCd'] = item.taxTyCd;
-            rowData['__excelRowDiscount'] = item.discount.toDouble();
-            rowData['__excelRowSplyAmt'] = item.splyAmt?.toDouble() ?? 0.0;
-            rowData['__excelRowTaxAmt'] = item.taxAmt;
-            rowData['__excelRowTotAmt'] = item.totAmt;
-            rowData['__excelRowTaxblAmt'] = item.taxblAmt;
+            rowData[PluExcelRowKeys.taxTyCd] = item.taxTyCd;
+            rowData[PluExcelRowKeys.discount] = item.discount.toDouble();
+            rowData[PluExcelRowKeys.splyAmt] = item.splyAmt?.toDouble() ?? 0.0;
+            rowData[PluExcelRowKeys.taxAmt] = item.taxAmt;
+            rowData[PluExcelRowKeys.totAmt] = item.totAmt;
+            rowData[PluExcelRowKeys.taxblAmt] = item.taxblAmt;
 
             preparedData.add(rowData);
           }

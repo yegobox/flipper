@@ -20,15 +20,8 @@ import 'package:syncfusion_flutter_pdf/pdf.dart';
 import 'package:flipper_dashboard/export/models/expense.dart';
 import 'package:flipper_dashboard/export/models/payment_summary.dart';
 import 'package:flipper_dashboard/export/utils/excel_utils.dart';
+import 'package:flipper_dashboard/export/utils/plu_excel_formula_builder.dart';
 import 'package:flipper_dashboard/features/config/widgets/currency_options.dart';
-
-/// Keys on PLU manual-export row maps (not DataGrid columns); used for Excel formulas.
-const String _excelRowTaxTyCd = '__excelRowTaxTyCd';
-const String _excelRowDiscount = '__excelRowDiscount';
-const String _excelRowSplyAmt = '__excelRowSplyAmt';
-const String _excelRowTaxAmt = '__excelRowTaxAmt';
-const String _excelRowTotAmt = '__excelRowTotAmt';
-const String _excelRowTaxblAmt = '__excelRowTaxblAmt';
 
 /// PLU line amounts in Excel (manual export + footer sums); keep in sync with [ManualNumericStyle].
 const String _excelPluAmountNumberFormat = '#,##0.00';
@@ -523,7 +516,9 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                 final excelRow = dataRow;
                 final priceLetter = _getColumnLetter(priceColIndex0 + 1);
                 final qtyLetter = _getColumnLetter(qtyColIndex0 + 1);
-                cell.setFormula('=$priceLetter$excelRow*$qtyLetter$excelRow');
+                cell.setFormula(
+                  '=$priceLetter${excelRow}*$qtyLetter${excelRow}',
+                );
                 cell.cellStyle = numericStyle;
                 continue;
               }
@@ -532,7 +527,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                   usePluTaxNetFormulas &&
                   colName.toLowerCase() == 'taxpayable') {
                 final excelRow = dataRow;
-                final taxFormula = _pluTaxPayableExcelFormula(
+                final taxFormula = PluExcelFormulaBuilder.pluTaxPayableExcelFormula(
                   rowData: rowData,
                   excelRow: excelRow,
                   priceLetter: _getColumnLetter(priceColIndex0 + 1),
@@ -553,7 +548,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                 final tsL = _getColumnLetter(totalSalesColIndex0 + 1);
                 final tpL = _getColumnLetter(taxPayableColIndex0 + 1);
                 cell.setFormula(
-                  _pluNetProfitExcelFormula(
+                  PluExcelFormulaBuilder.pluNetProfitExcelFormula(
                     excelRow: excelRow,
                     totalSalesLetter: tsL,
                     taxPayableLetter: tpL,
@@ -561,7 +556,8 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
                         ? _getColumnLetter(supplyAmountColIndex0 + 1)
                         : null,
                     splyAmtLiteral: supplyAmountColIndex0 == null
-                        ? ((rowData[_excelRowSplyAmt] as num?)?.toDouble() ??
+                        ? ((rowData[PluExcelRowKeys.splyAmt] as num?)
+                                ?.toDouble() ??
                             0.0)
                         : null,
                   ),
@@ -812,7 +808,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       final totalSalesSumCell =
           sheet.getRangeByIndex(totalSalesRowIndex, totalSalesColumn);
       totalSalesSumCell.setFormula(
-        '=SUM($tsLetter$dataStartRow:$tsLetter$dataEndRow)',
+        '=SUM($tsLetter${dataStartRow}:$tsLetter${dataEndRow})',
       );
       // Apply style then number format — assigning [cellStyle] clears a prior [numberFormat].
       totalSalesSumCell.cellStyle = totalSalesStyle;
@@ -832,7 +828,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     final sumCell =
         sheet.getRangeByIndex(netProfitTotalRowIndex, netProfitColumn);
     sumCell.setFormula(
-      '=SUM(${_getColumnLetter(netProfitColumn)}$dataStartRow:${_getColumnLetter(netProfitColumn)}$dataEndRow)',
+      '=SUM(${_getColumnLetter(netProfitColumn)}${dataStartRow}:${_getColumnLetter(netProfitColumn)}${dataEndRow})',
     );
     sumCell.cellStyle = summaryStyle;
     sumCell.numberFormat = _excelPluAmountNumberFormat;
@@ -842,93 +838,6 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
     // Note: Final Net Profit (after expenses) calculation is now handled by the _addFinalNetProfitRow method
     // which is called after the Expenses sheet has been created
-  }
-
-  /// Numeric literal for embedding in Excel formulas (en-US decimal point).
-  String _excelLiteralNum(num n) {
-    final d = n.toDouble();
-    if (d == 0) return '0';
-    if (d == d.roundToDouble()) return '${d.round()}';
-    return d.toString();
-  }
-
-  /// `Sheet!` or `'My Sheet'!` for cross-sheet formulas (Excel + Google Sheets import).
-  String _formulaSheetPrefix(String sheetName) {
-    final t = sheetName.trim();
-    if (t.isEmpty) return '';
-    final simple = RegExp(r'^[A-Za-z_][A-Za-z0-9_]*$').hasMatch(t);
-    if (simple) return '$t!';
-    return "'${t.replaceAll("'", "''")}'!";
-  }
-
-  /// Matches [TransactionItemPluMetrics.taxPayable] when tax is derived from rate;
-  /// returns `null` when the app uses [taxAmt] or (tot - taxbl) — then the static cell value is used.
-  ///
-  /// Uses a single [IF(base<=0,0,ROUND(base*…,2))] form (no nested [MAX]) so Google Sheets
-  /// reliably parses .xlsx from XlsIO; matches prior [MAX(0,base)] behavior.
-  String? _pluTaxPayableExcelFormula({
-    required Map<String, dynamic> rowData,
-    required int excelRow,
-    required String priceLetter,
-    required String qtyLetter,
-    required String taxRateLetter,
-  }) {
-    final taxAmt = rowData[_excelRowTaxAmt];
-    if (taxAmt is num && taxAmt.toDouble() > 0) {
-      return null;
-    }
-    final tot = rowData[_excelRowTotAmt];
-    final taxbl = rowData[_excelRowTaxblAmt];
-    if (tot is num &&
-        taxbl is num &&
-        tot.toDouble() > taxbl.toDouble() + 0.0001) {
-      return null;
-    }
-
-    var ty = rowData[_excelRowTaxTyCd]?.toString().trim();
-    if (ty == null || ty.isEmpty) ty = 'B';
-    ty = ty.toUpperCase();
-    final discount =
-        (rowData[_excelRowDiscount] as num?)?.toDouble() ?? 0.0;
-    final dLit = _excelLiteralNum(discount);
-
-    final p = priceLetter;
-    final q = qtyLetter;
-    final tr = taxRateLetter;
-    final r = excelRow;
-    final base = '$p$r*$q$r-$dLit';
-
-    if (ty == 'D') {
-      return '=0';
-    }
-    // IF(base<=0,0,…) matches MAX(0,base) for tax math without nested MAX (Sheets-friendly).
-    if (ty == 'B' || ty == 'C') {
-      return '=IF($base<=0,0,ROUND(($base)*$tr$r/(100+$tr$r),2))';
-    }
-    return '=IF($base<=0,0,ROUND(($base)*$tr$r/100,2))';
-  }
-
-  /// Matches [TransactionItemPluMetrics.netProfitColumn]:
-  /// (price×qty − splyAmt) − taxPayable; [totalSalesLetter] is the P×Q cell.
-  ///
-  /// Parentheses group subtractions so Google Sheets does not misparse chained `-`.
-  String _pluNetProfitExcelFormula({
-    required int excelRow,
-    required String totalSalesLetter,
-    required String taxPayableLetter,
-    String? supplyLetter,
-    double? splyAmtLiteral,
-  }) {
-    final ts = totalSalesLetter;
-    final tp = taxPayableLetter;
-    final r = excelRow;
-    if (supplyLetter != null) {
-      final s = supplyLetter;
-      return '=ROUND(($ts$r-$s$r)-$tp$r,2)';
-    }
-    final lit = splyAmtLiteral ?? 0.0;
-    final sLit = _excelLiteralNum(lit);
-    return '=ROUND(($ts$r-$sLit)-$tp$r,2)';
   }
 
   // Helper method to convert column index to Excel column letter (e.g., 1 -> A, 2 -> B, etc.)
@@ -1048,12 +957,14 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         final totalExpensesRowIndex = lastExpenseRow;
 
         // Qualified sheet refs (no XML-escaped \'…\'): Sheets imports handle Report!A1 / Expenses!B1 reliably.
-        final reportPrefix = _formulaSheetPrefix(reportSheet.name);
-        final expensesPrefix = _formulaSheetPrefix(expensesSheet.name);
-        final npCol = _getColumnLetter(netProfitColumn);
         final formula =
-            '=$reportPrefix$npCol$totalRowIndex-$expensesPrefix'
-            'B$totalExpensesRowIndex';
+            PluExcelFormulaBuilder.finalNetProfitAfterExpensesFormula(
+          reportSheetName: reportSheet.name,
+          expensesSheetName: expensesSheet.name,
+          netProfitColumnLetter: _getColumnLetter(netProfitColumn),
+          netProfitBeforeExpensesRow: totalRowIndex,
+          totalExpensesRow: totalExpensesRowIndex,
+        );
 
         finalNetProfitCell.setFormula(formula);
 
@@ -1062,10 +973,12 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         talker.error(
           'Expenses sheet not found when adding Final Net Profit row',
         );
-        final reportPrefix = _formulaSheetPrefix(reportSheet.name);
-        final npCol = _getColumnLetter(netProfitColumn);
         finalNetProfitCell.setFormula(
-          '=$reportPrefix$npCol$totalRowIndex',
+          PluExcelFormulaBuilder.netProfitBeforeExpensesOnlyFormula(
+            reportSheetName: reportSheet.name,
+            netProfitColumnLetter: _getColumnLetter(netProfitColumn),
+            netProfitBeforeExpensesRow: totalRowIndex,
+          ),
         );
       }
 
