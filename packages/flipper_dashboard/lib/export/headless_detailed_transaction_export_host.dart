@@ -9,8 +9,6 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:flutter/foundation.dart'
-    show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
@@ -365,14 +363,8 @@ class DetailedTransactionReportExportHostState
       endDate,
     );
 
-    // Same [PluExcelFormulaBuilder] as desktop [DataView] / [exportDataGrid].
-    // Google Sheets (especially on phones) often shows "Formula parse error" on
-    // PLU line cells; write numeric line values on iOS/Android. Desktop keeps
-    // formulas. See [ExportMixin.exportDataGrid] `staticPluLineValues` docs.
-    final staticPluLineValues = !kIsWeb &&
-        (defaultTargetPlatform == TargetPlatform.android ||
-            defaultTargetPlatform == TargetPlatform.iOS);
-
+    // Match desktop [DataView]: PLU line formulas from [PluExcelFormulaBuilder].
+    // For Google Sheets-only issues, [exportDataGrid] supports staticPluLineValues.
     final path = await exportDataGrid(
       workBookKey: _dummyWorkBookKey,
       isStockRecount: false,
@@ -383,7 +375,7 @@ class DetailedTransactionReportExportHostState
       showProfitCalculations: true,
       manualData: manualData.isNotEmpty ? manualData : null,
       columnNames: manualData.isNotEmpty ? columnNames : null,
-      staticPluLineValues: staticPluLineValues,
+      staticPluLineValues: false,
     );
     if (path == null || path.isEmpty) {
       throw StateError('export_failed');
