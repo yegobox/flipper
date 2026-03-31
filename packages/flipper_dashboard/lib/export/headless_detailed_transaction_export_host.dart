@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:flipper_dashboard/export/models/expense.dart';
@@ -6,58 +7,78 @@ import 'package:flipper_dashboard/exportData.dart';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
-import 'package:flipper_services/constants.dart';
+import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 /// Column names for detailed PLU manual export — same order as [pluReportTableHeader].
-const List<String> kPluDetailedExportColumnNames = [
-  'ItemCode',
-  'Name',
-  'Barcode',
-  'Price',
-  'TaxRate',
-  'Qty',
-  'TotalSales',
-  'SupplyAmount',
-  'CurrentStock',
-  'TaxPayable',
-  'NetProfit',
-];
-
-/// Matches [transactionList] after [coreTransactionsStream] (non-expense COMPLETE, no adjustments).
-bool _isReportSaleTransaction(ITransaction tx) {
-  if (tx.status != COMPLETE || tx.isExpense == true) return false;
-  final tt = tx.transactionType?.toString();
-  if (tt == null) return true;
-  return tt != 'Adjustment' && !tt.endsWith('.Adjustment');
-}
-
-/// One-shot load: same data as [transactionListProvider] without waiting on Ditto streams
-/// (streams can fail to emit on mobile while the list UI uses [dashboardTransactionsProvider]).
-Future<List<ITransaction>> _loadSalesForDetailedExport({
-  required DateTime startDate,
-  required DateTime endDate,
-  required String branchId,
-  required bool forceRealData,
-}) async {
-  final raw = await ProxyService.getStrategy(Strategy.capella).transactions(
-    startDate: startDate,
-    endDate: endDate,
-    branchId: branchId,
-    status: COMPLETE,
-    isExpense: false,
-    skipOriginalTransactionCheck: true,
-    forceRealData: forceRealData,
-  );
-  return raw.where(_isReportSaleTransaction).toList();
-}
-
 const int _kTransactionItemsIdChunk = 400;
 
-Future<List<TransactionItem>> _loadLineItemsForSales(
+/// [transactionItemList] uses Rx [.startWith] empty lists, so the stream's first
+/// emission is always [] and [ProviderBase.future] can complete before Capella
+/// delivers rows (common when nothing else has subscribed yet, e.g. mobile
+/// Transactions screen). Listen until we see non-empty data or an empty list
+/// that has stayed empty for [debounce].
+Future<List<TransactionItem>> _awaitPluLineItems(
+  WidgetRef ref, {
+  Duration debounce = const Duration(seconds: 5),
+}) async {
+  final completer = Completer<List<TransactionItem>>();
+  Timer? emptyDebounce;
+  void onNext(AsyncValue<List<TransactionItem>> next) {
+    next.when(
+      data: (list) {
+        if (list.isNotEmpty) {
+          emptyDebounce?.cancel();
+          if (!completer.isCompleted) {
+            completer.complete(list);
+          }
+        } else {
+          emptyDebounce?.cancel();
+          emptyDebounce = Timer(debounce, () {
+            final v = ref.read(transactionItemListProvider).value;
+            if (!completer.isCompleted) {
+              completer.complete(v ?? const []);
+            }
+          });
+        }
+      },
+      error: (e, st) {
+        emptyDebounce?.cancel();
+        if (!completer.isCompleted) {
+          completer.completeError(e, st);
+        }
+      },
+      loading: () {
+        emptyDebounce?.cancel();
+      },
+    );
+  }
+
+  final sub = ref.listenManual(transactionItemListProvider, (prev, next) {
+    onNext(next);
+  });
+  onNext(ref.read(transactionItemListProvider));
+
+  try {
+    return await completer.future.timeout(
+      const Duration(seconds: 90),
+      onTimeout: () {
+        emptyDebounce?.cancel();
+        return ref.read(transactionItemListProvider).value ?? [];
+      },
+    );
+  } finally {
+    emptyDebounce?.cancel();
+    sub.close();
+  }
+}
+
+/// Fallback when the live item stream stayed empty but we have sale IDs (e.g.
+/// some clients still populate items via id lookup reliably).
+Future<List<TransactionItem>> _loadLineItemsFromSaleIds(
   List<ITransaction> sales,
 ) async {
   final ids = sales
@@ -82,6 +103,20 @@ Future<List<TransactionItem>> _loadLineItemsForSales(
     return tid != null && allowed.contains(tid);
   }).toList();
 }
+
+const List<String> kPluDetailedExportColumnNames = [
+  'ItemCode',
+  'Name',
+  'Barcode',
+  'Price',
+  'TaxRate',
+  'Qty',
+  'TotalSales',
+  'SupplyAmount',
+  'CurrentStock',
+  'TaxPayable',
+  'NetProfit',
+];
 
 double _sumExpenseSubtotals(List<ITransaction> expenseTransactions) {
   return expenseTransactions.fold<double>(
@@ -193,6 +228,11 @@ Future<double> _calculateNetProfitForItems(
 /// Invisible [ConsumerStatefulWidget] that runs the same detailed Excel export as
 /// [DataView.triggerExport] without mounting [DataView] or [SfDataGrid].
 ///
+/// Line items and sales are read from [transactionItemListProvider] and
+/// [transactionListProvider] so the file matches the Transaction Reports grid
+/// (Capella streams). A separate [transactions] + [transactionItemsForIds] path
+/// often returned no rows on mobile while the grid had data.
+///
 /// PDF export is not supported here (requires a live grid); callers should catch
 /// and show a message when [ProxyService.box.exportAsPdf] is true.
 class DetailedTransactionReportExportHost extends ConsumerStatefulWidget {
@@ -231,12 +271,22 @@ class DetailedTransactionReportExportHostState
       throw StateError('missing_branch');
     }
 
-    final sales = await _loadSalesForDetailedExport(
-      startDate: startDate,
-      endDate: endDate,
-      branchId: branchId,
-      forceRealData: forceRealData,
+    final salesSnap = ref.read(
+      transactionListProvider(forceRealData: forceRealData),
     );
+    final List<ITransaction> sales;
+    if (salesSnap.hasValue) {
+      sales = salesSnap.requireValue;
+    } else {
+      sales = await ref.read(
+        transactionListProvider(forceRealData: forceRealData).future,
+      );
+    }
+
+    var items = await _awaitPluLineItems(ref);
+    if (items.isEmpty && sales.isNotEmpty) {
+      items = await _loadLineItemsFromSaleIds(sales);
+    }
 
     final expenseTransactions = await ProxyService.getStrategy(Strategy.capella)
         .transactions(
@@ -250,8 +300,6 @@ class DetailedTransactionReportExportHostState
       expenseTransactions,
       sales: sales,
     );
-
-    final items = await _loadLineItemsForSales(sales);
     if (items.isEmpty) {
       throw StateError('no_line_items');
     }
