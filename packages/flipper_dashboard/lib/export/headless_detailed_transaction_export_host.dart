@@ -76,6 +76,54 @@ Future<List<TransactionItem>> _awaitPluLineItems(
   }
 }
 
+/// [transactionListProvider] is autoDispose. Awaiting [.future] while nothing
+/// else listens lets Riverpod dispose the provider mid-load ("disposed during
+/// loading state"). [listenManual] keeps a listener until the first data/error.
+Future<List<ITransaction>> _awaitPluSales(
+  WidgetRef ref, {
+  required bool forceRealData,
+}) async {
+  final completer = Completer<List<ITransaction>>();
+  final provider = transactionListProvider(forceRealData: forceRealData);
+
+  void onNext(AsyncValue<List<ITransaction>> next) {
+    next.when(
+      data: (list) {
+        if (!completer.isCompleted) {
+          completer.complete(list);
+        }
+      },
+      error: (e, st) {
+        if (!completer.isCompleted) {
+          completer.completeError(e, st);
+        }
+      },
+      loading: () {},
+    );
+  }
+
+  final sub = ref.listenManual(provider, (prev, next) => onNext(next));
+  onNext(ref.read(provider));
+
+  try {
+    return await completer.future.timeout(
+      const Duration(seconds: 90),
+      onTimeout: () {
+        final v = ref.read(provider);
+        if (v.hasValue) {
+          return v.requireValue;
+        }
+        throw TimeoutException(
+          'transactionListProvider',
+          const Duration(seconds: 90),
+        );
+      },
+    );
+  } finally {
+    sub.close();
+  }
+}
+
 /// Fallback when the live item stream stayed empty but we have sale IDs (e.g.
 /// some clients still populate items via id lookup reliably).
 Future<List<TransactionItem>> _loadLineItemsFromSaleIds(
@@ -230,7 +278,9 @@ Future<double> _calculateNetProfitForItems(
 ///
 /// Line items and sales are read from [transactionItemListProvider] and
 /// [transactionListProvider] so the file matches the Transaction Reports grid
-/// (Capella streams). A separate [transactions] + [transactionItemsForIds] path
+/// (Capella streams). Both providers are autoDispose: we use [Ref.listenManual]
+/// instead of awaiting [.future] so they are not disposed mid-load on mobile.
+/// A separate [transactions] + [transactionItemsForIds] path
 /// often returned no rows on mobile while the grid had data.
 ///
 /// PDF export is not supported here (requires a live grid); callers should catch
@@ -274,14 +324,9 @@ class DetailedTransactionReportExportHostState
     final salesSnap = ref.read(
       transactionListProvider(forceRealData: forceRealData),
     );
-    final List<ITransaction> sales;
-    if (salesSnap.hasValue) {
-      sales = salesSnap.requireValue;
-    } else {
-      sales = await ref.read(
-        transactionListProvider(forceRealData: forceRealData).future,
-      );
-    }
+    final List<ITransaction> sales = salesSnap.hasValue
+        ? salesSnap.requireValue
+        : await _awaitPluSales(ref, forceRealData: forceRealData);
 
     var items = await _awaitPluLineItems(ref);
     if (items.isEmpty && sales.isNotEmpty) {

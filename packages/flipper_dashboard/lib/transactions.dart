@@ -486,7 +486,7 @@ Widget _buildEmptyStateWithPeriod(BuildContext context, String period) {
         const SizedBox(height: 20),
         Text(
           'No records for ${period.toLowerCase()}',
-          style: GoogleFonts.nunito(
+          style: GoogleFonts.poppins(
             fontSize: 20,
             fontWeight: FontWeight.w600,
             color: const Color(0xFF4B4B4B),
@@ -496,7 +496,7 @@ Widget _buildEmptyStateWithPeriod(BuildContext context, String period) {
         Text(
           'Try selecting a different time period or add some transactions.',
           textAlign: TextAlign.center,
-          style: GoogleFonts.nunito(
+          style: GoogleFonts.poppins(
             fontSize: 14,
             fontWeight: FontWeight.w400,
             color: const Color(0xFF777777),
