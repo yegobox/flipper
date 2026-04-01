@@ -94,6 +94,13 @@ Map<String, double> calculateTaxTotals(List<Map<String, dynamic>> items) {
   return taxTotals;
 }
 
+/// RRA [saveSales] may return a code-value error when [qtyUnitCd] is not in the allowed set.
+bool _rwTaxIsQtyUnitCdCodeValueError(String? msg) {
+  if (msg == null || msg.isEmpty) return false;
+  final lower = msg.toLowerCase();
+  return lower.contains('code value error') && lower.contains('qtyunitcd');
+}
+
 class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
   String itemPrefix = "flip-";
   Dio? _dio;
@@ -663,7 +670,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
               mapItemToJson(entry.value, bhfId: bhfId, itemSeq: entry.key + 1),
         )
         .toList();
-    List<Map<String, dynamic>> itemsList = await Future.wait(itemsFutures);
+    var itemsList = await Future.wait(itemsFutures);
 
     // Calculate total for non-tax-exempt items
     //NOTE: before I was excluding tax of type D but in recent test it is no longer wokring
@@ -681,7 +688,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
 
     // Get sales and receipt type codes
     Map<String, String> receiptCodes = getReceiptCodes(receiptType);
-    Map<String, double> taxTotals = calculateTaxTotals(itemsList);
+    var taxTotals = calculateTaxTotals(itemsList);
     Future<void> _handleInvoiceDuplicate() async {
       print("Invoice number already exists.");
       final branchId = ProxyService.box.getBranchId()!;
@@ -710,7 +717,7 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
     // Retrieve customer information
 
     // Build request data
-    Map<String, dynamic> requestData = await buildRequestData(
+    var requestData = await buildRequestData(
       business: business,
       custMblNo: custMblNo,
       customerName: customerName,
@@ -737,14 +744,61 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
         URI,
       ).replace(path: Uri.parse(URI).path + 'trnsSales/saveSales').toString();
 
-      final response = await sendPostRequest(url, requestData);
+      RwApiResponse? successData;
+      for (var saveAttempt = 0; saveAttempt < 2; saveAttempt++) {
+        final response = await sendPostRequest(url, requestData);
 
-      // Handle response
-      if (response.statusCode == 200) {
+        if (response.statusCode != 200) {
+          throw Exception(
+            "Failed to send request. Status Code: ${response.statusCode}",
+          );
+        }
+
         ProxyService.box.writeBool(key: 'transactionInProgress', value: false);
         final data = RwApiResponse.fromJson(response.data);
         if (data.resultCd != "000") {
           final msg = data.resultMsg;
+          if (saveAttempt == 0 && _rwTaxIsQtyUnitCdCodeValueError(msg)) {
+            talker.warning(
+              'RRA rejected qtyUnitCd; defaulting transaction lines and variants to U and retrying saveSales.',
+            );
+            await _healQtyUnitCdToDefaultUnits(items);
+            final retryFutures = items
+                .asMap()
+                .entries
+                .map(
+                  (entry) => mapItemToJson(
+                    entry.value,
+                    bhfId: bhfId,
+                    itemSeq: entry.key + 1,
+                  ),
+                )
+                .toList();
+            itemsList = await Future.wait(retryFutures);
+            taxTotals = calculateTaxTotals(itemsList);
+            requestData = await buildRequestData(
+              business: business,
+              custMblNo: custMblNo,
+              customerName: customerName,
+              customer: customer,
+              highestInvcNo: highestInvcNo,
+              ebm: ebm,
+              bhFId: bhfId,
+              salesSttsCd: salesSttsCd,
+              transaction: transaction,
+              date: date,
+              originalInvoiceNumber: originalInvoiceNumber,
+              totalTaxable: totalTaxable,
+              taxTotals: taxTotals,
+              receiptCodes: receiptCodes,
+              itemsList: itemsList,
+              purchaseCode: purchaseCode,
+              timeToUse: timeToUser,
+              receiptType: receiptType,
+            );
+            continue;
+          }
+
           Exception exception = Exception(msg);
 
           if (msg == "Invoice number already exists.") {
@@ -765,85 +819,109 @@ class RWTax with NetworkHelper, TransactionMixinOld implements TaxApi {
           );
 
           throw exception;
-        } else {
-          // remove any tin saved in local storage on success
-          ProxyService.box.remove(key: 'customerTin');
-          if (receiptType != 'NR' &&
-              receiptType != 'CR' &&
-              receiptType != 'TR') {
-            await saveStockItems(
-              items: items,
-              tinNumber: ebm.tinNumber.toString(),
-              bhFId: ebm.bhfId,
-              updateMaster: false,
-              customerName: null,
-              custTin: null,
-              invoiceNumber: highestInvcNo,
-              regTyCd: "A",
-              sarNo: highestInvcNo.toString(),
-              sarTyCd: sarTyCd ?? "06",
-              custBhfId: transaction.customerBhfId,
-              totalSupplyPrice: transaction.subTotal!,
-              totalvat: transaction.taxAmount!.toDouble(),
-              totalAmount: transaction.subTotal!,
-              remark: transaction.remark ?? "",
-              ocrnDt: transaction.updatedAt ?? DateTime.now().toUtc(),
-              URI: ebm.taxServerUrl,
-            );
-            for (var item in items) {
-              Variant? variant = await ProxyService.getStrategy(
-                Strategy.capella,
-              ).getVariant(id: item.variantId!);
-              Stock stock = await ProxyService.getStrategy(
-                Strategy.capella,
-              ).getStockById(id: variant?.stockId ?? "");
-              if (variant == null) continue;
-
-              await ProxyService.tax.saveStockMaster(
-                variant: variant,
-                URI: ebm.taxServerUrl,
-                stockMasterQty: stock.currentStock!,
-              );
-            }
-          } else if (receiptType == 'NR' || receiptType == 'TR') {
-            final sar = await ProxyService.strategy.getSar(
-              branchId: ProxyService.box.getBranchId()!,
-            );
-
-            sar!.sarNo = sar.sarNo + 1;
-            await repository.upsert<Sar>(sar);
-
-            await saveStockItems(
-              updateMaster: true,
-              items: items,
-              tinNumber: ebm.tinNumber.toString(),
-              bhFId: ebm.bhfId,
-              customerName: transaction.customerName,
-              custTin: transaction.customerTin,
-              invoiceNumber: transaction.invoiceNumber!,
-              regTyCd: "A",
-              sarNo: sar.sarNo.toString(),
-              sarTyCd: "06",
-              custBhfId: transaction.customerBhfId,
-              totalSupplyPrice: transaction.subTotal!,
-              totalvat: transaction.taxAmount!.toDouble(),
-              totalAmount: transaction.subTotal!,
-              remark: transaction.remark ?? "",
-              ocrnDt: transaction.updatedAt ?? DateTime.now().toUtc(),
-              URI: ebm.taxServerUrl,
-            );
-          }
-          return data;
         }
-      } else {
-        throw Exception(
-          "Failed to send request. Status Code: ${response.statusCode}",
+
+        successData = data;
+        break;
+      }
+
+      if (successData == null) {
+        throw Exception('Unexpected: saveSales completed without a response.');
+      }
+
+      final data = successData;
+      // remove any tin saved in local storage on success
+      ProxyService.box.remove(key: 'customerTin');
+      if (receiptType != 'NR' && receiptType != 'CR' && receiptType != 'TR') {
+        await saveStockItems(
+          items: items,
+          tinNumber: ebm.tinNumber.toString(),
+          bhFId: ebm.bhfId,
+          updateMaster: false,
+          customerName: null,
+          custTin: null,
+          invoiceNumber: highestInvcNo,
+          regTyCd: "A",
+          sarNo: highestInvcNo.toString(),
+          sarTyCd: sarTyCd ?? "06",
+          custBhfId: transaction.customerBhfId,
+          totalSupplyPrice: transaction.subTotal!,
+          totalvat: transaction.taxAmount!.toDouble(),
+          totalAmount: transaction.subTotal!,
+          remark: transaction.remark ?? "",
+          ocrnDt: transaction.updatedAt ?? DateTime.now().toUtc(),
+          URI: ebm.taxServerUrl,
+        );
+        for (var item in items) {
+          Variant? variant = await ProxyService.getStrategy(
+            Strategy.capella,
+          ).getVariant(id: item.variantId!);
+          Stock stock = await ProxyService.getStrategy(
+            Strategy.capella,
+          ).getStockById(id: variant?.stockId ?? "");
+          if (variant == null) continue;
+
+          await ProxyService.tax.saveStockMaster(
+            variant: variant,
+            URI: ebm.taxServerUrl,
+            stockMasterQty: stock.currentStock!,
+          );
+        }
+      } else if (receiptType == 'NR' || receiptType == 'TR') {
+        final sar = await ProxyService.strategy.getSar(
+          branchId: ProxyService.box.getBranchId()!,
+        );
+
+        sar!.sarNo = sar.sarNo + 1;
+        await repository.upsert<Sar>(sar);
+
+        await saveStockItems(
+          updateMaster: true,
+          items: items,
+          tinNumber: ebm.tinNumber.toString(),
+          bhFId: ebm.bhfId,
+          customerName: transaction.customerName,
+          custTin: transaction.customerTin,
+          invoiceNumber: transaction.invoiceNumber!,
+          regTyCd: "A",
+          sarNo: sar.sarNo.toString(),
+          sarTyCd: "06",
+          custBhfId: transaction.customerBhfId,
+          totalSupplyPrice: transaction.subTotal!,
+          totalvat: transaction.taxAmount!.toDouble(),
+          totalAmount: transaction.subTotal!,
+          remark: transaction.remark ?? "",
+          ocrnDt: transaction.updatedAt ?? DateTime.now().toUtc(),
+          URI: ebm.taxServerUrl,
         );
       }
+      return data;
     } catch (e, s) {
       _talker?.error(e);
       _talker?.error(s);
       rethrow;
+    }
+  }
+
+  /// Default [qtyUnitCd] to RRA-safe "U" on line items and linked variants (see doc 4.6 / CoreSync).
+  Future<void> _healQtyUnitCdToDefaultUnits(List<TransactionItem> items) async {
+    final repository = Repository();
+    for (final line in items) {
+      line.qtyUnitCd = 'U';
+      line.lastTouched = DateTime.now().toUtc();
+      await repository.upsert<TransactionItem>(
+        line,
+        policy: OfflineFirstUpsertPolicy.optimisticLocal,
+      );
+      final vid = line.variantId;
+      if (vid == null) continue;
+      final variant = await ProxyService.getStrategy(
+        Strategy.capella,
+      ).getVariant(id: vid);
+      if (variant == null) continue;
+      variant.qtyUnitCd = 'U';
+      variant.lastTouched = DateTime.now().toUtc();
+      await repository.upsert<Variant>(variant);
     }
   }
 
