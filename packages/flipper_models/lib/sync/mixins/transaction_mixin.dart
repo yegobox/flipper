@@ -9,6 +9,7 @@ import 'package:supabase_models/brick/models/sars.model.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:flipper_models/helperModels/random.dart';
+import 'package:flipper_models/helperModels/transaction_payment_sums.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:synchronized/synchronized.dart';
@@ -1343,7 +1344,10 @@ mixin TransactionMixin implements TransactionInterface {
       }
 
       final filtered = excludePaymentMethod != null
-          ? paymentRecords.where((r) => r.paymentMethod != excludePaymentMethod)
+          ? paymentRecords.where(
+              (r) =>
+                  !paymentMethodEqualsIgnoreCase(r.paymentMethod, excludePaymentMethod),
+            )
           : paymentRecords;
 
       return filtered.fold<double>(
@@ -1354,6 +1358,50 @@ mixin TransactionMixin implements TransactionInterface {
       talker.error('Error getting total paid for transaction: $e', s);
       throw Exception('Failed to get total paid: $e');
     }
+  }
+
+  @override
+  Future<Map<String, TransactionPaymentSums>> getPaymentSumsByTransactionIds(
+    List<String> transactionIds, {
+    required String branchId,
+  }) async {
+    if (transactionIds.isEmpty) return {};
+
+    final byId = <String, ({double byHand, double credit, int count})>{
+      for (final id in transactionIds) id: (byHand: 0.0, credit: 0.0, count: 0),
+    };
+
+    try {
+      final paymentRecords = await repository.get<TransactionPaymentRecord>(
+        query: Query(where: [Where('transactionId').isIn(transactionIds)]),
+        policy: OfflineFirstGetPolicy.localOnly,
+      );
+
+      for (final r in paymentRecords) {
+        final tid = r.transactionId;
+        if (tid == null || !byId.containsKey(tid)) continue;
+        final amt = r.amount ?? 0.0;
+        final method = r.paymentMethod;
+        final bucket = byId[tid]!;
+        byId[tid] = (
+          byHand: bucket.byHand + (paymentMethodIsCredit(method) ? 0.0 : amt),
+          credit: bucket.credit + (paymentMethodIsCredit(method) ? amt : 0.0),
+          count: bucket.count + 1,
+        );
+      }
+    } catch (e, s) {
+      talker.error('Error in getPaymentSumsByTransactionIds: $e', s);
+      rethrow;
+    }
+
+    return {
+      for (final id in transactionIds)
+        id: TransactionPaymentSums(
+          byHand: byId[id]!.byHand,
+          credit: byId[id]!.credit,
+          hasAnyRecord: byId[id]!.count > 0,
+        ),
+    };
   }
 
   @override

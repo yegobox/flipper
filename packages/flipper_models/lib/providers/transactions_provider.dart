@@ -1,4 +1,6 @@
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/helperModels/transaction_payment_sums.dart';
+import 'package:flipper_models/helperModels/transaction_report_snapshot.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/SyncStrategy.dart';
@@ -9,6 +11,17 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:rxdart/rxdart.dart';
 
 part 'transactions_provider.g.dart';
+
+/// Non-expense sales shown in Transaction Reports: completed and parked only.
+List<ITransaction> transactionReportScopeFilter(List<ITransaction> all) {
+  return all
+      .where(
+        (tx) =>
+            tx.isExpense != true &&
+            (tx.status == COMPLETE || tx.status == PARKED),
+      )
+      .toList();
+}
 
 // ---------------------------------------------------------------------------
 // dashboardTransactionsProvider — intentionally kept on the default (SQLite)
@@ -48,29 +61,31 @@ Stream<List<ITransaction>> coreTransactionsStream(
   required DateTime endDate,
   required String branchId,
   bool forceRealData = true,
+  bool includeParked = false,
 }) {
   talker.debug(
-    'coreTransactionsStream: $startDate → $endDate  branch=$branchId',
+    'coreTransactionsStream: $startDate → $endDate  branch=$branchId '
+    'includeParked=$includeParked',
   );
   return ProxyService.getStrategy(Strategy.capella).transactionsStream(
     startDate: startDate,
     endDate: endDate,
     branchId: branchId,
-    // Income + expenses in range; COMPLETE only (no parked / in-progress).
+    // When includeParked is false: completed only. When true: completed + parked (+ waiting momo at SQL layer; filter in Dart for reports).
     skipOriginalTransactionCheck: true,
     removeAdjustmentTransactions: true,
-    includeParked: false,
+    includeParked: includeParked,
     // isCashOut intentionally omitted → returns both income and expense.
     forceRealData: forceRealData,
   );
 }
 
 // ---------------------------------------------------------------------------
-// transactionList — visible rows in the Transaction Reports grid.
-// Non-expense, COMPLETE only (core stream is already COMPLETE-only).
+// transactionReportSnapshot — Transaction Reports grid + payment breakdown.
+// Parked + completed non-expense; by-hand vs CREDIT from payment records.
 // ---------------------------------------------------------------------------
 @riverpod
-Stream<List<ITransaction>> transactionList(
+Stream<TransactionReportSnapshot> transactionReportSnapshot(
   Ref ref, {
   required bool forceRealData,
 }) {
@@ -79,7 +94,12 @@ Stream<List<ITransaction>> transactionList(
   final endDate = dateRange.endDate;
 
   if (startDate == null || endDate == null) {
-    return Stream.value([]);
+    return Stream.value(
+      const TransactionReportSnapshot(
+        transactions: [],
+        paymentSumsByTransactionId: {},
+      ),
+    );
   }
 
   final branchId = ProxyService.box.getBranchId();
@@ -91,10 +111,51 @@ Stream<List<ITransaction>> transactionList(
     endDate: endDate,
     branchId: branchId,
     forceRealData: forceRealData,
-  ).map(
-    (all) => all
-        .where((tx) => tx.isExpense != true && tx.status == COMPLETE)
-        .toList(),
+    includeParked: true,
+  ).asyncMap((all) async {
+    final filtered = transactionReportScopeFilter(all);
+    if (filtered.isEmpty) {
+      return const TransactionReportSnapshot(
+        transactions: [],
+        paymentSumsByTransactionId: {},
+      );
+    }
+
+    final ids = filtered.map((t) => t.id.toString()).toList();
+    try {
+      final sums = await ProxyService.getStrategy(Strategy.capella)
+          .getPaymentSumsByTransactionIds(ids, branchId: branchId);
+      return TransactionReportSnapshot(
+        transactions: filtered,
+        paymentSumsByTransactionId: sums,
+      );
+    } catch (e, s) {
+      talker.error('transactionReportSnapshot payment sums: $e\n$s');
+      return TransactionReportSnapshot(
+        transactions: filtered,
+        paymentSumsByTransactionId: {
+          for (final id in ids)
+            id: const TransactionPaymentSums(
+              byHand: 0,
+              credit: 0,
+              hasAnyRecord: false,
+            ),
+        },
+      );
+    }
+  });
+}
+
+// ---------------------------------------------------------------------------
+// transactionList — backward-compatible list-only view of the report snapshot.
+// ---------------------------------------------------------------------------
+@riverpod
+Stream<List<ITransaction>> transactionList(
+  Ref ref, {
+  required bool forceRealData,
+}) {
+  return transactionReportSnapshot(ref, forceRealData: forceRealData).map(
+    (snap) => snap.transactions,
   );
 }
 
@@ -123,8 +184,8 @@ Stream<List<ITransaction>> transactions(Ref ref, {bool forceRealData = true}) {
 }
 
 // ---------------------------------------------------------------------------
-// transactionItemList — line-items for COMPLETE non-expense sales in range.
-// Joins items with [transactionList] so PLU rows match summary / export.
+// transactionItemList — line-items for completed + parked non-expense sales.
+// Joins items with the same scope as [transactionReportSnapshot] / summary grid.
 // ---------------------------------------------------------------------------
 @riverpod
 Stream<List<TransactionItem>> transactionItemList(Ref ref) {
@@ -161,12 +222,9 @@ Stream<List<TransactionItem>> transactionItemList(Ref ref) {
     endDate: endDate,
     branchId: branchId,
     forceRealData: forceRealData,
+    includeParked: true,
   )
-      .map(
-        (all) => all
-            .where((tx) => tx.isExpense != true && tx.status == COMPLETE)
-            .toList(),
-      )
+      .map(transactionReportScopeFilter)
       .startWith(const <ITransaction>[]);
 
   return Rx.combineLatest2<List<TransactionItem>, List<ITransaction>,

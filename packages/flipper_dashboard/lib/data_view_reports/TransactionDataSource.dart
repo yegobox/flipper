@@ -5,8 +5,14 @@ class TransactionDataSource extends DynamicDataSource<ITransaction> {
   TransactionDataSource(
     List<ITransaction> transactions,
     int rowsPerPage,
-    bool showPluReport,
-  ) : super(transactions, rowsPerPage, showPluReport: showPluReport);
+    bool showPluReport, {
+    Map<String, TransactionPaymentSums>? paymentSumsByTransactionId,
+  }) : super(
+          transactions,
+          rowsPerPage,
+          showPluReport: showPluReport,
+          paymentSumsByTransactionId: paymentSumsByTransactionId,
+        );
 }
 
 class StockDataSource extends DynamicDataSource<Variant> {

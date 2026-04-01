@@ -82,19 +82,21 @@ class ExcelUtils {
             .getRangeByName('A$infoRow')
             .setText(infoData[i][0].toString());
         final cell = reportSheet.getRangeByName('B$infoRow');
-        // Find the Amount column in the data grid (usually column C or D)
-        // We need to find the first data row and the last data row
-
-        // Looking at the screenshot, we need to find where the actual transaction data begins
-        // This is typically after the header row with "Name", "Type", "Amount", "Cash"
+        // Find header row with transaction columns (Name, Type, … SaleTotal or legacy Amount)
         int firstDataRow = startRow + 1;
+        int? revenueCol;
         for (int i = startRow; i <= reportSheet.getLastRow(); i++) {
-          final cellValue = reportSheet.getRangeByName('C$i').getText();
-          if (cellValue == 'Amount') {
-            firstDataRow = i + 1;
-            break;
+          for (int c = 1; c <= reportSheet.getLastColumn(); c++) {
+            final cellValue = reportSheet.getRangeByIndex(i, c).getText();
+            if (cellValue == 'SaleTotal' || cellValue == 'Amount') {
+              firstDataRow = i + 1;
+              revenueCol = c;
+              break;
+            }
           }
+          if (revenueCol != null) break;
         }
+        revenueCol ??= 3; // legacy layouts
 
         // Find the last row before the "Total Gross Profit" row
         int lastDataRow = reportSheet.getLastRow();
@@ -106,9 +108,8 @@ class ExcelUtils {
           }
         }
 
-        // Set formula to sum the Amount column (column C)
-        // Based on the screenshot, the Amount column is the third column (C)
-        cell.setFormula('=SUM(C$firstDataRow:C$lastDataRow)');
+        final revLetter = String.fromCharCode(64 + revenueCol);
+        cell.setFormula('=SUM($revLetter$firstDataRow:$revLetter$lastDataRow)');
         cell.numberFormat = config.currencyFormat;
         final infoRange = reportSheet.getRangeByName(
           'A$infoRow:${String.fromCharCode(64 + reportSheet.getLastColumn())}$infoRow',
@@ -174,8 +175,15 @@ class ExcelUtils {
     final lastDataRow = sheet.getLastRow();
     final closingBalanceRow = lastDataRow + 1;
 
-    // Find the column index for "Amount" (assuming always column C = 3)
-    final amountColIndex = _colAmount; // B
+    // Sum [SaleTotal] if present in row 1, else legacy [Amount] / column B
+    int amountColIndex = _colAmount;
+    for (int c = 1; c <= sheet.getLastColumn(); c++) {
+      final h = sheet.getRangeByIndex(1, c).getText();
+      if (h == 'SaleTotal' || h == 'Amount') {
+        amountColIndex = c;
+        break;
+      }
+    }
     final amountColLetter = String.fromCharCode(64 + amountColIndex);
 
     sheet.insertRow(closingBalanceRow);

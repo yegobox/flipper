@@ -15,7 +15,7 @@ class EmptyDataSource extends DynamicDataSource<dynamic> {
     // to satisfy SfDataGrid's assertion during initialization.
     final int numberOfColumns = showDetailed
         ? 11
-        : 5; // 11 for detailed, 5 for summary
+        : kTransactionSummaryColumnCount;
     return [
       DataGridRow(
         cells: List.generate(
@@ -28,7 +28,8 @@ class EmptyDataSource extends DynamicDataSource<dynamic> {
 
   @override
   DataGridRowAdapter buildRow(DataGridRow row) {
-    final int numberOfColumns = showDetailed ? 11 : 5;
+    final int numberOfColumns =
+        showDetailed ? 11 : kTransactionSummaryColumnCount;
     debugPrint(
       '[EmptyDataSource] buildRow: mode=${showDetailed ? 'detailed' : 'summary'}, cells=$numberOfColumns',
     );

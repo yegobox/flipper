@@ -11,6 +11,7 @@ import 'package:supabase_models/brick/models/sars.model.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:talker/talker.dart';
 import 'package:flipper_models/helperModels/random.dart';
+import 'package:flipper_models/helperModels/transaction_payment_sums.dart';
 
 mixin CapellaTransactionMixin implements TransactionInterface {
   Repository get repository;
@@ -159,9 +160,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
           59,
           999,
         );
-        whereClauses.add(
-          'lastTouched >= :startDate AND lastTouched <= :endDate',
-        );
+        whereClauses.add('createdAt >= :startDate AND createdAt <= :endDate');
         arguments['startDate'] = localStartDate.toIso8601String();
         arguments['endDate'] = localEndDate.toIso8601String();
       } else if (startDate != null) {
@@ -170,7 +169,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
           startDate.month,
           startDate.day,
         );
-        whereClauses.add('lastTouched >= :startDate');
+        whereClauses.add('createdAt >= :startDate');
         arguments['startDate'] = localStartDate.toIso8601String();
       } else if (endDate != null) {
         final localEndDate = DateTime(
@@ -182,13 +181,13 @@ mixin CapellaTransactionMixin implements TransactionInterface {
           59,
           999,
         );
-        whereClauses.add('lastTouched <= :endDate');
+        whereClauses.add('createdAt <= :endDate');
         arguments['endDate'] = localEndDate.toIso8601String();
       }
 
       final whereClause = whereClauses.join(' AND ');
       final query =
-          'SELECT * FROM transactions WHERE $whereClause ORDER BY lastTouched DESC';
+          'SELECT * FROM transactions WHERE $whereClause ORDER BY createdAt DESC';
 
       talker.info('Capella Ditto Query: $query');
       talker.info('Capella Ditto Arguments: $arguments');
@@ -818,8 +817,8 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         final double newQty = updatableQty ?? (currentQty + 1);
         final double newTotal = amountTotal * newQty;
         final double qtyDelta = newQty - currentQty;
-        final prevRem =
-            (existingItemData['remainingStock'] as num?)?.toDouble();
+        final prevRem = (existingItemData['remainingStock'] as num?)
+            ?.toDouble();
         final double newRemainingStock = prevRem != null
             ? prevRem - qtyDelta
             : currentStock - newQty;
@@ -1025,8 +1024,9 @@ mixin CapellaTransactionMixin implements TransactionInterface {
             final vid = d['variantId'] as String?;
             if (vid != null) {
               try {
-                final v = await ProxyService.getStrategy(Strategy.capella)
-                    .getVariant(id: vid);
+                final v = await ProxyService.getStrategy(
+                  Strategy.capella,
+                ).getVariant(id: vid);
                 final shelf = v?.stock?.currentStock?.toDouble();
                 if (shelf != null) newRem = shelf - newQty;
               } catch (_) {}
@@ -1058,8 +1058,9 @@ mixin CapellaTransactionMixin implements TransactionInterface {
           final vid = d['variantId'] as String?;
           if (vid != null) {
             try {
-              final v = await ProxyService.getStrategy(Strategy.capella)
-                  .getVariant(id: vid);
+              final v = await ProxyService.getStrategy(
+                Strategy.capella,
+              ).getVariant(id: vid);
               unitSupply = v?.supplyPrice ?? 0;
             } catch (_) {}
           }
@@ -1415,18 +1416,12 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       double total = 0.0;
       for (final item in queryResult.items) {
         final data = Map<String, dynamic>.from(item.value);
+        final method = data['paymentMethod'] as String?;
         if (excludePaymentMethod != null &&
-            data['paymentMethod'] == excludePaymentMethod) {
+            paymentMethodEqualsIgnoreCase(method, excludePaymentMethod)) {
           continue;
         }
-        final amount = data['amount'];
-        if (amount != null) {
-          if (amount is num) {
-            total += amount.toDouble();
-          } else if (amount is String) {
-            total += double.tryParse(amount) ?? 0.0;
-          }
-        }
+        total += parsePaymentAmount(data['amount']);
       }
 
       talker.info('Total paid for transaction $transactionId: $total');
@@ -1434,6 +1429,65 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     } catch (e, s) {
       talker.error('Error getting total paid for transaction: $e', s);
       throw Exception('Failed to get total paid: $e');
+    }
+  }
+
+  @override
+  Future<Map<String, TransactionPaymentSums>> getPaymentSumsByTransactionIds(
+    List<String> transactionIds, {
+    required String branchId,
+  }) async {
+    if (transactionIds.isEmpty) return {};
+    try {
+      final ditto = dittoService.dittoInstance;
+      if (ditto == null) {
+        talker.error('Ditto not initialized for getPaymentSumsByTransactionIds');
+        throw Exception('Ditto not initialized for getPaymentSumsByTransactionIds');
+      }
+
+      final placeholders = transactionIds
+          .asMap()
+          .entries
+          .map((e) => ':t${e.key}')
+          .join(', ');
+      final arguments = <String, dynamic>{
+        for (var i = 0; i < transactionIds.length; i++) 't$i': transactionIds[i],
+      };
+
+      final query =
+          'SELECT * FROM transaction_payment_records WHERE transactionId IN ($placeholders)';
+      final queryResult = await ditto.store.execute(query, arguments: arguments);
+
+      final byId = <String, ({double byHand, double credit, int count})>{
+        for (final id in transactionIds) id: (byHand: 0.0, credit: 0.0, count: 0),
+      };
+
+      for (final item in queryResult.items) {
+        final data = Map<String, dynamic>.from(item.value);
+        final tid = data['transactionId'] as String?;
+        if (tid == null || !byId.containsKey(tid)) continue;
+
+        final amt = parsePaymentAmount(data['amount']);
+        final method = data['paymentMethod'] as String?;
+        final bucket = byId[tid]!;
+        byId[tid] = (
+          byHand: bucket.byHand + (paymentMethodIsCredit(method) ? 0.0 : amt),
+          credit: bucket.credit + (paymentMethodIsCredit(method) ? amt : 0.0),
+          count: bucket.count + 1,
+        );
+      }
+
+      return {
+        for (final id in transactionIds)
+          id: TransactionPaymentSums(
+            byHand: byId[id]!.byHand,
+            credit: byId[id]!.credit,
+            hasAnyRecord: byId[id]!.count > 0,
+          ),
+      };
+    } catch (e, s) {
+      talker.error('Error in getPaymentSumsByTransactionIds: $e', s);
+      rethrow;
     }
   }
 
