@@ -146,12 +146,6 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     final initialCode = CountryCode.fromCountryCode("RW");
     widget.countryCodeController.text = initialCode.dialCode!;
 
-    // Initialize FocusNodes with Enter-key handlers for precise traversal
-    _receivedAmountFocusNode = FocusNode(onKeyEvent: _handleReceivedAmountKey);
-    _customerNameFocusNode = FocusNode(onKeyEvent: _handleCustomerNameKey);
-    _customerPhoneFocusNode = FocusNode(onKeyEvent: _handleCustomerPhoneKey);
-    _deliveryNoteFocusNode = FocusNode(onKeyEvent: _handleDeliveryNoteKey);
-
     // Auto-focus on the received amount field after a short delay
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _receivedAmountFocusNode.requestFocus();
@@ -243,11 +237,18 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   // Controllers for quantity inputs per item (small device view)
   final Map<String, TextEditingController> _quantityControllers = {};
 
-  // FocusNodes for accessibility and keyboard navigation
-  late final FocusNode _receivedAmountFocusNode;
-  late final FocusNode _customerNameFocusNode;
-  late final FocusNode _customerPhoneFocusNode;
-  late final FocusNode _deliveryNoteFocusNode;
+  // _formKeyboardListenerFocusNode is non-late so KeyboardListener always has a node.
+  late final FocusNode _receivedAmountFocusNode =
+      FocusNode(onKeyEvent: _handleReceivedAmountKey);
+  late final FocusNode _customerNameFocusNode =
+      FocusNode(onKeyEvent: _handleCustomerNameKey);
+  late final FocusNode _customerPhoneFocusNode =
+      FocusNode(onKeyEvent: _handleCustomerPhoneKey);
+  late final FocusNode _deliveryNoteFocusNode =
+      FocusNode(onKeyEvent: _handleDeliveryNoteKey);
+  /// Stable node for [KeyboardListener] — do not allocate a new [FocusNode] per build.
+  final FocusNode _formKeyboardListenerFocusNode =
+      FocusNode(debugLabel: 'quickSellFormShortcuts');
 
   // Track last auto-set amount to detect manual changes
   double _lastAutoSetAmount = 0.0;
@@ -329,6 +330,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     _customerNameFocusNode.dispose();
     _customerPhoneFocusNode.dispose();
     _deliveryNoteFocusNode.dispose();
+    _formKeyboardListenerFocusNode.dispose();
     super.dispose();
   }
 
@@ -1513,7 +1515,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     required double alreadyPaid,
   }) {
     return KeyboardListener(
-      focusNode: FocusNode(),
+      focusNode: _formKeyboardListenerFocusNode,
       onKeyEvent: (KeyEvent event) {
         if (event is KeyDownEvent) {
           // Handle Ctrl+Enter or Cmd+Enter to complete sale

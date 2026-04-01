@@ -416,6 +416,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   }) {
     return GestureDetector(
       key: Key('quantity-button-$id'),
+      behavior: HitTestBehavior.opaque,
       onTap: enabled ? onTap : null,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),

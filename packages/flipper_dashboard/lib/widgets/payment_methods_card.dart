@@ -8,6 +8,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_dashboard/mixins/transaction_computation_mixin.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:supabase_models/brick/models/transaction.model.dart';
 
 class PaymentMethodsCard extends StatefulHookConsumerWidget {
@@ -193,6 +194,23 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
             .updatePaymentMethod(i, payments[i], transactionId: transactionId);
       }
     }
+  }
+
+  bool _hasUnusedPaymentType() {
+    final selected =
+        ref.read(paymentMethodsProvider).map((p) => p.method).toSet();
+    return paymentTypes.any((m) => !selected.contains(m));
+  }
+
+  void _onAddPaymentPressed({required String transactionId}) {
+    if (!_hasUnusedPaymentType()) {
+      showErrorNotification(
+        context,
+        'All payment types are already added. Remove one to add another.',
+      );
+      return;
+    }
+    _addPaymentMethod(transactionId: transactionId);
   }
 
   void _addPaymentMethod({required String transactionId}) {
@@ -950,8 +968,9 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
             width: double.infinity,
             height: 44,
             child: OutlinedButton.icon(
-              onPressed: () =>
-                  _addPaymentMethod(transactionId: widget.transactionId),
+              onPressed: () => _onAddPaymentPressed(
+                transactionId: widget.transactionId,
+              ),
               icon: Icon(Icons.add, size: 18, color: Colors.blue[600]),
               label: Text(
                 'Add Payment',
@@ -1069,8 +1088,9 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
         SizedBox(
           width: double.infinity,
           child: OutlinedButton.icon(
-            onPressed: () =>
-                _addPaymentMethod(transactionId: widget.transactionId),
+            onPressed: () => _onAddPaymentPressed(
+              transactionId: widget.transactionId,
+            ),
             icon: Icon(Icons.add, size: 18),
             label: Text('Add Payment'),
             style: OutlinedButton.styleFrom(

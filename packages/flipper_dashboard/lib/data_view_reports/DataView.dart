@@ -869,9 +869,13 @@ class DataViewState extends ConsumerState<DataView>
   ///
   /// [fullSummaryTransactions]: when non-null (summary mode), every row in range — same as Capella
   /// `transactions()` used for [ExportConfig], not the filtered/paginated grid list.
+  ///
+  /// [fullDetailTransactionItems]: when non-null (detailed / PLU export), use this full list instead
+  /// of [_dataGridSource]. Otherwise Excel/PDF fall back to the grid (often **one page ≈ 10 rows**).
   Future<({List<dynamic> manualData, List<String> columnNames})>
   _buildManualDataForExport({
     List<ITransaction>? fullSummaryTransactions,
+    List<TransactionItem>? fullDetailTransactionItems,
   }) async {
     final columns = _getTableHeaders();
     final columnNames = columns.map((c) => c.columnName).toList();
@@ -895,9 +899,16 @@ class DataViewState extends ConsumerState<DataView>
       return (manualData: preparedData, columnNames: columnNames);
     }
 
-    if (_dataGridSource is TransactionItemDataSource) {
-      final items = _dataGridSource.data.cast<TransactionItem>();
-      if (items.isEmpty) return (manualData: [], columnNames: columnNames);
+    final List<TransactionItem>? pluItems =
+        (fullDetailTransactionItems != null &&
+                fullDetailTransactionItems.isNotEmpty)
+            ? fullDetailTransactionItems
+            : (_dataGridSource is TransactionItemDataSource
+                ? _dataGridSource.data.cast<TransactionItem>()
+                : null);
+
+    if (pluItems != null && pluItems.isNotEmpty) {
+      final items = pluItems;
 
       // Batch tax rate lookups: one DB call per unique tax type instead of per item
       final uniqueTaxTypes = items
@@ -1002,14 +1013,20 @@ class DataViewState extends ConsumerState<DataView>
     );
   }
 
-  /// PDF export uses the live grid only; expand to all rows first so summary is not one page.
+  /// PDF export uses the live grid only; expand to all rows first so export is not one page.
   Future<void> _withSummaryPdfFullGridRows(
     Future<void> Function() runExport,
   ) async {
-    final expandForPdf =
+    final expandForPdfSummary =
         ProxyService.box.exportAsPdf() &&
         !widget.showDetailedReport &&
         _dataGridSource is TransactionDataSource;
+    final expandForPdfDetailed =
+        ProxyService.box.exportAsPdf() &&
+        widget.showDetailedReport &&
+        _dataGridSource is TransactionItemDataSource;
+
+    final expandForPdf = expandForPdfSummary || expandForPdfDetailed;
 
     if (expandForPdf) {
       _dataGridSource.loadAllRowsForExport();
@@ -1056,8 +1073,18 @@ class DataViewState extends ConsumerState<DataView>
         config.netProfit = await _calculateNetProfit();
       }
 
+      List<TransactionItem>? detailLines;
+      if (widget.showDetailedReport) {
+        final lines = await ref.read(transactionItemListProvider.future);
+        detailLines = lines;
+        talker.info(
+          'triggerExport: detailed mode, ${lines.length} line items from transactionItemListProvider',
+        );
+      }
+
       final (:manualData, :columnNames) = await _buildManualDataForExport(
         fullSummaryTransactions: widget.showDetailedReport ? null : sales,
+        fullDetailTransactionItems: detailLines,
       );
 
       await _withSummaryPdfFullGridRows(() async {

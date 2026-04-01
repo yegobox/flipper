@@ -997,6 +997,12 @@ mixin CapellaTransactionMixin implements TransactionInterface {
 
       final d = Map<String, dynamic>.from(itemRow.items.first.value);
 
+      final double oldQtyFromDb = (d['qty'] as num).toDouble();
+      // incrementQty with null qty means +1 (see TransactionItemTable / brick mixin).
+      final double? resolvedNewQty = incrementQty == true
+          ? oldQtyFromDb + (qty ?? 1)
+          : qty;
+
       final Map<String, dynamic> arguments = {'id': transactionItemId};
       final List<String> updates = [];
 
@@ -1007,10 +1013,9 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         }
       }
 
-      if (qty != null) {
-        final oldQty = (d['qty'] as num).toDouble();
-        final newQty = qty;
-        final qtyDelta = newQty - oldQty;
+      if (resolvedNewQty != null) {
+        final newQty = resolvedNewQty;
+        final qtyDelta = newQty - oldQtyFromDb;
         if (qtyDelta != 0) {
           final oldRem = (d['remainingStock'] as num?)?.toDouble();
           double? newRem;
@@ -1031,7 +1036,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         }
       }
 
-      addUpdate('qty', qty);
+      addUpdate('qty', resolvedNewQty);
       addUpdate('price', price);
       addUpdate('prc', prc); // Often same as price
       addUpdate('active', active);
@@ -1043,7 +1048,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       // Line COGS splyAmt = unit × qty so when qty==1, splyAmt equals supplyPriceAtSale.
       double? resolvedSplyAmt = splyAmt;
       double? unitSupplySynced;
-      if (resolvedSplyAmt == null && qty != null) {
+      if (resolvedSplyAmt == null && resolvedNewQty != null) {
         final rawSup = d['supplyPriceAtSale'] ?? d['supplyPrice'];
         double unitSupply;
         if (rawSup != null) {
@@ -1060,7 +1065,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
           }
         }
         unitSupplySynced = unitSupply;
-        resolvedSplyAmt = unitSupply * qty;
+        resolvedSplyAmt = unitSupply * resolvedNewQty;
       }
       addUpdate('splyAmt', resolvedSplyAmt);
       if (unitSupplySynced != null) {
@@ -1079,31 +1084,6 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       if (transactionId != null) {
         await _recalculateTransactionSubTotal(transactionId);
       }
-
-      // Background Sync
-      // _backgroundSync(
-      //   (strategy) => strategy.updateTransactionItem(
-      //     qty: qty,
-      //     transactionItemId: transactionItemId,
-      //     discount: discount,
-      //     active: active,
-      //     taxAmt: taxAmt,
-      //     quantityApproved: quantityApproved,
-      //     quantityRequested: quantityRequested,
-      //     ebmSynced: ebmSynced,
-      //     isRefunded: isRefunded,
-      //     incrementQty: incrementQty,
-      //     price: price,
-      //     prc: prc,
-      //     doneWithTransaction: doneWithTransaction,
-      //     quantityShipped: quantityShipped,
-      //     taxblAmt: taxblAmt,
-      //     totAmt: totAmt,
-      //     dcRt: dcRt,
-      //     dcAmt: dcAmt,
-      //     ignoreForReport: ignoreForReport,
-      //   ),
-      // );
     } catch (e, s) {
       talker.error('Error in updateTransactionItem: $e', s);
     }
