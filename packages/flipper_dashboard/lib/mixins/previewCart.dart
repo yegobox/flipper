@@ -305,9 +305,64 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       final isValid = formKey.currentState?.validate() ?? true;
       if (!isValid) return false;
 
+      if (paymentMethods.length > 1) {
+        final missingIndices = <int>[];
+        final invalidIndices = <int>[];
+        final zeroAmountIndices = <int>[];
+        for (var i = 0; i < paymentMethods.length; i++) {
+          final text = paymentMethods[i].controller.text.trim();
+          if (text.isEmpty) {
+            missingIndices.add(i + 1);
+            continue;
+          }
+          final parsed = double.tryParse(text);
+          if (parsed == null || !parsed.isFinite || parsed < 0) {
+            invalidIndices.add(i + 1);
+            continue;
+          }
+          // With multiple methods, every line must carry a real share (not 0).
+          if (parsed <= 0.01) {
+            zeroAmountIndices.add(i + 1);
+          }
+        }
+        if (missingIndices.isNotEmpty ||
+            invalidIndices.isNotEmpty ||
+            zeroAmountIndices.isNotEmpty) {
+          final parts = <String>[];
+          if (missingIndices.isNotEmpty) {
+            parts.add(
+              'enter an amount for payment ${missingIndices.join(', ')}',
+            );
+          }
+          if (invalidIndices.isNotEmpty) {
+            parts.add(
+              'fix invalid amount for payment ${invalidIndices.join(', ')}',
+            );
+          }
+          if (zeroAmountIndices.isNotEmpty) {
+            parts.add(
+              'each method needs an amount above zero (payment ${zeroAmountIndices.join(', ')})',
+            );
+          }
+          final message =
+              'Multiple payment methods are in use: ${parts.join('; ')}.';
+          if (mounted && context.mounted) {
+            showCustomSnackBarUtil(
+              context,
+              message,
+              backgroundColor: Colors.red,
+              showCloseButton: true,
+            );
+          }
+          ref.read(payButtonStateProvider.notifier).stopLoading();
+          return false;
+        }
+      }
+
       // CREDIT (loan) payments require an attached customer for tracking.
-      final hasCreditPayment =
-          paymentMethods.any((p) => p.method == "CREDIT" && p.amount > 0);
+      final hasCreditPayment = paymentMethods.any(
+        (p) => p.method == "CREDIT" && p.amount > 0,
+      );
       if (hasCreditPayment) {
         final hasCustomer =
             (transaction.customerName != null &&
@@ -560,8 +615,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         .fold<double>(0, (sum, p) => sum + p.amount);
 
     final nonCreditCashReceived = effectiveCashReceived - totalCredit;
-    final isFullyPaid =
-        nonCreditCashReceived >= (transaction.subTotal ?? 0);
+    final isFullyPaid = nonCreditCashReceived >= (transaction.subTotal ?? 0);
 
     final shouldBeLoan = totalCredit > 0 || !isFullyPaid;
     final status = shouldBeLoan ? PARKED : COMPLETE;
