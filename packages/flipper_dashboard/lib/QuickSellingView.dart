@@ -121,22 +121,157 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     if (branchId == null) {
       return SizedBox.shrink();
     }
-    final highestInvoiceNumber = ref.watch(highestCounterProvider(branchId));
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
+        children: [_buildInvoiceNumberRow(branchId: branchId)],
+      ),
+    );
+  }
+
+  /// Invoice number only (mobile / simple layouts).
+  Widget _buildInvoiceNumberRow({required String branchId}) {
+    final highestInvoiceNumber = ref.watch(highestCounterProvider(branchId));
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text('Invoice No: ', style: Theme.of(context).textTheme.bodyMedium),
+        Text(
+          '$highestInvoiceNumber',
+          key: const Key('invoice-number-text'),
+          style: Theme.of(
+            context,
+          ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+        ),
+      ],
+    );
+  }
+
+  /// Desktop shared view: amount, transaction ID, then invoice — top-right, shortens the lower form pane.
+  Widget _buildTopBarCheckoutSummary({
+    required double alreadyPaid,
+    required AsyncValue<ITransaction> transactionAsyncValue,
+  }) {
+    final branchId = ProxyService.box.getBranchId();
+    final transaction = transactionAsyncValue.asData?.value;
+    final displayId =
+        transaction != null ? transaction.id.toString() : 'Invalid';
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(8.0, 4.0, 12.0, 8.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Text('Invoice No: ', style: Theme.of(context).textTheme.bodyMedium),
-          Text(
-            '${highestInvoiceNumber}',
-            key: Key('invoice-number-text'), // Add key for testing/targeting
-            style: Theme.of(
-              context,
-            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold),
+          Expanded(
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: Alignment.centerRight,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildCompactAmountSummary(alreadyPaid),
+                    const SizedBox(width: 14),
+                    _buildCompactTransactionIdRow(displayId),
+                    if (branchId != null) ...[
+                      const SizedBox(width: 14),
+                      _buildInvoiceNumberRow(branchId: branchId),
+                    ],
+                  ],
+                ),
+              ),
+            ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildCompactAmountSummary(double alreadyPaid) {
+    final remaining = _remainingBalance(alreadyPaid);
+    final change = _amountToChange(alreadyPaid);
+    final isRemaining = remaining > 0;
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          isRemaining ? 'Remaining Balance: ' : 'Amount to Change: ',
+          style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                color: isRemaining
+                    ? Colors.red
+                    : Theme.of(context)
+                        .colorScheme
+                        .onSurface
+                        .withValues(alpha: 0.75),
+                fontWeight: FontWeight.w600,
+              ),
+        ),
+        Text(
+          (isRemaining ? remaining : change).toCurrencyFormatted(
+            symbol: ProxyService.box.defaultCurrency(),
+          ),
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: isRemaining
+                    ? Colors.red
+                    : Theme.of(context).colorScheme.primary,
+                fontWeight: FontWeight.w700,
+              ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCompactTransactionIdRow(String displayId) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          Icons.receipt_outlined,
+          size: 16,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
+        const SizedBox(width: 4),
+        ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 140),
+          child: Text(
+            displayId,
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  fontFamily: 'monospace',
+                  fontWeight: FontWeight.w600,
+                ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
+          ),
+        ),
+        const SizedBox(width: 4),
+        Tooltip(
+          message: 'Copy transaction ID',
+          child: InkWell(
+            onTap: () {
+              Clipboard.setData(ClipboardData(text: displayId));
+              ProxyService.strategy.notify(
+                notification: AppNotification(
+                  identifier: ProxyService.box.getBranchId(),
+                  type: "internal",
+                  completed: false,
+                  message: "Transaction ID copied to clipboard",
+                ),
+              );
+            },
+            borderRadius: BorderRadius.circular(4),
+            child: Padding(
+              padding: const EdgeInsets.all(4.0),
+              child: Icon(
+                Icons.content_copy_outlined,
+                size: 14,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -1459,24 +1594,45 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     );
   }
 
-  Widget _buildSharedView(
-    double alreadyPaid,
-    AsyncValue<ITransaction> transactionAsyncValue,
-    bool isSmallDevice,
-    bool isOrdering,
-    CoreViewModel model,
-  ) {
-    final itemsAndDelivery = Column(
+  /// Cart column: checkout summary, items table, optional delivery.
+  /// When [pinGrandTotal] is true, the table keeps Grand Total pinned at the
+  /// bottom of this pane; parent must provide bounded height ([Expanded]).
+  Widget _buildSharedViewItemsPane({
+    required double alreadyPaid,
+    required AsyncValue<ITransaction> transactionAsyncValue,
+    required bool isOrdering,
+    required bool pinGrandTotal,
+  }) {
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _buildInvoiceNumber(),
-        const SizedBox(height: 10),
-        Semantics(
-          label: 'Transaction items list',
-          hint:
-              'List of items in the current transaction with quantities and prices',
-          child: buildTransactionItemsTable(isOrdering),
+        _buildTopBarCheckoutSummary(
+          alreadyPaid: alreadyPaid,
+          transactionAsyncValue: transactionAsyncValue,
         ),
+        const SizedBox(height: 6),
+        if (pinGrandTotal)
+          Expanded(
+            child: Semantics(
+              label: 'Transaction items list',
+              hint:
+                  'List of items in the current transaction with quantities and prices',
+              child: buildTransactionItemsTable(
+                isOrdering,
+                pinGrandTotal: true,
+              ),
+            ),
+          )
+        else
+          Semantics(
+            label: 'Transaction items list',
+            hint:
+                'List of items in the current transaction with quantities and prices',
+            child: buildTransactionItemsTable(
+              isOrdering,
+              pinGrandTotal: false,
+            ),
+          ),
         if (isOrdering) ...[
           const SizedBox(height: 20),
           Container(
@@ -1495,7 +1651,15 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         ],
       ],
     );
+  }
 
+  Widget _buildSharedView(
+    double alreadyPaid,
+    AsyncValue<ITransaction> transactionAsyncValue,
+    bool isSmallDevice,
+    bool isOrdering,
+    CoreViewModel model,
+  ) {
     final pinnedBottomColumn = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisSize: MainAxisSize.min,
@@ -1508,7 +1672,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           ),
           const SizedBox(height: 20),
         ],
-        _buildFooter(alreadyPaid, transactionAsyncValue, model),
+        _buildFooter(transactionAsyncValue, model),
       ],
     );
 
@@ -1522,7 +1686,12 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                itemsAndDelivery,
+                _buildSharedViewItemsPane(
+                  alreadyPaid: alreadyPaid,
+                  transactionAsyncValue: transactionAsyncValue,
+                  isOrdering: isOrdering,
+                  pinGrandTotal: false,
+                ),
                 if (!isOrdering) ...[
                   const SizedBox(height: 20),
                   _buildForm(
@@ -1532,7 +1701,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                   ),
                 ],
                 const SizedBox(height: 20),
-                _buildFooter(alreadyPaid, transactionAsyncValue, model),
+                _buildFooter(transactionAsyncValue, model),
               ],
             ),
           );
@@ -1540,19 +1709,27 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
 
         // Split space so the items block never collapses when the form+footer
         // is tall (avoids flex overflow and keeps "No items yet" visible).
-        // Each pane scrolls independently when its content exceeds its share.
+        // 3:2 gives the form + footer a bit more height than the old 2:1 split
+        // so payment fields and customer inputs stay easier to see at once.
+        // Upper pane: scrollable line items with Grand Total pinned above the
+        // card bottom; lower pane: form scrolls independently.
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Expanded(
-              flex: 2,
-              child: SingleChildScrollView(
+              flex: 3,
+              child: Padding(
                 padding: const EdgeInsets.all(2.0),
-                child: itemsAndDelivery,
+                child: _buildSharedViewItemsPane(
+                  alreadyPaid: alreadyPaid,
+                  transactionAsyncValue: transactionAsyncValue,
+                  isOrdering: isOrdering,
+                  pinGrandTotal: true,
+                ),
               ),
             ),
             Expanded(
-              flex: 1,
+              flex: 2,
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(2.0),
                 child: pinnedBottomColumn,
@@ -1996,189 +2173,19 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   }
 
   Widget _buildFooter(
-    double alreadyPaid,
     AsyncValue<ITransaction> transactionAsyncValue,
     CoreViewModel model,
   ) {
     final transaction = transactionAsyncValue.asData?.value;
-    final displayId = (transaction != null)
-        ? transaction.id.toString()
-        : 'Invalid';
 
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-      padding: const EdgeInsets.all(16.0),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        borderRadius: BorderRadius.circular(12.0),
-        border: Border.all(
-          color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
-          width: 1.0,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Theme.of(context).shadowColor.withValues(alpha: 0.08),
-            offset: const Offset(0, 2),
-            blurRadius: 8.0,
-            spreadRadius: 0,
-          ),
-        ],
-      ),
+    // Amount / transaction ID live in [_buildTopBarCheckoutSummary] above the
+    // line items so the pinned form stays short (shared / desktop layout).
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // Total Amount Section
-          Container(
-            padding: const EdgeInsets.symmetric(
-              vertical: 12.0,
-              horizontal: 16.0,
-            ),
-            decoration: BoxDecoration(
-              color: Theme.of(
-                context,
-              ).colorScheme.primaryContainer.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(8.0),
-              border: Border.all(
-                color: Theme.of(
-                  context,
-                ).colorScheme.primary.withValues(alpha: 0.2),
-                width: 1.0,
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  _remainingBalance(alreadyPaid) > 0
-                      ? 'Remaining Balance'
-                      : 'Amount to Change',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: _remainingBalance(alreadyPaid) > 0
-                        ? Colors.red
-                        : Theme.of(
-                            context,
-                          ).colorScheme.onSurface.withValues(alpha: 0.8),
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                Text(
-                  (_remainingBalance(alreadyPaid) > 0
-                          ? _remainingBalance(alreadyPaid)
-                          : _amountToChange(alreadyPaid))
-                      .toCurrencyFormatted(
-                        symbol: ProxyService.box.defaultCurrency(),
-                      ),
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    color: _remainingBalance(alreadyPaid) > 0
-                        ? Colors.red
-                        : Theme.of(context).colorScheme.primary,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: -0.5,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 12.0),
-
-          // Transaction ID Section
-          Container(
-            padding: const EdgeInsets.symmetric(
-              vertical: 8.0,
-              horizontal: 12.0,
-            ),
-            decoration: BoxDecoration(
-              color: Theme.of(
-                context,
-              ).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
-              borderRadius: BorderRadius.circular(8.0),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.receipt_outlined,
-                  size: 18.0,
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
-                const SizedBox(width: 8.0),
-                Text(
-                  'Transaction ID',
-                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                const SizedBox(width: 12.0),
-                Expanded(
-                  child: Text(
-                    displayId,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      fontFamily: 'monospace',
-                      color: Theme.of(context).colorScheme.onSurface,
-                      fontWeight: FontWeight.w600,
-                    ),
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                const SizedBox(width: 8.0),
-                Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    onTap: () {
-                      Clipboard.setData(ClipboardData(text: displayId));
-                      ProxyService.strategy.notify(
-                        notification: AppNotification(
-                          identifier: ProxyService.box.getBranchId(),
-                          type: "internal",
-                          completed: false,
-                          message: "Transaction ID copied to clipboard",
-                        ),
-                      );
-                    },
-                    borderRadius: BorderRadius.circular(6.0),
-                    child: Container(
-                      padding: const EdgeInsets.all(8.0),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(6.0),
-                        border: Border.all(
-                          color: Theme.of(
-                            context,
-                          ).colorScheme.outline.withValues(alpha: 0.3),
-                          width: 1.0,
-                        ),
-                      ),
-                      child: Tooltip(
-                        message: 'Copy transaction ID to clipboard',
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(
-                              Icons.content_copy_outlined,
-                              size: 16.0,
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                            const SizedBox(width: 4.0),
-                            Text(
-                              'Copy',
-                              style: Theme.of(context).textTheme.labelSmall
-                                  ?.copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).colorScheme.primary,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12.0),
           if (transaction != null && internalTransactionItems.isNotEmpty)
             SaveTicketButton(
               onPressed: () => _showParkDialog(transaction, model),
