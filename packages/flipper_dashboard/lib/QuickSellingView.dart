@@ -1466,46 +1466,101 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     bool isOrdering,
     CoreViewModel model,
   ) {
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.all(2.0),
-        child: Column(
-          children: [
-            _buildInvoiceNumber(),
-            const SizedBox(height: 10),
-            Semantics(
-              label: 'Transaction items list',
-              hint:
-                  'List of items in the current transaction with quantities and prices',
-              child: buildTransactionItemsTable(isOrdering),
-            ),
-            SizedBox(height: 20),
-            if (!isOrdering)
-              _buildForm(
-                isOrdering,
-                transactionId: transactionAsyncValue.value?.id ?? "",
-                alreadyPaid: alreadyPaid,
-              ),
-            SizedBox(height: 20),
-            if (isOrdering) ...[
-              Container(
-                margin: const EdgeInsets.symmetric(
-                  horizontal: 12.0,
-                  vertical: 8.0,
-                ),
-                padding: const EdgeInsets.all(6.0),
-                child: Column(
-                  children: [
-                    Row(children: [Text("Delivery Date"), datePicker()]),
-                    _deliveryNote(),
-                  ],
-                ),
-              ),
-            ],
-            _buildFooter(alreadyPaid, transactionAsyncValue, model),
-          ],
+    final itemsAndDelivery = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildInvoiceNumber(),
+        const SizedBox(height: 10),
+        Semantics(
+          label: 'Transaction items list',
+          hint:
+              'List of items in the current transaction with quantities and prices',
+          child: buildTransactionItemsTable(isOrdering),
         ),
-      ),
+        if (isOrdering) ...[
+          const SizedBox(height: 20),
+          Container(
+            margin: const EdgeInsets.symmetric(
+              horizontal: 12.0,
+              vertical: 8.0,
+            ),
+            padding: const EdgeInsets.all(6.0),
+            child: Column(
+              children: [
+                Row(children: [Text("Delivery Date"), datePicker()]),
+                _deliveryNote(),
+              ],
+            ),
+          ),
+        ],
+      ],
+    );
+
+    final pinnedBottomColumn = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        if (!isOrdering) ...[
+          _buildForm(
+            isOrdering,
+            transactionId: transactionAsyncValue.value?.id ?? "",
+            alreadyPaid: alreadyPaid,
+          ),
+          const SizedBox(height: 20),
+        ],
+        _buildFooter(alreadyPaid, transactionAsyncValue, model),
+      ],
+    );
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        // Without a bounded height (e.g. some nested scroll contexts), keep a
+        // single scrollable so layout does not assert on Expanded.
+        if (!constraints.maxHeight.isFinite) {
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(2.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                itemsAndDelivery,
+                if (!isOrdering) ...[
+                  const SizedBox(height: 20),
+                  _buildForm(
+                    isOrdering,
+                    transactionId: transactionAsyncValue.value?.id ?? "",
+                    alreadyPaid: alreadyPaid,
+                  ),
+                ],
+                const SizedBox(height: 20),
+                _buildFooter(alreadyPaid, transactionAsyncValue, model),
+              ],
+            ),
+          );
+        }
+
+        // Split space so the items block never collapses when the form+footer
+        // is tall (avoids flex overflow and keeps "No items yet" visible).
+        // Each pane scrolls independently when its content exceeds its share.
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              flex: 2,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(2.0),
+                child: itemsAndDelivery,
+              ),
+            ),
+            Expanded(
+              flex: 1,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(2.0),
+                child: pinnedBottomColumn,
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
