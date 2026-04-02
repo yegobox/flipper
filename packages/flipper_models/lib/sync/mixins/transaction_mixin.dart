@@ -9,6 +9,7 @@ import 'package:supabase_models/brick/models/sars.model.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:brick_offline_first/brick_offline_first.dart';
 import 'package:flipper_models/helperModels/random.dart';
+import 'package:flipper_models/helperModels/transaction_payment_sums.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:synchronized/synchronized.dart';
@@ -250,24 +251,6 @@ mixin TransactionMixin implements TransactionInterface {
     List<TransactionItem> items = []; // Default to empty list
 
     if (transactionIds.isNotEmpty) {
-      // Construct the list of OR conditions for transaction IDs
-      // final List<WhereCondition> orConditions = transactionIds.map((id) {
-      //   // Each Where condition for an ID is optional (OR'd with the next)
-      //   return Where('transactionId',
-      //       value: id, compare: Compare.exact, isRequired: false);
-      // }).toList();
-
-      // Create a WherePhrase to group these OR conditions.
-      // This phrase itself is required for the query.
-      // final WherePhrase transactionIdInPhrase =
-      //     WherePhrase(orConditions, isRequired: true);
-
-      // items = await repository.get<TransactionItem>(
-      //   policy: fetchRemote
-      //       ? OfflineFirstGetPolicy.awaitRemoteWhenNoneExist
-      //       : OfflineFirstGetPolicy.localOnly,
-      //   query: Query(where: [transactionIdInPhrase]),
-      // );
       final where = Where('transactionId').isIn(transactionIds);
       items = await repository.get<TransactionItem>(
         policy: fetchRemote
@@ -842,12 +825,6 @@ mixin TransactionMixin implements TransactionInterface {
         amountTotal: amountTotal,
         item: item,
       );
-
-      // Redundant update removed. `ProxyService.strategy.addTransactionItem` already updates the transaction.
-      // await updatePendingTransactionTotals(
-      //   pendingTransaction,
-      //   sarTyCd: sarTyCd ?? "11",
-      // );
     } catch (e, s) {
       talker.warning(e);
       talker.error(s);
@@ -930,6 +907,7 @@ mixin TransactionMixin implements TransactionInterface {
       pendingTransaction.copyWith(
         updatedAt: newUpdatedAt,
         lastTouched: newLastTouched,
+        createdAt: newLastTouched,
         receiptType: "NS",
         sarTyCd: sarTyCd,
       ),
@@ -1033,6 +1011,9 @@ mixin TransactionMixin implements TransactionInterface {
     transaction.cashReceived = cashReceived ?? transaction.cashReceived;
     transaction.customerName = customerName ?? transaction.customerName;
     transaction.lastTouched = lastTouched ?? transaction.lastTouched;
+    if (lastTouched != null) {
+      transaction.createdAt = lastTouched;
+    }
     transaction.receiptPrinted = receiptPrinted ?? transaction.receiptPrinted;
     transaction.isExpense = isUnclassfied ? null : transaction.isExpense;
     transaction.isIncome = isUnclassfied ? null : transaction.isIncome;
@@ -1043,7 +1024,10 @@ mixin TransactionMixin implements TransactionInterface {
     transaction.remainingBalance =
         remainingBalance ?? transaction.remainingBalance;
 
-    final result = await repository.upsert<ITransaction>(transaction, skipDittoSync: skipDittoSync);
+    final result = await repository.upsert<ITransaction>(
+      transaction,
+      skipDittoSync: skipDittoSync,
+    );
     return result;
   }
 
@@ -1336,6 +1320,7 @@ mixin TransactionMixin implements TransactionInterface {
     final now = DateTime.now();
     to.updatedAt = now;
     to.lastTouched = now;
+    to.createdAt = now;
     await repository.upsert<ITransaction>(to);
 
     // Delete the 'from' transaction
@@ -1359,7 +1344,10 @@ mixin TransactionMixin implements TransactionInterface {
       }
 
       final filtered = excludePaymentMethod != null
-          ? paymentRecords.where((r) => r.paymentMethod != excludePaymentMethod)
+          ? paymentRecords.where(
+              (r) =>
+                  !paymentMethodEqualsIgnoreCase(r.paymentMethod, excludePaymentMethod),
+            )
           : paymentRecords;
 
       return filtered.fold<double>(
@@ -1370,6 +1358,50 @@ mixin TransactionMixin implements TransactionInterface {
       talker.error('Error getting total paid for transaction: $e', s);
       throw Exception('Failed to get total paid: $e');
     }
+  }
+
+  @override
+  Future<Map<String, TransactionPaymentSums>> getPaymentSumsByTransactionIds(
+    List<String> transactionIds, {
+    required String branchId,
+  }) async {
+    if (transactionIds.isEmpty) return {};
+
+    final byId = <String, ({double byHand, double credit, int count})>{
+      for (final id in transactionIds) id: (byHand: 0.0, credit: 0.0, count: 0),
+    };
+
+    try {
+      final paymentRecords = await repository.get<TransactionPaymentRecord>(
+        query: Query(where: [Where('transactionId').isIn(transactionIds)]),
+        policy: OfflineFirstGetPolicy.localOnly,
+      );
+
+      for (final r in paymentRecords) {
+        final tid = r.transactionId;
+        if (tid == null || !byId.containsKey(tid)) continue;
+        final amt = r.amount ?? 0.0;
+        final method = r.paymentMethod;
+        final bucket = byId[tid]!;
+        byId[tid] = (
+          byHand: bucket.byHand + (paymentMethodIsCredit(method) ? 0.0 : amt),
+          credit: bucket.credit + (paymentMethodIsCredit(method) ? amt : 0.0),
+          count: bucket.count + 1,
+        );
+      }
+    } catch (e, s) {
+      talker.error('Error in getPaymentSumsByTransactionIds: $e', s);
+      rethrow;
+    }
+
+    return {
+      for (final id in transactionIds)
+        id: TransactionPaymentSums(
+          byHand: byId[id]!.byHand,
+          credit: byId[id]!.credit,
+          hasAnyRecord: byId[id]!.count > 0,
+        ),
+    };
   }
 
   @override

@@ -1,9 +1,84 @@
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 
 final talker = TalkerFlutter.init();
+
+/// Column count for transaction summary grid (non-PLU).
+const int kTransactionSummaryColumnCount = 8;
+
+String _transactionReportStatusLabel(ITransaction tx) {
+  if (tx.status == PARKED) return 'Parked';
+  if (tx.status == COMPLETE) return 'Completed';
+  return tx.status ?? '—';
+}
+
+double _reportByHand(ITransaction tx, TransactionPaymentSums? sums) {
+  if (sums == null || !sums.hasAnyRecord) {
+    return tx.cashReceived ?? 0.0;
+  }
+  return sums.byHand;
+}
+
+double _reportCredit(ITransaction tx, TransactionPaymentSums? sums) {
+  if (sums == null || !sums.hasAnyRecord) return 0.0;
+  return sums.credit;
+}
+
+double _reportBalanceDue(ITransaction tx) {
+  final rb = tx.remainingBalance;
+  if (rb != null && rb > 0.01) return rb.toDouble();
+  if (tx.isLoan == true) return (rb ?? 0.0).toDouble();
+  return 0.0;
+}
+
+/// Public wrappers for DataView export and period totals.
+double transactionReportByHandForTotals(
+  ITransaction tx,
+  TransactionPaymentSums? sums,
+) =>
+    _reportByHand(tx, sums);
+
+double transactionReportCreditForTotals(
+  ITransaction tx,
+  TransactionPaymentSums? sums,
+) =>
+    _reportCredit(tx, sums);
+
+/// Row map for CSV/Excel summary export (keys match grid column names).
+Map<String, Object?> transactionSummaryExportRow(
+  ITransaction transaction,
+  TransactionPaymentSums? sums,
+) {
+  return {
+    'Name': transaction.invoiceNumber?.toString() ?? transaction.id.toString(),
+    'Type': transaction.receiptType ?? 'Sale',
+    'Status': _transactionReportStatusLabel(transaction),
+    'SaleTotal': transaction.subTotal ?? 0.0,
+    'ByHand': _reportByHand(transaction, sums),
+    'Credit': _reportCredit(transaction, sums),
+    'Tax': TransactionSummaryTax.taxColumn(transaction),
+    'BalanceDue': _reportBalanceDue(transaction),
+  };
+}
+
+/// Summarized report: Tax column matches stored totals or VAT-included extraction from [subTotal].
+class TransactionSummaryTax {
+  TransactionSummaryTax._();
+
+  static double taxColumn(ITransaction tx) {
+    final stored = tx.taxAmount;
+    if (stored != null && stored > 0) return stored.toDouble();
+    if (tx.isExpense == true) return 0.0;
+    final sub = tx.subTotal ?? 0.0;
+    if (sub <= 0) return 0.0;
+    if (!ProxyService.box.vatEnabled()) return 0.0;
+    return double.parse((sub * 18 / 118).toStringAsFixed(2));
+  }
+}
 
 abstract class DynamicDataSource<T> extends DataGridSource {
   List<T> data = [];
@@ -11,10 +86,14 @@ abstract class DynamicDataSource<T> extends DataGridSource {
   List<DataGridRow> _dataGridRows = [];
   int _rowsPerPage = 10;
 
+  /// Per-transaction payment breakdown for summary reports (optional).
+  Map<String, TransactionPaymentSums>? paymentSumsByTransactionId;
+
   DynamicDataSource(
     List<T> initialData,
     int rowsPerPage, {
     this.showPluReport = false,
+    this.paymentSumsByTransactionId,
   }) {
     data = initialData;
     _rowsPerPage = rowsPerPage;
@@ -33,9 +112,16 @@ abstract class DynamicDataSource<T> extends DataGridSource {
     notifyListeners();
   }
 
-  void updateDataSource(List<T> newData, bool newShowPluReport) {
+  void updateDataSource(
+    List<T> newData,
+    bool newShowPluReport, {
+    Map<String, TransactionPaymentSums>? newPaymentSumsByTransactionId,
+  }) {
     data = newData;
     showPluReport = newShowPluReport;
+    if (newPaymentSumsByTransactionId != null) {
+      paymentSumsByTransactionId = newPaymentSumsByTransactionId;
+    }
     _dataGridRows = buildPaginatedDataGridRows();
     talker.info(
       'DynamicDataSource: updateDataSource - newData.length: ${newData.length}, newShowPluReport: $newShowPluReport, _dataGridRows.length: ${_dataGridRows.length}',
@@ -54,7 +140,8 @@ abstract class DynamicDataSource<T> extends DataGridSource {
       } else if (item is Variant) {
         return _buildStockRow(item);
       } else {
-        final int numberOfColumns = showPluReport ? 10 : 5;
+        final int numberOfColumns =
+            showPluReport ? 10 : kTransactionSummaryColumnCount;
         return DataGridRow(
           cells: List.generate(
             numberOfColumns,
@@ -84,7 +171,8 @@ abstract class DynamicDataSource<T> extends DataGridSource {
         } else if (item is Variant) {
           return _buildStockRow(item);
         } else {
-          final int numberOfColumns = showPluReport ? 10 : 5;
+          final int numberOfColumns =
+              showPluReport ? 10 : kTransactionSummaryColumnCount;
           return DataGridRow(
             cells: List.generate(
               numberOfColumns,
@@ -117,9 +205,8 @@ abstract class DynamicDataSource<T> extends DataGridSource {
       } else if (item is Variant) {
         return _buildStockRow(item);
       } else {
-        final int numberOfColumns = showPluReport
-            ? 10
-            : 5; // 10 for detailed, 5 for summary
+        final int numberOfColumns =
+            showPluReport ? 10 : kTransactionSummaryColumnCount;
         return DataGridRow(
           cells: List.generate(
             numberOfColumns,
@@ -148,7 +235,8 @@ abstract class DynamicDataSource<T> extends DataGridSource {
       } else if (item is Variant) {
         row = _buildStockRow(item);
       } else {
-        final int numberOfColumns = showPluReport ? 10 : 5;
+        final int numberOfColumns =
+            showPluReport ? 10 : kTransactionSummaryColumnCount;
         row = DataGridRow(
           cells: List.generate(
             numberOfColumns,
@@ -202,7 +290,7 @@ abstract class DynamicDataSource<T> extends DataGridSource {
         ),
         DataGridCell<String>(
           columnName: 'Barcode',
-          value: transactionItem.bcd ?? '',
+          value: TransactionItemPluMetrics.barcodeForReport(transactionItem),
         ),
         DataGridCell<double>(
           columnName: 'Price',
@@ -210,9 +298,7 @@ abstract class DynamicDataSource<T> extends DataGridSource {
         ),
         DataGridCell<double>(
           columnName: 'TaxRate',
-          value: transactionItem.taxTyCd != null
-              ? double.tryParse(transactionItem.taxTyCd!) ?? 18.0
-              : 18.0,
+          value: TransactionItemPluMetrics.taxRatePercent(transactionItem),
         ),
         DataGridCell<double>(
           columnName: 'Qty',
@@ -220,32 +306,31 @@ abstract class DynamicDataSource<T> extends DataGridSource {
         ),
         DataGridCell<double>(
           columnName: 'TotalSales',
-          value:
-              (transactionItem.price.toDouble()) *
-                  (transactionItem.qty.toDouble()) -
-              (transactionItem.splyAmt?.toDouble() ?? 0.0),
+          value: TransactionItemPluMetrics.profitMade(transactionItem),
+        ),
+        DataGridCell<double>(
+          columnName: 'SupplyAmount',
+          value: transactionItem.splyAmt?.toDouble() ?? 0.0,
         ),
         DataGridCell<double>(
           columnName: 'CurrentStock',
-          value: transactionItem.remainingStock?.toDouble() ?? 0.0,
+          value: TransactionItemPluMetrics.currentStockDisplay(transactionItem),
         ),
         DataGridCell<double>(
           columnName: 'TaxPayable',
-          value: transactionItem.taxAmt?.toDouble() ?? 0.0,
+          value: TransactionItemPluMetrics.taxPayable(transactionItem),
         ),
         DataGridCell<double>(
-          columnName: 'GrossProfit',
-          value:
-              (transactionItem.price.toDouble()) *
-                  (transactionItem.qty.toDouble()) -
-              (transactionItem.splyAmt ?? 0.0),
+          columnName: 'NetProfit',
+          value: TransactionItemPluMetrics.netProfitColumn(transactionItem),
         ),
       ],
     );
   }
 
   DataGridRow _buildITransactionRow(ITransaction trans) {
-    final taxValue = (trans.taxAmount ?? 0.0).toDouble();
+    final taxValue = TransactionSummaryTax.taxColumn(trans);
+    final sums = paymentSumsByTransactionId?[trans.id.toString()];
 
     return DataGridRow(
       cells: [
@@ -257,14 +342,26 @@ abstract class DynamicDataSource<T> extends DataGridSource {
           columnName: 'Type',
           value: trans.receiptType ?? "-",
         ),
+        DataGridCell<String>(
+          columnName: 'Status',
+          value: _transactionReportStatusLabel(trans),
+        ),
         DataGridCell<double>(
-          columnName: 'Amount',
+          columnName: 'SaleTotal',
           value: trans.subTotal ?? 0.0,
+        ),
+        DataGridCell<double>(
+          columnName: 'ByHand',
+          value: _reportByHand(trans, sums),
+        ),
+        DataGridCell<double>(
+          columnName: 'Credit',
+          value: _reportCredit(trans, sums),
         ),
         DataGridCell<double>(columnName: 'Tax', value: taxValue),
         DataGridCell<double>(
-          columnName: 'Cash',
-          value: trans.cashReceived ?? 0.0,
+          columnName: 'BalanceDue',
+          value: _reportBalanceDue(trans),
         ),
       ],
     );
@@ -277,14 +374,34 @@ abstract class DynamicDataSource<T> extends DataGridSource {
     return null;
   }
 
+  /// Two decimal places for numeric cells (currency / PLU metrics); ints unchanged.
+  static String _displayCellValue(dynamic value) {
+    if (value == null) return '';
+    if (value is int) return value.toString();
+    if (value is double) return value.toStringAsFixed(2);
+    if (value is num) return value.toDouble().toStringAsFixed(2);
+    return value.toString();
+  }
+
   @override
   DataGridRowAdapter buildRow(DataGridRow row) {
+    final ix = _dataGridRows.indexOf(row);
+    final isParked =
+        ix >= 0 &&
+        ix < data.length &&
+        data[ix] is ITransaction &&
+        (data[ix] as ITransaction).status == PARKED;
+    final bg = isParked
+        ? Colors.amber.withValues(alpha: 0.08)
+        : null;
+
     return DataGridRowAdapter(
       cells: row.getCells().map<Widget>((e) {
         return Container(
           alignment: Alignment.center,
+          color: bg,
           padding: const EdgeInsets.all(8.0),
-          child: Text(e.value.toString()),
+          child: Text(_displayCellValue(e.value)),
         );
       }).toList(),
     );

@@ -1440,20 +1440,6 @@ class CapellaSync extends AiStrategyImpl
   Talker get talker => _talker;
 
   @override
-  Future<Plan?> getPaymentPlan({
-    required String businessId,
-    bool? fetchOnline,
-    bool? preferFresh,
-  }) async {
-    // Use Ditto when available (plans synced from Supabase by Kotlin PlanSyncJob)
-    if (dittoService.isReady()) {
-      return dittoService.getPaymentPlanFromDitto(businessId);
-    }
-    // CapellaSync does not use Brick for plans; return null when Ditto unavailable
-    return null;
-  }
-
-  @override
   FutureOr<Pin?> getPinLocal({
     String? userId,
     String? phoneNumber,

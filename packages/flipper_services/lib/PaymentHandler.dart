@@ -80,6 +80,7 @@ mixin PaymentHandler {
         phoneNumber: phone,
         paymentType: "Subscription",
         payeemessage: "Flipper Subscription",
+        payerMessage: "Flipper Subscription",
         branchId: "2f83b8b1-6d41-4d80-b0e7-de8ab36910af",
         businessId: (await ProxyService.strategy.getBusiness(
           businessId: ProxyService.box.getBusinessId()!,

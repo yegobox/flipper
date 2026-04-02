@@ -160,7 +160,7 @@ class _TransactionDetailState extends ConsumerState<TransactionDetail>
                 ],
                 title: Text(
                   transactionType,
-                  style: GoogleFonts.inter(
+                  style: GoogleFonts.poppins(
                     fontSize: 20,
                     fontWeight: FontWeight.w600,
                     color: Colors.white,
@@ -319,7 +319,7 @@ class _HeroAmountCard extends StatelessWidget {
                       const SizedBox(width: 8),
                       Text(
                         status,
-                        style: GoogleFonts.inter(
+                        style: GoogleFonts.poppins(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                           color: _getStatusColor(status),
@@ -338,7 +338,7 @@ class _HeroAmountCard extends StatelessWidget {
                   children: [
                     Text(
                       ProxyService.box.defaultCurrency(),
-                      style: GoogleFonts.inter(
+                      style: GoogleFonts.poppins(
                         fontSize: 24,
                         fontWeight: FontWeight.w600,
                         color: Colors.grey.shade600,
@@ -347,7 +347,7 @@ class _HeroAmountCard extends StatelessWidget {
                     const SizedBox(width: 4),
                     Text(
                       NumberFormat('#,###').format(transaction.subTotal),
-                      style: GoogleFonts.inter(
+                      style: GoogleFonts.poppins(
                         fontSize: 48,
                         fontWeight: FontWeight.w700,
                         color: Colors.grey.shade800,
@@ -384,7 +384,7 @@ class _HeroAmountCard extends StatelessWidget {
                   children: [
                     Text(
                       'Created ${DateFormat('MMM dd, yyyy').format(transaction.createdAt!)}',
-                      style: GoogleFonts.inter(
+                      style: GoogleFonts.poppins(
                         fontSize: 14,
                         color: Colors.grey.shade600,
                         fontWeight: FontWeight.w500,
@@ -392,7 +392,7 @@ class _HeroAmountCard extends StatelessWidget {
                     ),
                     Text(
                       DateFormat('hh:mm a').format(transaction.createdAt!),
-                      style: GoogleFonts.inter(
+                      style: GoogleFonts.poppins(
                         fontSize: 12,
                         color: Colors.grey.shade500,
                       ),
@@ -482,7 +482,7 @@ class _ModernTransactionItemList extends StatelessWidget {
                       children: [
                         Text(
                           'Products',
-                          style: GoogleFonts.inter(
+                          style: GoogleFonts.poppins(
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
                             color: Colors.grey.shade800,
@@ -490,7 +490,7 @@ class _ModernTransactionItemList extends StatelessWidget {
                         ),
                         Text(
                           '${items.length} items',
-                          style: GoogleFonts.inter(
+                          style: GoogleFonts.poppins(
                             fontSize: 14,
                             color: Colors.grey.shade600,
                           ),
@@ -544,7 +544,7 @@ class _ModernTransactionItemList extends StatelessWidget {
                                   child: Center(
                                     child: Text(
                                       item.qty.toInt().toString(),
-                                      style: GoogleFonts.inter(
+                                      style: GoogleFonts.poppins(
                                         fontSize: 16,
                                         fontWeight: FontWeight.w600,
                                         color: Colors.grey.shade700,
@@ -560,7 +560,7 @@ class _ModernTransactionItemList extends StatelessWidget {
                                     children: [
                                       Text(
                                         item.name,
-                                        style: GoogleFonts.inter(
+                                        style: GoogleFonts.poppins(
                                           fontSize: 16,
                                           fontWeight: FontWeight.w500,
                                           color: Colors.grey.shade800,
@@ -568,7 +568,7 @@ class _ModernTransactionItemList extends StatelessWidget {
                                       ),
                                       Text(
                                         '${ProxyService.box.defaultCurrency()}${item.price.toStringAsFixed(2)} each',
-                                        style: GoogleFonts.inter(
+                                        style: GoogleFonts.poppins(
                                           fontSize: 14,
                                           color: Colors.grey.shade600,
                                         ),
@@ -580,7 +580,7 @@ class _ModernTransactionItemList extends StatelessWidget {
                                   (item.qty * item.price).toCurrencyFormatted(
                                     symbol: ProxyService.box.defaultCurrency(),
                                   ),
-                                  style: GoogleFonts.inter(
+                                  style: GoogleFonts.poppins(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w600,
                                     color: Colors.grey.shade800,
@@ -605,7 +605,7 @@ class _ModernTransactionItemList extends StatelessWidget {
                           children: [
                             Text(
                               'Total',
-                              style: GoogleFonts.inter(
+                              style: GoogleFonts.poppins(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w600,
                                 color: Colors.grey.shade800,
@@ -616,7 +616,7 @@ class _ModernTransactionItemList extends StatelessWidget {
                               total.toCurrencyFormatted(
                                 symbol: ProxyService.box.defaultCurrency(),
                               ),
-                              style: GoogleFonts.inter(
+                              style: GoogleFonts.poppins(
                                 fontSize: 20,
                                 fontWeight: FontWeight.w700,
                                 color: Colors.grey.shade800,
@@ -693,7 +693,7 @@ class _ModernTransactionTimeline extends StatelessWidget {
                       children: [
                         Text(
                           'Transaction Timeline',
-                          style: GoogleFonts.inter(
+                          style: GoogleFonts.poppins(
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
                             color: Colors.grey.shade800,
@@ -701,7 +701,7 @@ class _ModernTransactionTimeline extends StatelessWidget {
                         ),
                         Text(
                           '${statuses.length} events',
-                          style: GoogleFonts.inter(
+                          style: GoogleFonts.poppins(
                             fontSize: 14,
                             color: Colors.grey.shade600,
                           ),
@@ -958,7 +958,7 @@ class _ActionTile extends StatelessWidget {
               Expanded(
                 child: Text(
                   action.label,
-                  style: GoogleFonts.inter(
+                  style: GoogleFonts.poppins(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
                     color: Colors.grey.shade800,

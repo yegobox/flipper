@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/helperModels/transaction_payment_sums.dart';
 import 'package:flipper_models/sync/models/transaction_with_items.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:supabase_models/brick/models/sars.model.dart';
@@ -214,6 +215,13 @@ abstract class TransactionInterface {
     required String transactionId,
     required String branchId,
     String? excludePaymentMethod,
+  });
+
+  /// Batch load [TransactionPaymentSums] for many transactions (one query per backend).
+  /// Every id in [transactionIds] appears in the result map.
+  Future<Map<String, TransactionPaymentSums>> getPaymentSumsByTransactionIds(
+    List<String> transactionIds, {
+    required String branchId,
   });
 
   FutureOr<void> deletePaymentRecords({required String transactionId});

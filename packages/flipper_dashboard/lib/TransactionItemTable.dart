@@ -152,7 +152,14 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   }
 
   // === MICROSOFT FLUENT-INSPIRED UI ===
-  Widget buildTransactionItemsTable(bool isOrdering) {
+  ///
+  /// When [pinGrandTotal] is true, the item list scrolls inside an [Expanded]
+  /// area and [_buildModernSummary] stays fixed at the bottom (parent must
+  /// give a bounded height, e.g. [Expanded] in [Column]).
+  Widget buildTransactionItemsTable(
+    bool isOrdering, {
+    bool pinGrandTotal = false,
+  }) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -165,7 +172,9 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
           ),
         ],
       ),
+      clipBehavior: Clip.antiAlias,
       child: Column(
+        mainAxisSize: pinGrandTotal ? MainAxisSize.max : MainAxisSize.min,
         children: [
           if (internalTransactionItems.isNotEmpty)
             Padding(
@@ -193,9 +202,13 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
               ),
             ),
           if (internalTransactionItems.isEmpty)
-            _buildEmptyState()
+            pinGrandTotal
+                ? Expanded(child: Center(child: _buildEmptyState()))
+                : _buildEmptyState()
+          else if (pinGrandTotal)
+            Expanded(child: _buildItemsList(isOrdering, scrollable: true))
           else
-            _buildItemsList(isOrdering),
+            _buildItemsList(isOrdering, scrollable: false),
           _buildModernSummary(),
         ],
       ),
@@ -238,10 +251,12 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     );
   }
 
-  Widget _buildItemsList(bool isOrdering) {
+  Widget _buildItemsList(bool isOrdering, {required bool scrollable}) {
     return ListView.separated(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
+      shrinkWrap: !scrollable,
+      physics: scrollable
+          ? const AlwaysScrollableScrollPhysics()
+          : const NeverScrollableScrollPhysics(),
       itemCount: internalTransactionItems.length,
       separatorBuilder: (context, index) => Container(
         height: 1,
@@ -416,6 +431,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   }) {
     return GestureDetector(
       key: Key('quantity-button-$id'),
+      behavior: HitTestBehavior.opaque,
       onTap: enabled ? onTap : null,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 150),
@@ -691,13 +707,26 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
 
   Widget _buildModernSummary() {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       decoration: BoxDecoration(
         color: Colors.grey[50],
         borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(12),
           bottomRight: Radius.circular(12),
         ),
+        border: Border(
+          top: BorderSide(
+            color: Colors.grey.withValues(alpha: 0.35),
+            width: 1,
+          ),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.06),
+            blurRadius: 8,
+            offset: const Offset(0, -2),
+          ),
+        ],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,

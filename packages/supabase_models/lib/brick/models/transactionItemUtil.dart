@@ -66,7 +66,7 @@ class TransactionItemUtil {
       isShared: null,
       assigned: null,
       splyAmt: null,
-      bcd: null,
+      bcd: variantToSave.bcd,
       itemStdNm: null,
       pkg: null,
       tin: null,

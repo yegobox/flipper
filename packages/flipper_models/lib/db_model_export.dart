@@ -20,3 +20,6 @@ export 'package:flipper_models/view_models/ScannViewModel.dart';
 export 'models/user_mfa_secret.dart';
 export 'repositories/user_mfa_secret_repository.dart';
 export 'helperModels/business_feature.dart';
+export 'helpers/transaction_item_plu_metrics.dart';
+export 'helperModels/transaction_payment_sums.dart';
+export 'helperModels/transaction_report_snapshot.dart';

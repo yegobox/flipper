@@ -30,7 +30,7 @@ mixin Headers<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         ),
       ),
       GridColumn(
-        columnName: 'Amount',
+        columnName: 'Status',
         label: Container(
           decoration: BoxDecoration(
             color: Colors.grey.shade200,
@@ -38,7 +38,43 @@ mixin Headers<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           ),
           padding: headerPadding,
           alignment: Alignment.center,
-          child: const Text('Total Amount', overflow: TextOverflow.ellipsis),
+          child: const Text('Status', overflow: TextOverflow.ellipsis),
+        ),
+      ),
+      GridColumn(
+        columnName: 'SaleTotal',
+        label: Container(
+          decoration: BoxDecoration(
+            color: Colors.grey.shade200,
+            borderRadius: BorderRadius.circular(4.0),
+          ),
+          padding: headerPadding,
+          alignment: Alignment.center,
+          child: const Text('Sale total', overflow: TextOverflow.ellipsis),
+        ),
+      ),
+      GridColumn(
+        columnName: 'ByHand',
+        label: Container(
+          decoration: BoxDecoration(
+            color: Colors.grey.shade200,
+            borderRadius: BorderRadius.circular(4.0),
+          ),
+          padding: headerPadding,
+          alignment: Alignment.center,
+          child: const Text('By hand', overflow: TextOverflow.ellipsis),
+        ),
+      ),
+      GridColumn(
+        columnName: 'Credit',
+        label: Container(
+          decoration: BoxDecoration(
+            color: Colors.grey.shade200,
+            borderRadius: BorderRadius.circular(4.0),
+          ),
+          padding: headerPadding,
+          alignment: Alignment.center,
+          child: const Text('Credit', overflow: TextOverflow.ellipsis),
         ),
       ),
       GridColumn(
@@ -54,7 +90,7 @@ mixin Headers<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         ),
       ),
       GridColumn(
-        columnName: 'Cash',
+        columnName: 'BalanceDue',
         label: Container(
           decoration: BoxDecoration(
             color: Colors.grey.shade200,
@@ -62,7 +98,7 @@ mixin Headers<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           ),
           padding: headerPadding,
           alignment: Alignment.center,
-          child: const Text('Cash ', overflow: TextOverflow.ellipsis),
+          child: const Text('Balance due', overflow: TextOverflow.ellipsis),
         ),
       ),
     ];
@@ -194,6 +230,18 @@ mixin Headers<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           padding: headerPadding,
           alignment: Alignment.center,
           child: const Text('profit Made', overflow: TextOverflow.ellipsis),
+        ),
+      ),
+      GridColumn(
+        columnName: 'SupplyAmount',
+        label: Container(
+          decoration: BoxDecoration(
+            color: Colors.grey.shade200,
+            borderRadius: BorderRadius.circular(4.0),
+          ),
+          padding: headerPadding,
+          alignment: Alignment.center,
+          child: const Text('Supply amount', overflow: TextOverflow.ellipsis),
         ),
       ),
       GridColumn(

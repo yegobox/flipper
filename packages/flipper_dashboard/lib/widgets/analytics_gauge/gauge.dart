@@ -148,9 +148,7 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge>
                   children: [
                     _buildValueColumn(
                       amount: widget.dataOnGreenSide,
-                      label: widget.profitType == "Net Profit"
-                          ? "Gross Profit"
-                          : "Total Sales",
+                      label: "Gross Profit",
                       color: Colors.green,
                     ),
                     Container(
@@ -160,7 +158,7 @@ class _SemiCircleGaugeState extends State<SemiCircleGauge>
                     ),
                     _buildValueColumn(
                       amount: widget.dataOnRedSide,
-                      label: "Expenses",
+                      label: "Tax & Expenses",
                       color: Colors.red,
                     ),
                   ],

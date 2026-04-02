@@ -8,6 +8,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_dashboard/mixins/transaction_computation_mixin.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:supabase_models/brick/models/transaction.model.dart';
 
 class PaymentMethodsCard extends StatefulHookConsumerWidget {
@@ -83,15 +84,9 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
     if (totalPayable == 0) return;
 
     if (payments.isEmpty) {
-      final effectiveTransaction =
-          transaction ?? ref.read(transactionByIdProvider(transactionId)).value;
-      final initialAmount = effectiveTransaction != null
-          ? calculateCurrentRemainder(
-              effectiveTransaction,
-              totalPayable,
-              overrideAlreadyPaid: _cachedNonCreditPaid,
-            )
-          : totalPayable;
+      // [totalPayable] is already outstanding (sale total − recorded non-credit paid).
+      // Do not subtract [alreadyPaid] again via calculateCurrentRemainder.
+      final initialAmount = totalPayable;
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
         ref
@@ -119,10 +114,12 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
             ref.read(transactionByIdProvider(transactionId)).value;
 
         if (effectiveTransaction != null) {
+          final alreadyPaid =
+              _cachedNonCreditPaid ?? effectiveTransaction.cashReceived ?? 0.0;
           updatePaymentRemainder(
             ref: ref,
             transaction: effectiveTransaction,
-            total: totalPayable,
+            total: totalPayable + alreadyPaid,
             overrideAlreadyPaid: _cachedNonCreditPaid,
             lastAutoSetAmount: oldTotalPayable ?? payments[0].amount,
             onAutoSetAmountChanged: (amount) {
@@ -197,6 +194,60 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
             .updatePaymentMethod(i, payments[i], transactionId: transactionId);
       }
     }
+  }
+
+  bool _hasUnusedPaymentType() {
+    final selected = ref
+        .read(paymentMethodsProvider)
+        .map((p) => p.method)
+        .toSet();
+    return paymentTypes.any((m) => !selected.contains(m));
+  }
+
+  void _onAddPaymentPressed({required String transactionId}) {
+    if (!_hasUnusedPaymentType()) {
+      showErrorNotification(
+        context,
+        'All payment types are already added. Remove one to add another.',
+      );
+      return;
+    }
+    _addPaymentMethod(transactionId: transactionId);
+  }
+
+  /// Expands mobile panel when adding from collapsed state.
+  void _handleAddPaymentTap({required String transactionId, required bool isMobile}) {
+    if (isMobile && !_showPaymentMethods) {
+      setState(() => _showPaymentMethods = true);
+    }
+    _onAddPaymentPressed(transactionId: transactionId);
+  }
+
+  Widget _buildCompactAddPaymentButton({required bool isMobile}) {
+    final scheme = Theme.of(context).colorScheme;
+    final canAdd = _hasUnusedPaymentType();
+    return Tooltip(
+      message: canAdd
+          ? 'Add payment method'
+          : 'All payment types are in use — remove one to add another',
+      child: IconButton.filledTonal(
+        onPressed: canAdd
+            ? () => _handleAddPaymentTap(
+                  transactionId: widget.transactionId,
+                  isMobile: isMobile,
+                )
+            : null,
+        icon: const Icon(Icons.add_rounded, size: 22),
+        style: IconButton.styleFrom(
+          visualDensity: VisualDensity.compact,
+          padding: const EdgeInsets.all(8),
+          minimumSize: const Size(40, 40),
+          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          foregroundColor: scheme.primary,
+          backgroundColor: scheme.primaryContainer.withValues(alpha: 0.6),
+        ),
+      ),
+    );
   }
 
   void _addPaymentMethod({required String transactionId}) {
@@ -292,22 +343,14 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
     required String transactionId,
   }) {
     return Container(
-      margin: EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: Colors.grey[200]!, width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.05),
-            spreadRadius: 1,
-            blurRadius: 3,
-            offset: Offset(0, 1),
-          ),
-        ],
       ),
       child: Padding(
-        padding: EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -319,8 +362,8 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
                   Text(
                     'Payment ${index + 1}',
                     style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
                       color: Colors.grey[600],
                     ),
                   ),
@@ -350,24 +393,23 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
                   ),
                 ],
               ),
-            if (index > 0) SizedBox(height: 12),
+            if (index > 0) const SizedBox(height: 8),
 
             // Payment method label
             Text(
               'Payment',
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 11,
                 fontWeight: FontWeight.w600,
                 color: Colors.grey[600],
-                letterSpacing: 0.5,
               ),
             ),
-            SizedBox(height: 6),
+            const SizedBox(height: 4),
 
             // Payment method dropdown (full width)
             Container(
               width: double.infinity,
-              height: 44,
+              height: 40,
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.grey[300]!, width: 1),
                 borderRadius: BorderRadius.circular(6),
@@ -438,7 +480,7 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
               ),
             ),
 
-            SizedBox(height: 16),
+            const SizedBox(height: 10),
 
             // Amount label
             Text(
@@ -446,13 +488,12 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
                   ? 'Cash Received'
                   : 'Amount',
               style: TextStyle(
-                fontSize: 12,
+                fontSize: 11,
                 fontWeight: FontWeight.w600,
                 color: Colors.grey[600],
-                letterSpacing: 0.5,
               ),
             ),
-            SizedBox(height: 6),
+            const SizedBox(height: 4),
 
             // Amount field (full width)
             Container(
@@ -488,9 +529,10 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
                   ),
                   border: InputBorder.none,
                   contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 12,
+                    horizontal: 10,
+                    vertical: 10,
                   ),
+                  isDense: true,
                 ),
                 onChanged: (value) {
                   // Mark this field as user-edited
@@ -552,8 +594,8 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
       ),
       child: Padding(
         padding: widget.isCardView
-            ? EdgeInsets.all(16)
-            : EdgeInsets.only(bottom: 12),
+            ? const EdgeInsets.symmetric(horizontal: 12, vertical: 8)
+            : const EdgeInsets.only(bottom: 8),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -564,7 +606,7 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Container(
-                    height: 44,
+                    height: 40,
                     decoration: BoxDecoration(
                       border: Border.all(color: Colors.grey[300]!, width: 1),
                       borderRadius: BorderRadius.circular(6),
@@ -641,9 +683,8 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
                 ],
               ),
             ),
-            SizedBox(width: 8), // Reduce spacing
+            const SizedBox(width: 6),
             Flexible(
-              // Wrap with Flexible
               flex: 3,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -667,7 +708,7 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
                         ),
                       ],
                       style: TextStyle(
-                        fontSize: 14,
+                        fontSize: 13,
                         fontWeight: FontWeight.w500,
                         color: Colors.grey[800],
                       ),
@@ -675,24 +716,25 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
                         hintText: 'Enter amount',
                         hintStyle: TextStyle(
                           color: Colors.grey[400],
-                          fontSize: 14,
+                          fontSize: 13,
                         ),
                         prefix: Text(
                           '${ProxyService.box.defaultCurrency()} ',
                           style: TextStyle(
                             color: Colors.grey[600],
-                            fontSize: 14,
+                            fontSize: 13,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
                         border: InputBorder.none,
                         contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 12,
+                          horizontal: 10,
+                          vertical: 10,
                         ),
+                        isDense: true,
                       ),
                       onChanged: (value) {
-                        // Update the amount immediately from the text field
+                        _userEditedFields.add(index);
                         final newAmount = double.tryParse(value) ?? 0.0;
                         final payment = ref.read(paymentMethodsProvider)[index];
                         ref
@@ -727,16 +769,16 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
                 ],
               ),
             ),
-            SizedBox(width: 8), // Reduce spacing
-            Container(
-              width: 32, // Reduce width
-              height: 32, // Reduce height
+            const SizedBox(width: 6),
+            SizedBox(
+              width: 28,
+              height: 28,
               child: index == 0
-                  ? SizedBox()
+                  ? const SizedBox.shrink()
                   : Material(
                       color: Colors.transparent,
                       child: InkWell(
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(14),
                         onTap: () => _removePaymentMethod(
                           index,
                           transactionId: transactionId,
@@ -747,12 +789,12 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
                               color: Colors.red[300]!,
                               width: 1,
                             ),
-                            borderRadius: BorderRadius.circular(16),
+                            borderRadius: BorderRadius.circular(14),
                             color: Colors.red[50],
                           ),
                           child: Icon(
                             Icons.close,
-                            size: 14, // Reduce icon size
+                            size: 14,
                             color: Colors.red[600],
                           ),
                         ),
@@ -774,9 +816,8 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
 
   @override
   Widget build(BuildContext context) {
-    final transactionAsync = ref.watch(
-      transactionByIdProvider(widget.transactionId),
-    );
+    // Rebuild when the transaction updates (e.g. cashReceived) while syncing amounts via listen.
+    ref.watch(transactionByIdProvider(widget.transactionId));
 
     // Initial load/re-synchronization
     ref.listen(transactionByIdProvider(widget.transactionId), (previous, next) {
@@ -794,187 +835,144 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
   Widget _buildCardView() {
     final isMobile = _isMobile(context);
     final payments = ref.watch(paymentMethodsProvider);
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!, width: 1),
+        color: scheme.surfaceContainerHighest.withValues(alpha: 0.35),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: scheme.outline.withValues(alpha: 0.18),
+        ),
       ),
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(10, 8, 8, 8),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // Header with toggle for mobil
+          // Title row: collapse (mobile) · label · count · spacer · add (+)
           Row(
             children: [
-              Flexible(
-                // Wrap with Flexible
-                child: Row(
-                  children: [
-                    Icon(Icons.payment, color: Colors.blue[600], size: 20),
-                    SizedBox(width: 8),
-                    Flexible(
-                      // Wrap text with Flexible
-                      child: Text(
-                        'Payment Methods',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Colors.grey[800],
-                        ),
-                        overflow:
-                            TextOverflow.ellipsis, // Add overflow handling
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (payments.isNotEmpty)
-                Flexible(
-                  // Wrap counter with Flexible
-                  child: Container(
-                    padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: Colors.blue[100],
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      '${payments.length} method${payments.length != 1 ? 's' : ''}',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.blue[700],
-                        fontWeight: FontWeight.w500,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                ),
-              // Toggle button for mobile only
-              if (isMobile) ...[
-                SizedBox(width: 8),
+              if (isMobile)
                 IconButton(
-                  key: Key('mobile_toggle_button'),
+                  key: const Key('mobile_toggle_button'),
                   icon: Icon(
                     _showPaymentMethods
-                        ? Icons.keyboard_arrow_up
-                        : Icons.keyboard_arrow_down,
-                    color: Colors.blue[600],
-                    size: 20, // Explicit size
+                        ? Icons.expand_less_rounded
+                        : Icons.expand_more_rounded,
+                    color: scheme.primary,
+                    size: 22,
                   ),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                  visualDensity: VisualDensity.compact,
                   onPressed: () {
-                    setState(() {
-                      _showPaymentMethods = !_showPaymentMethods;
-                    });
+                    setState(() => _showPaymentMethods = !_showPaymentMethods);
                   },
-                  constraints: BoxConstraints(
-                    maxWidth: 40,
-                  ), // Constrain button size
+                ),
+              Text(
+                'Payments',
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.2,
+                ),
+              ),
+              if (payments.isNotEmpty) ...[
+                const SizedBox(width: 6),
+                Text(
+                  '${payments.length}',
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ],
+              const Spacer(),
+              _buildCompactAddPaymentButton(isMobile: isMobile),
             ],
           ),
 
-          // Payment methods content - conditionally shown on mobile
-          if ((!isMobile || _showPaymentMethods) && payments.isNotEmpty) ...[
-            SizedBox(height: 16),
-            if (isMobile) ...[
-              // Mobile layout - stacked vertically
-              for (int i = 0; i < payments.length; i++)
-                _buildMobilePaymentMethodRow(
-                  i,
-                  transactionId: widget.transactionId,
+          // Body: rows (desktop always; mobile when expanded)
+          if (!isMobile || _showPaymentMethods) ...[
+            if (payments.isEmpty)
+              Padding(
+                padding: const EdgeInsets.only(top: 4, bottom: 2, left: 2),
+                child: Text(
+                  'Tap + to split across methods',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: scheme.onSurfaceVariant,
+                  ),
                 ),
-            ] else ...[
-              // Desktop layout - table format
-              Container(
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.grey[200]!, width: 1),
-                ),
-                child: Column(
-                  children: [
-                    Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[100],
-                        borderRadius: BorderRadius.only(
-                          topLeft: Radius.circular(8),
-                          topRight: Radius.circular(8),
+              )
+            else ...[
+              const SizedBox(height: 8),
+              if (isMobile)
+                for (int i = 0; i < payments.length; i++)
+                  _buildMobilePaymentMethodRow(
+                    i,
+                    transactionId: widget.transactionId,
+                  )
+              else
+                Container(
+                  decoration: BoxDecoration(
+                    color: scheme.surface,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: scheme.outline.withValues(alpha: 0.15),
+                    ),
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: scheme.surfaceContainerHighest
+                              .withValues(alpha: 0.5),
+                        ),
+                        child: Row(
+                          children: [
+                            const Expanded(
+                              flex: 2,
+                              child: Text(
+                                'Method',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.2,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            const Expanded(
+                              flex: 3,
+                              child: Text(
+                                'Amount',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.2,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 28),
+                          ],
                         ),
                       ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            flex: 2,
-                            child: Text(
-                              'Payment',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.grey[600],
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                          ),
-                          SizedBox(width: 16),
-                          Expanded(
-                            flex: 3,
-                            child: Text(
-                              'Amount',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.grey[600],
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                          ),
-                          SizedBox(width: 48),
-                        ],
-                      ),
-                    ),
-                    for (int i = 0; i < payments.length; i++)
-                      _buildDesktopPaymentMethodRow(
-                        i,
-                        transactionId: widget.transactionId,
-                      ),
-                  ],
+                      for (int i = 0; i < payments.length; i++)
+                        _buildDesktopPaymentMethodRow(
+                          i,
+                          transactionId: widget.transactionId,
+                        ),
+                    ],
+                  ),
                 ),
-              ),
             ],
           ],
-
-          // Add payment method button - always visible
-          SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            height: 44,
-            child: OutlinedButton.icon(
-              onPressed: () =>
-                  _addPaymentMethod(transactionId: widget.transactionId),
-              icon: Icon(Icons.add, size: 18, color: Colors.blue[600]),
-              label: Text(
-                'Add Payment',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.blue[600],
-                ),
-              ),
-              style: OutlinedButton.styleFrom(
-                side: BorderSide(color: Colors.blue[300]!, width: 1.5),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                backgroundColor: Colors.blue[50],
-              ),
-            ),
-          ),
         ],
       ),
     );
@@ -983,107 +981,106 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
   Widget _buildListView() {
     final isMobile = _isMobile(context);
     final payments = ref.watch(paymentMethodsProvider);
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      mainAxisSize: MainAxisSize.min,
       children: [
         Row(
           children: [
-            Text(
-              'Payment Methods',
-              style: Theme.of(
-                context,
-              ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w500),
-            ),
-            Spacer(),
-            // Toggle button for mobile only in list view
             if (isMobile)
               IconButton(
                 icon: Icon(
                   _showPaymentMethods
-                      ? Icons.keyboard_arrow_up
-                      : Icons.keyboard_arrow_down,
-                  size: 20,
+                      ? Icons.expand_less_rounded
+                      : Icons.expand_more_rounded,
+                  size: 22,
+                  color: scheme.primary,
                 ),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                visualDensity: VisualDensity.compact,
                 onPressed: () {
-                  setState(() {
-                    _showPaymentMethods = !_showPaymentMethods;
-                  });
+                  setState(() => _showPaymentMethods = !_showPaymentMethods);
                 },
               ),
+            Text(
+              'Payments',
+              style: theme.textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            if (payments.isNotEmpty) ...[
+              const SizedBox(width: 6),
+              Text(
+                '${payments.length}',
+                style: theme.textTheme.labelMedium?.copyWith(
+                  color: scheme.onSurfaceVariant,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+            const Spacer(),
+            _buildCompactAddPaymentButton(isMobile: isMobile),
           ],
         ),
-        SizedBox(height: 8),
-        Text(
-          '${payments.length} method${payments.length != 1 ? 's' : ''}',
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Theme.of(
-              context,
-            ).colorScheme.onSurface.withValues(alpha: 0.6),
-          ),
-        ),
-
-        // Conditionally show payment methods on mobile
-        if ((!isMobile || _showPaymentMethods) && payments.isNotEmpty) ...[
-          SizedBox(height: 16),
-          if (isMobile) ...[
-            // Mobile layout - stacked vertically
-            for (int i = 0; i < payments.length; i++)
-              _buildMobilePaymentMethodRow(
-                i,
-                transactionId: widget.transactionId,
-              ),
-          ] else ...[
-            // Desktop layout - table format
-            Column(
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      flex: 2,
-                      child: Text(
-                        'Payment Method',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      flex: 3,
-                      child: Text(
-                        'Amount',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                  ],
+        if (!isMobile || _showPaymentMethods) ...[
+          if (payments.isEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Text(
+                'Tap + to add a method',
+                style: theme.textTheme.bodySmall?.copyWith(
+                  color: scheme.onSurfaceVariant,
                 ),
-                SizedBox(height: 8),
-                for (int i = 0; i < payments.length; i++)
-                  _buildDesktopPaymentMethodRow(
-                    i,
-                    transactionId: widget.transactionId,
+              ),
+            )
+          else ...[
+            const SizedBox(height: 8),
+            if (isMobile)
+              for (int i = 0; i < payments.length; i++)
+                _buildMobilePaymentMethodRow(
+                  i,
+                  transactionId: widget.transactionId,
+                )
+            else
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: Text(
+                          'Method',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 3,
+                        child: Text(
+                          'Amount',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-              ],
-            ),
+                  const SizedBox(height: 6),
+                  for (int i = 0; i < payments.length; i++)
+                    _buildDesktopPaymentMethodRow(
+                      i,
+                      transactionId: widget.transactionId,
+                    ),
+                ],
+              ),
           ],
         ],
-
-        SizedBox(height: 16),
-        SizedBox(
-          width: double.infinity,
-          child: OutlinedButton.icon(
-            onPressed: () =>
-                _addPaymentMethod(transactionId: widget.transactionId),
-            icon: Icon(Icons.add, size: 18),
-            label: Text('Add Payment'),
-            style: OutlinedButton.styleFrom(
-              padding: EdgeInsets.symmetric(vertical: 12),
-              side: BorderSide(color: Theme.of(context).colorScheme.primary),
-            ),
-          ),
-        ),
       ],
     );
   }

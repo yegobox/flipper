@@ -18,19 +18,17 @@ import 'package:permission_handler/permission_handler.dart' as permission;
 import 'package:open_filex/open_filex.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 import 'package:flipper_dashboard/export/models/expense.dart';
+import 'package:flipper_dashboard/export/models/payment_summary.dart';
+import 'package:flipper_dashboard/export/utils/excel_utils.dart';
+import 'package:flipper_dashboard/export/utils/plu_excel_formula_builder.dart';
 import 'package:flipper_dashboard/features/config/widgets/currency_options.dart';
 
-class PaymentSummary {
-  final String method;
-  final double amount;
-  final int count;
+/// PLU line amounts in Excel (manual export + footer sums); keep in sync with [ManualNumericStyle].
+const String _excelPluAmountNumberFormat = '#,##0.00';
 
-  const PaymentSummary({
-    required this.method,
-    required this.amount,
-    required this.count,
-  });
-}
+/// Manual PLU workbook layout (no reserved blank rows above the table).
+const int _manualPluHeaderRow = 1;
+const int _manualPluFirstDataRow = 2;
 
 mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   void addFooter(
@@ -180,12 +178,21 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     List<String>? columnNames, // Added parameter for column names
     required bool showProfitCalculations,
     String? currencyCode,
+    /// When true, PLU line columns [TotalSales], [TaxPayable], [NetProfit] are
+    /// written as numeric values from row data instead of Excel formulas.
+    /// Use [true] for Google Sheets if you see "Formula parse error" on line cells;
+    /// default [false] keeps line formulas (bottom [SUM] totals are always formulas).
+    bool staticPluLineValues = false,
   }) async {
     String? filePath;
     try {
-      print('📊 EXPORT: Starting exportDataGrid with ${config.transactions.length} transactions');
-      talker.info('Starting exportDataGrid with ${config.transactions.length} transactions');
-      
+      print(
+        '📊 EXPORT: Starting exportDataGrid with ${config.transactions.length} transactions',
+      );
+      talker.info(
+        'Starting exportDataGrid with ${config.transactions.length} transactions',
+      );
+
       // Get the system currency from settings if not provided
       final systemCurrency = currencyCode ?? ProxyService.box.defaultCurrency();
 
@@ -193,7 +200,9 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       // SKIP COGS calculation for large datasets to avoid performance issues
       double totalCOGS = 0.0;
       if (config.transactions.length < 100) {
-        print('📊 EXPORT: Calculating COGS for ${config.transactions.length} transactions...');
+        print(
+          '📊 EXPORT: Calculating COGS for ${config.transactions.length} transactions...',
+        );
         for (final transaction in config.transactions) {
           try {
             final transactionItems = await ProxyService.getStrategy(
@@ -230,7 +239,9 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         }
         print('📊 EXPORT: COGS calculation complete: $totalCOGS');
       } else {
-        print('📊 EXPORT: Skipping COGS calculation for large dataset (${config.transactions.length} transactions)');
+        print(
+          '📊 EXPORT: Skipping COGS calculation for large dataset (${config.transactions.length} transactions)',
+        );
         talker.info('Skipping COGS calculation for large dataset');
         // Use estimated COGS (60% of revenue) for large datasets
         final totalRevenue = config.transactions.fold<double>(
@@ -290,7 +301,8 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
         // When manualData is provided, build workbook from data only (no grid export).
         // This avoids exportToExcelWorkbook() hanging on large datasets and ensures all rows are exported.
-        final useManualData = manualData != null &&
+        final useManualData =
+            manualData != null &&
             manualData.isNotEmpty &&
             columnNames != null &&
             columnNames.isNotEmpty;
@@ -299,8 +311,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           try {
             if (workBookKey.currentState != null) {
               try {
-                workbook =
-                    workBookKey.currentState!.exportToExcelWorkbook();
+                workbook = workBookKey.currentState!.exportToExcelWorkbook();
               } catch (e) {
                 talker.warning('Error using DataGrid export: $e');
                 workbook = excel.Workbook();
@@ -403,15 +414,16 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
               style.fontSize = 11;
               style.hAlign = excel.HAlignType.left;
               style.vAlign = excel.VAlignType.center;
-              style.numberFormat = '#,##0.00';
+              style.numberFormat = _excelPluAmountNumberFormat;
               style.borders.all.lineStyle = excel.LineStyle.none;
               style.borders.all.color = '#A6A6A6';
             },
           );
 
-          // Add column headers (starting at row 4 due to the added header information)
+          // Column headers row 1; data from row 2 (matches DataGrid export layout).
           for (int i = 0; i < columnNames.length; i++) {
-            final cell = reportSheet.getRangeByIndex(4, i + 1);
+            final cell =
+                reportSheet.getRangeByIndex(_manualPluHeaderRow, i + 1);
             cell.setText(columnNames[i]);
             cell.cellStyle = headerStyle;
 
@@ -422,7 +434,49 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             ); // Initial width before auto-fit
           }
 
-          // Add data rows (starting at row 5 due to the added header information)
+          // Data rows
+
+          // PLU line export: column letters for Excel formulas (Price*Qty, tax, net profit).
+          int? priceColIndex0;
+          int? qtyColIndex0;
+          int? taxRateColIndex0;
+          int? totalSalesColIndex0;
+          int? taxPayableColIndex0;
+          int? netProfitColIndex0;
+          int? supplyAmountColIndex0;
+          for (int i = 0; i < columnNames.length; i++) {
+            final key = columnNames[i].toLowerCase();
+            switch (key) {
+              case 'price':
+                priceColIndex0 = i;
+                break;
+              case 'qty':
+                qtyColIndex0 = i;
+                break;
+              case 'taxrate':
+                taxRateColIndex0 = i;
+                break;
+              case 'totalsales':
+                totalSalesColIndex0 = i;
+                break;
+              case 'supplyamount':
+                supplyAmountColIndex0 = i;
+                break;
+              case 'taxpayable':
+                taxPayableColIndex0 = i;
+                break;
+              case 'netprofit':
+                netProfitColIndex0 = i;
+                break;
+            }
+          }
+          final useTotalSalesFormula =
+              priceColIndex0 != null && qtyColIndex0 != null;
+          final usePluTaxNetFormulas = useTotalSalesFormula &&
+              taxRateColIndex0 != null &&
+              totalSalesColIndex0 != null &&
+              taxPayableColIndex0 != null &&
+              netProfitColIndex0 != null;
 
           for (int rowIndex = 0; rowIndex < manualData.length; rowIndex++) {
             final item = manualData[rowIndex];
@@ -450,10 +504,67 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             // Add each cell in the row
             for (int colIndex = 0; colIndex < columnNames.length; colIndex++) {
               final colName = columnNames[colIndex];
+              final dataRow = rowIndex + _manualPluFirstDataRow;
               final cell = reportSheet.getRangeByIndex(
-                rowIndex + 5,
+                dataRow,
                 colIndex + 1,
               );
+
+              if (!staticPluLineValues &&
+                  useTotalSalesFormula &&
+                  colName.toLowerCase() == 'totalsales') {
+                final excelRow = dataRow;
+                final priceLetter = _getColumnLetter(priceColIndex0 + 1);
+                final qtyLetter = _getColumnLetter(qtyColIndex0 + 1);
+                cell.setFormula(
+                  '=$priceLetter${excelRow}*$qtyLetter${excelRow}',
+                );
+                cell.cellStyle = numericStyle;
+                continue;
+              }
+
+              if (!staticPluLineValues &&
+                  usePluTaxNetFormulas &&
+                  colName.toLowerCase() == 'taxpayable') {
+                final excelRow = dataRow;
+                final taxFormula = PluExcelFormulaBuilder.pluTaxPayableExcelFormula(
+                  rowData: rowData,
+                  excelRow: excelRow,
+                  priceLetter: _getColumnLetter(priceColIndex0 + 1),
+                  qtyLetter: _getColumnLetter(qtyColIndex0 + 1),
+                  taxRateLetter: _getColumnLetter(taxRateColIndex0 + 1),
+                );
+                if (taxFormula != null) {
+                  cell.setFormula(taxFormula);
+                  cell.cellStyle = numericStyle;
+                  continue;
+                }
+              }
+
+              if (!staticPluLineValues &&
+                  usePluTaxNetFormulas &&
+                  colName.toLowerCase() == 'netprofit') {
+                final excelRow = dataRow;
+                final tsL = _getColumnLetter(totalSalesColIndex0 + 1);
+                final tpL = _getColumnLetter(taxPayableColIndex0 + 1);
+                cell.setFormula(
+                  PluExcelFormulaBuilder.pluNetProfitExcelFormula(
+                    excelRow: excelRow,
+                    totalSalesLetter: tsL,
+                    taxPayableLetter: tpL,
+                    supplyLetter: supplyAmountColIndex0 != null
+                        ? _getColumnLetter(supplyAmountColIndex0 + 1)
+                        : null,
+                    splyAmtLiteral: supplyAmountColIndex0 == null
+                        ? ((rowData[PluExcelRowKeys.splyAmt] as num?)
+                                ?.toDouble() ??
+                            0.0)
+                        : null,
+                  ),
+                );
+                cell.cellStyle = numericStyle;
+                continue;
+              }
 
               // Get the value for this column
               var value = rowData[colName];
@@ -489,10 +600,9 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           }
         } else {
           // Add a header row to ensure the workbook has some content
-          if (workbook.worksheets[0].getLastRow() < 4) {
-            // Adjusted for header rows
+          if (workbook.worksheets[0].getLastRow() < 1) {
             talker.info('Adding basic structure to empty workbook');
-            reportSheet.getRangeByName('A4').setText('Report');
+            reportSheet.getRangeByName('A1').setText('Report');
           }
         }
 
@@ -501,7 +611,13 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
           // Only format columns with profit calculations if showProfitCalculations is true
           if (showProfitCalculations) {
-            _formatColumns(reportSheet, config.currencyFormat);
+            _formatColumns(
+              reportSheet,
+              manualPluDataRowCount:
+                  manualData != null && columnNames != null
+                      ? manualData.length
+                      : null,
+            );
           } else {
             // Just auto-fit columns without adding profit calculations
             for (int i = 1; i <= reportSheet.getLastColumn(); i++) {
@@ -568,11 +684,12 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     }
   }
 
-  void _formatColumns(excel.Worksheet sheet, String currencyFormat) {
-    // Format currency columns
-    for (int row = 1; row <= sheet.getLastRow(); row++) {
-      sheet.getRangeByIndex(row, 9).numberFormat = currencyFormat;
-    }
+  void _formatColumns(
+    excel.Worksheet sheet, {
+    int? manualPluDataRowCount,
+  }) {
+    // PLU manual export already uses [_excelPluAmountNumberFormat] on numeric cells.
+    // Do not blanket-apply account currency to column 9 — that is [CurrentStock] (units).
 
     // Auto-fit all columns for better readability
     for (int i = 1; i <= sheet.getLastColumn(); i++) {
@@ -582,65 +699,140 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     // Ensure all columns are properly sized
     talker.debug('Auto-fitting all columns in the report sheet');
 
-    // Add NetProfit sum at the end of all rows
-    final lastRow = sheet.getLastRow();
+    // Summary rows after data (one blank row gap: last data row + 1 empty)
     final lastColumn = sheet.getLastColumn();
 
-    // Find the NetProfit column - typically column 10 based on the PLU report structure
-    // But let's look for a header with 'NetProfit' or 'Net Profit' to be sure
-    int netProfitColumn = 10; // Default based on PLU report structure
+    // DataGrid and current manual PLU: headers row 1, first data row 2.
+    int dataStartRow = 2;
+    final row1Header = sheet.getRangeByIndex(1, 1).getText();
+    if (row1Header == null || row1Header.isEmpty) {
+      final legacyRow4 = sheet.getRangeByIndex(4, 1).getText();
+      if (legacyRow4 != null && legacyRow4.isNotEmpty) {
+        dataStartRow = 5;
+      }
+    }
 
-    // Check if we can find a better match for the NetProfit column by header name
-    // Check both row 1 (for DataGrid export) and row 4 (for manual data export)
-    for (int headerRow in [4, 1]) {
+    // Last row of PLU/data (for SUM). XlsIO [getLastRow] can be wrong vs written
+    // rows; manual export passes an explicit count so Google Sheets never sees
+    // invalid ranges like G2:G1.
+    final int dataEndRow;
+    if (manualPluDataRowCount != null && manualPluDataRowCount > 0) {
+      dataEndRow = _manualPluFirstDataRow + manualPluDataRowCount - 1;
+    } else {
+      final raw = sheet.getLastRow();
+      dataEndRow = raw < dataStartRow ? dataStartRow : raw;
+    }
+
+    // TotalSales column — manual export uses header "TotalSales" (same as app Total Sales card)
+    int? totalSalesColumn;
+    for (final headerRow in [1, 4]) {
       for (int col = 1; col <= lastColumn; col++) {
-        final cellValue = sheet.getRangeByIndex(headerRow, col).getText();
-        if (cellValue != null &&
-            (cellValue.toLowerCase().contains('net') &&
-                cellValue.toLowerCase().contains('profit'))) {
-          netProfitColumn = col;
+        final raw = sheet.getRangeByIndex(headerRow, col).getText();
+        if (raw == null) continue;
+        final norm = raw.toLowerCase().replaceAll(RegExp(r'\s+'), '');
+        if (norm == 'totalsales' || norm.contains('totalsales')) {
+          totalSalesColumn = col;
           break;
         }
       }
-      if (netProfitColumn != 10) break; // Found it, stop searching
+      if (totalSalesColumn != null) break;
     }
 
-    // Add a total row at the bottom
-    final totalRowIndex = lastRow + 2; // Leave one blank row
+    // NetProfit column — prefer exact [NetProfit] header; default 10 was wrong for
+    // 11-column PLU (TaxPayable is 10, NetProfit is 11).
+    int netProfitColumn = lastColumn >= 11 ? 11 : (lastColumn >= 1 ? lastColumn : 10);
+    var foundNetProfitCol = false;
+    for (final headerRow in [1, 4]) {
+      for (int col = 1; col <= lastColumn; col++) {
+        final cellValue = sheet.getRangeByIndex(headerRow, col).getText();
+        if (cellValue == null) continue;
+        final norm = cellValue.toLowerCase().replaceAll(RegExp(r'\s+'), '');
+        if (norm == 'netprofit') {
+          netProfitColumn = col;
+          foundNetProfitCol = true;
+          break;
+        }
+      }
+      if (foundNetProfitCol) break;
+    }
+    if (!foundNetProfitCol) {
+      for (final headerRow in [1, 4]) {
+        for (int col = 1; col <= lastColumn; col++) {
+          final cellValue = sheet.getRangeByIndex(headerRow, col).getText();
+          if (cellValue == null) continue;
+          final lower = cellValue.toLowerCase();
+          if (lower.contains('net') && lower.contains('profit')) {
+            netProfitColumn = col;
+            foundNetProfitCol = true;
+            break;
+          }
+        }
+        if (foundNetProfitCol) break;
+      }
+    }
 
-    // Create a style for the total row
-    final style = sheet.workbook.styles.add('NetProfitTotalStyle');
-    style.fontName = 'Calibri';
-    style.fontSize = 12;
-    style.bold = true;
-    style.hAlign = excel.HAlignType.left;
-    style.borders.top.lineStyle = excel.LineStyle.none;
-    style.borders.bottom.lineStyle = excel.LineStyle.thin;
+    final summaryStyle = sheet.workbook.styles.add('NetProfitTotalStyle');
+    summaryStyle.fontName = 'Calibri';
+    summaryStyle.fontSize = 12;
+    summaryStyle.bold = true;
+    summaryStyle.hAlign = excel.HAlignType.left;
+    summaryStyle.borders.top.lineStyle = excel.LineStyle.none;
+    summaryStyle.borders.bottom.lineStyle = excel.LineStyle.thin;
+    summaryStyle.numberFormat = _excelPluAmountNumberFormat;
 
-    // Add 'Total Net Profit (Before Expenses):' label
+    // Place footers two rows below the last data row (one blank row).
+    int netProfitTotalRowIndex = dataEndRow + 2;
+
+    if (totalSalesColumn != null) {
+      final totalSalesRowIndex = dataEndRow + 2;
+      netProfitTotalRowIndex = dataEndRow + 3;
+
+      final totalSalesStyle = sheet.workbook.styles.add('TotalSalesSumStyle');
+      totalSalesStyle.fontName = 'Calibri';
+      totalSalesStyle.fontSize = 12;
+      totalSalesStyle.bold = true;
+      totalSalesStyle.hAlign = excel.HAlignType.left;
+      totalSalesStyle.borders.top.lineStyle = excel.LineStyle.none;
+      totalSalesStyle.borders.bottom.lineStyle = excel.LineStyle.thin;
+      totalSalesStyle.numberFormat = _excelPluAmountNumberFormat;
+
+      final labelCol =
+          totalSalesColumn > 1 ? totalSalesColumn - 1 : totalSalesColumn;
+      sheet
+          .getRangeByIndex(totalSalesRowIndex, labelCol)
+          .setText('Total Sales (lines):');
+      sheet.getRangeByIndex(totalSalesRowIndex, labelCol).cellStyle =
+          totalSalesStyle;
+
+      final tsLetter = _getColumnLetter(totalSalesColumn);
+      final totalSalesSumCell =
+          sheet.getRangeByIndex(totalSalesRowIndex, totalSalesColumn);
+      totalSalesSumCell.setFormula(
+        '=SUM($tsLetter${dataStartRow}:$tsLetter${dataEndRow})',
+      );
+      // Apply style then number format — assigning [cellStyle] clears a prior [numberFormat].
+      totalSalesSumCell.cellStyle = totalSalesStyle;
+      totalSalesSumCell.numberFormat = _excelPluAmountNumberFormat;
+
+      sheet.autoFitColumn(labelCol);
+      sheet.autoFitColumn(totalSalesColumn);
+    }
+
     sheet
-        .getRangeByIndex(totalRowIndex, netProfitColumn - 1)
+        .getRangeByIndex(netProfitTotalRowIndex, netProfitColumn - 1)
         .setText('Total Net Profit (Before Expenses):');
-    sheet.getRangeByIndex(totalRowIndex, netProfitColumn - 1).cellStyle = style;
+    sheet
+        .getRangeByIndex(netProfitTotalRowIndex, netProfitColumn - 1)
+        .cellStyle = summaryStyle;
 
-    // Add the SUM formula for the NetProfit column
-    final sumCell = sheet.getRangeByIndex(totalRowIndex, netProfitColumn);
-
-    // Determine the starting row for the SUM formula based on where the headers are
-    int dataStartRow = 2; // Default for DataGrid export (headers in row 1)
-    // Check if headers are in row 4 (manual data export)
-    final row4Header = sheet.getRangeByIndex(4, 1).getText();
-    if (row4Header != null && row4Header.isNotEmpty) {
-      dataStartRow = 5; // Data starts in row 5 for manual export
-    }
-
+    final sumCell =
+        sheet.getRangeByIndex(netProfitTotalRowIndex, netProfitColumn);
     sumCell.setFormula(
-      '=SUM(${_getColumnLetter(netProfitColumn)}$dataStartRow:${_getColumnLetter(netProfitColumn)}$lastRow)',
+      '=SUM(${_getColumnLetter(netProfitColumn)}${dataStartRow}:${_getColumnLetter(netProfitColumn)}${dataEndRow})',
     );
-    sumCell.numberFormat = currencyFormat;
-    sumCell.cellStyle = style;
+    sumCell.cellStyle = summaryStyle;
+    sumCell.numberFormat = _excelPluAmountNumberFormat;
 
-    // Auto-fit the columns again after adding the total row
     sheet.autoFitColumn(netProfitColumn - 1);
     sheet.autoFitColumn(netProfitColumn);
 
@@ -657,10 +849,6 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       columnIndex = (columnIndex - remainder - 1) ~/ 26;
     }
     return columnLetter;
-  }
-
-  String normalizePaymentMethod(String method) {
-    return method.trim().toUpperCase();
   }
 
   // Helper method to find a worksheet by name
@@ -681,28 +869,53 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     String currencyFormat,
   ) {
     try {
-      // Find the last row in the report sheet (where the Net Profit Before Expenses is)
-      final lastRow = reportSheet.getLastRow();
-      final totalRowIndex = lastRow;
+      final lastCol = reportSheet.getLastColumn();
 
-      // Find the column with the Net Profit value (typically column 10 based on PLU report structure)
-      int netProfitColumn = 10;
-
-      // Check if we can find a better match for the NetProfit column by header name
-      // Check both row 1 (for DataGrid export) and row 4 (for manual data export)
-      for (int headerRow in [4, 1]) {
-        for (int col = 1; col <= reportSheet.getLastColumn(); col++) {
-          final cellValue = reportSheet
-              .getRangeByIndex(headerRow, col)
-              .getText();
-          if (cellValue != null &&
-              (cellValue.toLowerCase().contains('net') &&
-                  cellValue.toLowerCase().contains('profit'))) {
+      int netProfitColumn =
+          lastCol >= 11 ? 11 : (lastCol >= 1 ? lastCol : 10);
+      var foundNetCol = false;
+      for (final headerRow in [1, 4]) {
+        for (int col = 1; col <= lastCol; col++) {
+          final cellValue =
+              reportSheet.getRangeByIndex(headerRow, col).getText();
+          if (cellValue == null) continue;
+          final norm = cellValue.toLowerCase().replaceAll(RegExp(r'\s+'), '');
+          if (norm == 'netprofit') {
             netProfitColumn = col;
+            foundNetCol = true;
             break;
           }
         }
-        if (netProfitColumn != 10) break; // Found it, stop searching
+        if (foundNetCol) break;
+      }
+      if (!foundNetCol) {
+        for (final headerRow in [1, 4]) {
+          for (int col = 1; col <= lastCol; col++) {
+            final cellValue =
+                reportSheet.getRangeByIndex(headerRow, col).getText();
+            if (cellValue == null) continue;
+            final lower = cellValue.toLowerCase();
+            if (lower.contains('net') && lower.contains('profit')) {
+              netProfitColumn = col;
+              foundNetCol = true;
+              break;
+            }
+          }
+          if (foundNetCol) break;
+        }
+      }
+
+      // Row holding "Total Net Profit (Before Expenses):" amount — do not trust
+      // [getLastRow] alone (XlsIO used range can lag the footer row).
+      var totalRowIndex = reportSheet.getLastRow();
+      final labelCol = netProfitColumn > 1 ? netProfitColumn - 1 : 1;
+      for (var r = totalRowIndex; r >= 1; r--) {
+        final label =
+            reportSheet.getRangeByIndex(r, labelCol).getText() ?? '';
+        if (label.contains('Total Net Profit (Before Expenses)')) {
+          totalRowIndex = r;
+          break;
+        }
       }
 
       // Add Final Net Profit row below Net Profit (Before Expenses)
@@ -720,6 +933,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       finalNetProfitStyle.borders.bottom.lineStyle = excel.LineStyle.double;
       finalNetProfitStyle.backColor =
           '#E2EFDA'; // Light green background for Final Net Profit
+      finalNetProfitStyle.numberFormat = _excelPluAmountNumberFormat;
 
       // Add 'Final Net Profit (After Expenses):' label
       reportSheet
@@ -739,40 +953,38 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       // Find the Expenses sheet which we know exists at this point
       final expensesSheet = _findWorksheetByName(workbook, 'Expenses');
       if (expensesSheet != null) {
-        // Get the last row in the Expenses sheet
         final lastExpenseRow = expensesSheet.getLastRow();
-        // The total expenses are in the cell below the last expense item
         final totalExpensesRowIndex = lastExpenseRow;
 
-        // Create a direct cell reference formula to subtract expenses from net profit (before expenses)
+        // Qualified sheet refs (no XML-escaped \'…\'): Sheets imports handle Report!A1 / Expenses!B1 reliably.
         final formula =
-            '=${_getColumnLetter(netProfitColumn)}$totalRowIndex-Expenses!B$totalExpensesRowIndex';
+            PluExcelFormulaBuilder.finalNetProfitAfterExpensesFormula(
+          reportSheetName: reportSheet.name,
+          expensesSheetName: expensesSheet.name,
+          netProfitColumnLetter: _getColumnLetter(netProfitColumn),
+          netProfitBeforeExpensesRow: totalRowIndex,
+          totalExpensesRow: totalExpensesRowIndex,
+        );
 
-        // This is a properly constructed Dart string with proper interpolation
         finalNetProfitCell.setFormula(formula);
 
-        // Log the formula for debugging
         talker.debug('Created Final Net Profit formula: $formula');
-        talker.debug(
-          'Referencing Net Profit (Before Expenses) cell: ${_getColumnLetter(netProfitColumn)}$totalRowIndex',
-        );
-        talker.debug(
-          'Referencing Total Expenses cell: Expenses!B$totalExpensesRowIndex',
-        );
       } else {
-        // This shouldn't happen since we only call this method when the Expenses sheet exists
         talker.error(
           'Expenses sheet not found when adding Final Net Profit row',
         );
-        // Fallback to just using the Net Profit (Before Expenses) value
         finalNetProfitCell.setFormula(
-          '=${_getColumnLetter(netProfitColumn)}$totalRowIndex',
+          PluExcelFormulaBuilder.netProfitBeforeExpensesOnlyFormula(
+            reportSheetName: reportSheet.name,
+            netProfitColumnLetter: _getColumnLetter(netProfitColumn),
+            netProfitBeforeExpensesRow: totalRowIndex,
+          ),
         );
       }
 
-      // Apply formatting to the Final Net Profit cell
-      finalNetProfitCell.numberFormat = currencyFormat;
+      // Style then number format so the amount displays like PLU line cells.
       finalNetProfitCell.cellStyle = finalNetProfitStyle;
+      finalNetProfitCell.numberFormat = _excelPluAmountNumberFormat;
 
       // Auto-fit all columns after adding the Net Profit row
       for (int i = 1; i <= reportSheet.getLastColumn(); i++) {
@@ -794,8 +1006,10 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       final paymentMethodSheet = workbook.worksheets.addWithName(sheetName);
       await _initializeSheet(paymentMethodSheet, styler);
 
-      // Use in-memory summary from transaction.paymentType/cashReceived (no DB calls)
-      final paymentData = _processTransactionsFromList(config.transactions);
+      // Payment sheet from Capella payment rows only (no subTotal/cashReceived fallback).
+      final paymentData = await ExcelUtils.processTransactions(
+        config.transactions,
+      );
 
       if (paymentData.isEmpty) {
         talker.warning('No payment totals to write to sheet');
@@ -832,51 +1046,12 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     );
 
     sheet.getRangeByIndex(1, 1).setText('Payment Type');
-    sheet.getRangeByIndex(1, 2).setText('Amount Received');
+    sheet.getRangeByIndex(1, 2).setText('Sale amount');
     sheet.getRangeByIndex(1, 3).setText('Transaction Count');
     sheet.getRangeByIndex(1, 4).setText('% of Total');
 
     final headerRange = sheet.getRangeByIndex(1, 1, 1, 4);
     headerRange.cellStyle = headerStyle;
-  }
-
-  /// Builds payment summary from transaction list in memory (no DB calls).
-  /// Uses transaction.paymentType and cashReceived/subTotal from each ITransaction.
-  List<PaymentSummary> _processTransactionsFromList(
-    List<ITransaction> transactions,
-  ) {
-    final paymentTotals = <String, PaymentSummary>{};
-
-    for (final transaction in transactions) {
-      final method = normalizePaymentMethod(
-        transaction.paymentType?.trim().isNotEmpty == true
-            ? transaction.paymentType!
-            : 'Cash',
-      );
-      final amount = transaction.cashReceived ?? transaction.subTotal ?? 0.0;
-
-      paymentTotals.update(
-        method,
-        (existing) => PaymentSummary(
-          method: method,
-          amount: existing.amount + amount,
-          count: existing.count + 1,
-        ),
-        ifAbsent: () => PaymentSummary(
-          method: method,
-          amount: amount,
-          count: 1,
-        ),
-      );
-    }
-
-    final sortedData = paymentTotals.values.toList()
-      ..sort((a, b) => b.amount.compareTo(a.amount));
-
-    talker.debug(
-      'Payment summary from ${transactions.length} transactions: ${sortedData.length} methods',
-    );
-    return sortedData;
   }
 
   Future<void> _writeDataToSheet({
@@ -1034,22 +1209,50 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     }
   }
 
+  /// iOS / iPadOS require a non-zero [Rect] inside the source view for the share popover.
+  Rect _shareSheetPopoverOrigin() {
+    if (!mounted) {
+      return const Rect.fromLTWH(16, 80, 48, 48);
+    }
+    final mq = MediaQuery.maybeOf(context);
+    final size = mq?.size ?? const Size(400, 800);
+    final padding = mq?.padding ?? EdgeInsets.zero;
+    const double wh = 48;
+    // Top-trailing: typical app bar action area; clamp so rect stays inside screen.
+    var left = size.width - wh - 16;
+    if (left < 8) left = 8;
+    if (left + wh > size.width) left = (size.width - wh).clamp(0.0, size.width);
+    var top = padding.top + 8;
+    if (top + wh > size.height) top = (size.height - wh - 8).clamp(0.0, size.height);
+    return Rect.fromLTWH(left, top, wh, wh);
+  }
+
   Future<void> shareFileAsAttachment(String filePath) async {
     final now = DateTime.now();
     final formattedDate = DateFormat('yyyy-MM-dd').format(now);
     final file = File(filePath);
     final fileName = p.basename(file.path);
 
+    final shareOrigin = Platform.isIOS ? _shareSheetPopoverOrigin() : null;
+
     if (Platform.isWindows || Platform.isLinux) {
       final bytes = await file.readAsBytes();
       final mimeType = _lookupMimeType(filePath);
-      await Share.shareXFiles([
-        XFile.fromData(bytes, mimeType: mimeType, name: fileName),
-      ], subject: 'Report Download - $formattedDate');
+      await Share.shareXFiles(
+        [
+          XFile.fromData(bytes, mimeType: mimeType, name: fileName),
+        ],
+        subject: 'Report Download - $formattedDate',
+        sharePositionOrigin: shareOrigin,
+      );
     } else {
-      await Share.shareXFiles([
-        XFile(filePath),
-      ], subject: 'Report Download - $formattedDate');
+      await Share.shareXFiles(
+        [
+          XFile(filePath),
+        ],
+        subject: 'Report Download - $formattedDate',
+        sharePositionOrigin: shareOrigin,
+      );
     }
   }
 

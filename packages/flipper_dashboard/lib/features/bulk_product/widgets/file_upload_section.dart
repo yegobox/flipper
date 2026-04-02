@@ -85,7 +85,7 @@ class _FileUploadSectionState extends State<FileUploadSection> {
                 widget.selectedFile == null
                     ? 'Drop your Excel file here'
                     : widget.selectedFile!.name,
-                style: GoogleFonts.inter(
+                style: GoogleFonts.poppins(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
                   color: Colors.black87,
@@ -96,7 +96,7 @@ class _FileUploadSectionState extends State<FileUploadSection> {
                 widget.selectedFile == null
                     ? 'or click to browse your files'
                     : 'File selected successfully',
-                style: GoogleFonts.inter(fontSize: 14, color: Colors.black54),
+                style: GoogleFonts.poppins(fontSize: 14, color: Colors.black54),
               ),
             ],
           ),
@@ -112,7 +112,7 @@ class _FileUploadSectionState extends State<FileUploadSection> {
         const SizedBox(width: 8),
         Text(
           'Supported: .xlsx, .xls',
-          style: GoogleFonts.inter(fontSize: 12, color: Colors.grey),
+          style: GoogleFonts.poppins(fontSize: 12, color: Colors.grey),
         ),
         const Spacer(),
         TextButton.icon(
@@ -120,7 +120,7 @@ class _FileUploadSectionState extends State<FileUploadSection> {
           icon: const Icon(FluentIcons.arrow_download_24_regular, size: 18),
           label: Text(
             'Download Template',
-            style: GoogleFonts.inter(fontWeight: FontWeight.w500),
+            style: GoogleFonts.poppins(fontWeight: FontWeight.w500),
           ),
         ),
       ],

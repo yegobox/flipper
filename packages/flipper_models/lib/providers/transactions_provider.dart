@@ -1,4 +1,6 @@
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/helperModels/transaction_payment_sums.dart';
+import 'package:flipper_models/helperModels/transaction_report_snapshot.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/SyncStrategy.dart';
@@ -6,8 +8,20 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:rxdart/rxdart.dart';
 
 part 'transactions_provider.g.dart';
+
+/// Non-expense sales shown in Transaction Reports: completed and parked only.
+List<ITransaction> transactionReportScopeFilter(List<ITransaction> all) {
+  return all
+      .where(
+        (tx) =>
+            tx.isExpense != true &&
+            (tx.status == COMPLETE || tx.status == PARKED),
+      )
+      .toList();
+}
 
 // ---------------------------------------------------------------------------
 // dashboardTransactionsProvider — intentionally kept on the default (SQLite)
@@ -25,7 +39,7 @@ final dashboardTransactionsProvider = StreamProvider<List<ITransaction>>((ref) {
 
   return ProxyService.strategy.transactionsStream(
     status: COMPLETE,
-    includeParked: true,
+    includeParked: false,
     branchId: branchId,
     skipOriginalTransactionCheck: true,
     startDate: startDate,
@@ -47,29 +61,31 @@ Stream<List<ITransaction>> coreTransactionsStream(
   required DateTime endDate,
   required String branchId,
   bool forceRealData = true,
+  bool includeParked = false,
 }) {
   talker.debug(
-    'coreTransactionsStream: $startDate → $endDate  branch=$branchId',
+    'coreTransactionsStream: $startDate → $endDate  branch=$branchId '
+    'includeParked=$includeParked',
   );
   return ProxyService.getStrategy(Strategy.capella).transactionsStream(
     startDate: startDate,
     endDate: endDate,
     branchId: branchId,
-    // Fetch everything (income + expenses) so derived providers can split freely.
+    // When includeParked is false: completed only. When true: completed + parked (+ waiting momo at SQL layer; filter in Dart for reports).
     skipOriginalTransactionCheck: true,
     removeAdjustmentTransactions: true,
-    includeParked: true,
+    includeParked: includeParked,
     // isCashOut intentionally omitted → returns both income and expense.
     forceRealData: forceRealData,
   );
 }
 
 // ---------------------------------------------------------------------------
-// transactionList — visible rows in the Transaction Reports grid.
-// Filters the core stream to only confirmed sales.
+// transactionReportSnapshot — Transaction Reports grid + payment breakdown.
+// Parked + completed non-expense; by-hand vs CREDIT from payment records.
 // ---------------------------------------------------------------------------
 @riverpod
-Stream<List<ITransaction>> transactionList(
+Stream<TransactionReportSnapshot> transactionReportSnapshot(
   Ref ref, {
   required bool forceRealData,
 }) {
@@ -78,7 +94,12 @@ Stream<List<ITransaction>> transactionList(
   final endDate = dateRange.endDate;
 
   if (startDate == null || endDate == null) {
-    return Stream.value([]);
+    return Stream.value(
+      const TransactionReportSnapshot(
+        transactions: [],
+        paymentSumsByTransactionId: {},
+      ),
+    );
   }
 
   final branchId = ProxyService.box.getBranchId();
@@ -90,14 +111,51 @@ Stream<List<ITransaction>> transactionList(
     endDate: endDate,
     branchId: branchId,
     forceRealData: forceRealData,
-  ).map(
-    (all) => all.where((tx) {
-      if (tx.isExpense == true) return false; // exclude cash-outs
-      if (tx.status == COMPLETE) return true;
-      if (tx.status == PARKED && (tx.cashReceived ?? 0) > 0) return true;
-      if (tx.status == WAITING_MOMO_COMPLETE) return true;
-      return false;
-    }).toList(),
+    includeParked: true,
+  ).asyncMap((all) async {
+    final filtered = transactionReportScopeFilter(all);
+    if (filtered.isEmpty) {
+      return const TransactionReportSnapshot(
+        transactions: [],
+        paymentSumsByTransactionId: {},
+      );
+    }
+
+    final ids = filtered.map((t) => t.id.toString()).toList();
+    try {
+      final sums = await ProxyService.getStrategy(Strategy.capella)
+          .getPaymentSumsByTransactionIds(ids, branchId: branchId);
+      return TransactionReportSnapshot(
+        transactions: filtered,
+        paymentSumsByTransactionId: sums,
+      );
+    } catch (e, s) {
+      talker.error('transactionReportSnapshot payment sums: $e\n$s');
+      return TransactionReportSnapshot(
+        transactions: filtered,
+        paymentSumsByTransactionId: {
+          for (final id in ids)
+            id: const TransactionPaymentSums(
+              byHand: 0,
+              credit: 0,
+              hasAnyRecord: false,
+            ),
+        },
+      );
+    }
+  });
+}
+
+// ---------------------------------------------------------------------------
+// transactionList — backward-compatible list-only view of the report snapshot.
+// ---------------------------------------------------------------------------
+@riverpod
+Stream<List<ITransaction>> transactionList(
+  Ref ref, {
+  required bool forceRealData,
+}) {
+  return transactionReportSnapshot(ref, forceRealData: forceRealData).map(
+    (snap) => snap.transactions,
   );
 }
 
@@ -126,8 +184,8 @@ Stream<List<ITransaction>> transactions(Ref ref, {bool forceRealData = true}) {
 }
 
 // ---------------------------------------------------------------------------
-// transactionItemList — line-items for the selected date range.
-// Kept separate because it queries a different collection (TransactionItem).
+// transactionItemList — line-items for completed + parked non-expense sales.
+// Joins items with the same scope as [transactionReportSnapshot] / summary grid.
 // ---------------------------------------------------------------------------
 @riverpod
 Stream<List<TransactionItem>> transactionItemList(Ref ref) {
@@ -135,6 +193,7 @@ Stream<List<TransactionItem>> transactionItemList(Ref ref) {
   final startDate = dateRange.startDate;
   final endDate = dateRange.endDate;
   final branchId = ProxyService.box.branchIdString();
+  final forceRealData = !(ProxyService.box.enableDebug() ?? false);
 
   talker.debug('transactionItemList called');
 
@@ -147,9 +206,7 @@ Stream<List<TransactionItem>> transactionItemList(Ref ref) {
     return Stream.value([]);
   }
 
-  // Removed ref.keepAlive() to allow proper disposal and prevent duplicate queries
-
-  return ProxyService.getStrategy(Strategy.capella)
+  final itemStream = ProxyService.getStrategy(Strategy.capella)
       .transactionItemsStreams(
         startDate: startDate,
         endDate: endDate,
@@ -157,14 +214,41 @@ Stream<List<TransactionItem>> transactionItemList(Ref ref) {
         branchIdString: branchId,
         fetchRemote: true,
       )
-      .map((items) {
-        talker.debug('Received ${items.length} transaction items');
-        return items;
-      })
-      .handleError((error, stackTrace) {
-        talker.error('Error loading transaction items: $error');
-        throw error;
-      });
+      .startWith(const <TransactionItem>[]);
+
+  final completedSalesStream = coreTransactionsStream(
+    ref,
+    startDate: startDate,
+    endDate: endDate,
+    branchId: branchId,
+    forceRealData: forceRealData,
+    includeParked: true,
+  )
+      .map(transactionReportScopeFilter)
+      .startWith(const <ITransaction>[]);
+
+  return Rx.combineLatest2<List<TransactionItem>, List<ITransaction>,
+      List<TransactionItem>>(
+    itemStream,
+    completedSalesStream,
+    (items, txs) {
+      final allowed =
+          txs.map((t) => t.id.toString()).toSet();
+      final filtered = items
+          .where((i) {
+            final tid = i.transactionId?.toString();
+            return tid != null && allowed.contains(tid);
+          })
+          .toList();
+      talker.debug(
+        'transactionItemList: ${items.length} raw → ${filtered.length} completed-sale lines',
+      );
+      return filtered;
+    },
+  ).handleError((error, stackTrace) {
+    talker.error('Error loading transaction items: $error');
+    throw error;
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -222,11 +306,7 @@ Stream<double> grossProfitStream(
     );
     return income.fold<double>(
       0.0,
-      (sum, tx) =>
-          sum +
-          (tx.status == COMPLETE
-              ? (tx.subTotal ?? 0.0)
-              : (tx.cashReceived ?? 0.0)),
+      (sum, tx) => sum + (tx.subTotal ?? 0.0),
     );
   });
 }
@@ -265,11 +345,7 @@ Stream<double> netProfitStream(
 
     final totalIncome = income.fold<double>(
       0.0,
-      (sum, tx) =>
-          sum +
-          (tx.status == COMPLETE
-              ? (tx.subTotal ?? 0.0)
-              : (tx.cashReceived ?? 0.0)),
+      (sum, tx) => sum + (tx.subTotal ?? 0.0),
     );
 
     final totalExpenses = expenses.fold<double>(
@@ -327,11 +403,7 @@ Stream<double> totalIncomeStream(
     final income = all.where((tx) => !(tx.isExpense ?? false));
     return income.fold<double>(
       0.0,
-      (sum, tx) =>
-          sum +
-          (tx.status == COMPLETE
-              ? (tx.subTotal ?? 0.0)
-              : (tx.cashReceived ?? 0.0)),
+      (sum, tx) => sum + (tx.subTotal ?? 0.0),
     );
   });
 }
@@ -392,3 +464,125 @@ Stream<ITransaction?> transactionById(Ref ref, String transactionId) {
       )
       .map((list) => list.firstOrNull);
 }
+
+// ---------------------------------------------------------------------------
+// Dashboard gauge — PLU gross / deductions aligned with DataView summary cards
+// (Capella line items + expenses; same formulas as Transaction Reports).
+// ---------------------------------------------------------------------------
+
+class DashboardGaugeSnapshot {
+  const DashboardGaugeSnapshot({
+    required this.grossProfit,
+    required this.deductions,
+  });
+
+  /// Sum of line-level (price×qty − supply) for completed non-expense sales.
+  final double grossProfit;
+
+  /// Line VAT + expense transaction [subTotal]s in the period.
+  final double deductions;
+
+  double get netProfit => grossProfit - deductions;
+}
+
+/// Inclusive start of the dashboard filter window (matches [DashboardView] chips).
+DateTime dashboardPeriodStart(String period) {
+  final now = DateTime.now();
+  final today = DateTime(now.year, now.month, now.day);
+  if (period == 'Today') return today;
+  if (period == 'This Week') {
+    return today.subtract(const Duration(days: 7));
+  }
+  if (period == 'This Month') {
+    var y = now.year;
+    var m = now.month - 1;
+    if (m < 1) {
+      y -= 1;
+      m = 12;
+    }
+    final lastDay = DateTime(y, m + 1, 0).day;
+    final d = now.day > lastDay ? lastDay : now.day;
+    return DateTime(y, m, d);
+  }
+  final lastDayYear = DateTime(now.year - 1, now.month + 1, 0).day;
+  final d = now.day > lastDayYear ? lastDayYear : now.day;
+  return DateTime(now.year - 1, now.month, d);
+}
+
+final dashboardGaugeSnapshotProvider =
+    StreamProvider.family<DashboardGaugeSnapshot, String>((ref, period) {
+      final start = dashboardPeriodStart(period);
+      final end = DateTime.now();
+      final branchId = ProxyService.box.branchIdString();
+      if (branchId == null) {
+        return Stream.value(
+          const DashboardGaugeSnapshot(grossProfit: 0, deductions: 0),
+        );
+      }
+
+      final itemStream = ProxyService.getStrategy(Strategy.capella)
+          .transactionItemsStreams(
+            startDate: start,
+            endDate: end,
+            branchId: branchId,
+            branchIdString: branchId,
+            fetchRemote: true,
+          )
+          .startWith(const <TransactionItem>[]);
+
+      final completedSalesStream = coreTransactionsStream(
+        ref,
+        startDate: start,
+        endDate: end,
+        branchId: branchId,
+        forceRealData: true,
+      )
+          .map(
+            (all) => all
+                .where((tx) => tx.isExpense != true && tx.status == COMPLETE)
+                .toList(),
+          )
+          .startWith(const <ITransaction>[]);
+
+      final expenseTxStream = expensesStream(
+        ref,
+        startDate: start,
+        endDate: end,
+        branchId: branchId,
+        forceRealData: true,
+      ).startWith(const <ITransaction>[]);
+
+      return Rx.combineLatest3<
+        List<TransactionItem>,
+        List<ITransaction>,
+        List<ITransaction>,
+        DashboardGaugeSnapshot
+      >(
+        itemStream,
+        completedSalesStream,
+        expenseTxStream,
+        (items, txs, exps) {
+          final allowed = txs.map((t) => t.id.toString()).toSet();
+          final filtered = items.where((i) {
+            final tid = i.transactionId?.toString();
+            return tid != null && allowed.contains(tid);
+          }).toList();
+          final gross = filtered.fold<double>(
+            0.0,
+            (s, i) => s + TransactionItemPluMetrics.profitMade(i),
+          );
+          final tax = filtered.fold<double>(
+            0.0,
+            (s, i) => s + TransactionItemPluMetrics.taxPayable(i),
+          );
+          final expSum = exps.fold<double>(
+            0.0,
+            (s, e) => s + (e.subTotal ?? 0.0),
+          );
+          return DashboardGaugeSnapshot(
+            grossProfit: gross,
+            deductions: tax + expSum,
+          );
+        },
+      );
+    });

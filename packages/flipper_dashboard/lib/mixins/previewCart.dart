@@ -20,6 +20,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
@@ -47,6 +48,65 @@ Future<List<TransactionItem>> _getTransactionItems({
         active: true,
       );
   return items;
+}
+
+/// Scales non-CREDIT payment rows so their sum does not exceed [saleTotal].
+/// Tender can exceed the sale (change); persisted payment rows must not, or
+/// payment-method reports sum above line revenue.
+List<Payment> _normalizePaymentMethodsToSaleTotal({
+  required List<Payment> paymentMethods,
+  required double saleTotal,
+  required bool shouldBeLoan,
+}) {
+  if (shouldBeLoan || saleTotal <= 0) return paymentMethods;
+
+  final nonCredit = paymentMethods
+      .where((p) => p.method.toUpperCase() != 'CREDIT')
+      .toList();
+  final sumNonCredit = nonCredit.fold<double>(0, (s, p) => s + p.amount);
+  if (sumNonCredit <= saleTotal + 0.0001) return paymentMethods;
+
+  final factor = saleTotal / sumNonCredit;
+  final adjusted = <Payment>[];
+  for (final p in paymentMethods) {
+    if (p.method.toUpperCase() == 'CREDIT') {
+      adjusted.add(p);
+      continue;
+    }
+    adjusted.add(
+      Payment(
+        amount: (p.amount * factor).roundToTwoDecimalPlaces(),
+        method: p.method,
+        id: p.id,
+        controller: p.controller,
+      ),
+    );
+  }
+
+  var sumAdj = 0.0;
+  for (final p in adjusted) {
+    if (p.method.toUpperCase() != 'CREDIT') sumAdj += p.amount;
+  }
+  final drift = saleTotal - sumAdj;
+  if (drift.abs() > 0.0001) {
+    for (var i = adjusted.length - 1; i >= 0; i--) {
+      if (adjusted[i].method.toUpperCase() == 'CREDIT') continue;
+      final p = adjusted[i];
+      adjusted[i] = Payment(
+        amount: (p.amount + drift).roundToTwoDecimalPlaces(),
+        method: p.method,
+        id: p.id,
+        controller: p.controller,
+      );
+      break;
+    }
+  }
+
+  talker.info(
+    'Normalized payment rows to sale total: saleTotal=$saleTotal '
+    'wasNonCreditSum=$sumNonCredit',
+  );
+  return adjusted;
 }
 
 mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
@@ -245,9 +305,64 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       final isValid = formKey.currentState?.validate() ?? true;
       if (!isValid) return false;
 
+      if (paymentMethods.length > 1) {
+        final missingIndices = <int>[];
+        final invalidIndices = <int>[];
+        final zeroAmountIndices = <int>[];
+        for (var i = 0; i < paymentMethods.length; i++) {
+          final text = paymentMethods[i].controller.text.trim();
+          if (text.isEmpty) {
+            missingIndices.add(i + 1);
+            continue;
+          }
+          final parsed = double.tryParse(text);
+          if (parsed == null || !parsed.isFinite || parsed < 0) {
+            invalidIndices.add(i + 1);
+            continue;
+          }
+          // With multiple methods, every line must carry a real share (not 0).
+          if (parsed <= 0.01) {
+            zeroAmountIndices.add(i + 1);
+          }
+        }
+        if (missingIndices.isNotEmpty ||
+            invalidIndices.isNotEmpty ||
+            zeroAmountIndices.isNotEmpty) {
+          final parts = <String>[];
+          if (missingIndices.isNotEmpty) {
+            parts.add(
+              'enter an amount for payment ${missingIndices.join(', ')}',
+            );
+          }
+          if (invalidIndices.isNotEmpty) {
+            parts.add(
+              'fix invalid amount for payment ${invalidIndices.join(', ')}',
+            );
+          }
+          if (zeroAmountIndices.isNotEmpty) {
+            parts.add(
+              'each method needs an amount above zero (payment ${zeroAmountIndices.join(', ')})',
+            );
+          }
+          final message =
+              'Multiple payment methods are in use: ${parts.join('; ')}.';
+          if (mounted && context.mounted) {
+            showCustomSnackBarUtil(
+              context,
+              message,
+              backgroundColor: Colors.red,
+              showCloseButton: true,
+            );
+          }
+          ref.read(payButtonStateProvider.notifier).stopLoading();
+          return false;
+        }
+      }
+
       // CREDIT (loan) payments require an attached customer for tracking.
-      final hasCreditPayment =
-          paymentMethods.any((p) => p.method == "CREDIT" && p.amount > 0);
+      final hasCreditPayment = paymentMethods.any(
+        (p) => p.method == "CREDIT" && p.amount > 0,
+      );
       if (hasCreditPayment) {
         final hasCustomer =
             (transaction.customerName != null &&
@@ -500,8 +615,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         .fold<double>(0, (sum, p) => sum + p.amount);
 
     final nonCreditCashReceived = effectiveCashReceived - totalCredit;
-    final isFullyPaid =
-        nonCreditCashReceived >= (transaction.subTotal ?? 0);
+    final isFullyPaid = nonCreditCashReceived >= (transaction.subTotal ?? 0);
 
     final shouldBeLoan = totalCredit > 0 || !isFullyPaid;
     final status = shouldBeLoan ? PARKED : COMPLETE;
@@ -530,10 +644,17 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     );
     transaction.subTotal = finalSubTotal;
     transaction.lastTouched = now;
+    transaction.createdAt = now;
+
+    final paymentsToPersist = _normalizePaymentMethodsToSaleTotal(
+      paymentMethods: paymentMethods,
+      saleTotal: finalSubTotal,
+      shouldBeLoan: shouldBeLoan,
+    );
 
     // Save payment methods in parallel to reduce sequential DB lock contention
     await Future.wait(
-      paymentMethods.map((payment) async {
+      paymentsToPersist.map((payment) async {
         await ProxyService.strategy.savePaymentType(
           singlePaymentOnly: false,
           amount: payment.amount,
@@ -890,6 +1011,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     try {
       final response = await ProxyService.ht.makePayment(
         payeemessage: "Pay for Goods",
+        payerMessage: "Pay for Goods",
         paymentType: "PaymentNormal",
         externalId: externalId,
         phoneNumber: phoneNumber.replaceAll("+", ""),

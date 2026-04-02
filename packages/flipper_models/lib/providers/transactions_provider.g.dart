@@ -29,6 +29,7 @@ final class CoreTransactionsStreamProvider
       DateTime endDate,
       String branchId,
       bool forceRealData,
+      bool includeParked,
     })
     super.argument,
   }) : super(
@@ -64,6 +65,7 @@ final class CoreTransactionsStreamProvider
               DateTime endDate,
               String branchId,
               bool forceRealData,
+              bool includeParked,
             });
     return coreTransactionsStream(
       ref,
@@ -71,6 +73,7 @@ final class CoreTransactionsStreamProvider
       endDate: argument.endDate,
       branchId: argument.branchId,
       forceRealData: argument.forceRealData,
+      includeParked: argument.includeParked,
     );
   }
 
@@ -87,7 +90,7 @@ final class CoreTransactionsStreamProvider
 }
 
 String _$coreTransactionsStreamHash() =>
-    r'2a9c874e0d974377bc58b44a9062a2ebd291eeb6';
+    r'79c101c9a679b0234682b9a87d6c64f9290ac653';
 
 final class CoreTransactionsStreamFamily extends $Family
     with
@@ -98,6 +101,7 @@ final class CoreTransactionsStreamFamily extends $Family
             DateTime endDate,
             String branchId,
             bool forceRealData,
+            bool includeParked,
           })
         > {
   const CoreTransactionsStreamFamily._()
@@ -114,18 +118,99 @@ final class CoreTransactionsStreamFamily extends $Family
     required DateTime endDate,
     required String branchId,
     bool forceRealData = true,
+    bool includeParked = false,
   }) => CoreTransactionsStreamProvider._(
     argument: (
       startDate: startDate,
       endDate: endDate,
       branchId: branchId,
       forceRealData: forceRealData,
+      includeParked: includeParked,
     ),
     from: this,
   );
 
   @override
   String toString() => r'coreTransactionsStreamProvider';
+}
+
+@ProviderFor(transactionReportSnapshot)
+const transactionReportSnapshotProvider = TransactionReportSnapshotFamily._();
+
+final class TransactionReportSnapshotProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<TransactionReportSnapshot>,
+          TransactionReportSnapshot,
+          Stream<TransactionReportSnapshot>
+        >
+    with
+        $FutureModifier<TransactionReportSnapshot>,
+        $StreamProvider<TransactionReportSnapshot> {
+  const TransactionReportSnapshotProvider._({
+    required TransactionReportSnapshotFamily super.from,
+    required bool super.argument,
+  }) : super(
+         retry: null,
+         name: r'transactionReportSnapshotProvider',
+         isAutoDispose: true,
+         dependencies: null,
+         $allTransitiveDependencies: null,
+       );
+
+  @override
+  String debugGetCreateSourceHash() => _$transactionReportSnapshotHash();
+
+  @override
+  String toString() {
+    return r'transactionReportSnapshotProvider'
+        ''
+        '($argument)';
+  }
+
+  @$internal
+  @override
+  $StreamProviderElement<TransactionReportSnapshot> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<TransactionReportSnapshot> create(Ref ref) {
+    final argument = this.argument as bool;
+    return transactionReportSnapshot(ref, forceRealData: argument);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is TransactionReportSnapshotProvider &&
+        other.argument == argument;
+  }
+
+  @override
+  int get hashCode {
+    return argument.hashCode;
+  }
+}
+
+String _$transactionReportSnapshotHash() =>
+    r'944206634f9f8782a3d105a8a6ed47fa62edf5d0';
+
+final class TransactionReportSnapshotFamily extends $Family
+    with $FunctionalFamilyOverride<Stream<TransactionReportSnapshot>, bool> {
+  const TransactionReportSnapshotFamily._()
+    : super(
+        retry: null,
+        name: r'transactionReportSnapshotProvider',
+        dependencies: null,
+        $allTransitiveDependencies: null,
+        isAutoDispose: true,
+      );
+
+  TransactionReportSnapshotProvider call({required bool forceRealData}) =>
+      TransactionReportSnapshotProvider._(argument: forceRealData, from: this);
+
+  @override
+  String toString() => r'transactionReportSnapshotProvider';
 }
 
 @ProviderFor(transactionList)
@@ -185,7 +270,7 @@ final class TransactionListProvider
   }
 }
 
-String _$transactionListHash() => r'b08a64782f6946d3dd8cb28194e9e067291e64c8';
+String _$transactionListHash() => r'db42881764e145f5888d2c9aab0f105f54278827';
 
 final class TransactionListFamily extends $Family
     with $FunctionalFamilyOverride<Stream<List<ITransaction>>, bool> {
@@ -322,7 +407,7 @@ final class TransactionItemListProvider
 }
 
 String _$transactionItemListHash() =>
-    r'35992fbce1f66e0c58d0c516d0ec6a9393264b06';
+    r'615c2480b070c4c7b267d88f4562d02f2bdb4c34';
 
 @ProviderFor(expensesStream)
 const expensesStreamProvider = ExpensesStreamFamily._();
@@ -509,7 +594,7 @@ final class GrossProfitStreamProvider
   }
 }
 
-String _$grossProfitStreamHash() => r'36e377586fbf56b3fbf1aecec4e827819d9612be';
+String _$grossProfitStreamHash() => r'12c26b454d540ce8b5a8a81cb56b76ec7b8ccc30';
 
 final class GrossProfitStreamFamily extends $Family
     with
@@ -618,7 +703,7 @@ final class NetProfitStreamProvider
   }
 }
 
-String _$netProfitStreamHash() => r'335bf64d9c290aee8db30ea38db80ee09cc9430b';
+String _$netProfitStreamHash() => r'd934af19fc3c25ee0bc16ec46bd1a633a71fb3b8';
 
 final class NetProfitStreamFamily extends $Family
     with
@@ -727,7 +812,7 @@ final class TotalIncomeStreamProvider
   }
 }
 
-String _$totalIncomeStreamHash() => r'ba09b4bc51619e47d0d69c13bb93afb1ee2e17a9';
+String _$totalIncomeStreamHash() => r'fd22078d57b4afb9391c246c2ee5b397e81f0413';
 
 final class TotalIncomeStreamFamily extends $Family
     with

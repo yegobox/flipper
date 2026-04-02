@@ -116,70 +116,60 @@ class TransactionListState extends ConsumerState<TransactionList>
     final showDetailed = ref.watch(toggleBooleanValueProvider);
     final rowsPerPage = ref.watch(rowsPerPageProvider);
 
-    // Calculate pagination parameters
-    // TEMPORARILY DISABLED: Pagination not implemented in backend
-    // final limit = rowsPerPage;
-    // final offset = _currentPage * rowsPerPage;
+ 
 
-    // Get total count for pagination
-    // TEMPORARILY DISABLED: transactionItemCountProvider and transactionCountProvider are not implemented
-    // final countAsync = showDetailed
-    //     ? ref.watch(transactionItemCountProvider)
-    //     : ref.watch(transactionCountProvider);
+    final forceRealData = !(ProxyService.box.enableDebug() ?? false);
+    final reportSnapshotAsync = ref.watch(
+      transactionReportSnapshotProvider(forceRealData: forceRealData),
+    );
+    final itemListAsync = ref.watch(transactionItemListProvider);
 
-    // Update total count when available
-    // countAsync.whenData((count) {
-    //   if (_totalCount != count) {
-    //     WidgetsBinding.instance.addPostFrameCallback((_) {
-    //       if (mounted) {
-    //         setState(() => _totalCount = count);
-    //       }
-    //     });
-    //   }
-    // });
-
-    // Use a key to force rebuild when the toggle changes
-    final AsyncValue<List<dynamic>> dataProvider;
-
-    // Select and refresh the appropriate provider based on showDetailed
-    if (showDetailed) {
-      // For detailed view, use transactionItemListProvider
-      dataProvider = ref.watch(transactionItemListProvider);
-    } else {
-      // For summary view, use transactionListProvider with pagination
-      dataProvider = ref.watch(
-        transactionListProvider(
-          forceRealData: !(ProxyService.box.enableDebug() ?? false),
-        ),
-      );
-    }
+    // Align list async with grid: summary uses snapshot → transactions list
+    final AsyncValue<List<dynamic>> dataProvider = showDetailed
+        ? itemListAsync
+        : switch (reportSnapshotAsync) {
+            AsyncData(:final value) =>
+              AsyncData(value.transactions as List<dynamic>),
+            AsyncError(:final error, :final stackTrace) =>
+              AsyncError(error, stackTrace),
+            _ => const AsyncLoading<List<dynamic>>(),
+          };
 
     // Conditionally cast the data based on the `showDetailed` flag
     List<ITransaction>? transactions;
     List<TransactionItem>? transactionItems;
+    Map<String, TransactionPaymentSums>? paymentSumsForGrid;
 
-    if (dataProvider.hasValue && dataProvider.value!.isNotEmpty) {
-      try {
-        if (!showDetailed) {
-          var allTransactions = dataProvider.value!.cast<ITransaction>();
-          // Filter transactions by search query
-          if (_searchQuery.isNotEmpty) {
-            transactions = allTransactions.where((transaction) {
-              final receiptNumber = transaction.receiptNumber?.toString() ?? '';
-
-              return receiptNumber.toLowerCase().contains(
-                _searchQuery.toLowerCase(),
-              );
-            }).toList();
-          } else {
-            transactions = allTransactions;
-          }
-        } else {
-          transactionItems = dataProvider.value!.cast<TransactionItem>();
+    if (showDetailed) {
+      if (itemListAsync.hasValue && itemListAsync.value!.isNotEmpty) {
+        try {
+          transactionItems = itemListAsync.value!.cast<TransactionItem>();
+        } catch (e) {
+          print("Error casting data: $e");
         }
-      } catch (e) {
-        // Handle casting error gracefully
-        print("Error casting data: $e");
+      }
+    } else {
+      final snap = reportSnapshotAsync.asData?.value;
+      if (snap != null) {
+        var txs = List<ITransaction>.from(snap.transactions);
+        if (_searchQuery.isNotEmpty) {
+          final q = _searchQuery.toLowerCase();
+          txs = txs.where((transaction) {
+            final receiptNumber = transaction.receiptNumber?.toString() ?? '';
+            return receiptNumber.toLowerCase().contains(q);
+          }).toList();
+        }
+        transactions = txs;
+        paymentSumsForGrid = {
+          for (final t in txs)
+            t.id:
+                snap.paymentSumsByTransactionId[t.id] ??
+                const TransactionPaymentSums(
+                  byHand: 0,
+                  credit: 0,
+                  hasAnyRecord: false,
+                ),
+        };
       }
     }
 
@@ -229,6 +219,7 @@ class TransactionListState extends ConsumerState<TransactionList>
                             dataProvider,
                             transactions,
                             transactionItems,
+                            paymentSumsForGrid,
                             startDate,
                             endDate,
                             showDetailed,
@@ -574,6 +565,7 @@ class TransactionListState extends ConsumerState<TransactionList>
     AsyncValue<List<dynamic>> dataProvider,
     List<ITransaction>? transactions,
     List<TransactionItem>? transactionItems,
+    Map<String, TransactionPaymentSums>? paymentSumsByTransactionId,
     DateTime? startDate,
     DateTime? endDate,
     bool showDetailed,
@@ -619,6 +611,7 @@ class TransactionListState extends ConsumerState<TransactionList>
           key: dataViewKey,
           transactions: transactions,
           transactionItems: transactionItems,
+          paymentSumsByTransactionId: paymentSumsByTransactionId,
           startDate: validStartDate,
           endDate: validEndDate,
           rowsPerPage: ref.read(rowsPerPageProvider),
@@ -709,6 +702,11 @@ class TransactionListState extends ConsumerState<TransactionList>
               onPressed: () {
                 // Invalidate providers to retry
                 ref.invalidate(transactionItemListProvider);
+                ref.invalidate(
+                  transactionReportSnapshotProvider(
+                    forceRealData: !(ProxyService.box.enableDebug() ?? false),
+                  ),
+                );
                 ref.invalidate(
                   transactionListProvider(
                     forceRealData: !(ProxyService.box.enableDebug() ?? false),

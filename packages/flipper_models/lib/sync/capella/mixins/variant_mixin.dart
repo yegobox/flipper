@@ -201,14 +201,64 @@ mixin CapellaVariantMixin implements VariantInterface {
 
       talker.info('Executing Ditto query: $query with args: $arguments');
 
-      // Use execute instead of registerObserver to avoid database locks
-      // registerObserver creates continuous subscriptions that cause lock contention
       List<dynamic> items = [];
       int? totalCount;
 
-      // Execute query directly without creating observer subscription
-      final result = await ditto.store.execute(query, arguments: arguments);
-      items = result.items.toList();
+      // New devices have an empty local Ditto store until the mesh pulls from
+      // the cloud. Always register subscriptions (Ditto dedupes); callers no
+      // longer need to thread fetchRemote correctly for sync to work.
+      // See product_mixin broad subscription + Ditto support #2648.
+      try {
+        await ditto.sync.registerSubscription(
+          'SELECT * FROM variants WHERE branchId = :branchId',
+          arguments: {'branchId': branchId},
+        );
+        talker.debug('variants: registered broad branch subscription for sync');
+      } catch (e) {
+        talker.warning('variants: broad registerSubscription failed: $e');
+      }
+
+      final subArgs = Map<String, dynamic>.from(arguments)
+        ..remove('limit')
+        ..remove('offset');
+      var subQuery = query;
+      if (subArgs.length != arguments.length) {
+        subQuery = subQuery.replaceFirst(
+          RegExp(
+            r'\s+ORDER BY lastTouched DESC\s+LIMIT :limit OFFSET :offset\s*$',
+          ),
+          '',
+        );
+      }
+      subQuery = subQuery.replaceFirst(
+        RegExp(r'\s+ORDER BY lastTouched DESC\s*$'),
+        '',
+      );
+      try {
+        await ditto.sync.registerSubscription(subQuery, arguments: subArgs);
+        talker.debug('variants: registered filtered subscription for sync');
+      } catch (e) {
+        talker.warning('variants: filtered registerSubscription failed: $e');
+      }
+
+      Future<List<dynamic>> runExecute() async {
+        final r = await ditto.store.execute(query, arguments: arguments);
+        return r.items.toList();
+      }
+
+      items = await runExecute();
+
+      // First page only: empty may mean sync not landed yet; later pages empty
+      // usually means end of list, not worth waiting.
+      final isFirstPage = page == null || page == 0;
+      if (items.isEmpty && isFirstPage) {
+        await Future.delayed(const Duration(milliseconds: 600));
+        items = await runExecute();
+      }
+      if (items.isEmpty && isFirstPage) {
+        await Future.delayed(const Duration(milliseconds: 1200));
+        items = await runExecute();
+      }
 
       if (ProxyService.box.getUserLoggingEnabled() ?? false) {
         await logService.logException(

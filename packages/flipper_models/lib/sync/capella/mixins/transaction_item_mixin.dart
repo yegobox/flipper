@@ -115,7 +115,8 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
           .map((e) => ':t${e.key}')
           .join(', ');
       final arguments = <String, dynamic>{
-        for (var i = 0; i < transactionIds.length; i++) 't$i': transactionIds[i]
+        for (var i = 0; i < transactionIds.length; i++)
+          't$i': transactionIds[i],
       };
 
       final query =
@@ -140,6 +141,26 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
     }
   }
 
+  num? _dittoOptNum(dynamic v) {
+    if (v == null) return null;
+    if (v is num) return v;
+    return num.tryParse(v.toString());
+  }
+
+  String? _dittoOptString(dynamic v) {
+    if (v == null) return null;
+    final s = v.toString().trim();
+    return s.isEmpty ? null : s;
+  }
+
+  String? _dittoFirstString(Map<String, dynamic> data, List<String> keys) {
+    for (final k in keys) {
+      final s = _dittoOptString(data[k]);
+      if (s != null) return s;
+    }
+    return null;
+  }
+
   /// Convert Ditto document to TransactionItem model
   TransactionItem _convertFromDittoDocument(Map<String, dynamic> data) {
     DateTime? lastTouched;
@@ -156,37 +177,38 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
       name: data['name'] ?? '',
       transactionId: data['transactionId'],
       variantId: data['variantId'],
-      qty: (data['qty'] as num?)?.toDouble() ?? 0.0,
-      price: (data['price'] as num?)?.toDouble() ?? 0.0,
-      discount: (data['discount'] as num?)?.toDouble() ?? 0.0,
-      taxAmt: (data['taxAmt'] as num?)?.toDouble() ?? 0.0,
-      remainingStock: (data['remainingStock'] as num?)?.toDouble() ?? 0.0,
+      qty: _dittoOptNum(data['qty']) ?? 0,
+      price: _dittoOptNum(data['price']) ?? 0,
+      discount: _dittoOptNum(data['discount']) ?? 0,
+      taxAmt: _dittoOptNum(data['taxAmt']),
+      remainingStock: _dittoOptNum(data['remainingStock']),
       active: data['active'] ?? true,
       doneWithTransaction: data['doneWithTransaction'] ?? false,
       lastTouched: lastTouched,
       branchId: data['branchId'],
       taxTyCd: data['taxTyCd'],
-      bcd: data['bcd'],
+      bcd: _dittoFirstString(data, ['bcd', 'barcode', 'Barcode', 'barCode']),
+      sku: _dittoOptString(data['sku']),
       itemClsCd: data['itemClsCd'],
       itemTyCd: data['itemTyCd'],
       itemStdNm: data['itemStdNm'],
       orgnNatCd: data['orgnNatCd'],
       pkgUnitCd: data['pkgUnitCd'],
       qtyUnitCd: data['qtyUnitCd'],
-      totAmt: (data['totAmt'] as num?)?.toDouble() ?? 0.0,
-      prc: (data['prc'] as num?)?.toDouble() ?? 0.0,
-      splyAmt: (data['splyAmt'] as num?)?.toDouble() ?? 0.0,
+      totAmt: _dittoOptNum(data['totAmt']),
+      prc: _dittoOptNum(data['prc']) ?? 0,
+      splyAmt: _dittoOptNum(data['splyAmt']),
       tin: data['tin'],
       bhfId: data['bhfId'],
-      dftPrc: (data['dftPrc'] as num?)?.toDouble() ?? 0.0,
+      dftPrc: _dittoOptNum(data['dftPrc']) ?? 0,
       addInfo: data['addInfo'],
       isrccCd: data['isrccCd'],
       isrccNm: data['isrccNm'],
-      isrcRt: (data['isrcRt'] as num?)?.toInt() ?? 0,
-      isrcAmt: (data['isrcAmt'] as num?)?.toInt() ?? 0,
-      taxblAmt: (data['taxblAmt'] as num?)?.toDouble() ?? 0.0,
-      dcRt: (data['dcRt'] as num?)?.toDouble() ?? 0.0,
-      dcAmt: (data['dcAmt'] as num?)?.toDouble() ?? 0.0,
+      isrcRt: _dittoOptNum(data['isrcRt'])?.toInt() ?? 0,
+      isrcAmt: _dittoOptNum(data['isrcAmt'])?.toInt() ?? 0,
+      taxblAmt: _dittoOptNum(data['taxblAmt']),
+      dcRt: _dittoOptNum(data['dcRt']) ?? 0,
+      dcAmt: _dittoOptNum(data['dcAmt']) ?? 0,
       isrcAplcbYn: data['isrccAplcbYn'],
       useYn: data['useYn'],
       regrId: data['regrId'],
@@ -200,6 +222,8 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
       ebmSynced: data['ebmSynced'],
       isRefunded: data['isRefunded'],
       ttCatCd: data['ttCatCd'],
+      taxPercentage: _dittoOptNum(data['taxPercentage']),
+      supplyPriceAtSale: _dittoOptNum(data['supplyPriceAtSale']),
       createdAt: data['createdAt'] != null
           ? DateTime.parse(data['createdAt'])
           : null,

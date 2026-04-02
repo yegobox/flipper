@@ -7,15 +7,15 @@ import 'package:flutter/foundation.dart' hide Category;
 class EmptyDataSource extends DynamicDataSource<dynamic> {
   final bool showDetailed;
 
-  EmptyDataSource(this.showDetailed) : super([], 10);
+  EmptyDataSource(this.showDetailed) : super([], 11);
 
   @override
   List<DataGridRow> get rows {
     // Provide a single empty row with the correct number of cells
     // to satisfy SfDataGrid's assertion during initialization.
     final int numberOfColumns = showDetailed
-        ? 10
-        : 5; // 10 for detailed, 5 for summary
+        ? 11
+        : kTransactionSummaryColumnCount;
     return [
       DataGridRow(
         cells: List.generate(
@@ -28,7 +28,8 @@ class EmptyDataSource extends DynamicDataSource<dynamic> {
 
   @override
   DataGridRowAdapter buildRow(DataGridRow row) {
-    final int numberOfColumns = showDetailed ? 10 : 5;
+    final int numberOfColumns =
+        showDetailed ? 11 : kTransactionSummaryColumnCount;
     debugPrint(
       '[EmptyDataSource] buildRow: mode=${showDetailed ? 'detailed' : 'summary'}, cells=$numberOfColumns',
     );

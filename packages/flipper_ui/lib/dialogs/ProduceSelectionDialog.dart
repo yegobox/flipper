@@ -232,7 +232,7 @@ class _ProduceSelectionDialogContentState
                 padding: const EdgeInsets.only(left: 24, top: 8, bottom: 8),
                 child: Text(
                   'Items',
-                  style: GoogleFonts.inter(
+                  style: GoogleFonts.poppins(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
                     color: FluentTheme.textSecondary,
@@ -303,7 +303,7 @@ class _Header extends StatelessWidget {
           Expanded(
             child: Text(
               'Select Item to Produce',
-              style: GoogleFonts.inter(
+              style: GoogleFonts.poppins(
                 fontSize: 20,
                 fontWeight: FontWeight.w600,
                 color: FluentTheme.textPrimary,
@@ -773,7 +773,7 @@ class _DetailPanel extends StatelessWidget {
                     children: [
                       Text(
                         'Production Details',
-                        style: GoogleFonts.inter(
+                        style: GoogleFonts.poppins(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                           color: FluentTheme.textPrimary,
