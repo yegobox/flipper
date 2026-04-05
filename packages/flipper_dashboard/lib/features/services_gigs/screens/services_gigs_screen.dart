@@ -95,8 +95,119 @@ class _ServicesGigsScreenState extends State<ServicesGigsScreen> {
     );
   }
 
+  static List<Widget> _howItWorksSectionCards() => [
+        _SectionCard(
+          icon: Icons.person_add_alt_1_outlined,
+          title: 'Providers',
+          body:
+              'Workers register and list the services they can perform for others.',
+        ),
+        _SectionCard(
+          icon: Icons.star_outline_rounded,
+          title: 'Ratings',
+          body:
+              'We assign and update ratings from our verification and client feedback.',
+        ),
+        _SectionCard(
+          icon: Icons.send_outlined,
+          title: 'Requests',
+          body:
+              'Customers send a service request to a chosen provider. The provider must accept or decline within 30 minutes.',
+          highlight: '30 min to accept',
+        ),
+        _SectionCard(
+          icon: Icons.payments_outlined,
+          title: 'Payment window',
+          body:
+              'After acceptance, the customer completes payment within 5 minutes so the job is confirmed and funded.',
+          highlight: '5 min to pay',
+        ),
+        _SectionCard(
+          icon: Icons.route_outlined,
+          title: 'Execution',
+          body:
+              'Once paid, the worker can contact the customer and perform the service.',
+        ),
+        _SectionCard(
+          icon: Icons.account_balance_wallet_outlined,
+          title: 'Escrow & payout',
+          body:
+              'We collect funds via MTN (and dedicated charge APIs). Money is released after both sides confirm completion; ledgers track balances, commission, and who is owed what.',
+        ),
+      ];
+
+  void _showHowItWorksSheet() {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.88,
+          minChildSize: 0.45,
+          maxChildSize: 0.95,
+          expand: false,
+          builder: (context, scrollController) {
+            return DecoratedBox(
+              decoration: BoxDecoration(
+                color: Colors.grey.shade50,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(16),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(8, 8, 4, 4),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.only(left: 8),
+                            child: Text(
+                              'How Services hub works',
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 17,
+                                color: Colors.grey.shade900,
+                              ),
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: () => Navigator.of(sheetContext).pop(),
+                          color: Colors.grey.shade700,
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: ListView(
+                      controller: scrollController,
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+                      children: _howItWorksSectionCards(),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final sectionTitleStyle = GoogleFonts.poppins(
+      fontWeight: FontWeight.w600,
+      fontSize: 13,
+      color: Colors.grey.shade600,
+    );
+
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
@@ -113,12 +224,19 @@ class _ServicesGigsScreenState extends State<ServicesGigsScreen> {
           fontSize: 18,
           fontWeight: FontWeight.w600,
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.help_outline),
+            tooltip: 'How it works',
+            onPressed: _showHowItWorksSheet,
+          ),
+        ],
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
         children: [
           Text(
-            'Offer skills, request help, and pay safely through the platform.',
+            'Find people for jobs, or offer your skills—payments stay on the platform.',
             style: GoogleFonts.poppins(
               fontSize: 15,
               height: 1.45,
@@ -135,46 +253,106 @@ class _ServicesGigsScreenState extends State<ServicesGigsScreen> {
               padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
             ),
           ),
-          const SizedBox(height: 10),
-          OutlinedButton.icon(
-            onPressed: _openProviderInbox,
-            icon: const Icon(Icons.inbox_outlined),
-            label: const Text('Incoming requests'),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: const Color(0xFF0F766E),
-              side: const BorderSide(color: Color(0xFF0F766E)),
-              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+          const SizedBox(height: 16),
+          Card(
+            elevation: 0,
+            color: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+              side: BorderSide(color: Colors.grey.shade200),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                  child: Text('Your activity', style: sectionTitleStyle),
+                ),
+                ListTile(
+                  leading: Icon(
+                    Icons.receipt_long_outlined,
+                    color: Colors.grey.shade700,
+                  ),
+                  title: Text(
+                    'My requests',
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.w500,
+                      fontSize: 15,
+                    ),
+                  ),
+                  trailing: Icon(
+                    Icons.chevron_right,
+                    color: Colors.grey.shade400,
+                  ),
+                  onTap: _openMyRequests,
+                ),
+                Divider(height: 1, thickness: 1, color: Colors.grey.shade100),
+                ListTile(
+                  leading: Icon(
+                    Icons.notifications_active_outlined,
+                    color: Colors.grey.shade700,
+                  ),
+                  title: Text(
+                    'Notifications',
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.w500,
+                      fontSize: 15,
+                    ),
+                  ),
+                  trailing: Icon(
+                    Icons.chevron_right,
+                    color: Colors.grey.shade400,
+                  ),
+                  onTap: _openActivity,
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 10),
-          OutlinedButton.icon(
-            onPressed: _openMyRequests,
-            icon: const Icon(Icons.receipt_long_outlined),
-            label: const Text('My requests'),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: const Color(0xFF0F766E),
-              side: const BorderSide(color: Color(0xFF0F766E)),
-              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-            ),
-          ),
-          const SizedBox(height: 10),
-          OutlinedButton.icon(
-            onPressed: _openActivity,
-            icon: const Icon(Icons.notifications_active_outlined),
-            label: const Text('Notifications'),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: const Color(0xFF0F766E),
-              side: const BorderSide(color: Color(0xFF0F766E)),
-              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-            ),
-          ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           if (_loadingProfile)
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 12),
               child: Center(child: CircularProgressIndicator()),
             )
           else if (_provider != null) ...[
+            Card(
+              elevation: 0,
+              color: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+                side: BorderSide(color: Colors.grey.shade200),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                    child: Text('Provider tools', style: sectionTitleStyle),
+                  ),
+                  ListTile(
+                    leading: Icon(
+                      Icons.inbox_outlined,
+                      color: Colors.grey.shade700,
+                    ),
+                    title: Text(
+                      'Incoming requests',
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 15,
+                      ),
+                    ),
+                    trailing: Icon(
+                      Icons.chevron_right,
+                      color: Colors.grey.shade400,
+                    ),
+                    onTap: _openProviderInbox,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
             _RegisteredProviderCard(
               profile: _provider!,
               onEdit: _openRegistration,
@@ -191,45 +369,6 @@ class _ServicesGigsScreenState extends State<ServicesGigsScreen> {
             ),
           ] else
             _BecomeProviderCallout(onRegister: _openRegistration),
-          const SizedBox(height: 20),
-          _SectionCard(
-            icon: Icons.person_add_alt_1_outlined,
-            title: 'Providers',
-            body:
-                'Workers register and list the services they can perform for others.',
-          ),
-          _SectionCard(
-            icon: Icons.star_outline_rounded,
-            title: 'Ratings',
-            body:
-                'We assign and update ratings from our verification and client feedback.',
-          ),
-          _SectionCard(
-            icon: Icons.send_outlined,
-            title: 'Requests',
-            body:
-                'Customers send a service request to a chosen provider. The provider must accept or decline within 30 minutes.',
-            highlight: '30 min to accept',
-          ),
-          _SectionCard(
-            icon: Icons.payments_outlined,
-            title: 'Payment window',
-            body:
-                'After acceptance, the customer completes payment within 5 minutes so the job is confirmed and funded.',
-            highlight: '5 min to pay',
-          ),
-          _SectionCard(
-            icon: Icons.route_outlined,
-            title: 'Execution',
-            body:
-                'Once paid, the worker can contact the customer and perform the service.',
-          ),
-          _SectionCard(
-            icon: Icons.account_balance_wallet_outlined,
-            title: 'Escrow & payout',
-            body:
-                'We collect funds via MTN (and dedicated charge APIs). Money is released after both sides confirm completion; ledgers track balances, commission, and who is owed what.',
-          ),
         ],
       ),
     );
