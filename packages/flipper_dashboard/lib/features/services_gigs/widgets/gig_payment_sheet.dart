@@ -7,6 +7,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+bool _looksLikeEmail(String value) {
+  final t = value.trim();
+  if (!t.contains('@')) return false;
+  return RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(t);
+}
+
+/// Digits only after normalizing; typical MTN RW: 250 + 9 digits, or 9–12 digit local.
+bool _isPlausibleMoMoNumber(String raw) {
+  final t = raw
+      .trim()
+      .replaceAll(RegExp(r'\s'), '')
+      .replaceFirst(RegExp(r'^\+'), '');
+  if (t.isEmpty || t.contains('@')) return false;
+  if (!RegExp(r'^\d+$').hasMatch(t)) return false;
+  return t.length >= 9 && t.length <= 15;
+}
+
 /// Bottom sheet: MTN MoMo payment for a gig request (customer only).
 class GigPaymentSheet extends StatefulWidget {
   final ServiceGigRequest request;
@@ -29,6 +46,7 @@ class _GigPaymentSheetState extends State<GigPaymentSheet> {
   final _requestRepo = ServiceGigRequestRepository();
   bool _submitting = false;
   String? _sheetError;
+  late final bool _showMoMoNumberGuidance;
 
   ServiceGigRequest get _r => widget.request;
 
@@ -38,9 +56,14 @@ class _GigPaymentSheetState extends State<GigPaymentSheet> {
   @override
   void initState() {
     super.initState();
-    final phone = ProxyService.box.getUserPhone();
-    if (phone != null && phone.isNotEmpty) {
-      _phoneController.text = phone;
+    final stored = ProxyService.box.getUserPhone()?.trim() ?? '';
+    final mustLinkPhone = ProxyService.box.getNeedAccountLinkWithPhone();
+    final plausible = _isPlausibleMoMoNumber(stored) && !_looksLikeEmail(stored);
+    _showMoMoNumberGuidance =
+        mustLinkPhone || stored.isEmpty || _looksLikeEmail(stored) || !plausible;
+    if (plausible && !mustLinkPhone) {
+      _phoneController.text =
+          stored.replaceAll(RegExp(r'\s'), '').replaceFirst(RegExp(r'^\+'), '');
     }
     final budget = _r.paymentAmountRwf;
     if (budget != null) {
@@ -82,11 +105,14 @@ class _GigPaymentSheetState extends State<GigPaymentSheet> {
       return;
     }
 
-    final phone = _phoneController.text.trim().replaceAll(RegExp(r'\s'), '');
-    if (phone.length < 9) {
+    var phone = _phoneController.text.trim().replaceAll(RegExp(r'\s'), '');
+    phone = phone.replaceFirst(RegExp(r'^\+'), '');
+    if (phone.length < 9 ||
+        _looksLikeEmail(phone) ||
+        !_isPlausibleMoMoNumber(phone)) {
       showWarningNotification(
         context,
-        'Enter a valid MTN mobile number.',
+        'Enter the MTN MoMo number to charge (mobile wallet, not email).',
       );
       return;
     }
@@ -202,6 +228,40 @@ class _GigPaymentSheetState extends State<GigPaymentSheet> {
                   color: Colors.grey.shade700,
                 ),
               ),
+              if (_showMoMoNumberGuidance) ...[
+                const SizedBox(height: 14),
+                Material(
+                  color: const Color(0xFF0D9488).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(
+                          Icons.phone_android_outlined,
+                          color: const Color(0xFF0F766E),
+                          size: 22,
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            'If you signed in with email (or we do not have a mobile wallet on file), '
+                            'enter the MTN MoMo number that should be charged. '
+                            'This must be a mobile money line—not an email.',
+                            style: GoogleFonts.poppins(
+                              fontSize: 12,
+                              height: 1.45,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.grey.shade800,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
               const SizedBox(height: 20),
               TextFormField(
                 controller: _amountController,
@@ -240,11 +300,15 @@ class _GigPaymentSheetState extends State<GigPaymentSheet> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _phoneController,
+                autofocus: _showMoMoNumberGuidance,
                 keyboardType: TextInputType.phone,
                 style: GoogleFonts.poppins(fontSize: 16),
                 decoration: InputDecoration(
-                  labelText: 'MTN MoMo number',
+                  labelText: 'MTN MoMo number to charge',
                   hintText: '2507XXXXXXXX',
+                  helperText: _showMoMoNumberGuidance
+                      ? 'Use the wallet number MTN will prompt, not your login email'
+                      : null,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -252,7 +316,15 @@ class _GigPaymentSheetState extends State<GigPaymentSheet> {
                 ),
                 validator: (v) {
                   final t = v?.trim().replaceAll(RegExp(r'\s'), '') ?? '';
-                  if (t.length < 9) return 'Enter your MoMo number';
+                  if (t.length < 9) {
+                    return 'Enter the MTN MoMo number to charge';
+                  }
+                  if (_looksLikeEmail(t)) {
+                    return 'Enter a mobile number, not an email';
+                  }
+                  if (!_isPlausibleMoMoNumber(t)) {
+                    return 'Enter a valid mobile number (digits only, 9–15)';
+                  }
                   return null;
                 },
               ),
