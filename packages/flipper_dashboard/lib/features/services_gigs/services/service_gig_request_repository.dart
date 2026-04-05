@@ -347,7 +347,7 @@ class ServiceGigRequestRepository {
     }
   }
 
-  Future<void> sendMessage({
+  Future<ServiceGigChatMessage> sendMessage({
     required String requestId,
     required String body,
   }) async {
@@ -368,11 +368,18 @@ class ServiceGigRequestRepository {
       throw ServiceGigRequestException('This request is closed.');
     }
     try {
-      await Supabase.instance.client.from(_messagesTable).insert({
-        'request_id': requestId,
-        'sender_user_id': uid,
-        'body': trimmed,
-      });
+      final row = await Supabase.instance.client
+          .from(_messagesTable)
+          .insert({
+            'request_id': requestId,
+            'sender_user_id': uid,
+            'body': trimmed,
+          })
+          .select()
+          .single();
+      return ServiceGigChatMessage.fromJson(
+        Map<String, dynamic>.from(row),
+      );
     } on PostgrestException catch (e) {
       throw ServiceGigRequestException(
         e.message.isNotEmpty ? e.message : 'Could not send message.',
