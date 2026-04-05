@@ -8,6 +8,11 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
+const _kCardRadius = 10.0;
+const _kPayButtonShape = RoundedRectangleBorder(
+  borderRadius: BorderRadius.all(Radius.circular(8)),
+);
+
 /// Customer view: requests you sent, including pay-with-MTN after the provider accepts.
 class CustomerMyRequestsScreen extends StatefulWidget {
   const CustomerMyRequestsScreen({Key? key}) : super(key: key);
@@ -112,7 +117,7 @@ class _CustomerMyRequestsScreenState extends State<CustomerMyRequestsScreen> {
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
       ),
       builder: (ctx) => GigPaymentSheet(
         request: r,
@@ -133,7 +138,7 @@ class _CustomerMyRequestsScreenState extends State<CustomerMyRequestsScreen> {
     final df = DateFormat.yMMMd().add_jm();
 
     return Scaffold(
-      backgroundColor: Colors.grey.shade50,
+      backgroundColor: Colors.grey.shade100,
       appBar: AppBar(
         title: Text(
           'My requests',
@@ -165,24 +170,29 @@ class _CustomerMyRequestsScreenState extends State<CustomerMyRequestsScreen> {
                     physics: const AlwaysScrollableScrollPhysics(),
                     padding: const EdgeInsets.all(24),
                     children: [
-                      Icon(Icons.send_outlined,
-                          size: 56, color: Colors.grey.shade400),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 32),
+                      Icon(
+                        Icons.send_outlined,
+                        size: 48,
+                        color: Colors.grey.shade400,
+                      ),
+                      const SizedBox(height: 20),
                       Text(
                         'No requests yet',
                         textAlign: TextAlign.center,
                         style: GoogleFonts.poppins(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
+                          color: Colors.grey.shade900,
                         ),
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 10),
                       Text(
                         'When you ask someone for a service from Find providers, it will appear here. After they accept, you can pay with MTN within the time shown.',
                         textAlign: TextAlign.center,
                         style: GoogleFonts.poppins(
                           fontSize: 14,
-                          height: 1.4,
+                          height: 1.45,
                           color: Colors.grey.shade600,
                         ),
                       ),
@@ -192,144 +202,383 @@ class _CustomerMyRequestsScreenState extends State<CustomerMyRequestsScreen> {
                     physics: const AlwaysScrollableScrollPhysics(),
                     padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
                     itemCount: _items.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: 12),
+                    separatorBuilder: (_, __) => const SizedBox(height: 10),
                     itemBuilder: (context, i) {
                       final r = _items[i];
-                      final urgentPay = r.canCustomerPay;
-
-                      return Card(
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                          side: BorderSide(
-                            color: urgentPay
-                                ? const Color(0xFF0D9488).withValues(alpha: 0.5)
-                                : Colors.grey.shade200,
-                            width: urgentPay ? 1.5 : 1,
-                          ),
-                        ),
-                        child: InkWell(
-                          onTap: () => _openDetail(r),
-                          borderRadius: BorderRadius.circular(14),
-                          child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                _providerLabel(r),
-                                style: GoogleFonts.poppins(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 16,
-                                ),
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                _statusLabel(r),
-                                style: GoogleFonts.poppins(
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 13,
-                                  color: const Color(0xFF0F766E),
-                                ),
-                              ),
-                              if (r.requestedService != null &&
-                                  r.requestedService!.isNotEmpty) ...[
-                                const SizedBox(height: 8),
-                                Text(
-                                  r.requestedService!,
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ],
-                              const SizedBox(height: 8),
-                              Text(
-                                r.customerMessage,
-                                style: GoogleFonts.poppins(
-                                  fontSize: 14,
-                                  height: 1.4,
-                                  color: Colors.grey.shade800,
-                                ),
-                              ),
-                              if (r.paymentAmountRwf != null &&
-                                  r.paymentAmountRwf! >= 100 &&
-                                  (r.status == 'requested' ||
-                                      r.isAwaitingPayment)) ...[
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Agreed amount: ${r.paymentAmountRwf} RWF',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.grey.shade800,
-                                  ),
-                                ),
-                              ],
-                              const SizedBox(height: 8),
-                              Text(
-                                'Sent ${df.format(r.createdAt.toLocal())}',
-                                style: GoogleFonts.poppins(
-                                  fontSize: 12,
-                                  color: Colors.grey.shade600,
-                                ),
-                              ),
-                              if (r.isAwaitingPayment &&
-                                  r.paymentDeadlineAt != null) ...[
-                                const SizedBox(height: 6),
-                                Text(
-                                  r.canCustomerPay
-                                      ? 'Pay by ${df.format(r.paymentDeadlineAt!.toLocal())}'
-                                      : 'You did not pay before ${df.format(r.paymentDeadlineAt!.toLocal())}',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w500,
-                                    color: r.canCustomerPay
-                                        ? Colors.amber.shade900
-                                        : Colors.red.shade700,
-                                  ),
-                                ),
-                              ],
-                              if (r.status == 'paid' &&
-                                  r.paymentAmountRwf != null) ...[
-                                const SizedBox(height: 6),
-                                Text(
-                                  r.mtnSettledAmountRwf != null &&
-                                          r.mtnSettledAmountRwf !=
-                                              r.paymentAmountRwf
-                                      ? 'Paid ${r.paymentAmountRwf} RWF · MTN settled ${r.mtnSettledAmountRwf} RWF'
-                                      : 'Paid ${r.paymentAmountRwf} RWF',
-                                  style: GoogleFonts.poppins(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.green.shade800,
-                                  ),
-                                ),
-                              ],
-                              if (urgentPay) ...[
-                                const SizedBox(height: 16),
-                                SizedBox(
-                                  width: double.infinity,
-                                  child: FilledButton.icon(
-                                    onPressed: () => _openPay(r),
-                                    icon: const Icon(Icons.phone_android),
-                                    label: const Text('Pay with MTN'),
-                                    style: FilledButton.styleFrom(
-                                      backgroundColor: const Color(0xFF0D9488),
-                                      padding: const EdgeInsets.symmetric(
-                                        vertical: 14,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ],
-                          ),
-                        ),
-                        ),
+                      return _OutgoingRequestCard(
+                        request: r,
+                        providerLabel: _providerLabel(r),
+                        statusLabel: _statusLabel(r),
+                        dateFormat: df,
+                        onOpenDetail: () => _openDetail(r),
+                        onOpenPay: () => _openPay(r),
                       );
                     },
                   ),
+      ),
+    );
+  }
+}
+
+class _StatusChipStyle {
+  final Color background;
+  final Color foreground;
+
+  const _StatusChipStyle({required this.background, required this.foreground});
+}
+
+_StatusChipStyle _statusChipStyle(ServiceGigRequest r) {
+  if (r.canCustomerPay) {
+    return _StatusChipStyle(
+      background: Colors.amber.shade100,
+      foreground: Colors.amber.shade900,
+    );
+  }
+  if (r.status == 'pending_payment') {
+    return _StatusChipStyle(
+      background: Colors.red.shade50,
+      foreground: Colors.red.shade900,
+    );
+  }
+  switch (r.status) {
+    case 'completed':
+      return _StatusChipStyle(
+        background: Colors.green.shade50,
+        foreground: Colors.green.shade800,
+      );
+    case 'paid':
+    case 'in_progress':
+      return _StatusChipStyle(
+        background: const Color(0xFF0D9488).withValues(alpha: 0.12),
+        foreground: const Color(0xFF0F766E),
+      );
+    case 'declined':
+    case 'expired':
+    case 'cancelled':
+      return _StatusChipStyle(
+        background: Colors.grey.shade200,
+        foreground: Colors.grey.shade800,
+      );
+    case 'requested':
+    default:
+      return _StatusChipStyle(
+        background: Colors.blueGrey.shade50,
+        foreground: Colors.blueGrey.shade800,
+      );
+  }
+}
+
+class _OutgoingRequestCard extends StatelessWidget {
+  final ServiceGigRequest request;
+  final String providerLabel;
+  final String statusLabel;
+  final DateFormat dateFormat;
+  final VoidCallback onOpenDetail;
+  final VoidCallback onOpenPay;
+
+  const _OutgoingRequestCard({
+    required this.request,
+    required this.providerLabel,
+    required this.statusLabel,
+    required this.dateFormat,
+    required this.onOpenDetail,
+    required this.onOpenPay,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final urgentPay = request.canCustomerPay;
+    final chipStyle = _statusChipStyle(request);
+    final initial = providerLabel.isNotEmpty
+        ? providerLabel.characters.first.toUpperCase()
+        : '?';
+
+    final showAmount = request.paymentAmountRwf != null &&
+        request.paymentAmountRwf! >= 100 &&
+        (request.status == 'requested' || request.isAwaitingPayment);
+
+    return Material(
+      color: Colors.white,
+      elevation: 0,
+      shadowColor: Colors.transparent,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(_kCardRadius),
+        side: BorderSide(
+          color: urgentPay
+              ? const Color(0xFF0D9488).withValues(alpha: 0.45)
+              : Colors.grey.shade300,
+          width: urgentPay ? 1.5 : 1,
+        ),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onOpenDetail,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CircleAvatar(
+                    radius: 22,
+                    backgroundColor:
+                        const Color(0xFF0D9488).withValues(alpha: 0.12),
+                    child: Text(
+                      initial,
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                        color: const Color(0xFF0F766E),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                providerLabel,
+                                style: GoogleFonts.poppins(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 16,
+                                  height: 1.25,
+                                  color: Colors.grey.shade900,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: chipStyle.background,
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Text(
+                                statusLabel,
+                                style: GoogleFonts.poppins(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  height: 1.2,
+                                  color: chipStyle.foreground,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (request.requestedService != null &&
+                            request.requestedService!.isNotEmpty) ...[
+                          const SizedBox(height: 6),
+                          Text(
+                            request.requestedService!,
+                            style: GoogleFonts.poppins(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey.shade900,
+                            ),
+                          ),
+                        ],
+                        const SizedBox(height: 6),
+                        Text(
+                          request.customerMessage,
+                          maxLines: 3,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.poppins(
+                            fontSize: 13,
+                            height: 1.4,
+                            color: Colors.grey.shade700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Divider(height: 1, thickness: 1, color: Colors.grey.shade200),
+              const SizedBox(height: 10),
+              if (showAmount)
+                _MetaLine(
+                  label: 'Agreed amount',
+                  value: '${request.paymentAmountRwf} RWF',
+                ),
+              _MetaLine(
+                icon: Icons.schedule_outlined,
+                label: 'Sent',
+                value: dateFormat.format(request.createdAt.toLocal()),
+                dense: true,
+              ),
+              if (request.isAwaitingPayment &&
+                  request.paymentDeadlineAt != null) ...[
+                const SizedBox(height: 4),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Icon(
+                        request.canCustomerPay
+                            ? Icons.timer_outlined
+                            : Icons.error_outline,
+                        size: 16,
+                        color: request.canCustomerPay
+                            ? Colors.amber.shade800
+                            : Colors.red.shade700,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        request.canCustomerPay
+                            ? 'Pay by ${dateFormat.format(request.paymentDeadlineAt!.toLocal())}'
+                            : 'You did not pay before ${dateFormat.format(request.paymentDeadlineAt!.toLocal())}',
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          height: 1.35,
+                          color: request.canCustomerPay
+                              ? Colors.amber.shade900
+                              : Colors.red.shade700,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+              if (request.status == 'paid' &&
+                  request.paymentAmountRwf != null) ...[
+                const SizedBox(height: 6),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Icon(
+                      Icons.check_circle_outline,
+                      size: 16,
+                      color: Colors.green.shade700,
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: Text(
+                        request.mtnSettledAmountRwf != null &&
+                                request.mtnSettledAmountRwf !=
+                                    request.paymentAmountRwf
+                            ? 'Paid ${request.paymentAmountRwf} RWF · MTN settled ${request.mtnSettledAmountRwf} RWF'
+                            : 'Paid ${request.paymentAmountRwf} RWF',
+                        style: GoogleFonts.poppins(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          height: 1.35,
+                          color: Colors.green.shade800,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+              if (urgentPay) ...[
+                const SizedBox(height: 14),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    onPressed: onOpenPay,
+                    icon: const Icon(Icons.phone_android, size: 20),
+                    label: const Text('Pay with MTN'),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: const Color(0xFF0D9488),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: _kPayButtonShape,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MetaLine extends StatelessWidget {
+  final String label;
+  final String? value;
+  final IconData? icon;
+  final bool dense;
+
+  const _MetaLine({
+    required this.label,
+    this.value,
+    this.icon,
+    this.dense = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final caption = GoogleFonts.poppins(
+      fontSize: dense ? 12 : 12,
+      fontWeight: FontWeight.w500,
+      color: Colors.grey.shade600,
+      height: 1.35,
+    );
+    final valueStyle = GoogleFonts.poppins(
+      fontSize: dense ? 12 : 13,
+      fontWeight: FontWeight.w600,
+      color: Colors.grey.shade900,
+      height: 1.35,
+    );
+
+    if (value != null && icon == null) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 6),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.baseline,
+          textBaseline: TextBaseline.alphabetic,
+          children: [
+            Text('$label · ', style: caption),
+            Expanded(
+              child: Text(value!, style: valueStyle),
+            ),
+          ],
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (icon != null) ...[
+            Padding(
+              padding: const EdgeInsets.only(top: 2),
+              child: Icon(icon, size: 16, color: Colors.grey.shade500),
+            ),
+            const SizedBox(width: 6),
+          ],
+          Expanded(
+            child: RichText(
+              text: TextSpan(
+                style: caption.copyWith(color: Colors.grey.shade600),
+                children: [
+                  TextSpan(text: '$label '),
+                  TextSpan(
+                    text: value ?? '',
+                    style: valueStyle.copyWith(color: Colors.grey.shade800),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

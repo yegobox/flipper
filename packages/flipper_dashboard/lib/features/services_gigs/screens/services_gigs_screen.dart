@@ -10,6 +10,11 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+/// Less pill-like than the default Material 3 filled button shape.
+const _kServicesHubButtonShape = RoundedRectangleBorder(
+  borderRadius: BorderRadius.all(Radius.circular(4)),
+);
+
 /// Product shell for the services marketplace. Backend, MTN charge/disbursement
 /// endpoints, and real-time timers will plug in here later.
 class ServicesGigsScreen extends StatefulWidget {
@@ -32,8 +37,7 @@ class _ServicesGigsScreenState extends State<ServicesGigsScreen> {
 
   Future<void> _refreshProfile() async {
     final userId = ProxyService.box.getUserId();
-    final profile =
-        userId != null ? await _repo.load(userId) : null;
+    final profile = userId != null ? await _repo.load(userId) : null;
     if (mounted) {
       setState(() {
         _provider = profile;
@@ -45,9 +49,8 @@ class _ServicesGigsScreenState extends State<ServicesGigsScreen> {
   Future<void> _openRegistration() async {
     final changed = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
-        builder: (context) => ProviderRegistrationScreen(
-          initialProfile: _provider,
-        ),
+        builder: (context) =>
+            ProviderRegistrationScreen(initialProfile: _provider),
       ),
     );
     if (changed == true && mounted) await _refreshProfile();
@@ -55,34 +58,26 @@ class _ServicesGigsScreenState extends State<ServicesGigsScreen> {
 
   void _openBrowseProviders() {
     Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => const ProviderBrowseScreen(),
-      ),
+      MaterialPageRoute(builder: (context) => const ProviderBrowseScreen()),
     );
   }
 
   void _openProviderInbox() {
     Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => const ProviderInboxScreen(),
-      ),
+      MaterialPageRoute(builder: (context) => const ProviderInboxScreen()),
     );
   }
 
   void _openMyRequests() {
     Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => const CustomerMyRequestsScreen(),
-      ),
+      MaterialPageRoute(builder: (context) => const CustomerMyRequestsScreen()),
     );
   }
 
   void _openActivity() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => const GigActivityScreen(),
-      ),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (context) => const GigActivityScreen()));
   }
 
   void _openProviderDashboard() {
@@ -96,45 +91,45 @@ class _ServicesGigsScreenState extends State<ServicesGigsScreen> {
   }
 
   static List<Widget> _howItWorksSectionCards() => [
-        _SectionCard(
-          icon: Icons.person_add_alt_1_outlined,
-          title: 'Providers',
-          body:
-              'Workers register and list the services they can perform for others.',
-        ),
-        _SectionCard(
-          icon: Icons.star_outline_rounded,
-          title: 'Ratings',
-          body:
-              'We assign and update ratings from our verification and client feedback.',
-        ),
-        _SectionCard(
-          icon: Icons.send_outlined,
-          title: 'Requests',
-          body:
-              'Customers send a service request to a chosen provider. The provider must accept or decline within 30 minutes.',
-          highlight: '30 min to accept',
-        ),
-        _SectionCard(
-          icon: Icons.payments_outlined,
-          title: 'Payment window',
-          body:
-              'After acceptance, the customer completes payment within 5 minutes so the job is confirmed and funded.',
-          highlight: '5 min to pay',
-        ),
-        _SectionCard(
-          icon: Icons.route_outlined,
-          title: 'Execution',
-          body:
-              'Once paid, the worker can contact the customer and perform the service.',
-        ),
-        _SectionCard(
-          icon: Icons.account_balance_wallet_outlined,
-          title: 'Escrow & payout',
-          body:
-              'We collect funds via MTN (and dedicated charge APIs). Money is released after both sides confirm completion; ledgers track balances, commission, and who is owed what.',
-        ),
-      ];
+    _SectionCard(
+      icon: Icons.person_add_alt_1_outlined,
+      title: 'Providers',
+      body:
+          'Workers register and list the services they can perform for others.',
+    ),
+    _SectionCard(
+      icon: Icons.star_outline_rounded,
+      title: 'Ratings',
+      body:
+          'We assign and update ratings from our verification and client feedback.',
+    ),
+    _SectionCard(
+      icon: Icons.send_outlined,
+      title: 'Requests',
+      body:
+          'Customers send a service request to a chosen provider. The provider must accept or decline within 30 minutes.',
+      highlight: '30 min to accept',
+    ),
+    _SectionCard(
+      icon: Icons.payments_outlined,
+      title: 'Payment window',
+      body:
+          'After acceptance, the customer completes payment within 5 minutes so the job is confirmed and funded.',
+      highlight: '5 min to pay',
+    ),
+    _SectionCard(
+      icon: Icons.route_outlined,
+      title: 'Execution',
+      body:
+          'Once paid, the worker can contact the customer and perform the service.',
+    ),
+    _SectionCard(
+      icon: Icons.account_balance_wallet_outlined,
+      title: 'Escrow & payout',
+      body:
+          'We collect funds via MTN (and dedicated charge APIs). Money is released after both sides confirm completion; ledgers track balances, commission, and who is owed what.',
+    ),
+  ];
 
   void _showHowItWorksSheet() {
     showModalBottomSheet<void>(
@@ -251,6 +246,7 @@ class _ServicesGigsScreenState extends State<ServicesGigsScreen> {
             style: FilledButton.styleFrom(
               backgroundColor: const Color(0xFF0F766E),
               padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+              shape: _kServicesHubButtonShape,
             ),
           ),
           const SizedBox(height: 16),
@@ -364,7 +360,11 @@ class _ServicesGigsScreenState extends State<ServicesGigsScreen> {
               label: const Text('Provider dashboard'),
               style: FilledButton.styleFrom(
                 backgroundColor: const Color(0xFF0D9488),
-                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 14,
+                  horizontal: 20,
+                ),
+                shape: _kServicesHubButtonShape,
               ),
             ),
           ] else
@@ -387,7 +387,9 @@ class _BecomeProviderCallout extends StatelessWidget {
       color: const Color(0xFF0D9488).withValues(alpha: 0.08),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
-        side: BorderSide(color: const Color(0xFF0D9488).withValues(alpha: 0.35)),
+        side: BorderSide(
+          color: const Color(0xFF0D9488).withValues(alpha: 0.35),
+        ),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -418,7 +420,11 @@ class _BecomeProviderCallout extends StatelessWidget {
               label: const Text('Become a provider'),
               style: FilledButton.styleFrom(
                 backgroundColor: const Color(0xFF0D9488),
-                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 14,
+                  horizontal: 20,
+                ),
+                shape: _kServicesHubButtonShape,
               ),
             ),
           ],
@@ -432,10 +438,7 @@ class _RegisteredProviderCard extends StatelessWidget {
   final ServiceGigProvider profile;
   final VoidCallback onEdit;
 
-  const _RegisteredProviderCard({
-    required this.profile,
-    required this.onEdit,
-  });
+  const _RegisteredProviderCard({required this.profile, required this.onEdit});
 
   @override
   Widget build(BuildContext context) {
