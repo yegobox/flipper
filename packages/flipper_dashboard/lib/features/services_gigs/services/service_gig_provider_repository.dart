@@ -1,10 +1,27 @@
 import 'dart:convert';
+import 'dart:developer' as developer;
 
 import 'package:flipper_dashboard/features/services_gigs/models/service_gig_provider.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-enum ServiceGigProviderSaveResult { synced, localOnly }
+/// Result of [ServiceGigProviderRepository.save].
+class ServiceGigProviderSaveOutcome {
+  final bool synced;
+  /// PostgREST / network message when [synced] is false.
+  final String? serverErrorMessage;
+
+  const ServiceGigProviderSaveOutcome._({
+    required this.synced,
+    this.serverErrorMessage,
+  });
+
+  const ServiceGigProviderSaveOutcome.synced()
+      : this._(synced: true, serverErrorMessage: null);
+
+  const ServiceGigProviderSaveOutcome.localOnly([String? serverErrorMessage])
+      : this._(synced: false, serverErrorMessage: serverErrorMessage);
+}
 
 /// Persists provider registration to Supabase when available, with local JSON fallback.
 class ServiceGigProviderRepository {
@@ -83,22 +100,54 @@ class ServiceGigProviderRepository {
     }
   }
 
-  Future<ServiceGigProviderSaveResult> save(ServiceGigProvider profile) async {
+  /// Columns that exist on `public.service_gig_providers` (see Supabase migrations).
+  /// Do not send full [ServiceGigProvider.toJson] — extra keys cause PostgREST 400.
+  Map<String, dynamic> _supabaseUpsertRow(
+    ServiceGigProvider profile,
+    String updatedAtIso,
+  ) {
+    return <String, dynamic>{
+      'user_id': profile.userId,
+      'business_id': profile.businessId,
+      'branch_id': profile.branchId,
+      'display_name': profile.displayName,
+      'bio': profile.bio,
+      'services': profile.services,
+      'service_area': profile.serviceArea,
+      'phone': profile.phone,
+      'is_available': profile.isAvailable,
+      'service_categories': profile.serviceCategories,
+      'updated_at': updatedAtIso,
+    };
+  }
+
+  Future<ServiceGigProviderSaveOutcome> save(ServiceGigProvider profile) async {
     await _writeLocal(profile);
 
     final now = DateTime.now().toUtc().toIso8601String();
-    final payload = Map<String, dynamic>.from(profile.toJson())
-      ..remove('created_at')
-      ..['updated_at'] = now;
+    final payload = _supabaseUpsertRow(profile, now);
 
     try {
       await Supabase.instance.client.from(_table).upsert(
             payload,
             onConflict: 'user_id',
           );
-      return ServiceGigProviderSaveResult.synced;
-    } catch (_) {
-      return ServiceGigProviderSaveResult.localOnly;
+      return const ServiceGigProviderSaveOutcome.synced();
+    } on PostgrestException catch (e) {
+      developer.log(
+        'ServiceGigProviderRepository.save PostgrestException',
+        error: e,
+        name: 'service_gigs',
+      );
+      return ServiceGigProviderSaveOutcome.localOnly(e.message);
+    } catch (e, st) {
+      developer.log(
+        'ServiceGigProviderRepository.save',
+        error: e,
+        stackTrace: st,
+        name: 'service_gigs',
+      );
+      return ServiceGigProviderSaveOutcome.localOnly(e.toString());
     }
   }
 

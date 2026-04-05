@@ -11,14 +11,15 @@ class ProviderRegistrationScreen extends StatefulWidget {
   final ServiceGigProvider? initialProfile;
 
   const ProviderRegistrationScreen({Key? key, this.initialProfile})
-      : super(key: key);
+    : super(key: key);
 
   @override
   State<ProviderRegistrationScreen> createState() =>
       _ProviderRegistrationScreenState();
 }
 
-class _ProviderRegistrationScreenState extends State<ProviderRegistrationScreen> {
+class _ProviderRegistrationScreenState
+    extends State<ProviderRegistrationScreen> {
   final _formKey = GlobalKey<FormState>();
   final _repo = ServiceGigProviderRepository();
   final _displayNameController = TextEditingController();
@@ -126,11 +127,17 @@ class _ProviderRegistrationScreenState extends State<ProviderRegistrationScreen>
       updatedAt: DateTime.now().toUtc(),
     );
 
-    final result = await _repo.save(profile);
+    final outcome = await _repo.save(profile);
     if (!mounted) return;
     setState(() => _submitting = false);
-    if (result == ServiceGigProviderSaveResult.synced) {
+    if (outcome.synced) {
       showSuccessNotification(context, 'Provider profile saved.');
+    } else if (outcome.serverErrorMessage != null &&
+        outcome.serverErrorMessage!.isNotEmpty) {
+      showErrorNotification(
+        context,
+        'Could not save online: ${outcome.serverErrorMessage}',
+      );
     } else {
       showInfoNotification(
         context,
@@ -142,8 +149,9 @@ class _ProviderRegistrationScreenState extends State<ProviderRegistrationScreen>
 
   @override
   Widget build(BuildContext context) {
-    final title =
-        _hasExistingProfile ? 'Your provider profile' : 'Become a provider';
+    final title = _hasExistingProfile
+        ? 'Your provider profile'
+        : 'Become a provider';
 
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
@@ -293,8 +301,9 @@ class _ProviderRegistrationScreenState extends State<ProviderRegistrationScreen>
                               }
                             });
                           },
-                          selectedColor:
-                              const Color(0xFF0D9488).withValues(alpha: 0.25),
+                          selectedColor: const Color(
+                            0xFF0D9488,
+                          ).withValues(alpha: 0.25),
                           checkmarkColor: const Color(0xFF0D9488),
                         );
                       }).toList(),
@@ -348,10 +357,7 @@ class _ProviderRegistrationScreenState extends State<ProviderRegistrationScreen>
         borderSide: const BorderSide(color: Color(0xFF0D9488), width: 2),
       ),
       labelStyle: GoogleFonts.poppins(fontSize: 14),
-      hintStyle: GoogleFonts.poppins(
-        fontSize: 13,
-        color: Colors.grey.shade500,
-      ),
+      hintStyle: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade500),
     );
   }
 }

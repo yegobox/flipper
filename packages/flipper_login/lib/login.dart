@@ -3,14 +3,12 @@ import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:firebase_ui_oauth_apple/firebase_ui_oauth_apple.dart';
 import 'package:firebase_ui_oauth_google/firebase_ui_oauth_google.dart';
 import 'package:flipper_login/LoadingDialog.dart';
-import 'dart:ui' as ui;
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_routing/all_routes.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:flipper_services/DeviceType.dart';
 import 'package:flutter/foundation.dart' hide Category;
 
 /// A stateful widget that handles user authentication and login flow
@@ -67,24 +65,25 @@ class _LoginState extends State<Login> {
     // We don't need to check for Platform.isWindows anymore since this is just a stub
   }
 
-  /// Determines if the current device is a desktop based on screen width
-  bool _isDesktopPlatform(BuildContext context, String deviceType) {
-    final data = ui.PlatformDispatcher.instance.views.first;
-    final width = data.physicalSize.width / data.devicePixelRatio;
-    const desktopWidthThreshold = 768.0;
-
-    return deviceType != 'Phone' && width >= desktopWidthThreshold;
+  /// Split-panel desktop login: based on this route's [MediaQuery], not platform views.
+  ///
+  /// Uses [MediaQuery.sizeOf] so resizable windows, embedded views, and multi-display
+  /// match the actual layout context. [shortestSide] keeps compact login on phones
+  /// (including landscape) while still allowing tablets and desktop windows.
+  bool _useDesktopLoginLayout(BuildContext context) {
+    final size = MediaQuery.sizeOf(context);
+    const minWidth = 768.0;
+    if (size.shortestSide < 600) return false;
+    return size.width >= minWidth;
   }
 
   @override
   Widget build(BuildContext context) {
-    final deviceType = DeviceType.getDeviceType(context);
-
     return ViewModelBuilder<LoginViewModel>.reactive(
       onViewModelReady: (model) => handleAuthStateChanges(model),
       viewModelBuilder: () => LoginViewModel(),
       builder: (context, model, child) {
-        final isDesktop = _isDesktopPlatform(context, deviceType);
+        final isDesktop = _useDesktopLoginLayout(context);
 
         if (isDesktop && !kIsWeb) {
           return Scaffold(
