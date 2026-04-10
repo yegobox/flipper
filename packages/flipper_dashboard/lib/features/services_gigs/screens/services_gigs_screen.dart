@@ -1,4 +1,7 @@
 import 'package:flipper_dashboard/features/services_gigs/models/service_gig_provider.dart';
+import 'package:flipper_dashboard/features/services_gigs/providers/services_gig_admin_provider.dart';
+import 'package:flipper_dashboard/features/services_gigs/screens/admin_metrics_screen.dart';
+import 'package:flipper_dashboard/features/services_gigs/screens/admin_payout_dispatch_screen.dart';
 import 'package:flipper_dashboard/features/services_gigs/screens/customer_my_requests_screen.dart';
 import 'package:flipper_dashboard/features/services_gigs/screens/gig_activity_screen.dart';
 import 'package:flipper_dashboard/features/services_gigs/screens/provider_browse_screen.dart';
@@ -8,6 +11,7 @@ import 'package:flipper_dashboard/features/services_gigs/screens/provider_regist
 import 'package:flipper_dashboard/features/services_gigs/services/service_gig_provider_repository.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 /// Less pill-like than the default Material 3 filled button shape.
@@ -17,14 +21,14 @@ const _kServicesHubButtonShape = RoundedRectangleBorder(
 
 /// Product shell for the services marketplace. Backend, MTN charge/disbursement
 /// endpoints, and real-time timers will plug in here later.
-class ServicesGigsScreen extends StatefulWidget {
+class ServicesGigsScreen extends ConsumerStatefulWidget {
   const ServicesGigsScreen({Key? key}) : super(key: key);
 
   @override
-  State<ServicesGigsScreen> createState() => _ServicesGigsScreenState();
+  ConsumerState<ServicesGigsScreen> createState() => _ServicesGigsScreenState();
 }
 
-class _ServicesGigsScreenState extends State<ServicesGigsScreen> {
+class _ServicesGigsScreenState extends ConsumerState<ServicesGigsScreen> {
   final _repo = ServiceGigProviderRepository();
   ServiceGigProvider? _provider;
   bool _loadingProfile = true;
@@ -87,6 +91,18 @@ class _ServicesGigsScreenState extends State<ServicesGigsScreen> {
       MaterialPageRoute(
         builder: (context) => ProviderDashboardScreen(profile: p),
       ),
+    );
+  }
+
+  void _openAdminPayoutDispatch() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const AdminPayoutDispatchScreen()),
+    );
+  }
+
+  void _openAdminMetrics() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const AdminMetricsScreen()),
     );
   }
 
@@ -197,6 +213,10 @@ class _ServicesGigsScreenState extends State<ServicesGigsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final userId = ProxyService.box.getUserId() ?? '';
+    final isAdminAsync = userId.isEmpty
+        ? const AsyncValue<bool>.data(false)
+        : ref.watch(servicesGigAdminProvider(userId));
     final sectionTitleStyle = GoogleFonts.poppins(
       fontWeight: FontWeight.w600,
       fontSize: 13,
@@ -230,6 +250,78 @@ class _ServicesGigsScreenState extends State<ServicesGigsScreen> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
         children: [
+          isAdminAsync.when(
+            data: (isAdmin) {
+              if (!isAdmin) return const SizedBox.shrink();
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Card(
+                    elevation: 0,
+                    color: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      side: BorderSide(color: Colors.red.shade100),
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                          child: Text('Admin tools', style: sectionTitleStyle),
+                        ),
+                        ListTile(
+                          leading: Icon(
+                            Icons.payments_outlined,
+                            color: Colors.red.shade700,
+                          ),
+                          title: Text(
+                            'Dispatch payouts',
+                            style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.w500,
+                              fontSize: 15,
+                            ),
+                          ),
+                          trailing: Icon(
+                            Icons.chevron_right,
+                            color: Colors.grey.shade400,
+                          ),
+                          onTap: _openAdminPayoutDispatch,
+                        ),
+                        Divider(
+                          height: 1,
+                          thickness: 1,
+                          color: Colors.grey.shade100,
+                        ),
+                        ListTile(
+                          leading: Icon(
+                            Icons.query_stats_outlined,
+                            color: Colors.red.shade700,
+                          ),
+                          title: Text(
+                            'Metrics',
+                            style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.w500,
+                              fontSize: 15,
+                            ),
+                          ),
+                          trailing: Icon(
+                            Icons.chevron_right,
+                            color: Colors.grey.shade400,
+                          ),
+                          onTap: _openAdminMetrics,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              );
+            },
+            loading: () => const SizedBox.shrink(),
+            error: (_, __) => const SizedBox.shrink(),
+          ),
           Text(
             'Find people for jobs, or offer your skills—payments stay on the platform.',
             style: GoogleFonts.poppins(

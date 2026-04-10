@@ -13,6 +13,7 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_dashboard/CreditIcon.dart';
+import 'package:flipper_dashboard/features/services_gigs/providers/services_gig_admin_provider.dart';
 
 class AppIconsGrid extends ConsumerWidget {
   final bool isBigScreen;
@@ -236,6 +237,20 @@ class AppIconsGrid extends ConsumerWidget {
       );
     }
 
+    final isServicesHub = app['page'] == "ServicesGigs";
+    final userId = ProxyService.box.getUserId() ?? '';
+    final isServicesHubAdminAsync =
+        isServicesHub && userId.isNotEmpty
+            ? ref.watch(servicesGigAdminProvider(userId))
+            : const AsyncValue.data(false);
+    final baseColor = app['color'] as Color;
+    final effectiveColor = isServicesHubAdminAsync.when(
+      data: (isAdmin) =>
+          isServicesHub && isAdmin ? const Color(0xFFDC2626) : baseColor,
+      loading: () => baseColor,
+      error: (_, __) => baseColor,
+    );
+
     return GestureDetector(
       onTap: () async {
         HapticFeedback.lightImpact();
@@ -248,12 +263,12 @@ class AppIconsGrid extends ConsumerWidget {
             width: isBigScreen ? 60 : 72,
             height: isBigScreen ? 60 : 72,
             decoration: BoxDecoration(
-              color: app['color'].withValues(alpha: 0.1),
+              color: effectiveColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(18), // Squircle
             ),
             child: Icon(
               app['icon'],
-              color: app['color'],
+              color: effectiveColor,
               size: isBigScreen ? 28 : 36,
             ),
           ),

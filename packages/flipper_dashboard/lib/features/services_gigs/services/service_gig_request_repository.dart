@@ -17,6 +17,8 @@ class ServiceGigRequestRepository {
 
   static const _table = 'service_gig_requests';
   static const _messagesTable = 'service_gig_request_messages';
+  static const _payoutPending = 'pending';
+  static const _payoutDispatched = 'dispatched';
 
   /// Inserts a new request. Server sets [accept_deadline_at] to now + 30 minutes.
   /// [paymentAmountRwf] is stored as the agreed budget and prefills MTN payment later.
@@ -347,6 +349,109 @@ class ServiceGigRequestRepository {
     }
   }
 
+  /// Admin view: requests where provider payout is still pending (paid/in-progress/completed).
+  Future<List<ServiceGigRequest>> listAdminPayoutQueue({
+    int limit = 200,
+  }) async {
+    try {
+      final response = await Supabase.instance.client
+          .from(_table)
+          .select()
+          .inFilter('status', const ['paid', 'in_progress', 'completed'])
+          .eq('provider_payout_status', _payoutPending)
+          .order('created_at', ascending: false)
+          .limit(limit) as List<dynamic>;
+
+      return response
+          .map(
+            (e) => ServiceGigRequest.fromJson(
+              Map<String, dynamic>.from(e as Map),
+            ),
+          )
+          .toList();
+    } catch (_) {
+      return [];
+    }
+  }
+
+  /// Admin action: mark provider payout dispatched and record a reference.
+  Future<void> markProviderPayoutDispatched({
+    required String requestId,
+    required String reference,
+  }) async {
+    final adminId = ProxyService.box.getUserId();
+    if (adminId == null || adminId.isEmpty) {
+      throw ServiceGigRequestException('Sign in to dispatch payouts.');
+    }
+    final now = DateTime.now().toUtc().toIso8601String();
+    final trimmedRef = reference.trim();
+    if (trimmedRef.isEmpty) {
+      throw ServiceGigRequestException('Enter a payout reference.');
+    }
+    try {
+      await Supabase.instance.client.from(_table).update({
+        'provider_payout_status': _payoutDispatched,
+        'provider_payout_dispatched_at': now,
+        'provider_payout_dispatched_by': adminId,
+        'provider_payout_reference': trimmedRef,
+        'updated_at': now,
+      }).eq('id', requestId);
+    } on PostgrestException catch (e) {
+      throw ServiceGigRequestException(
+        e.message.isNotEmpty ? e.message : 'Could not update payout status.',
+      );
+    } catch (_) {
+      throw ServiceGigRequestException('Could not update payout status.');
+    }
+  }
+
+  /// Admin metrics (computed client-side from a light-weight query).
+  Future<ServiceGigAdminMetrics> adminMetrics({int limit = 2000}) async {
+    try {
+      final rows = await Supabase.instance.client
+          .from(_table)
+          .select('status, provider_payout_status, payment_amount_rwf')
+          .order('created_at', ascending: false)
+          .limit(limit) as List<dynamic>;
+
+      final countsByStatus = <String, int>{};
+      var payoutPending = 0;
+      var payoutDispatched = 0;
+      var payoutPendingTotalRwf = 0;
+
+      for (final e in rows) {
+        final map = Map<String, dynamic>.from(e as Map);
+        final st = map['status']?.toString() ?? '';
+        if (st.isNotEmpty) {
+          countsByStatus[st] = (countsByStatus[st] ?? 0) + 1;
+        }
+        final payout = map['provider_payout_status']?.toString() ?? _payoutPending;
+        if (payout == _payoutPending) {
+          payoutPending++;
+          final amt = map['payment_amount_rwf'];
+          final n = amt is int ? amt : int.tryParse(amt?.toString() ?? '') ?? 0;
+          if (n > 0) payoutPendingTotalRwf += n;
+        } else if (payout == _payoutDispatched) {
+          payoutDispatched++;
+        }
+      }
+
+      return ServiceGigAdminMetrics(
+        countsByStatus: countsByStatus,
+        payoutPending: payoutPending,
+        payoutDispatched: payoutDispatched,
+        payoutPendingTotalRwf: payoutPendingTotalRwf,
+      );
+    } catch (_) {
+      return const ServiceGigAdminMetrics(
+        countsByStatus: {},
+        payoutPending: 0,
+        payoutDispatched: 0,
+        payoutPendingTotalRwf: 0,
+      );
+    }
+  }
+
   Future<ServiceGigChatMessage> sendMessage({
     required String requestId,
     required String body,
@@ -567,4 +672,18 @@ class ServiceGigRequestRepository {
       );
     }
   }
+}
+
+class ServiceGigAdminMetrics {
+  final Map<String, int> countsByStatus;
+  final int payoutPending;
+  final int payoutDispatched;
+  final int payoutPendingTotalRwf;
+
+  const ServiceGigAdminMetrics({
+    required this.countsByStatus,
+    required this.payoutPending,
+    required this.payoutDispatched,
+    required this.payoutPendingTotalRwf,
+  });
 }

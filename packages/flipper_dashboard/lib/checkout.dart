@@ -1,5 +1,7 @@
 // ignore_for_file: unused_result
 
+import 'dart:math' as math;
+
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
 import 'package:flipper_dashboard/CheckoutProductView.dart';
 import 'package:flipper_dashboard/mixins/previewCart.dart';
@@ -92,8 +94,13 @@ class CheckOutState extends ConsumerState<CheckOut>
     );
 
     return transactionAsyncValue.when(
+      // Keep last transaction visible when the stream reloads (e.g. dependency
+      // change); only the initial load uses loading: below.
+      skipLoadingOnReload: true,
       data: (transaction) => _buildDataWidget(transaction),
-      loading: () => const Center(child: CircularProgressIndicator()),
+      // Show product grid / POS shell immediately; QuickSellingView and
+      // PosDefaultView handle their own loading; footer waits for transaction id.
+      loading: () => _buildDataWidget(null),
       error: (error, stackTrace) => Center(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -180,20 +187,15 @@ class CheckOutState extends ConsumerState<CheckOut>
     );
   }
 
-  Widget _buildDataWidget(ITransaction transaction) {
+  Widget _buildDataWidget(ITransaction? transaction) {
+    final showCart = ref.watch(oldImplementationOfRiverpod.previewingCart);
     return widget.isBigScreen
-        ? _buildBigScreenLayout(
-            transaction,
-            showCart: ref.watch(oldImplementationOfRiverpod.previewingCart),
-          )
-        : _buildSmallScreenLayout(
-            transaction,
-            showCart: ref.watch(oldImplementationOfRiverpod.previewingCart),
-          );
+        ? _buildBigScreenLayout(transaction, showCart: showCart)
+        : _buildSmallScreenLayout(showCart: showCart);
   }
 
   Widget _buildBigScreenLayout(
-    ITransaction transaction, {
+    ITransaction? transaction, {
     required bool showCart,
   }) {
     return ViewModelBuilder<CoreViewModel>.reactive(
@@ -206,7 +208,10 @@ class CheckOutState extends ConsumerState<CheckOut>
     );
   }
 
-  Widget _buildBigScreenContent(ITransaction transaction, CoreViewModel model) {
+  Widget _buildBigScreenContent(
+    ITransaction? transaction,
+    CoreViewModel model,
+  ) {
     return LayoutBuilder(
       builder: (context, constraints) {
         return Stack(
@@ -215,21 +220,30 @@ class CheckOutState extends ConsumerState<CheckOut>
               padding: const EdgeInsets.only(top: 80.0),
               child: SizedBox(
                 width: constraints.maxWidth,
-                height: constraints.maxHeight,
+                height: math.max(0.0, constraints.maxHeight - 80.0),
                 child: FadeTransition(
                   opacity: _animation,
                   child: PosDefaultView(
                     transaction: transaction,
                     quickSellingView: _buildQuickSellingView(),
                     onCompleteTransaction: (immediateCompletion, [onPaymentConfirmed, onPaymentFailed]) async {
+                      final txn = transaction;
+                      if (txn == null) {
+                        return false;
+                      }
                       return await _handleCompleteTransaction(
-                        transaction,
+                        txn,
                         immediateCompletion,
                         onPaymentConfirmed,
                         onPaymentFailed,
                       );
                     },
-                    onTicketNavigation: () => handleTicketNavigation(transaction),
+                    onTicketNavigation: () {
+                      final txn = transaction;
+                      if (txn != null) {
+                        handleTicketNavigation(txn);
+                      }
+                    },
                   ),
                 ),
               ),
@@ -309,8 +323,7 @@ class CheckOutState extends ConsumerState<CheckOut>
     );
   }
 
-  Widget _buildSmallScreenLayout(
-    ITransaction transaction, {
+  Widget _buildSmallScreenLayout({
     required bool showCart,
   }) {
     return ViewModelBuilder<CoreViewModel>.reactive(

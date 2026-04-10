@@ -1818,6 +1818,49 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           );
         }
 
+        // Phone landscape and other short panels: flex split leaves too little
+        // height for toolbar + cart card (header, list, grand total) and form,
+        // causing bottom overflow. One vertical scroll matches unbounded-height
+        // behavior above.
+        const sharedViewScrollHeightThreshold = 560.0;
+        if (constraints.maxHeight < sharedViewScrollHeightThreshold) {
+          if (isOrdering) {
+            return SizedBox(
+              width: constraints.maxWidth,
+              height: constraints.maxHeight,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(2.0),
+                child: _buildSharedViewItemsPane(
+                  alreadyPaid: alreadyPaid,
+                  transactionAsyncValue: transactionAsyncValue,
+                  model: model,
+                  isOrdering: isOrdering,
+                  pinGrandTotal: false,
+                ),
+              ),
+            );
+          }
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(2.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _buildSharedViewItemsPane(
+                  alreadyPaid: alreadyPaid,
+                  transactionAsyncValue: transactionAsyncValue,
+                  model: model,
+                  isOrdering: isOrdering,
+                  pinGrandTotal: false,
+                ),
+                if (!isOrdering) ...[
+                  const SizedBox(height: 12),
+                  pinnedBottomColumn,
+                ],
+              ],
+            ),
+          );
+        }
+
         // Split space so the items block never collapses when the form+footer
         // is tall (avoids flex overflow and keeps "No items yet" visible).
         // 3:2 gives the form + footer a bit more height than the old 2:1 split
