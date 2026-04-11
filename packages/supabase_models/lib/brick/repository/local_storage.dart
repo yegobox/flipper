@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 // import 'package:flipper_services/proxy.dart';
+import 'package:flipper_web/services/ditto_service.dart';
 import 'package:path/path.dart' as path;
 import 'package:supabase_models/brick/databasePath.dart';
 import 'package:supabase_models/brick/repository/storage.dart';
@@ -10,14 +11,22 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flipper_services/constants.dart';
 
+/// Local-only Ditto collection for app preferences. Do not register sync
+/// subscriptions for this collection (device-local; may contain secrets).
+const String _kDittoPrefsCollection = 'flipper_local_prefs';
+const String _kDittoPrefsDocId = 'singleton';
+
 /// Current version of the preferences file format
 /// Increment this when making breaking changes to the preferences structure
 const int _kPreferencesVersion = dbVersion;
 const String _kPreferencesKey = 'flipper_preferences';
 const String _kPreferencesBackupKey = 'flipper_preferences_backup';
 
-/// A robust implementation of LocalStorage that uses JSON files in the document directory
-/// This implementation is designed to be resilient to power outages and corruption
+/// [LocalStorage] backed by an in-memory map with durable persistence:
+/// - **Native:** Ditto local collection `flipper_local_prefs` (after
+///   [attachDittoPersistence]) plus JSON file fallback (bootstrap and when Ditto
+///   is unavailable). Do not register Ditto sync subscriptions for that collection.
+/// - **Web:** `SharedPreferences` JSON blob.
 class SharedPreferenceStorage implements LocalStorage {
   // The in-memory cache of preferences
   Map<String, dynamic> _cache = {};
@@ -111,10 +120,116 @@ class SharedPreferenceStorage implements LocalStorage {
     'enableAutoAddSearch',
     'whatsAppPhoneNumberId',
     'userLoggingEnabled',
+    'defaultLanguage',
+    'active_branch_id',
+    'currentBranchId',
+    'currentBusinessId',
+    'branch_switched',
+    'last_branch_switch_timestamp',
+    'transactionCompleting',
+    'from_login',
+    'branch_switching',
+    'otp',
+    'token',
+    'pendingCustomerName',
+    'pendingCustomerTin',
+    'getDefaultApp',
+    'background_sync_enabled',
     // Add new preference keys above this line
   };
 
   SharedPreferences? _webPrefs;
+
+  bool get _isFlutterTestEnv =>
+      const bool.fromEnvironment('FLUTTER_TEST_ENV', defaultValue: false);
+
+  /// Called after [DittoService] is ready to merge Ditto-backed prefs with
+  /// JSON bootstrap and enable Ditto writes. Safe to call multiple times.
+  Future<void> attachDittoPersistence() async {
+    if (kIsWeb || _isFlutterTestEnv) return;
+    if (!DittoService.instance.isReady()) return;
+
+    final legacy = Map<String, dynamic>.from(_cache);
+    final dittoMap = await _readDittoPayloadMap();
+
+    if (dittoMap == null || dittoMap.isEmpty) {
+      await _writeDittoPayload();
+      await _savePreferences();
+      return;
+    }
+
+    final lVer = (legacy['_preferencesVersion'] as num?)?.toInt() ?? 0;
+    final dVer = (dittoMap['_preferencesVersion'] as num?)?.toInt() ?? 0;
+    final lDb = (legacy['dbVersion'] as num?)?.toInt() ?? 0;
+    final dDb = (dittoMap['dbVersion'] as num?)?.toInt() ?? 0;
+
+    final legacyWins = lVer > dVer || (lVer == dVer && lDb > dDb);
+    if (legacyWins) {
+      _cache = Map<String, dynamic>.from(dittoMap)..addAll(legacy);
+    } else {
+      _cache = Map<String, dynamic>.from(legacy)..addAll(dittoMap);
+    }
+
+    await _writeDittoPayload();
+    await _savePreferences();
+  }
+
+  Future<Map<String, dynamic>?> _readDittoPayloadMap() async {
+    final store = DittoService.instance.store;
+    if (store == null) return null;
+    try {
+      final result = await store.execute(
+        'SELECT * FROM $_kDittoPrefsCollection WHERE _id = :id',
+        arguments: {'id': _kDittoPrefsDocId},
+      );
+      if (result.items.isEmpty) return null;
+      final doc = Map<String, dynamic>.from(result.items.first.value);
+      final payload = doc['payload'];
+      if (payload is! String || payload.isEmpty) return null;
+      final decoded = jsonDecode(payload);
+      if (decoded is! Map) return null;
+      return Map<String, dynamic>.from(decoded);
+    } catch (e) {
+      // Collection may not exist yet on first run.
+      return null;
+    }
+  }
+
+  Future<void> _writeDittoPayload() async {
+    final store = DittoService.instance.store;
+    if (store == null) return;
+    final payload = jsonEncode(_cache);
+    await store.execute(
+      'INSERT INTO $_kDittoPrefsCollection DOCUMENTS (:data) ON ID CONFLICT DO UPDATE',
+      arguments: {
+        'data': {
+          '_id': _kDittoPrefsDocId,
+          'payload': payload,
+        },
+      },
+    );
+  }
+
+  Future<void> _persist() async {
+    if (kIsWeb) {
+      if (_webPrefs != null) {
+        await _webPrefs!.setString(_kPreferencesKey, jsonEncode(_cache));
+      }
+      return;
+    }
+    if (_isFlutterTestEnv) {
+      await _savePreferences();
+      return;
+    }
+    if (DittoService.instance.isReady()) {
+      try {
+        await _writeDittoPayload();
+      } catch (e) {
+        print('SharedPreferenceStorage: Ditto write failed, using JSON only: $e');
+      }
+    }
+    await _savePreferences();
+  }
 
   /// Initialize the preferences by loading from the JSON file
   Future<LocalStorage> initializePreferences() async {
@@ -279,26 +394,14 @@ class SharedPreferenceStorage implements LocalStorage {
   Future<void> writeInt({required dynamic key, required int value}) async {
     if (!_isKeyAllowed(key.toString())) return;
     _cache[key.toString()] = value;
-    if (kIsWeb) {
-      if (_webPrefs != null) {
-        await _webPrefs!.setString(_kPreferencesKey, jsonEncode(_cache));
-      }
-    } else {
-      await _savePreferences();
-    }
+    await _persist();
   }
 
   @override
   Future<void> remove({required String key}) async {
     if (!_isKeyAllowed(key)) return;
     _cache.remove(key);
-    if (kIsWeb) {
-      if (_webPrefs != null) {
-        await _webPrefs!.setString(_kPreferencesKey, jsonEncode(_cache));
-      }
-    } else {
-      await _savePreferences();
-    }
+    await _persist();
   }
 
   @override
@@ -425,13 +528,7 @@ class SharedPreferenceStorage implements LocalStorage {
   Future<void> writeString({required String key, required String value}) async {
     if (!_isKeyAllowed(key)) return;
     _cache[key] = value;
-    if (kIsWeb) {
-      if (_webPrefs != null) {
-        await _webPrefs!.setString(_kPreferencesKey, jsonEncode(_cache));
-      }
-    } else {
-      await _savePreferences();
-    }
+    await _persist();
   }
 
   @override
@@ -470,25 +567,13 @@ class SharedPreferenceStorage implements LocalStorage {
       _trainingModeController.add(value);
     }
 
-    if (kIsWeb) {
-      if (_webPrefs != null) {
-        await _webPrefs!.setString(_kPreferencesKey, jsonEncode(_cache));
-      }
-    } else {
-      await _savePreferences();
-    }
+    await _persist();
   }
 
   @override
   Future<void> clear() async {
     _cache.clear();
-    if (kIsWeb) {
-      if (_webPrefs != null) {
-        await _webPrefs!.setString(_kPreferencesKey, jsonEncode(_cache));
-      }
-    } else {
-      await _savePreferences();
-    }
+    await _persist();
     // Also clear the stream controllers
     _proformaModeController.add(false);
     _trainingModeController.add(false);
@@ -720,13 +805,7 @@ class SharedPreferenceStorage implements LocalStorage {
   @override
   Future<void> setDatabaseFilename(String filename) async {
     _cache['databaseFilename'] = filename;
-    if (kIsWeb) {
-      if (_webPrefs != null) {
-        await _webPrefs!.setString(_kPreferencesKey, jsonEncode(_cache));
-      }
-    } else {
-      await _savePreferences();
-    }
+    await _persist();
   }
 
   @override
@@ -738,13 +817,7 @@ class SharedPreferenceStorage implements LocalStorage {
   @override
   Future<void> setQueueFilename(String filename) async {
     _cache['queueFilename'] = filename;
-    if (kIsWeb) {
-      if (_webPrefs != null) {
-        await _webPrefs!.setString(_kPreferencesKey, jsonEncode(_cache));
-      }
-    } else {
-      await _savePreferences();
-    }
+    await _persist();
   }
 
   @override
@@ -760,7 +833,7 @@ class SharedPreferenceStorage implements LocalStorage {
           // If the value is not a bool, log the issue and reset it
           print('Warning: forceLogout value is not a bool: $value');
           _cache['forceLogout'] = false;
-          _savePreferences(); // Save the corrected value
+          unawaited(_persist()); // Save the corrected value
           return false;
         }
       }
@@ -778,19 +851,8 @@ class SharedPreferenceStorage implements LocalStorage {
     try {
       print('Setting forceLogout to: $value');
       _cache['forceLogout'] = value;
-
-      // Save the preferences immediately
-      if (kIsWeb) {
-        if (_webPrefs != null) {
-          await _webPrefs!.setString('flipper_preferences', jsonEncode(_cache));
-          print('Saved forceLogout to web preferences: $value');
-        } else {
-          print('Warning: _webPrefs is null, could not save forceLogout');
-        }
-      } else {
-        await _savePreferences();
-        print('Saved forceLogout to preferences: $value');
-      }
+      await _persist();
+      print('Saved forceLogout: $value');
     } catch (e) {
       print('Error setting forceLogout value: $e');
     }
@@ -848,13 +910,7 @@ class SharedPreferenceStorage implements LocalStorage {
   Future<void> writeDouble({required String key, required double value}) async {
     if (!_isKeyAllowed(key.toString())) return;
     _cache[key.toString()] = value;
-    if (kIsWeb) {
-      if (_webPrefs != null) {
-        await _webPrefs!.setString(_kPreferencesKey, jsonEncode(_cache));
-      }
-    } else {
-      await _savePreferences();
-    }
+    await _persist();
   }
 
   @override

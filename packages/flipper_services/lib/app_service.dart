@@ -8,6 +8,7 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
+import 'package:supabase_models/brick/repository/local_storage.dart';
 import 'proxy.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
@@ -266,6 +267,18 @@ class AppService with ListenableServiceMixin {
       skipInitialFetch: true,
     );
     print("Ditto initialized for login flow");
+    await _attachLocalStorageDittoIfReady();
+  }
+
+  Future<void> _attachLocalStorageDittoIfReady() async {
+    if (!ProxyService.ditto.isReady()) return;
+    final box = ProxyService.box;
+    if (box is! SharedPreferenceStorage) return;
+    try {
+      await box.attachDittoPersistence();
+    } catch (e) {
+      print('⚠️ attachDittoPersistence failed: $e');
+    }
   }
 
   /// check the default business/branch
@@ -308,6 +321,8 @@ class AppService with ListenableServiceMixin {
     } catch (e) {
       print("⚠️ Ditto initialization failed (app will continue offline): $e");
     }
+
+    await _attachLocalStorageDittoIfReady();
 
     // Try to get user access from Ditto if available
     Map<String, dynamic>? userAccess;

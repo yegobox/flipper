@@ -82,10 +82,7 @@ class CheckOutState extends ConsumerState<CheckOut>
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white,
-      child: _buildMainContent(),
-    );
+    return Material(color: Colors.white, child: _buildMainContent());
   }
 
   Widget _buildMainContent() {
@@ -109,17 +106,15 @@ class CheckOutState extends ConsumerState<CheckOut>
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
               side: BorderSide(
-                color: Theme.of(context)
-                    .colorScheme
-                    .errorContainer
-                    .withValues(alpha: 0.5),
+                color: Theme.of(
+                  context,
+                ).colorScheme.errorContainer.withValues(alpha: 0.5),
                 width: 1,
               ),
             ),
-            color: Theme.of(context)
-                .colorScheme
-                .errorContainer
-                .withValues(alpha: 0.2),
+            color: Theme.of(
+              context,
+            ).colorScheme.errorContainer.withValues(alpha: 0.2),
             child: Padding(
               padding: const EdgeInsets.all(32.0),
               child: Column(
@@ -142,18 +137,18 @@ class CheckOutState extends ConsumerState<CheckOut>
                   Text(
                     'Failed to Load Checkout',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 12),
                   Text(
                     error.toString(),
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          height: 1.5,
-                        ),
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      height: 1.5,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 32),
@@ -226,18 +221,23 @@ class CheckOutState extends ConsumerState<CheckOut>
                   child: PosDefaultView(
                     transaction: transaction,
                     quickSellingView: _buildQuickSellingView(),
-                    onCompleteTransaction: (immediateCompletion, [onPaymentConfirmed, onPaymentFailed]) async {
-                      final txn = transaction;
-                      if (txn == null) {
-                        return false;
-                      }
-                      return await _handleCompleteTransaction(
-                        txn,
-                        immediateCompletion,
-                        onPaymentConfirmed,
-                        onPaymentFailed,
-                      );
-                    },
+                    onCompleteTransaction:
+                        (
+                          immediateCompletion, [
+                          onPaymentConfirmed,
+                          onPaymentFailed,
+                        ]) async {
+                          final txn = transaction;
+                          if (txn == null) {
+                            return false;
+                          }
+                          return await _handleCompleteTransaction(
+                            txn,
+                            immediateCompletion,
+                            onPaymentConfirmed,
+                            onPaymentFailed,
+                          );
+                        },
                     onTicketNavigation: () {
                       final txn = transaction;
                       if (txn != null) {
@@ -264,8 +264,6 @@ class CheckOutState extends ConsumerState<CheckOut>
       },
     );
   }
-
-
 
   Widget _buildQuickSellingView() {
     return QuickSellingView(
@@ -305,7 +303,7 @@ class CheckOutState extends ConsumerState<CheckOut>
     Function(String)? onPaymentFailed,
   ]) async {
     final controller = CheckoutController(ref: ref, context: context);
-    
+
     return await controller.handleCompleteTransaction(
       transaction: transaction,
       immediateCompletion: immediateCompletion,
@@ -323,9 +321,7 @@ class CheckOutState extends ConsumerState<CheckOut>
     );
   }
 
-  Widget _buildSmallScreenLayout({
-    required bool showCart,
-  }) {
+  Widget _buildSmallScreenLayout({required bool showCart}) {
     return ViewModelBuilder<CoreViewModel>.reactive(
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
