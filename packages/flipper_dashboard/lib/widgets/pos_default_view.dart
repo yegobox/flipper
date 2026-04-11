@@ -49,7 +49,7 @@ class PosDefaultView extends ConsumerWidget {
                   children: [
                     Expanded(
                       child: Padding(
-                        padding: const EdgeInsets.all(8.0),
+                        padding: const EdgeInsets.fromLTRB(8.0, 2.0, 8.0, 8.0),
                         child: quickSellingView,
                       ),
                     ),

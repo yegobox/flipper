@@ -11,6 +11,29 @@ class AppInputDecoration {
     TextEditingController? controller,
     VoidCallback? onClearPressed,
   }) {
+    Widget? resolvedSuffix = suffixIcon;
+    if (resolvedSuffix == null &&
+        controller != null &&
+        controller.text.isNotEmpty &&
+        onClearPressed != null) {
+      resolvedSuffix = IconButton(
+        icon: Icon(
+          Icons.clear,
+          color: Colors.grey.shade600,
+          size: 20.0,
+        ),
+        onPressed: onClearPressed,
+      );
+    }
+    // Keep suffix content inset from the outline so icons/text do not sit on
+    // the border (common with rounded/focused outlines).
+    if (resolvedSuffix != null) {
+      resolvedSuffix = Padding(
+        padding: const EdgeInsetsDirectional.only(end: 10.0),
+        child: resolvedSuffix,
+      );
+    }
+
     return InputDecoration(
       labelText: labelText,
       hintText: hintText,
@@ -29,20 +52,7 @@ class AppInputDecoration {
               size: 22.0,
             )
           : null,
-      suffixIcon:
-          suffixIcon ?? // Use custom suffixIcon if provided, otherwise default to clear button
-              (controller != null &&
-                      controller.text.isNotEmpty &&
-                      onClearPressed != null
-                  ? IconButton(
-                      icon: Icon(
-                        Icons.clear,
-                        color: Colors.grey.shade600,
-                        size: 20.0,
-                      ),
-                      onPressed: onClearPressed,
-                    )
-                  : null),
+      suffixIcon: resolvedSuffix,
       border: _buildBorder(context, opacity: 0.5),
       enabledBorder: _buildBorder(context, opacity: 0.3),
       focusedBorder: _buildBorder(context, opacity: 1.0, width: 2.0),

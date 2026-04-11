@@ -24,6 +24,11 @@ import 'package:stacked/stacked.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_services/navigation_guard_service.dart';
 
+/// Space left below the stacked [SearchInputWithDropdown] (single search row
+/// with in-field suffix actions + padding). Kept tight to the strip height so
+/// the summary toolbar sits close without overlapping.
+const double _kDesktopCheckoutBodyTopInset = 74.0;
+
 enum OrderStatus { pending, approved }
 
 class CheckOut extends StatefulHookConsumerWidget {
@@ -212,10 +217,13 @@ class CheckOutState extends ConsumerState<CheckOut>
         return Stack(
           children: [
             Padding(
-              padding: const EdgeInsets.only(top: 80.0),
+              padding: const EdgeInsets.only(top: _kDesktopCheckoutBodyTopInset),
               child: SizedBox(
                 width: constraints.maxWidth,
-                height: math.max(0.0, constraints.maxHeight - 80.0),
+                height: math.max(
+                  0.0,
+                  constraints.maxHeight - _kDesktopCheckoutBodyTopInset,
+                ),
                 child: FadeTransition(
                   opacity: _animation,
                   child: PosDefaultView(
@@ -248,16 +256,13 @@ class CheckOutState extends ConsumerState<CheckOut>
                 ),
               ),
             ),
+            // Match [PosDefaultView] horizontal padding so customer search lines
+            // up with [UnifiedTopBar] product search when the side rail is shown.
             Positioned(
-              top: 5.0,
-              left: 5.0,
-              right: 5.0,
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxWidth: (constraints.maxWidth - 10).clamp(200.0, 560.0),
-                ),
-                child: SearchInputWithDropdown(),
-              ),
+              top: 4.0,
+              left: 8.0,
+              right: 8.0,
+              child: SearchInputWithDropdown(),
             ),
           ],
         );

@@ -87,6 +87,7 @@ void main() {
       );
 
       expect(widget.compact, isFalse); // Default value should be false
+      expect(widget.iconOnly, isFalse);
     });
 
     test('CustomDropdownButton accepts null icon', () {

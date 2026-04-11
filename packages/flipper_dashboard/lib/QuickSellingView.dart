@@ -164,7 +164,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     final scheme = Theme.of(context).colorScheme;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(4, 2, 4, 6),
+      padding: const EdgeInsets.fromLTRB(4, 0, 4, 6),
       child: Material(
         elevation: 2,
         shadowColor: Colors.black.withValues(alpha: 0.14),

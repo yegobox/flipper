@@ -30,6 +30,13 @@ class CustomDropdownButton extends StatefulWidget {
   final IconData? icon;
   final bool compact;
 
+  /// When true, renders a compact [IconButton] that opens the same sheet as
+  /// the full chip (used inside the customer search [suffixIcon] row).
+  final bool iconOnly;
+
+  /// Icon tint when [iconOnly] is true (e.g. match customer add [Colors.blue]).
+  final Color? iconOnlyIconColor;
+
   const CustomDropdownButton({
     Key? key,
     required this.items,
@@ -38,6 +45,8 @@ class CustomDropdownButton extends StatefulWidget {
     required this.label,
     this.icon,
     this.compact = false,
+    this.iconOnly = false,
+    this.iconOnlyIconColor,
   }) : super(key: key);
 
   @override
@@ -88,6 +97,20 @@ class _CustomDropdownButtonState extends State<CustomDropdownButton> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.iconOnly) {
+      return IconButton(
+        padding: EdgeInsets.zero,
+        constraints: const BoxConstraints(minWidth: 36, minHeight: 40),
+        tooltip: '${widget.label}: ${widget.selectedItem}',
+        icon: Icon(
+          widget.icon ?? Icons.arrow_drop_down_circle_outlined,
+          size: 20,
+          color: widget.iconOnlyIconColor ?? Colors.black54,
+        ),
+        onPressed: _showDropdown,
+      );
+    }
+
     return GestureDetector(
       onTap: _showDropdown,
       child: Container(
@@ -371,120 +394,14 @@ class _SearchInputWithDropdownState
     final attachedCustomerAsync = ref.watch(
       attachedCustomerProvider(transaction.value?.customerId),
     );
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isMobileWidth = screenWidth < 600;
-
     final attachedCustomer = attachedCustomerAsync.maybeWhen(
       data: (customer) => customer,
       orElse: () => null,
     );
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0),
-      child: _buildSearchLayout(
-        attachedCustomer,
-        isMobileWidth,
-        transaction.value,
-      ),
-    );
-  }
-
-  // ─── Layouts ───────────────────────────────────────────────────────────────
-
-  Widget _buildSearchLayout(
-    Customer? attachedCustomer,
-    bool isMobileWidth,
-    ITransaction? transaction,
-  ) {
-    if (isMobileWidth) {
-      return _buildCompactLayout(attachedCustomer, transaction);
-    } else {
-      return _buildExpandedLayout(attachedCustomer, transaction);
-    }
-  }
-
-  Widget _buildCompactLayout(
-    Customer? attachedCustomer,
-    ITransaction? transaction,
-  ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Row(
-          children: [
-            Expanded(
-              child: CustomDropdownButton(
-                items: ['Walk-in', 'Shop'],
-                selectedItem: _selectedCustomerType,
-                onChanged: (value) {
-                  setState(() => _selectedCustomerType = value);
-                  _saveTransactionMetadata();
-                },
-                label: 'Customer Type',
-                icon: FluentIcons.person_16_regular,
-                compact: true,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: CustomDropdownButton(
-                items: ['Outgoing- Sale', 'Agent Sale'],
-                selectedItem: _selectedSaleType,
-                onChanged: (value) {
-                  setState(() => _selectedSaleType = value);
-                  _saveTransactionMetadata();
-                },
-                label: 'Sale Type',
-                icon: FluentIcons.arrow_swap_16_regular,
-                compact: true,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 8),
-        _buildSearchField(attachedCustomer, transaction),
-      ],
-    );
-  }
-
-  Widget _buildExpandedLayout(
-    Customer? attachedCustomer,
-    ITransaction? transaction,
-  ) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Expanded(
-          flex: 3,
-          child: _buildSearchField(attachedCustomer, transaction),
-        ),
-        const SizedBox(width: 12),
-        Flexible(
-          child: CustomDropdownButton(
-            items: ['Walk-in', 'Shop'],
-            selectedItem: _selectedCustomerType,
-            onChanged: (value) {
-              setState(() => _selectedCustomerType = value);
-              _saveTransactionMetadata();
-            },
-            label: 'Customer Type',
-            icon: FluentIcons.person_16_regular,
-          ),
-        ),
-        const SizedBox(width: 8),
-        Flexible(
-          child: CustomDropdownButton(
-            items: ['Outgoing- Sale', 'Agent Sale'],
-            selectedItem: _selectedSaleType,
-            onChanged: (value) {
-              setState(() => _selectedSaleType = value);
-              _saveTransactionMetadata();
-            },
-            label: 'Sale Type',
-            icon: FluentIcons.arrow_swap_16_regular,
-          ),
-        ),
-      ],
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(8, 6, 8, 2),
+      child: _buildSearchField(attachedCustomer, transaction.value),
     );
   }
 
@@ -508,23 +425,66 @@ class _SearchInputWithDropdownState
         decoration: InputDecoration(
           hintText: 'Search Customer',
           prefixIcon: const Icon(Icons.search),
-          suffixIcon: attachedCustomer != null
-              ? IconButton(
-                  icon: const Icon(
-                    FluentIcons.person_delete_20_regular,
-                    color: Colors.red,
-                  ),
-                  onPressed: _removeCustomer,
-                )
-              : IconButton(
-                  onPressed: () {
-                    locator<RouterService>().navigateTo(CustomersRoute());
+          suffixIcon: Padding(
+            padding: const EdgeInsetsDirectional.only(end: 4.0),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CustomDropdownButton(
+                  iconOnly: true,
+                  iconOnlyIconColor: Colors.green,
+                  items: const ['Walk-in', 'Shop'],
+                  selectedItem: _selectedCustomerType,
+                  onChanged: (value) {
+                    setState(() => _selectedCustomerType = value);
+                    _saveTransactionMetadata();
                   },
-                  icon: const Icon(
-                    FluentIcons.person_add_16_regular,
-                    color: Colors.blue,
-                  ),
+                  label: 'Customer Type',
+                  icon: Icons.directions_walk,
                 ),
+                CustomDropdownButton(
+                  iconOnly: true,
+                  iconOnlyIconColor: Colors.orangeAccent,
+                  items: const ['Outgoing- Sale', 'Agent Sale'],
+                  selectedItem: _selectedSaleType,
+                  onChanged: (value) {
+                    setState(() => _selectedSaleType = value);
+                    _saveTransactionMetadata();
+                  },
+                  label: 'Sale Type',
+                  icon: FluentIcons.call_outbound_20_regular,
+                ),
+                if (attachedCustomer != null)
+                  IconButton(
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(
+                      minWidth: 36,
+                      minHeight: 40,
+                    ),
+                    icon: const Icon(
+                      FluentIcons.person_delete_20_regular,
+                      color: Colors.red,
+                    ),
+                    onPressed: _removeCustomer,
+                  )
+                else
+                  IconButton(
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(
+                      minWidth: 36,
+                      minHeight: 40,
+                    ),
+                    onPressed: () {
+                      locator<RouterService>().navigateTo(CustomersRoute());
+                    },
+                    icon: const Icon(
+                      FluentIcons.person_add_16_regular,
+                      color: Colors.blue,
+                    ),
+                  ),
+              ],
+            ),
+          ),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12.0),
             borderSide: BorderSide.none,
