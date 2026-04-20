@@ -11,25 +11,39 @@ class TenantUIMixin {
     FlipperBaseModel model,
     Widget Function(Tenant, FlipperBaseModel) buildTenantCard,
   ) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
+          )
+        ]
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.all(24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
+            const Text(
               "Current Users",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w600,
+                letterSpacing: -0.5,
+              ),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 24),
             ListView.separated(
               shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
+              physics: const NeverScrollableScrollPhysics(),
               itemCount: model.tenants.length,
-              separatorBuilder: (context, index) => Divider(color: Colors.grey),
+              separatorBuilder: (context, index) =>
+                  Divider(color: Colors.grey.withOpacity(0.15), height: 1),
               itemBuilder: (context, index) =>
                   buildTenantCard(model.tenants[index], model),
             ),
@@ -120,38 +134,42 @@ class TenantUIMixin {
       (access) => (access.userId == ProxyService.box.getUserId()),
     );
 
-    return ExpansionTile(
-      onExpansionChanged: (expanded) {
-        if (expanded) {
-          setState(() {
-            editMode = true;
-            userId = tenant.userId!;
-          });
-          updateTenantPermissions(tenantAccesses);
-          fillFormWithTenantData(tenant, tenantAccesses);
-        } else {
-          setState(() {
-            editMode = false;
-          });
-        }
-      },
-      leading: buildTenantAvatarStatic(context, tenant),
-      title: Text(tenant.name!, style: TextStyle(fontWeight: FontWeight.bold)),
-      subtitle: Text(tenant.phoneNumber ?? tenant.email ?? "No phone number"),
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          buildNfcButtonStatic(context, tenant),
-          if (!currentUser)
-            buildDeleteButtonStatic(
-              context,
-              tenant,
-              model,
-              showDeleteConfirmation,
-            ),
-        ],
+    return Theme(
+      data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+      child: ExpansionTile(
+        tilePadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        onExpansionChanged: (expanded) {
+          if (expanded) {
+            setState(() {
+              editMode = true;
+              userId = tenant.userId!;
+            });
+            updateTenantPermissions(tenantAccesses);
+            fillFormWithTenantData(tenant, tenantAccesses);
+          } else {
+            setState(() {
+              editMode = false;
+            });
+          }
+        },
+        leading: buildTenantAvatarStatic(context, tenant),
+        title: Text(tenant.name!, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
+        subtitle: Text(tenant.phoneNumber ?? tenant.email ?? "No phone number", style: TextStyle(color: Colors.grey[600], fontSize: 13)),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            buildNfcButtonStatic(context, tenant),
+            if (!currentUser)
+              buildDeleteButtonStatic(
+                context,
+                tenant,
+                model,
+                showDeleteConfirmation,
+              ),
+          ],
+        ),
+        children: [buildPermissionsViewStatic(tenantAccesses)],
       ),
-      children: [buildPermissionsViewStatic(tenantAccesses)],
     );
   }
 
@@ -264,13 +282,20 @@ class TenantUIMixin {
           }).toList(),
           decoration: InputDecoration(
             labelText: "Select Branch",
+            labelStyle: TextStyle(color: Colors.grey[600]),
             prefixIcon: Icon(
               Icons.business,
-              color: Theme.of(context).primaryColor,
+              color: Colors.blueAccent,
             ),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+            border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none),
+            focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: const BorderSide(color: Colors.blueAccent, width: 1.5)),
             filled: true,
-            fillColor: Colors.grey[100],
+            fillColor: const Color(0xFFF3F4F6),
+            contentPadding: const EdgeInsets.symmetric(vertical: 16),
           ),
         );
       },

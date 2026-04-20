@@ -167,6 +167,13 @@ class AppIconsGrid extends ConsumerWidget {
         'feature': 'Chat',
       },
       {
+        'icon': FluentIcons.settings_24_regular,
+        'color': const Color(0xFF64748B),
+        'page': "Settings",
+        'label': "Settings",
+        'feature': 'Settings',
+      },
+      {
         'icon': Icons.factory_outlined,
         'color': const Color(0xFF0078D4), // SAP Fiori blue
         'page': "ProductionOutput",
@@ -187,6 +194,7 @@ class AppIconsGrid extends ConsumerWidget {
     final filteredApps = rippleApps.where((app) {
       if (app['feature'] == 'Orders') return true;
       if (app['feature'] == 'ServicesGigs') return true;
+      if (app['feature'] == 'Settings') return true;
       final hasAccess = ref.watch(
         featureAccessProvider(
           featureName: app['feature'],

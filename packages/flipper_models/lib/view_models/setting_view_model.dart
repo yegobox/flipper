@@ -145,6 +145,7 @@ class SettingViewModel extends CoreViewModel {
 
   Pin? pin;
   Future<void> createPin() async {
+    defaultBranch();
     notifyListeners();
   }
 

@@ -76,16 +76,32 @@ class TenantPermissionsMixin {
     Map<String, bool> activeFeatures,
     void Function(void Function()) setState,
   ) {
-    return Column(
-      children: features.map((feature) {
-        return buildPermissionRowStatic(
-          context,
-          feature,
-          tenantAllowedFeatures,
-          activeFeatures,
-          setState,
-        );
-      }).toList(),
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFF9FAFB),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.withOpacity(0.2)),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Column(
+        children: features.asMap().entries.map((entry) {
+          int idx = entry.key;
+          String feature = entry.value;
+          return Column(
+            children: [
+              buildPermissionRowStatic(
+                context,
+                feature,
+                tenantAllowedFeatures,
+                activeFeatures,
+                setState,
+              ),
+              if (idx < features.length - 1)
+                Divider(color: Colors.grey.withOpacity(0.2), height: 1),
+            ],
+          );
+        }).toList(),
+      ),
     );
   }
 
@@ -97,41 +113,55 @@ class TenantPermissionsMixin {
     void Function(void Function()) setState,
   ) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.symmetric(vertical: 12.0),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Expanded(
             flex: 2,
-            child: Text(feature, style: TextStyle(fontWeight: FontWeight.bold)),
+            child: Text(
+              feature,
+              style: const TextStyle(
+                  fontWeight: FontWeight.w500, fontSize: 16, color: Colors.black87),
+            ),
           ),
           Expanded(
             flex: 3,
-            child: DropdownButtonFormField<String>(
-              value: tenantAllowedFeatures[feature] ?? 'No Access',
-              onChanged: (String? newValue) {
-                setState(() {
-                  tenantAllowedFeatures[feature] = newValue!;
-                });
-              },
-              items: accessLevels.map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
-              decoration: InputDecoration(
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                contentPadding: EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 5,
+            child: Container(
+              height: 38,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.grey.withOpacity(0.3)),
+              ),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  isExpanded: true,
+                  value: tenantAllowedFeatures[feature] ?? 'No Access',
+                  icon: const Icon(Icons.keyboard_arrow_down, size: 20, color: Colors.grey),
+                  style: const TextStyle(
+                      color: Colors.black87,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500),
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      tenantAllowedFeatures[feature] = newValue!;
+                    });
+                  },
+                  items: accessLevels.map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value),
+                    );
+                  }).toList(),
                 ),
               ),
             ),
           ),
-          SizedBox(width: 16),
-          Switch(
+          const SizedBox(width: 12),
+          Switch.adaptive(
+            activeColor: Colors.blueAccent,
             value: activeFeatures[feature] ?? false,
             onChanged: (bool value) {
               setState(() {
