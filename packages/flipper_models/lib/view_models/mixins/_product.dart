@@ -33,6 +33,7 @@ mixin ProductMixin {
       Map<String, TextEditingController>? dates,
       double? retailPrice,
       double? supplyPrice,
+      bool preserveVariationFields = false,
       required String countryofOrigin,
       required String productName,
       required String selectedProductType,
@@ -122,9 +123,16 @@ mixin ProductMixin {
         variations[i].productName = productName;
         variations[i].productId = product.id;
         variations[i].modrId = number;
-        variations[i].prc = retailPrice;
-        variations[i].supplyPrice = supplyPrice;
-        variations[i].retailPrice = retailPrice;
+        final effectiveRetailPrice = preserveVariationFields
+            ? (variations[i].retailPrice ?? retailPrice)
+            : retailPrice;
+        final effectiveSupplyPrice = preserveVariationFields
+            ? (variations[i].supplyPrice ?? supplyPrice)
+            : supplyPrice;
+
+        variations[i].prc = effectiveRetailPrice;
+        variations[i].supplyPrice = effectiveSupplyPrice;
+        variations[i].retailPrice = effectiveRetailPrice;
         variations[i].regrId = randomNumber().toString().substring(0, 5);
 
         variations[i].itemTyCd = selectedProductType;
@@ -157,8 +165,11 @@ mixin ProductMixin {
         /// country of origin for this item comes from the selected country in CountryOfOriginSelector
         /// and this will happen when we do import.
         variations[i].orgnNatCd = countryofOrigin;
-        variations[i].itemNm = productName;
-        variations[i].name = productName;
+        if (!preserveVariationFields ||
+            variations[i].name.trim().isEmpty) {
+          variations[i].itemNm = productName;
+          variations[i].name = productName;
+        }
 
         /// registration name
         variations[i].regrNm = productName;

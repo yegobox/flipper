@@ -34,61 +34,75 @@ class PricingSection extends HookConsumerWidget {
               ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: TextFormField(
-                    textInputAction: TextInputAction.next,
-                    controller: retailPriceController,
-                    onChanged: (value) => model.setRetailPrice(price: value),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Price is required';
-                      }
-                      if (double.tryParse(value) == null) {
-                        return 'Invalid price';
-                      }
-                      return null;
-                    },
-                    decoration: InputDecoration(
-                      labelText: 'Retail Price',
-                      prefixText: '', // Currency symbol could go here
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                      filled: true,
-                      fillColor: Colors.grey.shade50,
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final retailField = TextFormField(
+                  textInputAction: TextInputAction.next,
+                  controller: retailPriceController,
+                  onChanged: (value) => model.setRetailPrice(price: value),
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'Price is required';
+                    }
+                    if (double.tryParse(value) == null) {
+                      return 'Invalid price';
+                    }
+                    return null;
+                  },
+                  decoration: InputDecoration(
+                    labelText: 'Retail Price',
+                    prefixText: '', // Currency symbol could go here
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.0),
                     ),
-                    keyboardType: TextInputType.number,
+                    filled: true,
+                    fillColor: Colors.grey.shade50,
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: TextFormField(
-                    textInputAction: TextInputAction.next,
-                    controller: supplyPriceController,
-                    readOnly: isComposite,
-                    onChanged: (value) => model.setSupplyPrice(price: value),
-                    decoration: InputDecoration(
-                      labelText: 'Supply Price',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8.0),
-                      ),
-                      filled: true,
-                      fillColor: isComposite
-                          ? Colors.grey.shade200
-                          : Colors.grey.shade50,
-                      suffixIcon: isComposite
-                          ? const Icon(Icons.lock, color: Colors.grey)
-                          : null,
+                  keyboardType: TextInputType.number,
+                );
+
+                final supplyField = TextFormField(
+                  textInputAction: TextInputAction.next,
+                  controller: supplyPriceController,
+                  readOnly: isComposite,
+                  onChanged: (value) => model.setSupplyPrice(price: value),
+                  decoration: InputDecoration(
+                    labelText: 'Supply Price',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8.0),
                     ),
-                    keyboardType: TextInputType.number,
-                    style: TextStyle(
-                      color: isComposite ? Colors.grey : Colors.black,
-                    ),
+                    filled: true,
+                    fillColor:
+                        isComposite ? Colors.grey.shade200 : Colors.grey.shade50,
+                    suffixIcon: isComposite
+                        ? const Icon(Icons.lock, color: Colors.grey)
+                        : null,
                   ),
-                ),
-              ],
+                  keyboardType: TextInputType.number,
+                  style: TextStyle(
+                    color: isComposite ? Colors.grey : Colors.black,
+                  ),
+                );
+
+                final shouldStack = constraints.maxWidth < 520;
+                if (shouldStack) {
+                  return Column(
+                    children: [
+                      retailField,
+                      const SizedBox(height: 12),
+                      supplyField,
+                    ],
+                  );
+                }
+
+                return Row(
+                  children: [
+                    Expanded(child: retailField),
+                    const SizedBox(width: 16),
+                    Expanded(child: supplyField),
+                  ],
+                );
+              },
             ),
           ],
         ),

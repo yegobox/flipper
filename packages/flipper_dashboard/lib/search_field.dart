@@ -14,6 +14,7 @@ import 'package:flipper_services/DeviceType.dart';
 import 'package:flipper_dashboard/DesktopProductAdd.dart';
 import 'package:flipper_dashboard/keypad_view.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
+import 'package:flipper_dashboard/responsive_layout.dart' as responsive;
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
@@ -369,27 +370,51 @@ class SearchFieldState extends ConsumerState<SearchField>
   }
 
   void _handleAddProduct() {
+    final rootContext = context;
     showDialog(
       barrierDismissible: true,
-      context: context,
-      builder: (context) => AddProductDialog(
+      context: rootContext,
+      builder: (dialogContext) => AddProductDialog(
         onChoiceSelected: (choice) {
           if (choice == 'bulk') {
             showDialog(
               barrierDismissible: true,
-              context: context,
+              context: rootContext,
               builder: (context) => OptionModal(child: BulkAddProduct()),
             );
           } else if (choice == 'single') {
-            showDialog(
-              barrierDismissible: true,
-              context: context,
-              builder: (context) => OptionModal(child: ProductEntryScreen()),
-            );
+            Navigator.of(dialogContext).maybePop();
+
+            final isPhone =
+                responsive.ResponsiveLayout.isPhone(rootContext) ||
+                responsive.ResponsiveLayout.isTinyLimit(rootContext);
+
+            if (isPhone) {
+              Navigator.of(rootContext).push(
+                MaterialPageRoute(
+                  builder: (ctx) => Scaffold(
+                    appBar: AppBar(
+                      title: const Text('Add New Product'),
+                      leading: IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.of(ctx).maybePop(),
+                      ),
+                    ),
+                    body: const SafeArea(child: ProductEntryScreen()),
+                  ),
+                ),
+              );
+            } else {
+              showDialog(
+                barrierDismissible: true,
+                context: rootContext,
+                builder: (context) => OptionModal(child: ProductEntryScreen()),
+              );
+            }
           } else if (choice == 'rooms') {
             showDialog(
               barrierDismissible: true,
-              context: context,
+              context: rootContext,
               builder: (context) => AddRoomDialog(
                 onRoomAdded: (roomData) {
                   // Handle room data here
