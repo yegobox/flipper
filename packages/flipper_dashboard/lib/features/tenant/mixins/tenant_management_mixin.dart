@@ -21,6 +21,10 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
   String selectedUserType = 'Agent';
   Map<String, bool> activeFeatures = {};
   Map<String, String> tenantAllowedFeatures = {};
+  /// Captured when opening a tenant for edit; used to send only changed accesses to `create_agent`.
+  Map<String, String> _tenantPermissionsBaseline = {};
+  Map<String, bool> _tenantActiveBaseline = {};
+  bool _hasTenantPermissionBaseline = false;
   String? userId;
   Tenant? editedTenant;
 
@@ -40,6 +44,9 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
       editMode = false;
       userId = null;
       editedTenant = null;
+      _tenantPermissionsBaseline = {};
+      _tenantActiveBaseline = {};
+      _hasTenantPermissionBaseline = false;
     });
   }
 
@@ -123,6 +130,14 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
         ref: ref,
         tenantAllowedFeatures: tenantAllowedFeatures,
         activeFeatures: activeFeatures,
+        permissionsBaseline:
+            editMode && _hasTenantPermissionBaseline
+                ? _tenantPermissionsBaseline
+                : null,
+        activeFeaturesBaseline:
+            editMode && _hasTenantPermissionBaseline
+                ? _tenantActiveBaseline
+                : null,
       );
     } catch (error) {
       // Log the error to a logging service
@@ -171,6 +186,9 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
       phoneController,
       formKey,
     );
+    _tenantPermissionsBaseline = Map<String, String>.from(tenantAllowedFeatures);
+    _tenantActiveBaseline = Map<String, bool>.from(activeFeatures);
+    _hasTenantPermissionBaseline = true;
   }
 
   void updateTenantPermissions(List<Access> tenantAccesses) {

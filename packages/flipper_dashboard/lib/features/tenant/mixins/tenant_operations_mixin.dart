@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/secrets.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -26,6 +27,8 @@ class TenantOperationsMixin {
     required WidgetRef ref,
     required Map<String, String> tenantAllowedFeatures,
     required Map<String, bool> activeFeatures,
+    Map<String, String>? permissionsBaseline,
+    Map<String, bool>? activeFeaturesBaseline,
   }) async {
     try {
       Branch? branch;
@@ -72,17 +75,42 @@ class TenantOperationsMixin {
       // Call Supabase RPC function to create agent
       final supabaseClient = Supabase.instance.client;
 
-      // Prepare access permissions from tenantAllowedFeatures
+      // Prepare access permissions: on edit, only send rows that changed vs baseline
+      // (new users still send the full map from tenantAllowedFeatures).
       List<Map<String, String>> accessPermissions = [];
-      for (final entry in tenantAllowedFeatures.entries) {
-        accessPermissions.add({
-          'feature_name': entry.key,
-          'access_level': entry.value,
-          'status':
-              activeFeatures[entry.key] != null && activeFeatures[entry.key]!
-              ? 'active'
-              : 'inactive',
-        });
+      if (editMode &&
+          permissionsBaseline != null &&
+          activeFeaturesBaseline != null) {
+        final seen = <String>{};
+        for (final feature in features) {
+          if (!seen.add(feature)) {
+            continue;
+          }
+          final level =
+              tenantAllowedFeatures[feature] ?? 'No Access';
+          final active = activeFeatures[feature] ?? false;
+          final baseLevel = permissionsBaseline[feature] ?? 'No Access';
+          final baseActive = activeFeaturesBaseline[feature] ?? false;
+          if (level == baseLevel && active == baseActive) {
+            continue;
+          }
+          accessPermissions.add({
+            'feature_name': feature,
+            'access_level': level,
+            'status': active ? 'active' : 'inactive',
+          });
+        }
+      } else {
+        for (final entry in tenantAllowedFeatures.entries) {
+          accessPermissions.add({
+            'feature_name': entry.key,
+            'access_level': entry.value,
+            'status':
+                activeFeatures[entry.key] != null && activeFeatures[entry.key]!
+                ? 'active'
+                : 'inactive',
+          });
+        }
       }
 
       // Log the data being sent to create_agent

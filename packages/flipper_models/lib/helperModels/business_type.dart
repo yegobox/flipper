@@ -12,6 +12,14 @@ class BusinessType with EquatableMixin {
   BusinessType({required this.id, required this.typeName});
   factory BusinessType.fromJson(Map<String, dynamic> json) =>
       _$BusinessTypeFromJson(json);
+
+  /// [public.business_types] exposes `name`; generated JSON expects `typeName`.
+  factory BusinessType.fromSupabaseRow(Map<String, dynamic> json) {
+    return BusinessType(
+      id: json['id']?.toString() ?? '',
+      typeName: (json['typeName'] ?? json['name'])?.toString() ?? '',
+    );
+  }
   static List<BusinessType> fromJsonList(String str) => List<BusinessType>.from(
     json.decode(str).map((x) => BusinessType.fromJson(x)),
   );

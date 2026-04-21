@@ -111,9 +111,19 @@ mixin VariantMixin implements VariantInterface {
       } else if (variantId != null) {
         conditions.add(Where('id').isExactly(variantId));
       } else if (name != null && name.isNotEmpty) {
-        // Search both name (partial match) and barcode (exact match)
-        conditions.add(Or('name').contains(name));
-        conditions.add(Or('bcd').isExactly(name));
+        // One of: variant name, product title, or barcode (substring).
+        // Use [Where] then [Or] so SQL is (... OR ... OR ...), not three ANDed LIKEs.
+        final key = name.toLowerCase();
+        conditions.add(
+          WherePhrase(
+            [
+              Where('name').contains(key),
+              Or('productName').contains(key),
+              Or('bcd').contains(key),
+            ],
+            isRequired: true,
+          ),
+        );
       } else if (stockSynchronized != null) {
         conditions.add(Where('stockSynchronized').isExactly(stockSynchronized));
       } else if (purchaseId != null) {

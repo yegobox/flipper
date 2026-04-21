@@ -19,6 +19,7 @@ import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.router.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -29,6 +30,13 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_scanner/scanner_view.dart';
 import 'package:flipper_dashboard/checkout_scanner_actions.dart';
+import 'package:flipper_dashboard/AddProductDialog.dart';
+import 'package:flipper_dashboard/AddRoomDialog.dart';
+import 'package:flipper_dashboard/BulkAddProduct.dart';
+import 'package:flipper_dashboard/DesktopProductAdd.dart';
+import 'package:flipper_dashboard/popup_modal.dart';
+import 'package:flipper_dashboard/providers/app_mode_provider.dart';
+import 'package:flipper_dashboard/responsive_layout.dart' as responsive;
 
 class CheckoutProductView extends StatefulHookConsumerWidget {
   const CheckoutProductView({
@@ -232,9 +240,7 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
                           decoration: BoxDecoration(
                             color: statusStyle.bgColor,
                             borderRadius: BorderRadius.circular(999),
-                            border: Border.all(
-                              color: statusStyle.borderColor,
-                            ),
+                            border: Border.all(color: statusStyle.borderColor),
                           ),
                           child: Text(
                             status,
@@ -272,7 +278,10 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
                 onPressed: () =>
                     locator<RouterService>().navigateTo(CustomersRoute()),
                 style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
                   minimumSize: Size.zero,
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
@@ -294,7 +303,10 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
                   );
                 },
                 style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 2,
+                  ),
                   minimumSize: Size.zero,
                   tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 ),
@@ -322,8 +334,8 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
     final who = (name != null && name.isNotEmpty)
         ? name
         : (phone != null && phone.isNotEmpty)
-            ? phone
-            : 'No customer';
+        ? phone
+        : 'No customer';
     final time = createdAt != null
         ? '${createdAt.hour.toString().padLeft(2, '0')}:${createdAt.minute.toString().padLeft(2, '0')}'
         : '—';
@@ -370,17 +382,14 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
       lineTax += (it.taxAmt ?? 0).toDouble();
     }
     final t = transaction;
-    final sub = (t?.subTotal != null && t!.subTotal! > 0) ? t.subTotal! : lineSub;
+    final sub = (t?.subTotal != null && t!.subTotal! > 0)
+        ? t.subTotal!
+        : lineSub;
     final taxVal = (t?.taxAmount != null && (t!.taxAmount ?? 0) > 0)
         ? t.taxAmount!.toDouble()
         : lineTax;
     final total = sub + taxVal;
-    return (
-      itemRows: active.length,
-      subtotal: sub,
-      tax: taxVal,
-      total: total,
-    );
+    return (itemRows: active.length, subtotal: sub, tax: taxVal, total: total);
   }
 
   Widget _buildSaleSummary(
@@ -390,8 +399,7 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
     final scheme = Theme.of(context).colorScheme;
     final sym = ProxyService.box.defaultCurrency();
     final m = _computeSaleMoney(transaction, itemsAsync);
-    final itemText =
-        '${m.itemRows} item${m.itemRows == 1 ? '' : 's'}';
+    final itemText = '${m.itemRows} item${m.itemRows == 1 ? '' : 's'}';
 
     Widget moneyCol(String label, String amount, {required Color amountColor}) {
       return Expanded(
@@ -403,10 +411,10 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: scheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 11,
-                  ),
+                color: scheme.onSurfaceVariant,
+                fontWeight: FontWeight.w600,
+                fontSize: 11,
+              ),
             ),
             const SizedBox(height: 2),
             Text(
@@ -414,10 +422,10 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    color: amountColor,
-                    fontSize: 13,
-                  ),
+                fontWeight: FontWeight.w800,
+                color: amountColor,
+                fontSize: 13,
+              ),
             ),
           ],
         ),
@@ -451,10 +459,10 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                       style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w800,
-                            color: scheme.onSurface,
-                            fontSize: 13,
-                          ),
+                        fontWeight: FontWeight.w800,
+                        color: scheme.onSurface,
+                        fontSize: 13,
+                      ),
                     ),
                   ],
                 ),
@@ -523,7 +531,9 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
           const SizedBox(width: 12),
           Expanded(
             child: FilledButton(
-              onPressed: transaction == null ? null : () => _showPreviewCartBottomSheet(transaction),
+              onPressed: transaction == null
+                  ? null
+                  : () => _showPreviewCartBottomSheet(transaction),
               style: FilledButton.styleFrom(
                 backgroundColor: scheme.primary,
                 shape: RoundedRectangleBorder(
@@ -740,9 +750,8 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
   }
 }
 
-/// Mobile checkout product search: POS-style field only (no orders / mail /
-/// add-product strip). Uses the same debounced [processDebouncedValue] path
-/// as [SearchField] so product filtering and scan-to-add stay consistent.
+/// Mobile checkout product search: POS-style field (add product, clear).
+/// Uses the same debounced [processDebouncedValue] path as [SearchField].
 class _CheckoutPosProductSearch extends StatefulHookConsumerWidget {
   const _CheckoutPosProductSearch({required this.controller});
 
@@ -753,7 +762,8 @@ class _CheckoutPosProductSearch extends StatefulHookConsumerWidget {
       _CheckoutPosProductSearchState();
 }
 
-class _CheckoutPosProductSearchState extends ConsumerState<_CheckoutPosProductSearch>
+class _CheckoutPosProductSearchState
+    extends ConsumerState<_CheckoutPosProductSearch>
     with HandleScannWhileSelling<_CheckoutPosProductSearch> {
   final _textSubject = BehaviorSubject<String>();
   final _model = CoreViewModel();
@@ -804,6 +814,65 @@ class _CheckoutPosProductSearchState extends ConsumerState<_CheckoutPosProductSe
     if (mounted) {
       setState(() => hasText = false);
     }
+  }
+
+  /// Same flow as [SearchField.addButton] / [_handleAddProduct] (single/bulk/rooms).
+  void _handleAddProduct() {
+    final rootContext = context;
+    showDialog<void>(
+      barrierDismissible: true,
+      context: rootContext,
+      builder: (dialogContext) => AddProductDialog(
+        onChoiceSelected: (choice) {
+          if (choice == 'bulk') {
+            showDialog<void>(
+              barrierDismissible: true,
+              context: rootContext,
+              builder: (context) => OptionModal(child: BulkAddProduct()),
+            );
+          } else if (choice == 'single') {
+            Navigator.of(dialogContext).maybePop();
+
+            final isPhone =
+                responsive.ResponsiveLayout.isPhone(rootContext) ||
+                responsive.ResponsiveLayout.isTinyLimit(rootContext);
+
+            if (isPhone) {
+              Navigator.of(rootContext).push(
+                MaterialPageRoute<void>(
+                  builder: (ctx) => Scaffold(
+                    appBar: AppBar(
+                      title: const Text('Add New Product'),
+                      leading: IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.of(ctx).maybePop(),
+                      ),
+                    ),
+                    body: const SafeArea(child: ProductEntryScreen()),
+                  ),
+                ),
+              );
+            } else {
+              showDialog<void>(
+                barrierDismissible: true,
+                context: rootContext,
+                builder: (context) => OptionModal(child: ProductEntryScreen()),
+              );
+            }
+          } else if (choice == 'rooms') {
+            showDialog<void>(
+              barrierDismissible: true,
+              context: rootContext,
+              builder: (context) => AddRoomDialog(
+                onRoomAdded: (roomData) {
+                  // Room flow; keep parity with SearchField.
+                },
+              ),
+            );
+          }
+        },
+      ),
+    );
   }
 
   @override
@@ -877,7 +946,20 @@ class _CheckoutPosProductSearchState extends ConsumerState<_CheckoutPosProductSe
                 ),
                 tooltip: 'Clear',
               )
-            : null,
+            : Consumer(
+                builder: (context, ref, _) {
+                  final appMode = ref.watch(appModeProvider);
+                  if (!appMode) return const SizedBox.shrink();
+                  return IconButton(
+                    onPressed: _handleAddProduct,
+                    icon: Icon(
+                      FluentIcons.add_20_regular,
+                      color: scheme.onSurfaceVariant,
+                    ),
+                    tooltip: 'Add product',
+                  ).eligibleToSeeIfYouAre(ref, [UserType.ADMIN]);
+                },
+              ),
       ),
     );
   }

@@ -503,7 +503,9 @@ class AppService with ListenableServiceMixin {
           .from('business_types')
           .select();
       return (response as List)
-          .map((e) => helper.BusinessType.fromJson(e))
+          .map((e) => helper.BusinessType.fromSupabaseRow(
+                Map<String, dynamic>.from(e as Map),
+              ))
           .toList();
     } catch (e) {
       if (kDebugMode) {

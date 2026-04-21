@@ -153,13 +153,16 @@ mixin CapellaVariantMixin implements VariantInterface {
         arguments['itemTyCd'] = itemTyCd;
       }
 
-      // Name / barcode search
+      // Name / product name / barcode search (substring, case-insensitive).
+      // Compare with LOWER so "mango" matches stored "Mango" on all Ditto/SQLite builds.
       if (name != null && name.isNotEmpty) {
+        final q = name.trim();
         query +=
-            " AND (UPPER(name) LIKE UPPER(:namePattern) OR UPPER(bcd) LIKE UPPER(:bcdPattern))";
-        arguments['namePattern'] = '%$name%';
-        arguments['bcdPattern'] = '%$name%';
-        talker.info('Added name filter: $name');
+            " AND (LOWER(COALESCE(name, '')) LIKE :searchLike OR "
+            "LOWER(COALESCE(bcd, '')) LIKE :searchLike OR "
+            "LOWER(COALESCE(productName, '')) LIKE :searchLike)";
+        arguments['searchLike'] = '%$q%';
+        talker.info('Added variant text search filter (case-insensitive): $q');
       }
 
       // Product filter
