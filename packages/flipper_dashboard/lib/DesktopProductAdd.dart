@@ -1340,6 +1340,7 @@ Future<void> _showVariantSheet({
   String taxTyCd = existingVariant?.taxTyCd ?? 'B';
 
   final formKey = GlobalKey<FormState>();
+  var savingVariant = false;
 
   await showModalBottomSheet(
     context: context,
@@ -1546,90 +1547,158 @@ Future<void> _showVariantSheet({
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                       child: SizedBox(
                         width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            if (!formKey.currentState!.validate()) return;
-                            if (productRef == null) {
-                              toast('Invalid product reference');
-                              return;
-                            }
+                        child: FilledButton(
+                          onPressed: savingVariant
+                              ? null
+                              : () async {
+                                  if (!formKey.currentState!.validate()) {
+                                    return;
+                                  }
+                                  if (productRef == null) {
+                                    toast('Invalid product reference');
+                                    return;
+                                  }
 
-                            final barcode = barcodeController.text.trim();
-                            final baseRetail =
-                                double.tryParse(retailPriceController.text) ??
-                                0;
-                            final baseSupply =
-                                double.tryParse(supplyPriceController.text) ??
-                                0;
-                            final override = double.tryParse(
-                              priceOverrideController.text.trim(),
-                            );
-                            final qty =
-                                double.tryParse(stockController.text.trim()) ??
-                                0;
-                            final discount =
-                                int.tryParse(discountController.text.trim()) ??
-                                0;
+                                  setModalState(() => savingVariant = true);
+                                  try {
+                                    final barcode = barcodeController.text.trim();
+                                    final baseRetail =
+                                        double.tryParse(
+                                              retailPriceController.text,
+                                            ) ??
+                                            0;
+                                    final baseSupply =
+                                        double.tryParse(
+                                              supplyPriceController.text,
+                                            ) ??
+                                            0;
+                                    final override = double.tryParse(
+                                      priceOverrideController.text.trim(),
+                                    );
+                                    final qty =
+                                        double.tryParse(
+                                          stockController.text.trim(),
+                                        ) ??
+                                        0;
+                                    final discount =
+                                        int.tryParse(
+                                          discountController.text.trim(),
+                                        ) ??
+                                        0;
 
-                            if (existingVariant == null) {
-                              final variantName = nameController.text.trim();
-                              await model.onScanItem(
-                                countryCode: countryOfOriginController.text,
-                                editmode: isEditMode,
-                                barCode: barcode,
-                                retailPrice: override ?? baseRetail,
-                                supplyPrice: baseSupply,
-                                isTaxExempted: taxTyCd == 'C',
-                                product: productRef,
-                                variantDisplayName: variantName,
-                              );
+                                    if (existingVariant == null) {
+                                      final variantName =
+                                          nameController.text.trim();
+                                      await model.onScanItem(
+                                        countryCode:
+                                            countryOfOriginController.text,
+                                        editmode: isEditMode,
+                                        barCode: barcode,
+                                        retailPrice: override ?? baseRetail,
+                                        supplyPrice: baseSupply,
+                                        isTaxExempted: taxTyCd == 'C',
+                                        product: productRef,
+                                        variantDisplayName: variantName,
+                                      );
 
-                              final idx = model.scannedVariants.indexWhere(
-                                (v) => v.bcd == barcode,
-                              );
-                              final v = idx != -1
-                                  ? model.scannedVariants[idx]
-                                  : (model.scannedVariants.isNotEmpty
-                                      ? model.scannedVariants.last
-                                      : null);
-                              if (v != null) {
-                                v.name = variantName;
-                                v.taxTyCd = taxTyCd;
-                                v.dcRt = discount.toDouble();
-                                model.getDiscountController(v.id).text =
-                                    discount.toString();
-                                await model.updateVariantQuantity(v.id, qty);
-                                model.notifyListeners();
-                              }
-                            } else {
-                              existingVariant.name = nameController.text.trim();
-                              existingVariant.bcd = barcode;
-                              existingVariant.sku = barcode;
-                              existingVariant.taxTyCd = taxTyCd;
-                              existingVariant.retailPrice =
-                                  override ?? baseRetail;
-                              existingVariant.supplyPrice = baseSupply;
-                              existingVariant.dcRt = discount.toDouble();
-                              model.getDiscountController(existingVariant.id)
-                                  .text = discount.toString();
-                              await model.updateVariantQuantity(
-                                existingVariant.id,
-                                qty,
-                              );
-                              model.notifyListeners();
-                            }
+                                      final idx =
+                                          model.scannedVariants.indexWhere(
+                                        (v) => v.bcd == barcode,
+                                      );
+                                      final v = idx != -1
+                                          ? model.scannedVariants[idx]
+                                          : (model.scannedVariants.isNotEmpty
+                                              ? model.scannedVariants.last
+                                              : null);
+                                      if (v != null) {
+                                        v.name = variantName;
+                                        v.taxTyCd = taxTyCd;
+                                        v.dcRt = discount.toDouble();
+                                        model.getDiscountController(v.id).text =
+                                            discount.toString();
+                                        await model.updateVariantQuantity(
+                                          v.id,
+                                          qty,
+                                        );
+                                        model.notifyListeners();
+                                      }
+                                    } else {
+                                      existingVariant.name =
+                                          nameController.text.trim();
+                                      existingVariant.bcd = barcode;
+                                      existingVariant.sku = barcode;
+                                      existingVariant.taxTyCd = taxTyCd;
+                                      existingVariant.retailPrice =
+                                          override ?? baseRetail;
+                                      existingVariant.supplyPrice = baseSupply;
+                                      existingVariant.dcRt =
+                                          discount.toDouble();
+                                      model
+                                          .getDiscountController(
+                                            existingVariant.id,
+                                          )
+                                          .text = discount.toString();
+                                      await model.updateVariantQuantity(
+                                        existingVariant.id,
+                                        qty,
+                                      );
+                                      model.notifyListeners();
+                                    }
 
-                            if (ctx.mounted) Navigator.of(ctx).maybePop();
-                          },
-                          style: ElevatedButton.styleFrom(
+                                    if (ctx.mounted) {
+                                      await Navigator.of(ctx).maybePop();
+                                    }
+                                  } catch (e, st) {
+                                    talker.error(
+                                      'Save variant failed: $e',
+                                      e,
+                                      st,
+                                    );
+                                    if (ctx.mounted) {
+                                      toast(
+                                        'Could not save variant. Please try again.',
+                                      );
+                                    }
+                                  } finally {
+                                    // Do not call setModalState after a successful pop: the sheet
+                                    // is deactivating and rebuild triggers InheritedElement asserts.
+                                    if (ctx.mounted) {
+                                      setModalState(
+                                        () => savingVariant = false,
+                                      );
+                                    }
+                                  }
+                                },
+                          style: FilledButton.styleFrom(
+                            backgroundColor: const Color(0xFF0078D4)
+                                .withValues(alpha: 0.12),
+                            foregroundColor: const Color(0xFF0078D4),
+                            disabledBackgroundColor: const Color(0xFF0078D4)
+                                .withValues(alpha: 0.12),
+                            disabledForegroundColor: const Color(0xFF0078D4),
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(14),
                             ),
                           ),
-                          child: Text(
-                            existingVariant == null ? 'Save variant' : 'Save',
-                          ),
+                          child: savingVariant
+                              ? const SizedBox(
+                                  height: 22,
+                                  width: 22,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.5,
+                                    color: Color(0xFF0078D4),
+                                  ),
+                                )
+                              : Text(
+                                  existingVariant == null
+                                      ? 'Save variant'
+                                      : 'Save',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 16,
+                                  ),
+                                ),
                         ),
                       ),
                     ),
@@ -1643,11 +1712,16 @@ Future<void> _showVariantSheet({
     },
   );
 
-  nameController.dispose();
-  barcodeController.dispose();
-  stockController.dispose();
-  priceOverrideController.dispose();
-  discountController.dispose();
+  // The sheet route can still be animating out or finishing unmount when this
+  // future completes; disposing controllers synchronously races EditableText and
+  // triggers "used after being disposed". Dispose after this frame.
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    nameController.dispose();
+    barcodeController.dispose();
+    stockController.dispose();
+    priceOverrideController.dispose();
+    discountController.dispose();
+  });
 }
 
 class _MobileProductEntry extends StatelessWidget {

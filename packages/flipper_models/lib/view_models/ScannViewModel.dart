@@ -66,6 +66,10 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       final index = scannedVariants.indexWhere((v) => v.id == variant.id);
       if (index != -1) {
         final existingVariant = scannedVariants[index]; //Get existing variant
+        final boxBhfId = await ProxyService.box.bhfId();
+        final ebmRow = await ProxyService.strategy.ebm(branchId: branchId);
+        final coercedBhfId =
+            _coerceBhfId(boxBhfId, ebmRow?.bhfId, existingVariant.bhfId);
         scannedVariants[index] = Variant(
           id: existingVariant.id,
           stockId: existingVariant.stock?.id ?? existingVariant.stockId,
@@ -107,7 +111,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
           prc: existingVariant.prc,
           splyAmt: existingVariant.splyAmt,
           tin: existingVariant.tin,
-          bhfId: existingVariant.bhfId,
+          bhfId: coercedBhfId,
           dftPrc: existingVariant.dftPrc,
           addInfo: existingVariant.addInfo,
           isrcAplcbYn: existingVariant.isrcAplcbYn,
@@ -254,6 +258,22 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
     notifyListeners();
   }
 
+  /// Ditto/RRA reject null, empty, or literal "null" for [Variant.bhfId].
+  String _coerceBhfId(
+    String? fromBox,
+    String? fromEbm,
+    String? existingOnVariant,
+  ) {
+    for (final candidate in <String?>[fromBox, fromEbm, existingOnVariant]) {
+      if (candidate == null) continue;
+      final t = candidate.trim();
+      if (t.isEmpty) continue;
+      if (t.toLowerCase() == 'null') continue;
+      return t;
+    }
+    return '00';
+  }
+
   final talker = TalkerFlutter.init();
 
   Future<void> onScanItem({
@@ -293,6 +313,8 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
     // If no matching variant was found, add a new one
     // Set correct tax type based on EBM VAT status
     final ebm = await ProxyService.strategy.ebm(branchId: branchId);
+    final boxBhfId = await ProxyService.box.bhfId();
+    final resolvedBhfId = _coerceBhfId(boxBhfId, ebm?.bhfId, null);
     final isVatEnabled = ebm?.vatEnabled ?? false;
     // Prefer the in-progress product title (mobile) over persisted TEMP_PRODUCT name.
     final productTitle = (kProductName != null && kProductName!.trim().isNotEmpty)
@@ -341,6 +363,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       modrNm: productTitle,
       isrcAplcbYn: "N", // Insurance Applicable Yes/No
       tin: ebm?.tinNumber ?? -1,
+      bhfId: resolvedBhfId,
     );
     final stock = Stock(
       currentStock: 0,
@@ -352,7 +375,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       ebmSynced: false,
       active: false,
       showLowStockAlert: true,
-      bhfId: (await ProxyService.box.bhfId()) ?? "00",
+      bhfId: resolvedBhfId,
     );
     variant.stock = stock;
     variant.stockId = stock.id;
@@ -523,15 +546,24 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
     if (editmode) {
       try {
         String? finalCategoryId = categoryId;
+        final branchId = ProxyService.box.getBranchId()!;
         if (finalCategoryId == null || finalCategoryId.isEmpty) {
           final category = await ProxyService.strategy
               .ensureUncategorizedCategory(
-                branchId: ProxyService.box.getBranchId()!,
+                branchId: branchId,
               );
           finalCategoryId = category.id;
         }
 
+        final boxBhfId = await ProxyService.box.bhfId();
+
         for (var variant in scannedVariants) {
+          Ebm? ebmCache;
+          Future<Ebm?> loadEbm() async {
+            ebmCache ??= await ProxyService.strategy.ebm(branchId: branchId);
+            return ebmCache;
+          }
+
           // Update expiration date if available
           if (dates != null && dates.containsKey(variant.id)) {
             variant.expirationDate = DateFormat(
@@ -573,11 +605,10 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
           if (variant.isrcAplcbYn == null || variant.isrcAplcbYn!.isEmpty) {
             variant.isrcAplcbYn = "N";
           }
-          if (variant.tin == null || variant.tin == -1) {
-            final ebm = await ProxyService.strategy.ebm(
-              branchId: ProxyService.box.getBranchId()!,
-            );
-            variant.tin = ebm?.tinNumber ?? -1;
+          if (variant.tin == null ||
+              variant.tin == -1 ||
+              variant.tin.toString().length != 9) {
+            variant.tin = (await loadEbm())?.tinNumber ?? -1;
           }
           if (variant.modrNm == null || variant.modrNm!.isEmpty) {
             variant.modrNm = productName.isNotEmpty
@@ -590,28 +621,14 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
               productType: "2",
               packagingUnit: "CT",
               quantityUnit: "U",
-              branchId: ProxyService.box.getBranchId()!,
+              branchId: branchId,
             );
           }
-          // fix any invalid tin or bhfId saved on a variant
-          if (variant.tin == null ||
-              variant.tin == -1 ||
-              variant.tin.toString().length != 9 ||
-              variant.bhfId == null) {
-            final ebm = await ProxyService.strategy.ebm(
-              branchId: ProxyService.box.getBranchId()!,
-            );
-            if (variant.tin == null ||
-                variant.tin == -1 ||
-                variant.tin.toString().length != 9) {
-              variant.tin = ebm?.tinNumber ?? -1;
-            }
-            if (variant.bhfId == null ||
-                variant.bhfId!.isEmpty ||
-                variant.bhfId == 'null') {
-              variant.bhfId = ebm?.bhfId ?? "00";
-            }
-          }
+          variant.bhfId = _coerceBhfId(
+            boxBhfId,
+            (await loadEbm())?.bhfId,
+            variant.bhfId,
+          );
 
           await ProxyService.strategy.updateVariant(
             updatables: [variant],
@@ -631,7 +648,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
           );
           await ProxyService.strategy.addVariant(
             variations: [variant],
-            branchId: ProxyService.box.getBranchId()!,
+            branchId: branchId,
             skipRRaCall: false,
           );
         }
