@@ -468,17 +468,7 @@ class _CheckoutProductViewState extends ConsumerState<CheckoutProductView>
                 ),
               ),
               moneyCol(
-                'subtotal',
-                m.subtotal.toCurrencyFormatted(symbol: sym),
-                amountColor: scheme.onSurface,
-              ),
-              moneyCol(
-                'tax',
-                m.tax.toCurrencyFormatted(symbol: sym),
-                amountColor: scheme.onSurface,
-              ),
-              moneyCol(
-                'total',
+                'Total',
                 m.total.toCurrencyFormatted(symbol: sym),
                 amountColor: const Color(0xFF1B7F3A),
               ),
