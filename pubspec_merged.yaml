@@ -339,7 +339,7 @@ dependencies:
   json_serializable: ^6.9.4
   freezed: ^3.0.3
   ditto: ^0.0.1
-  jni: ^0.15.2
+  jni: ^0.14.2
   image_picker: ^1.2.1
   posthog_flutter: ^5.4.3
   otp: ^3.1.4
