@@ -1,4 +1,4 @@
-import 'package:flipper_dashboard/layout.dart';
+import 'package:flipper_dashboard/dashboard_shell.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';

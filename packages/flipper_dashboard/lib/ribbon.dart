@@ -2,6 +2,9 @@
 
 import 'package:flipper_dashboard/BranchPerformance.dart';
 import 'package:flipper_dashboard/BranchSelectionMixin.dart';
+import 'package:flipper_dashboard/dashboard_shell.dart';
+import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
+import 'package:flipper_dashboard/providers/navigation_providers.dart';
 import 'package:flipper_dashboard/Reports.dart';
 import 'package:flipper_dashboard/tax_configuration.dart';
 import 'package:flipper_dashboard/transaction_list_wrapper.dart';
@@ -13,13 +16,13 @@ import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
         buttonIndexProvider,
         selectedBranchProvider;
 import 'package:flipper_routing/app.locator.dart' show locator;
+import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_services/DeviceType.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:stacked_services/stacked_services.dart';
 import 'package:supabase_models/brick/models/branch.model.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
@@ -38,33 +41,30 @@ class IconText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final primary = PosLayoutBreakpoints.posAccentBlue;
 
     return Container(
       key: key,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: isSelected
-            ? theme.primaryColor.withValues(alpha: 0.1)
+            ? primary.withValues(alpha: 0.12)
             : Colors.transparent,
-        borderRadius: BorderRadius.circular(4),
-        border: isSelected
-            ? Border(bottom: BorderSide(color: theme.primaryColor, width: 2))
-            : null,
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(
             icon,
-            color: isSelected ? theme.primaryColor : Colors.black54,
+            color: isSelected ? primary : Colors.black54,
             size: 20.0,
           ),
           const SizedBox(width: 8),
           Text(
             text,
             style: TextStyle(
-              color: isSelected ? theme.primaryColor : Colors.black87,
+              color: isSelected ? primary : Colors.black87,
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
               fontSize: 13.0,
             ),
@@ -84,12 +84,134 @@ class IconRow extends StatefulHookConsumerWidget {
 
 class IconRowState extends ConsumerState<IconRow>
     with CoreMiscellaneous, BranchSelectionMixin {
-  final List<bool> _isSelected = [true, false, false, false, false, false];
-  String? _loadingItemId; // Add this
+  /// Selection for main ribbon tabs: POS, Home, Transactions, EOD, Analytics.
+  final List<bool> _selectedMain = [
+    false,
+    true,
+    false,
+    false,
+    false,
+  ];
+  String? _loadingItemId;
   bool _isLoading = false;
 
   String _getDeviceType(BuildContext context) {
     return DeviceType.getDeviceType(context);
+  }
+
+  int _legacyButtonIndexForUi(int uiIndex) {
+    switch (uiIndex) {
+      case 0:
+        return 0;
+      case 1:
+        return 0;
+      case 2:
+        return 1;
+      case 3:
+        return 2;
+      case 4:
+        return 3;
+      default:
+        return 0;
+    }
+  }
+
+  void _onMainTabPressed(int uiIndex) {
+    ref
+        .read(buttonIndexProvider.notifier)
+        .setIndex(_legacyButtonIndexForUi(uiIndex));
+    setState(() {
+      for (var i = 0; i < _selectedMain.length; i++) {
+        _selectedMain[i] = i == uiIndex;
+      }
+    });
+    _runNavigationForUi(uiIndex);
+  }
+
+  void _runNavigationForUi(int uiIndex) {
+    switch (uiIndex) {
+      case 0:
+        ref.read(selectedMenuItemProvider.notifier).state = 0;
+        ref.read(selectedPageProvider.notifier).state =
+            DashboardPage.inventory;
+        break;
+      case 1:
+        break;
+      case 2:
+        _showReport(context);
+        break;
+      case 3:
+        showBranchSwitchDialog(
+          context: context,
+          branches: null,
+          loadingItemId: _loadingItemId,
+          setDefaultBranch: (branch) async {
+            setState(() {
+              _isLoading = true;
+            });
+            handleBranchSelection(
+              branch,
+              context,
+              setLoadingState: (String? id) {
+                setState(() {
+                  _loadingItemId = id;
+                });
+              },
+              setDefaultBranch: _setDefaultBranch,
+              onComplete: () {
+                Navigator.of(context).pop();
+                setState(() {
+                  _isLoading = false;
+                });
+              },
+              setIsLoading: (bool value) {
+                setState(() {
+                  _isLoading = value;
+                });
+              },
+            );
+          },
+          handleBranchSelection: handleBranchSelection,
+          onLogout: () async {
+            await showLogoutConfirmationDialog(context);
+          },
+          setLoadingState: (String? id) {
+            setState(() {
+              _loadingItemId = id;
+            });
+          },
+        );
+        break;
+      case 4:
+        preloadReportsData(ref);
+        showDialog(
+          context: context,
+          barrierDismissible: true,
+          builder: (BuildContext context) => const FastReportsDialog(),
+        );
+        break;
+    }
+  }
+
+  Widget _buildMainTab(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required int uiIndex,
+    required Key key,
+    VoidCallback? onDoubleTap,
+  }) {
+    return InkWell(
+      onTap: () => _onMainTabPressed(uiIndex),
+      onDoubleTap: onDoubleTap,
+      borderRadius: BorderRadius.circular(8),
+      child: IconText(
+        icon: icon,
+        text: label,
+        key: key,
+        isSelected: _selectedMain[uiIndex],
+      ),
+    );
   }
 
   @override
@@ -98,167 +220,108 @@ class IconRowState extends ConsumerState<IconRow>
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        _buildIconText(
+        _buildMainTab(
           context,
-          Icons.home_outlined,
-          'Home',
-          0,
-          const Key('home_desktop'),
-          () {
-            _showTaxDialog(context);
-          },
+          icon: Icons.point_of_sale_outlined,
+          label: 'Point of Sale',
+          uiIndex: 0,
+          key: const Key('pos_desktop_tab'),
         ),
         const SizedBox(width: 4),
-        _buildIconText(
+        _buildMainTab(
           context,
-          Icons.sync_outlined,
-          'Transactions',
-          1,
-          const Key('transactions_desktop'),
+          icon: Icons.home_outlined,
+          label: 'Home',
+          uiIndex: 1,
+          key: const Key('home_desktop'),
+          onDoubleTap: () => _showTaxDialog(context),
         ),
         const SizedBox(width: 4),
-        _buildIconText(
+        _buildMainTab(
           context,
-          Icons.payment_outlined,
-          'EOD',
-          2,
-          const Key('eod_desktop'),
+          icon: Icons.sync_outlined,
+          label: 'Transactions',
+          uiIndex: 2,
+          key: const Key('transactions_desktop'),
         ),
         const SizedBox(width: 4),
-        _buildIconText(
+        _buildMainTab(
           context,
-          Icons.dashboard_outlined,
-          'Analytics',
-          3,
-          const Key('analytics_desktop'),
+          icon: Icons.payment_outlined,
+          label: 'EOD',
+          uiIndex: 3,
+          key: const Key('eod_desktop'),
         ),
         const SizedBox(width: 4),
-        _buildIconText(
+        _buildMainTab(
           context,
-          Icons.maps_home_work_outlined,
-          'Locations',
-          4,
-          const Key('locations'),
-          () {
-            final deviceType = _getDeviceType(context);
-            if (deviceType == 'Phone' || deviceType == 'Phablet') {
-              ref.read(selectedBranchProvider.notifier).state = null;
-              _showBranchPerformanceMobile(context);
-            } else {
-              _showBranchPerformance(context);
+          icon: Icons.dashboard_outlined,
+          label: 'Analytics',
+          uiIndex: 4,
+          key: const Key('analytics_desktop'),
+        ),
+        const SizedBox(width: 4),
+        PopupMenuButton<String>(
+          tooltip: 'More',
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            child: Icon(
+              Icons.more_horiz,
+              color: Colors.black54,
+              size: 22,
+            ),
+          ),
+          onSelected: (value) {
+            if (value == 'locations') {
+              _onMoreMenuLocations(context);
+            } else if (value == 'items') {
+              _onMoreMenuItems();
             }
           },
-        ),
-        const SizedBox(width: 4),
-        _buildIconText(
-          context,
-          Icons.inventory_2_outlined,
-          'Items',
-          5,
-          const Key('items_desktop'),
-          () {
-            final dialogService = locator<DialogService>();
-            dialogService.showCustomDialog(variant: DialogType.items);
-          },
+          itemBuilder: (context) => [
+            const PopupMenuItem(
+              value: 'locations',
+              child: ListTile(
+                dense: true,
+                leading: Icon(Icons.maps_home_work_outlined),
+                title: Text('Locations'),
+              ),
+            ),
+            const PopupMenuItem(
+              value: 'items',
+              child: ListTile(
+                dense: true,
+                leading: Icon(Icons.inventory_2_outlined),
+                title: Text('Items'),
+              ),
+            ),
+          ],
         ),
       ],
     );
   }
 
-  Widget _buildIconText(
-    BuildContext context,
-    IconData icon,
-    String text,
-    int index,
-    Key key, [
-    VoidCallback? onDoubleTap,
-  ]) {
-    return InkWell(
-      onTap: () => _onTogglePressed(index),
-      onDoubleTap: onDoubleTap,
-      borderRadius: BorderRadius.circular(4),
-      child: IconText(
-        icon: icon,
-        text: text,
-        key: key,
-        isSelected: _isSelected[index],
-      ),
-    );
+  void _onMoreMenuLocations(BuildContext context) {
+    ref.read(buttonIndexProvider.notifier).setIndex(4);
+    final deviceType = _getDeviceType(context);
+    if (deviceType == 'Phone' || deviceType == 'Phablet') {
+      ref.read(selectedBranchProvider.notifier).state = null;
+      _showBranchPerformanceMobile(context);
+    } else {
+      _showBranchPerformance(context);
+    }
   }
 
-  void _onTogglePressed(int index) {
-    ref.read(buttonIndexProvider.notifier).setIndex(index);
-
-    setState(() {
-      for (int i = 0; i < _isSelected.length; i++) {
-        _isSelected[i] = i == index;
-      }
-    });
-
-    _navigateBasedOnIndex(index);
-  }
-
-  final _routerService = locator<RouterService>();
-
-  Future<void> _navigateBasedOnIndex(int index) async {
-    if (index == 1) {
-      _showReport(context);
-    }
-    if (index == 3) {
-      preloadReportsData(ref);
-      showDialog(
-        context: context,
-        barrierDismissible: true,
-        builder: (BuildContext context) => const FastReportsDialog(),
-      );
-    } else if (index == 2) {
-      showBranchSwitchDialog(
-        context: context,
-        branches: null, // Now allowed: nullable
-        loadingItemId: _loadingItemId,
-        setDefaultBranch: (branch) async {
-          setState(() {
-            _isLoading = true;
-          });
-          handleBranchSelection(
-            branch,
-            context,
-            setLoadingState: (String? id) {
-              setState(() {
-                _loadingItemId = id;
-              });
-            },
-            setDefaultBranch: _setDefaultBranch,
-            onComplete: () {
-              Navigator.of(context).pop();
-              setState(() {
-                _isLoading = false;
-              });
-            },
-            setIsLoading: (bool value) {
-              setState(() {
-                _isLoading = value;
-              });
-            },
-          );
-        },
-        handleBranchSelection: handleBranchSelection, // Pass required argument
-        onLogout: () async {
-          await showLogoutConfirmationDialog(context);
-        },
-        setLoadingState: (String? id) {
-          setState(() {
-            _loadingItemId = id;
-          });
-        },
-      );
-    }
+  void _onMoreMenuItems() {
+    ref.read(buttonIndexProvider.notifier).setIndex(5);
+    final dialogService = locator<DialogService>();
+    dialogService.showCustomDialog(variant: DialogType.items);
   }
 
   Future<void> _setDefaultBranch(Branch branch) async {
     ref.read(branchSelectionProvider.notifier).setLoading(true);
     _refreshBusinessAndBranchProviders();
-    return Future.value(); // Return a completed Future<void>
+    return Future.value();
   }
 
   void _refreshBusinessAndBranchProviders() {
@@ -361,7 +424,7 @@ class IconRowState extends ConsumerState<IconRow>
         child: ConstrainedBox(
           constraints: BoxConstraints(
             maxHeight: MediaQuery.of(context).size.height * 0.8,
-            minWidth: 400, // Optional: for desktop/tablet
+            minWidth: 400,
           ),
           child: SizedBox(
             height: MediaQuery.of(context).size.height * 0.7,

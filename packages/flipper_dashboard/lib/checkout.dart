@@ -2,6 +2,7 @@
 
 import 'dart:math' as math;
 
+import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
 import 'package:flipper_dashboard/CheckoutProductView.dart';
 import 'package:flipper_dashboard/mixins/previewCart.dart';
@@ -260,8 +261,8 @@ class CheckOutState extends ConsumerState<CheckOut>
             // up with [UnifiedTopBar] product search when the side rail is shown.
             Positioned(
               top: 4.0,
-              left: 8.0,
-              right: 8.0,
+              left: PosLayoutBreakpoints.contentSearchLeadingInset,
+              right: PosLayoutBreakpoints.contentSearchLeadingInset,
               child: SearchInputWithDropdown(),
             ),
           ],

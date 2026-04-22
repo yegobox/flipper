@@ -117,8 +117,8 @@ class _RowItemState extends ConsumerState<RowItem>
   }
 
   // Constants for consistent styling
-  static const double cardBorderRadius = 12.0;
-  static const double imageBorderRadius = 10.0;
+  static const double cardBorderRadius = 8.0;
+  static const double imageBorderRadius = 8.0;
   static const double contentPadding = 12.0;
   static const int animationDuration = 200;
 

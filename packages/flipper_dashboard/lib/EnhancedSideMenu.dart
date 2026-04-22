@@ -10,7 +10,8 @@ import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'providers/navigation_providers.dart';
 import 'package:flipper_routing/app.dialogs.dart';
-import 'package:flipper_dashboard/layout.dart';
+import 'package:flipper_dashboard/dashboard_shell.dart';
+import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_services/constants.dart'; // Import for AppFeature
 
 class EnhancedSideMenu extends ConsumerWidget {
@@ -201,24 +202,25 @@ class EnhancedSideMenu extends ConsumerWidget {
     ];
 
     return Container(
-      width: 80,
-      color: Colors.white,
+      width: PosLayoutBreakpoints.sideMenuWidth,
+      decoration: const BoxDecoration(
+        color: PosLayoutBreakpoints.posRailBackground,
+        border: Border(
+          right: BorderSide(color: Color(0xFF334155), width: 1),
+        ),
+      ),
       child: Column(
         children: [
-          // Header
-
-          // Menu Items
           Expanded(
             child: Column(
               children: menuItems.map((item) => Expanded(child: item)).toList(),
             ),
           ),
-
-          // Footer
           Column(
             children: [
               IconButton(
                 icon: const Icon(Icons.apps),
+                color: Colors.white70,
                 onPressed: () {
                   _dialogService.showCustomDialog(
                     variant: DialogType.appChoice,
@@ -255,18 +257,19 @@ class _SideMenuItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final accent = PosLayoutBreakpoints.posAccentBlue;
     final color = isLogout
-        ? Colors.red
-        : (isSelected ? Colors.blue : Colors.grey.shade600);
+        ? const Color(0xFFF87171)
+        : (isSelected ? accent : Colors.white60);
 
     final content = Center(
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 12),
+        margin: const EdgeInsets.symmetric(horizontal: 10),
         decoration: BoxDecoration(
           color: isSelected
               ? (isLogout
-                    ? Colors.red.withValues(alpha: 0.1)
-                    : Colors.blue.withValues(alpha: 0.1))
+                    ? const Color(0xFFF87171).withValues(alpha: 0.15)
+                    : accent.withValues(alpha: 0.18))
               : null,
           borderRadius: BorderRadius.circular(8),
         ),
@@ -275,7 +278,7 @@ class _SideMenuItem extends StatelessWidget {
           child: Icon(
             icon,
             color: color,
-            size: 24, // Slightly larger for better visibility
+            size: 24,
           ),
         ),
       ),
@@ -291,9 +294,11 @@ class _SideMenuItem extends StatelessWidget {
                 children: [
                   Container(
                     width: 4,
-                    height: 32, // Height of the selection indicator
+                    height: 32,
                     decoration: BoxDecoration(
-                      color: isLogout ? Colors.red : Colors.blue,
+                      color: isLogout
+                          ? const Color(0xFFF87171)
+                          : accent,
                       borderRadius: const BorderRadius.only(
                         topRight: Radius.circular(4),
                         bottomRight: Radius.circular(4),

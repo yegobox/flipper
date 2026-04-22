@@ -19,6 +19,7 @@ import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flipper_dashboard/widgets/variant_shimmer_placeholder.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:flipper_dashboard/dialog_status.dart';
+import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -450,192 +451,194 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     ProductViewModel model, {
     required List<Variant> variants,
   }) {
-    // Debug display will be shown below after we obtain pagination helpers
     final showProductList = ref.watch(showProductsList);
 
     final dateRange = ref.watch(dateRangeProvider);
     final startDate = dateRange.startDate;
     final endDate = dateRange.endDate;
 
-    // Pagination helpers from provider
     final branchId = ProxyService.box.getBranchId() ?? "";
     final notifier = ref.read(outerVariantsProvider(branchId).notifier);
     final ipp = notifier.itemsPerPage;
 
-    // Use the provided (already filtered) variants for display and counts.
     final loadedCount = variants.length;
     final estimatedTotalPages = notifier.estimatedTotalPages();
-    final isMobileLayout = MediaQuery.sizeOf(context).width < 600;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        const SizedBox.shrink(),
-        SizedBox(height: isMobileLayout ? 8 : 16),
-        // Top summary row: compact POS copy on phone, range text on wider layouts.
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Builder(
-                  builder: (context) {
-                    final total = notifier.totalCount ?? loadedCount;
-                    final totalText = total.toString();
-                    if (isMobileLayout) {
-                      final pages = estimatedTotalPages < 1
-                          ? 1
-                          : estimatedTotalPages;
-                      return Text(
-                        '$totalText products · page ${_currentPage + 1} of $pages',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurfaceVariant,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 13,
-                            ),
-                        overflow: TextOverflow.ellipsis,
-                      );
-                    }
-                    final start = loadedCount == 0
-                        ? 0
-                        : (_currentPage * ipp) + 1;
-                    final end = ((_currentPage + 1) * ipp) > total
-                        ? total
-                        : ((_currentPage + 1) * ipp);
-                    return Text(
-                      'Showing $start–$end of $totalText results',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                      overflow: TextOverflow.ellipsis,
-                    );
-                  },
-                ),
-              ),
-              _buildSortingDropdown(context, compact: isMobileLayout),
-            ],
-          ),
-        ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final paneWidth = constraints.maxWidth;
+        final isMobileLayout =
+            paneWidth < PosLayoutBreakpoints.mobileLayoutMaxWidth;
 
-        const SizedBox(height: 14),
-
-        // Flexible container that takes up remaining space
-        Expanded(
-          // Only apply sorting when not searching to avoid interfering with auto-add
-          child: _buildMainContentSection(
-            context,
-            model,
-            _shouldApplySorting(ref) ? _sortVariants(variants, ref) : variants,
-            showProductList,
-            startDate,
-            endDate,
-            ref,
-          ),
-        ),
-
-        // Bottom pagination controls
-        if (estimatedTotalPages > 0)
-          Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16.0,
-              vertical: 12.0,
-            ),
-            child: Row(
-              children: [
-                _paginationSideButton(
-                  context: context,
-                  icon: FluentIcons.chevron_left_20_regular,
-                  onPressed: _currentPage > 0
-                      ? () => _goToPage(_currentPage - 1)
-                      : null,
-                  usePosStyle: isMobileLayout,
-                ),
-                Expanded(
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: List.generate(estimatedTotalPages, (index) {
-                        if (estimatedTotalPages > 10) {
-                          final low = (_currentPage - 2).clamp(
-                            0,
-                            estimatedTotalPages - 1,
-                          );
-                          final high = (_currentPage + 2).clamp(
-                            0,
-                            estimatedTotalPages - 1,
-                          );
-                          if (index < low || index > high) {
-                            return const SizedBox.shrink();
-                          }
-                        }
-                        final page = index;
-                        final isCurrent = page == _currentPage;
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                          child: Material(
-                            color: isMobileLayout
-                                ? (isCurrent
-                                    ? const Color(0xFFE8E8ED)
-                                    : Colors.white)
-                                : (isCurrent
-                                    ? Theme.of(context).colorScheme.primary
-                                    : Colors.transparent),
-                            borderRadius: BorderRadius.circular(10),
-                            child: InkWell(
-                              borderRadius: BorderRadius.circular(10),
-                              onTap: () => _goToPage(page),
-                              child: Container(
-                                width: 40,
-                                height: 40,
-                                alignment: Alignment.center,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(
-                                    color: isMobileLayout
-                                        ? const Color(0xFFD1D1D6)
-                                        : Theme.of(context).colorScheme.primary,
-                                  ),
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox.shrink(),
+            SizedBox(height: isMobileLayout ? 8 : 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(
+                    child: Builder(
+                      builder: (context) {
+                        final total = notifier.totalCount ?? loadedCount;
+                        final totalText = total.toString();
+                        if (isMobileLayout) {
+                          final pages = estimatedTotalPages < 1
+                              ? 1
+                              : estimatedTotalPages;
+                          return Text(
+                            '$totalText products · page ${_currentPage + 1} of $pages',
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 13,
                                 ),
-                                child: Text(
-                                  '${page + 1}',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 14,
-                                    color: isMobileLayout
-                                        ? (isCurrent
-                                            ? Colors.black87
-                                            : const Color(0xFF3C3C43))
-                                        : (isCurrent
-                                            ? Theme.of(
-                                                context,
-                                              ).colorScheme.onPrimary
+                            overflow: TextOverflow.ellipsis,
+                          );
+                        }
+                        final start = loadedCount == 0
+                            ? 0
+                            : (_currentPage * ipp) + 1;
+                        final end = ((_currentPage + 1) * ipp) > total
+                            ? total
+                            : ((_currentPage + 1) * ipp);
+                        return Text(
+                          'Showing $start–$end of $totalText results',
+                          style: Theme.of(context).textTheme.bodyMedium,
+                          overflow: TextOverflow.ellipsis,
+                        );
+                      },
+                    ),
+                  ),
+                  _buildSortingDropdown(context, compact: isMobileLayout),
+                ],
+              ),
+            ),
+            const SizedBox(height: 14),
+            Expanded(
+              child: _buildMainContentSection(
+                context,
+                model,
+                _shouldApplySorting(ref) ? _sortVariants(variants, ref) : variants,
+                showProductList,
+                startDate,
+                endDate,
+                ref,
+                paneWidth: paneWidth,
+              ),
+            ),
+            if (estimatedTotalPages > 0)
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 12.0,
+                ),
+                child: Row(
+                  children: [
+                    _paginationSideButton(
+                      context: context,
+                      icon: FluentIcons.chevron_left_20_regular,
+                      onPressed: _currentPage > 0
+                          ? () => _goToPage(_currentPage - 1)
+                          : null,
+                      usePosStyle: isMobileLayout,
+                    ),
+                    Expanded(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: List.generate(estimatedTotalPages, (index) {
+                            if (estimatedTotalPages > 10) {
+                              final low = (_currentPage - 2).clamp(
+                                0,
+                                estimatedTotalPages - 1,
+                              );
+                              final high = (_currentPage + 2).clamp(
+                                0,
+                                estimatedTotalPages - 1,
+                              );
+                              if (index < low || index > high) {
+                                return const SizedBox.shrink();
+                              }
+                            }
+                            final page = index;
+                            final isCurrent = page == _currentPage;
+                            return Padding(
+                              padding:
+                                  const EdgeInsets.symmetric(horizontal: 4.0),
+                              child: Material(
+                                color: isMobileLayout
+                                    ? (isCurrent
+                                        ? const Color(0xFFE8E8ED)
+                                        : Colors.white)
+                                    : (isCurrent
+                                        ? Theme.of(context).colorScheme.primary
+                                        : Colors.transparent),
+                                borderRadius: BorderRadius.circular(10),
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(10),
+                                  onTap: () => _goToPage(page),
+                                  child: Container(
+                                    width: 40,
+                                    height: 40,
+                                    alignment: Alignment.center,
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(10),
+                                      border: Border.all(
+                                        color: isMobileLayout
+                                            ? const Color(0xFFD1D1D6)
                                             : Theme.of(
                                                 context,
-                                              ).colorScheme.primary),
+                                              ).colorScheme.primary,
+                                      ),
+                                    ),
+                                    child: Text(
+                                      '${page + 1}',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w700,
+                                        fontSize: 14,
+                                        color: isMobileLayout
+                                            ? (isCurrent
+                                                ? Colors.black87
+                                                : const Color(0xFF3C3C43))
+                                            : (isCurrent
+                                                ? Theme.of(context)
+                                                    .colorScheme
+                                                    .onPrimary
+                                                : Theme.of(context)
+                                                    .colorScheme
+                                                    .primary),
+                                      ),
+                                    ),
                                   ),
                                 ),
                               ),
-                            ),
-                          ),
-                        );
-                      }).where((w) => w != const SizedBox.shrink()).toList(),
+                            );
+                          }).where((w) => w != const SizedBox.shrink()).toList(),
+                        ),
+                      ),
                     ),
-                  ),
+                    _paginationSideButton(
+                      context: context,
+                      icon: FluentIcons.chevron_right_20_regular,
+                      onPressed: _currentPage < (estimatedTotalPages - 1)
+                          ? () => _goToPage(_currentPage + 1)
+                          : null,
+                      usePosStyle: isMobileLayout,
+                    ),
+                  ],
                 ),
-                _paginationSideButton(
-                  context: context,
-                  icon: FluentIcons.chevron_right_20_regular,
-                  onPressed: _currentPage < (estimatedTotalPages - 1)
-                      ? () => _goToPage(_currentPage + 1)
-                      : null,
-                  usePosStyle: isMobileLayout,
-                ),
-              ],
-            ),
-          ),
-      ],
+              ),
+          ],
+        );
+      },
     );
   }
 
@@ -646,26 +649,23 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     bool showProductList,
     DateTime? startDate,
     DateTime? endDate,
-    WidgetRef ref,
-  ) {
+    WidgetRef ref, {
+    required double paneWidth,
+  }) {
     return showProductList
-        ? _buildProductGrid(context, model, variants)
+        ? _buildProductGrid(context, model, variants, paneWidth: paneWidth)
         : _buildStockView(context, model, variants, startDate, endDate, ref);
   }
 
   Widget _buildProductGrid(
     BuildContext context,
     ProductViewModel model,
-    List<Variant> variants,
-  ) {
-    // Mobile vs desktop should be decided by available width, not platform.
-    //
-    // We run in many environments (desktop shells, tablets, web) where
-    // [defaultTargetPlatform] doesn't reliably map to "phone-like UI".
-    final screenWidth = MediaQuery.sizeOf(context).width;
-    final bool isMobileLayout = screenWidth < 600;
+    List<Variant> variants, {
+    required double paneWidth,
+  }) {
+    final bool isMobileLayout =
+        paneWidth < PosLayoutBreakpoints.mobileLayoutMaxWidth;
 
-    // Use ListView for mobile platforms and GridView for desktop platforms
     if (isMobileLayout) {
       return ListView.separated(
         controller: _scrollController,
@@ -687,42 +687,36 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
         physics: const AlwaysScrollableScrollPhysics(),
         cacheExtent: 500.0,
       );
-    } else {
-      // For desktop and web, use a responsive grid extent
-      // High-density pos format on wide screens, slightly larger on smaller screens
-      final double crossAxisExtent = screenWidth >= 1200
-          ? 140.0
-          : (screenWidth >= 800 ? 160.0 : 200.0);
-
-      // A slightly taller child aspect ratio allows both the image/color block
-      // and the multi-line text (title, variant, price, stock) to fit comfortably.
-      // e.g. at 140 width, a 0.78 ratio makes the height about 179px.
-      final double childAspectRatio = screenWidth >= 1200 ? 0.78 : 0.85;
-
-      return GridView.builder(
-        controller: _scrollController,
-        gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-          maxCrossAxisExtent: crossAxisExtent,
-          mainAxisSpacing: 12.0,
-          crossAxisSpacing: 12.0,
-          childAspectRatio: childAspectRatio,
-        ),
-        itemCount: variants.length,
-        itemBuilder: (context, index) {
-          return buildVariantRow(
-            forceRemoteUrl: false,
-            context: context,
-            model: model,
-            variant: variants[index],
-            isOrdering: false,
-            forceListView: false, // Explicitly set to false for desktop
-          );
-        },
-        physics: const AlwaysScrollableScrollPhysics(),
-        // Add cacheExtent for smoother scrolling
-        cacheExtent: 1000.0,
-      );
     }
+
+    final crossAxisCount =
+        PosLayoutBreakpoints.productGridCrossAxisCountForPaneWidth(paneWidth);
+    final spacing = PosLayoutBreakpoints.desktopGridSpacing(paneWidth);
+    final aspectRatio =
+        PosLayoutBreakpoints.desktopGridChildAspectRatio(crossAxisCount);
+
+    return GridView.builder(
+      controller: _scrollController,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: crossAxisCount,
+        mainAxisSpacing: spacing,
+        crossAxisSpacing: spacing,
+        childAspectRatio: aspectRatio,
+      ),
+      itemCount: variants.length,
+      itemBuilder: (context, index) {
+        return buildVariantRow(
+          forceRemoteUrl: false,
+          context: context,
+          model: model,
+          variant: variants[index],
+          isOrdering: false,
+          forceListView: false,
+        );
+      },
+      physics: const AlwaysScrollableScrollPhysics(),
+      cacheExtent: 1000.0,
+    );
   }
 
   Widget _buildStockView(

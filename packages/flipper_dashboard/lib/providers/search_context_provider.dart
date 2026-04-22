@@ -1,4 +1,4 @@
-import 'package:flipper_dashboard/layout.dart';
+import 'package:flipper_dashboard/dashboard_shell.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
 /// Defines the search context based on the active page

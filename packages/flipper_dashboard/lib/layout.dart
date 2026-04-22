@@ -10,32 +10,16 @@ import 'package:flipper_dashboard/delegation_list_screen.dart';
 import 'package:flipper_dashboard/features/incoming_orders/screens/incoming_orders_screen.dart';
 import 'package:flipper_dashboard/features/production_output/production_output_app.dart';
 import 'package:flipper_dashboard/shift_history_content.dart';
+import 'package:flipper_dashboard/dashboard_shell.dart';
+import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_dashboard/widgets/unified_top_bar.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:flutter_riverpod/legacy.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
-
-enum DashboardPage {
-  inventory,
-  ai,
-  reports,
-  kitchen,
-  orders,
-  stockRecount,
-  delegations,
-  incomingOrders,
-  shiftHistory,
-  productionOutput,
-}
-
-final selectedPageProvider = StateProvider<DashboardPage>(
-  (ref) => DashboardPage.inventory,
-);
 
 class DashboardLayout extends HookConsumerWidget {
   const DashboardLayout({Key? key}) : super(key: key);
@@ -85,7 +69,8 @@ class DashboardLayout extends HookConsumerWidget {
               if (constraints.maxWidth == 0 || constraints.maxHeight == 0) {
                 return const SizedBox.shrink();
               }
-              if (constraints.maxWidth < 600) {
+              if (constraints.maxWidth <
+                  PosLayoutBreakpoints.mobileLayoutMaxWidth) {
                 return MobileView(
                   isBigScreen: false,
                   controller: searchController,
@@ -102,8 +87,7 @@ class DashboardLayout extends HookConsumerWidget {
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        if (ProxyService.remoteConfig.isMultiUserEnabled())
-                          const EnhancedSideMenu(),
+                        const EnhancedSideMenu(),
                         Expanded(child: selectedPageWidget),
                       ],
                     ),
