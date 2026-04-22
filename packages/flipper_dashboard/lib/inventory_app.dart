@@ -20,7 +20,7 @@ class InventoryApp extends HookConsumerWidget {
 
   Widget buildProductSection(WidgetRef ref) {
     return Expanded(
-      child: ProductView.normalMode(),
+      child: ProductView.normalMode(linkedSearchController: searchController),
     ).shouldSeeTheApp(ref, featureName: AppFeature.Sales);
   }
 

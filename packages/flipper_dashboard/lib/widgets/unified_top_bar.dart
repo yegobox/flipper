@@ -1,15 +1,19 @@
+import 'package:badges/badges.dart' as badges;
+import 'package:flipper_dashboard/dashboard_shell.dart';
+import 'package:flipper_dashboard/notice.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_dashboard/ribbon.dart';
 import 'package:flipper_dashboard/SearchFieldWidget.dart';
-import 'package:flipper_dashboard/widgets/user_info_widget.dart';
 import 'package:flipper_dashboard/widgets/connected_peers_widget.dart';
+import 'package:flipper_dashboard/widgets/pos_desktop_top_leading.dart';
+import 'package:flipper_dashboard/widgets/user_info_widget.dart';
+import 'package:flipper_models/providers/notice_provider.dart';
+import 'package:supabase_models/brick/models/notice.model.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-/// Unified top bar:
-/// - Left: 80px rail-aligned logo (matches [EnhancedSideMenu])
-/// - Center: contextual search
-/// - Right: ribbon tabs + peers + user
+/// Desktop top bar: narrow logo rail, leading POS title + actions, centered
+/// ribbon tabs, notifications + peers + user (matches POS mock).
 class UnifiedTopBar extends ConsumerWidget {
   final TextEditingController searchController;
 
@@ -18,6 +22,9 @@ class UnifiedTopBar extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final selectedPage = ref.watch(selectedPageProvider);
+    final isInventoryShell = selectedPage == DashboardPage.inventory;
+
     return Container(
       height: 70,
       decoration: BoxDecoration(
@@ -31,73 +38,102 @@ class UnifiedTopBar extends ConsumerWidget {
         ],
       ),
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(0, 8, 16, 8),
+        padding: const EdgeInsets.fromLTRB(0, 6, 12, 6),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             SizedBox(
               width: PosLayoutBreakpoints.sideMenuWidth,
-              child: _buildLogoRail(context),
+              child: Center(
+                child: Image.asset(
+                  'assets/logo.png',
+                  package: 'flipper_dashboard',
+                  width: 32,
+                  height: 32,
+                ),
+              ),
             ),
             Expanded(
-              child: Padding(
-                padding: const EdgeInsets.only(
-                  left: PosLayoutBreakpoints.contentSearchLeadingInset,
-                ),
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(minWidth: 200),
-                  child: SearchFieldWidget(controller: searchController),
-                ),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Flexible(
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Flexible(
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: const IconRow(),
+              child: isInventoryShell
+                  ? Row(
+                      children: [
+                        Expanded(
+                          flex: 5,
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: PosDesktopTopLeading(
+                                searchController: searchController,
+                              ),
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          flex: 4,
+                          child: Center(
+                            child: SingleChildScrollView(
+                              scrollDirection: Axis.horizontal,
+                              child: const IconRow(),
+                            ),
+                          ),
+                        ),
+                        Consumer(
+                          builder: (context, ref, _) {
+                            final notice = ref.watch(noticesProvider);
+                            final notices = notice.value ?? <Notice>[];
+                            return IconButton(
+                              tooltip: 'Notifications',
+                              onPressed: () => handleNoticeClick(context),
+                              icon: badges.Badge(
+                                showBadge: notices.isNotEmpty,
+                                badgeContent: Text(
+                                  notices.length.toString(),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 10,
+                                  ),
+                                ),
+                                child: const Icon(
+                                  Icons.notifications_outlined,
+                                  color: Color(0xFF64748B),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                        const ConnectedPeersWidget(),
+                        const SizedBox(width: 8),
+                        const UserInfoWidget(),
+                      ],
+                    )
+                  : Row(
+                      children: [
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.only(
+                              left: PosLayoutBreakpoints.contentSearchLeadingInset,
+                            ),
+                            child: SearchFieldWidget(
+                              controller: searchController,
+                            ),
+                          ),
+                        ),
+                        Flexible(
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: const IconRow(),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        const ConnectedPeersWidget(),
+                        const SizedBox(width: 8),
+                        const UserInfoWidget(),
+                      ],
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  const ConnectedPeersWidget(),
-                  const SizedBox(width: 16),
-                  const UserInfoWidget(),
-                ],
-              ),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildLogoRail(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Image.asset(
-            'assets/logo.png',
-            package: 'flipper_dashboard',
-            width: 28,
-            height: 28,
-          ),
-          const SizedBox(height: 2),
-          Text(
-            'FLIPPER',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w800,
-              color: PosLayoutBreakpoints.posAccentBlue,
-              letterSpacing: 0.8,
-              height: 1.0,
-            ),
-          ),
-        ],
       ),
     );
   }

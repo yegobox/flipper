@@ -2,9 +2,7 @@
 
 import 'package:flipper_dashboard/BranchPerformance.dart';
 import 'package:flipper_dashboard/BranchSelectionMixin.dart';
-import 'package:flipper_dashboard/dashboard_shell.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
-import 'package:flipper_dashboard/providers/navigation_providers.dart';
 import 'package:flipper_dashboard/Reports.dart';
 import 'package:flipper_dashboard/tax_configuration.dart';
 import 'package:flipper_dashboard/transaction_list_wrapper.dart';
@@ -84,14 +82,8 @@ class IconRow extends StatefulHookConsumerWidget {
 
 class IconRowState extends ConsumerState<IconRow>
     with CoreMiscellaneous, BranchSelectionMixin {
-  /// Selection for main ribbon tabs: POS, Home, Transactions, EOD, Analytics.
-  final List<bool> _selectedMain = [
-    false,
-    true,
-    false,
-    false,
-    false,
-  ];
+  /// Selection for main ribbon tabs: Home, Transactions, EOD, Analytics.
+  final List<bool> _selectedMain = [true, false, false, false];
   String? _loadingItemId;
   bool _isLoading = false;
 
@@ -100,20 +92,8 @@ class IconRowState extends ConsumerState<IconRow>
   }
 
   int _legacyButtonIndexForUi(int uiIndex) {
-    switch (uiIndex) {
-      case 0:
-        return 0;
-      case 1:
-        return 0;
-      case 2:
-        return 1;
-      case 3:
-        return 2;
-      case 4:
-        return 3;
-      default:
-        return 0;
-    }
+    if (uiIndex < 0 || uiIndex > 3) return 0;
+    return uiIndex;
   }
 
   void _onMainTabPressed(int uiIndex) {
@@ -121,7 +101,7 @@ class IconRowState extends ConsumerState<IconRow>
         .read(buttonIndexProvider.notifier)
         .setIndex(_legacyButtonIndexForUi(uiIndex));
     setState(() {
-      for (var i = 0; i < _selectedMain.length; i++) {
+      for (var i = 0; i < 4; i++) {
         _selectedMain[i] = i == uiIndex;
       }
     });
@@ -131,16 +111,11 @@ class IconRowState extends ConsumerState<IconRow>
   void _runNavigationForUi(int uiIndex) {
     switch (uiIndex) {
       case 0:
-        ref.read(selectedMenuItemProvider.notifier).state = 0;
-        ref.read(selectedPageProvider.notifier).state =
-            DashboardPage.inventory;
         break;
       case 1:
-        break;
-      case 2:
         _showReport(context);
         break;
-      case 3:
+      case 2:
         showBranchSwitchDialog(
           context: context,
           branches: null,
@@ -182,7 +157,7 @@ class IconRowState extends ConsumerState<IconRow>
           },
         );
         break;
-      case 4:
+      case 3:
         preloadReportsData(ref);
         showDialog(
           context: context,
@@ -222,17 +197,9 @@ class IconRowState extends ConsumerState<IconRow>
       children: [
         _buildMainTab(
           context,
-          icon: Icons.point_of_sale_outlined,
-          label: 'Point of Sale',
-          uiIndex: 0,
-          key: const Key('pos_desktop_tab'),
-        ),
-        const SizedBox(width: 4),
-        _buildMainTab(
-          context,
           icon: Icons.home_outlined,
           label: 'Home',
-          uiIndex: 1,
+          uiIndex: 0,
           key: const Key('home_desktop'),
           onDoubleTap: () => _showTaxDialog(context),
         ),
@@ -241,7 +208,7 @@ class IconRowState extends ConsumerState<IconRow>
           context,
           icon: Icons.sync_outlined,
           label: 'Transactions',
-          uiIndex: 2,
+          uiIndex: 1,
           key: const Key('transactions_desktop'),
         ),
         const SizedBox(width: 4),
@@ -249,7 +216,7 @@ class IconRowState extends ConsumerState<IconRow>
           context,
           icon: Icons.payment_outlined,
           label: 'EOD',
-          uiIndex: 3,
+          uiIndex: 2,
           key: const Key('eod_desktop'),
         ),
         const SizedBox(width: 4),
@@ -257,7 +224,7 @@ class IconRowState extends ConsumerState<IconRow>
           context,
           icon: Icons.dashboard_outlined,
           label: 'Analytics',
-          uiIndex: 4,
+          uiIndex: 3,
           key: const Key('analytics_desktop'),
         ),
         const SizedBox(width: 4),

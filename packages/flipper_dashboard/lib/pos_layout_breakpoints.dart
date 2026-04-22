@@ -21,11 +21,12 @@ abstract final class PosLayoutBreakpoints {
   static const Color posAccentBlue = Color(0xFF2563EB);
 
   /// Product grid column count from **pane** width (not full window).
+  /// Wide panes use 5 columns to match the desktop POS reference.
   static int productGridCrossAxisCountForPaneWidth(double paneWidth) {
     if (paneWidth < 520) return 2;
     if (paneWidth < 720) return 3;
     if (paneWidth < 1000) return 4;
-    return 6;
+    return 5;
   }
 
   static double desktopGridSpacing(double paneWidth) =>
