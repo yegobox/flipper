@@ -598,10 +598,23 @@ class _RowItemState extends ConsumerState<RowItem>
   }
 
   Widget _buildPosMobileListRow(TextTheme textTheme, ColorScheme colorScheme) {
-    final String initials = (widget.productName.isNotEmpty
-            ? widget.productName
-            : widget.variantName)
-        .trim()
+    // Match non-compact rows: when variant label differs from product title,
+    // lead with variant name so POS/search rows match what was saved per SKU.
+    final productTitle = widget.productName.trim();
+    final variantTitle = widget.variantName.trim();
+    final hasDistinctVariant =
+        variantTitle.isNotEmpty && variantTitle != productTitle;
+    final String primaryLine = hasDistinctVariant
+        ? variantTitle
+        : (productTitle.isNotEmpty
+            ? productTitle
+            : (widget.variant?.productName?.trim().isNotEmpty == true
+                  ? widget.variant!.productName!.trim()
+                  : variantTitle));
+    final String? productSubtitle =
+        hasDistinctVariant && productTitle.isNotEmpty ? productTitle : null;
+
+    final String initials = primaryLine
         .split(RegExp(r'\s+'))
         .where((p) => p.isNotEmpty)
         .take(2)
@@ -649,9 +662,7 @@ class _RowItemState extends ConsumerState<RowItem>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  widget.productName.isNotEmpty
-                      ? widget.productName
-                      : (widget.variant?.productName ?? widget.variantName),
+                  primaryLine.isNotEmpty ? primaryLine : 'Unnamed',
                   style: textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w700,
                     color: Colors.black87,
@@ -659,6 +670,18 @@ class _RowItemState extends ConsumerState<RowItem>
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
+                if (productSubtitle != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    productSubtitle,
+                    style: textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
                 const SizedBox(height: 4),
                 Text(
                   widget.variant?.bcd?.isNotEmpty == true

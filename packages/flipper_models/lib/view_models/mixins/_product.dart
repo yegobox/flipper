@@ -175,6 +175,16 @@ mixin ProductMixin {
           variations[i].itemNm = productName;
           variations[i].name = productName;
         }
+        // Ditto/RRA require non-empty itemNm. When preserving per-variant names,
+        // [onScanItem] sets name but not always itemNm — fill from name or title.
+        final rawItemNm = variations[i].itemNm?.trim() ?? '';
+        if (rawItemNm.isEmpty || rawItemNm.toLowerCase() == 'null') {
+          final fromName = variations[i].name.trim();
+          final resolved = fromName.isNotEmpty
+              ? fromName
+              : (productName.trim().isNotEmpty ? productName.trim() : 'Item');
+          variations[i].itemNm = resolved;
+        }
 
         /// registration name
         variations[i].regrNm = productName;

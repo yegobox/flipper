@@ -543,7 +543,8 @@ class Repository extends OfflineFirstWithSupabaseRepository {
     } on PostgrestException catch (e) {
       logger.warning('#delete supabase failure: $e');
       unawaited(DittoSyncCoordinator.instance.notifyLocalDelete(instance));
-      throw OfflineFirstException(e);
+      //throw OfflineFirstException(e);
+      return false;
     } on AuthRetryableFetchException catch (e) {
       logger.warning('#delete supabase failure: $e');
       throw OfflineFirstException(e);

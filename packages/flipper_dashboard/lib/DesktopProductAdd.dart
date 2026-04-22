@@ -1619,6 +1619,7 @@ Future<void> _showVariantSheet({
                                         await model.updateVariantQuantity(
                                           v.id,
                                           qty,
+                                          persistToBackend: false,
                                         );
                                         model.notifyListeners();
                                       }
@@ -1641,6 +1642,7 @@ Future<void> _showVariantSheet({
                                       await model.updateVariantQuantity(
                                         existingVariant.id,
                                         qty,
+                                        persistToBackend: false,
                                       );
                                       model.notifyListeners();
                                     }

@@ -107,7 +107,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
           itemCd: existingVariant.itemCd,
           pkgUnitCd: existingVariant.pkgUnitCd,
           qtyUnitCd: existingVariant.qtyUnitCd,
-          itemNm: existingVariant.itemNm,
+          itemNm: _coerceItemNm(existingVariant),
           prc: existingVariant.prc,
           splyAmt: existingVariant.splyAmt,
           tin: existingVariant.tin,
@@ -274,6 +274,19 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
     return '00';
   }
 
+  /// Ditto/RRA require non-empty [Variant.itemNm].
+  String _coerceItemNm(Variant v, {String? productTitle}) {
+    final raw = v.itemNm?.trim() ?? '';
+    if (raw.isNotEmpty && raw.toLowerCase() != 'null') return raw;
+    final n = v.name.trim();
+    if (n.isNotEmpty) return n;
+    final pt = productTitle?.trim() ?? '';
+    if (pt.isNotEmpty) return pt;
+    final pn = v.productName?.trim() ?? '';
+    if (pn.isNotEmpty) return pn;
+    return 'Item';
+  }
+
   final talker = TalkerFlutter.init();
 
   Future<void> onScanItem({
@@ -301,7 +314,9 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
         variant.rsdQty = (variant.qty!) + 1;
         variant.qty = (variant.qty!) + 1; // Increment the quantity safely
         if (variantDisplayName != null && variantDisplayName.trim().isNotEmpty) {
-          variant.name = variantDisplayName.trim();
+          final label = variantDisplayName.trim();
+          variant.name = label;
+          variant.itemNm = label;
         }
         notifyListeners();
         return;
@@ -326,6 +341,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
             : productTitle;
     final variant = Variant(
       name: variantRowName,
+      itemNm: variantRowName,
       retailPrice: retailPrice,
       supplyPrice: supplyPrice,
       prc: retailPrice,
@@ -445,7 +461,15 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
     notifyListeners();
   }
 
-  Future<void> updateVariantQuantity(String id, double newQuantity) async {
+  /// Updates quantity on the in-memory scanned variant (and linked [Stock] if any).
+  ///
+  /// When [persistToBackend] is false (e.g. Add variant sheet before **Save product**),
+  /// only local state is updated; persistence runs with the normal save flow.
+  Future<void> updateVariantQuantity(
+    String id,
+    double newQuantity, {
+    bool persistToBackend = true,
+  }) async {
     try {
       // Find the variant with the specified id
       int index = scannedVariants.indexWhere((variant) => variant.id == id);
@@ -467,22 +491,22 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
         // Notify listeners immediately to update UI
         notifyListeners();
 
-        try {
-          //Persit to db
-          await StockIOUtil.saveStockMaster(
-            variant: scannedVariant,
-            stockMasterQty: scannedVariant.stock?.currentStock ?? 0,
-          );
-          // persist stock update
-          if (scannedVariant.stockId != null) {
-            await ProxyService.strategy.updateVariant(
-              updatables: [scannedVariant],
+        if (persistToBackend) {
+          try {
+            await StockIOUtil.saveStockMaster(
+              variant: scannedVariant,
+              stockMasterQty: scannedVariant.stock?.currentStock ?? 0,
+            );
+            if (scannedVariant.stockId != null) {
+              await ProxyService.strategy.updateVariant(
+                updatables: [scannedVariant],
+              );
+            }
+          } catch (e) {
+            talker.warning(
+              "Failed to persist stock update (expected for new variants): $e",
             );
           }
-        } catch (e) {
-          talker.warning(
-            "Failed to persist stock update (expected for new variants): $e",
-          );
         }
       } else {
         // Handle the exception if the variant is not found
@@ -629,6 +653,8 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
             (await loadEbm())?.bhfId,
             variant.bhfId,
           );
+
+          variant.itemNm = _coerceItemNm(variant, productTitle: productName);
 
           await ProxyService.strategy.updateVariant(
             updatables: [variant],
