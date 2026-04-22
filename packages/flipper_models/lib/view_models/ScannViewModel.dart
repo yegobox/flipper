@@ -14,6 +14,21 @@ import 'package:talker_flutter/talker_flutter.dart';
 import 'package:flutter/material.dart';
 
 class ScannViewModel extends ProductViewModel with RRADEFAULTS {
+  @override
+  void setProductName({String? name}) {
+    if (name == null) return;
+    final trimmed = name.trim();
+    for (final v in scannedVariants) {
+      final n = v.name.trim();
+      if (n.isEmpty || n == TEMP_PRODUCT) {
+        v.name = trimmed;
+        v.productName = trimmed;
+        v.regrNm = trimmed;
+      }
+    }
+    super.setProductName(name: name);
+  }
+
   final Map<String, bool> _selectedVariants = {};
   final Map<String, TextEditingController> _discountControllers = {};
   final Map<String, TextEditingController> _dateControllers = {};
@@ -249,6 +264,9 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
     required double supplyPrice,
     required bool editmode,
     required String countryCode,
+    /// Per-variant label (e.g. from Add variant sheet). When null/empty, falls back
+    /// to the in-progress product title so desktop scan-only flow still works.
+    String? variantDisplayName,
   }) async {
     String branchId = ProxyService.box.getBranchId()!;
 
@@ -262,6 +280,9 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
         variant.supplyPrice = supplyPrice;
         variant.rsdQty = (variant.qty!) + 1;
         variant.qty = (variant.qty!) + 1; // Increment the quantity safely
+        if (variantDisplayName != null && variantDisplayName.trim().isNotEmpty) {
+          variant.name = variantDisplayName.trim();
+        }
         notifyListeners();
         return;
       }
@@ -273,12 +294,20 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
     // Set correct tax type based on EBM VAT status
     final ebm = await ProxyService.strategy.ebm(branchId: branchId);
     final isVatEnabled = ebm?.vatEnabled ?? false;
+    // Prefer the in-progress product title (mobile) over persisted TEMP_PRODUCT name.
+    final productTitle = (kProductName != null && kProductName!.trim().isNotEmpty)
+        ? kProductName!.trim()
+        : product.name;
+    final variantRowName =
+        (variantDisplayName != null && variantDisplayName.trim().isNotEmpty)
+            ? variantDisplayName.trim()
+            : productTitle;
     final variant = Variant(
-      name: product.name,
+      name: variantRowName,
       retailPrice: retailPrice,
       supplyPrice: supplyPrice,
       prc: retailPrice,
-      regrNm: product.name,
+      regrNm: productTitle,
       qty: 0,
       dcRt: 0,
       pkgUnitCd: "NT",
@@ -288,7 +317,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       productId: product.id,
       color: currentColor,
       unit: 'Per Item',
-      productName: product.name,
+      productName: productTitle,
       branchId: branchId,
       taxTyCd: isVatEnabled
           ? "B"
@@ -309,7 +338,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
         quantityUnit: "U",
         branchId: branchId,
       ),
-      modrNm: product.name, // Modifier Name should be product name
+      modrNm: productTitle,
       isrcAplcbYn: "N", // Insurance Applicable Yes/No
       tin: ebm?.tinNumber ?? -1,
     );

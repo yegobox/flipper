@@ -1,6 +1,7 @@
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/product_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/ebm_helper.dart';
@@ -165,8 +166,12 @@ mixin ProductMixin {
         /// country of origin for this item comes from the selected country in CountryOfOriginSelector
         /// and this will happen when we do import.
         variations[i].orgnNatCd = countryofOrigin;
-        if (!preserveVariationFields ||
-            variations[i].name.trim().isEmpty) {
+        // When preserving per-variant fields (mobile), still replace placeholder
+        // titles created while the product row was TEMP_PRODUCT / unnamed.
+        final vn = variations[i].name.trim();
+        final isUnsetOrPlaceholder =
+            vn.isEmpty || vn == TEMP_PRODUCT || vn == CUSTOM_PRODUCT;
+        if (!preserveVariationFields || isUnsetOrPlaceholder) {
           variations[i].itemNm = productName;
           variations[i].name = productName;
         }

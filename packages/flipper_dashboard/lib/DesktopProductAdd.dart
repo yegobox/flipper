@@ -102,6 +102,24 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
     toast('No Product saved!');
   }
 
+  /// Keeps [ScannViewModel.kProductName] and in-memory variant titles aligned with
+  /// the product name field before persistence (fixes stale `temp` / placeholder).
+  String _syncProductNameFromForm(ScannViewModel model, Product productRef) {
+    final name = productNameController.text.trim();
+    model.setProductName(name: name);
+    final productTitle = productRef.name.trim();
+    for (final v in model.scannedVariants) {
+      final n = v.name.trim();
+      if (n.isEmpty || n == TEMP_PRODUCT || n == productTitle) {
+        v.name = name;
+        v.productName = name;
+        v.regrNm = name;
+      }
+    }
+    model.notifyListeners();
+    return name;
+  }
+
   void _addVariantsToProvider(List<Variant> variants) {
     final branchId = ProxyService.box.getBranchId();
     if (branchId != null && mounted) {
@@ -119,14 +137,14 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
     try {
       ref.read(loadingProvider.notifier).startLoading();
 
-      if (model.kProductName == null) {
-        _showNoProductNameToast();
-        ref.read(loadingProvider.notifier).stopLoading();
-        return;
-      }
-
       if (_formKey.currentState!.validate() &&
           !ref.watch(isCompositeProvider)) {
+        final syncedProductName = _syncProductNameFromForm(model, productRef);
+        if (syncedProductName.length < 3) {
+          _showNoProductNameToast();
+          ref.read(loadingProvider.notifier).stopLoading();
+          return;
+        }
         final isPhone =
             responsive.ResponsiveLayout.isPhone(context) ||
             responsive.ResponsiveLayout.isTinyLimit(context);
@@ -136,7 +154,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
             true,
             color: pickerColor.toHex(),
             categoryId: selectedCategoryId,
-            productName: productNameController.text,
+            productName: syncedProductName,
             selectedProductType: selectedProductType,
             newRetailPrice: double.tryParse(retailPriceController.text) ?? 0,
             rates: _rates,
@@ -186,7 +204,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
           if (!mounted) return;
           await model.addVariant(
             model: model,
-            productName: model.kProductName!,
+            productName: syncedProductName,
             preserveVariationFields: isPhone,
             countryofOrigin: countryOfOriginController.text.isEmpty
                 ? "RW"
@@ -250,7 +268,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
           mproduct: productRef,
           color: model.currentColor,
           inUpdateProcess: widget.productId != null,
-          productName: model.kProductName!,
+          productName: syncedProductName,
         );
 
         if (!mounted) return;
@@ -1554,6 +1572,7 @@ Future<void> _showVariantSheet({
                                 0;
 
                             if (existingVariant == null) {
+                              final variantName = nameController.text.trim();
                               await model.onScanItem(
                                 countryCode: countryOfOriginController.text,
                                 editmode: isEditMode,
@@ -1562,14 +1581,19 @@ Future<void> _showVariantSheet({
                                 supplyPrice: baseSupply,
                                 isTaxExempted: taxTyCd == 'C',
                                 product: productRef,
+                                variantDisplayName: variantName,
                               );
 
                               final idx = model.scannedVariants.indexWhere(
                                 (v) => v.bcd == barcode,
                               );
-                              if (idx != -1) {
-                                final v = model.scannedVariants[idx];
-                                v.name = nameController.text.trim();
+                              final v = idx != -1
+                                  ? model.scannedVariants[idx]
+                                  : (model.scannedVariants.isNotEmpty
+                                      ? model.scannedVariants.last
+                                      : null);
+                              if (v != null) {
+                                v.name = variantName;
                                 v.taxTyCd = taxTyCd;
                                 v.dcRt = discount.toDouble();
                                 model.getDiscountController(v.id).text =
@@ -1688,173 +1712,286 @@ class _MobileProductEntry extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        children: [
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.only(top: 12, bottom: 12),
-              children: [
-                Text(
-                  'Product info',
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleSmall
-                      ?.copyWith(color: Colors.grey.shade600),
-                ),
-                const SizedBox(height: 8),
-                BasicInfoSection(
-                  productNameController: productNameController,
-                  model: model,
-                  isEditMode: productId != null,
-                ),
-                const SizedBox(height: 12),
-                PricingSection(
-                  retailPriceController: retailPriceController,
-                  supplyPriceController: supplyPriceController,
-                  model: model,
-                  isComposite: false,
-                ),
-                const SizedBox(height: 12),
-                ExpansionTile(
-                  initiallyExpanded: false,
-                  tilePadding: EdgeInsets.zero,
-                  childrenPadding: const EdgeInsets.only(top: 8),
-                  title: Text(
-                    'Advanced',
+    const accentBlue = Color(0xFF0078D4);
+    final sym = ProxyService.box.defaultCurrency();
+
+    return ColoredBox(
+      color: const Color(0xFFF2F2F7),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Column(
+          children: [
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.only(top: 12, bottom: 12),
+                children: [
+                  Text(
+                    'Product info',
                     style: Theme.of(context)
                         .textTheme
-                        .titleMedium
-                        ?.copyWith(fontWeight: FontWeight.w600),
+                        .titleSmall
+                        ?.copyWith(color: Colors.grey.shade600),
                   ),
-                  children: [
-                    InventorySection(
-                      selectedPackageUnitValue: selectedPackageUnitValue,
-                      pkgUnits: pkgUnits,
-                      onPackageUnitChanged: onPackageUnitChanged,
-                      selectedCategoryId: selectedCategoryId,
-                      selectedCategoryName: selectedCategoryName,
-                      onCategoryChanged: onCategoryChanged,
-                      onAddCategory: onAddCategory,
-                      selectedProductType: selectedProductType,
-                      onProductTypeChanged: onProductTypeChanged,
-                      countryOfOriginController: countryOfOriginController,
-                      isEditMode: productId != null,
+                  const SizedBox(height: 8),
+                  BasicInfoSection(
+                    productNameController: productNameController,
+                    model: model,
+                    isEditMode: productId != null,
+                  ),
+                  const SizedBox(height: 12),
+                  PricingSection(
+                    retailPriceController: retailPriceController,
+                    supplyPriceController: supplyPriceController,
+                    model: model,
+                    isComposite: false,
+                    forceHorizontalPrices: true,
+                  ),
+                  const SizedBox(height: 12),
+                  ExpansionTile(
+                    initiallyExpanded: false,
+                    tilePadding: EdgeInsets.zero,
+                    childrenPadding: const EdgeInsets.only(top: 8),
+                    title: Text(
+                      'Advanced',
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleMedium
+                          ?.copyWith(fontWeight: FontWeight.w600),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        'Variants (${model.scannedVariants.length})',
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium
-                            ?.copyWith(fontWeight: FontWeight.w600),
+                    children: [
+                      InventorySection(
+                        selectedPackageUnitValue: selectedPackageUnitValue,
+                        pkgUnits: pkgUnits,
+                        onPackageUnitChanged: onPackageUnitChanged,
+                        selectedCategoryId: selectedCategoryId,
+                        selectedCategoryName: selectedCategoryName,
+                        onCategoryChanged: onCategoryChanged,
+                        onAddCategory: onAddCategory,
+                        selectedProductType: selectedProductType,
+                        onProductTypeChanged: onProductTypeChanged,
+                        countryOfOriginController: countryOfOriginController,
+                        isEditMode: productId != null,
                       ),
-                    ),
-                    OutlinedButton(
-                      onPressed: onScan,
-                      child: const Text('Scan'),
-                    ),
-                    const SizedBox(width: 8),
-                    OutlinedButton(
-                      onPressed: onAddVariant,
-                      child: const Text('+ Add'),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Tap a variant to edit • swipe to delete',
-                  style: Theme.of(context)
-                      .textTheme
-                      .bodySmall
-                      ?.copyWith(color: Colors.grey.shade600),
-                ),
-                const SizedBox(height: 8),
-                ...model.scannedVariants.reversed.map((v) {
-                  return Dismissible(
-                    key: ValueKey('variant-${v.id}'),
-                    direction: DismissDirection.endToStart,
-                    background: Container(
-                      alignment: Alignment.centerRight,
-                      padding: const EdgeInsets.only(right: 16),
-                      color: Colors.red.shade600,
-                      child: const Icon(Icons.delete, color: Colors.white),
-                    ),
-                    confirmDismiss: (_) async => true,
-                    onDismissed: (_) => onDeleteVariant(v),
-                    child: Card(
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                        side: BorderSide(color: Colors.grey.shade200),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Variants (${model.scannedVariants.length})',
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w600),
+                        ),
                       ),
-                      child: ListTile(
-                        onTap: () => onEditVariant(v),
-                        leading: CircleAvatar(
-                          backgroundColor: Colors.grey.shade100,
-                          child: const Icon(Icons.inventory_2_outlined),
-                        ),
-                        title: Text(
-                          v.name.isNotEmpty ? v.name : (v.bcd ?? 'Variant'),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        trailing: Text(
-                          (v.retailPrice ?? 0).toStringAsFixed(2),
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: Theme.of(context).colorScheme.primary,
+                      OutlinedButton(
+                        onPressed: onScan,
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: accentBlue,
+                          side: const BorderSide(color: Color(0xFFD1D1D6)),
+                          backgroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 10,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
                           ),
                         ),
+                        child: const Text('Scan'),
                       ),
-                    ),
-                  );
-                }),
-              ],
+                      const SizedBox(width: 8),
+                      OutlinedButton(
+                        onPressed: onAddVariant,
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: accentBlue,
+                          side: const BorderSide(color: Color(0xFFD1D1D6)),
+                          backgroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 10,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text('+ Add'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Tap a variant to expand · Edit or delete inside · swipe to delete',
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodySmall
+                        ?.copyWith(color: Colors.grey.shade600),
+                  ),
+                  const SizedBox(height: 8),
+                  ...model.scannedVariants.reversed.map((v) {
+                    final displayName =
+                        v.name.isNotEmpty ? v.name : (v.bcd ?? 'Variant');
+                    final priceStr =
+                        '${(v.retailPrice ?? 0).toStringAsFixed(2)}';
+                    return Dismissible(
+                      key: ValueKey('variant-${v.id}'),
+                      direction: DismissDirection.endToStart,
+                      background: Container(
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.only(right: 16),
+                        color: Colors.red.shade600,
+                        child: const Icon(Icons.delete, color: Colors.white),
+                      ),
+                      confirmDismiss: (_) async => true,
+                      onDismissed: (_) => onDeleteVariant(v),
+                      child: Card(
+                        elevation: 0,
+                        color: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          side: BorderSide(color: Colors.grey.shade200),
+                        ),
+                        margin: const EdgeInsets.only(bottom: 8),
+                        child: ExpansionTile(
+                          key: PageStorageKey<String>('vexp-${v.id}'),
+                          tilePadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 4,
+                          ),
+                          childrenPadding: const EdgeInsets.fromLTRB(
+                            12,
+                            0,
+                            12,
+                            12,
+                          ),
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(14)),
+                          ),
+                          collapsedShape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(14)),
+                          ),
+                          leading: CircleAvatar(
+                            radius: 20,
+                            backgroundColor: Colors.grey.shade100,
+                            child: const Icon(
+                              Icons.inventory_2_outlined,
+                              size: 20,
+                              color: Colors.black54,
+                            ),
+                          ),
+                          title: Text(
+                            displayName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 16,
+                            ),
+                          ),
+                          subtitle: Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Text(
+                              '$sym $priceStr',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                                color: accentBlue,
+                                fontSize: 15,
+                              ),
+                            ),
+                          ),
+                          children: [
+                            Row(
+                              children: [
+                                TextButton.icon(
+                                  onPressed: () => onEditVariant(v),
+                                  icon: const Icon(Icons.edit_outlined, size: 20),
+                                  label: const Text('Edit variant'),
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: accentBlue,
+                                  ),
+                                ),
+                                const Spacer(),
+                                TextButton.icon(
+                                  onPressed: () => onDeleteVariant(v),
+                                  icon: Icon(
+                                    Icons.delete_outline,
+                                    size: 20,
+                                    color: Colors.red.shade700,
+                                  ),
+                                  label: Text(
+                                    'Delete',
+                                    style: TextStyle(
+                                      color: Colors.red.shade700,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: Colors.red.shade700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }),
+                ],
+              ),
             ),
-          ),
-          const SizedBox(height: 8),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: isSaving ? null : onSave,
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: isSaving ? null : onSave,
+                style: FilledButton.styleFrom(
+                  backgroundColor: accentBlue.withValues(alpha: 0.12),
+                  foregroundColor: accentBlue,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                child: isSaving
+                    ? const SizedBox(
+                        height: 18,
+                        width: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text(
+                        'Save product',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 16,
+                        ),
+                      ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: isSaving ? null : onClose,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: accentBlue,
+                  side: const BorderSide(color: Color(0xFFD1D1D6)),
+                  backgroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                child: const Text(
+                  'Close',
+                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
                 ),
               ),
-              child: isSaving
-                  ? const SizedBox(
-                      height: 18,
-                      width: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Text('Save product'),
             ),
-          ),
-          const SizedBox(height: 10),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton(
-              onPressed: isSaving ? null : onClose,
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: const Text('Close'),
-            ),
-          ),
-          const SizedBox(height: 12),
-        ],
+            const SizedBox(height: 12),
+          ],
+        ),
       ),
     );
   }

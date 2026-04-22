@@ -8,12 +8,16 @@ class PricingSection extends HookConsumerWidget {
   final ScannViewModel model;
   final bool isComposite;
 
+  /// When true, retail and supply fields stay on one row (narrow phones).
+  final bool forceHorizontalPrices;
+
   const PricingSection({
     Key? key,
     required this.retailPriceController,
     required this.supplyPriceController,
     required this.model,
     required this.isComposite,
+    this.forceHorizontalPrices = false,
   }) : super(key: key);
 
   @override
@@ -50,7 +54,7 @@ class PricingSection extends HookConsumerWidget {
                     return null;
                   },
                   decoration: InputDecoration(
-                    labelText: 'Retail Price',
+                    labelText: 'Retail price',
                     prefixText: '', // Currency symbol could go here
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8.0),
@@ -67,7 +71,7 @@ class PricingSection extends HookConsumerWidget {
                   readOnly: isComposite,
                   onChanged: (value) => model.setSupplyPrice(price: value),
                   decoration: InputDecoration(
-                    labelText: 'Supply Price',
+                    labelText: 'Supply price',
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8.0),
                     ),
@@ -84,7 +88,8 @@ class PricingSection extends HookConsumerWidget {
                   ),
                 );
 
-                final shouldStack = constraints.maxWidth < 520;
+                final shouldStack =
+                    !forceHorizontalPrices && constraints.maxWidth < 520;
                 if (shouldStack) {
                   return Column(
                     children: [
