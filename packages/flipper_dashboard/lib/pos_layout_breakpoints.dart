@@ -20,9 +20,6 @@ abstract final class PosLayoutBreakpoints {
   /// Primary accent from POS mock (blue-600).
   static const Color posAccentBlue = Color(0xFF2563EB);
 
-  /// Dark rail background (side menu).
-  static const Color posRailBackground = Color(0xFF1E293B);
-
   /// Product grid column count from **pane** width (not full window).
   static int productGridCrossAxisCountForPaneWidth(double paneWidth) {
     if (paneWidth < 520) return 2;

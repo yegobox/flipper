@@ -204,9 +204,9 @@ class EnhancedSideMenu extends ConsumerWidget {
     return Container(
       width: PosLayoutBreakpoints.sideMenuWidth,
       decoration: const BoxDecoration(
-        color: PosLayoutBreakpoints.posRailBackground,
+        color: Colors.white,
         border: Border(
-          right: BorderSide(color: Color(0xFF334155), width: 1),
+          right: BorderSide(color: Color(0xFFE5E7EB), width: 1),
         ),
       ),
       child: Column(
@@ -220,7 +220,7 @@ class EnhancedSideMenu extends ConsumerWidget {
             children: [
               IconButton(
                 icon: const Icon(Icons.apps),
-                color: Colors.white70,
+                color: Color(0xFF64748B),
                 onPressed: () {
                   _dialogService.showCustomDialog(
                     variant: DialogType.appChoice,
@@ -259,8 +259,8 @@ class _SideMenuItem extends StatelessWidget {
   Widget build(BuildContext context) {
     final accent = PosLayoutBreakpoints.posAccentBlue;
     final color = isLogout
-        ? const Color(0xFFF87171)
-        : (isSelected ? accent : Colors.white60);
+        ? Colors.red
+        : (isSelected ? accent : const Color(0xFF64748B));
 
     final content = Center(
       child: Container(
@@ -268,8 +268,8 @@ class _SideMenuItem extends StatelessWidget {
         decoration: BoxDecoration(
           color: isSelected
               ? (isLogout
-                    ? const Color(0xFFF87171).withValues(alpha: 0.15)
-                    : accent.withValues(alpha: 0.18))
+                    ? Colors.red.withValues(alpha: 0.08)
+                    : accent.withValues(alpha: 0.1))
               : null,
           borderRadius: BorderRadius.circular(8),
         ),
@@ -296,9 +296,7 @@ class _SideMenuItem extends StatelessWidget {
                     width: 4,
                     height: 32,
                     decoration: BoxDecoration(
-                      color: isLogout
-                          ? const Color(0xFFF87171)
-                          : accent,
+                      color: isLogout ? Colors.red : accent,
                       borderRadius: const BorderRadius.only(
                         topRight: Radius.circular(4),
                         bottomRight: Radius.circular(4),
