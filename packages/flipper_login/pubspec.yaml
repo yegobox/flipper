@@ -39,7 +39,7 @@ dependencies:
   hooks_riverpod: ^3.0.3
   loading_animation_widget: ^1.2.0+4
   sentry: ^9.8.0
-  sentry_flutter: 9.8.0
+  sentry_flutter: ^9.18.0
   flipper_models: any
   google_sign_in: ^6.2.2
   firebase_ui_oauth_apple: ^2.0.0
@@ -57,7 +57,7 @@ dependency_overrides:
   archive: ^3.6.1
   excel: ^4.0.6
   cbor: ^6.3.7
-  jni: ^0.14.2
+  jni: ^0.15.2
   
 
 flutter:

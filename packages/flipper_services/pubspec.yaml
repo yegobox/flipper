@@ -69,7 +69,7 @@ dependency_overrides:
   archive: ^3.6.1
   excel: ^4.0.6
   cbor: ^6.3.7
-  jni: ^0.14.2
+  jni: ^0.15.2
 
 # Conditional dependency: firebase_remote_config only for non-Windows platforms
 firebase_remote_config:

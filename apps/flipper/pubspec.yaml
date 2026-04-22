@@ -3,7 +3,7 @@ description: "A new Flutter project."
 publish_to: "none"
 
 
-version: 1.181.4252223235061+1756529066
+version: 1.181.4252223235062+1756529067
 
 
 environment:
@@ -13,8 +13,8 @@ dependencies:
   flutter:
     sdk: flutter
   sentry: ^9.6.0
-  sentry_flutter: 9.8.0
-  jni: ^0.14.2
+  sentry_flutter: ^9.18.0
+  jni: ^0.15.2
   firebase_crashlytics: ^5.0.2
   flutter_local_notifications: ^19.5.0
   intl: ^0.20.2
@@ -149,7 +149,7 @@ dependencies:
   logging: ^1.3.0
   
 dependency_overrides:
-  jni: ^0.14.2
+  jni: ^0.15.2
   http: ^1.2.2
   meta: ^1.16.0
   web: ^1.1.0
@@ -214,7 +214,7 @@ msix_config:
   publisher_display_name: yegobox ltd
   identity_name: yegobox.yegoboxflipper
   # identity_name: yegobox.yegoboxflipper_6y224vs1dg1rr
-  msix_version: 1.170.5052.164
+  msix_version: 1.170.5052.165
   publisher: CN=B0F98A1E-8AE8-4B2B-BD1B-F494D4F791AE
   # publisher: CN=B0F334A1E-8AET-4B2C-BD1B-F239D4F791AE
   # B0F98A1E-8AE8-4B2B-BD1B-F494D4F791AE
