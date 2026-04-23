@@ -201,41 +201,34 @@ class EnhancedSideMenu extends ConsumerWidget {
       ),
     ];
 
-    return Container(
-      width: PosLayoutBreakpoints.sideMenuWidth,
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          right: BorderSide(color: Color(0xFFE5E7EB), width: 1),
+    // Width, border, and header logo live in [DashboardLayout] so the logo shares
+    // one row with [UnifiedTopBar] / FLIPPER.
+    return Column(
+      children: [
+        Expanded(
+          child: Column(
+            children: menuItems.map((item) => Expanded(child: item)).toList(),
+          ),
         ),
-      ),
-      child: Column(
-        children: [
-          Expanded(
-            child: Column(
-              children: menuItems.map((item) => Expanded(child: item)).toList(),
+        Column(
+          children: [
+            IconButton(
+              icon: const Icon(Icons.apps),
+              color: Color(0xFF64748B),
+              onPressed: () {
+                _dialogService.showCustomDialog(
+                  variant: DialogType.appChoice,
+                  title: 'Choose Your Default App',
+                );
+              },
             ),
-          ),
-          Column(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.apps),
-                color: Color(0xFF64748B),
-                onPressed: () {
-                  _dialogService.showCustomDialog(
-                    variant: DialogType.appChoice,
-                    title: 'Choose Your Default App',
-                  );
-                },
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                child: const ActiveBranch(),
-              ),
-            ],
-          ),
-        ],
-      ),
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: const ActiveBranch(),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

@@ -6,8 +6,13 @@ import 'package:flutter/material.dart';
 abstract final class PosLayoutBreakpoints {
   static const double mobileLayoutMaxWidth = 600;
 
-  /// Left rail width; must match [EnhancedSideMenu] and [UnifiedTopBar] logo rail.
+  /// Left rail width; must match [EnhancedSideMenu] and the header logo column
+  /// in [DashboardLayout].
   static const double sideMenuWidth = 80;
+
+  /// Desktop shell header row ([UnifiedTopBar] + logo column); keep in sync with
+  /// [UnifiedTopBar] vertical sizing.
+  static const double desktopTopBarHeight = 70;
 
   /// Horizontal inset for search strip above checkout (see [UnifiedTopBar]).
   static const double contentSearchLeadingInset = 8;

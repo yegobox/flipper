@@ -77,17 +77,65 @@ class DashboardLayout extends HookConsumerWidget {
                   model: model,
                 );
               }
-              // Desktop layout with unified top bar
+              // Desktop: header row spans logo column + top bar so the logo aligns
+              // with FLIPPER; body row is sidebar + content.
               return Column(
                 children: [
-                  // SAP-style top bar with search, ribbon, and user info
-                  UnifiedTopBar(searchController: searchController),
-                  // Main content area
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.06),
+                          offset: const Offset(0, 2),
+                          blurRadius: 6,
+                        ),
+                      ],
+                    ),
+                    child: SizedBox(
+                      height: PosLayoutBreakpoints.desktopTopBarHeight,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            width: PosLayoutBreakpoints.sideMenuWidth,
+                            child: Center(
+                              child: Image.asset(
+                                'assets/logo.png',
+                                package: 'flipper_dashboard',
+                                width: 32,
+                                height: 32,
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: UnifiedTopBar(
+                              searchController: searchController,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                   Expanded(
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        const EnhancedSideMenu(),
+                        SizedBox(
+                          width: PosLayoutBreakpoints.sideMenuWidth,
+                          child: Container(
+                            decoration: const BoxDecoration(
+                              color: Colors.white,
+                              border: Border(
+                                right: BorderSide(
+                                  color: Color(0xFFE5E7EB),
+                                  width: 1,
+                                ),
+                              ),
+                            ),
+                            child: const EnhancedSideMenu(),
+                          ),
+                        ),
                         Expanded(child: selectedPageWidget),
                       ],
                     ),

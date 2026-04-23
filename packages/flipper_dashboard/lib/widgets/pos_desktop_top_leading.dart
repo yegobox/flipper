@@ -3,14 +3,12 @@ import 'package:flipper_dashboard/AddProductDialog.dart';
 import 'package:flipper_dashboard/DesktopProductAdd.dart';
 import 'package:flipper_dashboard/BranchPerformance.dart';
 import 'package:flipper_dashboard/BulkAddProduct.dart';
-import 'package:flipper_dashboard/notice.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_dashboard/responsive_layout.dart' as responsive;
 import 'package:flipper_dashboard/umusada_helper.dart';
 import 'package:flipper_models/helperModels/extensions.dart';
 import 'package:flipper_models/providers/scan_mode_provider.dart';
-import 'package:flipper_models/providers/notice_provider.dart';
 import 'package:flipper_models/providers/orders_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -22,10 +20,9 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
-import 'package:supabase_models/brick/models/notice.model.dart';
 
 /// Left cluster of the desktop POS top bar: branding + "Point of Sale" + toolbar
-/// icons (matches design: grid, notices, cart, monitor, add).
+/// icons (matches design: grid, scan, cart, monitor, add).
 class PosDesktopTopLeading extends StatefulHookConsumerWidget {
   final TextEditingController searchController;
 
@@ -115,17 +112,6 @@ class _PosDesktopTopLeadingState extends ConsumerState<PosDesktopTopLeading> {
     });
   }
 
-  Widget _noticesIcon(List<Notice> notices) {
-    return badges.Badge(
-      showBadge: notices.isNotEmpty,
-      badgeContent: Text(
-        notices.length.toString(),
-        style: const TextStyle(color: Colors.white, fontSize: 10),
-      ),
-      child: const Icon(Icons.notifications_outlined, color: Color(0xFF64748B)),
-    );
-  }
-
   Widget _orderIcon(int count) {
     return badges.Badge(
       showBadge: count > 0,
@@ -144,13 +130,6 @@ class _PosDesktopTopLeadingState extends ConsumerState<PosDesktopTopLeading> {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Image.asset(
-          'assets/logo.png',
-          package: 'flipper_dashboard',
-          width: 26,
-          height: 26,
-        ),
-        const SizedBox(width: 8),
         Text(
           'FLIPPER',
           style: TextStyle(
@@ -191,16 +170,6 @@ class _PosDesktopTopLeadingState extends ConsumerState<PosDesktopTopLeading> {
                     ? PosLayoutBreakpoints.posAccentBlue
                     : const Color(0xFF64748B),
               ),
-            );
-          },
-        ),
-        Consumer(
-          builder: (context, ref, _) {
-            final notice = ref.watch(noticesProvider);
-            return IconButton(
-              tooltip: 'Notifications',
-              onPressed: () => handleNoticeClick(context),
-              icon: _noticesIcon(notice.value ?? []),
             );
           },
         ),
