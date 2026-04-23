@@ -81,7 +81,7 @@ class PreviewSaleBottomSheetState
           contentPadding: const EdgeInsets.only(left: 40.0, right: 40.0),
           trailing: Text(
             '${ProxyService.box.defaultCurrency()} ${NumberFormat('#,###').format(items.price * items.qty)}',
-            style: GoogleFonts.poppins(
+            style: GoogleFonts.outfit(
               fontWeight: FontWeight.w400,
               fontSize: 15,
               color: Colors.black,
@@ -92,7 +92,7 @@ class PreviewSaleBottomSheetState
             child: Text(
               items.name.length > 10 ? items.name.substring(0, 10) : items.name,
               overflow: TextOverflow.ellipsis,
-              style: GoogleFonts.poppins(
+              style: GoogleFonts.outfit(
                 fontWeight: FontWeight.w400,
                 fontSize: 15,
                 color: Colors.black,
@@ -244,7 +244,7 @@ class PreviewSaleBottomSheetState
       ),
       title: Text(
         'Discounts',
-        style: GoogleFonts.poppins(
+        style: GoogleFonts.outfit(
           fontWeight: FontWeight.w600,
           fontSize: 15,
           color: Colors.black,
@@ -252,7 +252,7 @@ class PreviewSaleBottomSheetState
       ),
       trailing: Text(
         '- RWF ' + _numberFormat.format(model.totalDiscount),
-        style: GoogleFonts.poppins(
+        style: GoogleFonts.outfit(
           fontWeight: FontWeight.w600,
           fontSize: 15,
           color: Colors.black,

@@ -210,7 +210,7 @@ class _ProviderBrowseScreenState extends State<ProviderBrowseScreen> {
                   children: [
                     Text(
                       'Advanced filters',
-                      style: GoogleFonts.poppins(
+                      style: GoogleFonts.outfit(
                         fontWeight: FontWeight.w600,
                         fontSize: 17,
                       ),
@@ -218,7 +218,7 @@ class _ProviderBrowseScreenState extends State<ProviderBrowseScreen> {
                     const SizedBox(height: 12),
                     Text(
                       'Minimum average rating: ${minR.toStringAsFixed(1)}',
-                      style: GoogleFonts.poppins(fontSize: 13),
+                      style: GoogleFonts.outfit(fontSize: 13),
                     ),
                     Slider(
                       value: minR,
@@ -230,7 +230,7 @@ class _ProviderBrowseScreenState extends State<ProviderBrowseScreen> {
                     SwitchListTile(
                       title: Text(
                         'Verified providers only',
-                        style: GoogleFonts.poppins(fontSize: 14),
+                        style: GoogleFonts.outfit(fontSize: 14),
                       ),
                       value: ver,
                       onChanged: (v) => setSt(() => ver = v),
@@ -239,7 +239,7 @@ class _ProviderBrowseScreenState extends State<ProviderBrowseScreen> {
                     SwitchListTile(
                       title: Text(
                         'Available for booking',
-                        style: GoogleFonts.poppins(fontSize: 14),
+                        style: GoogleFonts.outfit(fontSize: 14),
                       ),
                       value: avail,
                       onChanged: (v) => setSt(() => avail = v),
@@ -299,7 +299,7 @@ class _ProviderBrowseScreenState extends State<ProviderBrowseScreen> {
                       ),
                       child: Text(
                         'Apply filters',
-                        style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                        style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
                       ),
                     ),
                   ],
@@ -332,13 +332,13 @@ class _ProviderBrowseScreenState extends State<ProviderBrowseScreen> {
       appBar: AppBar(
         title: Text(
           'Find a provider',
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+          style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
         ),
         elevation: 0,
         backgroundColor: const Color(0xFF0D9488),
         foregroundColor: Colors.white,
         iconTheme: const IconThemeData(color: Colors.white),
-        titleTextStyle: GoogleFonts.poppins(
+        titleTextStyle: GoogleFonts.outfit(
           color: Colors.white,
           fontSize: 18,
           fontWeight: FontWeight.w600,
@@ -379,7 +379,7 @@ class _ProviderBrowseScreenState extends State<ProviderBrowseScreen> {
         Text(
           'No providers yet',
           textAlign: TextAlign.center,
-          style: GoogleFonts.poppins(
+          style: GoogleFonts.outfit(
             fontSize: 18,
             fontWeight: FontWeight.w600,
           ),
@@ -389,7 +389,7 @@ class _ProviderBrowseScreenState extends State<ProviderBrowseScreen> {
           'When people offer their services here, you will see them in this list and can send a request.\n\n'
           'Pull down to refresh. If you are registered as a provider yourself, your profile is not shown in this list.',
           textAlign: TextAlign.center,
-          style: GoogleFonts.poppins(
+          style: GoogleFonts.outfit(
             fontSize: 14,
             height: 1.4,
             color: Colors.grey.shade600,
@@ -416,10 +416,10 @@ class _ProviderBrowseScreenState extends State<ProviderBrowseScreen> {
                 TextField(
                   controller: _searchController,
                   textInputAction: TextInputAction.search,
-                  style: GoogleFonts.poppins(fontSize: 15),
+                  style: GoogleFonts.outfit(fontSize: 15),
                   decoration: InputDecoration(
                     hintText: 'Search name, area, or service…',
-                    hintStyle: GoogleFonts.poppins(
+                    hintStyle: GoogleFonts.outfit(
                       fontSize: 14,
                       color: Colors.grey.shade500,
                     ),
@@ -459,7 +459,7 @@ class _ProviderBrowseScreenState extends State<ProviderBrowseScreen> {
                   const SizedBox(height: 14),
                   Text(
                     'Browse by service',
-                    style: GoogleFonts.poppins(
+                    style: GoogleFonts.outfit(
                       fontWeight: FontWeight.w600,
                       fontSize: 13,
                       color: Colors.grey.shade800,
@@ -478,7 +478,7 @@ class _ProviderBrowseScreenState extends State<ProviderBrowseScreen> {
                           return FilterChip(
                             label: Text(
                               'All',
-                              style: GoogleFonts.poppins(
+                              style: GoogleFonts.outfit(
                                 fontSize: 13,
                                 fontWeight: selected
                                     ? FontWeight.w600
@@ -499,7 +499,7 @@ class _ProviderBrowseScreenState extends State<ProviderBrowseScreen> {
                         return FilterChip(
                           label: Text(
                             label,
-                            style: GoogleFonts.poppins(
+                            style: GoogleFonts.outfit(
                               fontSize: 13,
                               fontWeight: selected
                                   ? FontWeight.w600
@@ -537,7 +537,7 @@ class _ProviderBrowseScreenState extends State<ProviderBrowseScreen> {
                   Text(
                     'No matches',
                     textAlign: TextAlign.center,
-                    style: GoogleFonts.poppins(
+                    style: GoogleFonts.outfit(
                       fontSize: 18,
                       fontWeight: FontWeight.w600,
                     ),
@@ -546,7 +546,7 @@ class _ProviderBrowseScreenState extends State<ProviderBrowseScreen> {
                   Text(
                     'Try different keywords, pick another service, or clear your filters.',
                     textAlign: TextAlign.center,
-                    style: GoogleFonts.poppins(
+                    style: GoogleFonts.outfit(
                       fontSize: 14,
                       height: 1.4,
                       color: Colors.grey.shade600,
@@ -561,7 +561,7 @@ class _ProviderBrowseScreenState extends State<ProviderBrowseScreen> {
                     ),
                     child: Text(
                       'Clear search & filters',
-                      style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                      style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
                     ),
                   ),
                 ],
@@ -583,7 +583,7 @@ class _ProviderBrowseScreenState extends State<ProviderBrowseScreen> {
                       ),
                       child: Text(
                         e.headerLabel!,
-                        style: GoogleFonts.poppins(
+                        style: GoogleFonts.outfit(
                           fontSize: 15,
                           fontWeight: FontWeight.w700,
                           color: const Color(0xFF0F766E),
@@ -661,7 +661,7 @@ class _ProviderListTile extends StatelessWidget {
                   p.displayName.isNotEmpty
                       ? p.displayName[0].toUpperCase()
                       : '?',
-                  style: GoogleFonts.poppins(
+                  style: GoogleFonts.outfit(
                     fontWeight: FontWeight.w600,
                     color: const Color(0xFF0D9488),
                   ),
@@ -674,7 +674,7 @@ class _ProviderListTile extends StatelessWidget {
                   children: [
                     Text(
                       p.displayName,
-                      style: GoogleFonts.poppins(
+                      style: GoogleFonts.outfit(
                         fontWeight: FontWeight.w600,
                         fontSize: 15,
                       ),
@@ -683,7 +683,7 @@ class _ProviderListTile extends StatelessWidget {
                       const SizedBox(height: 2),
                       Text(
                         p.serviceArea!,
-                        style: GoogleFonts.poppins(
+                        style: GoogleFonts.outfit(
                           fontSize: 12,
                           color: Colors.grey.shade600,
                         ),
@@ -694,7 +694,7 @@ class _ProviderListTile extends StatelessWidget {
                       '$preview$more',
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.poppins(
+                      style: GoogleFonts.outfit(
                         fontSize: 13,
                         color: Colors.grey.shade700,
                         height: 1.3,
@@ -708,7 +708,7 @@ class _ProviderListTile extends StatelessWidget {
                           const SizedBox(width: 4),
                           Text(
                             p.averageRating.toStringAsFixed(1),
-                            style: GoogleFonts.poppins(
+                            style: GoogleFonts.outfit(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
                             ),

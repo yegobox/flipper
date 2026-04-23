@@ -54,7 +54,7 @@ class RequestStatusTimeline extends StatelessWidget {
       children: [
         Text(
           'Order timeline',
-          style: GoogleFonts.poppins(
+          style: GoogleFonts.outfit(
             fontWeight: FontWeight.w600,
             fontSize: 15,
           ),
@@ -153,7 +153,7 @@ class _TimelineRow extends StatelessWidget {
                 children: [
                   Text(
                     step.label,
-                    style: GoogleFonts.poppins(
+                    style: GoogleFonts.outfit(
                       fontWeight: FontWeight.w600,
                       fontSize: 13,
                       color: step.done
@@ -164,7 +164,7 @@ class _TimelineRow extends StatelessWidget {
                   if (step.time != null)
                     Text(
                       dateFormat.format(step.time!.toLocal()),
-                      style: GoogleFonts.poppins(
+                      style: GoogleFonts.outfit(
                         fontSize: 11,
                         color: Colors.grey.shade600,
                       ),

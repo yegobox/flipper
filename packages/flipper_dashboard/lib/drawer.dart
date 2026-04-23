@@ -93,7 +93,7 @@ class _DrawerScreenState extends ConsumerState<DrawerScreen>
       children: [
         Text(
           widget.open == "close" ? "Close a Business" : "Open Business",
-          style: GoogleFonts.poppins(
+          style: GoogleFonts.outfit(
             fontSize: 36.0,
             fontWeight: FontWeight.w500,
             color: Colors.black,
@@ -104,7 +104,7 @@ class _DrawerScreenState extends ConsumerState<DrawerScreen>
             padding: const EdgeInsets.only(left: 50.0),
             child: Text(
               _formatClosingBalance(double.tryParse(value ?? "0.0") ?? 0.0),
-              style: GoogleFonts.poppins(
+              style: GoogleFonts.outfit(
                 fontSize: 38.0,
                 fontWeight: FontWeight.normal,
                 color: Colors.black,
@@ -118,7 +118,7 @@ class _DrawerScreenState extends ConsumerState<DrawerScreen>
             padding: const EdgeInsets.only(left: 80.0),
             child: Text(
               _formatClosingBalance(double.tryParse(value ?? "0.0") ?? 0.0),
-              style: GoogleFonts.poppins(
+              style: GoogleFonts.outfit(
                 fontSize: 38.0,
                 fontWeight: FontWeight.normal,
                 color: Colors.black,

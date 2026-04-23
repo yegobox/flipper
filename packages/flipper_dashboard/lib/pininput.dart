@@ -34,7 +34,7 @@ class _OnlyBottomCursorState extends State<OnlyBottomCursor> {
     final defaultPinTheme = PinTheme(
       width: 56,
       height: 56,
-      textStyle: GoogleFonts.poppins(
+      textStyle: GoogleFonts.outfit(
         fontSize: 22,
         color: const Color.fromRGBO(30, 60, 87, 1),
       ),

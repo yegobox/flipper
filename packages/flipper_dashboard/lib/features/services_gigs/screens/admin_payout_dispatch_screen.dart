@@ -61,7 +61,7 @@ class _AdminPayoutDispatchScreenState extends State<AdminPayoutDispatchScreen> {
       builder: (ctx) => AlertDialog(
         title: Text(
           'Payout reference',
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+          style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
         ),
         content: TextField(
           controller: ctrl,
@@ -72,14 +72,14 @@ class _AdminPayoutDispatchScreenState extends State<AdminPayoutDispatchScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: Text('Cancel', style: GoogleFonts.poppins()),
+            child: Text('Cancel', style: GoogleFonts.outfit()),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: FilledButton.styleFrom(
               backgroundColor: const Color(0xFFDC2626),
             ),
-            child: Text('Mark dispatched', style: GoogleFonts.poppins()),
+            child: Text('Mark dispatched', style: GoogleFonts.outfit()),
           ),
         ],
       ),
@@ -113,7 +113,7 @@ class _AdminPayoutDispatchScreenState extends State<AdminPayoutDispatchScreen> {
       appBar: AppBar(
         title: Text(
           'Dispatch payouts',
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+          style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
         ),
         elevation: 0,
         backgroundColor: const Color(0xFFDC2626),
@@ -145,7 +145,7 @@ class _AdminPayoutDispatchScreenState extends State<AdminPayoutDispatchScreen> {
                       Text(
                         'No payouts pending',
                         textAlign: TextAlign.center,
-                        style: GoogleFonts.poppins(
+                        style: GoogleFonts.outfit(
                           fontSize: 17,
                           fontWeight: FontWeight.w600,
                         ),
@@ -154,7 +154,7 @@ class _AdminPayoutDispatchScreenState extends State<AdminPayoutDispatchScreen> {
                       Text(
                         'When jobs are funded, they will appear here until dispatched.',
                         textAlign: TextAlign.center,
-                        style: GoogleFonts.poppins(
+                        style: GoogleFonts.outfit(
                           fontSize: 13,
                           height: 1.4,
                           color: Colors.grey.shade600,
@@ -182,7 +182,7 @@ class _AdminPayoutDispatchScreenState extends State<AdminPayoutDispatchScreen> {
                         child: ListTile(
                           title: Text(
                             _providerLabel(r.providerUserId),
-                            style: GoogleFonts.poppins(
+                            style: GoogleFonts.outfit(
                               fontWeight: FontWeight.w600,
                               fontSize: 15,
                             ),
@@ -191,7 +191,7 @@ class _AdminPayoutDispatchScreenState extends State<AdminPayoutDispatchScreen> {
                             padding: const EdgeInsets.only(top: 6),
                             child: Text(
                               'Amount: $amt RWF · ${r.status.replaceAll('_', ' ')}\nSent ${df.format(r.createdAt.toLocal())}',
-                              style: GoogleFonts.poppins(
+                              style: GoogleFonts.outfit(
                                 fontSize: 12,
                                 height: 1.35,
                                 color: Colors.grey.shade700,

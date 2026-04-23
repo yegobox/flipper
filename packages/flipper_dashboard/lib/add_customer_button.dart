@@ -52,7 +52,7 @@ class AddCustomerButton extends StatelessWidget {
               );
             },
             child: Text("Add Customer",
-                style: GoogleFonts.poppins(
+                style: GoogleFonts.outfit(
                     fontWeight: FontWeight.w600,
                     fontSize: 15,
                     color: Color(0xff006AFE)))),

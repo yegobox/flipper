@@ -85,7 +85,7 @@ class ColorTileState extends ConsumerState<ColorTile> {
                             ),
                           ),
                           Text('New Item',
-                              style: GoogleFonts.poppins(
+                              style: GoogleFonts.outfit(
                                   color: Colors.black,
                                   fontSize: 17,
                                   fontWeight: FontWeight.w400))
@@ -101,7 +101,7 @@ class ColorTileState extends ConsumerState<ColorTile> {
               Align(
                 alignment: Alignment.topCenter,
                 child: Text('CHOOSE LABEL COLOR',
-                    style: GoogleFonts.poppins(
+                    style: GoogleFonts.outfit(
                         color: Colors.black,
                         fontSize: 17,
                         fontWeight: FontWeight.w400)),
@@ -122,7 +122,7 @@ class ColorTileState extends ConsumerState<ColorTile> {
                 alignment: Alignment.topCenter,
                 child: Text(
                   'PHOTO LABEL',
-                  style: GoogleFonts.poppins(
+                  style: GoogleFonts.outfit(
                       color: Colors.black,
                       fontSize: 17,
                       fontWeight: FontWeight.w400),
@@ -149,7 +149,7 @@ class ColorTileState extends ConsumerState<ColorTile> {
                       width: 180,
                       child: TextButton(
                         child: Text('Take Photo',
-                            style: GoogleFonts.poppins(
+                            style: GoogleFonts.outfit(
                                 color: Color(0xff006AFE),
                                 fontSize: 19,
                                 fontWeight: FontWeight.w600)),

@@ -108,7 +108,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                 symbol: ProxyService.box.defaultCurrency(),
               ) ??
               '0',
-          style: GoogleFonts.poppins(
+          style: GoogleFonts.outfit(
             fontSize: 40 * textScaleFactor,
             fontWeight: FontWeight.w600,
             height: 1,
@@ -122,7 +122,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
               widget.transactionType == TransactionType.cashIn
                   ? 'Cash in for'
                   : 'Cash out for',
-              style: GoogleFonts.poppins(
+              style: GoogleFonts.outfit(
                 fontSize: 18 * textScaleFactor,
                 fontWeight: FontWeight.w500,
                 color: Colors.black54,
@@ -142,7 +142,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
       (double.tryParse(keypad) ?? 0.0).toCurrencyFormatted(
         symbol: ProxyService.box.defaultCurrency(),
       ),
-      style: GoogleFonts.poppins(
+      style: GoogleFonts.outfit(
         fontSize: 40 * textScaleFactor,
         fontWeight: FontWeight.w600,
         color: Colors.blue[800],
@@ -208,7 +208,7 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
                   )
                 : Text(
                     key,
-                    style: GoogleFonts.poppins(
+                    style: GoogleFonts.outfit(
                       fontSize: constraints.maxWidth * 0.1,
                       fontWeight: FontWeight.w600,
                       color: textColor,

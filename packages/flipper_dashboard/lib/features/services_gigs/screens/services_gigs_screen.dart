@@ -179,7 +179,7 @@ class _ServicesGigsScreenState extends ConsumerState<ServicesGigsScreen> {
                             padding: const EdgeInsets.only(left: 8),
                             child: Text(
                               'How Services hub works',
-                              style: GoogleFonts.poppins(
+                              style: GoogleFonts.outfit(
                                 fontWeight: FontWeight.w600,
                                 fontSize: 17,
                                 color: Colors.grey.shade900,
@@ -217,7 +217,7 @@ class _ServicesGigsScreenState extends ConsumerState<ServicesGigsScreen> {
     final isAdminAsync = userId.isEmpty
         ? const AsyncValue<bool>.data(false)
         : ref.watch(servicesGigAdminProvider(userId));
-    final sectionTitleStyle = GoogleFonts.poppins(
+    final sectionTitleStyle = GoogleFonts.outfit(
       fontWeight: FontWeight.w600,
       fontSize: 13,
       color: Colors.grey.shade600,
@@ -228,13 +228,13 @@ class _ServicesGigsScreenState extends ConsumerState<ServicesGigsScreen> {
       appBar: AppBar(
         title: Text(
           'Services hub',
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+          style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
         ),
         elevation: 0,
         backgroundColor: const Color(0xFF0D9488),
         foregroundColor: Colors.white,
         iconTheme: const IconThemeData(color: Colors.white),
-        titleTextStyle: GoogleFonts.poppins(
+        titleTextStyle: GoogleFonts.outfit(
           color: Colors.white,
           fontSize: 18,
           fontWeight: FontWeight.w600,
@@ -278,7 +278,7 @@ class _ServicesGigsScreenState extends ConsumerState<ServicesGigsScreen> {
                           ),
                           title: Text(
                             'Dispatch payouts',
-                            style: GoogleFonts.poppins(
+                            style: GoogleFonts.outfit(
                               fontWeight: FontWeight.w500,
                               fontSize: 15,
                             ),
@@ -301,7 +301,7 @@ class _ServicesGigsScreenState extends ConsumerState<ServicesGigsScreen> {
                           ),
                           title: Text(
                             'Metrics',
-                            style: GoogleFonts.poppins(
+                            style: GoogleFonts.outfit(
                               fontWeight: FontWeight.w500,
                               fontSize: 15,
                             ),
@@ -324,7 +324,7 @@ class _ServicesGigsScreenState extends ConsumerState<ServicesGigsScreen> {
           ),
           Text(
             'Find people for jobs, or offer your skills—payments stay on the platform.',
-            style: GoogleFonts.poppins(
+            style: GoogleFonts.outfit(
               fontSize: 15,
               height: 1.45,
               color: Colors.grey.shade800,
@@ -364,7 +364,7 @@ class _ServicesGigsScreenState extends ConsumerState<ServicesGigsScreen> {
                   ),
                   title: Text(
                     'My requests',
-                    style: GoogleFonts.poppins(
+                    style: GoogleFonts.outfit(
                       fontWeight: FontWeight.w500,
                       fontSize: 15,
                     ),
@@ -383,7 +383,7 @@ class _ServicesGigsScreenState extends ConsumerState<ServicesGigsScreen> {
                   ),
                   title: Text(
                     'Notifications',
-                    style: GoogleFonts.poppins(
+                    style: GoogleFonts.outfit(
                       fontWeight: FontWeight.w500,
                       fontSize: 15,
                     ),
@@ -426,7 +426,7 @@ class _ServicesGigsScreenState extends ConsumerState<ServicesGigsScreen> {
                     ),
                     title: Text(
                       'Incoming requests',
-                      style: GoogleFonts.poppins(
+                      style: GoogleFonts.outfit(
                         fontWeight: FontWeight.w500,
                         fontSize: 15,
                       ),
@@ -490,7 +490,7 @@ class _BecomeProviderCallout extends StatelessWidget {
           children: [
             Text(
               'Earn on Services hub',
-              style: GoogleFonts.poppins(
+              style: GoogleFonts.outfit(
                 fontWeight: FontWeight.w600,
                 fontSize: 16,
                 color: Colors.grey.shade900,
@@ -499,7 +499,7 @@ class _BecomeProviderCallout extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               'Register the services you offer so customers can find and book you.',
-              style: GoogleFonts.poppins(
+              style: GoogleFonts.outfit(
                 fontSize: 13,
                 height: 1.4,
                 color: Colors.grey.shade700,
@@ -575,7 +575,7 @@ class _RegisteredProviderCard extends StatelessWidget {
                   children: [
                     Text(
                       profile.displayName,
-                      style: GoogleFonts.poppins(
+                      style: GoogleFonts.outfit(
                         fontWeight: FontWeight.w600,
                         fontSize: 16,
                       ),
@@ -585,7 +585,7 @@ class _RegisteredProviderCard extends StatelessWidget {
                       '$preview$more',
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.poppins(
+                      style: GoogleFonts.outfit(
                         fontSize: 13,
                         height: 1.35,
                         color: Colors.grey.shade700,
@@ -594,7 +594,7 @@ class _RegisteredProviderCard extends StatelessWidget {
                     const SizedBox(height: 8),
                     Text(
                       'Tap to edit profile',
-                      style: GoogleFonts.poppins(
+                      style: GoogleFonts.outfit(
                         fontSize: 12,
                         color: const Color(0xFF0D9488),
                         fontWeight: FontWeight.w500,
@@ -655,7 +655,7 @@ class _SectionCard extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: GoogleFonts.poppins(
+                    style: GoogleFonts.outfit(
                       fontWeight: FontWeight.w600,
                       fontSize: 15,
                     ),
@@ -674,7 +674,7 @@ class _SectionCard extends StatelessWidget {
                       ),
                       child: Text(
                         highlight!,
-                        style: GoogleFonts.poppins(
+                        style: GoogleFonts.outfit(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
                           color: Colors.amber.shade900,
@@ -685,7 +685,7 @@ class _SectionCard extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text(
                     body,
-                    style: GoogleFonts.poppins(
+                    style: GoogleFonts.outfit(
                       fontSize: 13,
                       height: 1.4,
                       color: Colors.grey.shade700,

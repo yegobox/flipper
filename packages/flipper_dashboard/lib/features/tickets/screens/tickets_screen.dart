@@ -179,7 +179,7 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                   if (dotColor != null) dot(dotColor),
                   Text(
                     label,
-                    style: GoogleFonts.poppins(
+                    style: GoogleFonts.outfit(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
                       color: selected ? selectedAccent : Colors.black87,
@@ -341,7 +341,7 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                             const SizedBox(width: 8),
                             Text(
                               'Create Ticket',
-                              style: GoogleFonts.poppins(
+                              style: GoogleFonts.outfit(
                                 fontWeight: FontWeight.w600,
                                 fontSize: buttonFontSize,
                                 color: Colors.white,
@@ -404,7 +404,7 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                   ),
                   title: Text(
                     'Tickets',
-                    style: GoogleFonts.poppins(
+                    style: GoogleFonts.outfit(
                       fontWeight: FontWeight.w700,
                       fontSize: titleFontSize,
                       color: Colors.black,

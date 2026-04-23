@@ -213,7 +213,7 @@ class _GigPaymentSheetState extends State<GigPaymentSheet> {
               const SizedBox(height: 16),
               Text(
                 'Pay ${widget.providerLabel}',
-                style: GoogleFonts.poppins(
+                style: GoogleFonts.outfit(
                   fontSize: 18,
                   fontWeight: FontWeight.w600,
                 ),
@@ -222,7 +222,7 @@ class _GigPaymentSheetState extends State<GigPaymentSheet> {
               Text(
                 'We send an MTN MoMo prompt to the number below. Approve it on your phone; '
                 'we wait up to 5 minutes for confirmation before marking this request paid.',
-                style: GoogleFonts.poppins(
+                style: GoogleFonts.outfit(
                   fontSize: 13,
                   height: 1.4,
                   color: Colors.grey.shade700,
@@ -249,7 +249,7 @@ class _GigPaymentSheetState extends State<GigPaymentSheet> {
                             'If you signed in with email (or we do not have a mobile wallet on file), '
                             'enter the MTN MoMo number that should be charged. '
                             'This must be a mobile money line—not an email.',
-                            style: GoogleFonts.poppins(
+                            style: GoogleFonts.outfit(
                               fontSize: 12,
                               height: 1.45,
                               fontWeight: FontWeight.w500,
@@ -271,7 +271,7 @@ class _GigPaymentSheetState extends State<GigPaymentSheet> {
                 inputFormatters: _amountLocked
                     ? const <TextInputFormatter>[]
                     : [FilteringTextInputFormatter.digitsOnly],
-                style: GoogleFonts.poppins(fontSize: 16),
+                style: GoogleFonts.outfit(fontSize: 16),
                 decoration: InputDecoration(
                   labelText: 'Amount (RWF)',
                   hintText: _amountLocked ? null : 'e.g. 5000',
@@ -302,7 +302,7 @@ class _GigPaymentSheetState extends State<GigPaymentSheet> {
                 controller: _phoneController,
                 autofocus: _showMoMoNumberGuidance,
                 keyboardType: TextInputType.phone,
-                style: GoogleFonts.poppins(fontSize: 16),
+                style: GoogleFonts.outfit(fontSize: 16),
                 decoration: InputDecoration(
                   labelText: 'MTN MoMo number to charge',
                   hintText: '2507XXXXXXXX',
@@ -337,7 +337,7 @@ class _GigPaymentSheetState extends State<GigPaymentSheet> {
                     padding: const EdgeInsets.all(12),
                     child: Text(
                       _sheetError!,
-                      style: GoogleFonts.poppins(
+                      style: GoogleFonts.outfit(
                         fontSize: 13,
                         height: 1.35,
                         color: Colors.red.shade900,
@@ -370,7 +370,7 @@ class _GigPaymentSheetState extends State<GigPaymentSheet> {
                           const SizedBox(width: 12),
                           Text(
                             'Waiting for payment…',
-                            style: GoogleFonts.poppins(
+                            style: GoogleFonts.outfit(
                               fontWeight: FontWeight.w600,
                               color: Colors.white,
                             ),
@@ -379,13 +379,13 @@ class _GigPaymentSheetState extends State<GigPaymentSheet> {
                       )
                     : Text(
                         'Send payment request',
-                        style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                        style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
                       ),
               ),
               TextButton(
                 onPressed:
                     _submitting ? null : () => Navigator.of(context).pop(false),
-                child: Text('Cancel', style: GoogleFonts.poppins()),
+                child: Text('Cancel', style: GoogleFonts.outfit()),
               ),
             ],
           ),

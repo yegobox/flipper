@@ -33,7 +33,7 @@ class RunningLowSection extends ConsumerWidget {
                 const SizedBox(width: 8),
                 Text(
                   'Running Low (7-Day Forecast)',
-                  style: GoogleFonts.poppins(
+                  style: GoogleFonts.outfit(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
                     color: Colors.grey[800],

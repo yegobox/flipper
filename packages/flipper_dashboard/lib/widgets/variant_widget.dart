@@ -38,7 +38,7 @@ List<Widget> variantsWidget({required CoreViewModel model}) {
                                           snapshot.data!.name +
                                           ")"
                                       : snapshot.data!.name,
-                                  style: GoogleFonts.poppins(
+                                  style: GoogleFonts.outfit(
                                     textStyle: TextStyle(
                                         fontWeight: FontWeight.w700,
                                         fontSize: 18,
@@ -51,7 +51,7 @@ List<Widget> variantsWidget({required CoreViewModel model}) {
                   Row(children: [
                     Text(
                       'Frw${variant.retailPrice!.toStringAsFixed(2)}',
-                      style: GoogleFonts.poppins(
+                      style: GoogleFonts.outfit(
                         textStyle: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 18,

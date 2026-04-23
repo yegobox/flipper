@@ -101,7 +101,7 @@ class _TicketSearchBarState extends State<TicketSearchBar> {
       onChanged: widget.onChanged,
       decoration: InputDecoration(
         hintText: widget.hintText,
-        hintStyle: GoogleFonts.poppins(
+        hintStyle: GoogleFonts.outfit(
           fontSize: 14,
           color: Colors.grey[600],
         ),
@@ -131,7 +131,7 @@ class _TicketSearchBarState extends State<TicketSearchBar> {
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       ),
-      style: GoogleFonts.poppins(fontSize: 15),
+      style: GoogleFonts.outfit(fontSize: 15),
     );
   }
 }
@@ -362,7 +362,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           const SizedBox(height: 16),
           Text(
             'Loading tickets...',
-            style: GoogleFonts.poppins(
+            style: GoogleFonts.outfit(
               fontSize: 16,
               fontWeight: FontWeight.w500,
               color: Colors.grey[600],
@@ -382,7 +382,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           const SizedBox(height: 12),
           Text(
             'No tickets in this category',
-            style: GoogleFonts.poppins(
+            style: GoogleFonts.outfit(
               fontSize: 16,
               fontWeight: FontWeight.w500,
               color: Colors.grey[700],
@@ -390,7 +390,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           ),
           Text(
             'Try another filter',
-            style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600]),
+            style: GoogleFonts.outfit(fontSize: 14, color: Colors.grey[600]),
           ),
         ],
       ),
@@ -418,7 +418,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           const SizedBox(width: 10),
           Text(
             title,
-            style: GoogleFonts.poppins(
+            style: GoogleFonts.outfit(
               fontSize: 13,
               fontWeight: FontWeight.w700,
               letterSpacing: 0.6,
@@ -434,7 +434,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             ),
             child: Text(
               '$count',
-              style: GoogleFonts.poppins(
+              style: GoogleFonts.outfit(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
                 color: Colors.grey[700],
@@ -453,7 +453,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
               child: DropdownButton<bool>(
                 value: _sortNewestFirst,
                 isDense: true,
-                style: GoogleFonts.poppins(
+                style: GoogleFonts.outfit(
                   fontSize: 13,
                   fontWeight: FontWeight.w500,
                   color: Colors.black87,
@@ -809,7 +809,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           const SizedBox(height: 12),
           Text(
             'No open tickets',
-            style: GoogleFonts.poppins(
+            style: GoogleFonts.outfit(
               fontSize: 16,
               fontWeight: FontWeight.w500,
               color: Colors.grey,
@@ -817,7 +817,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           ),
           Text(
             'Create a new ticket to get started',
-            style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600]),
+            style: GoogleFonts.outfit(fontSize: 14, color: Colors.grey[600]),
           ),
         ],
       ),
@@ -837,7 +837,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           const SizedBox(height: 12),
           Text(
             'No tickets match your search',
-            style: GoogleFonts.poppins(
+            style: GoogleFonts.outfit(
               fontSize: 16,
               fontWeight: FontWeight.w500,
               color: Colors.grey,
@@ -845,7 +845,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           ),
           Text(
             'Try a different search term',
-            style: GoogleFonts.poppins(fontSize: 14, color: Colors.grey[600]),
+            style: GoogleFonts.outfit(fontSize: 14, color: Colors.grey[600]),
           ),
         ],
       ),
@@ -862,7 +862,7 @@ mixin TicketsListMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
           const SizedBox(height: 8),
           Text(
             'Something went wrong',
-            style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w500),
+            style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w500),
           ),
           Padding(
             padding: const EdgeInsets.all(16.0),
@@ -917,7 +917,7 @@ class TicketCard extends StatelessWidget {
       ),
       child: Text(
         layaway ? 'Layaway' : 'Loan',
-        style: GoogleFonts.poppins(
+        style: GoogleFonts.outfit(
           fontSize: 11,
           fontWeight: FontWeight.w600,
           color: fg,
@@ -1014,7 +1014,7 @@ class TicketCard extends StatelessWidget {
                                   flex: 2,
                                   child: Text(
                                     'Ticket #${_ticketDisplayRef(ticket)}',
-                                    style: GoogleFonts.poppins(
+                                    style: GoogleFonts.outfit(
                                       fontWeight: FontWeight.w700,
                                       fontSize: 14,
                                       color: Colors.black87,
@@ -1039,7 +1039,7 @@ class TicketCard extends StatelessWidget {
                                     ),
                                     child: Text(
                                       statusLabel,
-                                      style: GoogleFonts.poppins(
+                                      style: GoogleFonts.outfit(
                                         fontSize: 11,
                                         fontWeight: FontWeight.w600,
                                         color: statusFg,
@@ -1058,7 +1058,7 @@ class TicketCard extends StatelessWidget {
                               const SizedBox(height: 6),
                               Text(
                                 ticket.ticketName!,
-                                style: GoogleFonts.poppins(
+                                style: GoogleFonts.outfit(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w500,
                                   color: Colors.grey[700],
@@ -1079,7 +1079,7 @@ class TicketCard extends StatelessWidget {
                                   Expanded(
                                     child: Text(
                                       ticket.note!,
-                                      style: GoogleFonts.poppins(
+                                      style: GoogleFonts.outfit(
                                         fontSize: 12,
                                         color: Colors.grey[800],
                                         height: 1.35,
@@ -1100,7 +1100,7 @@ class TicketCard extends StatelessWidget {
                                   backgroundColor: _leftAccent(),
                                   child: Text(
                                     _customerInitials(ticket),
-                                    style: GoogleFonts.poppins(
+                                    style: GoogleFonts.outfit(
                                       color: Colors.white,
                                       fontWeight: FontWeight.w600,
                                       fontSize: 12,
@@ -1111,7 +1111,7 @@ class TicketCard extends StatelessWidget {
                                 Expanded(
                                   child: Text(
                                     displayName,
-                                    style: GoogleFonts.poppins(
+                                    style: GoogleFonts.outfit(
                                       fontSize: 14,
                                       fontWeight: FontWeight.w600,
                                       color: _kAccentBlue,
@@ -1129,7 +1129,7 @@ class TicketCard extends StatelessWidget {
                                       const SizedBox(width: 4),
                                       Text(
                                         phone,
-                                        style: GoogleFonts.poppins(
+                                        style: GoogleFonts.outfit(
                                           fontSize: 12,
                                           color: Colors.grey[700],
                                         ),
@@ -1190,7 +1190,7 @@ class TicketCard extends StatelessWidget {
                                 Expanded(
                                   child: Text(
                                     'Created ${_formatDate(ticket.createdAt)}',
-                                    style: GoogleFonts.poppins(
+                                    style: GoogleFonts.outfit(
                                       fontSize: 11,
                                       color: Colors.grey[600],
                                     ),
@@ -1238,7 +1238,7 @@ class TicketCard extends StatelessWidget {
       children: [
         Text(
           label,
-          style: GoogleFonts.poppins(
+          style: GoogleFonts.outfit(
             fontSize: 10,
             fontWeight: FontWeight.w500,
             letterSpacing: 0.4,
@@ -1248,7 +1248,7 @@ class TicketCard extends StatelessWidget {
         const SizedBox(height: 2),
         Text(
           value,
-          style: GoogleFonts.poppins(
+          style: GoogleFonts.outfit(
             fontSize: 13,
             fontWeight: emphasize ? FontWeight.w700 : FontWeight.w600,
             color: valueColor,

@@ -219,7 +219,7 @@ class _GigRequestDetailScreenState extends State<GigRequestDetailScreen> {
         builder: (ctx, setSt) => AlertDialog(
           title: Text(
             'Rate your experience',
-            style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+            style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
           ),
           content: SingleChildScrollView(
             child: Column(
@@ -256,14 +256,14 @@ class _GigRequestDetailScreenState extends State<GigRequestDetailScreen> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: Text('Cancel', style: GoogleFonts.poppins()),
+              child: Text('Cancel', style: GoogleFonts.outfit()),
             ),
             FilledButton(
               onPressed: () => Navigator.pop(ctx, true),
               style: FilledButton.styleFrom(
                 backgroundColor: const Color(0xFF0D9488),
               ),
-              child: Text('Submit', style: GoogleFonts.poppins()),
+              child: Text('Submit', style: GoogleFonts.outfit()),
             ),
           ],
         ),
@@ -296,7 +296,7 @@ class _GigRequestDetailScreenState extends State<GigRequestDetailScreen> {
       appBar: AppBar(
         title: Text(
           'Request details',
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+          style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
         ),
         elevation: 0,
         backgroundColor: const Color(0xFF0D9488),
@@ -308,7 +308,7 @@ class _GigRequestDetailScreenState extends State<GigRequestDetailScreen> {
               ? Center(
                   child: Text(
                     'Request not found.',
-                    style: GoogleFonts.poppins(),
+                    style: GoogleFonts.outfit(),
                   ),
                 )
               : RefreshIndicator(
@@ -321,7 +321,7 @@ class _GigRequestDetailScreenState extends State<GigRequestDetailScreen> {
                     children: [
                       Text(
                         widget.headline,
-                        style: GoogleFonts.poppins(
+                        style: GoogleFonts.outfit(
                           fontWeight: FontWeight.w600,
                           fontSize: 17,
                         ),
@@ -329,7 +329,7 @@ class _GigRequestDetailScreenState extends State<GigRequestDetailScreen> {
                       const SizedBox(height: 8),
                       Text(
                         r.statusLabel,
-                        style: GoogleFonts.poppins(
+                        style: GoogleFonts.outfit(
                           fontWeight: FontWeight.w600,
                           color: Color(r.statusColor),
                         ),
@@ -339,7 +339,7 @@ class _GigRequestDetailScreenState extends State<GigRequestDetailScreen> {
                         const SizedBox(height: 8),
                         Text(
                           r.requestedService!,
-                          style: GoogleFonts.poppins(
+                          style: GoogleFonts.outfit(
                             fontWeight: FontWeight.w500,
                             fontSize: 14,
                           ),
@@ -348,7 +348,7 @@ class _GigRequestDetailScreenState extends State<GigRequestDetailScreen> {
                       const SizedBox(height: 8),
                       Text(
                         r.customerMessage,
-                        style: GoogleFonts.poppins(
+                        style: GoogleFonts.outfit(
                           fontSize: 14,
                           height: 1.4,
                         ),
@@ -358,7 +358,7 @@ class _GigRequestDetailScreenState extends State<GigRequestDetailScreen> {
                       const SizedBox(height: 24),
                       Text(
                         'Messages',
-                        style: GoogleFonts.poppins(
+                        style: GoogleFonts.outfit(
                           fontWeight: FontWeight.w600,
                           fontSize: 15,
                         ),
@@ -367,7 +367,7 @@ class _GigRequestDetailScreenState extends State<GigRequestDetailScreen> {
                       if (_messages.isEmpty)
                         Text(
                           'No messages yet. Coordinate time and location here.',
-                          style: GoogleFonts.poppins(
+                          style: GoogleFonts.outfit(
                             fontSize: 13,
                             color: Colors.grey.shade600,
                           ),
@@ -396,7 +396,7 @@ class _GigRequestDetailScreenState extends State<GigRequestDetailScreen> {
                               ),
                               child: Text(
                                 m.body,
-                                style: GoogleFonts.poppins(fontSize: 14),
+                                style: GoogleFonts.outfit(fontSize: 14),
                               ),
                             ),
                           );
@@ -533,7 +533,7 @@ class _GigRequestDetailScreenState extends State<GigRequestDetailScreen> {
                 children: [
                   Text(
                     'Your review',
-                    style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                    style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 4),
                   Row(
@@ -551,7 +551,7 @@ class _GigRequestDetailScreenState extends State<GigRequestDetailScreen> {
                   const SizedBox(height: 6),
                   Text(
                     r.customerReview!,
-                    style: GoogleFonts.poppins(fontSize: 14),
+                    style: GoogleFonts.outfit(fontSize: 14),
                   ),
                 ],
               ),
