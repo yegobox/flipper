@@ -20,9 +20,7 @@ on:
       - 'bugfix-*'
       - main
       - dev
-      - end-user-facing
-      - shifts
-      - mislenous-post-mondy-merge
+      - re-design
 env:
   URL: ${{ secrets.DB_URL }}
   PASSWORD: ${{ secrets.DB_PASSWORD }}
