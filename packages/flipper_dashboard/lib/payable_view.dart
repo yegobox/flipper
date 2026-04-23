@@ -109,8 +109,15 @@ class PayableView extends HookConsumerWidget {
           if (showTickets) ...[
             SizedBox(
               height: _kBarButtonHeight,
-              child: TextButton(
-                style: secondaryButtonStyle,
+              child: OutlinedButton(
+                style: OutlinedButton.styleFrom(
+                  backgroundColor: Colors.white,
+                  foregroundColor: Theme.of(context).colorScheme.onSurface,
+                  side: const BorderSide(color: Color(0xFFE5E7EB)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
                 onPressed: () {
                   ticketHandler();
                 },
@@ -184,8 +191,15 @@ class PayableView extends HookConsumerWidget {
         children: <Widget>[
           Expanded(
             flex: 2,
-            child: TextButton(
-              style: secondaryButtonStyle,
+            child: OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: Theme.of(context).colorScheme.onSurface,
+                side: const BorderSide(color: Color(0xFFE5E7EB)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
               onPressed: () {
                 ticketHandler();
               },

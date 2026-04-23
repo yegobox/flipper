@@ -86,7 +86,7 @@ class PreviewSaleButton extends ConsumerWidget {
                     width: double.infinity,
                     height: 64,
                     key: const Key("PaymentButton"),
-                    color: Colors.blue.shade700,
+                    color: const Color(0xFF2563EB),
                     text: wording,
                     onPressed: (payButtonLoading[ButtonType.pay] ?? false)
                         ? null
@@ -99,7 +99,7 @@ class PreviewSaleButton extends ConsumerWidget {
                 : FlipperIconButton(
                     width: double.infinity,
                     height: 64,
-                    color: Colors.blue.shade700,
+                    color: const Color(0xFF2563EB),
                     key: const Key("PaymentButton"),
                     icon: icon!,
                     onPressed: (payButtonLoading[ButtonType.pay] ?? false)
@@ -132,7 +132,7 @@ class PreviewSaleButton extends ConsumerWidget {
                     )
                   : FlipperIconButton(
                       width: double.infinity,
-                      color: Colors.blue.shade700,
+                      color: const Color(0xFF2563EB),
                       isLoading:
                           payButtonLoading[ButtonType.completeNow] ?? false,
                       height: 64,

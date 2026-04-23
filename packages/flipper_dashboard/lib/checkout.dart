@@ -2,7 +2,6 @@
 
 import 'dart:math' as math;
 
-import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
 import 'package:flipper_dashboard/CheckoutProductView.dart';
 import 'package:flipper_dashboard/mixins/previewCart.dart';
@@ -12,7 +11,6 @@ import 'package:flipper_dashboard/widgets/pos_default_view.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_dashboard/QuickSellingView.dart';
-import 'package:flipper_dashboard/SearchCustomer.dart';
 import 'package:flipper_dashboard/functions.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
@@ -25,10 +23,9 @@ import 'package:stacked/stacked.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_services/navigation_guard_service.dart';
 
-/// Space left below the stacked [SearchInputWithDropdown] (single search row
-/// with in-field suffix actions + padding). Kept tight to the strip height so
-/// the summary toolbar sits close without overlapping.
-const double _kDesktopCheckoutBodyTopInset = 74.0;
+/// Customer search now lives inside [QuickSellingView] (cart column). No top
+/// overlay inset on desktop checkout.
+const double _kDesktopCheckoutBodyTopInset = 0.0;
 
 enum OrderStatus { pending, approved }
 
@@ -215,57 +212,45 @@ class CheckOutState extends ConsumerState<CheckOut>
   ) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        return Stack(
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(top: _kDesktopCheckoutBodyTopInset),
-              child: SizedBox(
-                width: constraints.maxWidth,
-                height: math.max(
-                  0.0,
-                  constraints.maxHeight - _kDesktopCheckoutBodyTopInset,
-                ),
-                child: FadeTransition(
-                  opacity: _animation,
-                  child: PosDefaultView(
-                    transaction: transaction,
-                    quickSellingView: _buildQuickSellingView(),
-                    onCompleteTransaction:
-                        (
-                          immediateCompletion, [
-                          onPaymentConfirmed,
-                          onPaymentFailed,
-                        ]) async {
-                          final txn = transaction;
-                          if (txn == null) {
-                            return false;
-                          }
-                          return await _handleCompleteTransaction(
-                            txn,
-                            immediateCompletion,
-                            onPaymentConfirmed,
-                            onPaymentFailed,
-                          );
-                        },
-                    onTicketNavigation: () {
+        return SizedBox(
+          width: constraints.maxWidth,
+          height: math.max(
+            0.0,
+            constraints.maxHeight - _kDesktopCheckoutBodyTopInset,
+          ),
+          child: Padding(
+            padding: const EdgeInsets.only(top: _kDesktopCheckoutBodyTopInset),
+            child: FadeTransition(
+              opacity: _animation,
+              child: PosDefaultView(
+                transaction: transaction,
+                quickSellingView: _buildQuickSellingView(),
+                onCompleteTransaction:
+                    (
+                      immediateCompletion, [
+                      onPaymentConfirmed,
+                      onPaymentFailed,
+                    ]) async {
                       final txn = transaction;
-                      if (txn != null) {
-                        handleTicketNavigation(txn);
+                      if (txn == null) {
+                        return false;
                       }
+                      return await _handleCompleteTransaction(
+                        txn,
+                        immediateCompletion,
+                        onPaymentConfirmed,
+                        onPaymentFailed,
+                      );
                     },
-                  ),
-                ),
+                onTicketNavigation: () {
+                  final txn = transaction;
+                  if (txn != null) {
+                    handleTicketNavigation(txn);
+                  }
+                },
               ),
             ),
-            // Match [PosDefaultView] horizontal padding so customer search lines
-            // up with [UnifiedTopBar] product search when the side rail is shown.
-            Positioned(
-              top: 4.0,
-              left: PosLayoutBreakpoints.contentSearchLeadingInset,
-              right: PosLayoutBreakpoints.contentSearchLeadingInset,
-              child: SearchInputWithDropdown(),
-            ),
-          ],
+          ),
         );
       },
     );

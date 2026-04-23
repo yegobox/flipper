@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/constants.dart';
@@ -224,27 +225,31 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
   }
 
   Widget _buildCompactAddPaymentButton({required bool isMobile}) {
-    final scheme = Theme.of(context).colorScheme;
     final canAdd = _hasUnusedPaymentType();
     return Tooltip(
       message: canAdd
           ? 'Add payment method'
           : 'All payment types are in use — remove one to add another',
-      child: IconButton.filledTonal(
-        onPressed: canAdd
-            ? () => _handleAddPaymentTap(
-                  transactionId: widget.transactionId,
-                  isMobile: isMobile,
-                )
-            : null,
-        icon: const Icon(Icons.add_rounded, size: 22),
-        style: IconButton.styleFrom(
-          visualDensity: VisualDensity.compact,
-          padding: const EdgeInsets.all(8),
-          minimumSize: const Size(40, 40),
-          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          foregroundColor: scheme.primary,
-          backgroundColor: scheme.primaryContainer.withValues(alpha: 0.6),
+      child: Material(
+        color: const Color(0xFFEFF6FF),
+        shape: const CircleBorder(),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: canAdd
+              ? () => _handleAddPaymentTap(
+                    transactionId: widget.transactionId,
+                    isMobile: isMobile,
+                  )
+              : null,
+          child: const Padding(
+            padding: EdgeInsets.all(8),
+            child: Icon(
+              Icons.add_rounded,
+              size: 22,
+              color: PosLayoutBreakpoints.posAccentBlue,
+            ),
+          ),
         ),
       ),
     );
@@ -707,10 +712,10 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
                           RegExp(r'^\d*\.?\d*'),
                         ),
                       ],
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.grey[800],
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: PosLayoutBreakpoints.posAccentBlue,
                       ),
                       decoration: InputDecoration(
                         hintText: 'Enter amount',
@@ -720,10 +725,10 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
                         ),
                         prefix: Text(
                           '${ProxyService.box.defaultCurrency()} ',
-                          style: TextStyle(
-                            color: Colors.grey[600],
-                            fontSize: 13,
-                            fontWeight: FontWeight.w500,
+                          style: const TextStyle(
+                            color: PosLayoutBreakpoints.posAccentBlue,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                         border: InputBorder.none,
@@ -840,10 +845,10 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
 
     return Container(
       decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest.withValues(alpha: 0.35),
+        color: Colors.white,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: scheme.outline.withValues(alpha: 0.18),
+          color: const Color(0xFFE5E7EB),
         ),
       ),
       padding: const EdgeInsets.fromLTRB(10, 8, 8, 8),
@@ -916,10 +921,10 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
               else
                 Container(
                   decoration: BoxDecoration(
-                    color: scheme.surface,
+                    color: const Color(0xFFF9FAFB),
                     borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: scheme.outline.withValues(alpha: 0.15),
+                      color: const Color(0xFFE5E7EB),
                     ),
                   ),
                   clipBehavior: Clip.antiAlias,
@@ -930,32 +935,33 @@ class _PaymentMethodsCardState extends ConsumerState<PaymentMethodsCard>
                           horizontal: 12,
                           vertical: 8,
                         ),
-                        decoration: BoxDecoration(
-                          color: scheme.surfaceContainerHighest
-                              .withValues(alpha: 0.5),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFFF3F4F6),
                         ),
                         child: Row(
                           children: [
-                            const Expanded(
+                            Expanded(
                               flex: 2,
                               child: Text(
-                                'Method',
+                                'METHOD',
                                 style: TextStyle(
-                                  fontSize: 11,
+                                  fontSize: 10,
                                   fontWeight: FontWeight.w700,
-                                  letterSpacing: 0.2,
+                                  letterSpacing: 0.6,
+                                  color: Colors.grey[600],
                                 ),
                               ),
                             ),
                             const SizedBox(width: 8),
-                            const Expanded(
+                            Expanded(
                               flex: 3,
                               child: Text(
-                                'Amount',
+                                'AMOUNT',
                                 style: TextStyle(
-                                  fontSize: 11,
+                                  fontSize: 10,
                                   fontWeight: FontWeight.w700,
-                                  letterSpacing: 0.2,
+                                  letterSpacing: 0.6,
+                                  color: Colors.grey[600],
                                 ),
                               ),
                             ),
