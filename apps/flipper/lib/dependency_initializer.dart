@@ -71,8 +71,8 @@ Future<void> _initializeCriticalDependencies() async {
     databaseFactoryOrNull = databaseFactoryFfiWeb;
   }
 
-  // Font configuration
-  GoogleFonts.config.allowRuntimeFetching = true;
+  // Font configuration — Outfit / JetBrains Mono are bundled under `google_fonts/` (pubspec).
+  GoogleFonts.config.allowRuntimeFetching = false;
 }
 
 Future<void> _initializeSecondaryDependencies() async {

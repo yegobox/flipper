@@ -297,7 +297,8 @@ class _FlipperAppState extends State<FlipperApp> {
   }
 
   ThemeData _buildTheme() {
-    // Disable runtime fetching since we have fonts bundled in flipper/google_fonts
+    // Bundled `.ttf` files live under `google_fonts/` (see pubspec assets). Must stay false so
+    // release builds do not depend on runtime font downloads.
     GoogleFonts.config.allowRuntimeFetching = false;
 
     return ThemeData(
