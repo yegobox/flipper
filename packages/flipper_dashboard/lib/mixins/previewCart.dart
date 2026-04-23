@@ -610,23 +610,35 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     String? ticketName,
   }) async {
     // Use the in-memory transaction directly instead of re-fetching from DB.
-    // collectPayment already persisted the latest cashReceived, and the caller
-    // updated transaction.cashReceived before calling us.
-    final effectiveCashReceived = transaction.cashReceived ?? 0;
+    // collectPayment may persist cashReceived; the caller may also add the keypad amount.
+    // When nothing was typed, [transaction.cashReceived] is often still 0 — treat that as
+    // exact tender for the sale: use split payment lines if they have amounts, otherwise
+    // the computed sale total (same idea as assuming `transaction.subTotal`).
+    const _paymentEpsilon = 0.0001;
+    var effectiveCashReceived = transaction.cashReceived ?? 0;
+    if (effectiveCashReceived <= _paymentEpsilon) {
+      final sumFromPaymentLines = paymentMethods.fold<double>(
+        0,
+        (sum, p) => sum + p.amount,
+      );
+      effectiveCashReceived = sumFromPaymentLines > _paymentEpsilon
+          ? sumFromPaymentLines
+          : finalSubTotal;
+    }
 
     final totalCredit = paymentMethods
-        .where((p) => p.method == "CREDIT")
+        .where((p) => p.method.toUpperCase() == 'CREDIT')
         .fold<double>(0, (sum, p) => sum + p.amount);
 
     // IMPORTANT: Use the computed `finalSubTotal` (includes discounts/updates) rather than
     // `transaction.subTotal`, which can be stale at this point and incorrectly park a fully
     // paid transaction as a loan.
-    const _paymentEpsilon = 0.0001;
     final saleTotal = finalSubTotal;
 
     final nonCreditCashReceivedRaw = effectiveCashReceived - totalCredit;
-    final nonCreditCashReceived =
-        nonCreditCashReceivedRaw < 0 ? 0.0 : nonCreditCashReceivedRaw;
+    final nonCreditCashReceived = nonCreditCashReceivedRaw < 0
+        ? 0.0
+        : nonCreditCashReceivedRaw;
     final isFullyPaid = (nonCreditCashReceived + _paymentEpsilon) >= saleTotal;
 
     final shouldBeLoan = totalCredit > 0 || !isFullyPaid;
@@ -636,8 +648,8 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         ? (totalCredit > 0
               ? totalCredit
               : ((saleTotal - nonCreditCashReceived) < 0
-                  ? 0.0
-                  : (saleTotal - nonCreditCashReceived)))
+                    ? 0.0
+                    : (saleTotal - nonCreditCashReceived)))
         : 0.0;
 
     final now = DateTime.now();

@@ -145,7 +145,11 @@ class _RowItemState extends ConsumerState<RowItem>
   void _initImageCache() {
     try {
       _imageUrl = widget.imageUrl;
-      _branchId = ProxyService.box.getBranchId();
+      // Objects live under `public/branch-{id}/…` for the branch that owned the
+      // upload. Prefer the variant's branch so rows match S3 even when the
+      // session branch id differs or is not ready yet.
+      _branchId =
+          widget.variant?.branchId ?? ProxyService.box.getBranchId();
 
       if (_imageUrl != null && _imageUrl!.isNotEmpty && _branchId != null) {
         _cachedRemoteUrlFuture = preSignedUrl(
@@ -674,13 +678,23 @@ class _RowItemState extends ConsumerState<RowItem>
       symbol: ProxyService.box.defaultCurrency(),
     );
 
-    return SizedBox(
-      height: 68,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // Leading avatar (color tile / initials), no heavy image loading.
-          Container(
+    final Widget leading = widget.imageUrl?.isNotEmpty == true
+        ? SizedBox(
+            width: 44,
+            height: 44,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: HexColor(
+                    widget.color.isEmpty ? "#673AB7" : widget.color,
+                  ).withValues(alpha: 0.12),
+                ),
+                child: _buildImage(),
+              ),
+            ),
+          )
+        : Container(
             width: 44,
             height: 44,
             decoration: BoxDecoration(
@@ -699,7 +713,14 @@ class _RowItemState extends ConsumerState<RowItem>
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
-          ),
+          );
+
+    return SizedBox(
+      height: 68,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          leading,
 
           const SizedBox(width: 12),
 

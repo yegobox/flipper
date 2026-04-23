@@ -4,6 +4,7 @@
 // ignore_for_file: unused_import, depend_on_referenced_packages
 
 import 'package:supabase_models/brick/models/actual_output.model.dart' as actual_output_model;
+import 'package:supabase_models/brick/models/asset.model.dart' as asset_model;
 import 'package:supabase_models/brick/models/branch.model.dart' as branch_model;
 import 'package:supabase_models/brick/models/business.model.dart' as business_model;
 import 'package:supabase_models/brick/models/business_analytic.model.dart' as business_analytic_model;
@@ -29,6 +30,7 @@ import 'package:supabase_models/brick/models/work_order.model.dart' as work_orde
 void ensureDittoAdaptersLoaded() {
   // Access registryToken getter to force static field init
   actual_output_model.ActualOutputDittoAdapter.registryToken; // ignore: unnecessary_statements
+  asset_model.AssetsDittoAdapter.registryToken; // ignore: unnecessary_statements
   branch_model.BranchDittoAdapter.registryToken; // ignore: unnecessary_statements
   business_model.BusinessDittoAdapter.registryToken; // ignore: unnecessary_statements
   business_analytic_model.BusinessAnalyticDittoAdapter.registryToken; // ignore: unnecessary_statements

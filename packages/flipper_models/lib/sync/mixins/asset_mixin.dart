@@ -23,12 +23,17 @@ abstract class AssetInterface {
   });
 
   Future<void> reDownloadAsset();
-  FutureOr<Assets?> getAsset({String? assetName, String? productId});
+  FutureOr<Assets?> getAsset({
+    String? assetName,
+    String? productId,
+    String? variantId,
+  });
   FutureOr<void> addAsset({
     required String productId,
     required String assetName,
     required String branchId,
     required String businessId,
+    String? variantId,
   });
 
   /// Save an image file locally and create an asset record
@@ -39,6 +44,7 @@ abstract class AssetInterface {
     required String branchId,
     required String businessId,
     String subPath = 'branch',
+    String? variantId,
   });
 
   /// Synchronize offline assets by uploading them to cloud storage
@@ -296,14 +302,25 @@ mixin AssetMixin implements AssetInterface {
   }
 
   @override
-  FutureOr<Assets?> getAsset({String? assetName, String? productId}) async {
-    final query = brick.Query(
-      where: assetName != null
-          ? [brick.Where('assetName').isExactly(assetName)]
-          : productId != null
-          ? [brick.Where('productId').isExactly(productId)]
-          : throw Exception("no asset"),
-    );
+  FutureOr<Assets?> getAsset({
+    String? assetName,
+    String? productId,
+    String? variantId,
+  }) async {
+    if (assetName == null && productId == null) {
+      throw Exception("no asset");
+    }
+    final where = <brick.Where>[];
+    if (assetName != null) {
+      where.add(brick.Where('assetName').isExactly(assetName));
+    }
+    if (productId != null) {
+      where.add(brick.Where('productId').isExactly(productId));
+    }
+    if (variantId != null) {
+      where.add(brick.Where('variantId').isExactly(variantId));
+    }
+    final query = brick.Query(where: where);
     final result = await repository.get<Assets>(
       query: query,
       policy: brick.OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
@@ -317,14 +334,17 @@ mixin AssetMixin implements AssetInterface {
     required String assetName,
     required String branchId,
     required String businessId,
+    String? variantId,
   }) async {
+    final where = <brick.Where>[
+      brick.Where('productId').isExactly(productId),
+      brick.Where('assetName').isExactly(assetName),
+    ];
+    if (variantId != null) {
+      where.add(brick.Where('variantId').isExactly(variantId));
+    }
     final asset = await repository.get<Assets>(
-      query: brick.Query(
-        where: [
-          brick.Where('productId').isExactly(productId),
-          brick.Where('assetName').isExactly(assetName),
-        ],
-      ),
+      query: brick.Query(where: where),
     );
     if (asset.firstOrNull == null) {
       await repository.upsert<Assets>(
@@ -333,6 +353,7 @@ mixin AssetMixin implements AssetInterface {
           productId: productId,
           branchId: branchId,
           businessId: businessId,
+          variantId: variantId,
         ),
       );
     }
@@ -352,6 +373,7 @@ mixin AssetMixin implements AssetInterface {
     required String branchId,
     required String businessId,
     String subPath = 'branch',
+    String? variantId,
   }) async {
     try {
       // Generate a unique filename using UUID
@@ -373,6 +395,7 @@ mixin AssetMixin implements AssetInterface {
         productId: productId,
         branchId: branchId,
         businessId: businessId,
+        variantId: variantId,
         isUploaded: false,
         localPath: localPath,
         subPath: subPath,

@@ -267,6 +267,7 @@ class CapellaSync extends AiStrategyImpl
     required assetName,
     required String branchId,
     required String businessId,
+    String? variantId,
   }) {
     // TODO: implement addAsset
     throw UnimplementedError();
@@ -752,7 +753,11 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  FutureOr<Assets?> getAsset({String? assetName, String? productId}) {
+  FutureOr<Assets?> getAsset({
+    String? assetName,
+    String? productId,
+    String? variantId,
+  }) {
     // TODO: implement getAsset
     throw UnimplementedError();
   }
@@ -1083,6 +1088,7 @@ class CapellaSync extends AiStrategyImpl
     required String branchId,
     required String businessId,
     String subPath = 'branch',
+    String? variantId,
   }) {
     // TODO: implement saveImageLocally
     throw UnimplementedError();

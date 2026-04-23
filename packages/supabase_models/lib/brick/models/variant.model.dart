@@ -273,6 +273,13 @@ class Variant extends OfflineFirstWithSupabaseModel {
         return null;
       }
 
+      /// Ditto/SQLite rows often use snake_case; API/JSON uses camelCase.
+      String? optionalString(dynamic value) {
+        if (value == null) return null;
+        final s = value is String ? value : value.toString();
+        return s.isEmpty ? null : s;
+      }
+
       // Extract stock information if present
       Stock? stock;
       String? stockId =
@@ -325,8 +332,8 @@ class Variant extends OfflineFirstWithSupabaseModel {
         tin: parseOrDefault<int>(json['tin'], 0),
         bhfId: parseOrDefault<String?>(json['bhfId'], null),
         dftPrc: (parseNum(json['dftPrc']) ?? 0.0).toDouble(),
-        addInfo: parseOrDefault<String?>(json['addInfo'], null),
-        imageUrl: parseOrDefault<String?>(json['imageUrl'], null),
+        addInfo: optionalString(json['addInfo'] ?? json['add_info']),
+        imageUrl: optionalString(json['imageUrl'] ?? json['image_url']),
         isrcAplcbYn: parseOrDefault<String?>(json['isrcAplcbYn'], null),
         useYn: parseOrDefault<String?>(json['useYn'], null),
         regrId: parseOrDefault<String?>(json['regrId'], null),

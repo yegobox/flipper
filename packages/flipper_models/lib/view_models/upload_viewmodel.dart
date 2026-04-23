@@ -77,6 +77,7 @@ class UploadViewModel extends ProductViewModel {
     ImageSource? source,
     bool updateProductImage = true,
     bool persistAssetRecord = true,
+    String? variantId,
   }) async {
     final talker = TalkerFlutter.init();
 
@@ -163,13 +164,31 @@ class UploadViewModel extends ProductViewModel {
             branchId: branchId,
             businessId: ProxyService.box.getBusinessId()!);
         try {
-          Assets? asset =
-              await ProxyService.strategy.getAsset(productId: product!.id);
+          final Assets? asset = variantId != null
+              ? await ProxyService.strategy.getAsset(
+                  productId: product!.id,
+                  variantId: variantId,
+                )
+              : await ProxyService.strategy.getAsset(productId: product!.id);
 
-          await ProxyService.strategy
-              .updateAsset(assetId: asset!.id, assetName: uniqueFileName);
+          if (asset != null) {
+            await ProxyService.strategy.updateAsset(
+              assetId: asset.id,
+              assetName: uniqueFileName,
+            );
+          } else {
+            await saveAsset(
+              assetName: uniqueFileName,
+              productId: id,
+              variantId: variantId,
+            );
+          }
         } catch (e) {
-          await saveAsset(assetName: uniqueFileName, productId: id);
+          await saveAsset(
+            assetName: uniqueFileName,
+            productId: id,
+            variantId: variantId,
+          );
         }
       }
 
@@ -209,6 +228,7 @@ class UploadViewModel extends ProductViewModel {
     required URLTYPE urlType,
     bool updateProductImage = true,
     bool persistAssetRecord = true,
+    String? variantId,
   }) async {
     final talker = TalkerFlutter.init();
     final branchId = ProxyService.box.getBranchId()!;
@@ -253,12 +273,30 @@ class UploadViewModel extends ProductViewModel {
           businessId: ProxyService.box.getBusinessId()!,
         );
         try {
-          Assets? asset =
-              await ProxyService.strategy.getAsset(productId: product!.id);
-          await ProxyService.strategy
-              .updateAsset(assetId: asset!.id, assetName: uniqueFileName);
+          final Assets? asset = variantId != null
+              ? await ProxyService.strategy.getAsset(
+                  productId: product!.id,
+                  variantId: variantId,
+                )
+              : await ProxyService.strategy.getAsset(productId: product!.id);
+          if (asset != null) {
+            await ProxyService.strategy.updateAsset(
+              assetId: asset.id,
+              assetName: uniqueFileName,
+            );
+          } else {
+            await saveAsset(
+              assetName: uniqueFileName,
+              productId: id,
+              variantId: variantId,
+            );
+          }
         } catch (_) {
-          await saveAsset(assetName: uniqueFileName, productId: id);
+          await saveAsset(
+            assetName: uniqueFileName,
+            productId: id,
+            variantId: variantId,
+          );
         }
       }
 
@@ -308,13 +346,17 @@ class UploadViewModel extends ProductViewModel {
     await File(path).copy(localFile.path);
   }
 
-  FutureOr<void> saveAsset(
-      {required String productId, required assetName}) async {
+  FutureOr<void> saveAsset({
+    required String productId,
+    required assetName,
+    String? variantId,
+  }) async {
     await ProxyService.strategy.addAsset(
       productId: productId,
       assetName: assetName,
       branchId: ProxyService.box.getBranchId()!,
       businessId: ProxyService.box.getBusinessId()!,
+      variantId: variantId,
     );
   }
 }

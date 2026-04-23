@@ -1457,21 +1457,22 @@ Future<void> _showVariantSheet({
 
                                             final uploader = UploadViewModel()
                                               ..setRef(ref);
-                                            final fileName =
-                                                await uploader.uploadPickedImagePath(
-                                              pickedPath: picked.path,
-                                              id: productRef.id,
-                                              urlType: URLTYPE.PRODUCT,
-                                              updateProductImage: false,
-                                              // Variant images should not overwrite product-linked Assets rows.
-                                              persistAssetRecord: false,
-                                            );
-                                            setModalState(
-                                              () {
-                                                variantAssetName = fileName;
-                                                // Keep preview; it will get replaced by local asset on next open.
-                                              },
-                                            );
+                                            final fileName = await uploader
+                                                .uploadPickedImagePath(
+                                                  pickedPath: picked.path,
+                                                  id: productRef.id,
+                                                  urlType: URLTYPE.PRODUCT,
+                                                  updateProductImage: false,
+                                                  // Persist a variant-scoped Assets row (not the product-level image).
+                                                  persistAssetRecord:
+                                                      existingVariant?.id !=
+                                                      null,
+                                                  variantId: existingVariant?.id,
+                                                );
+                                            setModalState(() {
+                                              variantAssetName = fileName;
+                                              // Keep preview; it will get replaced by local asset on next open.
+                                            });
                                           } catch (e, st) {
                                             talker.error(
                                               'Variant image upload failed: $e',
@@ -1503,8 +1504,9 @@ Future<void> _showVariantSheet({
                                       children: [
                                         if (variantPreviewPath != null)
                                           ClipRRect(
-                                            borderRadius:
-                                                BorderRadius.circular(12),
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
                                             child: Image.file(
                                               File(variantPreviewPath!),
                                               width: double.infinity,

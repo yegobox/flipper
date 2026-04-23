@@ -35,6 +35,16 @@ final assetProvider = FutureProvider.family.autoDispose<Assets?, String>((
   return await ProxyService.strategy.getAsset(productId: productId);
 });
 
+/// Same resolution as mobile edit UI ([DesktopProductAdd] thumbnails): prefer
+/// [Variant.imageUrl], else legacy `asset:` prefix in [Variant.addInfo].
+String? variantRowImageAssetName(Variant v) {
+  final direct = v.imageUrl;
+  if (direct != null && direct.isNotEmpty) return direct;
+  final raw = v.addInfo;
+  if (raw == null || raw.isEmpty) return null;
+  return raw.startsWith('asset:') ? raw.substring('asset:'.length) : null;
+}
+
 // Then update the mixin
 mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   void _openProductEntry(BuildContext context, {String? productId}) {
@@ -180,7 +190,7 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   }) {
     final productAsync = ref.watch(productProvider(variant.productId ?? ""));
 
-    final variantImage = variant.imageUrl;
+    final variantImage = variantRowImageAssetName(variant);
     // Only fetch product asset if the variant doesn't have its own image.
     final assetAsync =
         (variantImage == null || variantImage.isEmpty) &&
