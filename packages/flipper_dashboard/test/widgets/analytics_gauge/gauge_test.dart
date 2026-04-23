@@ -101,7 +101,7 @@ void main() {
                 widget.style?.fontSize == 16.0, // Column value font size
           ),
           findsOneWidget);
-      expect(find.text('Expenses'), findsOneWidget);
+      expect(find.text('Tax & Expenses'), findsOneWidget);
       expect(
           find.byWidgetPredicate(
             (widget) =>
@@ -180,7 +180,7 @@ void main() {
               widget.data == '0 RWF' &&
               widget.style?.fontSize == 16.0, // Column value font size
         ),
-        findsNWidgets(2), // Expect two such widgets (Gross Profit and Expenses)
+        findsNWidgets(2), // Expect two such widgets (Gross Profit and Tax & Expenses columns)
       );
     });
 
@@ -200,8 +200,8 @@ void main() {
           findsOneWidget); // Corrected: No .0 for numbers < 1000
 
       // Verify the bottom value columns are NOT visible
-      expect(find.text('Total Sales'), findsNothing);
-      expect(find.text('Expenses'), findsNothing);
+      expect(find.text('Gross Profit'), findsNothing);
+      expect(find.text('Tax & Expenses'), findsNothing);
       expect(find.byType(Divider), findsNothing);
     });
 
@@ -241,8 +241,8 @@ void main() {
       );
 
       // Verify the bottom value columns use the correct labels
-      expect(find.text('Total Sales'), findsOneWidget);
-      expect(find.text('Expenses'), findsOneWidget);
+      expect(find.text('Gross Profit'), findsNWidgets(2));
+      expect(find.text('Tax & Expenses'), findsOneWidget);
     });
 
     testWidgets('formats large numbers correctly', (WidgetTester tester) async {

@@ -301,7 +301,7 @@ class _FlipperAppState extends State<FlipperApp> {
     GoogleFonts.config.allowRuntimeFetching = false;
 
     return ThemeData(
-      textTheme: GoogleFonts.poppinsTextTheme(),
+      textTheme: GoogleFonts.outfitTextTheme(),
       brightness: Brightness.light,
       primaryColor: Colors.blue,
       colorScheme: ColorScheme.fromSeed(
