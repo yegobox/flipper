@@ -1305,6 +1305,22 @@ class _RowItemState extends ConsumerState<RowItem>
           return asset.localPath!;
         }
       }
+
+      // Lazy download from S3 if missing locally (new device).
+      try {
+        final stream = await ProxyService.strategy.downloadAssetSave(
+          assetName: assetName,
+          subPath: 'branch',
+        );
+        await for (final p in stream) {
+          if (p >= 100) break;
+        }
+        final downloaded = await getImageFilePath(imageFileName: assetName);
+        if (downloaded != null) return downloaded;
+      } catch (e) {
+        // Best-effort; remote URL fallback will still work when online.
+        talker.error('Error downloading asset from S3: $e');
+      }
       return null;
     } catch (e) {
       talker.error('Error loading asset from local path: $e');

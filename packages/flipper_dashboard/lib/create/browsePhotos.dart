@@ -17,6 +17,7 @@ import 'package:flipper_services/abstractions/upload.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/asset_sync_service.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_dashboard/utils/image_source_sheet.dart';
 
 class Browsephotos extends StatefulHookConsumerWidget {
   final ValueChanged<Color> onColorSelected;
@@ -153,6 +154,25 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
           return asset.localPath!;
         }
       }
+
+      // If missing locally but we have connectivity, lazily download from S3.
+      if (!isOfflineMode) {
+        try {
+          final stream = await ProxyService.strategy.downloadAssetSave(
+            assetName: assetName,
+            subPath: 'branch',
+          );
+          await for (final p in stream) {
+            if (p >= 100) break;
+          }
+
+          // After download completes, resolve from app support directory.
+          final downloaded = await getImageFilePath(imageFileName: assetName);
+          if (downloaded != null) return downloaded;
+        } catch (e) {
+          talker.error('Error downloading asset from S3: $e');
+        }
+      }
       return null;
     } catch (e) {
       talker.error('Error loading asset from local path: $e');
@@ -223,52 +243,21 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
   }
 
   Future<ImageSource?> _showImageSourceSheet() async {
-    return showModalBottomSheet<ImageSource>(
-      context: context,
-      useSafeArea: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (ctx) {
-        return Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade300,
-                  borderRadius: BorderRadius.circular(999),
-                ),
-              ),
-              const SizedBox(height: 12),
+    final hasImage = (_currentImageUrl ?? widget.imageUrl) != null;
+    return showImageSourceSheet(
+      context,
+      extraActions: hasImage
+          ? const []
+          : [
               ListTile(
-                leading: const Icon(Icons.camera_alt),
-                title: const Text('Take photo'),
-                onTap: () => Navigator.of(ctx).pop(ImageSource.camera),
+                leading: const Icon(Icons.color_lens),
+                title: const Text('Pick a color instead'),
+                onTap: () async {
+                  Navigator.of(context).pop();
+                  await _showColorPickerDialog(context);
+                },
               ),
-              ListTile(
-                leading: const Icon(Icons.photo_library),
-                title: const Text('Choose from gallery'),
-                onTap: () => Navigator.of(ctx).pop(ImageSource.gallery),
-              ),
-              if ((_currentImageUrl ?? widget.imageUrl) == null) ...[
-                const Divider(height: 8),
-                ListTile(
-                  leading: const Icon(Icons.color_lens),
-                  title: const Text('Pick a color instead'),
-                  onTap: () async {
-                    Navigator.of(ctx).pop();
-                    await _showColorPickerDialog(context);
-                  },
-                ),
-              ],
             ],
-          ),
-        );
-      },
     );
   }
 

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/providers/ebm_provider.dart';
 import 'package:flipper_scanner/scanner_view.dart';
@@ -18,6 +19,7 @@ import 'package:flipper_models/view_models/mixins/rraConstants.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/abstractions/upload.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -33,6 +35,8 @@ import 'package:flipper_dashboard/features/product_entry/widgets/inventory_secti
 import 'package:flipper_dashboard/features/product_entry/widgets/scan_section.dart';
 import 'package:flipper_dashboard/responsive_layout.dart' as responsive;
 import 'package:flutter/services.dart';
+import 'package:flipper_dashboard/utils/image_source_sheet.dart';
+import 'package:path_provider/path_provider.dart';
 
 class ProductEntryScreen extends StatefulHookConsumerWidget {
   const ProductEntryScreen({super.key, this.productId});
@@ -789,6 +793,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                       if (barcode.trim().isNotEmpty) {
                         await _showVariantSheet(
                           context: context,
+                          ref: ref,
                           model: model,
                           productRef: productRef,
                           retailPriceController: retailPriceController,
@@ -803,6 +808,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                     onAddVariant: () {
                       _showVariantSheet(
                         context: context,
+                        ref: ref,
                         model: model,
                         productRef: productRef,
                         retailPriceController: retailPriceController,
@@ -815,6 +821,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                     onEditVariant: (variant) {
                       _showVariantSheet(
                         context: context,
+                        ref: ref,
                         model: model,
                         productRef: productRef,
                         retailPriceController: retailPriceController,
@@ -1309,6 +1316,7 @@ class _SummaryRow extends StatelessWidget {
 
 Future<void> _showVariantSheet({
   required BuildContext context,
+  required WidgetRef ref,
   required ScannViewModel model,
   required Product? productRef,
   required TextEditingController retailPriceController,
@@ -1341,6 +1349,25 @@ Future<void> _showVariantSheet({
 
   final formKey = GlobalKey<FormState>();
   var savingVariant = false;
+  var uploadingImage = false;
+  String? variantAssetName = () {
+    final direct = existingVariant?.imageUrl;
+    if (direct != null && direct.isNotEmpty) return direct;
+    final raw = existingVariant?.addInfo;
+    if (raw == null) return null;
+    return raw.startsWith('asset:') ? raw.substring('asset:'.length) : null;
+  }();
+
+  Future<String?> tryGetLocalAssetPath(String assetName) async {
+    try {
+      final dir = await getApplicationSupportDirectory();
+      final p = '${dir.path}/$assetName';
+      final f = File(p);
+      return await f.exists() ? p : null;
+    } catch (_) {
+      return null;
+    }
+  }
 
   await showModalBottomSheet(
     context: context,
@@ -1393,6 +1420,147 @@ Future<void> _showVariantSheet({
                             key: formKey,
                             child: Column(
                               children: [
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    'Image',
+                                    style: Theme.of(ctx)
+                                        .textTheme
+                                        .titleSmall
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                InkWell(
+                                  onTap: uploadingImage
+                                      ? null
+                                      : () async {
+                                          if (productRef == null) {
+                                            toast('Invalid product reference');
+                                            return;
+                                          }
+                                          final source =
+                                              await showImageSourceSheet(ctx);
+                                          if (source == null) return;
+
+                                          setModalState(
+                                            () => uploadingImage = true,
+                                          );
+                                          try {
+                                            final uploader = UploadViewModel()
+                                              ..setRef(ref);
+                                            final fileName =
+                                                await uploader.uploadAssetName(
+                                              id: productRef.id,
+                                              urlType: URLTYPE.PRODUCT,
+                                              source: source,
+                                              updateProductImage: false,
+                                            );
+                                            setModalState(
+                                              () => variantAssetName = fileName,
+                                            );
+                                          } catch (e, st) {
+                                            talker.error(
+                                              'Variant image upload failed: $e',
+                                              e,
+                                              st,
+                                            );
+                                            toast(
+                                              'Could not upload image. Please try again.',
+                                            );
+                                          } finally {
+                                            if (ctx.mounted) {
+                                              setModalState(
+                                                () => uploadingImage = false,
+                                              );
+                                            }
+                                          }
+                                        },
+                                  child: Container(
+                                    width: double.infinity,
+                                    height: 140,
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey.shade100,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: Colors.grey.shade300,
+                                      ),
+                                    ),
+                                    child: Stack(
+                                      children: [
+                                        if (variantAssetName != null)
+                                          FutureBuilder<String?>(
+                                            future: tryGetLocalAssetPath(
+                                              variantAssetName!,
+                                            ),
+                                            builder: (c, snap) {
+                                              final local = snap.data;
+                                              if (local != null) {
+                                                return ClipRRect(
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
+                                                  child: Image.file(
+                                                    File(local),
+                                                    width: double.infinity,
+                                                    height: double.infinity,
+                                                    fit: BoxFit.cover,
+                                                  ),
+                                                );
+                                              }
+                                              return Center(
+                                                child: Text(
+                                                  'Image selected',
+                                                  style: TextStyle(
+                                                    color: Colors.grey.shade700,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                          )
+                                        else
+                                          Center(
+                                            child: Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                Icon(
+                                                  Icons.add_a_photo_outlined,
+                                                  color: Colors.grey.shade700,
+                                                ),
+                                                const SizedBox(height: 8),
+                                                Text(
+                                                  'Add image',
+                                                  style: TextStyle(
+                                                    color: Colors.grey.shade700,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        if (uploadingImage)
+                                          Positioned.fill(
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                color: Colors.black
+                                                    .withValues(alpha: 0.35),
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                              ),
+                                              child: const Center(
+                                                child:
+                                                    CircularProgressIndicator(),
+                                              ),
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
                                 TextFormField(
                                   controller: nameController,
                                   textInputAction: TextInputAction.next,
@@ -1522,6 +1690,19 @@ Future<void> _showVariantSheet({
                                   ],
                                 ),
                                 const SizedBox(height: 12),
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    'Discount %',
+                                    style: Theme.of(ctx)
+                                        .textTheme
+                                        .titleSmall
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
                                 TextFormField(
                                   controller: discountController,
                                   textInputAction: TextInputAction.done,
@@ -1530,7 +1711,7 @@ Future<void> _showVariantSheet({
                                     FilteringTextInputFormatter.digitsOnly,
                                   ],
                                   decoration: InputDecoration(
-                                    labelText: 'Discount %',
+                                    hintText: '0',
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12),
                                     ),
@@ -1614,6 +1795,11 @@ Future<void> _showVariantSheet({
                                         v.name = variantName;
                                         v.taxTyCd = taxTyCd;
                                         v.dcRt = discount.toDouble();
+                                        if (variantAssetName != null) {
+                                          v.imageUrl = variantAssetName;
+                                          // Backward-compatible fallback for older clients.
+                                          v.addInfo = 'asset:$variantAssetName';
+                                        }
                                         model.getDiscountController(v.id).text =
                                             discount.toString();
                                         await model.updateVariantQuantity(
@@ -1634,6 +1820,13 @@ Future<void> _showVariantSheet({
                                       existingVariant.supplyPrice = baseSupply;
                                       existingVariant.dcRt =
                                           discount.toDouble();
+                                      if (variantAssetName != null) {
+                                        existingVariant.imageUrl =
+                                            variantAssetName;
+                                        // Backward-compatible fallback for older clients.
+                                        existingVariant.addInfo =
+                                            'asset:$variantAssetName';
+                                      }
                                       model
                                           .getDiscountController(
                                             existingVariant.id,
@@ -1790,6 +1983,19 @@ class _MobileProductEntry extends StatelessWidget {
   Widget build(BuildContext context) {
     const accentBlue = Color(0xFF0078D4);
     final sym = ProxyService.box.defaultCurrency();
+
+    String? _variantAssetName(Variant v) {
+      final direct = v.imageUrl;
+      if (direct != null && direct.isNotEmpty) return direct;
+      final raw = v.addInfo;
+      if (raw == null) return null;
+      return raw.startsWith('asset:') ? raw.substring('asset:'.length) : null;
+    }
+
+    // Cache download operations across rebuilds (keyed by assetName).
+    // This avoids re-triggering downloads while scrolling.
+    final Map<String, Future<void>> _downloadCache =
+        _MobileVariantThumbnail.globalDownloadCache;
 
     return ColoredBox(
       color: const Color(0xFFF2F2F7),
@@ -1948,14 +2154,9 @@ class _MobileProductEntry extends StatelessWidget {
                           collapsedShape: const RoundedRectangleBorder(
                             borderRadius: BorderRadius.all(Radius.circular(14)),
                           ),
-                          leading: CircleAvatar(
-                            radius: 20,
-                            backgroundColor: Colors.grey.shade100,
-                            child: const Icon(
-                              Icons.inventory_2_outlined,
-                              size: 20,
-                              color: Colors.black54,
-                            ),
+                          leading: _MobileVariantThumbnail(
+                            assetName: _variantAssetName(v),
+                            downloadCache: _downloadCache,
                           ),
                           title: Text(
                             displayName,
@@ -2068,6 +2269,114 @@ class _MobileProductEntry extends StatelessWidget {
             const SizedBox(height: 12),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _MobileVariantThumbnail extends StatefulWidget {
+  const _MobileVariantThumbnail({
+    required this.assetName,
+    required this.downloadCache,
+  });
+
+  final String? assetName;
+  final Map<String, Future<void>> downloadCache;
+
+  static final Map<String, Future<void>> globalDownloadCache =
+      <String, Future<void>>{};
+
+  @override
+  State<_MobileVariantThumbnail> createState() => _MobileVariantThumbnailState();
+}
+
+class _MobileVariantThumbnailState extends State<_MobileVariantThumbnail> {
+  String? _localPath;
+
+  @override
+  void initState() {
+    super.initState();
+    _kickoff();
+  }
+
+  @override
+  void didUpdateWidget(covariant _MobileVariantThumbnail oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.assetName != widget.assetName) {
+      _localPath = null;
+      _kickoff();
+    }
+  }
+
+  Future<void> _kickoff() async {
+    final assetName = widget.assetName;
+    if (assetName == null || assetName.isEmpty) return;
+
+    final dir = await getApplicationSupportDirectory();
+    final candidate = '${dir.path}/$assetName';
+    if (File(candidate).existsSync()) {
+      if (mounted) setState(() => _localPath = candidate);
+      return;
+    }
+
+    // Lazy download from S3 if missing locally.
+    widget.downloadCache[assetName] ??= () async {
+      try {
+        final stream = await ProxyService.strategy.downloadAssetSave(
+          assetName: assetName,
+          subPath: 'branch',
+        );
+        await for (final p in stream) {
+          if (p >= 100) break;
+        }
+      } catch (_) {
+        // Best-effort; UI will fall back to icon if download fails.
+      }
+    }();
+
+    await widget.downloadCache[assetName];
+
+    if (!mounted) return;
+    if (File(candidate).existsSync()) {
+      setState(() => _localPath = candidate);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final assetName = widget.assetName;
+    if (assetName == null || assetName.isEmpty) {
+      return CircleAvatar(
+        radius: 20,
+        backgroundColor: Colors.grey.shade100,
+        child: const Icon(
+          Icons.inventory_2_outlined,
+          size: 20,
+          color: Colors.black54,
+        ),
+      );
+    }
+
+    final local = _localPath;
+    if (local == null) {
+      return CircleAvatar(
+        radius: 20,
+        backgroundColor: Colors.grey.shade100,
+        child: const Icon(
+          Icons.image_outlined,
+          size: 20,
+          color: Colors.black54,
+        ),
+      );
+    }
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(10),
+      child: Image.file(
+        File(local),
+        width: 40,
+        height: 40,
+        fit: BoxFit.cover,
       ),
     );
   }

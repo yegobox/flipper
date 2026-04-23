@@ -72,6 +72,7 @@ Future<Variant> _$VariantFromSupabase(
     bhfId: data['bhf_id'] == null ? null : data['bhf_id'] as String?,
     dftPrc: data['dft_prc'] == null ? null : data['dft_prc'] as double?,
     addInfo: data['add_info'] == null ? null : data['add_info'] as String?,
+    imageUrl: data['image_url'] == null ? null : data['image_url'] as String?,
     isrcAplcbYn: data['isrc_aplcb_yn'] == null
         ? null
         : data['isrc_aplcb_yn'] as String?,
@@ -204,6 +205,7 @@ Future<Map<String, dynamic>> _$VariantToSupabase(
     'bhf_id': instance.bhfId,
     'dft_prc': instance.dftPrc,
     'add_info': instance.addInfo,
+    'image_url': instance.imageUrl,
     'isrc_aplcb_yn': instance.isrcAplcbYn,
     'use_yn': instance.useYn,
     'regr_id': instance.regrId,
@@ -320,6 +322,7 @@ Future<Variant> _$VariantFromSqlite(
     bhfId: data['bhf_id'] == null ? null : data['bhf_id'] as String?,
     dftPrc: data['dft_prc'] == null ? null : data['dft_prc'] as double?,
     addInfo: data['add_info'] == null ? null : data['add_info'] as String?,
+    imageUrl: data['image_url'] == null ? null : data['image_url'] as String?,
     isrcAplcbYn: data['isrc_aplcb_yn'] == null
         ? null
         : data['isrc_aplcb_yn'] as String?,
@@ -448,6 +451,7 @@ Future<Map<String, dynamic>> _$VariantToSqlite(
     'bhf_id': instance.bhfId,
     'dft_prc': instance.dftPrc,
     'add_info': instance.addInfo,
+    'image_url': instance.imageUrl,
     'isrc_aplcb_yn': instance.isrcAplcbYn,
     'use_yn': instance.useYn,
     'regr_id': instance.regrId,
@@ -655,6 +659,10 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
     'addInfo': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'add_info',
+    ),
+    'imageUrl': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'image_url',
     ),
     'isrcAplcbYn': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -1040,6 +1048,12 @@ class VariantAdapter extends OfflineFirstWithSupabaseAdapter<Variant> {
     'addInfo': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'add_info',
+      iterable: false,
+      type: String,
+    ),
+    'imageUrl': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'image_url',
       iterable: false,
       type: String,
     ),

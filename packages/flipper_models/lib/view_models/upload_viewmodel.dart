@@ -50,6 +50,32 @@ class UploadViewModel extends ProductViewModel {
     required URLTYPE urlType,
     ImageSource? source,
   }) async {
+    await uploadAssetName(
+      id: id,
+      urlType: urlType,
+      source: source,
+      updateProductImage: true,
+    );
+    final branchId = ProxyService.box.getBranchId()!;
+    return (await ProxyService.strategy.getProduct(
+          id: id,
+          branchId: branchId,
+          businessId: ProxyService.box.getBusinessId()!,
+        ))!;
+  }
+
+  /// Uploads an image and returns the asset filename.
+  ///
+  /// When [updateProductImage] is false, this will still:
+  /// - upload to S3
+  /// - persist an `Assets` row linked to [id] (as productId)
+  /// But will NOT update the product's `imageUrl`.
+  Future<String> uploadAssetName({
+    required String id,
+    required URLTYPE urlType,
+    ImageSource? source,
+    bool updateProductImage = true,
+  }) async {
     final talker = TalkerFlutter.init();
 
     String branchId = ProxyService.box.getBranchId()!;
@@ -148,19 +174,17 @@ class UploadViewModel extends ProductViewModel {
       final localFilePath = '${appSupportDir.path}/$uniqueFileName';
       await File(pickedPath).copy(localFilePath);
 
-      await ProxyService.strategy.updateProduct(
-        productId: id,
-        imageUrl: uniqueFileName,
-        branchId: ProxyService.box.getBranchId()!,
-        businessId: ProxyService.box.getBusinessId()!,
-      );
+      if (updateProductImage) {
+        await ProxyService.strategy.updateProduct(
+          productId: id,
+          imageUrl: uniqueFileName,
+          branchId: ProxyService.box.getBranchId()!,
+          businessId: ProxyService.box.getBusinessId()!,
+        );
+      }
 
       talker.warning('File uploaded and database updated successfully.');
-
-      return (await ProxyService.strategy.getProduct(
-          id: id,
-          branchId: branchId,
-          businessId: ProxyService.box.getBusinessId()!))!;
+      return uniqueFileName;
     } on StorageException catch (e) {
       talker.warning('StorageException: ${e.message}');
       rethrow;

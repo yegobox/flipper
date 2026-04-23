@@ -74,6 +74,9 @@ class Variant extends OfflineFirstWithSupabaseModel {
   String? bhfId;
   double? dftPrc;
   String? addInfo;
+  @Sqlite(name: 'image_url')
+  @Supabase(name: 'image_url')
+  String? imageUrl;
   String? isrcAplcbYn;
   String? useYn;
   String? regrId;
@@ -206,6 +209,7 @@ class Variant extends OfflineFirstWithSupabaseModel {
     this.bhfId,
     this.dftPrc,
     this.addInfo,
+    this.imageUrl,
     this.isrcAplcbYn,
     this.useYn,
     this.regrId,
@@ -322,6 +326,7 @@ class Variant extends OfflineFirstWithSupabaseModel {
         bhfId: parseOrDefault<String?>(json['bhfId'], null),
         dftPrc: (parseNum(json['dftPrc']) ?? 0.0).toDouble(),
         addInfo: parseOrDefault<String?>(json['addInfo'], null),
+        imageUrl: parseOrDefault<String?>(json['imageUrl'], null),
         isrcAplcbYn: parseOrDefault<String?>(json['isrcAplcbYn'], null),
         useYn: parseOrDefault<String?>(json['useYn'], null),
         regrId: parseOrDefault<String?>(json['regrId'], null),
@@ -370,8 +375,8 @@ class Variant extends OfflineFirstWithSupabaseModel {
         dcAmt: (parseNum(json['dcAmt']) ?? 0.0).toDouble(),
       );
     } catch (e, s) {
-      print('Error parsing Variant JSON: $e');
-      print(s);
+      debugPrint('Error parsing Variant JSON: $e');
+      debugPrint('$s');
       throw FormatException('Failed to parse Variant JSON: $e');
     }
   }
@@ -414,6 +419,7 @@ class Variant extends OfflineFirstWithSupabaseModel {
       'bhfId': bhfId,
       'dftPrc': dftPrc,
       'addInfo': addInfo,
+      'imageUrl': imageUrl,
       'isrcAplcbYn': isrcAplcbYn,
       'useYn': useYn,
       'regrId': regrId,
@@ -492,6 +498,7 @@ class Variant extends OfflineFirstWithSupabaseModel {
     String? bhfId,
     double? dftPrc,
     String? addInfo,
+    String? imageUrl,
     String? isrcAplcbYn,
     String? useYn,
     String? regrId,
@@ -571,6 +578,7 @@ class Variant extends OfflineFirstWithSupabaseModel {
       bhfId: bhfId ?? this.bhfId,
       dftPrc: dftPrc ?? this.dftPrc,
       addInfo: addInfo ?? this.addInfo,
+      imageUrl: imageUrl ?? this.imageUrl,
       isrcAplcbYn: isrcAplcbYn ?? this.isrcAplcbYn,
       useYn: useYn ?? this.useYn,
       regrId: regrId ?? this.regrId,
@@ -654,6 +662,7 @@ class Variant extends OfflineFirstWithSupabaseModel {
       bhfId: item.bhfId,
       dftPrc: item.dftPrc?.toDouble(),
       addInfo: item.addInfo,
+      imageUrl: null,
       isrcAplcbYn: item.isrcAplcbYn,
       useYn: item.useYn,
       regrId: item.regrId,
