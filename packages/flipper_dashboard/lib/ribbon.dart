@@ -343,13 +343,7 @@ class IconRowState extends ConsumerState<IconRow>
       context: context,
       builder: (_) => Dialog(
         insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.9,
-            maxWidth: MediaQuery.of(context).size.width * 0.95,
-          ),
-          child: TransactionListWrapper(showDetailedReport: true),
-        ),
+        child: const _DeferredTransactionListDialogBody(),
       ),
     );
   }
@@ -402,6 +396,53 @@ class IconRowState extends ConsumerState<IconRow>
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Opens the transactions dialog shell on the first frame, then mounts
+/// [TransactionListWrapper] after layout so the modal appears immediately
+/// instead of blocking on heavy grid / provider work during [showDialog].
+class _DeferredTransactionListDialogBody extends ConsumerStatefulWidget {
+  const _DeferredTransactionListDialogBody();
+
+  @override
+  ConsumerState<_DeferredTransactionListDialogBody> createState() =>
+      _DeferredTransactionListDialogBodyState();
+}
+
+class _DeferredTransactionListDialogBodyState
+    extends ConsumerState<_DeferredTransactionListDialogBody> {
+  bool _mountList = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        setState(() => _mountList = true);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final maxH = MediaQuery.sizeOf(context).height * 0.9;
+    final maxW = MediaQuery.sizeOf(context).width * 0.95;
+
+    if (!_mountList) {
+      return ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: maxH, maxWidth: maxW),
+        child: const SizedBox(
+          height: 360,
+          child: Center(child: CircularProgressIndicator()),
+        ),
+      );
+    }
+
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: maxH, maxWidth: maxW),
+      child: TransactionListWrapper(showDetailedReport: true),
     );
   }
 }

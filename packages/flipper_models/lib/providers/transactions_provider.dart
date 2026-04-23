@@ -212,7 +212,9 @@ Stream<List<TransactionItem>> transactionItemList(Ref ref) {
         endDate: endDate,
         branchId: branchId,
         branchIdString: branchId,
-        fetchRemote: true,
+        // Local-first: summary mode no longer subscribes here, but detailed PLU
+        // view should paint from local replica immediately without alwaysHydrate.
+        fetchRemote: false,
       )
       .startWith(const <TransactionItem>[]);
 

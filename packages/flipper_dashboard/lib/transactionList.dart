@@ -112,35 +112,23 @@ class TransactionListState extends ConsumerState<TransactionList>
     final startDate = dateRange.startDate;
     final endDate = dateRange.endDate;
 
-    // Watch the toggle value and immediately refresh the appropriate provider when it changes
     final showDetailed = ref.watch(toggleBooleanValueProvider);
     final rowsPerPage = ref.watch(rowsPerPageProvider);
 
- 
-
-    final forceRealData = !(ProxyService.box.enableDebug() ?? false);
-    final reportSnapshotAsync = ref.watch(
-      transactionReportSnapshotProvider(forceRealData: forceRealData),
-    );
-    final itemListAsync = ref.watch(transactionItemListProvider);
-
-    // Align list async with grid: summary uses snapshot → transactions list
-    final AsyncValue<List<dynamic>> dataProvider = showDetailed
-        ? itemListAsync
-        : switch (reportSnapshotAsync) {
-            AsyncData(:final value) =>
-              AsyncData(value.transactions as List<dynamic>),
-            AsyncError(:final error, :final stackTrace) =>
-              AsyncError(error, stackTrace),
-            _ => const AsyncLoading<List<dynamic>>(),
-          };
-
-    // Conditionally cast the data based on the `showDetailed` flag
-    List<ITransaction>? transactions;
-    List<TransactionItem>? transactionItems;
-    Map<String, TransactionPaymentSums>? paymentSumsForGrid;
-
+    // Only watch the data source for the active mode. Watching both forced
+    // duplicate Capella work (item stream with remote hydrate + payment sums)
+    // even when the UI showed Summary by default.
     if (showDetailed) {
+      final itemListAsync = ref.watch(transactionItemListProvider);
+      final AsyncValue<List<dynamic>> dataProvider = switch (itemListAsync) {
+        AsyncData(:final value) =>
+          AsyncData<List<dynamic>>(value.cast<dynamic>()),
+        AsyncError(:final error, :final stackTrace) =>
+          AsyncError<List<dynamic>>(error, stackTrace),
+        _ => const AsyncLoading<List<dynamic>>(),
+      };
+
+      List<TransactionItem>? transactionItems;
       if (itemListAsync.hasValue && itemListAsync.value!.isNotEmpty) {
         try {
           transactionItems = itemListAsync.value!.cast<TransactionItem>();
@@ -148,31 +136,81 @@ class TransactionListState extends ConsumerState<TransactionList>
           print("Error casting data: $e");
         }
       }
-    } else {
-      final snap = reportSnapshotAsync.asData?.value;
-      if (snap != null) {
-        var txs = List<ITransaction>.from(snap.transactions);
-        if (_searchQuery.isNotEmpty) {
-          final q = _searchQuery.toLowerCase();
-          txs = txs.where((transaction) {
-            final receiptNumber = transaction.receiptNumber?.toString() ?? '';
-            return receiptNumber.toLowerCase().contains(q);
-          }).toList();
-        }
-        transactions = txs;
-        paymentSumsForGrid = {
-          for (final t in txs)
-            t.id:
-                snap.paymentSumsByTransactionId[t.id] ??
-                const TransactionPaymentSums(
-                  byHand: 0,
-                  credit: 0,
-                  hasAnyRecord: false,
-                ),
-        };
-      }
+
+      return _buildReportScaffold(
+        context,
+        startDate,
+        endDate,
+        showDetailed,
+        rowsPerPage,
+        dataProvider,
+        null,
+        transactionItems,
+        null,
+      );
     }
 
+    final forceRealData = !(ProxyService.box.enableDebug() ?? false);
+    final reportSnapshotAsync = ref.watch(
+      transactionReportSnapshotProvider(forceRealData: forceRealData),
+    );
+    final AsyncValue<List<dynamic>> dataProvider = switch (reportSnapshotAsync) {
+      AsyncData(:final value) =>
+        AsyncData(value.transactions as List<dynamic>),
+      AsyncError(:final error, :final stackTrace) =>
+          AsyncError(error, stackTrace),
+      _ => const AsyncLoading<List<dynamic>>(),
+    };
+
+    List<ITransaction>? transactions;
+    Map<String, TransactionPaymentSums>? paymentSumsForGrid;
+    final snap = reportSnapshotAsync.asData?.value;
+    if (snap != null) {
+      var txs = List<ITransaction>.from(snap.transactions);
+      if (_searchQuery.isNotEmpty) {
+        final q = _searchQuery.toLowerCase();
+        txs = txs.where((transaction) {
+          final receiptNumber = transaction.receiptNumber?.toString() ?? '';
+          return receiptNumber.toLowerCase().contains(q);
+        }).toList();
+      }
+      transactions = txs;
+      paymentSumsForGrid = {
+        for (final t in txs)
+          t.id:
+              snap.paymentSumsByTransactionId[t.id] ??
+              const TransactionPaymentSums(
+                byHand: 0,
+                credit: 0,
+                hasAnyRecord: false,
+              ),
+      };
+    }
+
+    return _buildReportScaffold(
+      context,
+      startDate,
+      endDate,
+      showDetailed,
+      rowsPerPage,
+      dataProvider,
+      transactions,
+      null,
+      paymentSumsForGrid,
+    );
+  }
+
+  Widget _buildReportScaffold(
+    BuildContext context,
+    DateTime? startDate,
+    DateTime? endDate,
+    bool showDetailed,
+    int rowsPerPage,
+    AsyncValue<List<dynamic>> dataProvider,
+    List<ITransaction>? transactions,
+    List<TransactionItem>? transactionItems,
+    Map<String, TransactionPaymentSums>? paymentSumsForGrid,
+  ) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isDesktop = constraints.maxWidth > 900;
