@@ -19,6 +19,8 @@ const Color _ticketFilterBlue = Color(0xff006AFE);
 const Color _ticketFilterLoanPurple = Color(0xFF6B4EA2);
 const Color _ticketFilterLayawayTeal = Color(0xFF0D9488);
 const Color _ticketFilterRegularGreen = Color(0xFF2E7D32);
+const Color _ticketHeaderStripBg = Color(0xFFF2F4F7);
+const Color _ticketIconCircleBorder = Color(0xFFE0E4EB);
 
 class TicketsScreen extends StatefulHookConsumerWidget {
   const TicketsScreen({
@@ -235,64 +237,73 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
       builder: (context, constraints) {
         final isMobile = constraints.maxWidth < 600;
         final horizontalPadding = isMobile ? 8.0 : 16.0;
-        final verticalPadding = isMobile ? 8.0 : 16.0;
         final buttonFontSize = isMobile ? 14.0 : 16.0;
         final titleFontSize = isMobile ? 16.0 : 20.0;
 
-        Widget content = Padding(
-          padding: EdgeInsets.symmetric(
-            horizontal: horizontalPadding,
-            vertical: verticalPadding,
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              SizedBox(height: isMobile ? 8 : 16),
-              // New Ticket Button
-              Align(
-                alignment: Alignment.centerLeft,
-                child: SizedBox(
-                  width: double.infinity,
-                  child: Consumer(
-                    builder: (context, ref, _) {
-                      final transaction = widget.transaction;
+        ButtonStyle _headerCircleIconStyle() {
+          return IconButton.styleFrom(
+            backgroundColor: Colors.white,
+            foregroundColor: Colors.black87,
+            shape: const CircleBorder(),
+            side: const BorderSide(color: _ticketIconCircleBorder, width: 1),
+            padding: const EdgeInsets.all(10),
+            minimumSize: const Size(40, 40),
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          );
+        }
 
-                      // Don't show "Create Ticket" button if this is a resumed ticket
-                      // (resumed tickets already have a ticketName)
-                      final isResumedTicket =
-                          transaction?.ticketName != null &&
-                          transaction!.ticketName!.isNotEmpty;
+        Widget content = Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Consumer(
+              builder: (context, ref, _) {
+                final transaction = widget.transaction;
+                final isResumedTicket =
+                    transaction?.ticketName != null &&
+                    transaction!.ticketName!.isNotEmpty;
 
-                      if (isResumedTicket) {
-                        return const SizedBox.shrink();
-                      }
+                if (isResumedTicket) {
+                  return const SizedBox.shrink();
+                }
 
-                      final itemCount = transaction != null
-                          ? ref
-                                .watch(
-                                  transactionItemsProvider(
-                                    transactionId: transaction.id,
-                                  ),
-                                )
-                                .maybeWhen(
-                                  data: (items) => items.length,
-                                  orElse: () => 0,
-                                )
-                          : 0; // If no transaction, itemCount is 0
-                      return ElevatedButton(
+                final itemCount = transaction != null
+                    ? ref
+                          .watch(
+                            transactionItemsProvider(
+                              transactionId: transaction.id,
+                            ),
+                          )
+                          .maybeWhen(
+                            data: (items) => items.length,
+                            orElse: () => 0,
+                          )
+                    : 0;
+
+                return ColoredBox(
+                  color: _ticketHeaderStripBg,
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      horizontalPadding,
+                      12,
+                      horizontalPadding,
+                      12,
+                    ),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
+                          elevation: 0,
+                          shadowColor: Colors.transparent,
                           backgroundColor: _ticketFilterBlue,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 20,
+                            vertical: 14,
+                          ),
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12.0),
+                            borderRadius: BorderRadius.circular(8),
                           ),
-                          padding: EdgeInsets.symmetric(
-                            vertical: isMobile ? 12.0 : 16.0,
-                          ),
-                          elevation: isMobile ? 1 : 0,
-                          textStyle: GoogleFonts.poppins(
-                            fontWeight: FontWeight.w500,
-                            fontSize: buttonFontSize,
-                          ),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
                         onPressed: () {
                           if (itemCount > 0) {
@@ -319,14 +330,15 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                           }
                         },
                         child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.start,
                           children: [
                             const Icon(
                               Icons.add,
-                              size: 18,
+                              size: 20,
                               color: Colors.white,
                             ),
-                            const SizedBox(width: 6),
+                            const SizedBox(width: 8),
                             Text(
                               'Create Ticket',
                               style: GoogleFonts.poppins(
@@ -337,31 +349,47 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                             ),
                           ],
                         ),
-                      ).eligibleToSeeIfYouAre(ref, [AccessLevel.ADMIN]);
-                    },
+                      ).eligibleToSeeIfYouAre(ref, [AccessLevel.ADMIN]),
+                    ),
                   ),
-                ),
-              ),
-
-              SizedBox(
-                height: isMobile ? 16 : 24,
-              ).eligibleToSeeIfYouAre(ref, [UserType.ADMIN]),
-              SizedBox(height: isMobile ? 8 : 16),
-              Expanded(
+                );
+              },
+            ),
+            SizedBox(
+              height: isMobile ? 12 : 16,
+            ).eligibleToSeeIfYouAre(ref, [UserType.ADMIN]),
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: horizontalPadding),
                 child: buildTicketSection(
                   context,
                   filterChips: _buildTicketFilterChips(),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         );
         return Scaffold(
+          backgroundColor: _ticketHeaderStripBg,
           appBar: widget.showAppBar
               ? AppBar(
                   backgroundColor: Colors.white,
+                  surfaceTintColor: Colors.transparent,
                   elevation: 0,
+                  scrolledUnderElevation: 0,
+                  centerTitle: false,
+                  titleSpacing: 12,
+                  leadingWidth: 56,
+                  bottom: PreferredSize(
+                    preferredSize: const Size.fromHeight(1),
+                    child: Divider(
+                      height: 1,
+                      thickness: 1,
+                      color: Colors.grey.shade200,
+                    ),
+                  ),
                   leading: IconButton(
+                    style: _headerCircleIconStyle(),
                     onPressed: () {
                       ref
                           .read(ticketSelectionProvider.notifier)
@@ -372,7 +400,7 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                       );
                       _routerService.back();
                     },
-                    icon: const Icon(Icons.close, color: Colors.black),
+                    icon: const Icon(Icons.close, size: 22),
                   ),
                   title: Text(
                     'Tickets',
@@ -392,44 +420,76 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             if (hasSelection) ...[
-                              IconButton(
-                                onPressed: () => _deleteSelectedTickets(ref),
-                                icon: const Icon(
-                                  Icons.delete,
-                                  color: Colors.red,
+                              Padding(
+                                padding: const EdgeInsets.only(right: 4),
+                                child: IconButton(
+                                  style: _headerCircleIconStyle(),
+                                  onPressed: () => _deleteSelectedTickets(ref),
+                                  icon: const Icon(
+                                    Icons.delete_outline,
+                                    color: Colors.red,
+                                    size: 20,
+                                  ),
+                                  tooltip:
+                                      'Delete Selected (${selection.length})',
                                 ),
-                                tooltip:
-                                    'Delete Selected (${selection.length})',
                               ),
-                              IconButton(
-                                onPressed: () => ref
-                                    .read(ticketSelectionProvider.notifier)
-                                    .clearSelection(),
-                                icon: const Icon(
-                                  Icons.clear,
-                                  color: Colors.grey,
+                              Padding(
+                                padding: const EdgeInsets.only(right: 4),
+                                child: IconButton(
+                                  style: _headerCircleIconStyle(),
+                                  onPressed: () => ref
+                                      .read(ticketSelectionProvider.notifier)
+                                      .clearSelection(),
+                                  icon: Icon(
+                                    Icons.clear,
+                                    color: Colors.grey.shade700,
+                                    size: 20,
+                                  ),
+                                  tooltip: 'Clear Selection',
                                 ),
-                                tooltip: 'Clear Selection',
                               ),
                             ],
-                            PopupMenuButton<String>(
-                              onSelected: (value) {
-                                if (value == 'select_all') {
-                                  _selectAllTickets(ref);
-                                }
-                              },
-                              itemBuilder: (context) => const [
-                                PopupMenuItem(
-                                  value: 'select_all',
-                                  child: Row(
-                                    children: [
-                                      Icon(Icons.select_all),
-                                      SizedBox(width: 8),
-                                      Text('Select All'),
-                                    ],
+                            Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: PopupMenuButton<String>(
+                                padding: EdgeInsets.zero,
+                                splashRadius: 22,
+                                onSelected: (value) {
+                                  if (value == 'select_all') {
+                                    _selectAllTickets(ref);
+                                  }
+                                },
+                                itemBuilder: (context) => const [
+                                  PopupMenuItem(
+                                    value: 'select_all',
+                                    child: Row(
+                                      children: [
+                                        Icon(Icons.select_all),
+                                        SizedBox(width: 8),
+                                        Text('Select All'),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                                child: Container(
+                                  width: 40,
+                                  height: 40,
+                                  alignment: Alignment.center,
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: _ticketIconCircleBorder,
+                                    ),
+                                  ),
+                                  child: Icon(
+                                    Icons.more_vert,
+                                    size: 22,
+                                    color: Colors.grey.shade800,
                                   ),
                                 ),
-                              ],
+                              ),
                             ),
                           ],
                         );
