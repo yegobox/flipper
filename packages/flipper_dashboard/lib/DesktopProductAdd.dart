@@ -1457,6 +1457,8 @@ Future<void> _showVariantSheet({
                                               urlType: URLTYPE.PRODUCT,
                                               source: source,
                                               updateProductImage: false,
+                                              // Variant images should not overwrite product-linked Assets rows.
+                                              persistAssetRecord: false,
                                             );
                                             setModalState(
                                               () => variantAssetName = fileName,

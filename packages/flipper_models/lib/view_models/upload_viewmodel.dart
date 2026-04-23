@@ -55,6 +55,7 @@ class UploadViewModel extends ProductViewModel {
       urlType: urlType,
       source: source,
       updateProductImage: true,
+      persistAssetRecord: true,
     );
     final branchId = ProxyService.box.getBranchId()!;
     return (await ProxyService.strategy.getProduct(
@@ -75,6 +76,7 @@ class UploadViewModel extends ProductViewModel {
     required URLTYPE urlType,
     ImageSource? source,
     bool updateProductImage = true,
+    bool persistAssetRecord = true,
   }) async {
     final talker = TalkerFlutter.init();
 
@@ -153,20 +155,22 @@ class UploadViewModel extends ProductViewModel {
         },
       ).result;
 
-      talker.warning('Saving asset and updating database...');
+      if (persistAssetRecord) {
+        talker.warning('Saving asset and updating database...');
 
-      Product? product = await ProxyService.strategy.getProduct(
-          id: id,
-          branchId: branchId,
-          businessId: ProxyService.box.getBusinessId()!);
-      try {
-        Assets? asset =
-            await ProxyService.strategy.getAsset(productId: product!.id);
+        Product? product = await ProxyService.strategy.getProduct(
+            id: id,
+            branchId: branchId,
+            businessId: ProxyService.box.getBusinessId()!);
+        try {
+          Assets? asset =
+              await ProxyService.strategy.getAsset(productId: product!.id);
 
-        await ProxyService.strategy
-            .updateAsset(assetId: asset!.id, assetName: uniqueFileName);
-      } catch (e) {
-        await saveAsset(assetName: uniqueFileName, productId: id);
+          await ProxyService.strategy
+              .updateAsset(assetId: asset!.id, assetName: uniqueFileName);
+        } catch (e) {
+          await saveAsset(assetName: uniqueFileName, productId: id);
+        }
       }
 
       // Save the original file to local storage

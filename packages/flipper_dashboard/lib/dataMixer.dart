@@ -47,7 +47,9 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
         MaterialPageRoute(
           builder: (ctx) => Scaffold(
             appBar: AppBar(
-              title: Text(productId == null ? 'Add New Product' : 'Edit Product'),
+              title: Text(
+                productId == null ? 'Add New Product' : 'Edit Product',
+              ),
               leading: IconButton(
                 icon: const Icon(Icons.close),
                 onPressed: () => Navigator.of(ctx).maybePop(),
@@ -178,9 +180,12 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
   }) {
     final productAsync = ref.watch(productProvider(variant.productId ?? ""));
 
-    // Only fetch asset if product exists and has a product ID
+    final variantImage = variant.imageUrl;
+    // Only fetch product asset if the variant doesn't have its own image.
     final assetAsync =
-        variant.productId != null && variant.productId!.isNotEmpty
+        (variantImage == null || variantImage.isEmpty) &&
+            variant.productId != null &&
+            variant.productId!.isNotEmpty
         ? ref.watch(assetProvider(variant.productId ?? ""))
         : null;
 
@@ -229,7 +234,7 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             variant: variant,
             productName: variant.productName ?? "Unknown Product",
             variantName: variant.name,
-            imageUrl: null, // No image available in error case
+            imageUrl: variantImage, // Prefer variant image
             isComposite: !isOrdering ? (product?.isComposite ?? false) : false,
             edit: (productId, type) {
               talker.info("navigating to Edit!");
@@ -256,7 +261,7 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
             variant: variant,
             productName: variant.productName ?? "Unknown Product",
             variantName: variant.name,
-            imageUrl: null, // No image available while loading asset
+            imageUrl: variantImage, // Prefer variant image
             isComposite: !isOrdering ? (product?.isComposite ?? false) : false,
             edit: (productId, type) {
               talker.info("navigating to Edit!");
@@ -285,7 +290,7 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
               variant: variant,
               productName: variant.productName ?? "Unknown Product",
               variantName: variant.name,
-              imageUrl: null, // No image available in error case
+              imageUrl: variantImage, // Prefer variant image
               isComposite: !isOrdering
                   ? (product?.isComposite ?? false)
                   : false,
@@ -318,7 +323,7 @@ mixin Datamixer<T extends ConsumerStatefulWidget> on ConsumerState<T> {
               variant: variant,
               productName: variant.productName!,
               variantName: variant.name,
-              imageUrl: asset?.assetName,
+              imageUrl: variantImage ?? asset?.assetName,
               isComposite: !isOrdering
                   ? (product?.isComposite ?? false)
                   : false,
