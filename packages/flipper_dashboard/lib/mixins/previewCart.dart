@@ -468,15 +468,19 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       final settingsService = locator<SettingsService>();
       final isCurrencyDecimal = settingsService.isCurrencyDecimal;
 
-      final double finalSubTotal = transactionItems.fold(0, (sum, item) {
-        final val = (item.price * item.qty).toDouble();
-        return sum +
-            (isCurrencyDecimal
-                ? val.roundToTwoDecimalPlaces()
-                : val.roundToDouble());
+      // Compute final subtotal using item discounts (dcAmt) if present.
+      // NOTE: `applyDiscount()` persists discounts to items + transaction.subTotal.
+      // We must not overwrite it here with a pre-discount recomputation.
+      final double finalSubTotal = transactionItems.fold(0.0, (sum, item) {
+        final lineGross = (item.price.toDouble() * item.qty.toDouble());
+        final lineDiscount = (item.dcAmt ?? 0).toDouble();
+        final lineNet = lineGross - lineDiscount;
+        final rounded = isCurrencyDecimal
+            ? lineNet.roundToTwoDecimalPlaces()
+            : lineNet.roundToDouble();
+        return sum + rounded;
       });
 
-      // Ensure transaction subTotal is updated for correct isFullyPaid check downstream
       transaction.subTotal = finalSubTotal;
 
       final amount = double.tryParse(receivedAmountController.text) ?? 0;
@@ -614,8 +618,16 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
         .where((p) => p.method == "CREDIT")
         .fold<double>(0, (sum, p) => sum + p.amount);
 
-    final nonCreditCashReceived = effectiveCashReceived - totalCredit;
-    final isFullyPaid = nonCreditCashReceived >= (transaction.subTotal ?? 0);
+    // IMPORTANT: Use the computed `finalSubTotal` (includes discounts/updates) rather than
+    // `transaction.subTotal`, which can be stale at this point and incorrectly park a fully
+    // paid transaction as a loan.
+    const _paymentEpsilon = 0.0001;
+    final saleTotal = finalSubTotal;
+
+    final nonCreditCashReceivedRaw = effectiveCashReceived - totalCredit;
+    final nonCreditCashReceived =
+        nonCreditCashReceivedRaw < 0 ? 0.0 : nonCreditCashReceivedRaw;
+    final isFullyPaid = (nonCreditCashReceived + _paymentEpsilon) >= saleTotal;
 
     final shouldBeLoan = totalCredit > 0 || !isFullyPaid;
     final status = shouldBeLoan ? PARKED : COMPLETE;
@@ -623,7 +635,9 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     final remainingBalance = shouldBeLoan
         ? (totalCredit > 0
               ? totalCredit
-              : (transaction.subTotal ?? 0) - nonCreditCashReceived)
+              : ((saleTotal - nonCreditCashReceived) < 0
+                  ? 0.0
+                  : (saleTotal - nonCreditCashReceived)))
         : 0.0;
 
     final now = DateTime.now();

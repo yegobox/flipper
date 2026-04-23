@@ -199,6 +199,93 @@ class UploadViewModel extends ProductViewModel {
     }
   }
 
+  /// Upload an already-picked local image path and return the generated filename.
+  ///
+  /// Use this when the UI needs to show an immediate preview from [pickedPath]
+  /// while the upload runs.
+  Future<String> uploadPickedImagePath({
+    required String pickedPath,
+    required String id,
+    required URLTYPE urlType,
+    bool updateProductImage = true,
+    bool persistAssetRecord = true,
+  }) async {
+    final talker = TalkerFlutter.init();
+    final branchId = ProxyService.box.getBranchId()!;
+    final uuid = randomNumber().toString();
+
+    final pickedExtension =
+        p.extension(pickedPath).replaceFirst('.', '').toLowerCase().trim();
+    final effectiveExt = pickedExtension.isEmpty ? 'jpg' : pickedExtension;
+    final uniqueFileName = '$uuid.$effectiveExt';
+
+    try {
+      talker.warning('Authenticating user with AWS Cognito...');
+      await ProxyService.strategy
+          .syncUserWithAwsIncognito(identifier: "yegobox@gmail.com");
+
+      talker.warning('Saving picked file locally...');
+      await savePickedFilePathLocally(pickedPath, uniqueFileName);
+
+      final filePath = 'public/branch-$branchId/$uniqueFileName';
+      talker.warning('Uploading file to S3 at path: $filePath');
+
+      await Amplify.Storage.uploadFile(
+        localFile: AWSFile.fromPath(pickedPath),
+        path: StoragePath.fromString(filePath),
+        options: StorageUploadFileOptions(
+          metadata: {"contentType": 'image/$effectiveExt'},
+          pluginOptions: S3UploadFilePluginOptions(getProperties: true),
+        ),
+        onProgress: (progress) {
+          if (ref != null) {
+            ref!.read(uploadProgressProvider.notifier).setProgress(
+                  progress.fractionCompleted,
+                );
+          }
+        },
+      ).result;
+
+      if (persistAssetRecord) {
+        Product? product = await ProxyService.strategy.getProduct(
+          id: id,
+          branchId: branchId,
+          businessId: ProxyService.box.getBusinessId()!,
+        );
+        try {
+          Assets? asset =
+              await ProxyService.strategy.getAsset(productId: product!.id);
+          await ProxyService.strategy
+              .updateAsset(assetId: asset!.id, assetName: uniqueFileName);
+        } catch (_) {
+          await saveAsset(assetName: uniqueFileName, productId: id);
+        }
+      }
+
+      final appSupportDir = await getApplicationSupportDirectory();
+      final localFilePath = '${appSupportDir.path}/$uniqueFileName';
+      await File(pickedPath).copy(localFilePath);
+
+      if (updateProductImage) {
+        await ProxyService.strategy.updateProduct(
+          productId: id,
+          imageUrl: uniqueFileName,
+          branchId: ProxyService.box.getBranchId()!,
+          businessId: ProxyService.box.getBusinessId()!,
+        );
+      }
+
+      return uniqueFileName;
+    } on StorageException catch (e) {
+      talker.warning('StorageException: ${e.message}');
+      rethrow;
+    } catch (e, s) {
+      talker.warning('General Exception: $e');
+      talker.error(s);
+      rethrow;
+    }
+  }
+
   Future<void> savePickedFileLocally(
       PlatformFile platformFile, String fileName) async {
     final appSupportDir = await getApplicationSupportDirectory();

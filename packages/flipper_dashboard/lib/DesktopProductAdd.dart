@@ -37,6 +37,7 @@ import 'package:flipper_dashboard/responsive_layout.dart' as responsive;
 import 'package:flutter/services.dart';
 import 'package:flipper_dashboard/utils/image_source_sheet.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:image_picker/image_picker.dart';
 
 class ProductEntryScreen extends StatefulHookConsumerWidget {
   const ProductEntryScreen({super.key, this.productId});
@@ -832,7 +833,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                         existingVariant: variant,
                       );
                     },
-                    onDeleteVariant: (variant) => model.removeVariant(id: variant.id),
+                    onDeleteVariant: (variant) =>
+                        model.removeVariant(id: variant.id),
                   ),
                 );
               }
@@ -889,9 +891,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                                 childrenPadding: const EdgeInsets.only(top: 8),
                                 title: Text(
                                   'Advanced',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleMedium
+                                  style: Theme.of(context).textTheme.titleMedium
                                       ?.copyWith(fontWeight: FontWeight.w600),
                                 ),
                                 children: [
@@ -1175,6 +1175,7 @@ class _ProductSavedScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const accentBlue = Color(0xFF0078D4);
     return Scaffold(
       appBar: AppBar(title: const Text('Product saved')),
       body: SafeArea(
@@ -1190,29 +1191,23 @@ class _ProductSavedScreen extends StatelessWidget {
                   color: Colors.green.withValues(alpha: 0.12),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
-                  Icons.check,
-                  size: 42,
-                  color: Colors.green,
-                ),
+                child: const Icon(Icons.check, size: 42, color: Colors.green),
               ),
               const SizedBox(height: 16),
               Text(
                 '$productName saved!',
                 textAlign: TextAlign.center,
-                style: Theme.of(context)
-                    .textTheme
-                    .titleLarge
-                    ?.copyWith(fontWeight: FontWeight.w600),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 8),
               Text(
                 'Your product and variants have been added to inventory.',
                 textAlign: TextAlign.center,
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyMedium
-                    ?.copyWith(color: Colors.grey.shade700),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade700),
               ),
               const SizedBox(height: 20),
               Container(
@@ -1246,12 +1241,14 @@ class _ProductSavedScreen extends StatelessWidget {
               const Spacer(),
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton(
+                child: FilledButton(
                   onPressed: onDone,
-                  style: ElevatedButton.styleFrom(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: accentBlue.withValues(alpha: 0.12),
+                    foregroundColor: accentBlue,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(14),
                     ),
                   ),
                   child: const Text('Done'),
@@ -1263,9 +1260,12 @@ class _ProductSavedScreen extends StatelessWidget {
                 child: OutlinedButton(
                   onPressed: onAddAnother,
                   style: OutlinedButton.styleFrom(
+                    foregroundColor: accentBlue,
+                    side: const BorderSide(color: Color(0xFFD1D1D6)),
+                    backgroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(14),
                     ),
                   ),
                   child: const Text('Add another product'),
@@ -1292,10 +1292,9 @@ class _SummaryRow extends StatelessWidget {
         Expanded(
           child: Text(
             label,
-            style: Theme.of(context)
-                .textTheme
-                .bodySmall
-                ?.copyWith(color: Colors.grey.shade600),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: Colors.grey.shade600),
           ),
         ),
         const SizedBox(width: 12),
@@ -1303,10 +1302,9 @@ class _SummaryRow extends StatelessWidget {
           child: Text(
             value,
             textAlign: TextAlign.right,
-            style: Theme.of(context)
-                .textTheme
-                .bodyMedium
-                ?.copyWith(fontWeight: FontWeight.w600),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
         ),
       ],
@@ -1327,9 +1325,12 @@ Future<void> _showVariantSheet({
   Variant? existingVariant,
   String? initialBarcode,
 }) async {
-  final nameController = TextEditingController(text: existingVariant?.name ?? '');
-  final barcodeController =
-      TextEditingController(text: initialBarcode ?? existingVariant?.bcd ?? existingVariant?.sku ?? '');
+  final nameController = TextEditingController(
+    text: existingVariant?.name ?? '',
+  );
+  final barcodeController = TextEditingController(
+    text: initialBarcode ?? existingVariant?.bcd ?? existingVariant?.sku ?? '',
+  );
   final stockController = TextEditingController(
     text: (existingVariant?.stock?.currentStock ?? existingVariant?.qty ?? 0)
         .toString(),
@@ -1338,7 +1339,8 @@ Future<void> _showVariantSheet({
     text: (existingVariant?.dcRt ?? 0).toInt().toString(),
   );
   final priceOverrideController = TextEditingController(
-    text: existingVariant?.retailPrice != null &&
+    text:
+        existingVariant?.retailPrice != null &&
             existingVariant!.retailPrice !=
                 (double.tryParse(retailPriceController.text) ?? 0)
         ? existingVariant.retailPrice!.toString()
@@ -1357,6 +1359,7 @@ Future<void> _showVariantSheet({
     if (raw == null) return null;
     return raw.startsWith('asset:') ? raw.substring('asset:'.length) : null;
   }();
+  String? variantPreviewPath;
 
   Future<String?> tryGetLocalAssetPath(String assetName) async {
     try {
@@ -1403,9 +1406,7 @@ Future<void> _showVariantSheet({
                                   existingVariant == null
                                       ? 'Add variant'
                                       : 'Edit variant',
-                                  style: Theme.of(ctx)
-                                      .textTheme
-                                      .titleLarge
+                                  style: Theme.of(ctx).textTheme.titleLarge
                                       ?.copyWith(fontWeight: FontWeight.w600),
                                 ),
                               ),
@@ -1424,12 +1425,8 @@ Future<void> _showVariantSheet({
                                   alignment: Alignment.centerLeft,
                                   child: Text(
                                     'Image',
-                                    style: Theme.of(ctx)
-                                        .textTheme
-                                        .titleSmall
-                                        ?.copyWith(
-                                          fontWeight: FontWeight.w600,
-                                        ),
+                                    style: Theme.of(ctx).textTheme.titleSmall
+                                        ?.copyWith(fontWeight: FontWeight.w600),
                                   ),
                                 ),
                                 const SizedBox(height: 8),
@@ -1449,19 +1446,31 @@ Future<void> _showVariantSheet({
                                             () => uploadingImage = true,
                                           );
                                           try {
+                                            // Pick first so we can preview immediately.
+                                            final picked = await ImagePicker()
+                                                .pickImage(source: source);
+                                            if (picked == null) return;
+
+                                            setModalState(() {
+                                              variantPreviewPath = picked.path;
+                                            });
+
                                             final uploader = UploadViewModel()
                                               ..setRef(ref);
                                             final fileName =
-                                                await uploader.uploadAssetName(
+                                                await uploader.uploadPickedImagePath(
+                                              pickedPath: picked.path,
                                               id: productRef.id,
                                               urlType: URLTYPE.PRODUCT,
-                                              source: source,
                                               updateProductImage: false,
                                               // Variant images should not overwrite product-linked Assets rows.
                                               persistAssetRecord: false,
                                             );
                                             setModalState(
-                                              () => variantAssetName = fileName,
+                                              () {
+                                                variantAssetName = fileName;
+                                                // Keep preview; it will get replaced by local asset on next open.
+                                              },
                                             );
                                           } catch (e, st) {
                                             talker.error(
@@ -1492,7 +1501,18 @@ Future<void> _showVariantSheet({
                                     ),
                                     child: Stack(
                                       children: [
-                                        if (variantAssetName != null)
+                                        if (variantPreviewPath != null)
+                                          ClipRRect(
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                            child: Image.file(
+                                              File(variantPreviewPath!),
+                                              width: double.infinity,
+                                              height: double.infinity,
+                                              fit: BoxFit.cover,
+                                            ),
+                                          )
+                                        else if (variantAssetName != null)
                                           FutureBuilder<String?>(
                                             future: tryGetLocalAssetPath(
                                               variantAssetName!,
@@ -1547,8 +1567,9 @@ Future<void> _showVariantSheet({
                                           Positioned.fill(
                                             child: Container(
                                               decoration: BoxDecoration(
-                                                color: Colors.black
-                                                    .withValues(alpha: 0.35),
+                                                color: Colors.black.withValues(
+                                                  alpha: 0.35,
+                                                ),
                                                 borderRadius:
                                                     BorderRadius.circular(12),
                                               ),
@@ -1648,12 +1669,8 @@ Future<void> _showVariantSheet({
                                   alignment: Alignment.centerLeft,
                                   child: Text(
                                     'Tax',
-                                    style: Theme.of(ctx)
-                                        .textTheme
-                                        .titleSmall
-                                        ?.copyWith(
-                                          fontWeight: FontWeight.w600,
-                                        ),
+                                    style: Theme.of(ctx).textTheme.titleSmall
+                                        ?.copyWith(fontWeight: FontWeight.w600),
                                   ),
                                 ),
                                 const SizedBox(height: 8),
@@ -1664,30 +1681,26 @@ Future<void> _showVariantSheet({
                                     ChoiceChip(
                                       label: const Text('Standard B'),
                                       selected: taxTyCd == 'B',
-                                      onSelected: (_) => setModalState(
-                                        () => taxTyCd = 'B',
-                                      ),
+                                      onSelected: (_) =>
+                                          setModalState(() => taxTyCd = 'B'),
                                     ),
                                     ChoiceChip(
                                       label: const Text('Standard A'),
                                       selected: taxTyCd == 'A',
-                                      onSelected: (_) => setModalState(
-                                        () => taxTyCd = 'A',
-                                      ),
+                                      onSelected: (_) =>
+                                          setModalState(() => taxTyCd = 'A'),
                                     ),
                                     ChoiceChip(
                                       label: const Text('None'),
                                       selected: taxTyCd == 'D',
-                                      onSelected: (_) => setModalState(
-                                        () => taxTyCd = 'D',
-                                      ),
+                                      onSelected: (_) =>
+                                          setModalState(() => taxTyCd = 'D'),
                                     ),
                                     ChoiceChip(
                                       label: const Text('Exempt'),
                                       selected: taxTyCd == 'C',
-                                      onSelected: (_) => setModalState(
-                                        () => taxTyCd = 'C',
-                                      ),
+                                      onSelected: (_) =>
+                                          setModalState(() => taxTyCd = 'C'),
                                     ),
                                   ],
                                 ),
@@ -1696,12 +1709,8 @@ Future<void> _showVariantSheet({
                                   alignment: Alignment.centerLeft,
                                   child: Text(
                                     'Discount %',
-                                    style: Theme.of(ctx)
-                                        .textTheme
-                                        .titleSmall
-                                        ?.copyWith(
-                                          fontWeight: FontWeight.w600,
-                                        ),
+                                    style: Theme.of(ctx).textTheme.titleSmall
+                                        ?.copyWith(fontWeight: FontWeight.w600),
                                   ),
                                 ),
                                 const SizedBox(height: 8),
@@ -1749,17 +1758,18 @@ Future<void> _showVariantSheet({
 
                                   setModalState(() => savingVariant = true);
                                   try {
-                                    final barcode = barcodeController.text.trim();
+                                    final barcode = barcodeController.text
+                                        .trim();
                                     final baseRetail =
                                         double.tryParse(
-                                              retailPriceController.text,
-                                            ) ??
-                                            0;
+                                          retailPriceController.text,
+                                        ) ??
+                                        0;
                                     final baseSupply =
                                         double.tryParse(
-                                              supplyPriceController.text,
-                                            ) ??
-                                            0;
+                                          supplyPriceController.text,
+                                        ) ??
+                                        0;
                                     final override = double.tryParse(
                                       priceOverrideController.text.trim(),
                                     );
@@ -1775,8 +1785,8 @@ Future<void> _showVariantSheet({
                                         0;
 
                                     if (existingVariant == null) {
-                                      final variantName =
-                                          nameController.text.trim();
+                                      final variantName = nameController.text
+                                          .trim();
                                       await model.onScanItem(
                                         countryCode:
                                             countryOfOriginController.text,
@@ -1789,15 +1799,13 @@ Future<void> _showVariantSheet({
                                         variantDisplayName: variantName,
                                       );
 
-                                      final idx =
-                                          model.scannedVariants.indexWhere(
-                                        (v) => v.bcd == barcode,
-                                      );
+                                      final idx = model.scannedVariants
+                                          .indexWhere((v) => v.bcd == barcode);
                                       final v = idx != -1
                                           ? model.scannedVariants[idx]
                                           : (model.scannedVariants.isNotEmpty
-                                              ? model.scannedVariants.last
-                                              : null);
+                                                ? model.scannedVariants.last
+                                                : null);
                                       if (v != null) {
                                         v.name = variantName;
                                         v.taxTyCd = taxTyCd;
@@ -1817,16 +1825,16 @@ Future<void> _showVariantSheet({
                                         model.notifyListeners();
                                       }
                                     } else {
-                                      existingVariant.name =
-                                          nameController.text.trim();
+                                      existingVariant.name = nameController.text
+                                          .trim();
                                       existingVariant.bcd = barcode;
                                       existingVariant.sku = barcode;
                                       existingVariant.taxTyCd = taxTyCd;
                                       existingVariant.retailPrice =
                                           override ?? baseRetail;
                                       existingVariant.supplyPrice = baseSupply;
-                                      existingVariant.dcRt =
-                                          discount.toDouble();
+                                      existingVariant.dcRt = discount
+                                          .toDouble();
                                       if (variantAssetName != null) {
                                         existingVariant.imageUrl =
                                             variantAssetName;
@@ -1838,7 +1846,8 @@ Future<void> _showVariantSheet({
                                           .getDiscountController(
                                             existingVariant.id,
                                           )
-                                          .text = discount.toString();
+                                          .text = discount
+                                          .toString();
                                       await model.updateVariantQuantity(
                                         existingVariant.id,
                                         qty,
@@ -1872,11 +1881,13 @@ Future<void> _showVariantSheet({
                                   }
                                 },
                           style: FilledButton.styleFrom(
-                            backgroundColor: const Color(0xFF0078D4)
-                                .withValues(alpha: 0.12),
+                            backgroundColor: const Color(
+                              0xFF0078D4,
+                            ).withValues(alpha: 0.12),
                             foregroundColor: const Color(0xFF0078D4),
-                            disabledBackgroundColor: const Color(0xFF0078D4)
-                                .withValues(alpha: 0.12),
+                            disabledBackgroundColor: const Color(
+                              0xFF0078D4,
+                            ).withValues(alpha: 0.12),
                             disabledForegroundColor: const Color(0xFF0078D4),
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
@@ -2017,10 +2028,9 @@ class _MobileProductEntry extends StatelessWidget {
                 children: [
                   Text(
                     'Product info',
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleSmall
-                        ?.copyWith(color: Colors.grey.shade600),
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: Colors.grey.shade600,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   BasicInfoSection(
@@ -2043,10 +2053,9 @@ class _MobileProductEntry extends StatelessWidget {
                     childrenPadding: const EdgeInsets.only(top: 8),
                     title: Text(
                       'Advanced',
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleMedium
-                          ?.copyWith(fontWeight: FontWeight.w600),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     children: [
                       InventorySection(
@@ -2070,9 +2079,7 @@ class _MobileProductEntry extends StatelessWidget {
                       Expanded(
                         child: Text(
                           'Variants (${model.scannedVariants.length})',
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium
+                          style: Theme.of(context).textTheme.titleMedium
                               ?.copyWith(fontWeight: FontWeight.w600),
                         ),
                       ),
@@ -2114,15 +2121,15 @@ class _MobileProductEntry extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text(
                     'Tap a variant to expand · Edit or delete inside · swipe to delete',
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodySmall
-                        ?.copyWith(color: Colors.grey.shade600),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Colors.grey.shade600,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   ...model.scannedVariants.reversed.map((v) {
-                    final displayName =
-                        v.name.isNotEmpty ? v.name : (v.bcd ?? 'Variant');
+                    final displayName = v.name.isNotEmpty
+                        ? v.name
+                        : (v.bcd ?? 'Variant');
                     final priceStr =
                         '${(v.retailPrice ?? 0).toStringAsFixed(2)}';
                     return Dismissible(
@@ -2191,7 +2198,10 @@ class _MobileProductEntry extends StatelessWidget {
                               children: [
                                 TextButton.icon(
                                   onPressed: () => onEditVariant(v),
-                                  icon: const Icon(Icons.edit_outlined, size: 20),
+                                  icon: const Icon(
+                                    Icons.edit_outlined,
+                                    size: 20,
+                                  ),
                                   label: const Text('Edit variant'),
                                   style: TextButton.styleFrom(
                                     foregroundColor: accentBlue,
@@ -2295,7 +2305,8 @@ class _MobileVariantThumbnail extends StatefulWidget {
       <String, Future<void>>{};
 
   @override
-  State<_MobileVariantThumbnail> createState() => _MobileVariantThumbnailState();
+  State<_MobileVariantThumbnail> createState() =>
+      _MobileVariantThumbnailState();
 }
 
 class _MobileVariantThumbnailState extends State<_MobileVariantThumbnail> {
@@ -2380,12 +2391,7 @@ class _MobileVariantThumbnailState extends State<_MobileVariantThumbnail> {
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(10),
-      child: Image.file(
-        File(local),
-        width: 40,
-        height: 40,
-        fit: BoxFit.cover,
-      ),
+      child: Image.file(File(local), width: 40, height: 40, fit: BoxFit.cover),
     );
   }
 }
