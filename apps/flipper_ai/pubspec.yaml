@@ -1,7 +1,7 @@
 name: flipper_ai
 description: "Standalone AI feature app for Flipper - AI assistant and tools"
 publish_to: 'none'
-version: 1.0.167+168
+version: 1.0.168+169
 
 
 environment:

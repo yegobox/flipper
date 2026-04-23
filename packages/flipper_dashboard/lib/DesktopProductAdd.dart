@@ -1727,7 +1727,12 @@ Future<void> _showVariantSheet({
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                      padding: EdgeInsets.fromLTRB(
+                        16,
+                        0,
+                        16,
+                        16 + MediaQuery.of(ctx).padding.bottom,
+                      ),
                       child: SizedBox(
                         width: double.infinity,
                         child: FilledButton(
@@ -1909,15 +1914,16 @@ Future<void> _showVariantSheet({
     },
   );
 
-  // The sheet route can still be animating out or finishing unmount when this
-  // future completes; disposing controllers synchronously races EditableText and
-  // triggers "used after being disposed". Dispose after this frame.
+  // The sheet route can still be animating out; disposing too early can race
+  // EditableText listeners and trigger "used after being disposed".
   WidgetsBinding.instance.addPostFrameCallback((_) {
-    nameController.dispose();
-    barcodeController.dispose();
-    stockController.dispose();
-    priceOverrideController.dispose();
-    discountController.dispose();
+    Future<void>.delayed(const Duration(milliseconds: 350), () {
+      nameController.dispose();
+      barcodeController.dispose();
+      stockController.dispose();
+      priceOverrideController.dispose();
+      discountController.dispose();
+    });
   });
 }
 
@@ -2268,7 +2274,7 @@ class _MobileProductEntry extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12 + MediaQuery.of(context).padding.bottom),
           ],
         ),
       ),
