@@ -15,11 +15,11 @@ class TransactionWidget extends ConsumerWidget {
       pendingTransactionStreamProvider(isExpense: false)
           .select((value) => value.when(
                 data: (transaction) {
-                  return Expanded(
-                    child: TicketsList(
-                      showAppBar: false,
-                      transaction: transaction,
-                    ),
+                  // Parent (e.g. InventoryApp Row → Expanded) already provides flex
+                  // constraints; do not nest another Expanded here.
+                  return TicketsList(
+                    showAppBar: false,
+                    transaction: transaction,
                   ).shouldSeeTheApp(ref, featureName: AppFeature.Tickets);
                 },
                 error: (error, stackTrace) {

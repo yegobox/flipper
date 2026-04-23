@@ -15,6 +15,11 @@ import 'package:stacked_services/stacked_services.dart';
 
 import '../widgets/tickets_list.dart';
 
+const Color _ticketFilterBlue = Color(0xff006AFE);
+const Color _ticketFilterLoanPurple = Color(0xFF6B4EA2);
+const Color _ticketFilterLayawayTeal = Color(0xFF0D9488);
+const Color _ticketFilterRegularGreen = Color(0xFF2E7D32);
+
 class TicketsScreen extends StatefulHookConsumerWidget {
   const TicketsScreen({
     Key? key,
@@ -32,20 +37,6 @@ class TicketsScreen extends StatefulHookConsumerWidget {
 class _TicketsScreenState extends ConsumerState<TicketsScreen>
     with TicketsListMixin {
   final _routerService = locator<RouterService>();
-  String _sortFilter = 'all'; // 'all', 'regular', 'loans'
-
-  @override
-  List<ITransaction> getCurrentTickets() {
-    final allTickets = super.getCurrentTickets();
-    switch (_sortFilter) {
-      case 'regular':
-        return allTickets.where((t) => t.isLoan != true).toList();
-      case 'loans':
-        return allTickets.where((t) => t.isLoan == true).toList();
-      default:
-        return allTickets;
-    }
-  }
 
   void _selectAllTickets(WidgetRef ref) {
     final visibleTickets = getCurrentTickets();
@@ -141,6 +132,103 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
     );
   }
 
+  Widget _buildTicketFilterChips() {
+    Widget dot(Color c) => Container(
+          margin: const EdgeInsets.only(right: 6),
+          width: 8,
+          height: 8,
+          decoration: BoxDecoration(color: c, shape: BoxShape.circle),
+        );
+
+    Widget chip(String id, String label, {Color? dotColor}) {
+      final selected = ticketKindFilter == id;
+      final Color selectedAccent = switch (id) {
+        'loan' => _ticketFilterLoanPurple,
+        'layaway' => _ticketFilterLayawayTeal,
+        'regular' => _ticketFilterRegularGreen,
+        _ => _ticketFilterBlue,
+      };
+      final Color selectedBg = switch (id) {
+        'loan' => const Color(0xFFF3E5F5),
+        'layaway' => const Color(0xFFE0F2F1),
+        'regular' => const Color(0xFFE8F5E9),
+        _ => const Color(0xFFE8F1FF),
+      };
+      return Padding(
+        padding: const EdgeInsets.only(right: 8),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () => updateTicketKindFilter(id),
+            borderRadius: BorderRadius.circular(24),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: selected ? selectedBg : Colors.white,
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(
+                  color: selected ? selectedAccent : Colors.grey[300]!,
+                  width: selected ? 1.5 : 1,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (dotColor != null) dot(dotColor),
+                  Text(
+                    label,
+                    style: GoogleFonts.poppins(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: selected ? selectedAccent : Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    width: 16,
+                    height: 16,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color:
+                            selected ? selectedAccent : Colors.grey[400]!,
+                        width: 1.5,
+                      ),
+                      color: selected ? selectedAccent : Colors.transparent,
+                    ),
+                    alignment: Alignment.center,
+                    child: selected
+                        ? Container(
+                            width: 6,
+                            height: 6,
+                            decoration: const BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.white,
+                            ),
+                          )
+                        : null,
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          chip('all', 'All tickets'),
+          chip('loan', 'Loan', dotColor: _ticketFilterLoanPurple),
+          chip('layaway', 'Layaway', dotColor: _ticketFilterLayawayTeal),
+          chip('regular', 'Regular', dotColor: _ticketFilterRegularGreen),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
@@ -164,7 +252,7 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
               Align(
                 alignment: Alignment.centerLeft,
                 child: SizedBox(
-                  width: isMobile ? double.infinity : 220,
+                  width: double.infinity,
                   child: Consumer(
                     builder: (context, ref, _) {
                       final transaction = widget.transaction;
@@ -193,9 +281,9 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                           : 0; // If no transaction, itemCount is 0
                       return ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xff006AFE),
+                          backgroundColor: _ticketFilterBlue,
                           shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10.0),
+                            borderRadius: BorderRadius.circular(12.0),
                           ),
                           padding: EdgeInsets.symmetric(
                             vertical: isMobile ? 12.0 : 16.0,
@@ -240,9 +328,9 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                             ),
                             const SizedBox(width: 6),
                             Text(
-                              'Create Ticket${itemCount > 0 ? ' ($itemCount ${itemCount == 1 ? 'item' : 'items'})' : ''}',
+                              'Create Ticket',
                               style: GoogleFonts.poppins(
-                                fontWeight: FontWeight.w500,
+                                fontWeight: FontWeight.w600,
                                 fontSize: buttonFontSize,
                                 color: Colors.white,
                               ),
@@ -259,16 +347,11 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                 height: isMobile ? 16 : 24,
               ).eligibleToSeeIfYouAre(ref, [UserType.ADMIN]),
               SizedBox(height: isMobile ? 8 : 16),
-              // Make ticket section scrollable on mobile
               Expanded(
-                child: isMobile
-                    ? Container(
-                        constraints: BoxConstraints(
-                          maxHeight: MediaQuery.of(context).size.height * 0.7,
-                        ),
-                        child: buildTicketSection(context),
-                      )
-                    : buildTicketSection(context),
+                child: buildTicketSection(
+                  context,
+                  filterChips: _buildTicketFilterChips(),
+                ),
               ),
             ],
           ),
@@ -294,7 +377,7 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                   title: Text(
                     'Tickets',
                     style: GoogleFonts.poppins(
-                      fontWeight: FontWeight.w400,
+                      fontWeight: FontWeight.w700,
                       fontSize: titleFontSize,
                       color: Colors.black,
                     ),
@@ -333,87 +416,16 @@ class _TicketsScreenState extends ConsumerState<TicketsScreen>
                               onSelected: (value) {
                                 if (value == 'select_all') {
                                   _selectAllTickets(ref);
-                                } else if (value.startsWith('sort_')) {
-                                  setState(() {
-                                    _sortFilter = value.substring(5);
-                                  });
                                 }
                               },
-                              itemBuilder: (context) => [
-                                const PopupMenuItem(
+                              itemBuilder: (context) => const [
+                                PopupMenuItem(
                                   value: 'select_all',
                                   child: Row(
                                     children: [
                                       Icon(Icons.select_all),
                                       SizedBox(width: 8),
                                       Text('Select All'),
-                                    ],
-                                  ),
-                                ),
-                                const PopupMenuDivider(),
-                                PopupMenuItem(
-                                  value: 'sort_all',
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        Icons.list,
-                                        color: _sortFilter == 'all'
-                                            ? Colors.blue
-                                            : null,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        'All Tickets',
-                                        style: TextStyle(
-                                          color: _sortFilter == 'all'
-                                              ? Colors.blue
-                                              : null,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                PopupMenuItem(
-                                  value: 'sort_regular',
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        Icons.receipt,
-                                        color: _sortFilter == 'regular'
-                                            ? Colors.blue
-                                            : null,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        'Regular Tickets',
-                                        style: TextStyle(
-                                          color: _sortFilter == 'regular'
-                                              ? Colors.blue
-                                              : null,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                PopupMenuItem(
-                                  value: 'sort_loans',
-                                  child: Row(
-                                    children: [
-                                      Icon(
-                                        Icons.credit_card,
-                                        color: _sortFilter == 'loans'
-                                            ? Colors.blue
-                                            : null,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        'Loan Tickets',
-                                        style: TextStyle(
-                                          color: _sortFilter == 'loans'
-                                              ? Colors.blue
-                                              : null,
-                                        ),
-                                      ),
                                     ],
                                   ),
                                 ),
