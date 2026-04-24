@@ -1,5 +1,4 @@
 import 'package:flipper_dashboard/ActiveBranch.dart';
-import 'package:flipper_models/providers/access_provider.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -12,7 +11,6 @@ import 'providers/navigation_providers.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_dashboard/dashboard_shell.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
-import 'package:flipper_services/constants.dart'; // Import for AppFeature
 
 class EnhancedSideMenu extends ConsumerWidget {
   const EnhancedSideMenu({super.key});
@@ -23,19 +21,13 @@ class EnhancedSideMenu extends ConsumerWidget {
     final _dialogService = locator<DialogService>();
     final _routerService = locator<RouterService>();
 
-    final hasKDS = ref.watch(hasFeatureProvider("KDS"));
-    final hasInventory = ref.watch(hasFeatureProvider("INVENTORY"));
-    final hasOrdering = ref.watch(hasFeatureProvider("ORDERING"));
-    final hasManufacturing = ref.watch(hasFeatureProvider("MANUFACTURING"));
-    final hasShiftHistory = ref.watch(hasFeatureProvider("SHIFT_HISTORY"));
-    final hasAccess = ref.watch(hasFeatureProvider("PRINTING_DELEGATION"));
-
-    final isAdminAsyncValue = ref.watch(
-      isAdminProvider(
-        ProxyService.box.getUserId() ?? "",
-        featureName: AppFeature.ShiftHistory,
-      ),
-    );
+    final showKds = ref.watch(sideMenuShowKdsProvider);
+    final showItems = ref.watch(sideMenuShowItemsProvider);
+    final showStockRecount = ref.watch(sideMenuShowStockRecountProvider);
+    final showIncomingOrders = ref.watch(sideMenuShowIncomingOrdersProvider);
+    final showProduction = ref.watch(sideMenuShowProductionProvider);
+    final showShiftHistory = ref.watch(sideMenuShowShiftHistoryProvider);
+    final showDelegations = ref.watch(sideMenuShowDelegationsProvider);
 
     final menuItems = [
       _SideMenuItem(
@@ -59,7 +51,7 @@ class EnhancedSideMenu extends ConsumerWidget {
         },
         tooltip: 'Chat',
       ),
-      if (hasInventory)
+      if (showItems)
         _SideMenuItem(
           iconBuilder: (_) =>
               SvgPicture.string(_SideMenuSvgs.inventory, width: 24, height: 24),
@@ -71,7 +63,7 @@ class EnhancedSideMenu extends ConsumerWidget {
           },
           tooltip: 'Items',
         ),
-      if (hasKDS)
+      if (showKds)
         _SideMenuItem(
           iconBuilder: (c) => Icon(Icons.restaurant_menu, color: c, size: 24),
           isSelected: selectedItem == 3,
@@ -82,7 +74,7 @@ class EnhancedSideMenu extends ConsumerWidget {
           },
           tooltip: 'Kitchen Display',
         ),
-      if (hasInventory)
+      if (showStockRecount)
         _SideMenuItem(
           iconBuilder: (_) => SvgPicture.string(
             _SideMenuSvgs.stockRecount,
@@ -97,7 +89,7 @@ class EnhancedSideMenu extends ConsumerWidget {
           },
           tooltip: 'Stock Recount',
         ),
-      if (hasAccess)
+      if (showDelegations)
         _SideMenuItem(
           iconBuilder: (c) => Icon(Icons.print_outlined, color: c, size: 24),
           isSelected: selectedItem == 7,
@@ -108,7 +100,7 @@ class EnhancedSideMenu extends ConsumerWidget {
           },
           tooltip: 'Delegations',
         ),
-      if (hasOrdering || hasInventory)
+      if (showIncomingOrders)
         _SideMenuItem(
           iconBuilder: (_) => SvgPicture.string(
             _SideMenuSvgs.inboxImport,
@@ -123,7 +115,7 @@ class EnhancedSideMenu extends ConsumerWidget {
           },
           tooltip: 'Incoming Orders',
         ),
-      if (hasManufacturing)
+      if (showProduction)
         _SideMenuItem(
           iconBuilder: (_) => SvgPicture.string(
             _SideMenuSvgs.production,
@@ -138,7 +130,7 @@ class EnhancedSideMenu extends ConsumerWidget {
           },
           tooltip: 'Production Output',
         ),
-      if (isAdminAsyncValue.value == true && hasShiftHistory)
+      if (showShiftHistory)
         _SideMenuItem(
           iconBuilder: (_) =>
               SvgPicture.string(_SideMenuSvgs.history, width: 24, height: 24),

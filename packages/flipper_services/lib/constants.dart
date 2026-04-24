@@ -63,6 +63,7 @@ class RequestStatus {
   static const voided = 'voided';
 }
 
+/// Modules shown in User Management permission matrix (no "Custom Amount" — legacy product only).
 final features = [
   AppFeature.Inventory,
   AppFeature.Settings,
@@ -70,11 +71,9 @@ final features = [
   AppFeature.Tickets,
   AppFeature.Orders,
   AppFeature.AddProduct,
-  AppFeature.CustomAmount,
   AppFeature.Sales,
   AppFeature.Driver,
   AppFeature.Stock,
-  AppFeature.Tickets,
   AppFeature.ShiftHistory,
 ];
 

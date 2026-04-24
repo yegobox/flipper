@@ -9,6 +9,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -197,17 +198,28 @@ class AppIconsGrid extends ConsumerWidget {
     ];
 
     // Filtering out apps the user does not have access to
+    final uid = ProxyService.box.getUserId() ?? '';
     final filteredApps = rippleApps.where((app) {
       if (app['feature'] == 'Orders') return true;
       if (app['feature'] == 'ServicesGigs') return true;
       if (app['feature'] == 'Settings') return true;
-      final hasAccess = ref.watch(
-        featureAccessProvider(
-          featureName: app['feature'],
-          userId: ProxyService.box.getUserId() ?? "",
-        ),
+      final feature = app['feature'] as String;
+      // POS hosts "Add product"; show tile if user can sell or add catalog items.
+      if (feature == 'Sales' || app['page'] == 'POS') {
+        final canSell = ref.watch(
+          featureAccessProvider(userId: uid, featureName: AppFeature.Sales),
+        );
+        final canAddProduct = ref.watch(
+          featureAccessProvider(
+            userId: uid,
+            featureName: AppFeature.AddProduct,
+          ),
+        );
+        return canSell || canAddProduct;
+      }
+      return ref.watch(
+        featureAccessProvider(userId: uid, featureName: feature),
       );
-      return hasAccess;
     }).toList();
 
     final grid = GridView.builder(

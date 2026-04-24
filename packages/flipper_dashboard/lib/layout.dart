@@ -11,6 +11,7 @@ import 'package:flipper_dashboard/features/incoming_orders/screens/incoming_orde
 import 'package:flipper_dashboard/features/production_output/production_output_app.dart';
 import 'package:flipper_dashboard/shift_history_content.dart';
 import 'package:flipper_dashboard/dashboard_shell.dart';
+import 'package:flipper_dashboard/hooks/use_access_permissions_realtime.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_dashboard/widgets/unified_top_bar.dart';
 import 'package:flipper_services/proxy.dart';
@@ -27,6 +28,7 @@ class DashboardLayout extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final searchController = useTextEditingController();
+    useAccessPermissionsRealtimeSync(ref);
 
     return ViewModelBuilder<CoreViewModel>.nonReactive(
       viewModelBuilder: () => CoreViewModel(),
