@@ -5,6 +5,7 @@ import 'package:flipper_dashboard/ReinitializeEbm.dart';
 import 'package:flipper_dashboard/TaxSettingsModal.dart';
 import 'package:flipper_dashboard/TenantManagement.dart';
 import 'package:flipper_dashboard/widgets/transaction_delegation_settings.dart';
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/proxy.dart';
@@ -15,7 +16,8 @@ import 'package:flipper_services/setting_service.dart';
 import 'package:flutter/material.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flutter/foundation.dart' hide Category;
-import 'package:supabase_models/brick/models/stock.model.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' hide User;
+import 'package:supabase_models/brick/models/user.model.dart';
 import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
 import 'modals/_isBranchEnableForPayment.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
@@ -149,6 +151,28 @@ class _AdminControlState extends State<AdminControl> {
   bool userLoggingEnabled = false;
   final settingsService = locator<SettingsService>();
 
+  /// Loaded from Supabase `users` via [ProxyService.box.getUserId] (set at login).
+  User? _profileUser;
+  /// `users.email` from PostgREST (Brick [User] has no email field).
+  String? _profileAccountEmail;
+  /// From last Supabase row: non-empty `email` column (edit email only while empty).
+  bool _serverHasEmail = false;
+  /// From last Supabase row: non-empty `phone_number` column (set phone only while empty).
+  bool _serverHasPhone = false;
+  bool _profileUserLoading = true;
+
+  bool _inlineEditingEmail = false;
+  bool _savingProfileEmail = false;
+  late final TextEditingController _profileEmailEditController;
+
+  bool _inlineEditingName = false;
+  bool _savingProfileName = false;
+  late final TextEditingController _profileNameEditController;
+
+  bool _inlineEditingPhone = false;
+  bool _savingProfilePhone = false;
+  late final TextEditingController _profilePhoneEditController;
+
   bool _isValidPhoneNumber(String phone) {
     // Remove any spaces or special characters
     final cleanPhone = phone.replaceAll(RegExp(r'[\s\-\(\)]'), '');
@@ -220,6 +244,9 @@ class _AdminControlState extends State<AdminControl> {
         ProxyService.box.readBool(key: 'enableAutoAddSearch') ?? false;
     userLoggingEnabled = ProxyService.box.getUserLoggingEnabled() ?? false;
     phoneController = TextEditingController();
+    _profileEmailEditController = TextEditingController();
+    _profileNameEditController = TextEditingController();
+    _profilePhoneEditController = TextEditingController();
     final logoBase64 = ProxyService.box.receiptLogoBase64();
     if (logoBase64 != null && logoBase64.isNotEmpty) {
       try {
@@ -232,11 +259,374 @@ class _AdminControlState extends State<AdminControl> {
     settingsService.getPriceQuantityAdjustmentToggleState();
     settingsService.getCurrencyDecimalToggleState();
     _loadSmsConfig();
+    _loadProfileUserFromSupabase();
+  }
+
+  /// Reads the signed-in row from Supabase `users` using `userId` from local box.
+  Future<void> _loadProfileUserFromSupabase() async {
+    final userId = ProxyService.box.getUserId()?.trim();
+    if (!mounted) return;
+    if (userId == null || userId.isEmpty) {
+      setState(() {
+        _profileUser = null;
+        _profileAccountEmail = null;
+        _serverHasEmail = false;
+        _serverHasPhone = false;
+        _profileUserLoading = false;
+      });
+      return;
+    }
+    setState(() => _profileUserLoading = true);
+    try {
+      final row = await Supabase.instance.client
+          .from('users')
+          .select()
+          .eq('id', userId)
+          .maybeSingle();
+      if (!mounted) return;
+      if (row == null) {
+        setState(() {
+          _profileUser = null;
+          _profileAccountEmail = null;
+          _serverHasEmail = false;
+          _serverHasPhone = false;
+          _profileUserLoading = false;
+        });
+        return;
+      }
+      final map = Map<String, dynamic>.from(row);
+      final u = _parseUserFromSupabaseRow(map);
+      final rawEmail = map['email'];
+      final parsedEmail = rawEmail is String ? rawEmail.trim() : null;
+      final rawPhone = map['phone_number'];
+      final parsedPhone = rawPhone is String ? rawPhone.trim() : null;
+      final keyStr = map['key'] is String ? (map['key'] as String).trim() : '';
+      final hasLegacyEmailInKey = keyStr.contains('@');
+      setState(() {
+        _profileUser = u;
+        _profileAccountEmail =
+            (parsedEmail != null && parsedEmail.isNotEmpty) ? parsedEmail : null;
+        _serverHasEmail = (parsedEmail != null && parsedEmail.isNotEmpty) ||
+            hasLegacyEmailInKey;
+        _serverHasPhone =
+            parsedPhone != null && parsedPhone.isNotEmpty;
+        _profileUserLoading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _profileUser = null;
+        _profileAccountEmail = null;
+        _serverHasEmail = false;
+        _serverHasPhone = false;
+        _profileUserLoading = false;
+      });
+    }
+  }
+
+  /// Maps a PostgREST row to [User] (same fields as generated `_$UserFromSupabase`).
+  User? _parseUserFromSupabaseRow(Map<String, dynamic> data) {
+    try {
+      final id = data['id'] as String?;
+      if (id == null || id.isEmpty) return null;
+      return User(
+        id: id,
+        name: data['name'] as String?,
+        key: data['key'] as String?,
+        pin: data['pin'] as int?,
+        editId: data['edit_id'] as bool?,
+        isExternal: data['is_external'] as bool?,
+        ownership: data['ownership'] as String?,
+        groupId: data['group_id'] as int?,
+        external: data['external'] as bool?,
+        updatedAt: data['updated_at'] == null
+            ? null
+            : DateTime.tryParse(data['updated_at'] as String),
+        deletedAt: data['deleted_at'] == null
+            ? null
+            : DateTime.tryParse(data['deleted_at'] as String),
+        phoneNumber: data['phone_number'] as String?,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  String _profileDisplayName(User? u) {
+    if (u != null) {
+      final name = u.name?.trim();
+      if (name != null && name.isNotEmpty) return name;
+      final key = u.key?.trim() ?? '';
+      if (key.contains('@')) {
+        final local = key.split('@').first;
+        if (local.isNotEmpty) {
+          return local.replaceAll('.', ' ').replaceAll('_', ' ');
+        }
+      } else if (key.isNotEmpty) {
+        return key;
+      }
+    }
+    final uid = ProxyService.box.getUserId()?.trim();
+    if (uid != null && uid.isNotEmpty) return uid;
+    return 'User';
+  }
+
+  String? _profileEmailFromUser(User? u) {
+    final direct = _profileAccountEmail?.trim();
+    if (direct != null && direct.isNotEmpty) return direct;
+    if (u == null) return null;
+    final k = u.key?.trim() ?? '';
+    if (k.contains('@')) return k;
+    return null;
+  }
+
+  String _profileInitials(String displayName) {
+    final parts = displayName
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((e) => e.isNotEmpty)
+        .toList();
+    if (parts.length >= 2) {
+      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
+    }
+    if (parts.isNotEmpty) {
+      final s = parts[0];
+      if (s.length >= 2) return s.substring(0, 2).toUpperCase();
+      return s[0].toUpperCase();
+    }
+    return 'U';
+  }
+
+  String _formatPhoneSpaces(String raw) {
+    if (raw.replaceAll(RegExp(r'[^\d]'), '').length < 9) return raw;
+    if (raw.trim().startsWith('+')) {
+      final d = raw.replaceAll(RegExp(r'[^\d+]'), '');
+      if (d.startsWith('+') && d.length > 4) {
+        final rest = d.substring(1);
+        final buf = StringBuffer('+${rest.substring(0, rest.length >= 3 ? 3 : rest.length)}');
+        var i = 3;
+        while (i < rest.length) {
+          buf.write(' ');
+          buf.write(rest.substring(i, (i + 3).clamp(0, rest.length)));
+          i += 3;
+        }
+        return buf.toString();
+      }
+    }
+    return raw;
+  }
+
+  bool _isValidProfileEmail(String value) {
+    return RegExp(
+      r'^[\w.+\-]+@[\w\-]+(\.[\w\-]+)+$',
+    ).hasMatch(value.trim());
+  }
+
+  /// Only `name`, `email`, and `phone_number` may be written — never `user_id`, `id`, etc.
+  static const Set<String> _kUsersTableProfilePatchKeys = {
+    'name',
+    'email',
+    'phone_number',
+  };
+
+  void _clearOtherProfileEditors({bool keepEmail = false, bool keepName = false, bool keepPhone = false}) {
+    if (!keepEmail && _inlineEditingEmail) {
+      _inlineEditingEmail = false;
+      _profileEmailEditController.clear();
+    }
+    if (!keepName && _inlineEditingName) {
+      _inlineEditingName = false;
+      _profileNameEditController.clear();
+    }
+    if (!keepPhone && _inlineEditingPhone) {
+      _inlineEditingPhone = false;
+      _profilePhoneEditController.clear();
+    }
+  }
+
+  Future<void> _patchUsersTableProfileFields(Map<String, dynamic> patch) async {
+    final userId = ProxyService.box.getUserId()?.trim();
+    if (userId == null || userId.isEmpty) {
+      throw StateError('Not signed in');
+    }
+    final body = <String, dynamic>{};
+    for (final e in patch.entries) {
+      if (_kUsersTableProfilePatchKeys.contains(e.key)) {
+        body[e.key] = e.value;
+      }
+    }
+    if (body.isEmpty) return;
+    await Supabase.instance.client.from('users').update(body).eq('id', userId);
+  }
+
+  void _startInlineEmailEdit({String? initial}) {
+    if (_serverHasEmail) return;
+    setState(() {
+      _clearOtherProfileEditors(keepEmail: true);
+      _inlineEditingEmail = true;
+      _profileEmailEditController.text = (initial ?? '').trim();
+    });
+  }
+
+  void _cancelInlineEmailEdit() {
+    setState(() {
+      _inlineEditingEmail = false;
+      _profileEmailEditController.clear();
+    });
+  }
+
+  void _startInlineNameEdit({String? initial}) {
+    setState(() {
+      _clearOtherProfileEditors(keepName: true);
+      _inlineEditingName = true;
+      _profileNameEditController.text = (initial ?? '').trim();
+    });
+  }
+
+  void _cancelInlineNameEdit() {
+    setState(() {
+      _inlineEditingName = false;
+      _profileNameEditController.clear();
+    });
+  }
+
+  void _startInlinePhoneEdit({String? initial}) {
+    if (_serverHasPhone) return;
+    setState(() {
+      _clearOtherProfileEditors(keepPhone: true);
+      _inlineEditingPhone = true;
+      _profilePhoneEditController.text = (initial ?? '').trim();
+    });
+  }
+
+  void _cancelInlinePhoneEdit() {
+    setState(() {
+      _inlineEditingPhone = false;
+      _profilePhoneEditController.clear();
+    });
+  }
+
+  Future<void> _saveInlineName() async {
+    final name = _profileNameEditController.text.trim();
+    final userId = ProxyService.box.getUserId()?.trim();
+    if (userId == null || userId.isEmpty) {
+      showErrorNotification(context, 'Not signed in.');
+      return;
+    }
+    setState(() => _savingProfileName = true);
+    try {
+      await _patchUsersTableProfileFields({'name': name.isEmpty ? null : name});
+      if (!mounted) return;
+      setState(() {
+        _savingProfileName = false;
+        _inlineEditingName = false;
+        _profileNameEditController.clear();
+      });
+      await _loadProfileUserFromSupabase();
+      if (mounted) {
+        showSuccessNotification(context, 'Name updated.');
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _savingProfileName = false);
+      showErrorNotification(context, 'Could not save name: $e');
+    }
+  }
+
+  Future<void> _saveInlinePhone() async {
+    var raw = _profilePhoneEditController.text.trim();
+    if (!_isValidPhoneNumber(raw)) {
+      showErrorNotification(
+        context,
+        'Enter a valid phone number with country code (e.g. +250783054874).',
+      );
+      return;
+    }
+    raw = _formatPhoneNumber(raw);
+    final userId = ProxyService.box.getUserId()?.trim();
+    if (userId == null || userId.isEmpty) {
+      showErrorNotification(context, 'Not signed in.');
+      return;
+    }
+    if (_serverHasPhone) {
+      showErrorNotification(
+        context,
+        'Phone number can only be set once. Contact support to change it.',
+      );
+      return;
+    }
+    setState(() => _savingProfilePhone = true);
+    try {
+      await _patchUsersTableProfileFields({'phone_number': raw});
+      if (!mounted) return;
+      setState(() {
+        _savingProfilePhone = false;
+        _inlineEditingPhone = false;
+        _profilePhoneEditController.clear();
+      });
+      await _loadProfileUserFromSupabase();
+      if (mounted) {
+        showSuccessNotification(context, 'Phone number saved.');
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _savingProfilePhone = false);
+      showErrorNotification(context, 'Could not save phone: $e');
+    }
+  }
+
+  Future<void> _saveInlineEmail() async {
+    if (_serverHasEmail) {
+      showErrorNotification(
+        context,
+        'Email is already set and cannot be changed here.',
+      );
+      return;
+    }
+    final email = _profileEmailEditController.text.trim();
+    if (!_isValidProfileEmail(email)) {
+      showErrorNotification(context, 'Please enter a valid email address.');
+      return;
+    }
+    final userId = ProxyService.box.getUserId()?.trim();
+    if (userId == null || userId.isEmpty) {
+      showErrorNotification(context, 'Not signed in.');
+      return;
+    }
+    setState(() => _savingProfileEmail = true);
+    try {
+      await _patchUsersTableProfileFields({'email': email});
+      final syncedSettings =
+          await settingsService.updateSettings(map: {'email': email});
+      if (!mounted) return;
+      if (!syncedSettings) {
+        showWarningNotification(
+          context,
+          'Email saved on your account. Business settings could not be updated.',
+        );
+      }
+      setState(() {
+        _savingProfileEmail = false;
+        _inlineEditingEmail = false;
+        _profileEmailEditController.clear();
+      });
+      await _loadProfileUserFromSupabase();
+      if (mounted) {
+        showSuccessNotification(context, 'Email updated.');
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _savingProfileEmail = false);
+      showErrorNotification(context, 'Could not save email: $e');
+    }
   }
 
   @override
   void dispose() {
     phoneController.dispose();
+    _profileEmailEditController.dispose();
+    _profileNameEditController.dispose();
+    _profilePhoneEditController.dispose();
     super.dispose();
   }
 
@@ -532,7 +922,7 @@ class _AdminControlState extends State<AdminControl> {
                   splashRadius: 22,
                   onSelected: (value) {
                     if (value == 'refresh') {
-                      setState(() {});
+                      _loadProfileUserFromSupabase();
                     }
                   },
                   itemBuilder: (context) => const [
@@ -577,6 +967,8 @@ class _AdminControlState extends State<AdminControl> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  _buildAdminProfileSection(context),
+                  const SizedBox(height: 28),
                   _buildQuickActions(context),
                   const SizedBox(height: 28),
                   _buildMainSections(context),
@@ -586,6 +978,593 @@ class _AdminControlState extends State<AdminControl> {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildInlineEmailEditor(BuildContext context, bool narrow) {
+    final borderGrey = Colors.grey.shade300;
+
+    final field = TextField(
+      controller: _profileEmailEditController,
+      enabled: !_savingProfileEmail,
+      autofocus: true,
+      keyboardType: TextInputType.emailAddress,
+      decoration: InputDecoration(
+        hintText: 'e.g. admin@flipper.rw',
+        hintStyle: GoogleFonts.outfit(
+          fontSize: 14,
+          color: _kAdminSubtitleText,
+        ),
+        filled: true,
+        fillColor: const Color(0xFFF8FAFC),
+        isDense: true,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 12,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: borderGrey),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: borderGrey),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: _kAdminBarBlue, width: 1.4),
+        ),
+      ),
+      style: GoogleFonts.outfit(fontSize: 14, color: _kAdminTitleText),
+    );
+
+    final saveBtn = OutlinedButton(
+      onPressed: _savingProfileEmail ? null : _saveInlineEmail,
+      style: OutlinedButton.styleFrom(
+        foregroundColor: Colors.black,
+        side: BorderSide(color: borderGrey),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+      child: _savingProfileEmail
+          ? SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: _kAdminBarBlue,
+              ),
+            )
+          : Text(
+              'Save',
+              style: GoogleFonts.outfit(
+                fontWeight: FontWeight.w700,
+                fontSize: 14,
+              ),
+            ),
+    );
+
+    final cancelBtn = OutlinedButton(
+      onPressed: _savingProfileEmail ? null : _cancelInlineEmailEdit,
+      style: OutlinedButton.styleFrom(
+        foregroundColor: Colors.black87,
+        side: BorderSide(color: borderGrey),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+      child: Text(
+        'Cancel',
+        style: GoogleFonts.outfit(
+          fontWeight: FontWeight.w400,
+          fontSize: 14,
+        ),
+      ),
+    );
+
+    if (narrow) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          field,
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              saveBtn,
+              const SizedBox(width: 8),
+              cancelBtn,
+            ],
+          ),
+        ],
+      );
+    }
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(child: field),
+        const SizedBox(width: 10),
+        saveBtn,
+        const SizedBox(width: 8),
+        cancelBtn,
+      ],
+    );
+  }
+
+  Widget _buildInlineNameEditor(BuildContext context, bool narrow) {
+    final borderGrey = Colors.grey.shade300;
+    final field = TextField(
+      controller: _profileNameEditController,
+      enabled: !_savingProfileName,
+      autofocus: true,
+      textCapitalization: TextCapitalization.words,
+      decoration: InputDecoration(
+        hintText: 'Display name',
+        hintStyle: GoogleFonts.outfit(
+          fontSize: 14,
+          color: _kAdminSubtitleText,
+        ),
+        filled: true,
+        fillColor: const Color(0xFFF8FAFC),
+        isDense: true,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 12,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: borderGrey),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: borderGrey),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: _kAdminBarBlue, width: 1.4),
+        ),
+      ),
+      style: GoogleFonts.outfit(fontSize: 14, color: _kAdminTitleText),
+    );
+
+    final saveBtn = OutlinedButton(
+      onPressed: _savingProfileName ? null : _saveInlineName,
+      style: OutlinedButton.styleFrom(
+        foregroundColor: Colors.black,
+        side: BorderSide(color: borderGrey),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+      child: _savingProfileName
+          ? SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: _kAdminBarBlue,
+              ),
+            )
+          : Text(
+              'Save',
+              style: GoogleFonts.outfit(
+                fontWeight: FontWeight.w700,
+                fontSize: 14,
+              ),
+            ),
+    );
+
+    final cancelBtn = OutlinedButton(
+      onPressed: _savingProfileName ? null : _cancelInlineNameEdit,
+      style: OutlinedButton.styleFrom(
+        foregroundColor: Colors.black87,
+        side: BorderSide(color: borderGrey),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+      child: Text(
+        'Cancel',
+        style: GoogleFonts.outfit(
+          fontWeight: FontWeight.w400,
+          fontSize: 14,
+        ),
+      ),
+    );
+
+    if (narrow) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          field,
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              saveBtn,
+              const SizedBox(width: 8),
+              cancelBtn,
+            ],
+          ),
+        ],
+      );
+    }
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(child: field),
+        const SizedBox(width: 10),
+        saveBtn,
+        const SizedBox(width: 8),
+        cancelBtn,
+      ],
+    );
+  }
+
+  Widget _buildInlinePhoneEditor(BuildContext context, bool narrow) {
+    final borderGrey = Colors.grey.shade300;
+    final field = TextField(
+      controller: _profilePhoneEditController,
+      enabled: !_savingProfilePhone,
+      autofocus: true,
+      keyboardType: TextInputType.phone,
+      decoration: InputDecoration(
+        hintText: 'e.g. +250783054874',
+        hintStyle: GoogleFonts.outfit(
+          fontSize: 14,
+          color: _kAdminSubtitleText,
+        ),
+        filled: true,
+        fillColor: const Color(0xFFF8FAFC),
+        isDense: true,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 12,
+          vertical: 12,
+        ),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: borderGrey),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide(color: borderGrey),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: const BorderSide(color: _kAdminBarTeal, width: 1.4),
+        ),
+      ),
+      style: GoogleFonts.outfit(fontSize: 14, color: _kAdminTitleText),
+    );
+
+    final saveBtn = OutlinedButton(
+      onPressed: _savingProfilePhone ? null : _saveInlinePhone,
+      style: OutlinedButton.styleFrom(
+        foregroundColor: Colors.black,
+        side: BorderSide(color: borderGrey),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+      child: _savingProfilePhone
+          ? SizedBox(
+              width: 18,
+              height: 18,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: _kAdminBarTeal,
+              ),
+            )
+          : Text(
+              'Save',
+              style: GoogleFonts.outfit(
+                fontWeight: FontWeight.w700,
+                fontSize: 14,
+              ),
+            ),
+    );
+
+    final cancelBtn = OutlinedButton(
+      onPressed: _savingProfilePhone ? null : _cancelInlinePhoneEdit,
+      style: OutlinedButton.styleFrom(
+        foregroundColor: Colors.black87,
+        side: BorderSide(color: borderGrey),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+      ),
+      child: Text(
+        'Cancel',
+        style: GoogleFonts.outfit(
+          fontWeight: FontWeight.w400,
+          fontSize: 14,
+        ),
+      ),
+    );
+
+    if (narrow) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          field,
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              saveBtn,
+              const SizedBox(width: 8),
+              cancelBtn,
+            ],
+          ),
+        ],
+      );
+    }
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(child: field),
+        const SizedBox(width: 10),
+        saveBtn,
+        const SizedBox(width: 8),
+        cancelBtn,
+      ],
+    );
+  }
+
+  Widget _buildAdminProfileSection(BuildContext context) {
+    final narrow = MediaQuery.sizeOf(context).width < 520;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _adminSectionHeader(context, 'Admin profile', _kAdminBarBlue),
+        const SizedBox(height: 4),
+        Container(
+          decoration: _adminCardDecoration(),
+          padding: const EdgeInsets.all(20),
+          child: _profileUserLoading
+              ? const SizedBox(
+                  height: 96,
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              : _buildAdminProfileCardBody(context, narrow),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAdminProfileCardBody(BuildContext context, bool narrow) {
+    final u = _profileUser;
+    final displayName = _profileDisplayName(u);
+    final initials = _profileInitials(displayName);
+    final emailRaw = _profileEmailFromUser(u)?.trim() ?? '';
+    final hasEmail = emailRaw.isNotEmpty;
+    final phoneOnAccount = u?.phoneNumber?.trim();
+    final hasPhoneOnAccount =
+        phoneOnAccount != null && phoneOnAccount.isNotEmpty;
+
+    final centerBlock = Column(
+      crossAxisAlignment:
+          narrow ? CrossAxisAlignment.center : CrossAxisAlignment.start,
+      children: [
+        if (_inlineEditingName)
+          _buildInlineNameEditor(context, narrow)
+        else
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
+                  displayName,
+                  textAlign: narrow ? TextAlign.center : TextAlign.start,
+                  style: GoogleFonts.outfit(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.black,
+                  ),
+                ),
+              ),
+              IconButton(
+                tooltip: 'Edit name',
+                onPressed: () =>
+                    _startInlineNameEdit(initial: u?.name?.trim()),
+                icon: Icon(
+                  Icons.edit_outlined,
+                  size: 20,
+                  color: Colors.grey.shade700,
+                ),
+                style: IconButton.styleFrom(
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  visualDensity: VisualDensity.compact,
+                ),
+              ),
+            ],
+          ),
+        const SizedBox(height: 8),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: const Color(0xFFEFF6FF),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.shield_outlined, size: 14, color: _kAdminBarBlue),
+              const SizedBox(width: 4),
+              Text(
+                'ADMIN',
+                style: GoogleFonts.outfit(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 0.6,
+                  color: _kAdminBarBlue,
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+        _adminProfileInfoRow(
+          iconBg: const Color(0xFFCCFBF1),
+          icon: Icons.phone_outlined,
+          iconColor: _kAdminBarTeal,
+          child: _inlineEditingPhone
+              ? _buildInlinePhoneEditor(context, narrow)
+              : Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        hasPhoneOnAccount
+                            ? _formatPhoneSpaces(phoneOnAccount)
+                            : 'No phone on account',
+                        style: GoogleFonts.outfit(
+                          fontSize: 14,
+                          color: hasPhoneOnAccount
+                              ? _kAdminTitleText
+                              : _kAdminSubtitleText,
+                          fontStyle: hasPhoneOnAccount
+                              ? FontStyle.normal
+                              : FontStyle.italic,
+                        ),
+                      ),
+                    ),
+                    if (!_serverHasPhone)
+                      TextButton.icon(
+                        onPressed: () => _startInlinePhoneEdit(),
+                        icon:
+                            Icon(Icons.add, size: 18, color: _kAdminBarTeal),
+                        label: Text(
+                          'Add phone',
+                          style: GoogleFonts.outfit(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                            color: _kAdminBarTeal,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+        ),
+        const SizedBox(height: 10),
+        _adminProfileInfoRow(
+          iconBg: const Color(0xFFEFF6FF),
+          icon: Icons.mail_outline_rounded,
+          iconColor: _kAdminBarBlue,
+          child: _inlineEditingEmail
+              ? _buildInlineEmailEditor(context, narrow)
+              : Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        hasEmail ? emailRaw : 'No email set',
+                        style: GoogleFonts.outfit(
+                          fontSize: 14,
+                          color: hasEmail
+                              ? _kAdminTitleText
+                              : _kAdminSubtitleText,
+                          fontStyle: hasEmail
+                              ? FontStyle.normal
+                              : FontStyle.italic,
+                        ),
+                      ),
+                    ),
+                    if (!_serverHasEmail)
+                      TextButton.icon(
+                        onPressed: () => _startInlineEmailEdit(),
+                        icon: Icon(Icons.add, size: 18, color: _kAdminBarBlue),
+                        label: Text(
+                          'Add email',
+                          style: GoogleFonts.outfit(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                            color: _kAdminBarBlue,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+        ),
+      ],
+    );
+
+    final avatar = Container(
+      width: 72,
+      height: 72,
+      alignment: Alignment.center,
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: LinearGradient(
+          colors: [Color(0xFF2563EB), Color(0xFF7C3AED)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+      ),
+      child: Text(
+        initials,
+        style: GoogleFonts.outfit(
+          fontSize: 24,
+          fontWeight: FontWeight.w700,
+          color: Colors.white,
+          letterSpacing: 0.5,
+        ),
+      ),
+    );
+
+    if (narrow) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          avatar,
+          const SizedBox(height: 16),
+          SizedBox(width: double.infinity, child: centerBlock),
+        ],
+      );
+    }
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        avatar,
+        const SizedBox(width: 20),
+        Expanded(child: centerBlock),
+      ],
+    );
+  }
+
+  Widget _adminProfileInfoRow({
+    required Color iconBg,
+    required IconData icon,
+    required Color iconColor,
+    required Widget child,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 34,
+          height: 34,
+          decoration: BoxDecoration(
+            color: iconBg,
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Icon(icon, size: 18, color: iconColor),
+        ),
+        const SizedBox(width: 12),
+        Expanded(child: child),
+      ],
     );
   }
 
