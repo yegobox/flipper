@@ -2,13 +2,17 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'tenant_form_mixin.dart';
 import 'tenant_operations_mixin.dart';
 import 'tenant_permissions_mixin.dart';
 import 'tenant_ui_mixin.dart';
+
+const Color _kUserMgmtAccent = Color(0xff006AFE);
 
 mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
     on ConsumerState<T> {
@@ -27,6 +31,48 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
   bool _hasTenantPermissionBaseline = false;
   String? userId;
   Tenant? editedTenant;
+  String _tenantListSearchQuery = '';
+  String? selectedTenantUserId;
+
+  Future<void> selectTenantForEdit(Tenant tenant, FlipperBaseModel model) async {
+    final uid = tenant.userId;
+    final tid = tenant.id;
+    if (uid == null || uid.isEmpty) return;
+
+    setState(() {
+      selectedTenantUserId = uid;
+    });
+
+    try {
+      final rows = await Supabase.instance.client
+          .from('accesses')
+          .select()
+          .eq('user_id', uid)
+          .eq('tenant_id', tid);
+
+      final list = <Access>[];
+      for (final item in rows as List<dynamic>) {
+        final e = Map<String, dynamic>.from(item as Map);
+        list.add(Access(
+          id: e['id'] as String?,
+          userId: e['user_id'] as String?,
+          tenantId: e['tenant_id'] as String?,
+          businessId: e['business_id'] as String?,
+          branchId: e['branch_id'] as String?,
+          featureName: e['feature_name'] as String?,
+          userType: e['user_type'] as String?,
+          accessLevel: e['access_level'] as String?,
+          status: e['status'] as String?,
+        ));
+      }
+      if (!mounted) return;
+      fillFormWithTenantData(tenant, list);
+    } catch (e, s) {
+      debugPrint('selectTenantForEdit: $e\n$s');
+      if (!mounted) return;
+      fillFormWithTenantData(tenant, const []);
+    }
+  }
 
   @override
   void dispose() {
@@ -44,6 +90,8 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
       editMode = false;
       userId = null;
       editedTenant = null;
+      selectedTenantUserId = null;
+      _tenantListSearchQuery = '';
       _tenantPermissionsBaseline = {};
       _tenantActiveBaseline = {};
       _hasTenantPermissionBaseline = false;
@@ -61,50 +109,82 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
       controller: controller,
       keyboardType: keyboardType,
       validator: validator,
-      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+      style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.w500),
       decoration: InputDecoration(
         labelText: labelText,
-        labelStyle: TextStyle(color: Colors.grey[600]),
-        prefixIcon: Icon(icon, color: Colors.blueAccent),
-        border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none),
-        focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Colors.blueAccent, width: 1.5)),
+        labelStyle: GoogleFonts.outfit(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.9,
+          color: Colors.grey[600],
+        ),
+        floatingLabelBehavior: FloatingLabelBehavior.always,
+        prefixIcon: Icon(icon, color: Colors.grey[700], size: 22),
         filled: true,
-        fillColor: const Color(0xFFF3F4F6),
-        contentPadding: const EdgeInsets.symmetric(vertical: 16),
+        fillColor: Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey[300]!),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey[300]!),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: _kUserMgmtAccent, width: 1.2),
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
       ),
     );
   }
 
   Widget buildUserTypeDropdown() {
     return DropdownButtonFormField<String>(
+      key: ValueKey<String>('tenant_user_type_$selectedUserType'),
       initialValue: selectedUserType,
       onChanged: (String? newValue) {
+        if (newValue == null) return;
         setState(() {
-          selectedUserType = newValue!;
+          selectedUserType = newValue;
         });
       },
       items: <String>['Agent', 'Cashier', 'Admin', 'Driver']
           .map<DropdownMenuItem<String>>((String value) {
-            return DropdownMenuItem<String>(value: value, child: Text(value, style: const TextStyle(fontWeight: FontWeight.w500)));
+            return DropdownMenuItem<String>(
+              value: value,
+              child: Text(
+                value,
+                style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
+              ),
+            );
           })
           .toList(),
       decoration: InputDecoration(
-        labelText: "Select User Type",
-        labelStyle: TextStyle(color: Colors.grey[600]),
-        prefixIcon: const Icon(Icons.person_outline, color: Colors.blueAccent),
-        border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none),
-        focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: Colors.blueAccent, width: 1.5)),
+        labelText: 'USER TYPE',
+        labelStyle: GoogleFonts.outfit(
+          fontSize: 11,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.9,
+          color: Colors.grey[600],
+        ),
+        floatingLabelBehavior: FloatingLabelBehavior.always,
+        prefixIcon: Icon(Icons.person_outline, color: Colors.grey[700], size: 22),
         filled: true,
-        fillColor: const Color(0xFFF3F4F6),
-        contentPadding: const EdgeInsets.symmetric(vertical: 16),
+        fillColor: Colors.white,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey[300]!),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide(color: Colors.grey[300]!),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: const BorderSide(color: _kUserMgmtAccent, width: 1.2),
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
       ),
     );
   }
@@ -176,6 +256,7 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
       (fn) => setState(() {
         editMode = true;
         editedTenant = tenant;
+        userId = tenant.userId;
         selectedUserType = tenant.type ?? 'Agent';
         fn();
       }),
@@ -189,14 +270,6 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
     _tenantPermissionsBaseline = Map<String, String>.from(tenantAllowedFeatures);
     _tenantActiveBaseline = Map<String, bool>.from(activeFeatures);
     _hasTenantPermissionBaseline = true;
-  }
-
-  void updateTenantPermissions(List<Access> tenantAccesses) {
-    TenantPermissionsMixin.updateTenantPermissionsStatic(
-      tenantAccesses,
-      setState,
-      tenantAllowedFeatures,
-    );
   }
 
   Widget buildPermissionsSection() {
@@ -213,6 +286,8 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
       context,
       model,
       buildTenantCard,
+      _tenantListSearchQuery,
+      (q) => setState(() => _tenantListSearchQuery = q),
     );
   }
 
@@ -221,11 +296,8 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
       context,
       tenant,
       model,
-      editMode,
-      userId,
-      setState,
-      updateTenantPermissions,
-      fillFormWithTenantData,
+      selectedTenantUserId != null && selectedTenantUserId == tenant.userId,
+      (t) => selectTenantForEdit(t, model),
       showDeleteConfirmation,
     );
   }
@@ -239,7 +311,11 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Expanded(flex: 3, child: buildAddTenantForm(model, context)),
-        SizedBox(width: 20),
+        Container(
+          width: 1,
+          margin: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
+          color: Colors.grey[200],
+        ),
         Expanded(flex: 2, child: buildTenantsList(model)),
       ],
     );
@@ -262,7 +338,7 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 20,
             offset: const Offset(0, 4),
           )
@@ -277,18 +353,19 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
             children: [
               Text(
                 editMode ? "Edit User" : "Add New User",
-                style: const TextStyle(
+                style: GoogleFonts.outfit(
                   fontSize: 22,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: -0.5,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: -0.4,
+                  color: Colors.black87,
                 ),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 30),
+              const SizedBox(height: 28),
               buildTextFormField(
                 controller: nameController,
-                labelText: "Name",
-                icon: Icons.person,
+                labelText: "FULL NAME",
+                icon: Icons.person_outline,
                 keyboardType: TextInputType.name,
                 validator: (value) {
                   if (value == null || value.isEmpty) {
@@ -300,69 +377,118 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
               SizedBox(height: 16),
               buildTextFormField(
                 controller: phoneController,
-                labelText: "Phone Number or Email",
-                icon: Icons.phone,
-                keyboardType: TextInputType.phone,
+                labelText: "PHONE / EMAIL",
+                icon: Icons.phone_outlined,
+                keyboardType: TextInputType.emailAddress,
                 validator: TenantFormMixin.validatePhoneOrEmailStatic,
               ),
               SizedBox(height: 16),
-              // Use the instance dropdown to ensure correct userType wiring
               buildUserTypeDropdown(),
               SizedBox(height: 16),
               if (selectedUserType != 'Agent') buildBranchDropdown(),
               SizedBox(height: 20),
               buildPermissionsSection(),
               SizedBox(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                children: [
-                  Expanded(
-                    child: FlipperButton(
-                      color: Colors.blueAccent,
-                      textColor: Colors.white,
-                      isLoading: isAddingUser,
-                      onPressed: isAddingUser
-                          ? null
-                          : () async {
-                              if (formKey.currentState!.validate()) {
-                                formKey.currentState!.save();
-                                setState(() => isAddingUser = true);
-                                try {
-                                  await addUser(
-                                    model,
-                                    context,
-                                    editMode: editMode,
-                                    name: nameController.text,
-                                    phone: phoneController.text,
-                                    userType: selectedUserType,
-                                    userId: editMode && editedTenant != null
-                                        ? editedTenant?.userId
-                                        : null,
-                                  );
-                                  resetForm();
-                                } catch (e) {
-                                  // Error is already handled in the `addUser` method
-                                } finally {
-                                  setState(() => isAddingUser = false);
-                                }
-                              }
-                            },
-                      text: editMode ? "Update User" : "Add User",
-                    ),
-                  ),
-                  if (editMode) ...[
-                    SizedBox(width: 16),
+              if (editMode)
+                Row(
+                  children: [
                     Expanded(
-                      child: FlipperButton(
-                        onPressed: () => resetForm(),
-                        text: 'Cancel',
-                        textColor: Colors.blueAccent,
-                        color: const Color(0xFFF3F4F6),
+                      child: SizedBox(
+                        width: double.infinity,
+                        height: 52,
+                        child: FlipperButton(
+                          width: double.infinity,
+                          height: 52,
+                          borderRadius: BorderRadius.circular(12),
+                          color: _kUserMgmtAccent,
+                          textColor: Colors.white,
+                          isLoading: isAddingUser,
+                          onPressed: isAddingUser
+                              ? null
+                              : () async {
+                                  if (formKey.currentState!.validate()) {
+                                    formKey.currentState!.save();
+                                    setState(() => isAddingUser = true);
+                                    try {
+                                      await addUser(
+                                        model,
+                                        context,
+                                        editMode: editMode,
+                                        name: nameController.text,
+                                        phone: phoneController.text,
+                                        userType: selectedUserType,
+                                        userId: editMode && editedTenant != null
+                                            ? editedTenant?.userId
+                                            : null,
+                                      );
+                                      resetForm();
+                                    } catch (e) {
+                                      // handled in addUser
+                                    } finally {
+                                      setState(() => isAddingUser = false);
+                                    }
+                                  }
+                                },
+                          text: "Update User",
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: SizedBox(
+                        width: double.infinity,
+                        height: 52,
+                        child: FlipperButton(
+                          width: double.infinity,
+                          height: 52,
+                          borderRadius: BorderRadius.circular(12),
+                          onPressed: isAddingUser ? null : () => resetForm(),
+                          text: 'Cancel',
+                          textColor: _kUserMgmtAccent,
+                          color: const Color(0xFFF3F4F6),
+                        ),
                       ),
                     ),
                   ],
-                ],
-              ),
+                )
+              else
+                SizedBox(
+                  width: double.infinity,
+                  height: 52,
+                  child: FlipperButton(
+                    width: double.infinity,
+                    height: 52,
+                    borderRadius: BorderRadius.circular(12),
+                    color: _kUserMgmtAccent,
+                    textColor: Colors.white,
+                    isLoading: isAddingUser,
+                    onPressed: isAddingUser
+                        ? null
+                        : () async {
+                            if (formKey.currentState!.validate()) {
+                              formKey.currentState!.save();
+                              setState(() => isAddingUser = true);
+                              try {
+                                await addUser(
+                                  model,
+                                  context,
+                                  editMode: editMode,
+                                  name: nameController.text,
+                                  phone: phoneController.text,
+                                  userType: selectedUserType,
+                                  userId: null,
+                                );
+                                resetForm();
+                              } catch (e) {
+                                // handled in addUser
+                              } finally {
+                                setState(() => isAddingUser = false);
+                              }
+                            }
+                          },
+                    text: "+ Add User",
+                  ),
+                ),
             ],
           ),
         ),

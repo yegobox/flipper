@@ -150,6 +150,7 @@ class TenantOperationsMixin {
           'branchId': branch.id,
           'businessId': branch.businessId,
           'defaultApp': 1,
+          'ownerName': name,
         }),
       );
 

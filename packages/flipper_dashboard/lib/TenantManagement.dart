@@ -18,8 +18,9 @@ class UserManagement extends ConsumerState<TenantManagement>
   @override
   void initState() {
     super.initState();
-    for (var feature in features) {
+    for (final feature in features) {
       activeFeatures[feature] = false;
+      tenantAllowedFeatures[feature] = 'No Access';
     }
   }
 
