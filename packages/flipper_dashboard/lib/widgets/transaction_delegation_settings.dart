@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
+import 'package:flipper_dashboard/widgets/admin_dashboard_svgs.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'dart:io';
 
 /// Widget to manage transaction delegation settings
@@ -92,65 +96,86 @@ class _TransactionDelegationSettingsState
 
   @override
   Widget build(BuildContext context) {
+    const borderColor = Color(0xFFE5E7EB);
+
     if (_isLoading) {
-      return const Card(
-        child: Padding(
-          padding: EdgeInsets.all(16.0),
-          child: Center(
-            child: CircularProgressIndicator(),
-          ),
+      return Container(
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: borderColor),
         ),
+        padding: const EdgeInsets.all(20),
+        child: const Center(child: CircularProgressIndicator()),
       );
     }
 
-    return Card(
-      margin: const EdgeInsets.all(8.0),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.sync,
-                  color: Theme.of(context).primaryColor,
-                  size: 28,
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: borderColor),
+      ),
+      padding: const EdgeInsets.all(18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF0D9488).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Transaction Delegation',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
+                child: SvgPicture.string(
+                  AdminDashboardSvgs.transactionDelegation,
+                  width: 24,
+                  height: 24,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Transaction Delegation',
+                      style: GoogleFonts.outfit(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                        color: const Color(0xFF111827),
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _getPlatformDescription(),
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Colors.grey[600],
-                            ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      _getPlatformDescription(),
+                      style: GoogleFonts.outfit(
+                        fontSize: 13,
+                        color: const Color(0xFF6B7280),
+                        height: 1.35,
                       ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-                Switch(
-                  value: _isEnabled,
-                  onChanged: _toggleDelegation,
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            _buildInfoSection(context),
-            if (_isDesktopPlatform() && _isEnabled) ...[
-              const SizedBox(height: 16),
+              ),
+              Switch(
+                value: _isEnabled,
+                onChanged: _toggleDelegation,
+                activeTrackColor: PosLayoutBreakpoints.posAccentBlue,
+                inactiveTrackColor: const Color(0xFFE5E7EB),
+                inactiveThumbColor: Colors.white,
+                activeThumbColor: Colors.white,
+              ),
             ],
+          ),
+          const SizedBox(height: 14),
+          _buildInfoSection(context),
+          if (_isDesktopPlatform() && _isEnabled) ...[
+            const SizedBox(height: 16),
           ],
-        ),
+        ],
       ),
     );
   }
@@ -165,25 +190,34 @@ class _TransactionDelegationSettingsState
   }
 
   Widget _buildInfoSection(BuildContext context) {
+    const infoBlue = Color(0xFF2563EB);
+    const infoBg = Color(0xFFEFF6FF);
+    const infoBorder = Color(0xFFBFDBFE);
+
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.blue[50],
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.blue[200]!),
+        color: infoBg,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: infoBorder),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.info_outline, color: Colors.blue[700], size: 20),
+              SvgPicture.string(
+                AdminDashboardSvgs.infoCircle,
+                width: 16,
+                height: 16,
+              ),
               const SizedBox(width: 8),
               Text(
                 'How it works',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Colors.blue[900],
+                style: GoogleFonts.outfit(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14,
+                  color: infoBlue,
                 ),
               ),
             ],
@@ -226,9 +260,10 @@ class _TransactionDelegationSettingsState
       padding: const EdgeInsets.only(top: 4),
       child: Text(
         text,
-        style: TextStyle(
+        style: GoogleFonts.outfit(
           fontSize: 13,
-          color: Colors.blue[800],
+          color: const Color(0xFF1D4ED8),
+          height: 1.4,
         ),
       ),
     );
