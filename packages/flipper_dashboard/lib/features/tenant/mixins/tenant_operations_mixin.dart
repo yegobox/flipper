@@ -205,6 +205,7 @@ class TenantOperationsMixin {
           'p_business_id': businessIdFromBox,
           'p_branch_id': branch.id,
           'p_accesses': accessPermissions,
+          'p_user_type': userType,
         };
         talker.info('create_agent params: $rpcParams');
         data = await supabaseClient.rpc(
