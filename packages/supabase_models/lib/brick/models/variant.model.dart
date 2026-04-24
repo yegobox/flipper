@@ -46,7 +46,18 @@ class Variant extends OfflineFirstWithSupabaseModel {
   String? productName;
   String? categoryId; // Reference to the category
   String? categoryName; // Name of the category
+
+  /// Local/remote rows may have NULL branch_id; Brick's default `as String` throws on deserialize.
+  @Sqlite(
+    fromGenerator:
+        "data['branch_id'] == null ? '' : data['branch_id'].toString()",
+  )
+  @Supabase(
+    fromGenerator:
+        "data['branch_id'] == null ? '' : data['branch_id'].toString()",
+  )
   String branchId;
+
   String? taxName;
 
   // add RRA fields
