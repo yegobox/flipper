@@ -2,7 +2,9 @@
 
 import 'package:flipper_dashboard/BranchPerformance.dart';
 import 'package:flipper_dashboard/BranchSelectionMixin.dart';
+import 'package:flipper_dashboard/import_purchase_dialog.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
+import 'package:flipper_dashboard/providers/app_mode_provider.dart';
 import 'package:flipper_dashboard/Reports.dart';
 import 'package:flipper_dashboard/tax_configuration.dart';
 import 'package:flipper_dashboard/transaction_list_wrapper.dart';
@@ -19,6 +21,7 @@ import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_services/DeviceType.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:supabase_models/brick/models/branch.model.dart';
@@ -191,6 +194,11 @@ class IconRowState extends ConsumerState<IconRow>
 
   @override
   Widget build(BuildContext context) {
+    final deviceType = _getDeviceType(context);
+    final appMode = ref.watch(appModeProvider);
+    final showImportPurchase =
+        deviceType != 'Phone' && deviceType != 'Phablet' && appMode;
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -227,6 +235,25 @@ class IconRowState extends ConsumerState<IconRow>
           uiIndex: 3,
           key: const Key('analytics_desktop'),
         ),
+        if (showImportPurchase) ...[
+          const SizedBox(width: 4),
+          Tooltip(
+            message: 'Import & Purchase',
+            child: InkWell(
+              key: const Key('import_purchase_ribbon'),
+              onTap: () => ImportPurchaseDialog.show(context),
+              borderRadius: BorderRadius.circular(8),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                child: Icon(
+                  FluentIcons.expand_up_right_16_regular,
+                  color: Colors.black54,
+                  size: 20,
+                ),
+              ),
+            ),
+          ),
+        ],
         const SizedBox(width: 4),
         PopupMenuButton<String>(
           tooltip: 'More',
