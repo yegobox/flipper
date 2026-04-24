@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flipper_services/proxy.dart';
 
 import 'tenant_form_mixin.dart';
 import 'tenant_operations_mixin.dart';
@@ -44,11 +45,33 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
     });
 
     try {
-      final rows = await Supabase.instance.client
+      debugPrint(
+        'selectTenantForEdit: tenantId=$tid userId=$uid businessId=${tenant.businessId} boxBusinessId=${ProxyService.box.getBusinessId()} boxBranchId=${ProxyService.box.getBranchId()}',
+      );
+
+      var rows = await Supabase.instance.client
           .from('accesses')
           .select()
           .eq('user_id', uid)
           .eq('tenant_id', tid);
+
+      // Some legacy rows might not include tenant_id as expected; fall back to a broader query.
+      if ((rows as List).isEmpty) {
+        final biz = tenant.businessId ?? ProxyService.box.getBusinessId();
+        if (biz != null && biz.isNotEmpty) {
+          rows = await Supabase.instance.client
+              .from('accesses')
+              .select()
+              .eq('user_id', uid)
+              .eq('business_id', biz);
+        } else {
+          rows = await Supabase.instance.client
+              .from('accesses')
+              .select()
+              .eq('user_id', uid);
+        }
+      }
+      debugPrint('selectTenantForEdit: accesses rows=${(rows as List).length}');
 
       final list = <Access>[];
       for (final item in rows as List<dynamic>) {
