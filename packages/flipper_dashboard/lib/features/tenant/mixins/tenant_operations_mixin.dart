@@ -49,6 +49,7 @@ class TenantOperationsMixin {
     required String userType,
     required String? userId,
     required WidgetRef ref,
+    String? branchIdOverride,
     required Map<String, String> tenantAllowedFeatures,
     required Map<String, bool> activeFeatures,
     Map<String, String>? permissionsBaseline,
@@ -62,7 +63,7 @@ class TenantOperationsMixin {
       // + business_id match).
       //
       // Agents can still be created under the *current* active branch.
-      final currentBranchId = ProxyService.box.getBranchId();
+      final currentBranchId = branchIdOverride ?? ProxyService.box.getBranchId();
       if (currentBranchId == null || currentBranchId.isEmpty) {
         _fail(context, 'branch_id can not be null');
       }

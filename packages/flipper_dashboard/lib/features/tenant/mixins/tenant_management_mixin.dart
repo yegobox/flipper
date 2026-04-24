@@ -34,6 +34,7 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
   Tenant? editedTenant;
   String _tenantListSearchQuery = '';
   String? selectedTenantUserId;
+  String? _selectedTenantBranchIdForEdit;
 
   Future<void> selectTenantForEdit(Tenant tenant, FlipperBaseModel model) async {
     final uid = tenant.userId;
@@ -87,6 +88,17 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
           accessLevel: e['access_level'] as String?,
           status: e['status'] as String?,
         ));
+      }
+      // Preserve the branch id used by existing accesses so edits upsert in-place
+      // (unique key includes branch_id).
+      final branchIdFromAccesses =
+          list.firstWhere((a) => a.branchId != null && a.branchId!.isNotEmpty,
+                  orElse: () => Access(id: 'x'))
+              .branchId;
+      if (branchIdFromAccesses != null && branchIdFromAccesses.isNotEmpty) {
+        _selectedTenantBranchIdForEdit = branchIdFromAccesses;
+      } else {
+        _selectedTenantBranchIdForEdit = ProxyService.box.getBranchId();
       }
       if (!mounted) return;
       fillFormWithTenantData(tenant, list);
@@ -230,6 +242,7 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
         phone: phone,
         userType: userType,
         userId: userId,
+        branchIdOverride: editMode ? _selectedTenantBranchIdForEdit : null,
         ref: ref,
         tenantAllowedFeatures: tenantAllowedFeatures,
         activeFeatures: activeFeatures,
