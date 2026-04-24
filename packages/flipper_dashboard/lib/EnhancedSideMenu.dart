@@ -1,9 +1,9 @@
 import 'package:flipper_dashboard/ActiveBranch.dart';
 import 'package:flipper_models/providers/access_provider.dart';
 import 'package:flipper_services/proxy.dart';
-import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
@@ -39,7 +39,8 @@ class EnhancedSideMenu extends ConsumerWidget {
 
     final menuItems = [
       _SideMenuItem(
-        icon: Icons.dashboard_outlined,
+        iconBuilder: (_) =>
+            SvgPicture.string(_SideMenuSvgs.appGrid, width: 24, height: 24),
         isSelected: selectedItem == 0,
         onTap: () {
           ref.read(selectedMenuItemProvider.notifier).state = 0;
@@ -49,7 +50,8 @@ class EnhancedSideMenu extends ConsumerWidget {
         tooltip: 'Overview',
       ),
       _SideMenuItem(
-        icon: Icons.chat_bubble,
+        iconBuilder: (_) =>
+            SvgPicture.string(_SideMenuSvgs.aiChat, width: 24, height: 24),
         isSelected: selectedItem == 1,
         onTap: () {
           ref.read(selectedMenuItemProvider.notifier).state = 1;
@@ -59,7 +61,8 @@ class EnhancedSideMenu extends ConsumerWidget {
       ),
       if (hasInventory)
         _SideMenuItem(
-          icon: FluentIcons.box_24_regular,
+          iconBuilder: (_) =>
+              SvgPicture.string(_SideMenuSvgs.inventory, width: 24, height: 24),
           isSelected: selectedItem == 2,
           onTap: () {
             ref.read(selectedMenuItemProvider.notifier).state = 2;
@@ -70,7 +73,7 @@ class EnhancedSideMenu extends ConsumerWidget {
         ),
       if (hasKDS)
         _SideMenuItem(
-          icon: Icons.restaurant_menu,
+          iconBuilder: (c) => Icon(Icons.restaurant_menu, color: c, size: 24),
           isSelected: selectedItem == 3,
           onTap: () {
             ref.read(selectedMenuItemProvider.notifier).state = 3;
@@ -81,7 +84,11 @@ class EnhancedSideMenu extends ConsumerWidget {
         ),
       if (hasInventory)
         _SideMenuItem(
-          icon: Icons.inventory_2_outlined,
+          iconBuilder: (_) => SvgPicture.string(
+            _SideMenuSvgs.stockRecount,
+            width: 24,
+            height: 24,
+          ),
           isSelected: selectedItem == 6,
           onTap: () {
             ref.read(selectedMenuItemProvider.notifier).state = 6;
@@ -92,7 +99,7 @@ class EnhancedSideMenu extends ConsumerWidget {
         ),
       if (hasAccess)
         _SideMenuItem(
-          icon: Icons.print_outlined,
+          iconBuilder: (c) => Icon(Icons.print_outlined, color: c, size: 24),
           isSelected: selectedItem == 7,
           onTap: () {
             ref.read(selectedMenuItemProvider.notifier).state = 7;
@@ -103,7 +110,11 @@ class EnhancedSideMenu extends ConsumerWidget {
         ),
       if (hasOrdering || hasInventory)
         _SideMenuItem(
-          icon: Icons.move_to_inbox,
+          iconBuilder: (_) => SvgPicture.string(
+            _SideMenuSvgs.inboxImport,
+            width: 24,
+            height: 24,
+          ),
           isSelected: selectedItem == 8,
           onTap: () {
             ref.read(selectedMenuItemProvider.notifier).state = 8;
@@ -114,7 +125,11 @@ class EnhancedSideMenu extends ConsumerWidget {
         ),
       if (hasManufacturing)
         _SideMenuItem(
-          icon: Icons.factory_outlined,
+          iconBuilder: (_) => SvgPicture.string(
+            _SideMenuSvgs.production,
+            width: 24,
+            height: 24,
+          ),
           isSelected: selectedItem == 9,
           onTap: () {
             ref.read(selectedMenuItemProvider.notifier).state = 9;
@@ -125,7 +140,8 @@ class EnhancedSideMenu extends ConsumerWidget {
         ),
       if (isAdminAsyncValue.value == true && hasShiftHistory)
         _SideMenuItem(
-          icon: Icons.history,
+          iconBuilder: (_) =>
+              SvgPicture.string(_SideMenuSvgs.history, width: 24, height: 24),
           isSelected: selectedItem == 5,
           onTap: () {
             ref.read(selectedMenuItemProvider.notifier).state = 5;
@@ -135,7 +151,8 @@ class EnhancedSideMenu extends ConsumerWidget {
           tooltip: 'Shift History',
         ),
       _SideMenuItem(
-        icon: Icons.logout,
+        iconBuilder: (_) =>
+            SvgPicture.string(_SideMenuSvgs.logout, width: 24, height: 24),
         isSelected: selectedItem == 4,
         onTap: () async {
           final userId = ProxyService.box.getUserId();
@@ -213,8 +230,11 @@ class EnhancedSideMenu extends ConsumerWidget {
         Column(
           children: [
             IconButton(
-              icon: const Icon(Icons.apps),
-              color: Color(0xFF64748B),
+              icon: SvgPicture.string(
+                _SideMenuSvgs.appGrid,
+                width: 24,
+                height: 24,
+              ),
               onPressed: () {
                 _dialogService.showCustomDialog(
                   variant: DialogType.appChoice,
@@ -233,15 +253,87 @@ class EnhancedSideMenu extends ConsumerWidget {
   }
 }
 
+class _SideMenuSvgs {
+  _SideMenuSvgs._();
+
+  static const inventory =
+      '''<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M12 2L2 7l10 5 10-5-10-5z" stroke="#5B6478" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M2 17l10 5 10-5" stroke="#5B6478" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"/>
+  <path d="M2 12l10 5 10-5" stroke="#5B6478" stroke-width="1.7" stroke-linejoin="round" stroke-linecap="round"/>
+</svg>''';
+
+  static const stockRecount =
+      '''<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" stroke="#5B6478" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="9" y="3" width="6" height="4" rx="1" stroke="#5B6478" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M9 12h1M12 12h1M15 12h1" stroke="#5B6478" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M9 15.5h1M12 15.5h1" stroke="#5B6478" stroke-width="1.8" stroke-linecap="round"/>
+  <path d="M14.5 14.5l1.5 1.5-1.5 1.5" stroke="#5B6478" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>''';
+
+  static const inboxImport =
+      '''<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect x="2" y="4" width="20" height="16" rx="2" stroke="#5B6478" stroke-width="1.7"/>
+  <path d="M2 9h20" stroke="#5B6478" stroke-width="1.7" stroke-linecap="round"/>
+  <path d="M12 13v4M10 15l2 2 2-2" stroke="#5B6478" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>''';
+
+  static const history =
+      '''<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M20.5 12A8.5 8.5 0 1112 3.5" stroke="#5B6478" stroke-width="1.7" stroke-linecap="round"/>
+  <path d="M12 3.5V7M9 5h6" stroke="#5B6478" stroke-width="1.7" stroke-linecap="round"/>
+  <path d="M12 8v4l3 2" stroke="#5B6478" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>''';
+
+  static const logout =
+      '''<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M9 4H5a1 1 0 00-1 1v14a1 1 0 001 1h4" stroke="#E24B4A" stroke-width="1.7" stroke-linecap="round"/>
+  <path d="M15 16l4-4-4-4" stroke="#E24B4A" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M9 12h10" stroke="#E24B4A" stroke-width="1.7" stroke-linecap="round"/>
+</svg>''';
+
+  static const appGrid =
+      '''<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <circle cx="5" cy="5" r="1.5" fill="#5B6478"/>
+  <circle cx="12" cy="5" r="1.5" fill="#5B6478"/>
+  <circle cx="19" cy="5" r="1.5" fill="#5B6478"/>
+  <circle cx="5" cy="12" r="1.5" fill="#5B6478"/>
+  <circle cx="12" cy="12" r="1.5" fill="#5B6478"/>
+  <circle cx="19" cy="12" r="1.5" fill="#5B6478"/>
+  <circle cx="5" cy="19" r="1.5" fill="#5B6478"/>
+  <circle cx="12" cy="19" r="1.5" fill="#5B6478"/>
+  <circle cx="19" cy="19" r="1.5" fill="#5B6478"/>
+</svg>''';
+
+  static const aiChat =
+      '''<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" stroke="#7C3AED" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="8.5" cy="11" r="1" fill="#7C3AED"/>
+  <circle cx="12" cy="11" r="1" fill="#7C3AED"/>
+  <circle cx="15.5" cy="11" r="1" fill="#7C3AED"/>
+</svg>''';
+
+  static const production =
+      '''<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect x="2" y="7" width="20" height="13" rx="2" stroke="#2563EB" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M2 10h20" stroke="#2563EB" stroke-width="1.6" stroke-linecap="round"/>
+  <path d="M6 4h12" stroke="#2563EB" stroke-width="1.6" stroke-linecap="round"/>
+  <rect x="5" y="14" width="3" height="2" rx="0.5" fill="#2563EB"/>
+  <rect x="10" y="14" width="3" height="2" rx="0.5" fill="#2563EB"/>
+  <rect x="15" y="14" width="4" height="2" rx="0.5" fill="#2563EB"/>
+</svg>''';
+}
+
 class _SideMenuItem extends StatelessWidget {
-  final IconData icon;
+  final Widget Function(Color iconColor) iconBuilder;
   final bool isSelected;
   final VoidCallback onTap;
   final String tooltip;
   final bool isLogout;
 
   const _SideMenuItem({
-    required this.icon,
+    required this.iconBuilder,
     required this.isSelected,
     required this.onTap,
     required this.tooltip,
@@ -268,11 +360,7 @@ class _SideMenuItem extends StatelessWidget {
         ),
         child: Padding(
           padding: const EdgeInsets.all(8.0),
-          child: Icon(
-            icon,
-            color: color,
-            size: 24,
-          ),
+          child: iconBuilder(color),
         ),
       ),
     );
