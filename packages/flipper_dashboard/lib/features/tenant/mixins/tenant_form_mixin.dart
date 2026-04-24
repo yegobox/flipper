@@ -1,5 +1,5 @@
+import 'package:email_validator/email_validator.dart';
 import 'package:flutter/material.dart';
-import 'package:email_validator_flutter/email_validator_flutter.dart';
 import 'package:phone_numbers_parser/phone_numbers_parser.dart';
 
 class TenantFormMixin {
@@ -20,8 +20,7 @@ class TenantFormMixin {
       return "Enter valid number or email address";
     }
 
-    // Check if it's a valid email
-    if (EmailValidatorFlutter().validateEmail(value)) {
+    if (EmailValidator.validate(value.trim())) {
       return null;
     }
 
