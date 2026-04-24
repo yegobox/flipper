@@ -8,7 +8,7 @@ class TenantFormMixin {
   static final TextEditingController phoneController = TextEditingController();
   static bool isAddingUser = false;
   static bool editMode = false;
-  static String selectedUserType = 'Agent';
+  static String selectedUserType = 'Cashier';
 
   static void resetForm() {
     nameController.clear();

@@ -21,9 +21,11 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
   final GlobalKey<FormState> formKey = GlobalKey<FormState>();
   final TextEditingController nameController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
+  final TextEditingController agentBranchNameController =
+      TextEditingController();
   bool isAddingUser = false;
   bool editMode = false;
-  String selectedUserType = 'Agent';
+  String selectedUserType = 'Cashier';
   Map<String, bool> activeFeatures = {};
   Map<String, String> tenantAllowedFeatures = {};
   /// Captured when opening a tenant for edit; used to send only changed accesses to `create_agent`.
@@ -113,14 +115,16 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
   void dispose() {
     nameController.dispose();
     phoneController.dispose();
+    agentBranchNameController.dispose();
     super.dispose();
   }
 
   void resetForm() {
     nameController.clear();
     phoneController.clear();
+    agentBranchNameController.clear();
     setState(() {
-      selectedUserType = 'Agent';
+      selectedUserType = 'Cashier';
       tenantAllowedFeatures.clear();
       editMode = false;
       userId = null;
@@ -242,6 +246,9 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
         phone: phone,
         userType: userType,
         userId: userId,
+        agentBranchName: userType == 'Agent'
+            ? agentBranchNameController.text
+            : null,
         branchIdOverride: editMode ? _selectedTenantBranchIdForEdit : null,
         ref: ref,
         tenantAllowedFeatures: tenantAllowedFeatures,
@@ -303,6 +310,8 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
       phoneController,
       formKey,
     );
+    // Editing an existing user does not create a new branch.
+    agentBranchNameController.text = '';
     _tenantPermissionsBaseline = Map<String, String>.from(tenantAllowedFeatures);
     _tenantActiveBaseline = Map<String, bool>.from(activeFeatures);
     _hasTenantPermissionBaseline = true;
@@ -421,7 +430,22 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
               SizedBox(height: 16),
               buildUserTypeDropdown(),
               SizedBox(height: 16),
-              if (selectedUserType != 'Agent') buildBranchDropdown(),
+              if (!editMode && selectedUserType == 'Agent')
+                buildTextFormField(
+                  controller: agentBranchNameController,
+                  labelText: "BRANCH NAME (AGENT)",
+                  icon: Icons.storefront_outlined,
+                  keyboardType: TextInputType.text,
+                  validator: (value) {
+                    if (selectedUserType != 'Agent') return null;
+                    final v = (value ?? '').trim();
+                    if (v.isEmpty) return 'Please enter a branch name';
+                    if (v.length < 2) return 'Branch name is too short';
+                    return null;
+                  },
+                )
+              else if (selectedUserType != 'Agent')
+                buildBranchDropdown(),
               SizedBox(height: 20),
               buildPermissionsSection(),
               SizedBox(height: 24),

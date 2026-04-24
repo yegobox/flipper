@@ -50,6 +50,7 @@ class TenantOperationsMixin {
     required String? userId,
     required WidgetRef ref,
     String? branchIdOverride,
+    String? agentBranchName,
     required Map<String, String> tenantAllowedFeatures,
     required Map<String, bool> activeFeatures,
     Map<String, String>? permissionsBaseline,
@@ -57,22 +58,35 @@ class TenantOperationsMixin {
   }) async {
     try {
       Branch? branch;
-      // IMPORTANT: do NOT create a new branch here.
-      // We need a branch that already exists in Supabase; otherwise create_agent
-      // fails with "Branch ... does not belong to business ..." (it checks existence
-      // + business_id match).
-      //
-      // Agents can still be created under the *current* active branch.
-      final currentBranchId = branchIdOverride ?? ProxyService.box.getBranchId();
-      if (currentBranchId == null || currentBranchId.isEmpty) {
-        _fail(context, 'branch_id can not be null');
-      }
-      branch = await ProxyService.strategy.activeBranch(branchId: currentBranchId);
-
-      final businessIdFromBox = ProxyService.box.getBusinessId();
-      if (businessIdFromBox == null || businessIdFromBox.isEmpty) {
+      final currentBusinessId = ProxyService.box.getBusinessId();
+      if (currentBusinessId == null || currentBusinessId.isEmpty) {
         _fail(context, 'business_id can not be null');
       }
+
+      // Agent: create a dedicated branch for this agent (remote) using the provided name.
+      if (!editMode && userType == 'Agent') {
+        final bn = (agentBranchName ?? '').trim();
+        if (bn.isEmpty) {
+          _fail(context, 'Please enter a branch name for Agent');
+        }
+        branch = await ProxyService.strategy.addBranch(
+          businessId: currentBusinessId,
+          name: bn,
+          location: bn,
+          isDefault: false,
+          active: true,
+          flipperHttpClient: ProxyService.http,
+        );
+      } else {
+        // Non-agent (or edit): use existing branch (override when editing to upsert correctly).
+        final currentBranchId = branchIdOverride ?? ProxyService.box.getBranchId();
+        if (currentBranchId == null || currentBranchId.isEmpty) {
+          _fail(context, 'branch_id can not be null');
+        }
+        branch = await ProxyService.strategy.activeBranch(branchId: currentBranchId);
+      }
+
+      final businessIdFromBox = currentBusinessId;
 
       talker.info(
         'addUserStatic: context ids → businessId=$businessIdFromBox, branchId=${branch.id}, branch.businessId=${branch.businessId}, userType=$userType, editMode=$editMode',

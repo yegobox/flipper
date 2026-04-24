@@ -22,6 +22,7 @@ class UserManagement extends ConsumerState<TenantManagement>
       activeFeatures[feature] = false;
       tenantAllowedFeatures[feature] = 'No Access';
     }
+    selectedUserType = 'Cashier';
   }
 
   @override
