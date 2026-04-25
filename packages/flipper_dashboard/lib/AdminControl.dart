@@ -27,6 +27,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 const Color _kAdminCardBorder = Color(0xFFE5E7EB);
+
 /// Matches [TicketsScreen] scaffold / app bar chrome.
 const Color _kAdminScaffoldBg = Color(0xFFF2F4F7);
 const Color _kAdminAppBarIconCircleBorder = Color(0xFFE0E4EB);
@@ -42,6 +43,7 @@ ButtonStyle _adminAppBarCircleIconStyle() {
     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
   );
 }
+
 const Color _kAdminBarBlue = Color(0xFF2563EB);
 const Color _kAdminBarOrange = Color(0xFFD97706);
 const Color _kAdminBarTeal = Color(0xFF0D9488);
@@ -153,10 +155,13 @@ class _AdminControlState extends State<AdminControl> {
 
   /// Loaded from Supabase `users` via [ProxyService.box.getUserId] (set at login).
   User? _profileUser;
+
   /// `users.email` from PostgREST (Brick [User] has no email field).
   String? _profileAccountEmail;
+
   /// From last Supabase row: non-empty `email` column (edit email only while empty).
   bool _serverHasEmail = false;
+
   /// From last Supabase row: non-empty `phone_number` column (set phone only while empty).
   bool _serverHasPhone = false;
   bool _profileUserLoading = true;
@@ -304,12 +309,13 @@ class _AdminControlState extends State<AdminControl> {
       final hasLegacyEmailInKey = keyStr.contains('@');
       setState(() {
         _profileUser = u;
-        _profileAccountEmail =
-            (parsedEmail != null && parsedEmail.isNotEmpty) ? parsedEmail : null;
-        _serverHasEmail = (parsedEmail != null && parsedEmail.isNotEmpty) ||
+        _profileAccountEmail = (parsedEmail != null && parsedEmail.isNotEmpty)
+            ? parsedEmail
+            : null;
+        _serverHasEmail =
+            (parsedEmail != null && parsedEmail.isNotEmpty) ||
             hasLegacyEmailInKey;
-        _serverHasPhone =
-            parsedPhone != null && parsedPhone.isNotEmpty;
+        _serverHasPhone = parsedPhone != null && parsedPhone.isNotEmpty;
         _profileUserLoading = false;
       });
     } catch (_) {
@@ -403,7 +409,9 @@ class _AdminControlState extends State<AdminControl> {
       final d = raw.replaceAll(RegExp(r'[^\d+]'), '');
       if (d.startsWith('+') && d.length > 4) {
         final rest = d.substring(1);
-        final buf = StringBuffer('+${rest.substring(0, rest.length >= 3 ? 3 : rest.length)}');
+        final buf = StringBuffer(
+          '+${rest.substring(0, rest.length >= 3 ? 3 : rest.length)}',
+        );
         var i = 3;
         while (i < rest.length) {
           buf.write(' ');
@@ -417,9 +425,7 @@ class _AdminControlState extends State<AdminControl> {
   }
 
   bool _isValidProfileEmail(String value) {
-    return RegExp(
-      r'^[\w.+\-]+@[\w\-]+(\.[\w\-]+)+$',
-    ).hasMatch(value.trim());
+    return RegExp(r'^[\w.+\-]+@[\w\-]+(\.[\w\-]+)+$').hasMatch(value.trim());
   }
 
   /// Only `name`, `email`, and `phone_number` may be written — never `user_id`, `id`, etc.
@@ -429,7 +435,11 @@ class _AdminControlState extends State<AdminControl> {
     'phone_number',
   };
 
-  void _clearOtherProfileEditors({bool keepEmail = false, bool keepName = false, bool keepPhone = false}) {
+  void _clearOtherProfileEditors({
+    bool keepEmail = false,
+    bool keepName = false,
+    bool keepPhone = false,
+  }) {
     if (!keepEmail && _inlineEditingEmail) {
       _inlineEditingEmail = false;
       _profileEmailEditController.clear();
@@ -596,8 +606,9 @@ class _AdminControlState extends State<AdminControl> {
     setState(() => _savingProfileEmail = true);
     try {
       await _patchUsersTableProfileFields({'email': email});
-      final syncedSettings =
-          await settingsService.updateSettings(map: {'email': email});
+      final syncedSettings = await settingsService.updateSettings(
+        map: {'email': email},
+      );
       if (!mounted) return;
       if (!syncedSettings) {
         showWarningNotification(
@@ -991,10 +1002,7 @@ class _AdminControlState extends State<AdminControl> {
       keyboardType: TextInputType.emailAddress,
       decoration: InputDecoration(
         hintText: 'e.g. admin@flipper.rw',
-        hintStyle: GoogleFonts.outfit(
-          fontSize: 14,
-          color: _kAdminSubtitleText,
-        ),
+        hintStyle: GoogleFonts.outfit(fontSize: 14, color: _kAdminSubtitleText),
         filled: true,
         fillColor: const Color(0xFFF8FAFC),
         isDense: true,
@@ -1024,9 +1032,7 @@ class _AdminControlState extends State<AdminControl> {
         foregroundColor: Colors.black,
         side: BorderSide(color: borderGrey),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
       child: _savingProfileEmail
           ? SizedBox(
@@ -1052,16 +1058,11 @@ class _AdminControlState extends State<AdminControl> {
         foregroundColor: Colors.black87,
         side: BorderSide(color: borderGrey),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
       child: Text(
         'Cancel',
-        style: GoogleFonts.outfit(
-          fontWeight: FontWeight.w400,
-          fontSize: 14,
-        ),
+        style: GoogleFonts.outfit(fontWeight: FontWeight.w400, fontSize: 14),
       ),
     );
 
@@ -1073,11 +1074,7 @@ class _AdminControlState extends State<AdminControl> {
           const SizedBox(height: 10),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              saveBtn,
-              const SizedBox(width: 8),
-              cancelBtn,
-            ],
+            children: [saveBtn, const SizedBox(width: 8), cancelBtn],
           ),
         ],
       );
@@ -1104,10 +1101,7 @@ class _AdminControlState extends State<AdminControl> {
       textCapitalization: TextCapitalization.words,
       decoration: InputDecoration(
         hintText: 'Display name',
-        hintStyle: GoogleFonts.outfit(
-          fontSize: 14,
-          color: _kAdminSubtitleText,
-        ),
+        hintStyle: GoogleFonts.outfit(fontSize: 14, color: _kAdminSubtitleText),
         filled: true,
         fillColor: const Color(0xFFF8FAFC),
         isDense: true,
@@ -1137,9 +1131,7 @@ class _AdminControlState extends State<AdminControl> {
         foregroundColor: Colors.black,
         side: BorderSide(color: borderGrey),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
       child: _savingProfileName
           ? SizedBox(
@@ -1165,16 +1157,11 @@ class _AdminControlState extends State<AdminControl> {
         foregroundColor: Colors.black87,
         side: BorderSide(color: borderGrey),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
       child: Text(
         'Cancel',
-        style: GoogleFonts.outfit(
-          fontWeight: FontWeight.w400,
-          fontSize: 14,
-        ),
+        style: GoogleFonts.outfit(fontWeight: FontWeight.w400, fontSize: 14),
       ),
     );
 
@@ -1186,11 +1173,7 @@ class _AdminControlState extends State<AdminControl> {
           const SizedBox(height: 10),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              saveBtn,
-              const SizedBox(width: 8),
-              cancelBtn,
-            ],
+            children: [saveBtn, const SizedBox(width: 8), cancelBtn],
           ),
         ],
       );
@@ -1217,10 +1200,7 @@ class _AdminControlState extends State<AdminControl> {
       keyboardType: TextInputType.phone,
       decoration: InputDecoration(
         hintText: 'e.g. +250783054874',
-        hintStyle: GoogleFonts.outfit(
-          fontSize: 14,
-          color: _kAdminSubtitleText,
-        ),
+        hintStyle: GoogleFonts.outfit(fontSize: 14, color: _kAdminSubtitleText),
         filled: true,
         fillColor: const Color(0xFFF8FAFC),
         isDense: true,
@@ -1250,9 +1230,7 @@ class _AdminControlState extends State<AdminControl> {
         foregroundColor: Colors.black,
         side: BorderSide(color: borderGrey),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
       child: _savingProfilePhone
           ? SizedBox(
@@ -1278,16 +1256,11 @@ class _AdminControlState extends State<AdminControl> {
         foregroundColor: Colors.black87,
         side: BorderSide(color: borderGrey),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
       child: Text(
         'Cancel',
-        style: GoogleFonts.outfit(
-          fontWeight: FontWeight.w400,
-          fontSize: 14,
-        ),
+        style: GoogleFonts.outfit(fontWeight: FontWeight.w400, fontSize: 14),
       ),
     );
 
@@ -1299,11 +1272,7 @@ class _AdminControlState extends State<AdminControl> {
           const SizedBox(height: 10),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              saveBtn,
-              const SizedBox(width: 8),
-              cancelBtn,
-            ],
+            children: [saveBtn, const SizedBox(width: 8), cancelBtn],
           ),
         ],
       );
@@ -1354,8 +1323,9 @@ class _AdminControlState extends State<AdminControl> {
         phoneOnAccount != null && phoneOnAccount.isNotEmpty;
 
     final centerBlock = Column(
-      crossAxisAlignment:
-          narrow ? CrossAxisAlignment.center : CrossAxisAlignment.start,
+      crossAxisAlignment: narrow
+          ? CrossAxisAlignment.center
+          : CrossAxisAlignment.start,
       children: [
         if (_inlineEditingName)
           _buildInlineNameEditor(context, narrow)
@@ -1376,8 +1346,7 @@ class _AdminControlState extends State<AdminControl> {
               ),
               IconButton(
                 tooltip: 'Edit name',
-                onPressed: () =>
-                    _startInlineNameEdit(initial: u?.name?.trim()),
+                onPressed: () => _startInlineNameEdit(initial: u?.name?.trim()),
                 icon: Icon(
                   Icons.edit_outlined,
                   size: 20,
@@ -1443,8 +1412,7 @@ class _AdminControlState extends State<AdminControl> {
                     if (!_serverHasPhone)
                       TextButton.icon(
                         onPressed: () => _startInlinePhoneEdit(),
-                        icon:
-                            Icon(Icons.add, size: 18, color: _kAdminBarTeal),
+                        icon: Icon(Icons.add, size: 18, color: _kAdminBarTeal),
                         label: Text(
                           'Add phone',
                           style: GoogleFonts.outfit(
@@ -1619,10 +1587,7 @@ class _AdminControlState extends State<AdminControl> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _adminSubSectionHeader(
-                    'Account management',
-                    _kAdminBarBlue,
-                  ),
+                  _adminSubSectionHeader('Account management', _kAdminBarBlue),
                   const SizedBox(height: 16),
                   SettingsCard(
                     title: 'User Management',
@@ -1650,9 +1615,9 @@ class _AdminControlState extends State<AdminControl> {
                       locator<RouterService>().navigateTo(AddBranchRoute());
                     },
                   ),
-                  ],
-                ),
+                ],
               ),
+            ),
             const SizedBox(width: 20),
             Expanded(
               child: Column(
@@ -1691,9 +1656,9 @@ class _AdminControlState extends State<AdminControl> {
                       showPaymentSettingsModal(context);
                     },
                   ),
-                  ],
-                ),
+                ],
               ),
+            ),
           ],
         ),
         const SizedBox(height: 28),
@@ -1951,11 +1916,7 @@ class _AdminControlState extends State<AdminControl> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _adminSectionHeader(
-          context,
-          'Cross-device features',
-          _kAdminBarPurple,
-        ),
+        _adminSectionHeader(context, 'Cross-device features', _kAdminBarPurple),
         const TransactionDelegationSettings(),
       ],
     );
@@ -1967,11 +1928,7 @@ class _AdminControlState extends State<AdminControl> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _adminSectionHeader(
-          context,
-          'Receipt branding',
-          _kAdminBarReceipt,
-        ),
+        _adminSectionHeader(context, 'Receipt branding', _kAdminBarReceipt),
         Container(
           decoration: _adminCardDecoration(),
           padding: const EdgeInsets.all(18),
@@ -2206,8 +2163,7 @@ class _AdminControlState extends State<AdminControl> {
                               _kAdminBarBlue.withValues(alpha: 0.1),
                             ),
                             title: 'Reset Administrator PIN',
-                            subtitle:
-                                'Update your high-security 4-digit PIN',
+                            subtitle: 'Update your high-security 4-digit PIN',
                           ),
                         ),
                       ),
