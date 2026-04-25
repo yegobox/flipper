@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/providers/transaction_report_business_cashiers_provider.dart';
 import 'package:flipper_dashboard/transactionList.dart';
 import 'package:flipper_models/helperModels/transaction_payment_sums.dart';
 import 'package:flipper_models/helperModels/transaction_report_snapshot.dart';
@@ -55,6 +56,9 @@ class TestBox extends MockBox {
 
   @override
   String defaultCurrency() => 'RWF';
+
+  @override
+  String? getBusinessId() => 'test-business-id';
 }
 
 void main() {
@@ -117,6 +121,9 @@ void main() {
         (ref) => Stream.value(snap),
       ),
       transactionItemListProvider.overrideWith((ref) => const Stream.empty()),
+      transactionReportBusinessCashiersProvider.overrideWith(
+        (ref) async => const [],
+      ),
     ];
 
     await tester.pumpWidget(

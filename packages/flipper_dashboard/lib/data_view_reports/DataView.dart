@@ -5,6 +5,7 @@ import 'package:flipper_dashboard/data_view_reports/HeaderTransactionItem.dart';
 import 'package:flipper_dashboard/Refund.dart';
 import 'package:flipper_dashboard/data_view_reports/TransactionDataSource.dart';
 import 'package:flipper_dashboard/data_view_reports/TransactionItemDataSource.dart';
+import 'package:flipper_dashboard/transaction_report_cashier_profile.dart';
 import 'package:flipper_dashboard/export/sale_report.dart';
 import 'package:flipper_dashboard/export/report_service.dart';
 
@@ -47,6 +48,7 @@ class DataView extends StatefulHookConsumerWidget {
     this.paymentSumsByTransactionId,
     this.showKpiStrip = true,
     this.contentPadding = const EdgeInsets.all(12.0),
+    this.cashierDirectory,
   });
 
   final List<ITransaction>? transactions;
@@ -68,6 +70,8 @@ class DataView extends StatefulHookConsumerWidget {
   /// When false, KPI cards are omitted (e.g. parent hosts [TransactionReportKpiStrip]).
   final bool showKpiStrip;
   final EdgeInsetsGeometry contentPadding;
+  /// Supabase staff keyed by `users.id` (same as transaction [ITransaction.agentId] when set).
+  final Map<String, TransactionReportCashierProfile>? cashierDirectory;
 
   @override
   DataViewState createState() => DataViewState();
@@ -151,6 +155,24 @@ class DataViewState extends ConsumerState<DataView>
     super.dispose();
   }
 
+  bool _cashierDirectoryEquals(
+    Map<String, TransactionReportCashierProfile>? a,
+    Map<String, TransactionReportCashierProfile>? b,
+  ) {
+    if (identical(a, b)) return true;
+    if (a == null || b == null) return a == null && b == null;
+    if (a.length != b.length) return false;
+    for (final e in a.entries) {
+      final o = b[e.key];
+      if (o == null ||
+          o.displayName != e.value.displayName ||
+          o.initials != e.value.initials) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   bool _shouldUpdateDataSource(DataView oldWidget) {
     final bool changed =
         widget.transactionItems != oldWidget.transactionItems ||
@@ -160,7 +182,11 @@ class DataViewState extends ConsumerState<DataView>
         widget.variants != oldWidget.variants ||
         widget.rowsPerPage != oldWidget.rowsPerPage ||
         widget.showDetailedReport != oldWidget.showDetailedReport ||
-        widget.disablePagination != oldWidget.disablePagination;
+        widget.disablePagination != oldWidget.disablePagination ||
+        !_cashierDirectoryEquals(
+          widget.cashierDirectory,
+          oldWidget.cashierDirectory,
+        );
     talker.info('DataView: _shouldUpdateDataSource - changed: $changed');
     return changed;
   }
@@ -1149,6 +1175,7 @@ class DataViewState extends ConsumerState<DataView>
         rowsPerPage,
         showDetailed,
         paymentSumsByTransactionId: paymentSumsByTransactionId,
+        cashierDirectory: widget.cashierDirectory,
       );
     } else if (variants != null && variants.isNotEmpty) {
       return StockDataSource(variants: variants, rowsPerPage: rowsPerPage);
@@ -1210,7 +1237,11 @@ class DataViewState extends ConsumerState<DataView>
             fullPaymentSumsByTransactionId?[transaction.id.toString()];
         preparedData.add(
           Map<String, dynamic>.from(
-            transactionSummaryExportRow(transaction, sums),
+            transactionSummaryExportRow(
+              transaction,
+              sums,
+              cashierDirectory: widget.cashierDirectory,
+            ),
           ),
         );
       }
@@ -1295,7 +1326,11 @@ class DataViewState extends ConsumerState<DataView>
         final sums = widget.paymentSumsByTransactionId?[transaction.id.toString()];
         preparedData.add(
           Map<String, dynamic>.from(
-            transactionSummaryExportRow(transaction, sums),
+            transactionSummaryExportRow(
+              transaction,
+              sums,
+              cashierDirectory: widget.cashierDirectory,
+            ),
           ),
         );
       }
@@ -1690,7 +1725,11 @@ class DataViewState extends ConsumerState<DataView>
           final sums = sumsMap[transaction.id.toString()];
           preparedData.add(
             Map<String, dynamic>.from(
-              transactionSummaryExportRow(transaction, sums),
+              transactionSummaryExportRow(
+                transaction,
+                sums,
+                cashierDirectory: widget.cashierDirectory,
+              ),
             ),
           );
         }

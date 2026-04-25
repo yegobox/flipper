@@ -1,9 +1,9 @@
+import 'package:flipper_dashboard/transaction_report_cashier_profile.dart';
 import 'package:flipper_dashboard/transaction_report_cashier_utils.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flutter/material.dart';
 
-/// Hard-coded cashiers from the shared Transaction Reports design mock (until real
-/// directory data is wired). Filter ids are prefixed so they never collide with Ditto agent ids.
+/// Legacy design-mock profiles (substring match on [ITransaction.agentId] when no Supabase row).
 class TransactionReportMockCashier {
   const TransactionReportMockCashier({
     required this.filterId,
@@ -17,12 +17,9 @@ class TransactionReportMockCashier {
   final String displayName;
   final String initials;
   final Color avatarColor;
-
-  /// Matched case-insensitively against [ITransaction.agentId] and derived label.
   final List<String> matchSubstrings;
 }
 
-/// Order matches the mock: Alice, Bob, Chloe, David.
 const List<TransactionReportMockCashier> kTransactionReportMockCashiers =
     <TransactionReportMockCashier>[
   TransactionReportMockCashier(
@@ -55,14 +52,6 @@ const List<TransactionReportMockCashier> kTransactionReportMockCashiers =
   ),
 ];
 
-TransactionReportMockCashier? mockCashierForFilterId(String? filterId) {
-  if (filterId == null || filterId.isEmpty) return null;
-  for (final c in kTransactionReportMockCashiers) {
-    if (c.filterId == filterId) return c;
-  }
-  return null;
-}
-
 TransactionReportMockCashier? _mockCashierMatchingAgent(String? agentId) {
   if (agentId == null || agentId.trim().isEmpty) return null;
   final aid = agentId.toLowerCase();
@@ -76,8 +65,16 @@ TransactionReportMockCashier? _mockCashierMatchingAgent(String? agentId) {
   return null;
 }
 
-/// Grid / export / chart: show mock name when agent matches a mock profile.
-String transactionReportCashierDisplayLabel(ITransaction tx) {
+/// Grid / export / chart: [directory] wins (Supabase staff), then mock substrings, then fallbacks.
+String transactionReportCashierDisplayLabel(
+  ITransaction tx, {
+  Map<String, TransactionReportCashierProfile>? directory,
+}) {
+  final aid = (tx.agentId ?? '').trim();
+  if (directory != null && aid.isNotEmpty) {
+    final p = directory[aid];
+    if (p != null) return p.displayName;
+  }
   final m = _mockCashierMatchingAgent(tx.agentId);
   if (m != null) return m.displayName;
   final raw = (tx.agentId ?? '').trim();
@@ -85,7 +82,15 @@ String transactionReportCashierDisplayLabel(ITransaction tx) {
   return cashierLabelFromAgentId(raw);
 }
 
-String transactionReportCashierInitials(ITransaction tx) {
+String transactionReportCashierInitials(
+  ITransaction tx, {
+  Map<String, TransactionReportCashierProfile>? directory,
+}) {
+  final aid = (tx.agentId ?? '').trim();
+  if (directory != null && aid.isNotEmpty) {
+    final p = directory[aid];
+    if (p != null) return p.initials;
+  }
   final m = _mockCashierMatchingAgent(tx.agentId);
   if (m != null) return m.initials;
   final raw = (tx.agentId ?? '').trim();
@@ -93,14 +98,29 @@ String transactionReportCashierInitials(ITransaction tx) {
   return initialsFromLabel(cashierLabelFromAgentId(raw));
 }
 
-Color transactionReportCashierAvatarColor(ITransaction tx) {
+Color transactionReportCashierAvatarColor(
+  ITransaction tx, {
+  Map<String, TransactionReportCashierProfile>? directory,
+}) {
+  final aid = (tx.agentId ?? '').trim();
+  if (directory != null && aid.isNotEmpty) {
+    final p = directory[aid];
+    if (p != null) return p.avatarColor;
+  }
   final m = _mockCashierMatchingAgent(tx.agentId);
   if (m != null) return m.avatarColor;
   return cashierAccentColorForAgentId(tx.agentId ?? '');
 }
 
-/// Chart / chips: same rules using raw agent id string.
-String transactionReportCashierDisplayLabelForAgentId(String agentId) {
+String transactionReportCashierDisplayLabelForAgentId(
+  String agentId, {
+  Map<String, TransactionReportCashierProfile>? directory,
+}) {
+  final aid = agentId.trim();
+  if (directory != null && aid.isNotEmpty) {
+    final p = directory[aid];
+    if (p != null) return p.displayName;
+  }
   final m = _mockCashierMatchingAgent(agentId);
   if (m != null) return m.displayName;
   final raw = agentId.trim();
@@ -108,7 +128,15 @@ String transactionReportCashierDisplayLabelForAgentId(String agentId) {
   return cashierLabelFromAgentId(agentId);
 }
 
-String transactionReportCashierInitialsForAgentId(String agentId) {
+String transactionReportCashierInitialsForAgentId(
+  String agentId, {
+  Map<String, TransactionReportCashierProfile>? directory,
+}) {
+  final aid = agentId.trim();
+  if (directory != null && aid.isNotEmpty) {
+    final p = directory[aid];
+    if (p != null) return p.initials;
+  }
   final m = _mockCashierMatchingAgent(agentId);
   if (m != null) return m.initials;
   final raw = agentId.trim();
@@ -116,26 +144,25 @@ String transactionReportCashierInitialsForAgentId(String agentId) {
   return initialsFromLabel(cashierLabelFromAgentId(agentId));
 }
 
-Color transactionReportCashierAvatarColorForAgentId(String agentId) {
+Color transactionReportCashierAvatarColorForAgentId(
+  String agentId, {
+  Map<String, TransactionReportCashierProfile>? directory,
+}) {
+  final aid = agentId.trim();
+  if (directory != null && aid.isNotEmpty) {
+    final p = directory[aid];
+    if (p != null) return p.avatarColor;
+  }
   final m = _mockCashierMatchingAgent(agentId);
   if (m != null) return m.avatarColor;
   return cashierAccentColorForAgentId(agentId);
 }
 
+/// Filter by exact [ITransaction.agentId] (Supabase `users.id` / Ditto agent id).
 bool transactionMatchesCashierFilter(
   ITransaction tx,
   String? cashierAgentId,
 ) {
   if (cashierAgentId == null || cashierAgentId.isEmpty) return true;
-  final mock = mockCashierForFilterId(cashierAgentId);
-  if (mock != null) {
-    final aid = (tx.agentId ?? '').toLowerCase();
-    final label = cashierLabelFromAgentId(tx.agentId ?? '').toLowerCase();
-    for (final s in mock.matchSubstrings) {
-      final t = s.toLowerCase();
-      if (aid.contains(t) || label.contains(t)) return true;
-    }
-    return false;
-  }
-  return (tx.agentId ?? '') == cashierAgentId;
+  return (tx.agentId ?? '').trim() == cashierAgentId.trim();
 }

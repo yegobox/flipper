@@ -1,3 +1,4 @@
+import 'package:flipper_dashboard/transaction_report_cashier_profile.dart';
 import 'package:flipper_dashboard/transaction_report_mock_cashiers.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/transaction_payment_sums.dart';
@@ -12,6 +13,7 @@ class CashierSalesEntry {
     required this.cashierId,
     required this.cashierLabel,
     required this.initials,
+    required this.avatarColor,
     required this.salesTotal,
     required this.byHandTotal,
     required this.creditTotal,
@@ -20,6 +22,7 @@ class CashierSalesEntry {
   final String cashierId;
   final String cashierLabel;
   final String initials;
+  final Color avatarColor;
   final double salesTotal;
   final double byHandTotal;
   final double creditTotal;
@@ -31,11 +34,13 @@ class SalesByCashierChart extends StatelessWidget {
     required this.transactions,
     required this.paymentSumsByTransactionId,
     this.currencySymbol,
+    this.cashierDirectory,
   });
 
   final List<ITransaction> transactions;
   final Map<String, TransactionPaymentSums>? paymentSumsByTransactionId;
   final String? currencySymbol;
+  final Map<String, TransactionReportCashierProfile>? cashierDirectory;
 
   List<CashierSalesEntry> _buildEntries() {
     final sumsMap = paymentSumsByTransactionId ?? const {};
@@ -50,8 +55,18 @@ class SalesByCashierChart extends StatelessWidget {
       final credit = (s == null || !s.hasAnyRecord) ? 0.0 : s.credit;
       final sales = tx.subTotal ?? 0.0;
 
-      final label = transactionReportCashierDisplayLabelForAgentId(agentId);
-      final initials = transactionReportCashierInitialsForAgentId(agentId);
+      final label = transactionReportCashierDisplayLabelForAgentId(
+        agentId,
+        directory: cashierDirectory,
+      );
+      final initials = transactionReportCashierInitialsForAgentId(
+        agentId,
+        directory: cashierDirectory,
+      );
+      final avatarColor = transactionReportCashierAvatarColorForAgentId(
+        agentId,
+        directory: cashierDirectory,
+      );
 
       final existing = byCashier[agentId];
       if (existing == null) {
@@ -59,6 +74,7 @@ class SalesByCashierChart extends StatelessWidget {
           cashierId: agentId,
           cashierLabel: label,
           initials: initials,
+          avatarColor: avatarColor,
           salesTotal: sales,
           byHandTotal: byHand,
           creditTotal: credit,
@@ -68,6 +84,7 @@ class SalesByCashierChart extends StatelessWidget {
           cashierId: existing.cashierId,
           cashierLabel: existing.cashierLabel,
           initials: existing.initials,
+          avatarColor: existing.avatarColor,
           salesTotal: existing.salesTotal + sales,
           byHandTotal: existing.byHandTotal + byHand,
           creditTotal: existing.creditTotal + credit,
@@ -160,7 +177,7 @@ class _CashierBarRow extends StatelessWidget {
       children: [
         CircleAvatar(
           radius: 14,
-          backgroundColor: transactionReportCashierAvatarColorForAgentId(entry.cashierId),
+          backgroundColor: entry.avatarColor,
           child: Text(
             entry.initials,
             style: const TextStyle(

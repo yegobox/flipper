@@ -1,5 +1,6 @@
 import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_dashboard/Refund.dart';
+import 'package:flipper_dashboard/transaction_report_cashier_profile.dart';
 import 'package:flipper_dashboard/transaction_report_cashier_utils.dart';
 import 'package:flipper_dashboard/transaction_report_mock_cashiers.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -66,11 +67,15 @@ double transactionReportCreditForTotals(
 /// Row map for CSV/Excel summary export (keys match grid column names).
 Map<String, Object?> transactionSummaryExportRow(
   ITransaction transaction,
-  TransactionPaymentSums? sums,
-) {
+  TransactionPaymentSums? sums, {
+  Map<String, TransactionReportCashierProfile>? cashierDirectory,
+}) {
   return {
     'Name': transactionReportReceiptLabel(transaction),
-    'Cashier': transactionReportCashierDisplayLabel(transaction),
+    'Cashier': transactionReportCashierDisplayLabel(
+      transaction,
+      directory: cashierDirectory,
+    ),
     'Type': transaction.receiptType ?? 'Sale',
     'Status': _transactionReportStatusLabel(transaction),
     'SaleTotal': transaction.subTotal ?? 0.0,
@@ -106,11 +111,15 @@ abstract class DynamicDataSource<T> extends DataGridSource {
   /// Per-transaction payment breakdown for summary reports (optional).
   Map<String, TransactionPaymentSums>? paymentSumsByTransactionId;
 
+  /// Supabase-backed staff directory for cashier column labels / avatars.
+  Map<String, TransactionReportCashierProfile>? cashierDirectory;
+
   DynamicDataSource(
     List<T> initialData,
     int rowsPerPage, {
     this.showPluReport = false,
     this.paymentSumsByTransactionId,
+    this.cashierDirectory,
   }) {
     data = initialData;
     _rowsPerPage = rowsPerPage;
@@ -133,11 +142,15 @@ abstract class DynamicDataSource<T> extends DataGridSource {
     List<T> newData,
     bool newShowPluReport, {
     Map<String, TransactionPaymentSums>? newPaymentSumsByTransactionId,
+    Map<String, TransactionReportCashierProfile>? newCashierDirectory,
   }) {
     data = newData;
     showPluReport = newShowPluReport;
     if (newPaymentSumsByTransactionId != null) {
       paymentSumsByTransactionId = newPaymentSumsByTransactionId;
+    }
+    if (newCashierDirectory != null) {
+      cashierDirectory = newCashierDirectory;
     }
     _dataGridRows = buildPaginatedDataGridRows();
     talker.info(
@@ -357,7 +370,10 @@ abstract class DynamicDataSource<T> extends DataGridSource {
         ),
         DataGridCell<String>(
           columnName: 'Cashier',
-          value: transactionReportCashierDisplayLabel(trans),
+          value: transactionReportCashierDisplayLabel(
+            trans,
+            directory: cashierDirectory,
+          ),
         ),
         DataGridCell<String>(
           columnName: 'Type',
@@ -532,12 +548,24 @@ abstract class DynamicDataSource<T> extends DataGridSource {
         );
       }
       if (name == 'Cashier') {
-        final label = e.value?.toString() ?? '';
+        final label = tx != null
+            ? transactionReportCashierDisplayLabel(
+                tx,
+                directory: cashierDirectory,
+              )
+            : (e.value?.toString() ?? '');
         final tint = tx != null
-            ? transactionReportCashierAvatarColor(tx)
+            ? transactionReportCashierAvatarColor(
+                tx,
+                directory: cashierDirectory,
+              )
             : const Color(0xFF2563EB);
-        final initials =
-            tx != null ? transactionReportCashierInitials(tx) : initialsFromLabel(label);
+        final initials = tx != null
+            ? transactionReportCashierInitials(
+                tx,
+                directory: cashierDirectory,
+              )
+            : initialsFromLabel(label);
         return Container(
           color: rowBg,
           alignment: Alignment.centerLeft,

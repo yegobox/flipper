@@ -1,5 +1,6 @@
 import 'package:flipper_dashboard/data_view_reports/DataView.dart';
 import 'package:flipper_dashboard/DateCoreWidget.dart';
+import 'package:flipper_dashboard/providers/transaction_report_business_cashiers_provider.dart';
 import 'package:flipper_dashboard/providers/transaction_report_filters_provider.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
@@ -12,7 +13,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:intl/intl.dart';
-import 'package:flipper_dashboard/transaction_report_mock_cashiers.dart';
+import 'package:flipper_dashboard/transaction_report_cashier_profile.dart';
 import 'package:flipper_dashboard/widgets/sales_by_cashier_chart.dart';
 import 'package:flipper_dashboard/widgets/transaction_report_kpi_strip.dart';
 
@@ -197,6 +198,13 @@ class TransactionListState extends ConsumerState<TransactionList>
         }
     };
 
+    final cashiersAsync = ref.watch(transactionReportBusinessCashiersProvider);
+    final businessCashiers = cashiersAsync.asData?.value ??
+        const <TransactionReportCashierProfile>[];
+    final cashierDirectory = businessCashiers.isEmpty
+        ? null
+        : {for (final p in businessCashiers) p.userId: p};
+
     return _buildReportScaffold(
       context,
       startDate,
@@ -209,6 +217,9 @@ class TransactionListState extends ConsumerState<TransactionList>
       paymentSumsForGrid,
       filters: filters,
       baseTransactions: baseSnapAsync.asData?.value.transactions,
+      businessCashiers: businessCashiers,
+      cashierDirectory: cashierDirectory,
+      cashiersLoading: cashiersAsync.isLoading,
     );
   }
 
@@ -223,7 +234,10 @@ class TransactionListState extends ConsumerState<TransactionList>
     List<TransactionItem>? transactionItems,
     Map<String, TransactionPaymentSums>? paymentSumsForGrid,
     {required TransactionReportFilters filters,
-    required List<ITransaction>? baseTransactions,}
+    required List<ITransaction>? baseTransactions,
+    required List<TransactionReportCashierProfile> businessCashiers,
+    required Map<String, TransactionReportCashierProfile>? cashierDirectory,
+    required bool cashiersLoading,}
   ) {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -280,6 +294,8 @@ class TransactionListState extends ConsumerState<TransactionList>
                       isDesktop,
                       baseTransactions ?? transactions,
                       filters,
+                      businessCashiers: businessCashiers,
+                      loading: cashiersLoading,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -315,6 +331,7 @@ class TransactionListState extends ConsumerState<TransactionList>
                             endDate,
                             showDetailed,
                             filters,
+                            cashierDirectory: cashierDirectory,
                           ),
                         ),
                       ],
@@ -741,8 +758,10 @@ class TransactionListState extends ConsumerState<TransactionList>
   Widget _buildCashierChipsRow(
     bool isDesktop,
     List<ITransaction>? transactions,
-    TransactionReportFilters filters,
-  ) {
+    TransactionReportFilters filters, {
+    required List<TransactionReportCashierProfile> businessCashiers,
+    required bool loading,
+  }) {
     final allSelected = filters.cashierAgentId == null ||
         filters.cashierAgentId!.isEmpty;
 
@@ -776,15 +795,24 @@ class TransactionListState extends ConsumerState<TransactionList>
                       .read(transactionReportFiltersProvider.notifier)
                       .setCashierAgentId(null),
                 ),
-                for (final c in kTransactionReportMockCashiers)
+                for (final c in businessCashiers)
                   _reportCashierFilterChip(
-                    selected: filters.cashierAgentId == c.filterId,
+                    selected: filters.cashierAgentId == c.userId,
                     title: c.displayName,
                     initials: c.initials,
                     avatarBg: c.avatarColor,
                     onTap: () => ref
                         .read(transactionReportFiltersProvider.notifier)
-                        .setCashierAgentId(c.filterId),
+                        .setCashierAgentId(c.userId),
+                  ),
+                if (loading)
+                  const Padding(
+                    padding: EdgeInsets.only(left: 8),
+                    child: SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
                   ),
               ],
             ),
@@ -901,8 +929,9 @@ class TransactionListState extends ConsumerState<TransactionList>
     DateTime? startDate,
     DateTime? endDate,
     bool showDetailed,
-    TransactionReportFilters filters,
-  ) {
+    TransactionReportFilters filters, {
+    Map<String, TransactionReportCashierProfile>? cashierDirectory,
+  }) {
     return dataProvider.when(
       data: (data) {
         if (data.isEmpty) {
@@ -944,6 +973,7 @@ class TransactionListState extends ConsumerState<TransactionList>
           return SalesByCashierChart(
             transactions: transactions ?? const <ITransaction>[],
             paymentSumsByTransactionId: paymentSumsByTransactionId,
+            cashierDirectory: cashierDirectory,
           );
         }
 
@@ -960,6 +990,7 @@ class TransactionListState extends ConsumerState<TransactionList>
           showActionsRow: false,
           showKpiStrip: false,
           contentPadding: EdgeInsets.zero,
+          cashierDirectory: cashierDirectory,
           workBookKey: workBookKey,
           forceEmpty: data.isEmpty,
           disablePagination: true, // Disable internal pagination
