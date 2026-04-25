@@ -10,6 +10,7 @@ import 'package:stacked_services/stacked_services.dart';
 import 'providers/navigation_providers.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_dashboard/dashboard_shell.dart';
+import 'package:flipper_dashboard/logout/shift_before_logout.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 
 class EnhancedSideMenu extends ConsumerWidget {
@@ -148,61 +149,25 @@ class EnhancedSideMenu extends ConsumerWidget {
         isSelected: selectedItem == 4,
         onTap: () async {
           final userId = ProxyService.box.getUserId();
-          if (userId != null) {
-            try {
-              final currentShift = await ProxyService.strategy.getCurrentShift(
-                userId: userId,
-              );
-              if (currentShift != null) {
-                final dialogResponse = await _dialogService.showCustomDialog(
-                  variant: DialogType.closeShift,
-                  title: 'Close Shift',
-                  data: {
-                    'openingBalance': currentShift.openingBalance,
-                    'cashSales': currentShift.cashSales,
-                    'expectedCash': currentShift.expectedCash,
-                  },
-                );
-
-                if (dialogResponse?.confirmed == true &&
-                    dialogResponse?.data != null) {
-                  final closingBalance =
-                      (dialogResponse?.data
-                              as Map<dynamic, dynamic>)['closingBalance']
-                          as double? ??
-                      0.0;
-                  final notes =
-                      (dialogResponse?.data as Map<dynamic, dynamic>)['notes']
-                          as String?;
-                  await ProxyService.strategy.endShift(
-                    shiftId: currentShift.id,
-                    closingBalance: closingBalance,
-                    note: notes,
-                  );
-                  _routerService.replaceWith(const LoginRoute());
-                } else {
-                  // If dialog is cancelled or no data, still redirect to login
-                  _routerService.replaceWith(const LoginRoute());
-                }
-              } else {
-                _routerService.replaceWith(const LoginRoute());
-              }
-            } catch (e) {
-              // Log the error
-              print('Error during logout flow: $e');
-
-              // Show error dialog to user
-              await _dialogService.showCustomDialog(
-                variant: DialogType.info,
-                title: 'Error',
-                description: 'An error occurred during logout: $e',
-              );
-
-              // Ensure user is redirected to login in case of error
+          if (userId == null) {
+            _routerService.replaceWith(const LoginRoute());
+            return;
+          }
+          try {
+            final proceed = await prepareSessionExitAfterShiftHandling(
+              context: context,
+              dialogService: _dialogService,
+            );
+            if (proceed) {
               _routerService.replaceWith(const LoginRoute());
             }
-          } else {
-            _routerService.replaceWith(const LoginRoute());
+          } catch (e) {
+            print('Error during logout flow: $e');
+            await _dialogService.showCustomDialog(
+              variant: DialogType.info,
+              title: 'Error',
+              description: 'An error occurred during logout: $e',
+            );
           }
         },
         tooltip: 'Log Out Shift',
