@@ -109,7 +109,7 @@ class _MyDrawerState extends ConsumerState<MyDrawer> with BranchSelectionMixin {
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
+                colors: [Color(0xFF3B82F6), Color(0xFF2563EB)], 
               ),
             ),
             child: const Center(
