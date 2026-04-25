@@ -428,8 +428,9 @@ class IconRowState extends ConsumerState<IconRow>
 }
 
 /// Opens the transactions dialog shell on the first frame, then mounts
-/// [TransactionListWrapper] after layout so the modal appears immediately
-/// instead of blocking on heavy grid / provider work during [showDialog].
+/// [TransactionListWrapper] (full report chrome: KPIs, filters, cashier, export)
+/// after layout so the modal appears immediately instead of blocking during
+/// [showDialog].
 class _DeferredTransactionListDialogBody extends ConsumerStatefulWidget {
   const _DeferredTransactionListDialogBody();
 

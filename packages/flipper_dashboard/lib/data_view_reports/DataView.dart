@@ -39,11 +39,14 @@ class DataView extends StatefulHookConsumerWidget {
     required this.rowsPerPage,
     this.transactionItems,
     required this.showDetailed,
+    this.showActionsRow = true,
     this.onTapRowShowRefundModal = true,
     this.onTapRowShowRecountModal = false,
     this.forceEmpty = false,
     this.disablePagination = false,
     this.paymentSumsByTransactionId,
+    this.showKpiStrip = true,
+    this.contentPadding = const EdgeInsets.all(12.0),
   });
 
   final List<ITransaction>? transactions;
@@ -56,11 +59,15 @@ class DataView extends StatefulHookConsumerWidget {
   final int rowsPerPage;
   final List<TransactionItem>? transactionItems;
   final bool showDetailed;
+  final bool showActionsRow;
   final bool onTapRowShowRefundModal;
   final bool onTapRowShowRecountModal;
   final GlobalKey<SfDataGridState> workBookKey;
   final bool forceEmpty;
   final bool disablePagination;
+  /// When false, KPI cards are omitted (e.g. parent hosts [TransactionReportKpiStrip]).
+  final bool showKpiStrip;
+  final EdgeInsetsGeometry contentPadding;
 
   @override
   DataViewState createState() => DataViewState();
@@ -302,14 +309,11 @@ class DataViewState extends ConsumerState<DataView>
     );
   }
 
-  /// Period totals: funds in hand vs credit (summary mode only).
-  Widget _buildReportPaymentTotalsStrip() {
-    if (widget.showDetailedReport) return const SizedBox.shrink();
-    final txs = widget.transactions;
-    final sumsMap = widget.paymentSumsByTransactionId;
-    if (txs == null || txs.isEmpty || sumsMap == null) {
-      return const SizedBox.shrink();
-    }
+  /// Transaction z-report: four KPI cards in one row (matches design mock).
+  Widget _buildFourSummaryKpiRow() {
+    final txs = widget.transactions ?? const <ITransaction>[];
+    final sumsMap =
+        widget.paymentSumsByTransactionId ?? <String, TransactionPaymentSums>{};
     var byHand = 0.0;
     var credit = 0.0;
     for (final tx in txs) {
@@ -317,30 +321,109 @@ class DataViewState extends ConsumerState<DataView>
       byHand += transactionReportByHandForTotals(tx, s);
       credit += transactionReportCreditForTotals(tx, s);
     }
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      child: Row(
-        children: [
-          Expanded(
-            child: _buildSummaryCard(
-              'Period — by hand',
-              byHand,
-              false,
-              Colors.teal,
-            ),
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(width: 12),
+        Expanded(
+          child: Consumer(
+            builder: (context, ref, _) {
+              final itemsAsync = ref.watch(transactionItemListProvider);
+              final items = _profitCardItems(itemsAsync);
+              final loading = _profitCardItemsLoading(itemsAsync);
+              final lineSales = _pluLineRevenueFromItemList(items);
+              return _buildSummaryCard(
+                'Total Sales',
+                lineSales,
+                loading,
+                Colors.green,
+              );
+            },
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: _buildSummaryCard(
-              'Period — credit',
-              credit,
-              false,
-              Colors.deepOrange,
-            ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Consumer(
+            builder: (context, ref, _) {
+              final itemsAsync = ref.watch(transactionItemListProvider);
+              final items = _profitCardItems(itemsAsync);
+              final itemsLoading = _profitCardItemsLoading(itemsAsync);
+              final gross = _pluGrossProfitFromItemList(items);
+              final tax = _pluTotalLineTaxFromList(items);
+              final bid = ProxyService.box.getBranchId();
+
+              if (bid == null) {
+                return _buildSummaryCard(
+                  'Net Profit',
+                  gross - tax,
+                  itemsLoading,
+                  Colors.purple,
+                );
+              }
+
+              final expAsync = ref.watch(
+                expensesStreamProvider(
+                  startDate: widget.startDate,
+                  endDate: widget.endDate,
+                  branchId: bid,
+                ),
+              );
+
+              return expAsync.when(
+                data: (expenseTxs) => _buildSummaryCard(
+                  'Net Profit',
+                  gross - tax - _sumExpenseSubtotals(expenseTxs),
+                  itemsLoading,
+                  Colors.purple,
+                ),
+                loading: () => _buildSummaryCard(
+                  'Net Profit',
+                  gross - tax,
+                  true,
+                  Colors.purple,
+                ),
+                error: (_, __) => _buildSummaryCard(
+                  'Net Profit',
+                  gross - tax,
+                  itemsLoading,
+                  Colors.purple,
+                ),
+              );
+            },
           ),
-        ],
-      ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildSummaryCard(
+            'Period \u2014 By Hand',
+            byHand,
+            false,
+            Colors.teal,
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: _buildSummaryCard(
+            'Period \u2014 Credit',
+            credit,
+            false,
+            Colors.deepOrange,
+          ),
+        ),
+        const SizedBox(width: 12),
+      ],
     );
+  }
+
+  Widget _buildKpiStrip() {
+    if (widget.variants != null) {
+      return _buildSummaryCardsRow();
+    }
+    if (widget.showDetailedReport) {
+      return _buildSummaryCardsRow();
+    }
+    return _buildFourSummaryKpiRow();
   }
 
   void _updateDataGridSource() {
@@ -382,6 +465,9 @@ class DataViewState extends ConsumerState<DataView>
     final showDetailed = ref.read(toggleBooleanValueProvider);
     if (showDetailed) {
       // Do nothing in detailed view
+      return;
+    }
+    if (details.column.columnName == 'Actions') {
       return;
     }
     try {
@@ -494,90 +580,93 @@ class DataViewState extends ConsumerState<DataView>
     return LayoutBuilder(
       builder: (context, constraints) {
         return Padding(
-          padding: const EdgeInsets.all(12.0),
+          padding: widget.contentPadding,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              ReportActionsRow(
-                showDetailed: showDetailed,
-                isExporting: _isExportingExcel,
-                isXReportLoading: _isExportingXReport,
-                isZReportLoading: _isExportingZReport,
-                isSaleReportLoading: _isExportingSaleReport,
-                isPLUReportLoading: _isExportingPLUReport,
-                onExportPressed: () async {
-                  setState(() => _isExportingExcel = true);
-                  try {
-                    await _export(
-                      headerTitle: "Report",
-                      workBookKey: widget.workBookKey,
-                    );
-                  } finally {
-                    if (mounted) {
-                      setState(() => _isExportingExcel = false);
+              if (widget.showActionsRow) ...[
+                ReportActionsRow(
+                  showDetailed: showDetailed,
+                  isExporting: _isExportingExcel,
+                  isXReportLoading: _isExportingXReport,
+                  isZReportLoading: _isExportingZReport,
+                  isSaleReportLoading: _isExportingSaleReport,
+                  isPLUReportLoading: _isExportingPLUReport,
+                  onExportPressed: () async {
+                    setState(() => _isExportingExcel = true);
+                    try {
+                      await _export(
+                        headerTitle: "Report",
+                        workBookKey: widget.workBookKey,
+                      );
+                    } finally {
+                      if (mounted) {
+                        setState(() => _isExportingExcel = false);
+                      }
                     }
-                  }
-                },
-                workBookKey: widget.workBookKey,
-                onPrintPressed: () {
-                  // TODO: Implement print
-                },
-                onToggleReport: _handleToggleReport,
-                onXReportPressed: () async {
-                  setState(() => _isExportingXReport = true);
-                  try {
-                    await ReportService().generateReport(reportType: 'X');
-                  } finally {
-                    if (mounted) {
-                      setState(() => _isExportingXReport = false);
+                  },
+                  workBookKey: widget.workBookKey,
+                  onPrintPressed: () {
+                    // TODO: Implement print
+                  },
+                  onToggleReport: _handleToggleReport,
+                  onXReportPressed: () async {
+                    setState(() => _isExportingXReport = true);
+                    try {
+                      await ReportService().generateReport(reportType: 'X');
+                    } finally {
+                      if (mounted) {
+                        setState(() => _isExportingXReport = false);
+                      }
                     }
-                  }
-                },
-                onZReportPressed: () async {
-                  setState(() => _isExportingZReport = true);
-                  try {
-                    await ReportService().generateReport(
-                      reportType: 'Z',
-                      endDate: widget.endDate,
-                      startDate: widget.startDate,
-                    );
-                  } finally {
-                    if (mounted) {
-                      setState(() => _isExportingZReport = false);
+                  },
+                  onZReportPressed: () async {
+                    setState(() => _isExportingZReport = true);
+                    try {
+                      await ReportService().generateReport(
+                        reportType: 'Z',
+                        endDate: widget.endDate,
+                        startDate: widget.startDate,
+                      );
+                    } finally {
+                      if (mounted) {
+                        setState(() => _isExportingZReport = false);
+                      }
                     }
-                  }
-                },
-                onSaleReportPressed: () async {
-                  setState(() => _isExportingSaleReport = true);
-                  try {
-                    await SaleReport().generateSaleReport(
-                      startDate: widget.startDate,
-                      endDate: widget.endDate,
-                    );
-                  } finally {
-                    if (mounted) {
-                      setState(() => _isExportingSaleReport = false);
+                  },
+                  onSaleReportPressed: () async {
+                    setState(() => _isExportingSaleReport = true);
+                    try {
+                      await SaleReport().generateSaleReport(
+                        startDate: widget.startDate,
+                        endDate: widget.endDate,
+                      );
+                    } finally {
+                      if (mounted) {
+                        setState(() => _isExportingSaleReport = false);
+                      }
                     }
-                  }
-                },
-                onPluReportPressed: () async {
-                  setState(() => _isExportingPLUReport = true);
-                  try {
-                    await PLUReport().generatePLUReport(
-                      startDate: widget.startDate,
-                      endDate: widget.endDate,
-                    );
-                  } finally {
-                    if (mounted) {
-                      setState(() => _isExportingPLUReport = false);
+                  },
+                  onPluReportPressed: () async {
+                    setState(() => _isExportingPLUReport = true);
+                    try {
+                      await PLUReport().generatePLUReport(
+                        startDate: widget.startDate,
+                        endDate: widget.endDate,
+                      );
+                    } finally {
+                      if (mounted) {
+                        setState(() => _isExportingPLUReport = false);
+                      }
                     }
-                  }
-                },
-              ),
-              const SizedBox(height: 10),
-              _buildSummaryCardsRow(),
-              _buildReportPaymentTotalsStrip(),
-              const SizedBox(height: 10),
+                  },
+                ),
+                const SizedBox(height: 10),
+              ],
+              if (widget.showKpiStrip) ...[
+                _buildKpiStrip(),
+                const SizedBox(height: 10),
+              ],
               Expanded(
                 child: (!(_showGrid && !_isTransitioning) || widget.forceEmpty)
                     ? _buildTransitioningGrid(constraints)
@@ -620,41 +709,63 @@ class DataViewState extends ConsumerState<DataView>
   ) {
     final raw = value ?? 0.0;
     final displayTotal = double.parse(raw.toStringAsFixed(2));
-    return Card(
-      color: color.withValues(alpha: 0.07),
-      elevation: 0,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              label,
-              style: TextStyle(fontWeight: FontWeight.bold, color: color),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+        child: Row(
+        children: [
+          Container(
+            width: 6,
+            height: 70,
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(12),
             ),
-            const SizedBox(height: 6),
-            isLoading
-                ? SizedBox(
-                    height: 18,
-                    width: 18,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: color,
-                    ),
-                  )
-                : Text(
-                    displayTotal.toCurrencyFormatted(
-                      symbol: ProxyService.box.defaultCurrency(),
-                    ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label.toUpperCase(),
                     style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: color,
+                      fontSize: 10,
+                      letterSpacing: 0.9,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.grey.shade600,
                     ),
                   ),
-          ],
-        ),
+                  const SizedBox(height: 6),
+                  isLoading
+                      ? SizedBox(
+                          height: 18,
+                          width: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: color,
+                          ),
+                        )
+                      : Text(
+                          displayTotal.toCurrencyFormatted(
+                            symbol: ProxyService.box.defaultCurrency(),
+                          ),
+                          style: TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w800,
+                            color: color,
+                          ),
+                        ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -669,12 +780,11 @@ class DataViewState extends ConsumerState<DataView>
     );
     return SfDataGridTheme(
       data: SfDataGridThemeData(
-        headerHoverColor: Colors.yellow,
-        gridLineColor: Colors.amber,
+        headerColor: const Color(0xFFEEF2F7),
+        gridLineColor: const Color(0xFFF1F5F9),
         gridLineStrokeWidth: 1.0,
-        rowHoverColor: Colors.yellow,
-        selectionColor: Colors.yellow,
-        rowHoverTextStyle: TextStyle(color: Colors.red, fontSize: 14),
+        rowHoverColor: const Color(0xFFF8FAFC),
+        selectionColor: const Color(0xFF2563EB).withValues(alpha: 0.06),
       ),
       child: SfDataGrid(
         key: UniqueKey(), // Always force full rebuild on every render
@@ -682,11 +792,13 @@ class DataViewState extends ConsumerState<DataView>
         allowSorting: true,
         allowColumnsResizing: true,
         source: _dataGridSource,
-        allowFiltering: true,
+        allowFiltering: widget.showDetailedReport,
         highlightRowOnHover: true,
-        gridLinesVisibility: GridLinesVisibility.both,
-        headerGridLinesVisibility: GridLinesVisibility.both,
+        gridLinesVisibility: GridLinesVisibility.horizontal,
+        headerGridLinesVisibility: GridLinesVisibility.none,
         columnWidthMode: ColumnWidthMode.fill,
+        rowHeight: 56,
+        headerRowHeight: 44,
         onCellTap: _handleCellTap,
         columns: columns,
         // Only set rowsPerPage if pagination is not disabled
@@ -708,12 +820,9 @@ class DataViewState extends ConsumerState<DataView>
     final tempSource = EmptyDataSource(widget.showDetailedReport);
     return SfDataGridTheme(
       data: SfDataGridThemeData(
-        headerHoverColor: Colors.yellow,
-        gridLineColor: Colors.amber,
+        headerColor: const Color(0xFFE8EEF4),
+        gridLineColor: Colors.grey.shade200,
         gridLineStrokeWidth: 1.0,
-        rowHoverColor: Colors.yellow,
-        selectionColor: Colors.yellow,
-        rowHoverTextStyle: TextStyle(color: Colors.red, fontSize: 14),
       ),
       child: SfDataGrid(
         key: ObjectKey(
@@ -749,6 +858,12 @@ class DataViewState extends ConsumerState<DataView>
       );
     }
 
+    if (!widget.showDetailedReport &&
+        widget.variants == null &&
+        widget.transactions != null) {
+      return _buildZReportStickyFooter(context, widget.transactions!);
+    }
+
     return Consumer(
       builder: (context, ref, _) {
         final itemsAsync = ref.watch(transactionItemListProvider);
@@ -762,6 +877,150 @@ class DataViewState extends ConsumerState<DataView>
           isLoading: loading,
         );
       },
+    );
+  }
+
+  Widget _buildZReportStickyFooter(
+    BuildContext context,
+    List<ITransaction> txs,
+  ) {
+    final total = txs.fold<double>(
+      0.0,
+      (sum, t) => sum + (t.subTotal ?? 0.0),
+    );
+    final n = txs.length;
+    final sym = ProxyService.box.defaultCurrency();
+    final amt = double.parse(total.toStringAsFixed(2)).toCurrencyFormatted(
+      symbol: sym,
+    );
+    final pageCount = widget.disablePagination
+        ? 1
+        : (txs.length / widget.rowsPerPage).ceil().clamp(1, 9999);
+    final pagerInteractive = !widget.disablePagination && pageCount > 1;
+
+    void goTo(int target) {
+      setState(() {
+        pageIndex = target.clamp(0, pageCount - 1);
+        _updateDataGridSource();
+      });
+    }
+
+    Widget pagerIcon(IconData icon, {required bool enabled, required VoidCallback? onTap}) {
+      return SizedBox(
+        width: 28,
+        height: 28,
+        child: IconButton(
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+          splashRadius: 16,
+          onPressed: enabled ? onTap : null,
+          icon: Icon(
+            icon,
+            size: 16,
+            color: enabled ? const Color(0xFF6B7280) : const Color(0xFFD1D5DB),
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        border: Border(top: BorderSide(color: Color(0xFFE5E7EB))),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 12.0),
+      child: SafeArea(
+        top: false,
+        child: Row(
+          children: [
+            Expanded(
+              child: Text.rich(
+                TextSpan(
+                  children: [
+                    const TextSpan(
+                      text: 'Total sales: ',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF111827),
+                        fontSize: 14,
+                      ),
+                    ),
+                    TextSpan(
+                      text: amt,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w800,
+                        color: Color(0xFF2563EB),
+                        fontSize: 14,
+                      ),
+                    ),
+                    TextSpan(
+                      text: '   $n transactions',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 13,
+                        color: Color(0xFF6B7280),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Page ${pageIndex + 1} of $pageCount',
+                  style: const TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF6B7280),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                pagerIcon(
+                  Icons.first_page,
+                  enabled: pagerInteractive && pageIndex > 0,
+                  onTap: () => goTo(0),
+                ),
+                pagerIcon(
+                  Icons.chevron_left,
+                  enabled: pagerInteractive && pageIndex > 0,
+                  onTap: () => goTo(pageIndex - 1),
+                ),
+                const SizedBox(width: 4),
+                Container(
+                  width: 28,
+                  height: 28,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF2563EB),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    '${pageIndex + 1}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 4),
+                pagerIcon(
+                  Icons.chevron_right,
+                  enabled: pagerInteractive && pageIndex < pageCount - 1,
+                  onTap: () => goTo(pageIndex + 1),
+                ),
+                pagerIcon(
+                  Icons.last_page,
+                  enabled: pagerInteractive && pageIndex < pageCount - 1,
+                  onTap: () => goTo(pageCount - 1),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -846,7 +1105,7 @@ class DataViewState extends ConsumerState<DataView>
       if (widget.showDetailedReport) {
         columns = pluReportTableHeader(headerPadding); // 11 columns
       } else {
-        columns = zReportTableHeader(headerPadding); // 8 columns (summary)
+        columns = zReportTableHeader(headerPadding); // summary + cashier + actions
       }
     } else if (widget.variants != null && widget.variants!.isNotEmpty) {
       columns = stockTableHeader(headerPadding);
@@ -873,7 +1132,12 @@ class DataViewState extends ConsumerState<DataView>
     required int rowsPerPage,
     int currentPageIndex = 0, // Add currentPageIndex parameter
   }) {
-    if (transactionItems != null && transactionItems.isNotEmpty) {
+    // PLU line-item grid only when the report toggle is Detailed. In Summary mode we must
+    // render [transactions] even if line items are loaded, otherwise [DynamicDataSource]
+    // sees TransactionItem + showPluReport false and emits placeholder rows (no column match).
+    if (showDetailed &&
+        transactionItems != null &&
+        transactionItems.isNotEmpty) {
       return TransactionItemDataSource(
         transactionItems,
         rowsPerPage,
@@ -1085,7 +1349,18 @@ class DataViewState extends ConsumerState<DataView>
 
   /// Public method to trigger export from parent widgets.
   /// Exports ALL data in the selected date range (all pages) using manual data path to avoid grid hang.
-  Future<void> triggerExport({String headerTitle = "Report"}) async {
+  Future<void> triggerExport({
+    String headerTitle = "Report",
+
+    /// When provided, export only these summary transactions (filters applied upstream).
+    List<ITransaction>? filteredSummaryTransactions,
+
+    /// Optional per-transaction payment sums aligned with [filteredSummaryTransactions].
+    Map<String, TransactionPaymentSums>? filteredPaymentSumsByTransactionId,
+
+    /// When provided, detailed export will be restricted to these transaction IDs.
+    Set<String>? allowedTransactionIds,
+  }) async {
     talker.info(
       'triggerExport: headerTitle=$headerTitle, showDetailedReport=${widget.showDetailedReport}',
     );
@@ -1102,7 +1377,7 @@ class DataViewState extends ConsumerState<DataView>
       final reportSnap = await ref.read(
         transactionReportSnapshotProvider(forceRealData: forceRealData).future,
       );
-      final sales = reportSnap.transactions;
+      final sales = filteredSummaryTransactions ?? reportSnap.transactions;
       final expenses = await Expense.fromTransactions(
         expenseTransactions,
         sales: sales,
@@ -1123,9 +1398,18 @@ class DataViewState extends ConsumerState<DataView>
       List<TransactionItem>? detailLines;
       if (widget.showDetailedReport) {
         final lines = await ref.read(transactionItemListProvider.future);
-        detailLines = lines;
+        if (allowedTransactionIds != null && allowedTransactionIds.isNotEmpty) {
+          detailLines = lines
+              .where((i) {
+                final tid = i.transactionId?.toString();
+                return tid != null && allowedTransactionIds.contains(tid);
+              })
+              .toList();
+        } else {
+          detailLines = lines;
+        }
         talker.info(
-          'triggerExport: detailed mode, ${lines.length} line items from transactionItemListProvider',
+          'triggerExport: detailed mode, ${detailLines.length} line items (filtered=${allowedTransactionIds != null})',
         );
       }
 
@@ -1133,7 +1417,8 @@ class DataViewState extends ConsumerState<DataView>
         fullSummaryTransactions: widget.showDetailedReport ? null : sales,
         fullPaymentSumsByTransactionId: widget.showDetailedReport
             ? null
-            : reportSnap.paymentSumsByTransactionId,
+            : (filteredPaymentSumsByTransactionId ??
+                reportSnap.paymentSumsByTransactionId),
         fullDetailTransactionItems: detailLines,
       );
 

@@ -3,103 +3,76 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 
 mixin Headers<T extends ConsumerStatefulWidget> on ConsumerState<T> {
+  static const Color _kZReportHeaderBg = Color(0xFFEEF2F7);
+  static const Color _kZReportHeaderActive = Color(0xFF2563EB);
+  static const Color _kZReportHeaderText = Color(0xFF6B7280);
+
+  Widget _zReportHeaderLabel(
+    EdgeInsets padding,
+    String text, {
+    bool active = false,
+  }) {
+    return Container(
+      color: _kZReportHeaderBg,
+      padding: padding,
+      alignment: Alignment.centerLeft,
+      child: Text(
+        text,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.w800,
+          letterSpacing: 0.6,
+          color: active ? _kZReportHeaderActive : _kZReportHeaderText,
+        ),
+      ),
+    );
+  }
+
   List<GridColumn> zReportTableHeader(EdgeInsets headerPadding) {
     return <GridColumn>[
       GridColumn(
         columnName: 'Name',
-        label: Container(
-          decoration: BoxDecoration(
-            color: Colors.grey.shade200,
-            borderRadius: BorderRadius.circular(4.0),
-          ),
-          padding: headerPadding,
-          alignment: Alignment.center,
-          child: const Text('Receipt Number', overflow: TextOverflow.ellipsis),
-        ),
+        label: _zReportHeaderLabel(headerPadding, 'RECEIPT NO.'),
+      ),
+      GridColumn(
+        columnName: 'Cashier',
+        label: _zReportHeaderLabel(headerPadding, 'CASHIER', active: true),
       ),
       GridColumn(
         columnName: 'Type',
-        label: Container(
-          decoration: BoxDecoration(
-            color: Colors.grey.shade200,
-            borderRadius: BorderRadius.circular(4.0),
-          ),
-          padding: headerPadding,
-          alignment: Alignment.center,
-          child: const Text('Receipt Type', overflow: TextOverflow.ellipsis),
-        ),
+        label: _zReportHeaderLabel(headerPadding, 'TYPE'),
       ),
       GridColumn(
         columnName: 'Status',
-        label: Container(
-          decoration: BoxDecoration(
-            color: Colors.grey.shade200,
-            borderRadius: BorderRadius.circular(4.0),
-          ),
-          padding: headerPadding,
-          alignment: Alignment.center,
-          child: const Text('Status', overflow: TextOverflow.ellipsis),
-        ),
+        label: _zReportHeaderLabel(headerPadding, 'STATUS'),
       ),
       GridColumn(
         columnName: 'SaleTotal',
-        label: Container(
-          decoration: BoxDecoration(
-            color: Colors.grey.shade200,
-            borderRadius: BorderRadius.circular(4.0),
-          ),
-          padding: headerPadding,
-          alignment: Alignment.center,
-          child: const Text('Sale total', overflow: TextOverflow.ellipsis),
-        ),
+        label: _zReportHeaderLabel(headerPadding, 'SALE TOTAL'),
       ),
       GridColumn(
         columnName: 'ByHand',
-        label: Container(
-          decoration: BoxDecoration(
-            color: Colors.grey.shade200,
-            borderRadius: BorderRadius.circular(4.0),
-          ),
-          padding: headerPadding,
-          alignment: Alignment.center,
-          child: const Text('By hand', overflow: TextOverflow.ellipsis),
-        ),
+        label: _zReportHeaderLabel(headerPadding, 'BY HAND'),
       ),
       GridColumn(
         columnName: 'Credit',
-        label: Container(
-          decoration: BoxDecoration(
-            color: Colors.grey.shade200,
-            borderRadius: BorderRadius.circular(4.0),
-          ),
-          padding: headerPadding,
-          alignment: Alignment.center,
-          child: const Text('Credit', overflow: TextOverflow.ellipsis),
-        ),
+        label: _zReportHeaderLabel(headerPadding, 'CREDIT'),
       ),
       GridColumn(
         columnName: 'Tax',
-        label: Container(
-          decoration: BoxDecoration(
-            color: Colors.grey.shade200,
-            borderRadius: BorderRadius.circular(4.0),
-          ),
-          padding: headerPadding,
-          alignment: Alignment.center,
-          child: const Text('Tax', overflow: TextOverflow.ellipsis),
-        ),
+        label: _zReportHeaderLabel(headerPadding, 'TAX'),
       ),
       GridColumn(
         columnName: 'BalanceDue',
-        label: Container(
-          decoration: BoxDecoration(
-            color: Colors.grey.shade200,
-            borderRadius: BorderRadius.circular(4.0),
-          ),
-          padding: headerPadding,
-          alignment: Alignment.center,
-          child: const Text('Balance due', overflow: TextOverflow.ellipsis),
-        ),
+        label: _zReportHeaderLabel(headerPadding, 'BALANCE DUE'),
+      ),
+      GridColumn(
+        columnName: 'Actions',
+        width: 110,
+        allowSorting: false,
+        allowFiltering: false,
+        label: _zReportHeaderLabel(headerPadding, ''),
       ),
     ];
   }
