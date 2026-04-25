@@ -444,18 +444,19 @@ class _MyDrawerState extends ConsumerState<MyDrawer> with BranchSelectionMixin {
                           child: Row(
                             children: [
                               Container(
-                                padding: const EdgeInsets.all(8),
+                                width: 44,
+                                height: 44,
                                 decoration: BoxDecoration(
-                                  color: const Color(
-                                    0xFF0078D4,
-                                  ).withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(8),
+                                  color: const Color.fromRGBO(37, 99, 235, 0.10),
+                                  borderRadius: BorderRadius.circular(14),
                                 ),
-                                child: DashboardQuickAccessSvgs.icon(
-                                  DashboardQuickAccessSvgs
-                                      .drawerOnlinePrintSyncIcon(),
-                                  width: 24,
-                                  height: 24,
+                                child: Center(
+                                  child: DashboardQuickAccessSvgs.icon(
+                                    DashboardQuickAccessSvgs
+                                        .drawerOnlinePrintSyncIcon(),
+                                    width: 22,
+                                    height: 22,
+                                  ),
                                 ),
                               ),
                               const SizedBox(width: 12),
@@ -464,17 +465,33 @@ class _MyDrawerState extends ConsumerState<MyDrawer> with BranchSelectionMixin {
                                   'Transaction Delegation',
                                   style: TextStyle(
                                     fontSize: 20,
-                                    fontWeight: FontWeight.w600,
+                                    fontWeight: FontWeight.w800,
                                   ),
                                 ),
                               ),
-                              IconButton(
-                                icon: DashboardQuickAccessSvgs.icon(
-                                  DashboardQuickAccessSvgs.drawerCloseXIcon(),
-                                  width: 14,
-                                  height: 14,
+                              Container(
+                                width: 40,
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: const Color(0xFFE5E7EB),
+                                  ),
+                                  borderRadius: BorderRadius.circular(999),
                                 ),
-                                onPressed: () => Navigator.pop(context),
+                                child: Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    onTap: () => Navigator.pop(context),
+                                    borderRadius: BorderRadius.circular(999),
+                                    child: Center(
+                                      child: DashboardQuickAccessSvgs.icon(
+                                        DashboardQuickAccessSvgs.drawerCloseXIcon(),
+                                        width: 14,
+                                        height: 14,
+                                      ),
+                                    ),
+                                  ),
+                                ),
                               ),
                             ],
                           ),
@@ -484,7 +501,7 @@ class _MyDrawerState extends ConsumerState<MyDrawer> with BranchSelectionMixin {
                         Expanded(
                           child: SingleChildScrollView(
                             controller: scrollController,
-                            padding: const EdgeInsets.all(20),
+                            padding: const EdgeInsets.fromLTRB(20, 18, 20, 20),
                             child: const _MobileTransactionDelegationSettings(),
                           ),
                         ),
@@ -1668,26 +1685,29 @@ class _MobileTransactionDelegationSettingsState
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Toggle section
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: const Color(0xFFF5F5F5),
-            borderRadius: BorderRadius.circular(12),
+            color: const Color(0xFFF5F7FB),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFE5E7EB)),
           ),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                width: 40,
-                height: 40,
+                width: 44,
+                height: 44,
                 decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(8),
+                  color: const Color.fromRGBO(37, 99, 235, 0.10),
+                  borderRadius: BorderRadius.circular(14),
                 ),
-                child: const Icon(
-                  Icons.sync_rounded,
-                  color: Color(0xFF0078D4),
-                  size: 22,
+                child: Center(
+                  child: DashboardQuickAccessSvgs.icon(
+                    DashboardQuickAccessSvgs.drawerOnlinePrintSyncIcon(),
+                    width: 22,
+                    height: 22,
+                  ),
                 ),
               ),
               const SizedBox(width: 12),
@@ -1698,22 +1718,55 @@ class _MobileTransactionDelegationSettingsState
                     const Text(
                       'Delegate',
                       style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        height: 1.05,
                       ),
                     ),
-                    Text(
-                      'receipt printing to desktop when EBM server is unavailable',
-                      style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                    const SizedBox(height: 3),
+                    const Text(
+                      'Receipt printing to desktop when EBM server is unavailable',
+                      style: TextStyle(
+                        fontSize: 13.5,
+                        color: Color(0xFF9CA3AF),
+                        height: 1.25,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: _isEnabled
+                                ? const Color(0xFF22C55E)
+                                : const Color(0xFFD1D5DB),
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          _isEnabled ? 'Enabled' : 'Disabled',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF9CA3AF),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
-              const SizedBox(width: 12),
-              Switch(
-                value: _isEnabled,
-                onChanged: _toggleDelegation,
-                activeThumbColor: const Color(0xFF0078D4),
+              Transform.translate(
+                offset: const Offset(6, -4),
+                child: Switch(
+                  value: _isEnabled,
+                  onChanged: _toggleDelegation,
+                  activeThumbColor: const Color(0xFF2563EB),
+                ),
               ),
             ],
           ),
@@ -1726,63 +1779,60 @@ class _MobileTransactionDelegationSettingsState
 
         const SizedBox(height: 24),
 
-        // How it works section
         Container(
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: const Color(0xFFE3F2FD),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: const Color(0xFF90CAF9), width: 1),
+            color: const Color(0xFFEFF6FF),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFDBEAFE), width: 1),
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF0078D4).withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: const Icon(
-                      Icons.info_outline,
-                      color: Color(0xFF0078D4),
-                      size: 18,
-                    ),
+                  const Icon(
+                    Icons.info_outline,
+                    color: Color(0xFF2563EB),
+                    size: 18,
                   ),
                   const SizedBox(width: 8),
                   const Text(
                     'How it works',
                     style: TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                      color: Color(0xFF01579B),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF2563EB),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
-              _buildStep(
+              const SizedBox(height: 14),
+              _HowItWorksStep(
+                number: 1,
                 icon: Icons.phone_android_rounded,
                 text:
-                    'Mobile completes transaction but delegates receipt generation',
+                    'Mobile completes the transaction but\ndelegates receipt generation',
               ),
-              const SizedBox(height: 8),
-              _buildStep(
-                icon: Icons.cloud_sync_rounded,
+              const SizedBox(height: 10),
+              _HowItWorksStep(
+                number: 2,
+                icon: Icons.desktop_windows_rounded,
                 text: 'Desktop picks up the transaction via sync',
               ),
-              const SizedBox(height: 8),
-              _buildStep(
-                icon: Icons.receipt_long_rounded,
+              const SizedBox(height: 10),
+              _HowItWorksStep(
+                number: 3,
+                icon: Icons.description_outlined,
                 text:
-                    'Desktop generates receipt and communicates with EBM server',
+                    'Desktop generates the receipt and\ncommunicates with EBM server',
               ),
-              const SizedBox(height: 8),
-              _buildStep(
-                icon: Icons.notifications_active_rounded,
-                text: 'Mobile is notified when processing is complete',
+              const SizedBox(height: 10),
+              _HowItWorksStep(
+                number: 4,
+                icon: Icons.notifications_none_rounded,
+                text: 'Mobile is notified when processing is\ncomplete',
+                showConnector: false,
               ),
             ],
           ),
@@ -1839,30 +1889,93 @@ class _MobileTransactionDelegationSettingsState
     );
   }
 
-  Widget _buildStep({required IconData icon, required String text}) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, size: 18, color: const Color(0xFF0078D4)),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Text(
-            text,
-            style: const TextStyle(
-              fontSize: 13,
-              color: Color(0xFF01579B),
-              height: 1.4,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildRequirement(String text) {
     return Text(
       text,
       style: TextStyle(fontSize: 13, color: Colors.orange[900], height: 1.4),
+    );
+  }
+}
+
+class _HowItWorksStep extends StatelessWidget {
+  final int number;
+  final IconData icon;
+  final String text;
+  final bool showConnector;
+
+  const _HowItWorksStep({
+    required this.number,
+    required this.icon,
+    required this.text,
+    this.showConnector = true,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        if (showConnector)
+          Positioned(
+            left: 15,
+            top: 38,
+            bottom: -10,
+            child: Container(
+              width: 2,
+              decoration: BoxDecoration(
+                color: const Color(0xFFDBEAFE),
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.65),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: const Color(0xFFDBEAFE)),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 28,
+                height: 28,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF2563EB),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Center(
+                  child: Text(
+                    '$number',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                      fontSize: 14,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Padding(
+                padding: const EdgeInsets.only(top: 2),
+                child: Icon(icon, size: 18, color: const Color(0xFF2563EB)),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  text,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    height: 1.25,
+                    color: Color(0xFF2563EB),
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
