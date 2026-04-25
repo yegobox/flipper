@@ -1,5 +1,6 @@
 import 'package:flipper_dashboard/ActiveBranch.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -12,6 +13,8 @@ import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_dashboard/dashboard_shell.dart';
 import 'package:flipper_dashboard/logout/shift_before_logout.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
+import 'package:flipper_dashboard/mfa_setup_view.dart';
+import 'package:flipper_dashboard/widgets/dashboard_quick_access_svgs.dart';
 
 class EnhancedSideMenu extends ConsumerWidget {
   const EnhancedSideMenu({super.key});
@@ -21,6 +24,13 @@ class EnhancedSideMenu extends ConsumerWidget {
     final selectedItem = ref.watch(selectedMenuItemProvider);
     final _dialogService = locator<DialogService>();
     final _routerService = locator<RouterService>();
+
+    final isDesktop = kIsWeb ||
+        const {
+          TargetPlatform.macOS,
+          TargetPlatform.windows,
+          TargetPlatform.linux,
+        }.contains(defaultTargetPlatform);
 
     final showKds = ref.watch(sideMenuShowKdsProvider);
     final showItems = ref.watch(sideMenuShowItemsProvider);
@@ -52,6 +62,44 @@ class EnhancedSideMenu extends ConsumerWidget {
         },
         tooltip: 'Chat',
       ),
+      if (isDesktop)
+        _SideMenuItem(
+          iconBuilder: (_) =>
+              DashboardQuickAccessSvgs.icon(
+                DashboardQuickAccessSvgs.drawerAuthShieldIcon(),
+                width: 24,
+                height: 24,
+              ),
+          isSelected: false,
+          onTap: () {
+            showDialog<void>(
+              context: context,
+              barrierDismissible: true,
+              builder: (context) {
+                return Dialog(
+                  insetPadding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 28,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(
+                      maxWidth: 620,
+                      maxHeight: 860,
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(16),
+                      child: const MfaSetupView(),
+                    ),
+                  ),
+                );
+              },
+            );
+          },
+          tooltip: 'Authenticator',
+        ),
       if (showItems)
         _SideMenuItem(
           iconBuilder: (_) =>

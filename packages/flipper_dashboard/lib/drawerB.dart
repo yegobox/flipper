@@ -13,7 +13,6 @@ import 'package:flipper_routing/app.dialogs.dart';
 // import 'package:flipper_nfc/flipper_nfc.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:flipper_dashboard/mfa_setup_view.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flipper_models/providers/device_provider.dart';
 import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
@@ -389,19 +388,6 @@ class _MyDrawerState extends ConsumerState<MyDrawer> with BranchSelectionMixin {
               letterSpacing: 1.2,
               color: const Color(0xFF9CA3AF),
             ),
-          ),
-          const SizedBox(height: 12),
-          _ModernMenuRow(
-            iconSvg: DashboardQuickAccessSvgs.drawerAuthShieldIcon(),
-            title: 'Auth',
-            subtitle: 'Authentication settings',
-            onTap: () {
-              Navigator.pop(context); // Close the drawer
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const MfaSetupView()),
-              );
-            },
           ),
           const SizedBox(height: 12),
           _ModernMenuRow(
