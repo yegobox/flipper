@@ -22,6 +22,7 @@ import 'package:flipper_auth/auth_scanner_actions.dart';
 import 'package:flipper_scanner/scanner_view.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_dashboard/widgets/dashboard_quick_access_svgs.dart';
+import 'package:supabase_flutter/supabase_flutter.dart' hide User;
 
 class MyDrawer extends ConsumerStatefulWidget {
   const MyDrawer({Key? key}) : super(key: key);
@@ -34,6 +35,59 @@ class _MyDrawerState extends ConsumerState<MyDrawer> with BranchSelectionMixin {
   String? _switchingBranchId;
   bool userLoggingEnabled = false;
   bool backgroundSyncEnabled = false;
+
+  Future<Map<String, dynamic>?> _fetchProfileRow() async {
+    final userId = ProxyService.box.getUserId()?.trim();
+    if (userId == null || userId.isEmpty) return null;
+    try {
+      final row = await Supabase.instance.client
+          .from('users')
+          .select('name,email,phone_number')
+          .eq('id', userId)
+          .limit(1)
+          .single();
+      return Map<String, dynamic>.from(row);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  String _profileDisplayNameFromRow(Map<String, dynamic>? row) {
+    final name = (row?['name'] as String?)?.trim();
+    if (name != null && name.isNotEmpty) return name;
+
+    final uid = ProxyService.box.getUserId()?.trim();
+    if (uid != null && uid.isNotEmpty) return uid;
+
+    final phone = ProxyService.box.getUserPhone()?.trim();
+    if (phone != null && phone.isNotEmpty) return phone;
+    return 'User';
+  }
+
+  String _profileSubtitleFromRow(Map<String, dynamic>? row) {
+    final email = (row?['email'] as String?)?.trim();
+    if (email != null && email.isNotEmpty) return email;
+
+    final phone = (row?['phone_number'] as String?)?.trim();
+    if (phone != null && phone.isNotEmpty) return phone;
+
+    final localPhone = ProxyService.box.getUserPhone()?.trim();
+    if (localPhone != null && localPhone.isNotEmpty) return localPhone;
+
+    return 'Admin';
+  }
+
+  Future<({Tenant? tenant, Map<String, dynamic>? profileRow})>
+      _getHeaderData() async {
+    final results = await Future.wait([
+      _getTenantFuture(),
+      _fetchProfileRow(),
+    ]);
+    return (
+      tenant: results[0] as Tenant?,
+      profileRow: results[1] as Map<String, dynamic>?
+    );
+  }
   @override
   void initState() {
     super.initState();
@@ -98,8 +152,8 @@ class _MyDrawerState extends ConsumerState<MyDrawer> with BranchSelectionMixin {
   }
 
   Widget _buildModernHeader(BuildContext context) {
-    return FutureBuilder<Tenant?>(
-      future: _getTenantFuture(),
+    return FutureBuilder<({Tenant? tenant, Map<String, dynamic>? profileRow})>(
+      future: _getHeaderData(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Container(
@@ -120,7 +174,10 @@ class _MyDrawerState extends ConsumerState<MyDrawer> with BranchSelectionMixin {
           );
         }
 
-        final tenant = snapshot.data;
+        final tenant = snapshot.data?.tenant;
+        final profileRow = snapshot.data?.profileRow;
+        final displayName = _profileDisplayNameFromRow(profileRow);
+        final subtitle = _profileSubtitleFromRow(profileRow);
         final topInset = MediaQuery.of(context).padding.top;
         return Container(
           decoration: const BoxDecoration(
@@ -182,7 +239,7 @@ class _MyDrawerState extends ConsumerState<MyDrawer> with BranchSelectionMixin {
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                'Admin · ${tenant?.name ?? "Demo Shop"}',
+                                '$displayName · $subtitle',
                                 style: TextStyle(
                                   color: Colors.white.withValues(alpha: 0.85),
                                   fontSize: 13,
