@@ -957,6 +957,7 @@ mixin TransactionMixin implements TransactionInterface {
     bool? isTrainingMode,
     String? customerPhone,
     String? customerType,
+    String? cashierName,
     bool? isLoan,
     double? remainingBalance,
     bool skipDittoSync = false,
@@ -1020,6 +1021,7 @@ mixin TransactionMixin implements TransactionInterface {
     transaction.customerPhone = customerPhone ?? transaction.customerPhone;
     transaction.currentSaleCustomerPhoneNumber =
         customerPhone ?? transaction.customerPhone;
+    transaction.cashierName = cashierName ?? transaction.cashierName;
     transaction.isLoan = isLoan ?? transaction.isLoan;
     transaction.remainingBalance =
         remainingBalance ?? transaction.remainingBalance;

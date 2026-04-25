@@ -1148,6 +1148,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     String? sarNo,
     String? orgSarNo,
     bool? receiptPrinted,
+    String? cashierName,
     bool isUnclassfied = false,
     bool? isTrainingMode,
     String? transactionId,
@@ -1185,6 +1186,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
 
     addUpdate('status', status ?? transaction?.status);
     addUpdate('subTotal', subTotal ?? transaction?.subTotal);
+    addUpdate('cashierName', cashierName);
     final resolvedUpdatedAt =
         updatedAt ?? transaction?.updatedAt ?? DateTime.now();
     final resolvedLastTouched =

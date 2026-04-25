@@ -167,6 +167,7 @@ class ITransactionDittoAdapter extends DittoSyncAdapter<ITransaction> {
       "discountAmount": model.discountAmount,
       "customerPhone": model.customerPhone,
       "agentId": model.agentId,
+      "cashierName": model.cashierName,
     };
   }
 
@@ -264,6 +265,7 @@ class ITransactionDittoAdapter extends DittoSyncAdapter<ITransaction> {
       payments: null, // Excluded from Ditto sync
       customerPhone: document["customerPhone"],
       agentId: document["agentId"],
+      cashierName: document["cashierName"],
       dataSource: null, // Excluded from Ditto sync
     );
   }

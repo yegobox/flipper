@@ -177,6 +177,7 @@ abstract class TransactionInterface {
     bool? receiptPrinted,
     String? customerPhone,
     String? customerType,
+    String? cashierName,
     bool? isLoan,
     double? remainingBalance,
     bool skipDittoSync = false,

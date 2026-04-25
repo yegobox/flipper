@@ -173,6 +173,9 @@ Future<ITransaction> _$ITransactionFromSupabase(
         ? null
         : data['customer_phone'] as String?,
     agentId: data['agent_id'] == null ? null : data['agent_id'] as String?,
+    cashierName: data['cashier_name'] == null
+        ? null
+        : data['cashier_name'] as String?,
   );
 }
 
@@ -242,6 +245,7 @@ Future<Map<String, dynamic>> _$ITransactionToSupabase(
     'discount_amount': instance.discountAmount,
     'customer_phone': instance.customerPhone,
     'agent_id': instance.agentId,
+    'cashier_name': instance.cashierName,
   };
 }
 
@@ -451,6 +455,9 @@ Future<ITransaction> _$ITransactionFromSqlite(
         ? null
         : data['customer_phone'] as String?,
     agentId: data['agent_id'] == null ? null : data['agent_id'] as String?,
+    cashierName: data['cashier_name'] == null
+        ? null
+        : data['cashier_name'] as String?,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -536,6 +543,7 @@ Future<Map<String, dynamic>> _$ITransactionToSqlite(
     'discount_amount': instance.discountAmount,
     'customer_phone': instance.customerPhone,
     'agent_id': instance.agentId,
+    'cashier_name': instance.cashierName,
   };
 }
 
@@ -785,6 +793,10 @@ class ITransactionAdapter
     'agentId': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'agent_id',
+    ),
+    'cashierName': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'cashier_name',
     ),
   };
   @override
@@ -1162,6 +1174,12 @@ class ITransactionAdapter
     'agentId': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'agent_id',
+      iterable: false,
+      type: String,
+    ),
+    'cashierName': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'cashier_name',
       iterable: false,
       type: String,
     ),

@@ -31,6 +31,10 @@ import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:supabase_models/services/turbo_tax_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
+import 'package:flipper_dashboard/transaction_report_cashier_profile.dart';
+import 'package:brick_offline_first/brick_offline_first.dart';
+import 'package:supabase_models/brick/models/user.model.dart' as brick_user;
+import 'package:supabase_models/brick/repository.dart';
 
 // Stock validation functions have been moved to utils/stock_validator.dart
 
@@ -290,6 +294,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
   }) async {
     // Store original stock quantities for potential rollback
     final Map<String, double> originalStockQuantities = {};
+    String? completionCashierName;
 
     try {
       // Fetch the latest transaction from the database to ensure subTotal is up-to-date
@@ -301,6 +306,39 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
       if (transaction == null) {
         throw Exception("Transaction not found for completion.");
+      }
+
+      // Denormalize cashier name once at completion time to avoid per-row lookups in reports.
+      final currentUserId = ProxyService.box.getUserId();
+      if (currentUserId != null && currentUserId.trim().isNotEmpty) {
+        try {
+          final repo = Repository();
+          // Try local cache first (offline), then remote when available.
+          final q = Query(where: [Where('id').isExactly(currentUserId)]);
+          final local = await repo.get<brick_user.User>(
+            policy: OfflineFirstGetPolicy.localOnly,
+            query: q,
+          );
+          brick_user.User? u = local.isNotEmpty ? local.first : null;
+          if (u == null) {
+            try {
+              final remote = await repo.get<brick_user.User>(
+                policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+                query: q,
+              );
+              if (remote.isNotEmpty) u = remote.first;
+            } catch (_) {}
+          }
+          if (u != null) {
+            completionCashierName =
+                TransactionReportCashierProfile.displayNameFromUserRow(
+              name: u.name,
+              email: u.key,
+            );
+          }
+        } catch (_) {
+          // Best-effort: completion should still work offline.
+        }
       }
       final isValid = formKey.currentState?.validate() ?? true;
       if (!isValid) return false;
@@ -548,6 +586,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
               finalSubTotal: finalSubTotal,
               paymentMethods: paymentMethods,
               ticketName: ticketName,
+              cashierName: completionCashierName,
             );
             if (mounted && context.mounted) {
               showCustomSnackBarUtil(
@@ -608,6 +647,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     required double finalSubTotal,
     required List<Payment> paymentMethods,
     String? ticketName,
+    String? cashierName,
   }) async {
     // Use the in-memory transaction directly instead of re-fetching from DB.
     // collectPayment may persist cashReceived; the caller may also add the keypad amount.
@@ -661,6 +701,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       cashReceived: nonCreditCashReceived,
       subTotal: finalSubTotal,
       lastTouched: now,
+      cashierName: cashierName,
       ticketName:
           (transaction.ticketName == null || transaction.ticketName!.isEmpty)
           ? ticketName

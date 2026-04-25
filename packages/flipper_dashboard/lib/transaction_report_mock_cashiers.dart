@@ -70,6 +70,8 @@ String transactionReportCashierDisplayLabel(
   ITransaction tx, {
   Map<String, TransactionReportCashierProfile>? directory,
 }) {
+  final cached = (tx.cashierName ?? '').trim();
+  if (cached.isNotEmpty) return cached;
   final aid = (tx.agentId ?? '').trim();
   if (directory != null && aid.isNotEmpty) {
     final p = directory[aid];
@@ -86,6 +88,8 @@ String transactionReportCashierInitials(
   ITransaction tx, {
   Map<String, TransactionReportCashierProfile>? directory,
 }) {
+  final cached = (tx.cashierName ?? '').trim();
+  if (cached.isNotEmpty) return initialsFromLabel(cached);
   final aid = (tx.agentId ?? '').trim();
   if (directory != null && aid.isNotEmpty) {
     final p = directory[aid];
