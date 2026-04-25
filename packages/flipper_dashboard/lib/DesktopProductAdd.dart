@@ -835,6 +835,12 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                     },
                     onDeleteVariant: (variant) =>
                         model.removeVariant(id: variant.id),
+                    pickerColor: pickerColor,
+                    onColorSelected: (color) {
+                      setState(() {
+                        pickerColor = color;
+                      });
+                    },
                   ),
                 );
               }
@@ -1467,7 +1473,8 @@ Future<void> _showVariantSheet({
                                                   persistAssetRecord:
                                                       existingVariant?.id !=
                                                       null,
-                                                  variantId: existingVariant?.id,
+                                                  variantId:
+                                                      existingVariant?.id,
                                                 );
                                             setModalState(() {
                                               variantAssetName = fileName;
@@ -1968,6 +1975,8 @@ class _MobileProductEntry extends StatelessWidget {
     required this.onAddVariant,
     required this.onEditVariant,
     required this.onDeleteVariant,
+    required this.pickerColor,
+    required this.onColorSelected,
   });
 
   final String? productId;
@@ -1999,6 +2008,8 @@ class _MobileProductEntry extends StatelessWidget {
   final VoidCallback onAddVariant;
   final void Function(Variant) onEditVariant;
   final void Function(Variant) onDeleteVariant;
+  final Color pickerColor;
+  final ValueChanged<Color> onColorSelected;
 
   @override
   Widget build(BuildContext context) {

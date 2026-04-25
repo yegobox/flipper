@@ -6,10 +6,10 @@ import 'package:path/path.dart' as path;
 import 'package:amplify_flutter/amplify_flutter.dart' as amplify;
 import 'package:flipper_services/proxy.dart';
 import 'package:brick_offline_first/brick_offline_first.dart' as brick;
-import 'package:supabase_models/brick/databasePath.dart';
 import 'package:supabase_models/brick/repository.dart';
 
 import 'package:talker_flutter/talker_flutter.dart';
+import 'package:path_provider/path_provider.dart';
 
 abstract class AssetInterface {
   Future<Stream<double>> downloadAssetSave({
@@ -363,7 +363,7 @@ mixin AssetMixin implements AssetInterface {
   Talker get talker;
 
   Future<Directory> getSupportDir() async {
-    return Directory(await DatabasePath.getDatabaseDirectory());
+    return await getApplicationSupportDirectory();
   }
 
   @override
