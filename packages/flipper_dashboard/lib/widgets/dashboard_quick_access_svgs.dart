@@ -8,6 +8,98 @@ class DashboardQuickAccessSvgs {
 
   static const _xmlns = 'xmlns="http://www.w3.org/2000/svg"';
 
+  // Drawer B (mobile) icons
+  static String drawerHeaderGridIconWhite() => '''
+<svg viewBox="0 0 24 24" fill="none" $_xmlns>
+  <rect x="3" y="3" width="7" height="7" rx="1.5" stroke="#FFFFFF" stroke-opacity="0.9" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="14" y="3" width="7" height="7" rx="1.5" stroke="#FFFFFF" stroke-opacity="0.9" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="3" y="14" width="7" height="7" rx="1.5" stroke="#FFFFFF" stroke-opacity="0.9" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="14" y="14" width="7" height="7" rx="1.5" stroke="#FFFFFF" stroke-opacity="0.9" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>''';
+
+  static String drawerCloseXIcon() => '''
+<svg viewBox="0 0 14 14" fill="none" $_xmlns>
+  <path d="M1 1l12 12M13 1L1 13" stroke="#4B4E58" stroke-width="1.8" stroke-linecap="round"/>
+</svg>''';
+
+  static String drawerScanQrIcon() => '''
+<svg viewBox="0 0 24 24" fill="none" $_xmlns>
+  <rect x="3" y="3" width="5" height="5" stroke="#2563EB" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="16" y="3" width="5" height="5" stroke="#2563EB" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="3" y="16" width="5" height="5" stroke="#2563EB" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M21 16h-4v5M21 21h.01M16 11h5M16 16v.01M11 3v5M11 11H3M11 16v5M3 11v5" stroke="#2563EB" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>''';
+
+  static String drawerDashboardIconGreen() => '''
+<svg viewBox="0 0 24 24" fill="none" $_xmlns>
+  <rect x="3" y="3" width="7" height="7" rx="1.5" stroke="#16A34A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="14" y="3" width="7" height="7" rx="1.5" stroke="#16A34A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="3" y="14" width="7" height="7" rx="1.5" stroke="#16A34A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="14" y="14" width="7" height="7" rx="1.5" stroke="#16A34A" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>''';
+
+  static String drawerBusinessIconBlue() => '''
+<svg viewBox="0 0 24 24" fill="none" $_xmlns>
+  <rect x="3" y="3" width="7" height="7" rx="1.5" stroke="#2563EB" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="14" y="3" width="7" height="7" rx="1.5" stroke="#2563EB" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="3" y="14" width="7" height="7" rx="1.5" stroke="#2563EB" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="14" y="14" width="7" height="7" rx="1.5" stroke="#2563EB" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>''';
+
+  static String drawerChevronDownIcon() => '''
+<svg viewBox="0 0 16 16" fill="none" $_xmlns>
+  <path d="M4 6l4 4 4-4" stroke="#C5C8D0" stroke-width="1.5" stroke-linecap="round"/>
+</svg>''';
+
+  static String drawerChevronRightIcon() => '''
+<svg viewBox="0 0 14 14" fill="none" $_xmlns>
+  <path d="M5 2l5 5-5 5" stroke="#C5C8D0" stroke-width="1.5" stroke-linecap="round"/>
+</svg>''';
+
+  static String drawerCloseShiftLockIcon() => '''
+<svg viewBox="0 0 24 24" fill="none" $_xmlns>
+  <rect x="3" y="11" width="18" height="11" rx="2" stroke="#DC2626" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M7 11V7a5 5 0 0110 0v4" stroke="#DC2626" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>''';
+
+  static String drawerShiftWarningBadgeIcon() => '''
+<svg viewBox="0 0 10 10" fill="none" $_xmlns>
+  <path d="M5 2v3M5 7h.01" stroke="#DC2626" stroke-width="2" stroke-linecap="round"/>
+</svg>''';
+
+  static String drawerAuthShieldIcon() => '''
+<svg viewBox="0 0 24 24" fill="none" $_xmlns>
+  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" stroke="#2563EB" stroke-width="1.6" stroke-linecap="round"/>
+</svg>''';
+
+  static String drawerOnlinePrintSyncIcon() => '''
+<svg viewBox="0 0 24 24" fill="none" $_xmlns>
+  <path d="M20.5 12A8.5 8.5 0 1112 3.5" stroke="#2563EB" stroke-width="1.6" stroke-linecap="round"/>
+  <path d="M12 3.5V7M9 5h6" stroke="#2563EB" stroke-width="1.6" stroke-linecap="round"/>
+</svg>''';
+
+  static String drawerUserLoggingFileIcon() => '''
+<svg viewBox="0 0 24 24" fill="none" $_xmlns>
+  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="#6366F1" stroke-width="1.6" stroke-linecap="round"/>
+  <path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" stroke="#6366F1" stroke-width="1.6" stroke-linecap="round"/>
+</svg>''';
+
+  static String drawerBackgroundSyncGridPlusIcon() => '''
+<svg viewBox="0 0 24 24" fill="none" $_xmlns>
+  <path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4z" stroke="#2563EB" stroke-width="1.6" stroke-linecap="round"/>
+  <path d="M14 17h6M17 14v6" stroke="#2563EB" stroke-width="1.6" stroke-linecap="round"/>
+</svg>''';
+
+  static String drawerSignOutIcon() => '''
+<svg viewBox="0 0 24 24" fill="none" $_xmlns>
+  <path d="M9 4H5a1 1 0 00-1 1v14a1 1 0 001 1h4" stroke="#DC2626" stroke-width="1.6" stroke-linecap="round"/>
+  <path d="M15 16l4-4-4-4M9 12h10" stroke="#DC2626" stroke-width="1.6" stroke-linecap="round"/>
+</svg>''';
+
+  static Widget icon(String svg, {double? width, double? height}) {
+    return SvgPicture.string(svg, width: width, height: height);
+  }
+
   static bool hasSvgTile(String page) {
     switch (page) {
       case 'ServicesGigs':

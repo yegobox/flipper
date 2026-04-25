@@ -1,6 +1,4 @@
-import 'package:flipper_models/providers/branch_business_provider.dart';
 import 'package:flipper_models/providers/ebm_provider.dart';
-import 'package:flipper_models/providers/scan_mode_provider.dart';
 import 'package:flipper_models/secrets.dart';
 import 'package:flipper_models/db_model_export.dart';
 
@@ -15,7 +13,6 @@ import 'package:flipper_routing/app.dialogs.dart';
 // import 'package:flipper_nfc/flipper_nfc.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:flipper_services/app_service.dart';
 import 'package:flipper_dashboard/mfa_setup_view.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flipper_models/providers/device_provider.dart';
@@ -25,6 +22,7 @@ import 'package:flipper_dashboard/BranchSelectionMixin.dart';
 import 'package:flipper_auth/auth_scanner_actions.dart';
 import 'package:flipper_scanner/scanner_view.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_dashboard/widgets/dashboard_quick_access_svgs.dart';
 
 class MyDrawer extends ConsumerStatefulWidget {
   const MyDrawer({Key? key}) : super(key: key);
@@ -72,7 +70,7 @@ class _MyDrawerState extends ConsumerState<MyDrawer> with BranchSelectionMixin {
   @override
   Widget build(BuildContext context) {
     return Drawer(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: const Color(0xFFF5F6F8),
       child: Column(
         children: [
           _buildModernHeader(context),
@@ -86,9 +84,9 @@ class _MyDrawerState extends ConsumerState<MyDrawer> with BranchSelectionMixin {
               child: Column(
                 children: [
                   _buildQuickActions(context),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 18),
                   _buildBusinessSection(context),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 18),
                   _buildNavigationSection(context),
                 ],
               ),
@@ -106,12 +104,12 @@ class _MyDrawerState extends ConsumerState<MyDrawer> with BranchSelectionMixin {
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Container(
-            height: 140,
+            height: 110,
             decoration: const BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [Color(0xFF0078D4), Color(0xFF106EBE)],
+                colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
               ),
             ),
             child: const Center(
@@ -124,56 +122,107 @@ class _MyDrawerState extends ConsumerState<MyDrawer> with BranchSelectionMixin {
         }
 
         final tenant = snapshot.data;
+        final topInset = MediaQuery.of(context).padding.top;
         return Container(
-          height: 140,
           decoration: const BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [Color(0xFF0078D4), Color(0xFF106EBE)],
+              colors: [Color(0xFF3B82F6), Color(0xFF2563EB)],
             ),
           ),
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(10),
-              child: Row(
-                children: [
-                  // Business icon
-                  Container(
-                    width: 42,
-                    height: 42,
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Icon(
-                      Icons.business_rounded,
-                      color: Colors.white,
-                      size: 22,
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(16, topInset + 10, 16, 10),
+            child: Row(
+              children: [
+                Container(
+                  width: 42,
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Center(
+                    child: DashboardQuickAccessSvgs.icon(
+                      DashboardQuickAccessSvgs.drawerHeaderGridIconWhite(),
+                      width: 24,
+                      height: 24,
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  // Business info
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          tenant?.name ?? "My Business",
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w600,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      alignment: Alignment.centerLeft,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            tenant?.name ?? "My Business",
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 18,
+                              fontWeight: FontWeight.w800,
+                              height: 1.05,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
+                          const SizedBox(height: 3),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.location_on_outlined,
+                                size: 14,
+                                color: Colors.white.withValues(alpha: 0.85),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                'Admin · ${tenant?.name ?? "Demo Shop"}',
+                                style: TextStyle(
+                                  color: Colors.white.withValues(alpha: 0.85),
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  height: 1.05,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ],
-              ),
+                ),
+                Container(
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      onTap: () => Navigator.pop(context),
+                      borderRadius: BorderRadius.circular(999),
+                      child: Center(
+                        child: DashboardQuickAccessSvgs.icon(
+                          DashboardQuickAccessSvgs.drawerCloseXIcon(),
+                          width: 14,
+                          height: 14,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         );
@@ -188,11 +237,12 @@ class _MyDrawerState extends ConsumerState<MyDrawer> with BranchSelectionMixin {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Quick Actions',
+            'QUICK ACTIONS',
             style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey[600],
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1.2,
+              color: const Color(0xFF9CA3AF),
             ),
           ),
           const SizedBox(height: 12),
@@ -200,9 +250,9 @@ class _MyDrawerState extends ConsumerState<MyDrawer> with BranchSelectionMixin {
             children: [
               Expanded(
                 child: _QuickActionCard(
-                  icon: Icons.qr_code_scanner_rounded,
                   title: 'Scan QR',
-                  color: const Color(0xFF0078D4),
+                  iconSvg: DashboardQuickAccessSvgs.drawerScanQrIcon(),
+                  titleColor: const Color(0xFF2563EB),
                   onTap: () {
                     Navigator.pop(context);
                     Navigator.push(
@@ -220,9 +270,9 @@ class _MyDrawerState extends ConsumerState<MyDrawer> with BranchSelectionMixin {
               const SizedBox(width: 12),
               Expanded(
                 child: _QuickActionCard(
-                  icon: Icons.dashboard_rounded,
                   title: 'Dashboard',
-                  color: const Color(0xFF107C10),
+                  iconSvg: DashboardQuickAccessSvgs.drawerDashboardIconGreen(),
+                  titleColor: const Color(0xFF16A34A),
                   onTap: () {
                     Navigator.pop(context);
                   },
@@ -290,11 +340,12 @@ class _MyDrawerState extends ConsumerState<MyDrawer> with BranchSelectionMixin {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Your Businesses',
+            'YOUR BUSINESSES',
             style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey[600],
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1.2,
+              color: const Color(0xFF9CA3AF),
             ),
           ),
           const SizedBox(height: 12),
@@ -319,20 +370,31 @@ class _MyDrawerState extends ConsumerState<MyDrawer> with BranchSelectionMixin {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Management',
+            'MANAGEMENT',
             style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey[600],
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1.2,
+              color: const Color(0xFF9CA3AF),
             ),
           ),
           const SizedBox(height: 12),
           const ModernShiftTile(),
-          const SizedBox(height: 12), // Add some spacing
-          _ModernMenuItem(
-            icon: Icons.security_rounded,
+          const SizedBox(height: 12),
+          Text(
+            'SETTINGS',
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1.2,
+              color: const Color(0xFF9CA3AF),
+            ),
+          ),
+          const SizedBox(height: 12),
+          _ModernMenuRow(
+            iconSvg: DashboardQuickAccessSvgs.drawerAuthShieldIcon(),
             title: 'Auth',
-            color: const Color(0xFF0078D4), // Use a suitable color
+            subtitle: 'Authentication settings',
             onTap: () {
               Navigator.pop(context); // Close the drawer
               Navigator.push(
@@ -342,10 +404,10 @@ class _MyDrawerState extends ConsumerState<MyDrawer> with BranchSelectionMixin {
             },
           ),
           const SizedBox(height: 12),
-          _ModernMenuItem(
-            icon: Icons.sync_rounded,
+          _ModernMenuRow(
+            iconSvg: DashboardQuickAccessSvgs.drawerOnlinePrintSyncIcon(),
             title: 'Online Print',
-            color: const Color(0xFF0078D4),
+            subtitle: 'Manage print settings',
             onTap: () {
               Navigator.pop(context); // Close the drawer
               showModalBottomSheet(
@@ -389,10 +451,11 @@ class _MyDrawerState extends ConsumerState<MyDrawer> with BranchSelectionMixin {
                                   ).withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
-                                child: const Icon(
-                                  Icons.sync_rounded,
-                                  color: Color(0xFF0078D4),
-                                  size: 24,
+                                child: DashboardQuickAccessSvgs.icon(
+                                  DashboardQuickAccessSvgs
+                                      .drawerOnlinePrintSyncIcon(),
+                                  width: 24,
+                                  height: 24,
                                 ),
                               ),
                               const SizedBox(width: 12),
@@ -406,7 +469,11 @@ class _MyDrawerState extends ConsumerState<MyDrawer> with BranchSelectionMixin {
                                 ),
                               ),
                               IconButton(
-                                icon: const Icon(Icons.close),
+                                icon: DashboardQuickAccessSvgs.icon(
+                                  DashboardQuickAccessSvgs.drawerCloseXIcon(),
+                                  width: 14,
+                                  height: 14,
+                                ),
                                 onPressed: () => Navigator.pop(context),
                               ),
                             ],
@@ -429,10 +496,10 @@ class _MyDrawerState extends ConsumerState<MyDrawer> with BranchSelectionMixin {
             },
           ),
           const SizedBox(height: 12),
-          _ModernSwitchMenuItem(
-            icon: Icons.history_edu_rounded,
+          _ModernSwitchRow(
+            iconSvg: DashboardQuickAccessSvgs.drawerUserLoggingFileIcon(),
             title: 'User Logging',
-            color: const Color(0xFF0078D4),
+            subtitle: 'Enable extensive logging',
             value: userLoggingEnabled,
             onChanged: (value) async {
               await ProxyService.box.setUserLoggingEnabled(value);
@@ -442,10 +509,10 @@ class _MyDrawerState extends ConsumerState<MyDrawer> with BranchSelectionMixin {
             },
           ),
           const SizedBox(height: 12),
-          _ModernSwitchMenuItem(
-            icon: Icons.sync_lock_rounded,
+          _ModernSwitchRow(
+            iconSvg: DashboardQuickAccessSvgs.drawerBackgroundSyncGridPlusIcon(),
             title: 'Background Sync',
-            color: const Color(0xFF0078D4),
+            subtitle: 'Sync data in background',
             value: backgroundSyncEnabled,
             onChanged: (value) async {
               await ProxyService.box.writeBool(
@@ -605,15 +672,17 @@ class _MyDrawerState extends ConsumerState<MyDrawer> with BranchSelectionMixin {
         bottom: MediaQuery.of(context).padding.bottom + 16,
       ),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8F9FA),
-        border: Border(top: BorderSide(color: Colors.grey.shade200)),
+        color: const Color(0xFFF5F6F8),
+        border: Border(top: BorderSide(color: Color(0xFFE5E7EB))),
       ),
       child: SafeArea(
         top: false,
-        child: _ModernMenuItem(
-          icon: Icons.logout_rounded,
+        child: _ModernBaseRow(
+          iconSvg: DashboardQuickAccessSvgs.drawerSignOutIcon(),
           title: 'Sign Out',
-          color: const Color(0xFFD13438),
+          titleColor: const Color(0xFFDC2626),
+          subtitle: null,
+          trailing: const SizedBox(width: 14, height: 14),
           onTap: () {
             locator<DialogService>().showCustomDialog(
               variant: DialogType.logOut,
@@ -787,8 +856,8 @@ class _ModernShiftTileState extends State<ModernShiftTile> {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.shade200),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: const Color(0xFFE5E7EB)),
             ),
             child: Row(
               children: [
@@ -813,8 +882,8 @@ class _ModernShiftTileState extends State<ModernShiftTile> {
         return Container(
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey.shade200),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFE5E7EB)),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.04),
@@ -827,9 +896,10 @@ class _ModernShiftTileState extends State<ModernShiftTile> {
             color: Colors.transparent,
             child: InkWell(
               onTap: () => _handleShiftAction(isShiftOpen, shift),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(16),
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 child: Row(
                   children: [
                     Container(
@@ -837,18 +907,23 @@ class _ModernShiftTileState extends State<ModernShiftTile> {
                       height: 40,
                       decoration: BoxDecoration(
                         color: isShiftOpen
-                            ? const Color(0xFFD13438).withValues(alpha: 0.1)
-                            : const Color(0xFF107C10).withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
+                            ? const Color.fromRGBO(220, 38, 38, 0.10)
+                            : const Color.fromRGBO(22, 163, 74, 0.10),
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      child: Icon(
-                        isShiftOpen
-                            ? Icons.lock_clock_rounded
-                            : Icons.lock_open_rounded,
-                        size: 20,
-                        color: isShiftOpen
-                            ? const Color(0xFFD13438)
-                            : const Color(0xFF107C10),
+                      child: Center(
+                        child: isShiftOpen
+                            ? DashboardQuickAccessSvgs.icon(
+                                DashboardQuickAccessSvgs
+                                    .drawerCloseShiftLockIcon(),
+                                width: 24,
+                                height: 24,
+                              )
+                            : const Icon(
+                                Icons.lock_open_rounded,
+                                size: 20,
+                                color: Color(0xFF16A34A),
+                              ),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -876,24 +951,28 @@ class _ModernShiftTileState extends State<ModernShiftTile> {
                         ],
                       ),
                     ),
-                    Container(
-                      width: 24,
-                      height: 24,
-                      decoration: BoxDecoration(
-                        color: isShiftOpen
-                            ? const Color(0xFFD13438).withValues(alpha: 0.1)
-                            : const Color(0xFF107C10).withValues(alpha: 0.1),
-                        shape: BoxShape.circle,
+                    if (isShiftOpen)
+                      Container(
+                        width: 22,
+                        height: 22,
+                        decoration: const BoxDecoration(
+                          color: Color.fromRGBO(220, 38, 38, 0.10),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(
+                          child: DashboardQuickAccessSvgs.icon(
+                            DashboardQuickAccessSvgs
+                                .drawerShiftWarningBadgeIcon(),
+                            width: 10,
+                            height: 10,
+                          ),
+                        ),
                       ),
-                      child: Icon(
-                        isShiftOpen
-                            ? Icons.stop_rounded
-                            : Icons.play_arrow_rounded,
-                        size: 14,
-                        color: isShiftOpen
-                            ? const Color(0xFFD13438)
-                            : const Color(0xFF107C10),
-                      ),
+                    const SizedBox(width: 10),
+                    DashboardQuickAccessSvgs.icon(
+                      DashboardQuickAccessSvgs.drawerChevronRightIcon(),
+                      width: 14,
+                      height: 14,
                     ),
                   ],
                 ),
@@ -961,15 +1040,15 @@ class _ModernShiftTileState extends State<ModernShiftTile> {
 }
 
 class _QuickActionCard extends StatelessWidget {
-  final IconData icon;
   final String title;
-  final Color color;
+  final String iconSvg;
+  final Color titleColor;
   final VoidCallback onTap;
 
   const _QuickActionCard({
-    required this.icon,
     required this.title,
-    required this.color,
+    required this.iconSvg,
+    required this.titleColor,
     required this.onTap,
   });
 
@@ -979,24 +1058,31 @@ class _QuickActionCard extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
           decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: color.withValues(alpha: 0.2)),
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFFE5E7EB)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 12,
+                offset: const Offset(0, 3),
+              ),
+            ],
           ),
           child: Column(
             children: [
-              Icon(icon, color: color, size: 24),
-              const SizedBox(height: 8),
+              DashboardQuickAccessSvgs.icon(iconSvg, width: 28, height: 28),
+              const SizedBox(height: 10),
               Text(
                 title,
                 style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: color,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: titleColor,
                 ),
               ),
             ],
@@ -1007,7 +1093,7 @@ class _QuickActionCard extends StatelessWidget {
   }
 }
 
-class _ModernBusinessCard extends StatelessWidget {
+class _ModernBusinessCard extends StatefulWidget {
   final Business business;
   final Function(Branch) onBranchSelected;
   final String? switchingBranchId;
@@ -1019,6 +1105,13 @@ class _ModernBusinessCard extends StatelessWidget {
   });
 
   @override
+  State<_ModernBusinessCard> createState() => _ModernBusinessCardState();
+}
+
+class _ModernBusinessCardState extends State<_ModernBusinessCard> {
+  bool _expanded = false;
+
+  @override
   Widget build(BuildContext context) {
     // The branches are now expected to be populated via getUserAccess
     // which modifies the Business object before it reaches here.
@@ -1026,8 +1119,8 @@ class _ModernBusinessCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
@@ -1036,7 +1129,7 @@ class _ModernBusinessCard extends StatelessWidget {
           ),
         ],
       ),
-      child: _buildBusinessCard(context, business.branches ?? []),
+      child: _buildBusinessCard(context, widget.business.branches ?? []),
     );
   }
 
@@ -1048,34 +1141,60 @@ class _ModernBusinessCard extends StatelessWidget {
         highlightColor: Colors.transparent,
       ),
       child: ExpansionTile(
-        tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+        onExpansionChanged: (value) => setState(() => _expanded = value),
+        trailing: AnimatedRotation(
+          duration: const Duration(milliseconds: 150),
+          turns: _expanded ? 0.5 : 0.0,
+          child: DashboardQuickAccessSvgs.icon(
+            DashboardQuickAccessSvgs.drawerChevronDownIcon(),
+            width: 16,
+            height: 16,
+          ),
+        ),
+        tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         childrenPadding: const EdgeInsets.only(bottom: 8),
         collapsedShape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(12)),
+          borderRadius: BorderRadius.all(Radius.circular(16)),
         ),
         shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.all(Radius.circular(12)),
+          borderRadius: BorderRadius.all(Radius.circular(16)),
         ),
         leading: Container(
           width: 40,
           height: 40,
           decoration: BoxDecoration(
-            color: const Color(0xFF0078D4).withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(8),
+            color: const Color.fromRGBO(37, 99, 235, 0.10),
+            borderRadius: BorderRadius.circular(12),
           ),
-          child: const Icon(
-            Icons.business_rounded,
-            size: 20,
-            color: Color(0xFF0078D4),
+          child: Center(
+            child: DashboardQuickAccessSvgs.icon(
+              DashboardQuickAccessSvgs.drawerBusinessIconBlue(),
+              width: 22,
+              height: 22,
+            ),
           ),
         ),
         title: Text(
-          business.name ?? 'Unnamed Business',
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          widget.business.name ?? 'Unnamed Business',
+          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700),
         ),
-        subtitle: Text(
-          '${branches.length} ${branches.length == 1 ? 'branch' : 'branches'}',
-          style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+        subtitle: Align(
+          alignment: Alignment.centerLeft,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: const Color.fromRGBO(37, 99, 235, 0.10),
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Text(
+              '${branches.length} ${branches.length == 1 ? 'branch' : 'branches'}',
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF2563EB),
+              ),
+            ),
+          ),
         ),
         children: branches.isEmpty
             ? [
@@ -1083,14 +1202,14 @@ class _ModernBusinessCard extends StatelessWidget {
                   branch: Branch(
                     id: 'main',
                     name: 'Main Branch',
-                    businessId: business.id,
+                    businessId: widget.business.id,
                   ),
-                  switchingBranchId: switchingBranchId,
-                  onTap: () => onBranchSelected(
+                  switchingBranchId: widget.switchingBranchId,
+                  onTap: () => widget.onBranchSelected(
                     Branch(
                       id: 'main',
                       name: 'Main Branch',
-                      businessId: business.id,
+                      businessId: widget.business.id,
                     ),
                   ),
                 ),
@@ -1099,8 +1218,8 @@ class _ModernBusinessCard extends StatelessWidget {
                   .map(
                     (branch) => _BranchItem(
                       branch: branch,
-                      switchingBranchId: switchingBranchId,
-                      onTap: () => onBranchSelected(branch),
+                      switchingBranchId: widget.switchingBranchId,
+                      onTap: () => widget.onBranchSelected(branch),
                     ),
                   )
                   .toList(),
@@ -1180,83 +1299,145 @@ class _BranchItem extends StatelessWidget {
   }
 }
 
-class _ModernMenuItem extends StatelessWidget {
-  final IconData icon;
+class _ModernSwitchRow extends StatelessWidget {
+  final String iconSvg;
   final String title;
-  final Color color;
-  final VoidCallback onTap;
-
-  const _ModernMenuItem({
-    required this.icon,
-    required this.title,
-    required this.color,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-          child: Row(
-            children: [
-              Icon(icon, color: color, size: 20),
-              const SizedBox(width: 16),
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: color,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _ModernSwitchMenuItem extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final Color color;
+  final String subtitle;
   final bool value;
   final ValueChanged<bool> onChanged;
 
-  const _ModernSwitchMenuItem({
-    required this.icon,
+  const _ModernSwitchRow({
+    required this.iconSvg,
     required this.title,
-    required this.color,
+    required this.subtitle,
     required this.value,
     required this.onChanged,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+    return _ModernBaseRow(
+      iconSvg: iconSvg,
+      title: title,
+      subtitle: subtitle,
+      trailing: Switch(
+        value: value,
+        onChanged: onChanged,
+        activeThumbColor: const Color(0xFF2563EB),
+      ),
+    );
+  }
+}
+
+class _ModernMenuRow extends StatelessWidget {
+  final String iconSvg;
+  final String title;
+  final String? subtitle;
+  final VoidCallback onTap;
+
+  const _ModernMenuRow({
+    required this.iconSvg,
+    required this.title,
+    this.subtitle,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return _ModernBaseRow(
+      iconSvg: iconSvg,
+      title: title,
+      subtitle: subtitle,
+      trailing: DashboardQuickAccessSvgs.icon(
+        DashboardQuickAccessSvgs.drawerChevronRightIcon(),
+        width: 14,
+        height: 14,
+      ),
+      onTap: onTap,
+    );
+  }
+}
+
+class _ModernBaseRow extends StatelessWidget {
+  final String iconSvg;
+  final String title;
+  final String? subtitle;
+  final Color? titleColor;
+  final Widget trailing;
+  final VoidCallback? onTap;
+
+  const _ModernBaseRow({
+    required this.iconSvg,
+    required this.title,
+    required this.trailing,
+    this.subtitle,
+    this.titleColor,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final content = Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       child: Row(
         children: [
-          Icon(icon, color: color, size: 20),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Text(
-              title,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: color,
-              ),
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              color: const Color(0xFFF3F4F6),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Center(
+              child:
+                  DashboardQuickAccessSvgs.icon(iconSvg, width: 22, height: 22),
             ),
           ),
-          Switch(value: value, onChanged: onChanged, activeThumbColor: color),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                    color: titleColor ?? const Color(0xFF111827),
+                  ),
+                ),
+                if (subtitle != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    subtitle!,
+                    style: const TextStyle(
+                      fontSize: 12.5,
+                      color: Color(0xFF9CA3AF),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          trailing,
         ],
+      ),
+    );
+
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(16),
+          child: content,
+        ),
       ),
     );
   }
