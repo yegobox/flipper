@@ -159,8 +159,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   }) {
     final branchId = ProxyService.box.getBranchId();
     final transaction = transactionAsyncValue.asData?.value;
-    final displayId =
-        transaction != null ? transaction.id.toString() : 'Invalid';
+
     final showSaveTicket =
         transaction != null && internalTransactionItems.isNotEmpty;
 
@@ -191,8 +190,6 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                         model: model,
                       ),
                     ],
-                    _checkoutToolbarDivider(),
-                    _buildCompactTransactionIdRow(displayId),
                     if (branchId != null) ...[
                       _checkoutToolbarDivider(),
                       _buildTopBarInvoiceChip(branchId: branchId),
@@ -250,9 +247,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         label: Text(
           'Save ticket',
           style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                fontWeight: FontWeight.w600,
-                color: Theme.of(context).colorScheme.onSurface,
-              ),
+            fontWeight: FontWeight.w600,
+            color: Theme.of(context).colorScheme.onSurface,
+          ),
         ),
         style: OutlinedButton.styleFrom(
           backgroundColor: Colors.white,
@@ -262,9 +259,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           minimumSize: Size.zero,
           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           visualDensity: VisualDensity.compact,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       ),
     );
@@ -277,8 +272,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     final labelColor = isRemaining
         ? Colors.red.shade700
         : PosLayoutBreakpoints.posAccentBlue.withValues(alpha: 0.9);
-    final valueColor =
-        isRemaining ? Colors.red.shade700 : PosLayoutBreakpoints.posAccentBlue;
+    final valueColor = isRemaining
+        ? Colors.red.shade700
+        : PosLayoutBreakpoints.posAccentBlue;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
@@ -299,86 +295,17 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           Text(
             isRemaining ? 'Remaining Balance: ' : 'Amount to Change: ',
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: labelColor,
-                  fontWeight: FontWeight.w600,
-                ),
+              color: labelColor,
+              fontWeight: FontWeight.w600,
+            ),
           ),
           Text(
             (isRemaining ? remaining : change).toCurrencyFormatted(
               symbol: ProxyService.box.defaultCurrency(),
             ),
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: valueColor,
-                  fontWeight: FontWeight.w700,
-                ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCompactTransactionIdRow(String displayId) {
-    final scheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: const Color(0xFFE5E7EB)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.receipt_long_outlined,
-            size: 16,
-            color: scheme.onSurfaceVariant,
-          ),
-          const SizedBox(width: 6),
-          Text(
-            'ID',
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: scheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w600,
-                ),
-          ),
-          const SizedBox(width: 6),
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 132),
-            child: Text(
-              displayId,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    fontFamily: 'monospace',
-                    fontWeight: FontWeight.w600,
-                  ),
-              overflow: TextOverflow.ellipsis,
-              maxLines: 1,
-            ),
-          ),
-          const SizedBox(width: 2),
-          Tooltip(
-            message: 'Copy transaction ID',
-            child: InkWell(
-              onTap: () {
-                Clipboard.setData(ClipboardData(text: displayId));
-                ProxyService.strategy.notify(
-                  notification: AppNotification(
-                    identifier: ProxyService.box.getBranchId(),
-                    type: "internal",
-                    completed: false,
-                    message: "Transaction ID copied to clipboard",
-                  ),
-                );
-              },
-              borderRadius: BorderRadius.circular(4),
-              child: Padding(
-                padding: const EdgeInsets.all(4.0),
-                child: Icon(
-                  Icons.content_copy_outlined,
-                  size: 15,
-                  color: PosLayoutBreakpoints.posAccentBlue,
-                ),
-              ),
+              color: valueColor,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ],
@@ -484,17 +411,23 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   final Map<String, TextEditingController> _quantityControllers = {};
 
   // _formKeyboardListenerFocusNode is non-late so KeyboardListener always has a node.
-  late final FocusNode _receivedAmountFocusNode =
-      FocusNode(onKeyEvent: _handleReceivedAmountKey);
-  late final FocusNode _customerNameFocusNode =
-      FocusNode(onKeyEvent: _handleCustomerNameKey);
-  late final FocusNode _customerPhoneFocusNode =
-      FocusNode(onKeyEvent: _handleCustomerPhoneKey);
-  late final FocusNode _deliveryNoteFocusNode =
-      FocusNode(onKeyEvent: _handleDeliveryNoteKey);
+  late final FocusNode _receivedAmountFocusNode = FocusNode(
+    onKeyEvent: _handleReceivedAmountKey,
+  );
+  late final FocusNode _customerNameFocusNode = FocusNode(
+    onKeyEvent: _handleCustomerNameKey,
+  );
+  late final FocusNode _customerPhoneFocusNode = FocusNode(
+    onKeyEvent: _handleCustomerPhoneKey,
+  );
+  late final FocusNode _deliveryNoteFocusNode = FocusNode(
+    onKeyEvent: _handleDeliveryNoteKey,
+  );
+
   /// Stable node for [KeyboardListener] — do not allocate a new [FocusNode] per build.
-  final FocusNode _formKeyboardListenerFocusNode =
-      FocusNode(debugLabel: 'quickSellFormShortcuts');
+  final FocusNode _formKeyboardListenerFocusNode = FocusNode(
+    debugLabel: 'quickSellFormShortcuts',
+  );
 
   // Track last auto-set amount to detect manual changes
   double _lastAutoSetAmount = 0.0;
@@ -1148,8 +1081,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         );
 
         for (final item in items) {
-          await ProxyService.getStrategy(Strategy.capella)
-              .updateTransactionItem(
+          await ProxyService.getStrategy(
+            Strategy.capella,
+          ).updateTransactionItem(
             transactionItemId: item.id.toString(),
             active: false,
             ignoreForReport: false,
@@ -1212,7 +1146,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                       ),
                     ),
                     TextButton.icon(
-                      onPressed: (transactionAsyncValue.value?.cashReceived ?? 0) > 0
+                      onPressed:
+                          (transactionAsyncValue.value?.cashReceived ?? 0) > 0
                           ? null
                           : () => _deleteAllItems(transactionAsyncValue),
                       icon: Icon(Icons.delete_sweep, size: 18),
@@ -1225,7 +1160,11 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                   ],
                 ),
               ),
-              ...items.map((item) => _buildModernItemCard(item, transactionAsyncValue)).toList(),
+              ...items
+                  .map(
+                    (item) => _buildModernItemCard(item, transactionAsyncValue),
+                  )
+                  .toList(),
             ],
           ),
         );
@@ -1670,8 +1609,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           FilledButton(
             onPressed: () async {
               Navigator.of(context).pop();
-              await ProxyService.getStrategy(Strategy.capella)
-                  .updateTransactionItem(
+              await ProxyService.getStrategy(
+                Strategy.capella,
+              ).updateTransactionItem(
                 transactionItemId: item.id.toString(),
                 active: false,
                 ignoreForReport: false,
@@ -1747,18 +1687,12 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
             label: 'Transaction items list',
             hint:
                 'List of items in the current transaction with quantities and prices',
-            child: buildTransactionItemsTable(
-              isOrdering,
-              pinGrandTotal: false,
-            ),
+            child: buildTransactionItemsTable(isOrdering, pinGrandTotal: false),
           ),
         if (isOrdering) ...[
           const SizedBox(height: 20),
           Container(
-            margin: const EdgeInsets.symmetric(
-              horizontal: 12.0,
-              vertical: 8.0,
-            ),
+            margin: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
             padding: const EdgeInsets.all(6.0),
             child: Column(
               children: [
@@ -2279,8 +2213,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                   ),
                   child: CountryCodePicker(
                     onChanged: (countryCode) {
-                      widget.countryCodeController.text =
-                          countryCode.dialCode!;
+                      widget.countryCodeController.text = countryCode.dialCode!;
                     },
                     initialSelection: 'RW',
                     favorite: const ['+250', 'RW'],
@@ -2395,5 +2328,4 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       model: model,
     );
   }
-
 }

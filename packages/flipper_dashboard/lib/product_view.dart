@@ -174,24 +174,50 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     final selectedIds = ref.watch(selectedItemIdsProvider);
     final isSelectionMode = selectedIds.isNotEmpty;
     final progress = ref.watch(bulkDeleteProgressProvider);
+    final showProductList = ref.watch(showProductsList);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        if (progress > 0)
-          LinearProgressIndicator(
-            value: progress,
-            backgroundColor: Colors.transparent,
-            valueColor: AlwaysStoppedAnimation<Color>(
-              Theme.of(context).colorScheme.primary,
+    return LayoutBuilder(builder: (context, constraints) {
+      final paneWidth = constraints.maxWidth;
+      final isMobileLayout =
+          paneWidth < PosLayoutBreakpoints.mobileLayoutMaxWidth;
+
+      final linked = widget.linkedSearchController;
+      final showLinkedSearch = linked != null && showProductList;
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          if (progress > 0)
+            LinearProgressIndicator(
+              value: progress,
+              backgroundColor: Colors.transparent,
+              valueColor: AlwaysStoppedAnimation<Color>(
+                Theme.of(context).colorScheme.primary,
+              ),
+              minHeight: 2,
             ),
-            minHeight: 2,
-          ),
-        if (isSelectionMode)
-          _buildBulkSelectionBar(context, model, selectedIds),
-        Expanded(child: _buildVariantList(context, model)),
-      ],
-    );
+          if (isSelectionMode)
+            _buildBulkSelectionBar(context, model, selectedIds),
+          if (showLinkedSearch) ...[
+            SizedBox(height: isMobileLayout ? 8 : 16),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+              child: Material(
+                color: const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(8),
+                child: SearchFieldWidget(
+                  controller: linked,
+                  hintText: 'Search products...',
+                  densePadding: true,
+                  showTrailingToolbar: false,
+                ),
+              ),
+            ),
+          ],
+          Expanded(child: _buildVariantList(context, model, paneWidth: paneWidth)),
+        ],
+      );
+    });
   }
 
   Widget _buildBulkSelectionBar(
@@ -318,7 +344,8 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     }
   }
 
-  Widget _buildVariantList(BuildContext context, ProductViewModel model) {
+  Widget _buildVariantList(BuildContext context, ProductViewModel model,
+      {required double paneWidth}) {
     return Consumer(
       builder: (context, ref, _) {
         final branchId = ProxyService.box.getBranchId() ?? "";
@@ -332,9 +359,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
           });
         }
 
-        return ref
-            .watch(outerVariantsProvider(branchId))
-            .when(
+        return ref.watch(outerVariantsProvider(branchId)).when(
               data: (variants) {
                 if (variants.isEmpty) {
                   final hasBranch = branchId.isNotEmpty;
@@ -354,7 +379,9 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                             hasBranch
                                 ? 'No products yet'
                                 : 'No branch selected',
-                            style: Theme.of(context).textTheme.titleLarge
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleLarge
                                 ?.copyWith(
                                   color: Theme.of(
                                     context,
@@ -368,7 +395,9 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                               'If you just opened the app, products may still '
                               'be syncing — tap refresh.',
                               textAlign: TextAlign.center,
-                              style: Theme.of(context).textTheme.bodyMedium
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodyMedium
                                   ?.copyWith(
                                     color: Theme.of(
                                       context,
@@ -391,7 +420,8 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                     ),
                   );
                 }
-                return _buildVariantsGrid(context, model, variants: variants);
+                return _buildVariantsGrid(context, model,
+                    variants: variants, paneWidth: paneWidth);
               },
               error: (error, stackTrace) => Center(
                 child: Padding(
@@ -452,6 +482,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     BuildContext context,
     ProductViewModel model, {
     required List<Variant> variants,
+    required double paneWidth,
   }) {
     final showProductList = ref.watch(showProductsList);
 
@@ -466,240 +497,220 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     final loadedCount = variants.length;
     final estimatedTotalPages = notifier.estimatedTotalPages();
 
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final paneWidth = constraints.maxWidth;
-        final isMobileLayout =
-            paneWidth < PosLayoutBreakpoints.mobileLayoutMaxWidth;
+    final isMobileLayout =
+        paneWidth < PosLayoutBreakpoints.mobileLayoutMaxWidth;
 
-        final linked = widget.linkedSearchController;
-        final showLinkedSearch =
-            linked != null && !isMobileLayout && showProductList;
-
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox.shrink(),
-            SizedBox(height: isMobileLayout ? 8 : 16),
-            if (showLinkedSearch) ...[
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-                child: Material(
-                  color: const Color(0xFFF1F5F9),
-                  borderRadius: BorderRadius.circular(8),
-                  child: SearchFieldWidget(
-                    controller: linked,
-                    hintText: 'Search products...',
-                    densePadding: true,
-                    showTrailingToolbar: false,
-                  ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(
+            horizontal: 16.0,
+            vertical: 8.0,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Builder(
+                  builder: (context) {
+                    final total = notifier.totalCount ?? loadedCount;
+                    final totalText = total.toString();
+                    if (isMobileLayout) {
+                      final pages =
+                          estimatedTotalPages < 1 ? 1 : estimatedTotalPages;
+                      return Text(
+                        '$totalText products · page ${_currentPage + 1} of $pages',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Theme.of(
+                                context,
+                              ).colorScheme.onSurfaceVariant,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13,
+                            ),
+                        overflow: TextOverflow.ellipsis,
+                      );
+                    }
+                    final start = loadedCount == 0 ? 0 : (_currentPage * ipp) + 1;
+                    final end = ((_currentPage + 1) * ipp) > total
+                        ? total
+                        : ((_currentPage + 1) * ipp);
+                    return Text(
+                      'Showing $start–$end of $totalText results',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                      overflow: TextOverflow.ellipsis,
+                    );
+                  },
                 ),
               ),
+              _buildSortingDropdown(context, compact: isMobileLayout),
             ],
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Builder(
-                      builder: (context) {
-                        final total = notifier.totalCount ?? loadedCount;
-                        final totalText = total.toString();
-                        if (isMobileLayout) {
-                          final pages = estimatedTotalPages < 1
-                              ? 1
-                              : estimatedTotalPages;
-                          return Text(
-                            '$totalText products · page ${_currentPage + 1} of $pages',
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onSurfaceVariant,
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 13,
-                                ),
-                            overflow: TextOverflow.ellipsis,
-                          );
-                        }
-                        final start = loadedCount == 0
-                            ? 0
-                            : (_currentPage * ipp) + 1;
-                        final end = ((_currentPage + 1) * ipp) > total
-                            ? total
-                            : ((_currentPage + 1) * ipp);
-                        return Text(
-                          'Showing $start–$end of $totalText results',
-                          style: Theme.of(context).textTheme.bodyMedium,
-                          overflow: TextOverflow.ellipsis,
-                        );
-                      },
-                    ),
+          ),
+        ),
+        const SizedBox(height: 14),
+        Expanded(
+          child: showProductList && !isMobileLayout
+              ? ColoredBox(
+                  color: const Color(0xFFF8FAFC),
+                  child: _buildMainContentSection(
+                    context,
+                    model,
+                    _shouldApplySorting(ref)
+                        ? _sortVariants(variants, ref)
+                        : variants,
+                    showProductList,
+                    startDate,
+                    endDate,
+                    ref,
+                    paneWidth: paneWidth,
                   ),
-                  _buildSortingDropdown(context, compact: isMobileLayout),
-                ],
-              ),
-            ),
-            const SizedBox(height: 14),
-            Expanded(
-              child: showProductList && !isMobileLayout
-                  ? ColoredBox(
-                      color: const Color(0xFFF8FAFC),
-                      child: _buildMainContentSection(
-                        context,
-                        model,
-                        _shouldApplySorting(ref)
-                            ? _sortVariants(variants, ref)
-                            : variants,
-                        showProductList,
-                        startDate,
-                        endDate,
-                        ref,
-                        paneWidth: paneWidth,
-                      ),
-                    )
-                  : _buildMainContentSection(
-                      context,
-                      model,
-                      _shouldApplySorting(ref)
-                          ? _sortVariants(variants, ref)
-                          : variants,
-                      showProductList,
-                      startDate,
-                      endDate,
-                      ref,
-                      paneWidth: paneWidth,
-                    ),
-            ),
-            if (estimatedTotalPages > 0)
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16.0,
-                  vertical: 12.0,
+                )
+              : _buildMainContentSection(
+                  context,
+                  model,
+                  _shouldApplySorting(ref)
+                      ? _sortVariants(variants, ref)
+                      : variants,
+                  showProductList,
+                  startDate,
+                  endDate,
+                  ref,
+                  paneWidth: paneWidth,
                 ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Row(
-                        children: [
-                          _paginationSideButton(
-                            context: context,
-                            icon: FluentIcons.chevron_left_20_regular,
-                            onPressed: _currentPage > 0
-                                ? () => _goToPage(_currentPage - 1)
-                                : null,
-                            usePosStyle: isMobileLayout,
-                          ),
-                          Expanded(
-                            child: SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Row(
-                                children: List.generate(estimatedTotalPages, (
-                                  index,
-                                ) {
-                                  if (estimatedTotalPages > 10) {
-                                    final low = (_currentPage - 2).clamp(
-                                      0,
-                                      estimatedTotalPages - 1,
-                                    );
-                                    final high = (_currentPage + 2).clamp(
-                                      0,
-                                      estimatedTotalPages - 1,
-                                    );
-                                    if (index < low || index > high) {
-                                      return const SizedBox.shrink();
-                                    }
-                                  }
-                                  final page = index;
-                                  final isCurrent = page == _currentPage;
-                                  return Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 4.0,
-                                    ),
-                                    child: Material(
-                                      color: isMobileLayout
-                                          ? (isCurrent
-                                              ? const Color(0xFFE8E8ED)
-                                              : Colors.white)
-                                          : (isCurrent
-                                              ? Theme.of(
-                                                  context,
-                                                ).colorScheme.primary
-                                              : Colors.transparent),
-                                      borderRadius: BorderRadius.circular(10),
-                                      child: InkWell(
-                                        borderRadius: BorderRadius.circular(10),
-                                        onTap: () => _goToPage(page),
-                                        child: Container(
-                                          width: 40,
-                                          height: 40,
-                                          alignment: Alignment.center,
-                                          decoration: BoxDecoration(
-                                            borderRadius:
-                                                BorderRadius.circular(10),
-                                            border: Border.all(
-                                              color: isMobileLayout
-                                                  ? const Color(0xFFD1D1D6)
+        ),
+        if (estimatedTotalPages > 0)
+          Padding(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 12.0,
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Row(
+                    children: [
+                      _paginationSideButton(
+                        context: context,
+                        icon: FluentIcons.chevron_left_20_regular,
+                        onPressed: _currentPage > 0
+                            ? () => _goToPage(_currentPage - 1)
+                            : null,
+                        usePosStyle: isMobileLayout,
+                      ),
+                      Expanded(
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children: List.generate(estimatedTotalPages, (index) {
+                              if (estimatedTotalPages > 10) {
+                                final low = (_currentPage - 2).clamp(
+                                  0,
+                                  estimatedTotalPages - 1,
+                                );
+                                final high = (_currentPage + 2).clamp(
+                                  0,
+                                  estimatedTotalPages - 1,
+                                );
+                                if (index < low || index > high) {
+                                  return const SizedBox.shrink();
+                                }
+                              }
+                              final page = index;
+                              final isCurrent = page == _currentPage;
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4.0,
+                                ),
+                                child: Material(
+                                  color: isMobileLayout
+                                      ? (isCurrent
+                                          ? const Color(
+                                              0xFFE8E8ED,
+                                            )
+                                          : Colors.white)
+                                      : (isCurrent
+                                          ? Theme.of(
+                                              context,
+                                            ).colorScheme.primary
+                                          : Colors.transparent),
+                                  borderRadius: BorderRadius.circular(10),
+                                  child: InkWell(
+                                    borderRadius: BorderRadius.circular(10),
+                                    onTap: () => _goToPage(page),
+                                    child: Container(
+                                      width: 40,
+                                      height: 40,
+                                      alignment: Alignment.center,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(
+                                          10,
+                                        ),
+                                        border: Border.all(
+                                          color: isMobileLayout
+                                              ? const Color(
+                                                  0xFFD1D1D6,
+                                                )
+                                              : Theme.of(context)
+                                                  .colorScheme
+                                                  .primary,
+                                        ),
+                                      ),
+                                      child: Text(
+                                        '${page + 1}',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.w700,
+                                          fontSize: 14,
+                                          color: isMobileLayout
+                                              ? (isCurrent
+                                                  ? Colors.black87
+                                                  : const Color(
+                                                      0xFF3C3C43,
+                                                    ))
+                                              : (isCurrent
+                                                  ? Theme.of(
+                                                      context,
+                                                    ).colorScheme.onPrimary
                                                   : Theme.of(
                                                       context,
-                                                    ).colorScheme.primary,
-                                            ),
-                                          ),
-                                          child: Text(
-                                            '${page + 1}',
-                                            style: TextStyle(
-                                              fontWeight: FontWeight.w700,
-                                              fontSize: 14,
-                                              color: isMobileLayout
-                                                  ? (isCurrent
-                                                      ? Colors.black87
-                                                      : const Color(
-                                                          0xFF3C3C43,
-                                                        ))
-                                                  : (isCurrent
-                                                      ? Theme.of(context)
-                                                          .colorScheme
-                                                          .onPrimary
-                                                      : Theme.of(context)
-                                                          .colorScheme
-                                                          .primary),
-                                            ),
-                                          ),
+                                                    ).colorScheme.primary),
                                         ),
                                       ),
                                     ),
-                                  );
-                                }).where((w) => w != const SizedBox.shrink()).toList(),
-                              ),
-                            ),
+                                  ),
+                                ),
+                              );
+                            })
+                                .where(
+                                  (w) => w != const SizedBox.shrink(),
+                                )
+                                .toList(),
                           ),
-                          _paginationSideButton(
-                            context: context,
-                            icon: FluentIcons.chevron_right_20_regular,
-                            onPressed: _currentPage < (estimatedTotalPages - 1)
-                                ? () => _goToPage(_currentPage + 1)
-                                : null,
-                            usePosStyle: isMobileLayout,
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
-                    if (!isMobileLayout)
-                      Text(
-                        'Page ${_currentPage + 1} of $estimatedTotalPages',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: const Color(0xFF64748B),
-                              fontWeight: FontWeight.w500,
-                            ),
+                      _paginationSideButton(
+                        context: context,
+                        icon: FluentIcons.chevron_right_20_regular,
+                        onPressed: _currentPage < (estimatedTotalPages - 1)
+                            ? () => _goToPage(_currentPage + 1)
+                            : null,
+                        usePosStyle: isMobileLayout,
                       ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-          ],
-        );
-      },
+                if (!isMobileLayout)
+                  Text(
+                    'Page ${_currentPage + 1} of $estimatedTotalPages',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: const Color(0xFF64748B),
+                          fontWeight: FontWeight.w500,
+                        ),
+                  ),
+              ],
+            ),
+          ),
+      ],
     );
   }
 
@@ -753,8 +764,9 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     final crossAxisCount =
         PosLayoutBreakpoints.productGridCrossAxisCountForPaneWidth(paneWidth);
     final spacing = PosLayoutBreakpoints.desktopGridSpacing(paneWidth);
-    final aspectRatio =
-        PosLayoutBreakpoints.desktopGridChildAspectRatio(crossAxisCount);
+    final aspectRatio = PosLayoutBreakpoints.desktopGridChildAspectRatio(
+      crossAxisCount,
+    );
 
     return GridView.builder(
       controller: _scrollController,
@@ -832,10 +844,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     required bool usePosStyle,
   }) {
     if (!usePosStyle) {
-      return IconButton(
-        icon: Icon(icon),
-        onPressed: onPressed,
-      );
+      return IconButton(icon: Icon(icon), onPressed: onPressed);
     }
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 2),
@@ -870,8 +879,9 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     return Consumer(
       builder: (context, ref, _) {
         final currentSort = ref.watch(productSortProvider);
-        final label =
-            compact ? _compactSortLabel(currentSort) : currentSort.label;
+        final label = compact
+            ? _compactSortLabel(currentSort)
+            : currentSort.label;
         return PopupMenuButton<ProductSortOption>(
           child: Container(
             padding: EdgeInsets.symmetric(
