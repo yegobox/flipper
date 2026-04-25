@@ -1,5 +1,3 @@
-import 'dart:developer';
-
 import 'package:flipper_auth/auth_scanner_actions.dart';
 import 'package:flipper_dashboard/letter.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -56,10 +54,11 @@ class _ProfileWidgetState extends State<ProfileWidget>
 
   @override
   Widget build(BuildContext context) {
+    final isWideLayout = MediaQuery.sizeOf(context).width >= 800;
     return Stack(
       children: [
         // Desktop/Web View
-        if (isDesktopOrWeb)
+        if (isDesktopOrWeb && isWideLayout)
           PDesktop(
             widget: widget,
             dialogService: _dialogService,
@@ -129,9 +128,11 @@ class PDesktop extends StatelessWidget with CoreMiscellaneous {
           color: Colors.white,
           onSelected: (value) async {
             if (value == 'logOut') {
-              log('logout selected');
-              await logOut();
-              routeService.clearStackAndShow(LoginRoute());
+              // Always show confirmation + shift handling before logout.
+              dialogService.showCustomDialog(
+                variant: DialogType.logOut,
+                title: 'Log out',
+              );
             }
             if (value == 'personal') {
               routeService.clearStackAndShow(PersonalHomeRoute());

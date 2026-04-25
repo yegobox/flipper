@@ -16,11 +16,15 @@ const Duration _kGetCurrentShiftTimeout = Duration(seconds: 25);
 /// Shows a blocking dialog. Do **not** `await` the [Future] from [showDialog] here:
 /// that future completes only when the route is popped, which would deadlock if
 /// you await it before fetching shift data.
-void _presentBlockingLoader(BuildContext context, String message) {
+void _presentBlockingLoader(
+  BuildContext context,
+  String message, {
+  required bool useRootNavigator,
+}) {
   showDialog<void>(
     context: context,
     barrierDismissible: false,
-    useRootNavigator: true,
+    useRootNavigator: useRootNavigator,
     builder: (ctx) => PopScope(
       canPop: false,
       child: AlertDialog(
@@ -40,8 +44,11 @@ void _presentBlockingLoader(BuildContext context, String message) {
   );
 }
 
-void _hideBlockingLoader(BuildContext context) {
-  final nav = Navigator.of(context, rootNavigator: true);
+void _hideBlockingLoader(
+  BuildContext context, {
+  required bool rootNavigator,
+}) {
+  final nav = Navigator.of(context, rootNavigator: rootNavigator);
   if (nav.canPop()) nav.pop();
 }
 
@@ -54,9 +61,12 @@ double _parseClosingBalance(dynamic raw) {
 /// Verifies shift state, closes an open shift when needed, and shows clear
 /// feedback before the caller navigates away or runs full [logOut].
 ///
-/// When [confirmWhenNoOpenShift] is true (sidebar), the user must confirm
-/// leaving when no shift is open. When false (mobile dialog after they already
-/// chose Logout), only a short message and delay are shown.
+/// When [confirmWhenNoOpenShift] is true, the user must confirm leaving when
+/// no shift is open (sidebar and mobile after they chose Logout).
+///
+/// [loaderUseRootNavigator] should be **false** when this runs from another
+/// dialog (e.g. stacked logout). Using the root navigator can replace or obscure
+/// that dialog so the confirmation never appears.
 ///
 /// Returns `true` if the caller should proceed to login / complete logout.
 /// Returns `false` if the user cancelled or an error blocked leaving.
@@ -64,17 +74,25 @@ Future<bool> prepareSessionExitAfterShiftHandling({
   required BuildContext context,
   required DialogService dialogService,
   bool confirmWhenNoOpenShift = true,
+  bool loaderUseRootNavigator = true,
 }) async {
   final userId = ProxyService.box.getUserId();
   if (userId == null) return true;
 
-  _presentBlockingLoader(context, 'Checking your shift…');
+  _presentBlockingLoader(
+    context,
+    'Checking your shift…',
+    useRootNavigator: loaderUseRootNavigator,
+  );
   try {
     final currentShift = await ProxyService.strategy
         .getCurrentShift(userId: userId)
         .timeout(_kGetCurrentShiftTimeout);
     if (context.mounted) {
-      _hideBlockingLoader(context);
+      _hideBlockingLoader(
+        context,
+        rootNavigator: loaderUseRootNavigator,
+      );
     }
     if (!context.mounted) return false;
 
@@ -170,7 +188,10 @@ Future<bool> prepareSessionExitAfterShiftHandling({
     return true;
   } on TimeoutException catch (e) {
     if (context.mounted) {
-      _hideBlockingLoader(context);
+      _hideBlockingLoader(
+        context,
+        rootNavigator: loaderUseRootNavigator,
+      );
       await dialogService.showCustomDialog(
         variant: DialogType.info,
         title: 'Could not verify shift',
@@ -181,7 +202,10 @@ Future<bool> prepareSessionExitAfterShiftHandling({
     return false;
   } catch (e) {
     if (context.mounted) {
-      _hideBlockingLoader(context);
+      _hideBlockingLoader(
+        context,
+        rootNavigator: loaderUseRootNavigator,
+      );
       await dialogService.showCustomDialog(
         variant: DialogType.info,
         title: 'Could not verify shift',

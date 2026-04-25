@@ -153,7 +153,8 @@ class LogOut extends StackedView<LogoutModel> with CoreMiscellaneous {
                             await prepareSessionExitAfterShiftHandling(
                           context: context,
                           dialogService: dialogService,
-                          confirmWhenNoOpenShift: false,
+                          confirmWhenNoOpenShift: true,
+                          loaderUseRootNavigator: false,
                         );
                         if (!proceed) {
                           completer(DialogResponse(confirmed: false));
