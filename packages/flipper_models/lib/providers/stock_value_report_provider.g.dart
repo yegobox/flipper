@@ -48,7 +48,7 @@ final class StockValueReportProvider
   }
 }
 
-String _$stockValueReportHash() => r'5057d3b434c51714325364c5a84e04e33724d42e';
+String _$stockValueReportHash() => r'126d50003af6b7d90658d63a36307bc015e7bbaf';
 
 @ProviderFor(stockValueSummary)
 const stockValueSummaryProvider = StockValueSummaryProvider._();

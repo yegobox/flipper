@@ -5,7 +5,8 @@ import 'package:flipper_dashboard/BranchSelectionMixin.dart';
 import 'package:flipper_dashboard/import_purchase_dialog.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_dashboard/providers/app_mode_provider.dart';
-import 'package:flipper_dashboard/Reports.dart';
+import 'package:flipper_dashboard/features/stock_value/stock_value_report_desktop_screen.dart';
+import 'package:flipper_models/providers/stock_value_report_provider.dart';
 import 'package:flipper_dashboard/tax_configuration.dart';
 import 'package:flipper_dashboard/transaction_list_wrapper.dart';
 import 'package:flipper_models/providers/branch_business_provider.dart';
@@ -56,11 +57,7 @@ class IconText extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            icon,
-            color: isSelected ? primary : Colors.black54,
-            size: 20.0,
-          ),
+          Icon(icon, color: isSelected ? primary : Colors.black54, size: 20.0),
           const SizedBox(width: 8),
           Text(
             text,
@@ -161,11 +158,12 @@ class IconRowState extends ConsumerState<IconRow>
         );
         break;
       case 3:
-        preloadReportsData(ref);
-        showDialog(
-          context: context,
-          barrierDismissible: true,
-          builder: (BuildContext context) => const FastReportsDialog(),
+        ref.invalidate(stockValueReportProvider);
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => const StockValueReportDesktopScreen(),
+            fullscreenDialog: true,
+          ),
         );
         break;
     }
@@ -244,7 +242,10 @@ class IconRowState extends ConsumerState<IconRow>
               onTap: () => ImportPurchaseDialog.show(context),
               borderRadius: BorderRadius.circular(8),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 8,
+                ),
                 child: Icon(
                   FluentIcons.expand_up_right_16_regular,
                   color: Colors.black54,
@@ -259,11 +260,7 @@ class IconRowState extends ConsumerState<IconRow>
           tooltip: 'More',
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            child: Icon(
-              Icons.more_horiz,
-              color: Colors.black54,
-              size: 22,
-            ),
+            child: Icon(Icons.more_horiz, color: Colors.black54, size: 22),
           ),
           onSelected: (value) {
             if (value == 'locations') {

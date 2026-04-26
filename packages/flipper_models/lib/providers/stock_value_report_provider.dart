@@ -13,6 +13,49 @@ part 'stock_value_report_provider.g.dart';
 
 enum StockSeverity { low, critical }
 
+/// Row status in the all-products list (aligns with restock rules in the main loop).
+enum StockValueLineStatus { ok, low, critical }
+
+class StockValueProductLine {
+  final String variantId;
+  final String name;
+  final String categoryName;
+  final String? bcd;
+  final double unitPrice;
+  final double currentStock;
+  final double minStock;
+  final double lineValue;
+  final StockValueLineStatus status;
+
+  const StockValueProductLine({
+    required this.variantId,
+    required this.name,
+    required this.categoryName,
+    required this.bcd,
+    required this.unitPrice,
+    required this.currentStock,
+    required this.minStock,
+    required this.lineValue,
+    required this.status,
+  });
+}
+
+class StockValueTopItem {
+  final String name;
+  final String categoryName;
+  final double lineValue;
+  final double currentStock;
+  final double lineShareOfTotal;
+
+  const StockValueTopItem({
+    required this.name,
+    required this.categoryName,
+    required this.lineValue,
+    required this.currentStock,
+    required this.lineShareOfTotal,
+  });
+}
+
 class StockValueLowItem {
   final String variantId;
   final String name;
@@ -50,8 +93,13 @@ class StockValueCategoryBreakdown {
 class StockValueReportData {
   final String branchId;
   final int productsCount;
+
+  /// Count of products not in the restock set (see loop: `showAlert && minStock > 0 && currentStock <= minStock`).
+  final int healthyStockCount;
   final double totalValue;
   final int needsRestockCount;
+  final List<StockValueProductLine> allProducts;
+  final StockValueTopItem? topByLineValue;
   final List<StockValueLowItem> lowAndCriticalItems;
   final List<StockValueCategoryBreakdown> valueByCategory;
   final bool isPossiblyIncomplete;
@@ -59,8 +107,11 @@ class StockValueReportData {
   const StockValueReportData({
     required this.branchId,
     required this.productsCount,
+    required this.healthyStockCount,
     required this.totalValue,
     required this.needsRestockCount,
+    required this.allProducts,
+    this.topByLineValue,
     required this.lowAndCriticalItems,
     required this.valueByCategory,
     required this.isPossiblyIncomplete,
@@ -121,8 +172,11 @@ Future<StockValueReportData> stockValueReport(Ref ref) async {
     return const StockValueReportData(
       branchId: '',
       productsCount: 0,
+      healthyStockCount: 0,
       totalValue: 0,
       needsRestockCount: 0,
+      allProducts: [],
+      topByLineValue: null,
       lowAndCriticalItems: [],
       valueByCategory: [],
       isPossiblyIncomplete: true,
@@ -138,8 +192,11 @@ Future<StockValueReportData> stockValueReport(Ref ref) async {
     return StockValueReportData(
       branchId: branchId,
       productsCount: 0,
+      healthyStockCount: 0,
       totalValue: 0,
       needsRestockCount: 0,
+      allProducts: const [],
+      topByLineValue: null,
       lowAndCriticalItems: const [],
       valueByCategory: const [],
       isPossiblyIncomplete: true,
@@ -150,8 +207,7 @@ Future<StockValueReportData> stockValueReport(Ref ref) async {
   // `ProxyService.getStrategy(Strategy.capella).variants(...)` is Ditto-backed and
   // contains the canonical filtering logic (excluded names, statuses, etc).
   final vatEnabled = await getVatEnabledFromEbm();
-  final taxTyCds =
-      vatEnabled ? const ['A', 'B', 'C', 'TT'] : const ['D', 'TT'];
+  final taxTyCds = vatEnabled ? const ['A', 'B', 'C', 'TT'] : const ['D', 'TT'];
   final scanMode = ref.watch(scanningModeProvider);
 
   final paged = await ProxyService.getStrategy(Strategy.capella).variants(
@@ -171,13 +227,18 @@ Future<StockValueReportData> stockValueReport(Ref ref) async {
       .toSet()
       .toList();
 
-  Map<String, Map<String, dynamic>> stockById = <String, Map<String, dynamic>>{};
+  Map<String, Map<String, dynamic>> stockById =
+      <String, Map<String, dynamic>>{};
   if (neededStockIds.isNotEmpty) {
-    final placeholders =
-        neededStockIds.asMap().keys.map((i) => ':sid$i').join(', ');
+    final placeholders = neededStockIds
+        .asMap()
+        .keys
+        .map((i) => ':sid$i')
+        .join(', ');
     final stocksQuery = 'SELECT * FROM stocks WHERE _id IN ($placeholders)';
     final stocksArgs = <String, dynamic>{
-      for (var i = 0; i < neededStockIds.length; i++) 'sid$i': neededStockIds[i],
+      for (var i = 0; i < neededStockIds.length; i++)
+        'sid$i': neededStockIds[i],
     };
     final stocksResult = await ditto.store.execute(
       stocksQuery,
@@ -195,6 +256,7 @@ Future<StockValueReportData> stockValueReport(Ref ref) async {
   double totalValue = 0;
   int needsRestockCount = 0;
   final lowCritical = <StockValueLowItem>[];
+  final allLines = <StockValueProductLine>[];
 
   final categoryValue = <String, double>{};
   final categoryCount = <String, int>{};
@@ -206,6 +268,7 @@ Future<StockValueReportData> stockValueReport(Ref ref) async {
     final currentStock = _asDouble(stock?['currentStock']);
     final minStock = _asDouble(stock?['lowStock']);
     final showAlert = (stock?['showLowStockAlert'] ?? true) == true;
+    final unitPrice = _effectiveUnitPrice(v);
 
     final value = _stockValueFor(variant: v, stock: stock);
     totalValue += value;
@@ -217,7 +280,32 @@ Future<StockValueReportData> stockValueReport(Ref ref) async {
     categoryValue[category] = (categoryValue[category] ?? 0) + value;
     categoryCount[category] = (categoryCount[category] ?? 0) + 1;
 
-    if (showAlert && minStock > 0 && currentStock <= minStock) {
+    final needsRestock = showAlert && minStock > 0 && currentStock <= minStock;
+    final StockValueLineStatus lineStatus;
+    if (needsRestock) {
+      final sev = _severityFor(currentStock: currentStock, minStock: minStock);
+      lineStatus = sev == StockSeverity.critical
+          ? StockValueLineStatus.critical
+          : StockValueLineStatus.low;
+    } else {
+      lineStatus = StockValueLineStatus.ok;
+    }
+
+    allLines.add(
+      StockValueProductLine(
+        variantId: v.id,
+        name: v.name,
+        categoryName: category,
+        bcd: v.bcd,
+        unitPrice: unitPrice,
+        currentStock: currentStock,
+        minStock: minStock,
+        lineValue: value,
+        status: lineStatus,
+      ),
+    );
+
+    if (needsRestock) {
       needsRestockCount += 1;
       lowCritical.add(
         StockValueLowItem(
@@ -227,9 +315,49 @@ Future<StockValueReportData> stockValueReport(Ref ref) async {
           bcd: v.bcd,
           currentStock: currentStock,
           minStock: minStock,
-          severity: _severityFor(currentStock: currentStock, minStock: minStock),
+          severity: _severityFor(
+            currentStock: currentStock,
+            minStock: minStock,
+          ),
         ),
       );
+    }
+  }
+
+  allLines.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+
+  StockValueTopItem? topByLineValue;
+  for (final line in allLines) {
+    if (line.lineValue <= 0) continue;
+    if (topByLineValue == null) {
+      topByLineValue = StockValueTopItem(
+        name: line.name,
+        categoryName: line.categoryName,
+        lineValue: line.lineValue,
+        currentStock: line.currentStock,
+        lineShareOfTotal: totalValue <= 0 ? 0.0 : line.lineValue / totalValue,
+      );
+      continue;
+    }
+    if (line.lineValue > topByLineValue.lineValue) {
+      topByLineValue = StockValueTopItem(
+        name: line.name,
+        categoryName: line.categoryName,
+        lineValue: line.lineValue,
+        currentStock: line.currentStock,
+        lineShareOfTotal: totalValue <= 0 ? 0.0 : line.lineValue / totalValue,
+      );
+    } else if (line.lineValue == topByLineValue.lineValue) {
+      if (line.name.toLowerCase().compareTo(topByLineValue.name.toLowerCase()) <
+          0) {
+        topByLineValue = StockValueTopItem(
+          name: line.name,
+          categoryName: line.categoryName,
+          lineValue: line.lineValue,
+          currentStock: line.currentStock,
+          lineShareOfTotal: totalValue <= 0 ? 0.0 : line.lineValue / totalValue,
+        );
+      }
     }
   }
 
@@ -248,14 +376,16 @@ Future<StockValueReportData> stockValueReport(Ref ref) async {
       value: e.value,
       percentOfTotal: math.min(1, math.max(0, percent)),
     );
-  }).toList()
-    ..sort((a, b) => b.value.compareTo(a.value));
+  }).toList()..sort((a, b) => b.value.compareTo(a.value));
 
   return StockValueReportData(
     branchId: branchId,
     productsCount: variants.length,
+    healthyStockCount: variants.length - needsRestockCount,
     totalValue: totalValue,
     needsRestockCount: needsRestockCount,
+    allProducts: allLines,
+    topByLineValue: topByLineValue,
     lowAndCriticalItems: lowCritical,
     valueByCategory: valueByCategory,
     isPossiblyIncomplete: isPossiblyIncomplete,
@@ -273,4 +403,3 @@ Future<StockValueSummaryData> stockValueSummary(Ref ref) async {
     isPossiblyIncomplete: report.isPossiblyIncomplete,
   );
 }
-
