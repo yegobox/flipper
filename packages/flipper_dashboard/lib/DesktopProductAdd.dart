@@ -1353,7 +1353,13 @@ Future<void> _showVariantSheet({
         : '',
   );
 
-  String taxTyCd = existingVariant?.taxTyCd ?? 'B';
+  final branchId = ProxyService.box.getBranchId()!;
+  final ebm = await ProxyService.strategy.ebm(branchId: branchId);
+  final isVatEnabledForNewVariant = ebm?.vatEnabled ?? false;
+  // Match ScannViewModel / desktop: B when VAT, D when non-VAT. Hardcoding 'B'
+  // for new rows caused mobile saves to overwrite correct onScanItem tax with B.
+  String taxTyCd =
+      existingVariant?.taxTyCd ?? (isVatEnabledForNewVariant ? 'B' : 'D');
 
   final formKey = GlobalKey<FormState>();
   var savingVariant = false;
@@ -1818,6 +1824,7 @@ Future<void> _showVariantSheet({
                                       if (v != null) {
                                         v.name = variantName;
                                         v.taxTyCd = taxTyCd;
+                                        v.taxName = taxTyCd;
                                         v.dcRt = discount.toDouble();
                                         if (variantAssetName != null) {
                                           v.imageUrl = variantAssetName;
@@ -1839,6 +1846,7 @@ Future<void> _showVariantSheet({
                                       existingVariant.bcd = barcode;
                                       existingVariant.sku = barcode;
                                       existingVariant.taxTyCd = taxTyCd;
+                                      existingVariant.taxName = taxTyCd;
                                       existingVariant.retailPrice =
                                           override ?? baseRetail;
                                       existingVariant.supplyPrice = baseSupply;

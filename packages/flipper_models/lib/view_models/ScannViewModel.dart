@@ -68,8 +68,11 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
         final existingVariant = scannedVariants[index]; //Get existing variant
         final boxBhfId = await ProxyService.box.bhfId();
         final ebmRow = await ProxyService.strategy.ebm(branchId: branchId);
-        final coercedBhfId =
-            _coerceBhfId(boxBhfId, ebmRow?.bhfId, existingVariant.bhfId);
+        final coercedBhfId = _coerceBhfId(
+          boxBhfId,
+          ebmRow?.bhfId,
+          existingVariant.bhfId,
+        );
         scannedVariants[index] = Variant(
           id: existingVariant.id,
           stockId: existingVariant.stock?.id ?? existingVariant.stockId,
@@ -297,6 +300,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
     required double supplyPrice,
     required bool editmode,
     required String countryCode,
+
     /// Per-variant label (e.g. from Add variant sheet). When null/empty, falls back
     /// to the in-progress product title so desktop scan-only flow still works.
     String? variantDisplayName,
@@ -313,7 +317,8 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
         variant.supplyPrice = supplyPrice;
         variant.rsdQty = (variant.qty!) + 1;
         variant.qty = (variant.qty!) + 1; // Increment the quantity safely
-        if (variantDisplayName != null && variantDisplayName.trim().isNotEmpty) {
+        if (variantDisplayName != null &&
+            variantDisplayName.trim().isNotEmpty) {
           final label = variantDisplayName.trim();
           variant.name = label;
           variant.itemNm = label;
@@ -332,13 +337,14 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
     final resolvedBhfId = _coerceBhfId(boxBhfId, ebm?.bhfId, null);
     final isVatEnabled = ebm?.vatEnabled ?? false;
     // Prefer the in-progress product title (mobile) over persisted TEMP_PRODUCT name.
-    final productTitle = (kProductName != null && kProductName!.trim().isNotEmpty)
+    final productTitle =
+        (kProductName != null && kProductName!.trim().isNotEmpty)
         ? kProductName!.trim()
         : product.name;
     final variantRowName =
         (variantDisplayName != null && variantDisplayName.trim().isNotEmpty)
-            ? variantDisplayName.trim()
-            : productTitle;
+        ? variantDisplayName.trim()
+        : productTitle;
     final variant = Variant(
       name: variantRowName,
       itemNm: variantRowName,
@@ -357,6 +363,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       unit: 'Per Item',
       productName: productTitle,
       branchId: branchId,
+      taxName: isVatEnabled ? "B" : "D",
       taxTyCd: isVatEnabled
           ? "B"
           : "D", // Set correct tax type based on EBM VAT status
@@ -573,9 +580,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
         final branchId = ProxyService.box.getBranchId()!;
         if (finalCategoryId == null || finalCategoryId.isEmpty) {
           final category = await ProxyService.strategy
-              .ensureUncategorizedCategory(
-                branchId: branchId,
-              );
+              .ensureUncategorizedCategory(branchId: branchId);
           finalCategoryId = category.id;
         }
 
