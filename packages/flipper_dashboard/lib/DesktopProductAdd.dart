@@ -9,7 +9,7 @@ import 'package:flipper_dashboard/SearchProduct.dart';
 import 'package:flipper_dashboard/CompositeVariation.dart';
 import 'package:flipper_dashboard/TableVariants.dart';
 import 'package:flipper_dashboard/ToggleButtonWidget.dart';
-import 'package:flipper_dashboard/create/browsePhotos.dart';
+import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:flipper_models/helperModels/hexColor.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
@@ -83,6 +83,70 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
       return HexColor(hexColor);
     } catch (e) {
       return Colors.amber;
+    }
+  }
+
+  Future<void> _showProductColorPicker(BuildContext context) async {
+    Color tempColor = pickerColor;
+    final Color? newColor = await showDialog<Color>(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('Pick a color'),
+              content: SingleChildScrollView(
+                child: ColorPicker(
+                  color: tempColor,
+                  onColorChanged: (Color color) {
+                    setDialogState(() {
+                      tempColor = color;
+                    });
+                  },
+                  pickersEnabled: const <ColorPickerType, bool>{
+                    ColorPickerType.both: false,
+                    ColorPickerType.primary: true,
+                    ColorPickerType.accent: true,
+                    ColorPickerType.bw: false,
+                    ColorPickerType.custom: true,
+                    ColorPickerType.wheel: true,
+                  },
+                  width: 44,
+                  height: 44,
+                  borderRadius: 22,
+                  spacing: 5,
+                  runSpacing: 5,
+                  wheelDiameter: 165,
+                  subheading: Text(
+                    'Select color shade',
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  wheelSubheading: Text(
+                    'Selected color and its shades',
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                ),
+              ),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(tempColor),
+                  child: const Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+    if (newColor != null && mounted) {
+      setState(() {
+        pickerColor = newColor;
+        isColorPicked = true;
+      });
     }
   }
 
@@ -860,14 +924,75 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Center(
-                            child: Browsephotos(
-                              imageUrl: productRef?.imageUrl,
-                              currentColor: pickerColor,
-                              onColorSelected: (color) {
-                                setState(() {
-                                  pickerColor = color;
-                                });
-                              },
+                            child: Column(
+                              children: [
+                                Text(
+                                  'Product color',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleSmall
+                                      ?.copyWith(fontWeight: FontWeight.w600),
+                                ),
+                                const SizedBox(height: 8),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Material(
+                                      color: Colors.transparent,
+                                      child: InkWell(
+                                        onTap: () =>
+                                            _showProductColorPicker(context),
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: Ink(
+                                          width: 56,
+                                          height: 56,
+                                          decoration: BoxDecoration(
+                                            color: pickerColor,
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                            border: Border.all(
+                                              color: Colors.grey.shade400,
+                                            ),
+                                          ),
+                                          child: Icon(
+                                            Icons.palette_outlined,
+                                            color: pickerColor.computeLuminance() >
+                                                    0.5
+                                                ? Colors.black87
+                                                : Colors.white,
+                                            shadows: const [
+                                              Shadow(
+                                                color: Colors.black26,
+                                                blurRadius: 4,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    TextButton.icon(
+                                      onPressed: () =>
+                                          _showProductColorPicker(context),
+                                      icon: const Icon(Icons.color_lens_outlined),
+                                      label: const Text('Choose color'),
+                                    ),
+                                  ],
+                                ),
+                                if (!ref.watch(isCompositeProvider)) ...[
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    'Add photos on each variant in the table below.',
+                                    textAlign: TextAlign.center,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.copyWith(
+                                          color: Colors.grey.shade700,
+                                        ),
+                                  ),
+                                ],
+                              ],
                             ),
                           ),
                           const SizedBox(height: 16),
@@ -1010,6 +1135,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                           const SizedBox(height: 16),
                           if (!ref.watch(isCompositeProvider))
                             TableVariants(
+                              productId: productRef?.id,
                               isEbmEnabled:
                                   ref.watch(ebmVatEnabledProvider).value ??
                                   false,

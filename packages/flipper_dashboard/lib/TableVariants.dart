@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/dialog_status.dart';
+import 'package:flipper_dashboard/widgets/variant_table_image_cell.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_dashboard/QuantityCell.dart';
@@ -37,9 +38,11 @@ class TableVariants extends StatelessWidget {
     required this.onDateChanged,
     this.isEditMode = false,
     required this.isEbmEnabled,
+    this.productId,
   }) : super(key: key);
   final bool isEditMode;
   final bool isEbmEnabled;
+  final String? productId;
 
   @override
   Widget build(BuildContext context) {
@@ -125,6 +128,14 @@ class TableVariants extends StatelessWidget {
               value: model.isSelected(variant.id),
               onChanged: (value) => model.toggleSelect(variant.id),
             ),
+            if (productId != null && productId!.isNotEmpty) ...[
+              VariantTableImageCell(
+                productId: productId!,
+                variant: variant,
+                model: model,
+              ),
+              const SizedBox(width: 8),
+            ],
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -323,6 +334,9 @@ class TableVariants extends StatelessWidget {
         ),
       ),
       const DataColumn(
+        label: Text('Image', style: TextStyle(fontWeight: FontWeight.bold)),
+      ),
+      const DataColumn(
         label: Text('Name', style: TextStyle(fontWeight: FontWeight.bold)),
       ),
       const DataColumn(
@@ -371,6 +385,15 @@ class TableVariants extends StatelessWidget {
             value: model.isSelected(variant.id),
             onChanged: (value) => model.toggleSelect(variant.id),
           ),
+        ),
+        DataCell(
+          productId != null && productId!.isNotEmpty
+              ? VariantTableImageCell(
+                  productId: productId!,
+                  variant: variant,
+                  model: model,
+                )
+              : const Text('—'),
         ),
         DataCell(Text(variant.bcd ?? variant.name)),
         DataCell(Text(variant.retailPrice?.toStringAsFixed(2) ?? '')),
