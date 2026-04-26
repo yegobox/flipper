@@ -1355,11 +1355,12 @@ Future<void> _showVariantSheet({
 
   final branchId = ProxyService.box.getBranchId()!;
   final ebm = await ProxyService.strategy.ebm(branchId: branchId);
-  final isVatEnabledForNewVariant = ebm?.vatEnabled ?? false;
+  final isVatEnabled = ebm?.vatEnabled ?? false;
   // Match ScannViewModel / desktop: B when VAT, D when non-VAT. Hardcoding 'B'
   // for new rows caused mobile saves to overwrite correct onScanItem tax with B.
-  String taxTyCd =
-      existingVariant?.taxTyCd ?? (isVatEnabledForNewVariant ? 'B' : 'D');
+  String taxTyCd = isVatEnabled
+      ? (existingVariant?.taxTyCd ?? 'B')
+      : 'D';
 
   final formKey = GlobalKey<FormState>();
   var savingVariant = false;
@@ -1688,37 +1689,69 @@ Future<void> _showVariantSheet({
                                         ?.copyWith(fontWeight: FontWeight.w600),
                                   ),
                                 ),
+                                if (!isVatEnabled) ...[
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'This branch is not VAT-registered. Only '
+                                    '"None" (D) applies.',
+                                    style: Theme.of(ctx)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.copyWith(
+                                          color: Colors.grey.shade700,
+                                        ),
+                                  ),
+                                ],
                                 const SizedBox(height: 8),
-                                Wrap(
-                                  spacing: 8,
-                                  runSpacing: 8,
-                                  children: [
-                                    ChoiceChip(
-                                      label: const Text('Standard B'),
-                                      selected: taxTyCd == 'B',
-                                      onSelected: (_) =>
-                                          setModalState(() => taxTyCd = 'B'),
+                                if (isVatEnabled)
+                                  Wrap(
+                                    spacing: 8,
+                                    runSpacing: 8,
+                                    children: [
+                                      ChoiceChip(
+                                        label: const Text('Standard B'),
+                                        selected: taxTyCd == 'B',
+                                        onSelected: (_) => setModalState(
+                                          () => taxTyCd = 'B',
+                                        ),
+                                      ),
+                                      ChoiceChip(
+                                        label: const Text('Standard A'),
+                                        selected: taxTyCd == 'A',
+                                        onSelected: (_) => setModalState(
+                                          () => taxTyCd = 'A',
+                                        ),
+                                      ),
+                                      ChoiceChip(
+                                        label: const Text('None'),
+                                        selected: taxTyCd == 'D',
+                                        onSelected: (_) => setModalState(
+                                          () => taxTyCd = 'D',
+                                        ),
+                                      ),
+                                      ChoiceChip(
+                                        label: const Text('Exempt'),
+                                        selected: taxTyCd == 'C',
+                                        onSelected: (_) => setModalState(
+                                          () => taxTyCd = 'C',
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                                else
+                                  Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Chip(
+                                      avatar: const Icon(
+                                        Icons.check_circle_outline,
+                                        size: 20,
+                                      ),
+                                      label: const Text('None (D)'),
+                                      backgroundColor: Theme.of(ctx)
+                                          .colorScheme
+                                          .surfaceContainerHighest,
                                     ),
-                                    ChoiceChip(
-                                      label: const Text('Standard A'),
-                                      selected: taxTyCd == 'A',
-                                      onSelected: (_) =>
-                                          setModalState(() => taxTyCd = 'A'),
-                                    ),
-                                    ChoiceChip(
-                                      label: const Text('None'),
-                                      selected: taxTyCd == 'D',
-                                      onSelected: (_) =>
-                                          setModalState(() => taxTyCd = 'D'),
-                                    ),
-                                    ChoiceChip(
-                                      label: const Text('Exempt'),
-                                      selected: taxTyCd == 'C',
-                                      onSelected: (_) =>
-                                          setModalState(() => taxTyCd = 'C'),
-                                    ),
-                                  ],
-                                ),
+                                  ),
                                 const SizedBox(height: 12),
                                 Align(
                                   alignment: Alignment.centerLeft,
@@ -1798,6 +1831,8 @@ Future<void> _showVariantSheet({
                                           discountController.text.trim(),
                                         ) ??
                                         0;
+                                    final effectiveTaxTyCd =
+                                        isVatEnabled ? taxTyCd : 'D';
 
                                     if (existingVariant == null) {
                                       final variantName = nameController.text
@@ -1809,7 +1844,8 @@ Future<void> _showVariantSheet({
                                         barCode: barcode,
                                         retailPrice: override ?? baseRetail,
                                         supplyPrice: baseSupply,
-                                        isTaxExempted: taxTyCd == 'C',
+                                        isTaxExempted:
+                                            effectiveTaxTyCd == 'C',
                                         product: productRef,
                                         variantDisplayName: variantName,
                                       );
@@ -1823,8 +1859,8 @@ Future<void> _showVariantSheet({
                                                 : null);
                                       if (v != null) {
                                         v.name = variantName;
-                                        v.taxTyCd = taxTyCd;
-                                        v.taxName = taxTyCd;
+                                        v.taxTyCd = effectiveTaxTyCd;
+                                        v.taxName = effectiveTaxTyCd;
                                         v.dcRt = discount.toDouble();
                                         if (variantAssetName != null) {
                                           v.imageUrl = variantAssetName;
@@ -1845,8 +1881,8 @@ Future<void> _showVariantSheet({
                                           .trim();
                                       existingVariant.bcd = barcode;
                                       existingVariant.sku = barcode;
-                                      existingVariant.taxTyCd = taxTyCd;
-                                      existingVariant.taxName = taxTyCd;
+                                      existingVariant.taxTyCd = effectiveTaxTyCd;
+                                      existingVariant.taxName = effectiveTaxTyCd;
                                       existingVariant.retailPrice =
                                           override ?? baseRetail;
                                       existingVariant.supplyPrice = baseSupply;
