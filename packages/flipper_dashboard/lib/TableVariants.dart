@@ -200,6 +200,27 @@ class TableVariants extends StatelessWidget {
                   ),
                 ),
                 _buildMobileInfoRow(
+                  'Low stock',
+                  TextFormField(
+                    controller: model.getLowStockController(variant.id),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+                    ],
+                    onChanged: (s) {
+                      final d = double.tryParse(s);
+                      if (d != null && variant.stock != null) {
+                        variant.stock!.lowStock = d;
+                      }
+                    },
+                    decoration: const InputDecoration(
+                      hintText: 'Reorder at',
+                    ),
+                  ),
+                ),
+                _buildMobileInfoRow(
                   'Tax',
                   Consumer(
                     builder: (context, ref, child) {
@@ -346,6 +367,12 @@ class TableVariants extends StatelessWidget {
         label: Text('Quantity', style: TextStyle(fontWeight: FontWeight.bold)),
       ),
       const DataColumn(
+        label: Text(
+          'Low stock',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+      ),
+      const DataColumn(
         label: Text('Tax', style: TextStyle(fontWeight: FontWeight.bold)),
       ),
       const DataColumn(
@@ -405,6 +432,30 @@ class TableVariants extends StatelessWidget {
                 FocusScope.of(context).requestFocus(scannedInputFocusNode);
               });
             },
+          ),
+        ),
+        DataCell(
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 100),
+            child: TextFormField(
+              controller: model.getLowStockController(variant.id),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+              ],
+              onChanged: (s) {
+                final d = double.tryParse(s);
+                if (d != null && variant.stock != null) {
+                  variant.stock!.lowStock = d;
+                }
+              },
+              decoration: const InputDecoration(
+                isDense: true,
+                contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              ),
+            ),
           ),
         ),
         DataCell(

@@ -216,6 +216,10 @@ abstract class DatabaseSyncInterface extends AiStrategy
     String? customerPhone,
     required String countryCode,
     String? note,
+    /// When set (e.g. [COMPLETE]), written in the same transaction update as payment fields.
+    String? completionStatus,
+    /// When set, skip loading line items from the local DB (faster for cash book after a fresh insert).
+    List<TransactionItem>? preloadedLineItems,
   });
 
   Future<Setting?> getSetting({required String businessId});

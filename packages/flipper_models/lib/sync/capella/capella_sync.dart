@@ -452,6 +452,8 @@ class CapellaSync extends AiStrategyImpl
     String? customerPhone,
     required String countryCode,
     String? note,
+    String? completionStatus,
+    List<TransactionItem>? preloadedLineItems,
   }) async {
     if (transaction == null) {
       throw Exception('transaction is null');
@@ -462,10 +464,41 @@ class CapellaSync extends AiStrategyImpl
 
       final userId = ProxyService.box.getUserId();
       transaction.customerTin = customerTin;
+
+      if (countryCode != "N/A" && countryCode != "") {
+        transaction.currentSaleCustomerPhoneNumber =
+            countryCode +
+            (customerPhone ??
+                ProxyService.box.currentSaleCustomerPhoneNumber())!;
+      }
+      transaction.customerPhone =
+          customerPhone ?? ProxyService.box.currentSaleCustomerPhoneNumber();
+      transaction.customerName =
+          customerName ?? ProxyService.box.customerName();
+
+      // Line items: caller can pass fresh lines to skip an extra Ditto read on hot paths.
+      final List<TransactionItem> items;
+      if (preloadedLineItems != null && preloadedLineItems.isNotEmpty) {
+        items = preloadedLineItems;
+      } else {
+        items = await transactionItems(transactionId: transaction.id);
+      }
+      transaction.numberOfItems = items.length;
+      transaction.discountAmount = items.fold<double>(
+        0.0,
+        (a, b) => a + (b.dcAmt?.toDouble() ?? 0.0),
+      );
+
+      final computedSubTotal = items.isEmpty
+          ? cashReceived
+          : items.fold(0.0, (a, b) => a + (b.price * b.qty));
+      transaction.subTotal = computedSubTotal;
+
       transaction.customerChangeDue =
           cashReceived - (transaction.subTotal ?? 0);
 
-      // Update shift totals via SQLite (shifts aren't managed in Ditto yet)
+      // Update shift totals via SQLite (shifts aren't managed in Ditto yet);
+      // must run after [transaction.subTotal] is known from line items.
       if (userId != null) {
         try {
           final shifts = await repository.get<Shift>(
@@ -483,7 +516,9 @@ class CapellaSync extends AiStrategyImpl
           final currentShift = shifts.lastOrNull;
           if (currentShift != null) {
             num saleAmount = transaction.subTotal ?? 0.0;
-            if (!isIncome) saleAmount = -saleAmount;
+            if (!isIncome) {
+              saleAmount = -saleAmount;
+            }
 
             final updatedCashSales = (currentShift.cashSales ?? 0) + saleAmount;
             final updatedExpectedCash =
@@ -500,30 +535,6 @@ class CapellaSync extends AiStrategyImpl
           talker.warning('Shift update during collectPayment failed: $e');
         }
       }
-
-      if (countryCode != "N/A" && countryCode != "") {
-        transaction.currentSaleCustomerPhoneNumber =
-            countryCode +
-            (customerPhone ??
-                ProxyService.box.currentSaleCustomerPhoneNumber())!;
-      }
-      transaction.customerPhone =
-          customerPhone ?? ProxyService.box.currentSaleCustomerPhoneNumber();
-      transaction.customerName =
-          customerName ?? ProxyService.box.customerName();
-
-      // Fetch items from Ditto (not SQLite)
-      final items = await transactionItems(transactionId: transaction.id);
-      transaction.numberOfItems = items.length;
-      transaction.discountAmount = items.fold<double>(
-        0.0,
-        (a, b) => a + (b.dcAmt?.toDouble() ?? 0.0),
-      );
-
-      final computedSubTotal = items.isEmpty
-          ? cashReceived
-          : items.fold(0.0, (a, b) => a + (b.price * b.qty));
-      transaction.subTotal = computedSubTotal;
 
       if (transaction.isLoan == true) {
         transaction.originalLoanAmount ??= computedSubTotal;
@@ -548,6 +559,7 @@ class CapellaSync extends AiStrategyImpl
       // Write transaction to Ditto
       await updateTransaction(
         transaction: transaction,
+        status: completionStatus,
         subTotal: transaction.subTotal,
         cashReceived: transaction.cashReceived,
         customerName: transaction.customerName,

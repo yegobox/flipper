@@ -782,6 +782,7 @@ mixin CapellaTransactionMixin implements TransactionInterface {
     required bool partOfComposite,
     TransactionItem? item,
     String? sarTyCd,
+    bool updatePendingTransactionSubtotal = true,
   }) async {
     try {
       final s = Stopwatch()..start();
@@ -926,19 +927,21 @@ mixin CapellaTransactionMixin implements TransactionInterface {
       );
       s.reset();
 
-      // Update Transaction SubTotal incrementally
-      final double newSubTotal = (pendingTransaction.subTotal ?? 0.0) + delta;
+      if (updatePendingTransactionSubtotal) {
+        // Update Transaction SubTotal incrementally
+        final double newSubTotal = (pendingTransaction.subTotal ?? 0.0) + delta;
 
-      await updateTransaction(
-        transaction: pendingTransaction,
-        subTotal: newSubTotal,
-        updatedAt: DateTime.now(),
-        lastTouched: DateTime.now(),
-      );
-      talker.warning(
-        "saveTransactionItem: UpdateTransaction took ${s.elapsedMilliseconds}ms",
-      );
-      s.reset();
+        await updateTransaction(
+          transaction: pendingTransaction,
+          subTotal: newSubTotal,
+          updatedAt: DateTime.now(),
+          lastTouched: DateTime.now(),
+        );
+        talker.warning(
+          "saveTransactionItem: UpdateTransaction took ${s.elapsedMilliseconds}ms",
+        );
+        s.reset();
+      }
 
       return true;
     } catch (e, s) {

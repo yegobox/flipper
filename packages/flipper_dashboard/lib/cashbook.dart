@@ -406,6 +406,8 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
       return;
     }
 
+    final String bhfId = (await ProxyService.box.bhfId()) ?? "00";
+
     try {
       model.setBusy(true);
       // Make sure the keypad provider is updated with the current amount
@@ -415,8 +417,9 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
       talker.info("Starting transaction save with amount: $amount");
       talker.info("Transaction type: $transactionType, isIncome: $isIncome");
 
-      await _saveTransaction(
+      final saveResult = await _saveTransaction(
         countryCode: countryCode,
+        bhfId: bhfId,
         model: model,
         paymentType: ProxyService.box.paymentType() ?? "Cash",
         cashReceived: amount,
@@ -427,6 +430,10 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
         note: _descriptionController.text,
       );
 
+      if (saveResult == null) {
+        return;
+      }
+
       // Reset the form and return to the transaction list
       model.newTransactionPressed = false;
       model.notifyListeners();
@@ -436,6 +443,19 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
         context,
         '${isIncome ? 'Cash in' : 'Cash out'} transaction saved successfully',
       );
+
+      final String tid = saveResult.transactionId;
+      final bool wasIncome = saveResult.isIncome;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!context.mounted) {
+          return;
+        }
+        ref.refresh(transactionItemsProvider(transactionId: tid));
+        ref.refresh(
+          pendingTransactionStreamProvider(isExpense: !wasIncome),
+        );
+        ref.refresh(dashboardTransactionsProvider);
+      });
     } catch (e) {
       talker.error('Error saving transaction: $e');
       showErrorNotification(context, 'Error: ${e.toString()}');
@@ -444,7 +464,8 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
     }
   }
 
-  Future<void> _saveTransaction({
+  /// Returns `null` if no pending transaction could be created.
+  Future<({String transactionId, bool isIncome})?> _saveTransaction({
     required CoreViewModel model,
     required String paymentType,
     required double cashReceived,
@@ -452,11 +473,13 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
     required bool isIncome,
     required String transactionType,
     required String countryCode,
+    required String bhfId,
     required Category category,
     String? note,
   }) async {
     // This implementation exactly matches HandleTransactionFromCashBook in KeyPadView
     try {
+      ({String transactionId, bool isIncome})? out;
       // Use a lock to ensure transaction operations are atomic
       await _lock.synchronized(() async {
         talker.info("Inside _lock.synchronized");
@@ -466,12 +489,20 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
         if (branchId == null || branchId.isEmpty) {
           throw Exception('Branch ID is null or empty');
         }
-        ITransaction? pendingTransaction = await ProxyService.strategy
-            .manageTransaction(
-              branchId: branchId,
-              transactionType: transactionType,
-              isExpense: !isIncome,
-            );
+
+        final List<dynamic> created = await Future.wait<dynamic>([
+          ProxyService.strategy.manageTransaction(
+            branchId: branchId,
+            transactionType: transactionType,
+            isExpense: !isIncome,
+          ),
+          ProxyService.strategy.getUtilityVariant(
+            name: transactionType,
+            branchId: branchId,
+          ),
+        ]);
+        ITransaction? pendingTransaction = created[0] as ITransaction?;
+        Variant? utilityVariant = created[1] as Variant?;
 
         if (pendingTransaction == null) {
           talker.error("Failed to create or get a pending transaction");
@@ -483,10 +514,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
         );
 
         // Ensure we have a TransactionItem for this cashbook transaction
-        Variant? utilityVariant = await ProxyService.strategy.getUtilityVariant(
-          name: transactionType,
-          branchId: branchId,
-        );
+        List<TransactionItem>? preloadedForPayment;
         if (utilityVariant != null) {
           // CRITICAL: Update the variant's retailPrice to match the cash amount
           // This ensures the transaction item's price reflects the actual amount being recorded
@@ -565,7 +593,23 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
             partOfComposite: false,
             doneWithTransaction: true,
             ignoreForReport: false,
+            updatePendingTransactionSubtotal: false,
           );
+          preloadedForPayment = [
+            TransactionItem(
+              name: utilityVariant.name,
+              qty: 1,
+              price: cashReceived,
+              discount: 0,
+              prc: cashReceived,
+              totAmt: cashReceived,
+              transactionId: pendingTransaction.id,
+              variantId: utilityVariant.id,
+              branchId: branchId,
+              dcAmt: 0,
+              ttCatCd: utilityVariant.taxTyCd ?? 'B',
+            ),
+          ];
         }
 
         // Now that we have a valid transaction, we can proceed
@@ -575,16 +619,13 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
         talker.info("Called keyboardKeyPressed with '+' key");
         HapticFeedback.lightImpact();
 
-        // For cashbook transactions, the subtotal should be the cash received amount
-        double subTotal = cashReceived;
-
-        // Ensure the transaction is properly updated with the subtotal and marked as complete
+        // collectPayment recalculates subtotal from line items
         ITransaction updatedTransaction = await ProxyService.strategy
             .collectPayment(
               cashReceived: cashReceived,
               countryCode: countryCode,
               branchId: branchId,
-              bhfId: (await ProxyService.box.bhfId()) ?? "00",
+              bhfId: bhfId,
               isProformaMode: ProxyService.box.isProformaMode(),
               isTrainingMode: ProxyService.box.isTrainingMode(),
               transaction: pendingTransaction,
@@ -595,31 +636,19 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
               isIncome: isIncome,
               categoryId: category.id.toString(),
               note: note,
+              completionStatus: COMPLETE,
+              preloadedLineItems: preloadedForPayment,
             );
 
         talker.info(
           "Called collectPayment, got updated transaction with ID: ${updatedTransaction.id}",
         );
 
-        await ProxyService.strategy.updateTransaction(
-          transaction: updatedTransaction,
-          status: COMPLETE,
-          subTotal: subTotal,
-        );
-
-        talker.info(
-          "Transaction explicitly marked as complete with subtotal: $subTotal",
-        );
-
-        // Refresh providers to update UI
-        ref.refresh(
-          transactionItemsProvider(transactionId: pendingTransaction.id),
-        );
-        ref.refresh(pendingTransactionStreamProvider(isExpense: !isIncome));
-        ref.refresh(dashboardTransactionsProvider);
+        out = (transactionId: pendingTransaction.id, isIncome: isIncome);
 
         talker.info("Transaction save completed successfully");
       });
+      return out;
     } catch (e, s) {
       talker.error("Error in _saveTransaction: $e");
       talker.error(s);

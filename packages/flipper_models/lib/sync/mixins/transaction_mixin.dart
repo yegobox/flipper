@@ -705,6 +705,7 @@ mixin TransactionMixin implements TransactionInterface {
     double? updatableQty,
     String? sarTyCd,
     required bool ignoreForReport,
+    bool updatePendingTransactionSubtotal = true,
   }) async {
     try {
       TransactionItem? existTransactionItem = await ProxyService.strategy

@@ -1463,10 +1463,34 @@ Future<void> _showVariantSheet({
   final barcodeController = TextEditingController(
     text: initialBarcode ?? existingVariant?.bcd ?? existingVariant?.sku ?? '',
   );
+  final _initialStockNum = (existingVariant?.stock?.currentStock ??
+          existingVariant?.qty ??
+          0)
+      .toDouble();
   final stockController = TextEditingController(
-    text: (existingVariant?.stock?.currentStock ?? existingVariant?.qty ?? 0)
-        .toString(),
+    text: _initialStockNum == 0
+        ? '0'
+        : (_initialStockNum == _initialStockNum.roundToDouble()
+            ? _initialStockNum.toInt().toString()
+            : _initialStockNum.toString()),
   );
+  final stockFocusNode = FocusNode();
+  stockFocusNode.addListener(() {
+    if (!stockFocusNode.hasFocus) return;
+    final t = stockController.text.trim();
+    final n = double.tryParse(t);
+    if (n != null && n == 0) {
+      stockController.clear();
+    }
+  });
+  final lowStockText = (() {
+    final low = existingVariant?.stock?.lowStock;
+    if (low == null) return '0';
+    return (low == low.roundToDouble())
+        ? low.toInt().toString()
+        : low.toString();
+  })();
+  final lowStockController = TextEditingController(text: lowStockText);
   final discountController = TextEditingController(
     text: (existingVariant?.dcRt ?? 0).toInt().toString(),
   );
@@ -1484,8 +1508,14 @@ Future<void> _showVariantSheet({
   final isVatEnabled = ebm?.vatEnabled ?? false;
   // Match ScannViewModel / desktop: B when VAT, D when non-VAT. Hardcoding 'B'
   // for new rows caused mobile saves to overwrite correct onScanItem tax with B.
+  // When VAT is enabled, "None" (D) is not offered — map legacy D to B.
   String taxTyCd = isVatEnabled
-      ? (existingVariant?.taxTyCd ?? 'B')
+      ? (() {
+          final t = existingVariant?.taxTyCd ?? 'B';
+          if (t == 'D') return 'B';
+          if (t == 'A' || t == 'B' || t == 'C') return t;
+          return 'B';
+        })()
       : 'D';
 
   final formKey = GlobalKey<FormState>();
@@ -1779,21 +1809,18 @@ Future<void> _showVariantSheet({
                                   textInputAction: TextInputAction.next,
                                   decoration: InputDecoration(
                                     labelText: 'Barcode',
-                                    hintText: 'SKU / barcode',
+                                    hintText: 'SKU / barcode (optional)',
+                                    helperText:
+                                        'Leave blank to use the variant name',
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                   ),
-                                  validator: (v) {
-                                    if (v == null || v.trim().isEmpty) {
-                                      return 'Barcode is required';
-                                    }
-                                    return null;
-                                  },
                                 ),
                                 const SizedBox(height: 12),
                                 TextFormField(
                                   controller: stockController,
+                                  focusNode: stockFocusNode,
                                   textInputAction: TextInputAction.next,
                                   keyboardType: TextInputType.number,
                                   inputFormatters: [
@@ -1801,6 +1828,27 @@ Future<void> _showVariantSheet({
                                   ],
                                   decoration: InputDecoration(
                                     labelText: 'Stock quantity',
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                TextFormField(
+                                  controller: lowStockController,
+                                  textInputAction: TextInputAction.next,
+                                  keyboardType: const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.allow(
+                                      RegExp(r'[0-9.]'),
+                                    ),
+                                  ],
+                                  decoration: InputDecoration(
+                                    labelText: 'Low stock / reorder at',
+                                    helperText:
+                                        'Alert when on-hand quantity is at or below this level',
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12),
                                     ),
@@ -1846,13 +1894,6 @@ Future<void> _showVariantSheet({
                                         selected: taxTyCd == 'A',
                                         onSelected: (_) => setModalState(
                                           () => taxTyCd = 'A',
-                                        ),
-                                      ),
-                                      ChoiceChip(
-                                        label: const Text('None'),
-                                        selected: taxTyCd == 'D',
-                                        onSelected: (_) => setModalState(
-                                          () => taxTyCd = 'D',
                                         ),
                                       ),
                                       ChoiceChip(
@@ -1934,6 +1975,11 @@ Future<void> _showVariantSheet({
                                   try {
                                     final barcode = barcodeController.text
                                         .trim();
+                                    final variantName = nameController.text
+                                        .trim();
+                                    final effectiveBarcode = barcode.isNotEmpty
+                                        ? barcode
+                                        : variantName;
                                     final baseRetail =
                                         double.tryParse(
                                           retailPriceController.text,
@@ -1952,22 +1998,26 @@ Future<void> _showVariantSheet({
                                           stockController.text.trim(),
                                         ) ??
                                         0;
+                                    final lowStockVal =
+                                        double.tryParse(
+                                          lowStockController.text.trim(),
+                                        ) ??
+                                        0.0;
                                     final discount =
                                         int.tryParse(
                                           discountController.text.trim(),
                                         ) ??
                                         0;
-                                    final effectiveTaxTyCd =
-                                        isVatEnabled ? taxTyCd : 'D';
+                                    final effectiveTaxTyCd = isVatEnabled
+                                        ? (taxTyCd == 'D' ? 'B' : taxTyCd)
+                                        : 'D';
 
                                     if (existingVariant == null) {
-                                      final variantName = nameController.text
-                                          .trim();
                                       await model.onScanItem(
                                         countryCode:
                                             countryOfOriginController.text,
                                         editmode: isEditMode,
-                                        barCode: barcode,
+                                        barCode: effectiveBarcode,
                                         retailPrice: override ?? baseRetail,
                                         supplyPrice: baseSupply,
                                         isTaxExempted:
@@ -1977,7 +2027,9 @@ Future<void> _showVariantSheet({
                                       );
 
                                       final idx = model.scannedVariants
-                                          .indexWhere((v) => v.bcd == barcode);
+                                          .indexWhere(
+                                        (v) => v.bcd == effectiveBarcode,
+                                      );
                                       final v = idx != -1
                                           ? model.scannedVariants[idx]
                                           : (model.scannedVariants.isNotEmpty
@@ -1999,14 +2051,14 @@ Future<void> _showVariantSheet({
                                           v.id,
                                           qty,
                                           persistToBackend: false,
+                                          lowStock: lowStockVal,
                                         );
                                         model.notifyListeners();
                                       }
                                     } else {
-                                      existingVariant.name = nameController.text
-                                          .trim();
-                                      existingVariant.bcd = barcode;
-                                      existingVariant.sku = barcode;
+                                      existingVariant.name = variantName;
+                                      existingVariant.bcd = effectiveBarcode;
+                                      existingVariant.sku = effectiveBarcode;
                                       existingVariant.taxTyCd = effectiveTaxTyCd;
                                       existingVariant.taxName = effectiveTaxTyCd;
                                       existingVariant.retailPrice =
@@ -2031,6 +2083,7 @@ Future<void> _showVariantSheet({
                                         existingVariant.id,
                                         qty,
                                         persistToBackend: false,
+                                        lowStock: lowStockVal,
                                       );
                                       model.notifyListeners();
                                     }
@@ -2110,7 +2163,9 @@ Future<void> _showVariantSheet({
     Future<void>.delayed(const Duration(milliseconds: 350), () {
       nameController.dispose();
       barcodeController.dispose();
+      stockFocusNode.dispose();
       stockController.dispose();
+      lowStockController.dispose();
       priceOverrideController.dispose();
       discountController.dispose();
     });

@@ -32,6 +32,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
   final Map<String, bool> _selectedVariants = {};
   final Map<String, TextEditingController> _discountControllers = {};
   final Map<String, TextEditingController> _dateControllers = {};
+  final Map<String, TextEditingController> _lowStockControllers = {};
 
   // Toggles selection for a specific variant.
   void toggleSelect(String variantId) {
@@ -77,12 +78,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
           id: existingVariant.id,
           stockId: existingVariant.stock?.id ?? existingVariant.stockId,
           stock: existingVariant.stock != null
-              ? Stock(
-                  branchId: branchId,
-                  id: existingVariant.stock!.id,
-                  currentStock: existingVariant.stock!.currentStock,
-                  rsdQty: existingVariant.stock!.rsdQty,
-                  value: existingVariant.stock!.value,
+              ? existingVariant.stock!.copyWith(
                   lastTouched: DateTime.now().toUtc(),
                 )
               : null,
@@ -166,6 +162,28 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
     }
   }
 
+  /// Low stock / reorder threshold for table inline editing.
+  TextEditingController getLowStockController(String variantId) {
+    if (!_lowStockControllers.containsKey(variantId)) {
+      final variant = scannedVariants.firstWhere(
+        (v) => v.id == variantId,
+        orElse: () => Variant(
+          id: variantId,
+          name: '',
+          branchId: ProxyService.box.getBranchId()!,
+        ),
+      );
+      final low = variant.stock?.lowStock;
+      final text = low == null
+          ? '0'
+          : (low == low.roundToDouble()
+              ? low.toInt().toString()
+              : low.toString());
+      _lowStockControllers[variantId] = TextEditingController(text: text);
+    }
+    return _lowStockControllers[variantId]!;
+  }
+
   // Returns a TextEditingController for managing the discount of a variant.
   TextEditingController getDiscountController(
     String variantId, {
@@ -231,6 +249,9 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       controller.dispose();
     }
     for (var controller in _dateControllers.values) {
+      controller.dispose();
+    }
+    for (var controller in _lowStockControllers.values) {
       controller.dispose();
     }
     super.dispose();
@@ -304,6 +325,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
     /// Per-variant label (e.g. from Add variant sheet). When null/empty, falls back
     /// to the in-progress product title so desktop scan-only flow still works.
     String? variantDisplayName,
+    double? lowStock,
   }) async {
     String branchId = ProxyService.box.getBranchId()!;
 
@@ -393,6 +415,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       branchId: branchId,
       initialStock: 0,
       rsdQty: 0,
+      lowStock: lowStock ?? 0.0,
       tin: ebm?.tinNumber ?? -1,
       value: 0 * retailPrice,
       ebmSynced: false,
@@ -476,6 +499,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
     String id,
     double newQuantity, {
     bool persistToBackend = true,
+    double? lowStock,
   }) async {
     try {
       // Find the variant with the specified id
@@ -493,6 +517,9 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
           scannedVariant.stock!.value =
               newQuantity * (scannedVariant.retailPrice ?? 0.0);
           scannedVariant.stock!.lastTouched = DateTime.now().toUtc();
+          if (lowStock != null) {
+            scannedVariant.stock!.lowStock = lowStock;
+          }
         }
 
         // Notify listeners immediately to update UI

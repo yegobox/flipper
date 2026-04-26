@@ -379,27 +379,30 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
     final lock = Lock();
 
     try {
+      final String bhfId = (await ProxyService.box.bhfId()) ?? "00";
+      final String branchId = ProxyService.box.getBranchId()!;
       // Use a lock to ensure transaction operations are atomic
       await lock.synchronized(() async {
-        // First, ensure we have a transaction by calling manageTransaction directly
-        // This follows the pattern used in QuickSellingView
-        ITransaction? pendingTransaction = await ProxyService.strategy
-            .manageTransaction(
-              branchId: ProxyService.box.getBranchId()!,
-              transactionType: transactionType,
-              isExpense: !isIncome,
-            );
+        final List<dynamic> created = await Future.wait<dynamic>([
+          ProxyService.strategy.manageTransaction(
+            branchId: branchId,
+            transactionType: transactionType,
+            isExpense: !isIncome,
+          ),
+          ProxyService.strategy.getUtilityVariant(
+            name: transactionType,
+            branchId: branchId,
+          ),
+        ]);
+        ITransaction? pendingTransaction = created[0] as ITransaction?;
+        Variant? utilityVariant = created[1] as Variant?;
 
         if (pendingTransaction == null) {
           talker.error("Failed to create or get a pending transaction");
           return;
         }
 
-        // Ensure we have a TransactionItem for this cashbook transaction
-        Variant? utilityVariant = await ProxyService.strategy.getUtilityVariant(
-          name: transactionType,
-          branchId: ProxyService.box.getBranchId()!,
-        );
+        List<TransactionItem>? preloadedForPayment;
         if (utilityVariant != null) {
           await ProxyService.strategy.saveTransactionItem(
             variation: utilityVariant,
@@ -410,7 +413,23 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
             partOfComposite: false,
             doneWithTransaction: true,
             ignoreForReport: false,
+            updatePendingTransactionSubtotal: false,
           );
+          preloadedForPayment = [
+            TransactionItem(
+              name: utilityVariant.name,
+              qty: 1,
+              price: cashReceived,
+              discount: 0,
+              prc: cashReceived,
+              totAmt: cashReceived,
+              transactionId: pendingTransaction.id,
+              variantId: utilityVariant.id,
+              branchId: branchId,
+              dcAmt: 0,
+              ttCatCd: utilityVariant.taxTyCd ?? 'B',
+            ),
+          ];
         }
 
         // Now that we have a valid transaction, we can proceed
@@ -423,23 +442,18 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
         );
 
         Category? category = await ProxyService.strategy.activeCategory(
-          branchId: ProxyService.box.getBranchId()!,
+          branchId: branchId,
         );
         var shortestSide = MediaQuery.of(context).size.shortestSide;
         var useMobileLayout = shortestSide < 600;
 
-        // For cashbook transactions, the subtotal should be the cash received amount
-        double subTotal = cashReceived;
-
-        talker.info("Processing transaction with subtotal: $subTotal");
-
-        // collectPayment recalculates subTotal from items internally
+        // collectPayment recalculates subTotal from line items; completion in one write
         ITransaction updatedTransaction = await ProxyService.strategy
             .collectPayment(
               cashReceived: cashReceived,
               countryCode: "N/A",
-              branchId: ProxyService.box.getBranchId()!,
-              bhfId: (await ProxyService.box.bhfId()) ?? "00",
+              branchId: branchId,
+              bhfId: bhfId,
               isProformaMode: ProxyService.box.isProformaMode(),
               isTrainingMode: ProxyService.box.isTrainingMode(),
               transaction: pendingTransaction,
@@ -451,16 +465,12 @@ class KeyPadViewState extends ConsumerState<KeyPadView> {
               directlyHandleReceipt: false,
               isIncome: isIncome,
               categoryId: category?.id.toString(),
+              completionStatus: COMPLETE,
+              preloadedLineItems: preloadedForPayment,
             );
 
-        await ProxyService.strategy.updateTransaction(
-          transaction: updatedTransaction,
-          status: COMPLETE,
-          subTotal: subTotal,
-        );
-
         talker.info(
-          "Transaction explicitly marked as complete with subtotal: $subTotal",
+          "collectPayment completed, transaction ID: ${updatedTransaction.id}",
         );
 
         // Refresh providers to update UI
