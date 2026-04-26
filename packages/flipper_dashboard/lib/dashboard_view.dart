@@ -2,6 +2,8 @@ import 'dart:developer';
 
 import 'package:flipper_dashboard/widgets/app_icons_grid.dart';
 import 'package:flipper_dashboard/widgets/dashboard_quick_access_svgs.dart';
+import 'package:flipper_dashboard/features/stock_value/stock_value_report_screen.dart';
+import 'package:flipper_models/providers/stock_value_report_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_services/utils.dart';
 import 'package:flutter/material.dart';
@@ -345,6 +347,8 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
               ),
               if (_mobileChrome) ...[
                 const SizedBox(height: 16),
+                _buildStockValueSummaryCard(context, ref),
+                const SizedBox(height: 12),
                 _buildRevenueExpenseRow(snapshot),
               ],
             ],
@@ -369,6 +373,115 @@ class _DashboardViewState extends ConsumerState<DashboardView> {
         child: Padding(
           padding: EdgeInsets.all(24.0),
           child: CircularProgressIndicator(),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStockValueSummaryCard(BuildContext context, WidgetRef ref) {
+    final summaryAsync = ref.watch(stockValueSummaryProvider);
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF7F4EF),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: summaryAsync.when(
+        data: (summary) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.layers_outlined, size: 18),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Stock Value',
+                    style: GoogleFonts.outfit(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const Spacer(),
+                  Text(
+                    'RWF ${formatNumber(summary.totalValue)}',
+                    style: GoogleFonts.jetBrainsMono(
+                      fontSize: 22,
+                      fontWeight: FontWeight.w700,
+                      color: Colors.black87,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(999),
+                child: const LinearProgressIndicator(
+                  value: 0.6,
+                  minHeight: 6,
+                  backgroundColor: Color(0xFFE6E1D9),
+                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF1F6FEB)),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Icon(
+                    Icons.warning_amber_rounded,
+                    size: 18,
+                    color: Colors.orange.shade800,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    '${summary.needsRestockCount} items low on stock',
+                    style: GoogleFonts.outfit(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const Spacer(),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const StockValueReportScreen(),
+                        ),
+                      );
+                    },
+                    child: Text(
+                      'Full report →',
+                      style: GoogleFonts.outfit(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              if (summary.isPossiblyIncomplete) ...[
+                const SizedBox(height: 6),
+                Text(
+                  'Data may be incomplete (partial sync).',
+                  style: GoogleFonts.outfit(
+                    fontSize: 12,
+                    color: Colors.black54,
+                  ),
+                ),
+              ],
+            ],
+          );
+        },
+        loading: () => const SizedBox(
+          height: 88,
+          child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+        ),
+        error: (_, __) => Text(
+          'Unable to load stock value.',
+          style: GoogleFonts.outfit(fontSize: 14, color: Colors.black54),
         ),
       ),
     );

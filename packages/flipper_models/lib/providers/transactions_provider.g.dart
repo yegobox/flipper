@@ -407,7 +407,7 @@ final class TransactionItemListProvider
 }
 
 String _$transactionItemListHash() =>
-    r'615c2480b070c4c7b267d88f4562d02f2bdb4c34';
+    r'b3c47aa202b6cda92d871edb7b31271271b30495';
 
 @ProviderFor(expensesStream)
 const expensesStreamProvider = ExpensesStreamFamily._();

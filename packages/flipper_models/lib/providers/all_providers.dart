@@ -12,6 +12,7 @@ export 'profit_provider.dart';
 export 'scan_mode_provider.dart';
 export 'selected_provider.dart';
 export 'stock_value_provider.dart';
+export 'stock_value_report_provider.dart';
 export 'total_sale_provider.dart';
 export 'transaction_items_provider.dart';
 export 'transactions_provider.dart';
