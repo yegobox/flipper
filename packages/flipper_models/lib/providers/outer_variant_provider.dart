@@ -31,6 +31,10 @@ class OuterVariants extends _$OuterVariants {
         (prefIpp != null && prefIpp > 0 && prefIpp <= _maxPageSize)
         ? prefIpp
         : _defaultPageSize;
+    talker.info(
+      'OuterVariants: itemsPerPage=${_itemsPerPage ?? 'null'} '
+      '(pref=${prefIpp ?? 'null'}, default=$_defaultPageSize, max=$_maxPageSize)',
+    );
 
     // Fetch VAT enabled status from EBM and cache it
     _isVatEnabled = await getVatEnabledFromEbm();
