@@ -107,14 +107,11 @@ class StockRecountItem extends OfflineFirstWithSupabaseModel {
     );
   }
 
-  /// Validate that counted quantity is not below previous quantity
+  /// Validate counted quantity
   /// Returns error message if invalid, null if valid
   String? validate() {
     if (countedQuantity < 0) {
       return 'Counted quantity cannot be negative';
-    }
-    if (countedQuantity < previousQuantity) {
-      return 'Cannot count below existing stock quantity ($previousQuantity)';
     }
     return null; // Valid
   }

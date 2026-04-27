@@ -47,11 +47,11 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
         recountId: widget.recountId,
       );
 
-      // Check if any item has counted quantity less than previous quantity
-      final hasLowerCount = items.any((item) => item.difference < 0);
+      // Disable submit only when any item is below system stock (negative variance)
+      final hasNegativeVariance = items.any((item) => item.difference < 0);
 
       setState(() {
-        _canSubmit = !hasLowerCount;
+        _canSubmit = !hasNegativeVariance;
       });
     } catch (e) {
       setState(() {
@@ -60,11 +60,17 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
     }
   }
 
+  Future<void> _onItemsChanged() async {
+    if (!mounted) return;
+    setState(() {});
+    await _checkCanSubmit();
+  }
+
   Future<void> _submitRecount() async {
     if (!_canSubmit) {
       showWarningNotification(
         context,
-        'Cannot submit: Some items have counts lower than current stock. Please adjust or remove these items.',
+        'Cannot submit: Some items have counts lower than system stock. Adjust those items to submit.',
       );
       return;
     }
@@ -412,7 +418,7 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
                             SizedBox(width: 10),
                             Expanded(
                               child: Text(
-                                'Cannot submit: Some items have counts lower than current stock',
+                                'Cannot submit: Some items have counts lower than system stock',
                                 style: TextStyle(
                                   color: Color(0xFF856404),
                                   fontSize: 13,
@@ -749,6 +755,8 @@ class _StockRecountActiveScreenState extends State<StockRecountActiveScreen> {
                           item: item,
                           isDraft: isDraft,
                           onRemove: () => _removeItem(item.id),
+                          recountId: widget.recountId,
+                          onUpdated: _onItemsChanged,
                         );
                       },
                     );
@@ -948,26 +956,99 @@ class _ProductSearchFieldState extends State<_ProductSearchField> {
   }
 }
 
-class _RecountItemCard extends StatelessWidget {
+class _RecountItemCard extends StatefulWidget {
   final StockRecountItem item;
   final bool isDraft;
   final VoidCallback onRemove;
+  final String recountId;
+  final VoidCallback onUpdated;
 
   const _RecountItemCard({
     required this.item,
     required this.isDraft,
     required this.onRemove,
+    required this.recountId,
+    required this.onUpdated,
   });
 
+  @override
+  State<_RecountItemCard> createState() => _RecountItemCardState();
+}
+
+class _RecountItemCardState extends State<_RecountItemCard> {
+  bool _isEditingCounted = false;
+  bool _isSaving = false;
+  late final TextEditingController _countedController;
+
+  @override
+  void initState() {
+    super.initState();
+    _countedController = TextEditingController(
+      text: widget.item.countedQuantity.toStringAsFixed(0),
+    );
+  }
+
+  @override
+  void didUpdateWidget(covariant _RecountItemCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.item.countedQuantity != widget.item.countedQuantity &&
+        !_isEditingCounted) {
+      _countedController.text = widget.item.countedQuantity.toStringAsFixed(0);
+    }
+  }
+
+  @override
+  void dispose() {
+    _countedController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _saveCounted() async {
+    final raw = _countedController.text.trim();
+    final qty = double.tryParse(raw);
+    if (qty == null || qty < 0) {
+      showWarningNotification(context, 'Please enter a valid quantity');
+      return;
+    }
+
+    setState(() {
+      _isSaving = true;
+    });
+
+    try {
+      await ProxyService.strategy.addOrUpdateRecountItem(
+        recountId: widget.recountId,
+        variantId: widget.item.variantId,
+        countedQuantity: qty,
+        notes: widget.item.notes,
+      );
+
+      if (!mounted) return;
+      setState(() {
+        _isEditingCounted = false;
+      });
+      widget.onUpdated();
+      showSuccessNotification(context, 'Count updated');
+    } catch (e) {
+      if (!mounted) return;
+      showErrorNotification(context, 'Error updating count: $e');
+    } finally {
+      if (!mounted) return;
+      setState(() {
+        _isSaving = false;
+      });
+    }
+  }
+
   Color _getDifferenceColor() {
-    final diff = item.difference;
+    final diff = widget.item.difference;
     if (diff > 0) return const Color(0xFF10B981);
     if (diff < 0) return const Color(0xFFEF4444);
     return Colors.grey;
   }
 
   IconData _getDifferenceIcon() {
-    final diff = item.difference;
+    final diff = widget.item.difference;
     if (diff > 0) return Icons.trending_up;
     if (diff < 0) return Icons.trending_down;
     return Icons.remove;
@@ -975,7 +1056,7 @@ class _RecountItemCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final diff = item.difference;
+    final diff = widget.item.difference;
     final isNegativeDiff = diff < 0;
 
     return Container(
@@ -1006,18 +1087,19 @@ class _RecountItemCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        item.productName,
+                        widget.item.productName,
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                           color: Colors.black87,
                         ),
                       ),
-                      if (item.notes != null && item.notes!.isNotEmpty)
+                      if (widget.item.notes != null &&
+                          widget.item.notes!.isNotEmpty)
                         Padding(
                           padding: const EdgeInsets.only(top: 4),
                           child: Text(
-                            item.notes!,
+                            widget.item.notes!,
                             style: TextStyle(
                               fontSize: 12,
                               color: Colors.grey[600],
@@ -1027,13 +1109,13 @@ class _RecountItemCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                if (isDraft)
+                if (widget.isDraft)
                   IconButton(
                     icon: const Icon(
                       Icons.delete_outline,
                       color: Color(0xFFEF4444),
                     ),
-                    onPressed: onRemove,
+                    onPressed: widget.onRemove,
                     tooltip: 'Remove item',
                   ),
               ],
@@ -1044,7 +1126,7 @@ class _RecountItemCard extends StatelessWidget {
                 Expanded(
                   child: _InfoChip(
                     label: 'System Stock',
-                    value: item.previousQuantity.toStringAsFixed(0),
+                    value: widget.item.previousQuantity.toStringAsFixed(0),
                     color: Colors.grey[600]!,
                     backgroundColor: Colors.grey[100]!,
                   ),
@@ -1058,12 +1140,53 @@ class _RecountItemCard extends StatelessWidget {
                   ),
                 ),
                 Expanded(
-                  child: _InfoChip(
-                    label: 'Counted',
-                    value: item.countedQuantity.toStringAsFixed(0),
-                    color: const Color(0xFF0078D4),
-                    backgroundColor: const Color(0xFFE3F2FD),
-                  ),
+                  child: _isEditingCounted && widget.isDraft
+                      ? _EditableCountedChip(
+                          controller: _countedController,
+                          isSaving: _isSaving,
+                          onCancel: () {
+                            setState(() {
+                              _isEditingCounted = false;
+                              _countedController.text = widget
+                                  .item.countedQuantity
+                                  .toStringAsFixed(0);
+                            });
+                          },
+                          onSave: _saveCounted,
+                        )
+                      : GestureDetector(
+                          onTap: widget.isDraft
+                              ? () {
+                                  setState(() {
+                                    _isEditingCounted = true;
+                                    _countedController.text = widget
+                                        .item.countedQuantity
+                                        .toStringAsFixed(0);
+                                  });
+                                }
+                              : null,
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: _InfoChip(
+                                  label: 'Counted',
+                                  value: widget.item.countedQuantity
+                                      .toStringAsFixed(0),
+                                  color: const Color(0xFF0078D4),
+                                  backgroundColor: const Color(0xFFE3F2FD),
+                                ),
+                              ),
+                              if (widget.isDraft) ...[
+                                const SizedBox(width: 6),
+                                Icon(
+                                  Icons.edit,
+                                  size: 16,
+                                  color: Colors.grey[500],
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -1105,7 +1228,7 @@ class _RecountItemCard extends StatelessWidget {
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'Count is lower than system stock. Adjust count or remove to submit.',
+                        'Count is lower than system stock. You can keep editing; submission is blocked until variance is zero.',
                         style: const TextStyle(
                           color: Color(0xFFB91C1C),
                           fontSize: 12,
@@ -1119,6 +1242,97 @@ class _RecountItemCard extends StatelessWidget {
             ],
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _EditableCountedChip extends StatelessWidget {
+  final TextEditingController controller;
+  final bool isSaving;
+  final VoidCallback onSave;
+  final VoidCallback onCancel;
+
+  const _EditableCountedChip({
+    required this.controller,
+    required this.isSaving,
+    required this.onSave,
+    required this.onCancel,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: const Color(0xFFE3F2FD),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFF0078D4).withValues(alpha: 0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'Counted',
+            style: TextStyle(
+              fontSize: 11,
+              color: const Color(0xFF0078D4).withValues(alpha: 0.8),
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              SizedBox(
+                width: 72,
+                child: TextField(
+                  controller: controller,
+                  enabled: !isSaving,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: const InputDecoration(
+                    isDense: true,
+                    border: OutlineInputBorder(),
+                    contentPadding: EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 8,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              TextButton(
+                onPressed: isSaving ? null : onCancel,
+                child: const Text('Cancel'),
+              ),
+              const SizedBox(width: 4),
+              ElevatedButton(
+                onPressed: isSaving ? null : onSave,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF0078D4),
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                child: isSaving
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                        ),
+                      )
+                    : const Text('Save'),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
