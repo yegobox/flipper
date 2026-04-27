@@ -1,10 +1,10 @@
 name: flipper_rw
 description: "A new Flutter project."
 publish_to: "none"
-#  ios : 1.183
+#  ios : 1.184
 # macos : 1.181
 
-version: 1.183.4252223235128+1756529133
+version: 1.184.4252223235129+1756529134
 
 
 environment:
@@ -217,7 +217,7 @@ msix_config:
   publisher_display_name: yegobox ltd
   identity_name: yegobox.yegoboxflipper
   # identity_name: yegobox.yegoboxflipper_6y224vs1dg1rr
-  msix_version: 1.170.5052.231
+  msix_version: 1.170.5052.232
   publisher: CN=B0F98A1E-8AE8-4B2B-BD1B-F494D4F791AE
   # publisher: CN=B0F334A1E-8AET-4B2C-BD1B-F239D4F791AE
   # B0F98A1E-8AE8-4B2B-BD1B-F494D4F791AE
