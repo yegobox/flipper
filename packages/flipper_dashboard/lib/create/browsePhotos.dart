@@ -9,8 +9,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:stacked/stacked.dart';
 import 'package:talker_flutter/talker_flutter.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:image_picker/image_picker.dart';
-
 import 'package:flipper_models/providers/upload_providers.dart';
 import 'package:flipper_models/view_models/upload_viewmodel.dart';
 import 'package:flipper_services/abstractions/upload.dart';
@@ -37,7 +35,6 @@ class Browsephotos extends StatefulHookConsumerWidget {
 
 class _BrowsephotosState extends ConsumerState<Browsephotos> {
   final talker = TalkerFlutter.init();
-  final ImagePicker _picker = ImagePicker();
   bool isUploading = false;
   bool isOfflineMode = false;
 
@@ -242,7 +239,7 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
     }
   }
 
-  Future<ImageSource?> _showImageSourceSheet() async {
+  Future<ImageSourceSheetResult?> _showImageSourceSheet() async {
     final hasImage = (_currentImageUrl ?? widget.imageUrl) != null;
     return showImageSourceSheet(
       context,
@@ -264,7 +261,7 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
   // Helper function to handle image upload with offline support
   Future<void> _handleImageUpload(
     UploadViewModel model, {
-    required ImageSource source,
+    required String pickedPath,
   }) async {
     // Check connectivity before proceeding
     await _checkConnectivity();
@@ -321,15 +318,22 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
       }
 
       if (isOfflineMode) {
-        // Handle offline image upload
-        await _handleOfflineImageUpload(productRef.id, source: source);
+        await _handleOfflineWithPickedPath(productRef.id, pickedPath);
       } else {
-        // Handle online image upload; on mobile this can use camera/gallery.
-        final product = await model.uploadImage(
+        model.setRef(ref);
+        await model.uploadPickedImagePath(
+          pickedPath: pickedPath,
           id: productRef.id,
           urlType: URLTYPE.PRODUCT,
-          source: source,
+          updateProductImage: true,
+          persistAssetRecord: true,
         );
+        final branchId = ProxyService.box.getBranchId()!;
+        final product = (await ProxyService.strategy.getProduct(
+          id: productRef.id,
+          branchId: branchId,
+          businessId: ProxyService.box.getBusinessId()!,
+        ))!;
         talker.warning("ImageToProduct:${product.imageUrl}");
         ref.read(unsavedProductProvider.notifier).emitProduct(value: product);
       }
@@ -347,29 +351,12 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
     }
   }
 
-  // Handle offline image upload
-  Future<void> _handleOfflineImageUpload(
-    String productId, {
-    required ImageSource source,
-  }) async {
-    setState(() {
-      isUploading = true;
-    });
-
+  Future<void> _handleOfflineWithPickedPath(String productId, String path) async {
     try {
       // Simulate upload progress
       _startProgressSimulation();
 
-      final XFile? image = await _picker.pickImage(source: source);
-      if (image == null) {
-        setState(() {
-          isUploading = false;
-        });
-        ref.read(uploadProgressProvider.notifier).setProgress(0.0);
-        return;
-      }
-
-      final File imageFile = File(image.path);
+      final File imageFile = File(path);
       final branchId = ProxyService.box.getBranchId();
       final businessId = ProxyService.box.getBusinessId();
 
@@ -471,9 +458,12 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
           children: [
             InkWell(
               onTap: () async {
-                final source = await _showImageSourceSheet();
-                if (source == null) return;
-                await _handleImageUpload(model, source: source);
+                final sourceResult = await _showImageSourceSheet();
+                if (sourceResult == null) return;
+                final path =
+                    await pickLocalImagePathForSheetResult(sourceResult);
+                if (path == null) return;
+                await _handleImageUpload(model, pickedPath: path);
               },
               child: Container(
                 width: 200,
@@ -675,9 +665,13 @@ class _BrowsephotosState extends ConsumerState<Browsephotos> {
                   onPressed: isUploading
                       ? null
                       : () async {
-                          final source = await _showImageSourceSheet();
-                          if (source == null) return;
-                          await _handleImageUpload(model, source: source);
+                          final sourceResult = await _showImageSourceSheet();
+                          if (sourceResult == null) return;
+                          final path = await pickLocalImagePathForSheetResult(
+                            sourceResult,
+                          );
+                          if (path == null) return;
+                          await _handleImageUpload(model, pickedPath: path);
                         },
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,

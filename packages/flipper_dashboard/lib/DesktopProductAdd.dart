@@ -37,7 +37,6 @@ import 'package:flipper_dashboard/responsive_layout.dart' as responsive;
 import 'package:flutter/services.dart';
 import 'package:flipper_dashboard/utils/image_source_sheet.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:image_picker/image_picker.dart';
 
 class ProductEntryScreen extends StatefulHookConsumerWidget {
   const ProductEntryScreen({super.key, this.productId});
@@ -1607,28 +1606,30 @@ Future<void> _showVariantSheet({
                                             toast('Invalid product reference');
                                             return;
                                           }
-                                          final source =
+                                          final sourceResult =
                                               await showImageSourceSheet(ctx);
-                                          if (source == null) return;
+                                          if (sourceResult == null) return;
 
                                           setModalState(
                                             () => uploadingImage = true,
                                           );
                                           try {
                                             // Pick first so we can preview immediately.
-                                            final picked = await ImagePicker()
-                                                .pickImage(source: source);
-                                            if (picked == null) return;
+                                            final pickedPath =
+                                                await pickLocalImagePathForSheetResult(
+                                              sourceResult,
+                                            );
+                                            if (pickedPath == null) return;
 
                                             setModalState(() {
-                                              variantPreviewPath = picked.path;
+                                              variantPreviewPath = pickedPath;
                                             });
 
                                             final uploader = UploadViewModel()
                                               ..setRef(ref);
                                             final fileName = await uploader
                                                 .uploadPickedImagePath(
-                                                  pickedPath: picked.path,
+                                                  pickedPath: pickedPath,
                                                   id: productRef.id,
                                                   urlType: URLTYPE.PRODUCT,
                                                   updateProductImage: false,

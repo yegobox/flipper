@@ -10,7 +10,6 @@ import 'package:flipper_services/abstractions/upload.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -105,18 +104,17 @@ class _VariantTableImageCellState extends ConsumerState<VariantTableImageCell> {
       return;
     }
 
-    final source = await showImageSourceSheet(context);
-    if (source == null) return;
+    final sourceResult = await showImageSourceSheet(context);
+    if (sourceResult == null) return;
 
     setState(() => _uploading = true);
     try {
       ref.read(uploadProgressProvider.notifier).setProgress(0);
-      // Same as mobile add-variant sheet: gallery/camera then upload by path.
-      final picked = await ImagePicker().pickImage(source: source);
-      if (picked == null) return;
+      final pickedPath = await pickLocalImagePathForSheetResult(sourceResult);
+      if (pickedPath == null) return;
       final uploader = UploadViewModel()..setRef(ref);
       final fileName = await uploader.uploadPickedImagePath(
-        pickedPath: picked.path,
+        pickedPath: pickedPath,
         id: widget.productId,
         urlType: URLTYPE.PRODUCT,
         updateProductImage: false,
