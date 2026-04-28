@@ -58,6 +58,84 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
   Timer? _branchSwitchTimer;
   int _lastCheckedBranchSwitchTimestamp = 0;
 
+  /// Track OuterVariants front-evictions to keep scroll position stable.
+  ProviderSubscription<AsyncValue<List<Variant>>>? _outerVariantsSub;
+  String? _listenedBranchId;
+  int? _lastFirstCachedPage;
+
+  /// Last-known layout metrics used for scroll compensation.
+  bool? _lastIsMobileLayout;
+  double? _lastPaneWidth;
+  int? _lastGridCrossAxisCount;
+  double? _lastGridMainAxisSpacing;
+  double? _lastGridChildAspectRatio;
+
+  static const double _estimatedMobileListItemExtent = 132.0; // card + separator
+
+  void _ensureOuterVariantsEvictionListener(String branchId) {
+    if (branchId.isEmpty) return;
+    if (_listenedBranchId == branchId && _outerVariantsSub != null) return;
+
+    _outerVariantsSub?.close();
+    _listenedBranchId = branchId;
+    _lastFirstCachedPage = null;
+
+    _outerVariantsSub = ref.listenManual<AsyncValue<List<Variant>>>(
+      outerVariantsProvider(branchId),
+      (prev, next) {
+        final notifier = ref.read(outerVariantsProvider(branchId).notifier);
+        final first = notifier.firstCachedPage;
+        final lastSeen = _lastFirstCachedPage;
+        _lastFirstCachedPage = first;
+
+        if (lastSeen == null) return;
+        if (first <= lastSeen) return;
+
+        if (!_scrollController.hasClients) return;
+        final currentOffset = _scrollController.offset;
+        if (currentOffset <= 0) return;
+
+        final deltaPages = first - lastSeen;
+        final removedItems = deltaPages * notifier.itemsPerPage;
+
+        final isMobile = _lastIsMobileLayout;
+        final paneWidth = _lastPaneWidth;
+        final crossAxisCount = _lastGridCrossAxisCount;
+        final mainAxisSpacing = _lastGridMainAxisSpacing;
+        final childAspectRatio = _lastGridChildAspectRatio;
+
+        double? removedPx;
+        if (isMobile == true) {
+          removedPx = removedItems * _estimatedMobileListItemExtent;
+        } else if (paneWidth != null &&
+            crossAxisCount != null &&
+            crossAxisCount > 0 &&
+            mainAxisSpacing != null &&
+            childAspectRatio != null &&
+            childAspectRatio > 0) {
+          // Grid layout has predictable row height: tileWidth/aspectRatio.
+          final tileWidth =
+              (paneWidth - (mainAxisSpacing * (crossAxisCount - 1))) /
+                  crossAxisCount;
+          final tileHeight = tileWidth / childAspectRatio;
+          final removedRows = (removedItems / crossAxisCount).ceil();
+          removedPx = removedRows * (tileHeight + mainAxisSpacing);
+        }
+
+        if (removedPx == null || removedPx <= 0) return;
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!_scrollController.hasClients) return;
+          final newOffset = (currentOffset - removedPx!).clamp(
+            0.0,
+            _scrollController.position.maxScrollExtent,
+          );
+          _scrollController.jumpTo(newOffset);
+        });
+      },
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -94,6 +172,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     _scrollController.removeListener(_scrollListener);
     _scrollController.dispose();
     _branchSwitchTimer?.cancel();
+    _outerVariantsSub?.close();
     super.dispose();
   }
 
@@ -349,6 +428,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     return Consumer(
       builder: (context, ref, _) {
         final branchId = ProxyService.box.getBranchId() ?? "";
+        _ensureOuterVariantsEvictionListener(branchId);
         // If the search string changed, reset our local page to the first page
         // so that search results always start from page 0.
         final currentSearch = ref.watch(searchStringProvider);
@@ -738,7 +818,15 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     final bool isMobileLayout =
         paneWidth < PosLayoutBreakpoints.mobileLayoutMaxWidth;
 
+    // Capture layout metrics used for scroll compensation when pages are evicted
+    // from the front of the in-memory page cache.
+    _lastIsMobileLayout = isMobileLayout;
+    _lastPaneWidth = paneWidth;
+
     if (isMobileLayout) {
+      _lastGridCrossAxisCount = null;
+      _lastGridMainAxisSpacing = null;
+      _lastGridChildAspectRatio = null;
       return ListView.separated(
         controller: _scrollController,
         itemCount: variants.length,
@@ -767,6 +855,10 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     final aspectRatio = PosLayoutBreakpoints.desktopGridChildAspectRatio(
       crossAxisCount,
     );
+
+    _lastGridCrossAxisCount = crossAxisCount;
+    _lastGridMainAxisSpacing = spacing;
+    _lastGridChildAspectRatio = aspectRatio;
 
     return GridView.builder(
       controller: _scrollController,
