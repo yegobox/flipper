@@ -206,6 +206,30 @@ class SettingsService with ListenableServiceMixin {
     }
   }
 
+  /// Syncs toggle fields from persisted [Setting] so they survive app restarts.
+  /// In-memory getters (e.g. [isAdminPinEnabled]) default false until this runs.
+  Future<void> hydrateToggleStatesFromSettings() async {
+    final businessId = ProxyService.box.getBusinessId();
+    if (businessId == null || businessId.isEmpty) return;
+
+    final setting = await ProxyService.getStrategy(
+      Strategy.capella,
+    ).getSetting(businessId: businessId);
+    if (setting == null) return;
+
+    _isAdminPinEnabled.value = setting.isAdminPinEnabled ?? false;
+    _sendDailReport.value = setting.sendDailyReport == null
+        ? false
+        : setting.sendDailyReport!;
+    _isAttendanceEnabled.value = setting.isAttendanceEnabled == null
+        ? false
+        : setting.isAttendanceEnabled!;
+    _enablePriceQuantityAdjustment.value =
+        setting.enablePriceQuantityAdjustment ?? false;
+    _isCurrencyDecimal.value = setting.isCurrencyDecimal ?? false;
+    notifyListeners();
+  }
+
   void getPriceQuantityAdjustmentToggleState() async {
     Setting? setting = await settings();
     if (setting != null) {

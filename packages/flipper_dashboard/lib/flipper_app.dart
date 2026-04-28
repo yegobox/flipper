@@ -7,6 +7,7 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/event_bus.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/locator.dart';
+import 'package:flipper_services/setting_service.dart';
 import 'package:flipper_web/core/utils/ditto_singleton.dart';
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:flutter/material.dart';
@@ -42,6 +43,7 @@ class FlipperApp extends HookConsumerWidget {
     _disableScreenshots();
     _requestPermissions();
     ProxyService.status.updateStatusColor();
+    unawaited(getIt<SettingsService>().hydrateToggleStatesFromSettings());
     // ProxyService.dynamicLink.handleDynamicLink(context);
     if (isAndroid || isIos) {
       _startNFCForModel(model);
