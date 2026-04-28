@@ -298,4 +298,48 @@ class DashboardQuickAccessSvgs {
   <circle cx="17" cy="17" r="3.5" fill="#DBEAFE" stroke="#2563EB" stroke-width="1.5"/>
   <text x="17" y="19.5" text-anchor="middle" font-size="5" font-weight="700" fill="#2563EB" font-family="sans-serif">A</text>
 </svg>''';
+
+  // App switcher (desktop) icons — 20×20, per design spec.
+  static String appSwitcherPosIcon() => '''
+<svg width="20" height="20" viewBox="0 0 20 20" fill="none" $_xmlns>
+  <rect x="2" y="4" width="16" height="10" rx="2" stroke="#185FA5" stroke-width="1.5"/>
+  <path d="M6 17h8" stroke="#185FA5" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M10 14v3" stroke="#185FA5" stroke-width="1.5" stroke-linecap="round"/>
+</svg>''';
+
+  static String appSwitcherReportsIcon() => '''
+<svg width="20" height="20" viewBox="0 0 20 20" fill="none" $_xmlns>
+  <rect x="2" y="2" width="16" height="16" rx="2" stroke="#534AB7" stroke-width="1.5"/>
+  <path d="M6 14V10M10 14V7M14 14V11" stroke="#534AB7" stroke-width="1.5" stroke-linecap="round"/>
+</svg>''';
+
+  static String appSwitcherOrdersIcon() => '''
+<svg width="20" height="20" viewBox="0 0 20 20" fill="none" $_xmlns>
+  <path d="M3 5h14l-1.5 7H4.5L3 5z" stroke="#854F0B" stroke-width="1.5" stroke-linejoin="round"/>
+  <circle cx="7" cy="16" r="1.25" fill="#854F0B"/>
+  <circle cx="13" cy="16" r="1.25" fill="#854F0B"/>
+</svg>''';
+
+  static String appSwitcherInventoryIcon() => '''
+<svg width="20" height="20" viewBox="0 0 20 20" fill="none" $_xmlns>
+  <rect x="3"  y="3"  width="6" height="6" rx="1" stroke="#3B6D11" stroke-width="1.5"/>
+  <rect x="11" y="3"  width="6" height="6" rx="1" stroke="#3B6D11" stroke-width="1.5"/>
+  <rect x="3"  y="11" width="6" height="6" rx="1" stroke="#3B6D11" stroke-width="1.5"/>
+  <rect x="11" y="11" width="6" height="6" rx="1" stroke="#3B6D11" stroke-width="1.5"/>
+</svg>''';
+
+  static String appSwitcherCustomersIcon() => '''x
+<svg width="20" height="20" viewBox="0 0 20 20" fill="none" $_xmlns>
+  <circle cx="10" cy="7" r="3" stroke="#993556" stroke-width="1.5"/>
+  <path d="M4 17c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="#993556" stroke-width="1.5" stroke-linecap="round"/>
+</svg>''';
+
+  static String appSwitcherSettingsIcon() => '''
+<svg width="20" height="20" viewBox="0 0 20 20" fill="none" $_xmlns>
+  <circle cx="10" cy="10" r="2.5" stroke="#5F5E5A" stroke-width="1.5"/>
+  <path d="M10 2v2M10 16v2M2 10h2M16 10h2
+           M4.22 4.22l1.42 1.42M14.36 14.36l1.42 1.42
+           M4.22 15.78l1.42-1.42M14.36 5.64l1.42-1.42"
+        stroke="#5F5E5A" stroke-width="1.5" stroke-linecap="round"/>
+</svg>''';
 }

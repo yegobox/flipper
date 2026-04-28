@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -146,6 +147,8 @@ class _AdminControlState extends State<AdminControl> {
   bool enableSmsNotification = false;
   bool enableAutoAddSearch = false;
   late final TextEditingController phoneController;
+  late final FocusNode _smsPhoneFocusNode;
+  Timer? _smsPhoneDebounce;
   String? phoneError;
   Uint8List? receiptLogoBytes;
   bool isUpdatingReceiptLogo = false;
@@ -234,6 +237,19 @@ class _AdminControlState extends State<AdminControl> {
     }
   }
 
+  String? _normalizedSmsPhoneFromController() {
+    final raw = phoneController.text.trim();
+    return raw.isEmpty ? null : raw;
+  }
+
+  void _scheduleSmsPhoneSave(String? phone) {
+    _smsPhoneDebounce?.cancel();
+    _smsPhoneDebounce = Timer(const Duration(milliseconds: 650), () {
+      if (!mounted) return;
+      _updateSmsConfig(phone: phone);
+    });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -249,6 +265,13 @@ class _AdminControlState extends State<AdminControl> {
         ProxyService.box.readBool(key: 'enableAutoAddSearch') ?? false;
     userLoggingEnabled = ProxyService.box.getUserLoggingEnabled() ?? false;
     phoneController = TextEditingController();
+    _smsPhoneFocusNode = FocusNode();
+    _smsPhoneFocusNode.addListener(() {
+      if (!_smsPhoneFocusNode.hasFocus) {
+        final phone = _normalizedSmsPhoneFromController();
+        _scheduleSmsPhoneSave(phone);
+      }
+    });
     _profileEmailEditController = TextEditingController();
     _profileNameEditController = TextEditingController();
     _profilePhoneEditController = TextEditingController();
@@ -634,7 +657,9 @@ class _AdminControlState extends State<AdminControl> {
 
   @override
   void dispose() {
+    _smsPhoneDebounce?.cancel();
     phoneController.dispose();
+    _smsPhoneFocusNode.dispose();
     _profileEmailEditController.dispose();
     _profileNameEditController.dispose();
     _profilePhoneEditController.dispose();
@@ -1723,6 +1748,7 @@ class _AdminControlState extends State<AdminControl> {
                       width: 200,
                       child: TextField(
                         controller: phoneController,
+                        focusNode: _smsPhoneFocusNode,
                         style: GoogleFonts.outfit(fontSize: 14),
                         decoration: InputDecoration(
                           hintText: 'Enter phone number',
@@ -1759,9 +1785,16 @@ class _AdminControlState extends State<AdminControl> {
                             smsPhoneNumber = value.isEmpty ? null : value;
                             phoneError = null;
                           });
+                          _scheduleSmsPhoneSave(
+                            value.trim().isEmpty ? null : value.trim(),
+                          );
                         },
                         onSubmitted: (value) {
                           final phone = value.isEmpty ? null : value;
+                          _updateSmsConfig(phone: phone);
+                        },
+                        onEditingComplete: () {
+                          final phone = _normalizedSmsPhoneFromController();
                           _updateSmsConfig(phone: phone);
                         },
                       ),
