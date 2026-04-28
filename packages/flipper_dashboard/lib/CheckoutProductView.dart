@@ -35,6 +35,7 @@ import 'package:flipper_dashboard/AddRoomDialog.dart';
 import 'package:flipper_dashboard/BulkAddProduct.dart';
 import 'package:flipper_dashboard/DesktopProductAdd.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
+import 'package:flipper_ui/dialogs/AdminPinDialog.dart';
 import 'package:flipper_dashboard/providers/app_mode_provider.dart';
 import 'package:flipper_dashboard/responsive_layout.dart' as responsive;
 
@@ -807,7 +808,18 @@ class _CheckoutPosProductSearchState
   }
 
   /// Same flow as [SearchField.addButton] / [_handleAddProduct] (single/bulk/rooms).
-  void _handleAddProduct() {
+  Future<void> _handleAddProduct() async {
+    final settingsService = ProxyService.settings;
+    if (settingsService.isAdminPinEnabled) {
+      final setting = await settingsService.settings();
+      final confirmed = await showAdminPinDialog(
+        context: context,
+        mode: AdminPinMode.verify,
+        expectedPin: setting?.adminPin,
+      );
+      if (confirmed != true || !mounted) return;
+    }
+
     final rootContext = context;
     showDialog<void>(
       barrierDismissible: true,
@@ -941,7 +953,7 @@ class _CheckoutPosProductSearchState
                   final appMode = ref.watch(appModeProvider);
                   if (!appMode) return const SizedBox.shrink();
                   return IconButton(
-                    onPressed: _handleAddProduct,
+                    onPressed: () => unawaited(_handleAddProduct()),
                     icon: Icon(
                       FluentIcons.add_20_regular,
                       color: scheme.onSurfaceVariant,

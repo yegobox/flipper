@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:badges/badges.dart' as badges;
 import 'package:flipper_dashboard/AddProductDialog.dart';
 import 'package:flipper_dashboard/DesktopProductAdd.dart';
@@ -20,6 +22,7 @@ import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:flipper_ui/dialogs/AdminPinDialog.dart';
 
 /// Left cluster of the desktop POS top bar: branding + "Point of Sale" + toolbar
 /// icons (matches design: grid, scan, cart, monitor, add).
@@ -222,7 +225,7 @@ class _PosDesktopTopLeadingState extends ConsumerState<PosDesktopTopLeading> {
         else
           IconButton(
             tooltip: 'Add product',
-            onPressed: _openAddProduct,
+            onPressed: () => unawaited(_openAddProduct()),
             icon: const Icon(
               FluentIcons.add_20_regular,
               color: Color(0xFF64748B),
@@ -232,7 +235,18 @@ class _PosDesktopTopLeadingState extends ConsumerState<PosDesktopTopLeading> {
     );
   }
 
-  void _openAddProduct() {
+  Future<void> _openAddProduct() async {
+    final settingsService = ProxyService.settings;
+    if (settingsService.isAdminPinEnabled) {
+      final setting = await settingsService.settings();
+      final confirmed = await showAdminPinDialog(
+        context: context,
+        mode: AdminPinMode.verify,
+        expectedPin: setting?.adminPin,
+      );
+      if (confirmed != true || !mounted) return;
+    }
+
     final rootContext = context;
     showDialog<void>(
       barrierDismissible: true,

@@ -1,5 +1,7 @@
 // ignore_for_file: unused_result, unused_field
 
+import 'dart:async';
+
 import 'package:flipper_dashboard/BranchPerformance.dart';
 import 'package:flipper_dashboard/BranchSelectionMixin.dart';
 import 'package:flipper_dashboard/import_purchase_dialog.dart';
@@ -22,6 +24,7 @@ import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_services/DeviceType.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_ui/dialogs/AdminPinDialog.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -97,6 +100,26 @@ class IconRowState extends ConsumerState<IconRow>
   }
 
   void _onMainTabPressed(int uiIndex) {
+    unawaited(_handleMainTabPressed(uiIndex));
+  }
+
+  Future<bool> _verifyAdminPinIfRequired(BuildContext context) async {
+    final settingsService = ProxyService.settings;
+    if (!settingsService.isAdminPinEnabled) return true;
+    final setting = await settingsService.settings();
+    final confirmed = await showAdminPinDialog(
+      context: context,
+      mode: AdminPinMode.verify,
+      expectedPin: setting?.adminPin,
+    );
+    return confirmed == true;
+  }
+
+  Future<void> _handleMainTabPressed(int uiIndex) async {
+    if (uiIndex != 0) {
+      final ok = await _verifyAdminPinIfRequired(context);
+      if (!ok || !mounted) return;
+    }
     ref
         .read(buttonIndexProvider.notifier)
         .setIndex(_legacyButtonIndexForUi(uiIndex));
@@ -239,7 +262,7 @@ class IconRowState extends ConsumerState<IconRow>
             message: 'Import & Purchase',
             child: InkWell(
               key: const Key('import_purchase_ribbon'),
-              onTap: () => ImportPurchaseDialog.show(context),
+              onTap: () => unawaited(_handleImportPurchaseTap(context)),
               borderRadius: BorderRadius.circular(8),
               child: Padding(
                 padding: const EdgeInsets.symmetric(
@@ -263,11 +286,7 @@ class IconRowState extends ConsumerState<IconRow>
             child: Icon(Icons.more_horiz, color: Colors.black54, size: 22),
           ),
           onSelected: (value) {
-            if (value == 'locations') {
-              _onMoreMenuLocations(context);
-            } else if (value == 'items') {
-              _onMoreMenuItems();
-            }
+            unawaited(_handleMoreMenuSelection(context, value));
           },
           itemBuilder: (context) => [
             const PopupMenuItem(
@@ -290,6 +309,25 @@ class IconRowState extends ConsumerState<IconRow>
         ),
       ],
     );
+  }
+
+  Future<void> _handleImportPurchaseTap(BuildContext context) async {
+    final ok = await _verifyAdminPinIfRequired(context);
+    if (!ok || !mounted) return;
+    await ImportPurchaseDialog.show(context);
+  }
+
+  Future<void> _handleMoreMenuSelection(
+    BuildContext context,
+    String value,
+  ) async {
+    final ok = await _verifyAdminPinIfRequired(context);
+    if (!ok || !mounted) return;
+    if (value == 'locations') {
+      _onMoreMenuLocations(context);
+    } else if (value == 'items') {
+      _onMoreMenuItems();
+    }
   }
 
   void _onMoreMenuLocations(BuildContext context) {
