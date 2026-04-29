@@ -13,6 +13,7 @@ import 'package:flipper_models/db_model_export.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_models/providers/all_providers.dart';
+import 'package:flipper_models/providers/category_provider.dart';
 
 class ListCategories extends StatefulHookConsumerWidget {
   const ListCategories({Key? key, required this.modeOfOperation})
@@ -71,6 +72,26 @@ class ListCategoriesState extends ConsumerState<ListCategories> {
         .toList();
   }
 
+  /// Persists focused category via [CoreViewModel], sets an optimistic label so
+  /// [CategorySelector] updates immediately (Brick stream can lag), then invalidates streams.
+  Future<void> _onCategorySelected(
+    CoreViewModel model,
+    Category category,
+  ) async {
+    setState(() {
+      _selectedCategoryId = category.id.toString();
+    });
+    final ok = await model.updateCategoryCore(category: category);
+    log('Category selected: ${category.name}');
+    if (!mounted || !ok) return;
+    ref.read(optimisticFocusedCategoryProvider.notifier).setFocused(category);
+    ref.invalidate(categoryProvider);
+    final bid = ProxyService.box.getBranchId();
+    if (bid != null) {
+      ref.invalidate(categoriesProvider(branchId: bid));
+    }
+  }
+
   bool _isMobileLayout(BuildContext context) =>
       MediaQuery.sizeOf(context).width < PosLayoutBreakpoints.mobileLayoutMaxWidth;
 
@@ -85,11 +106,7 @@ class ListCategoriesState extends ConsumerState<ListCategories> {
       margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
       child: ListTile(
         onTap: () {
-          setState(() {
-            _selectedCategoryId = category.id.toString();
-          });
-          model.updateCategoryCore(category: category);
-          log("Category selected: ${category.name}");
+          _onCategorySelected(model, category);
         },
         title: Text(
           category.name ?? '',
@@ -103,10 +120,8 @@ class ListCategoriesState extends ConsumerState<ListCategories> {
           groupValue: groupValue,
           activeColor: Theme.of(context).primaryColor,
           onChanged: (value) {
-            setState(() {
-              _selectedCategoryId = value;
-            });
-            model.updateCategoryCore(category: category);
+            if (value == null) return;
+            _onCategorySelected(model, category);
           },
         ),
         tileColor: isSelected
@@ -135,11 +150,7 @@ class ListCategoriesState extends ConsumerState<ListCategories> {
       color: Colors.transparent,
       child: InkWell(
         onTap: () {
-          setState(() {
-            _selectedCategoryId = category.id.toString();
-          });
-          model.updateCategoryCore(category: category);
-          log("Category selected: ${category.name}");
+          _onCategorySelected(model, category);
         },
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
@@ -175,10 +186,8 @@ class ListCategoriesState extends ConsumerState<ListCategories> {
                 groupValue: groupValue,
                 activeColor: Theme.of(context).colorScheme.primary,
                 onChanged: (value) {
-                  setState(() {
-                    _selectedCategoryId = value;
-                  });
-                  model.updateCategoryCore(category: category);
+                  if (value == null) return;
+                  _onCategorySelected(model, category);
                 },
                 visualDensity: VisualDensity.compact,
                 materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,

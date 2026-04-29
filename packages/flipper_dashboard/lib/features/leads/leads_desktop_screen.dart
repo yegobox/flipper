@@ -4,6 +4,7 @@ import 'package:flipper_dashboard/widgets/admin_dashboard_svgs.dart';
 import 'package:flipper_models/models/lead.dart';
 import 'package:flipper_models/providers/leads_provider.dart';
 import 'package:flipper_services/utils.dart';
+import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -28,6 +29,14 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
   static const Color _ink2 = Color(0xFF4B4E58);
   static const Color _ink3 = Color(0xFF9499A5);
   static const Color _blue = Color(0xFF2563EB);
+  static const List<String> _leadFilterOptions = [
+    'All',
+    'New',
+    'Contacted',
+    'Quoted',
+    'Converted',
+    'Lost',
+  ];
 
   @override
   void dispose() {
@@ -74,10 +83,7 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Expanded(
-                    flex: 7,
-                    child: _leadsTableCard(leadsAsync, leads),
-                  ),
+                  Expanded(flex: 7, child: _leadsTableCard(leadsAsync, leads)),
                   const SizedBox(width: 14),
                   Expanded(
                     flex: 3,
@@ -123,16 +129,19 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
         ),
         _pill(
           icon: AdminDashboardSvgs.leadsEmailEnvelope,
-          text: '3 emails need review',
+          text: '0 emails need review',
           bg: const Color(0xFFFFEEF1),
           fg: const Color(0xFFB42318),
           border: const Color(0xFFF3D2D7),
+          onPressed: () => _showEmailLeadsComingSoon(context),
         ),
         const SizedBox(width: 10),
-        _ghostButton(
-          icon: AdminDashboardSvgs.leadsFilter,
-          label: 'Filter',
-          onPressed: () {},
+        Builder(
+          builder: (buttonContext) => _ghostButton(
+            icon: AdminDashboardSvgs.leadsFilter,
+            label: 'Filter',
+            onPressed: () => _showFilterMenu(buttonContext),
+          ),
         ),
         const SizedBox(width: 10),
         FilledButton.icon(
@@ -140,15 +149,15 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
           style: FilledButton.styleFrom(
             backgroundColor: _blue,
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
           ),
           icon: SvgPicture.string(
             AdminDashboardSvgs.leadsPlusAdd,
             width: 18,
             height: 18,
-            colorFilter:
-                const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+            colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
           ),
           label: Text(
             'Add lead',
@@ -202,8 +211,7 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
         Expanded(
           child: _statCard(
             title: 'CONVERSION RATE',
-            value:
-                '${((s?.conversionRate ?? 0) * 100).toStringAsFixed(0)}%',
+            value: '${((s?.conversionRate ?? 0) * 100).toStringAsFixed(0)}%',
             subtitle: 'This month',
             accent: const Color(0xFFD97706),
           ),
@@ -248,10 +256,7 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
             ),
           ),
           const SizedBox(height: 2),
-          Text(
-            subtitle,
-            style: GoogleFonts.outfit(fontSize: 12, color: _ink3),
-          ),
+          Text(subtitle, style: GoogleFonts.outfit(fontSize: 12, color: _ink3)),
         ],
       ),
     );
@@ -276,7 +281,10 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
                       AdminDashboardSvgs.leadsUsersMultiple,
                       width: 18,
                       height: 18,
-                      colorFilter: const ColorFilter.mode(_ink2, BlendMode.srcIn),
+                      colorFilter: const ColorFilter.mode(
+                        _ink2,
+                        BlendMode.srcIn,
+                      ),
                     ),
                     const SizedBox(width: 10),
                     Text(
@@ -347,9 +355,8 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
   }
 
   Widget _chips() {
-    final items = ['All', 'New', 'Contacted', 'Quoted', 'Converted', 'Lost'];
     return Row(
-      children: items.map((c) {
+      children: _leadFilterOptions.map((c) {
         final selected = _filter == c;
         return Padding(
           padding: const EdgeInsets.only(left: 8),
@@ -385,10 +392,8 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
         Expanded(
           child: ListView.separated(
             itemCount: leads.length,
-            separatorBuilder: (_, __) => Divider(
-              height: 1,
-              color: Colors.black.withValues(alpha: 0.06),
-            ),
+            separatorBuilder: (_, __) =>
+                Divider(height: 1, color: Colors.black.withValues(alpha: 0.06)),
             itemBuilder: (context, index) {
               return _tableRow(leads[index]);
             },
@@ -510,11 +515,31 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
   Widget _stagePill(String status) {
     final normalized = status.toLowerCase();
     final (bg, fg, label) = switch (normalized) {
-      LeadStatus.newLead => (const Color(0xFFEFF6FF), const Color(0xFF1D4ED8), 'New'),
-      LeadStatus.contacted => (const Color(0xFFF5F3FF), const Color(0xFF6D28D9), 'Contacted'),
-      LeadStatus.quoted => (const Color(0xFFFFFBEB), const Color(0xFFB45309), 'Quoted'),
-      LeadStatus.converted => (const Color(0xFFECFDF3), const Color(0xFF047857), 'Converted'),
-      LeadStatus.lost => (const Color(0xFFFFF1F2), const Color(0xFFBE123C), 'Lost'),
+      LeadStatus.newLead => (
+        const Color(0xFFEFF6FF),
+        const Color(0xFF1D4ED8),
+        'New',
+      ),
+      LeadStatus.contacted => (
+        const Color(0xFFF5F3FF),
+        const Color(0xFF6D28D9),
+        'Contacted',
+      ),
+      LeadStatus.quoted => (
+        const Color(0xFFFFFBEB),
+        const Color(0xFFB45309),
+        'Quoted',
+      ),
+      LeadStatus.converted => (
+        const Color(0xFFECFDF3),
+        const Color(0xFF047857),
+        'Converted',
+      ),
+      LeadStatus.lost => (
+        const Color(0xFFFFF1F2),
+        const Color(0xFFBE123C),
+        'Lost',
+      ),
       _ => (const Color(0xFFF3F4F6), const Color(0xFF374151), normalized),
     };
 
@@ -557,10 +582,7 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
         const SizedBox(width: 8),
         Text(
           label,
-          style: GoogleFonts.outfit(
-            fontWeight: FontWeight.w800,
-            color: dot,
-          ),
+          style: GoogleFonts.outfit(fontWeight: FontWeight.w800, color: dot),
         ),
       ],
     );
@@ -570,11 +592,11 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
     final initials = l.fullName.trim().isEmpty
         ? '?'
         : l.fullName
-            .trim()
-            .split(RegExp(r'\s+'))
-            .take(2)
-            .map((e) => e.isEmpty ? '' : e[0].toUpperCase())
-            .join();
+              .trim()
+              .split(RegExp(r'\s+'))
+              .take(2)
+              .map((e) => e.isEmpty ? '' : e[0].toUpperCase())
+              .join();
     return Row(
       children: [
         CircleAvatar(
@@ -594,9 +616,13 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Text(l.fullName,
-                style:
-                    GoogleFonts.outfit(fontWeight: FontWeight.w800, color: _ink)),
+            Text(
+              l.fullName,
+              style: GoogleFonts.outfit(
+                fontWeight: FontWeight.w800,
+                color: _ink,
+              ),
+            ),
             const SizedBox(height: 2),
             Text(
               (l.emailAddress ?? '').isNotEmpty ? l.emailAddress! : '—',
@@ -720,9 +746,13 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Pipeline',
-                style: GoogleFonts.outfit(
-                    fontWeight: FontWeight.w800, color: _ink)),
+            Text(
+              'Pipeline',
+              style: GoogleFonts.outfit(
+                fontWeight: FontWeight.w800,
+                color: _ink,
+              ),
+            ),
             const SizedBox(height: 10),
             row('New', LeadStatus.newLead, const Color(0xFF2563EB)),
             row('Contacted', LeadStatus.contacted, const Color(0xFF7C3AED)),
@@ -732,8 +762,10 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
             const Spacer(),
             Divider(height: 1, color: Colors.black.withValues(alpha: 0.06)),
             const SizedBox(height: 10),
-            Text('Pipeline value',
-                style: GoogleFonts.outfit(color: _ink3, fontSize: 12)),
+            Text(
+              'Pipeline value',
+              style: GoogleFonts.outfit(color: _ink3, fontSize: 12),
+            ),
             const SizedBox(height: 4),
             Text(
               'RWF ${formatNumber(pipelineValue)}',
@@ -761,9 +793,13 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('Performance',
-                style: GoogleFonts.outfit(
-                    fontWeight: FontWeight.w800, color: _ink)),
+            Text(
+              'Performance',
+              style: GoogleFonts.outfit(
+                fontWeight: FontWeight.w800,
+                color: _ink,
+              ),
+            ),
             const SizedBox(height: 18),
             Text(
               '${((s?.conversionRate ?? 0) * 100).toStringAsFixed(0)}%',
@@ -785,7 +821,10 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
             const SizedBox(height: 14),
             _kv('Avg. time to convert', '4.2 days'),
             const SizedBox(height: 10),
-            _kv('Pipeline value', 'RWF ${formatNumber(s?.pipelineValue ?? 0.0)}'),
+            _kv(
+              'Pipeline value',
+              'RWF ${formatNumber(s?.pipelineValue ?? 0.0)}',
+            ),
           ],
         ),
       ),
@@ -795,7 +834,9 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
   Widget _kv(String k, String v) {
     return Row(
       children: [
-        Expanded(child: Text(k, style: GoogleFonts.outfit(color: _ink3))),
+        Expanded(
+          child: Text(k, style: GoogleFonts.outfit(color: _ink3)),
+        ),
         Text(v, style: GoogleFonts.jetBrainsMono(fontWeight: FontWeight.w800)),
       ],
     );
@@ -807,8 +848,9 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
     required Color bg,
     required Color fg,
     required Color border,
+    VoidCallback? onPressed,
   }) {
-    return Container(
+    final child = Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: bg,
@@ -833,6 +875,16 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
             ),
           ),
         ],
+      ),
+    );
+    if (onPressed == null) return child;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onPressed,
+        borderRadius: BorderRadius.circular(999),
+        child: child,
       ),
     );
   }
@@ -868,20 +920,74 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
       barrierDismissible: true,
       builder: (context) {
         return Dialog(
-          insetPadding: const EdgeInsets.symmetric(horizontal: 32, vertical: 28),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+          insetPadding: const EdgeInsets.symmetric(
+            horizontal: 32,
+            vertical: 28,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 720),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(18),
-              child: SingleChildScrollView(
-                child: const AddLeadSheet(),
-              ),
+              child: SingleChildScrollView(child: const AddLeadSheet()),
             ),
           ),
         );
       },
     );
   }
-}
 
+  Future<void> _showFilterMenu(BuildContext buttonContext) async {
+    final button = buttonContext.findRenderObject() as RenderBox?;
+    final overlay =
+        Overlay.of(buttonContext).context.findRenderObject() as RenderBox?;
+    if (button == null || overlay == null) return;
+
+    final selected = await showMenu<String>(
+      context: buttonContext,
+      position: RelativeRect.fromRect(
+        Rect.fromPoints(
+          button.localToGlobal(Offset.zero, ancestor: overlay),
+          button.localToGlobal(
+            button.size.bottomRight(Offset.zero),
+            ancestor: overlay,
+          ),
+        ),
+        Offset.zero & overlay.size,
+      ),
+      items: _leadFilterOptions.map((filter) {
+        return PopupMenuItem<String>(
+          value: filter,
+          child: Row(
+            children: [
+              Icon(
+                _filter == filter
+                    ? Icons.radio_button_checked
+                    : Icons.radio_button_unchecked,
+                color: _filter == filter ? _blue : _ink3,
+                size: 18,
+              ),
+              const SizedBox(width: 10),
+              Text(
+                filter,
+                style: GoogleFonts.outfit(
+                  fontWeight: FontWeight.w700,
+                  color: _ink2,
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+
+    if (selected == null || !mounted) return;
+    setState(() => _filter = selected);
+  }
+
+  void _showEmailLeadsComingSoon(BuildContext context) {
+    showInfoNotification(context, 'Email lead review is coming soon.');
+  }
+}

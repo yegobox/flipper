@@ -3,6 +3,7 @@ import 'package:flipper_dashboard/widgets/admin_dashboard_svgs.dart';
 import 'package:flipper_models/models/lead.dart';
 import 'package:flipper_models/providers/leads_provider.dart';
 import 'package:flipper_services/utils.dart';
+import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -25,6 +26,14 @@ class _LeadsMobileScreenState extends ConsumerState<LeadsMobileScreen> {
   static const Color _ink3 = Color(0xFF9499A5);
   static const Color _border = Color(0xFFEAECF0);
   static const Color _blue = Color(0xFF2563EB);
+  static const List<String> _leadFilterOptions = [
+    'All',
+    'New',
+    'Contacted',
+    'Quoted',
+    'Converted',
+    'Lost',
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -149,25 +158,16 @@ class _LeadsMobileScreenState extends ConsumerState<LeadsMobileScreen> {
           ),
           _topBarPill(
             icon: AdminDashboardSvgs.leadsEmailEnvelope,
-            text: '3',
+            text: '0',
             bg: const Color(0xFFFFEEF1),
             fg: const Color(0xFFDC2626),
+            onTap: () => _showEmailLeadsComingSoon(context),
           ),
           const SizedBox(width: 8),
           _topBarButton(
             icon: AdminDashboardSvgs.leadsFilter,
             label: 'Filter',
-            onTap: () {
-              // Placeholder until filter sheet exists; we already have chips below.
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(
-                    'Use the chips below to filter leads.',
-                    style: GoogleFonts.outfit(),
-                  ),
-                ),
-              );
-            },
+            onTap: () => _showFilterSheet(context),
           ),
         ],
       ),
@@ -179,8 +179,9 @@ class _LeadsMobileScreenState extends ConsumerState<LeadsMobileScreen> {
     required String text,
     required Color bg,
     required Color fg,
+    VoidCallback? onTap,
   }) {
-    return Container(
+    final child = Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
         color: bg,
@@ -207,6 +208,17 @@ class _LeadsMobileScreenState extends ConsumerState<LeadsMobileScreen> {
         ],
       ),
     );
+
+    if (onTap == null) return child;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(999),
+        child: child,
+      ),
+    );
   }
 
   Widget _topBarButton({
@@ -229,10 +241,7 @@ class _LeadsMobileScreenState extends ConsumerState<LeadsMobileScreen> {
       ),
       label: Text(
         label,
-        style: GoogleFonts.outfit(
-          fontWeight: FontWeight.w700,
-          color: _ink2,
-        ),
+        style: GoogleFonts.outfit(fontWeight: FontWeight.w700, color: _ink2),
       ),
     );
   }
@@ -287,7 +296,8 @@ class _LeadsMobileScreenState extends ConsumerState<LeadsMobileScreen> {
             Expanded(
               child: _statTile(
                 title: 'CONVERSION RATE',
-                value: '${((stats?.conversionRate ?? 0) * 100).toStringAsFixed(0)}%',
+                value:
+                    '${((stats?.conversionRate ?? 0) * 100).toStringAsFixed(0)}%',
                 subtitle: 'This month',
                 accent: const Color(0xFFD97706),
               ),
@@ -334,70 +344,76 @@ class _LeadsMobileScreenState extends ConsumerState<LeadsMobileScreen> {
             ),
           ),
           const SizedBox(height: 2),
-          Text(
-            subtitle,
-            style: GoogleFonts.outfit(fontSize: 12, color: _ink3),
-          ),
+          Text(subtitle, style: GoogleFonts.outfit(fontSize: 12, color: _ink3)),
         ],
       ),
     );
   }
 
   Widget _gmailQueueCard() {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(18),
+      child: InkWell(
+        onTap: () => _showEmailLeadsComingSoon(context),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: _border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
+        child: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: _border),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              SvgPicture.string(
-                AdminDashboardSvgs.leadsEmailEnvelope,
-                width: 16,
-                height: 16,
-                colorFilter: const ColorFilter.mode(_ink2, BlendMode.srcIn),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  'Gmail — AI flagged these as potential leads.',
-                  style: GoogleFonts.outfit(
-                    fontSize: 13,
-                    fontWeight: FontWeight.w700,
-                    color: const Color(0xFFB42318),
+              Row(
+                children: [
+                  SvgPicture.string(
+                    AdminDashboardSvgs.leadsEmailEnvelope,
+                    width: 16,
+                    height: 16,
+                    colorFilter: const ColorFilter.mode(_ink2, BlendMode.srcIn),
                   ),
-                ),
-              ),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFEEF1),
-                  borderRadius: BorderRadius.circular(999),
-                  border: Border.all(color: const Color(0xFFF3D2D7)),
-                ),
-                child: Text(
-                  '3 pending',
-                  style: GoogleFonts.outfit(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w800,
-                    color: const Color(0xFFB42318),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      'Gmail - AI flagged these as potential leads.',
+                      style: GoogleFonts.outfit(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFFB42318),
+                      ),
+                    ),
                   ),
-                ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFFEEF1),
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(color: const Color(0xFFF3D2D7)),
+                    ),
+                    child: Text(
+                      '0 pending',
+                      style: GoogleFonts.outfit(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        color: const Color(0xFFB42318),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Text(
+                'Gmail ingestion will be enabled later. For now, add leads manually.',
+                style: GoogleFonts.outfit(fontSize: 12, color: _ink3),
               ),
             ],
           ),
-          const SizedBox(height: 10),
-          Text(
-            'Gmail ingestion will be enabled later. For now, add leads manually.',
-            style: GoogleFonts.outfit(fontSize: 12, color: _ink3),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -486,8 +502,10 @@ class _LeadsMobileScreenState extends ConsumerState<LeadsMobileScreen> {
           hintText: 'Search name, email, product…',
           hintStyle: GoogleFonts.outfit(color: _ink3),
           border: InputBorder.none,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 12,
+            vertical: 12,
+          ),
           prefixIcon: Padding(
             padding: const EdgeInsets.all(12),
             child: SvgPicture.string(
@@ -503,11 +521,10 @@ class _LeadsMobileScreenState extends ConsumerState<LeadsMobileScreen> {
   }
 
   Widget _filterChips() {
-    final chips = ['All', 'New', 'Contacted', 'Quoted', 'Converted', 'Lost'];
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
-        children: chips.map((c) {
+        children: _leadFilterOptions.map((c) {
           final selected = _filter == c;
           return Padding(
             padding: const EdgeInsets.only(right: 8),
@@ -520,7 +537,9 @@ class _LeadsMobileScreenState extends ConsumerState<LeadsMobileScreen> {
                 fontWeight: FontWeight.w700,
                 color: selected ? const Color(0xFF3730A3) : _ink2,
               ),
-              side: BorderSide(color: selected ? const Color(0xFFC7D2FE) : _border),
+              side: BorderSide(
+                color: selected ? const Color(0xFFC7D2FE) : _border,
+              ),
               showCheckmark: false,
             ),
           );
@@ -533,11 +552,11 @@ class _LeadsMobileScreenState extends ConsumerState<LeadsMobileScreen> {
     final initials = lead.fullName.trim().isEmpty
         ? '?'
         : lead.fullName
-            .trim()
-            .split(RegExp(r'\s+'))
-            .take(2)
-            .map((e) => e.isEmpty ? '' : e[0].toUpperCase())
-            .join();
+              .trim()
+              .split(RegExp(r'\s+'))
+              .take(2)
+              .map((e) => e.isEmpty ? '' : e[0].toUpperCase())
+              .join();
 
     final heatColors = switch (lead.heat) {
       LeadHeat.hot => (const Color(0xFFFEE2E2), const Color(0xFFB91C1C)),
@@ -606,8 +625,8 @@ class _LeadsMobileScreenState extends ConsumerState<LeadsMobileScreen> {
                       text: lead.heat == LeadHeat.hot
                           ? 'Hot lead'
                           : lead.heat == LeadHeat.warm
-                              ? 'Warm lead'
-                              : 'Cold lead',
+                          ? 'Warm lead'
+                          : 'Cold lead',
                       bg: heatColors.$1,
                       fg: heatColors.$2,
                     ),
@@ -683,11 +702,7 @@ class _LeadsMobileScreenState extends ConsumerState<LeadsMobileScreen> {
     );
   }
 
-  Widget _pill({
-    required String text,
-    required Color bg,
-    required Color fg,
-  }) {
+  Widget _pill({required String text, required Color bg, required Color fg}) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
@@ -716,5 +731,62 @@ class _LeadsMobileScreenState extends ConsumerState<LeadsMobileScreen> {
       builder: (_) => const AddLeadSheet(),
     );
   }
-}
 
+  Future<void> _showFilterSheet(BuildContext context) async {
+    final selected = await showModalBottomSheet<String>(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 16, 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  'Filter leads',
+                  style: GoogleFonts.outfit(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                    color: _ink,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ..._leadFilterOptions.map((filter) {
+                  return ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Icon(
+                      _filter == filter
+                          ? Icons.radio_button_checked
+                          : Icons.radio_button_unchecked,
+                      color: _filter == filter ? _blue : _ink3,
+                    ),
+                    title: Text(
+                      filter,
+                      style: GoogleFonts.outfit(
+                        fontWeight: FontWeight.w700,
+                        color: _ink2,
+                      ),
+                    ),
+                    onTap: () => Navigator.of(context).pop(filter),
+                  );
+                }),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+
+    if (selected == null || !mounted) return;
+    setState(() => _filter = selected);
+  }
+
+  void _showEmailLeadsComingSoon(BuildContext context) {
+    showInfoNotification(context, 'Email lead review is coming soon.');
+  }
+}

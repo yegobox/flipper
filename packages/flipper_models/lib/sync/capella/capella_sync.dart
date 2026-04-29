@@ -49,6 +49,10 @@ import 'package:supabase_models/brick/models/all_models.dart' hide BusinessType;
 import 'package:flipper_models/sync/capella/mixins/production_output_mixin.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
+
+import 'package:flipper_models/SyncStrategy.dart';
+
 class CapellaSync extends AiStrategyImpl
     with
         CapellaAuthMixin,
@@ -846,9 +850,45 @@ class CapellaSync extends AiStrategyImpl
   Future<Variant?> getUtilityVariant({
     required String name,
     required String branchId,
-  }) {
-    // TODO: implement getUtilityVariant
-    throw UnimplementedError();
+  }) async {
+    try {
+      final businessId = ProxyService.box.getBusinessId();
+      final ditto = dittoService.dittoInstance;
+      if (businessId != null && ditto != null) {
+        final utilityProduct = await getProduct(
+          branchId: branchId,
+          businessId: businessId,
+          name: 'Utility',
+        );
+        if (utilityProduct != null) {
+          final r = await ditto.store.execute(
+            'SELECT * FROM variants WHERE branchId = :branchId '
+            'AND productId = :productId AND name = :name LIMIT 1',
+            arguments: {
+              'branchId': branchId,
+              'productId': utilityProduct.id,
+              'name': name,
+            },
+          );
+          if (r.items.isNotEmpty) {
+            return Variant.fromJson(
+              Map<String, dynamic>.from(r.items.first.value),
+            );
+          }
+        }
+      }
+    } catch (e, st) {
+      talker.warning('getUtilityVariant Ditto path failed: $e\n$st');
+    }
+    try {
+      return await ProxyService.getStrategy(Strategy.cloudSync).getUtilityVariant(
+        name: name,
+        branchId: branchId,
+      );
+    } catch (e, st) {
+      talker.error('getUtilityVariant fallback failed: $e\n$st');
+      return null;
+    }
   }
 
   @override
@@ -1492,9 +1532,57 @@ class CapellaSync extends AiStrategyImpl
     bool? active,
     bool? focused,
     String? branchId,
-  }) {
-    // TODO: implement updateCategory
-    throw UnimplementedError();
+  }) async {
+    // Native: keep Brick/SQLite authoritative for focus flags (same as pre-Capella-category work).
+    // Web: only Ditto path below runs.
+    if (!kIsWeb) {
+      try {
+        await ProxyService.getStrategy(Strategy.cloudSync).updateCategory(
+          categoryId: categoryId,
+          name: name,
+          active: active,
+          focused: focused,
+          branchId: branchId,
+        );
+      } catch (e, s) {
+        talker.error('updateCategory SQLite/Brick failed: $e', s);
+        rethrow;
+      }
+    }
+
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) return;
+
+    final updates = <String>[];
+    final args = <String, dynamic>{'cid': categoryId};
+
+    final whereClause = branchId != null
+        ? '(_id = :cid OR id = :cid) AND branchId = :branchId'
+        : '(_id = :cid OR id = :cid)';
+    if (branchId != null) {
+      args['branchId'] = branchId;
+    }
+
+    void addIfNonNull(String col, dynamic v) {
+      if (v == null) return;
+      updates.add('$col = :$col');
+      args[col] = v is DateTime ? v.toUtc().toIso8601String() : v;
+    }
+
+    addIfNonNull('name', name);
+    addIfNonNull('active', active);
+    addIfNonNull('focused', focused);
+    if (updates.isEmpty) return;
+    addIfNonNull('lastTouched', DateTime.now());
+
+    try {
+      await ditto.store.execute(
+        'UPDATE categories SET ${updates.join(', ')} WHERE $whereClause',
+        arguments: args,
+      );
+    } catch (e, s) {
+      talker.warning('Capella updateCategory Ditto mirror failed (non-fatal): $e', s);
+    }
   }
 
   @override

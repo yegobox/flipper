@@ -8,6 +8,8 @@ import 'package:talker/talker.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flipper_services/proxy.dart';
 
+import 'package:flipper_models/sync/capella/category_ditto_mapper.dart';
+
 mixin CapellaBranchMixin implements BranchInterface {
   Repository get repository;
   Talker get talker;
@@ -225,12 +227,7 @@ mixin CapellaBranchMixin implements BranchInterface {
 
       return result.items.map((doc) {
         final data = Map<String, dynamic>.from(doc.value);
-        return Category(
-          id: data['id'] as String,
-          name: data['name'] as String?,
-          branchId: data['branchId'] as String?,
-          active: data['active'] as bool?,
-        );
+        return categoryFromDittoMap(data);
       }).toList();
     } catch (e, s) {
       talker.error('Error fetching categories: $e');
@@ -261,12 +258,7 @@ mixin CapellaBranchMixin implements BranchInterface {
 
         final categories = queryResult.items.map((doc) {
           final data = Map<String, dynamic>.from(doc.value);
-          return Category(
-            id: data['id'] as String,
-            name: data['name'] as String?,
-            branchId: data['branchId'] as String?,
-            active: data['active'] as bool?,
-          );
+          return categoryFromDittoMap(data);
         }).toList();
 
         controller.add(categories);

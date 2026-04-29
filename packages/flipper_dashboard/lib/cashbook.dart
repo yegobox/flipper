@@ -10,6 +10,7 @@ import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_dashboard/BuildGaugeOrList.dart';
 import 'package:flipper_models/db_model_export.dart';
@@ -397,9 +398,9 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
 
     // Validate category selection
     final String branchId = ProxyService.box.getBranchId()!;
-    final Category? category = await ProxyService.strategy.activeCategory(
-      branchId: branchId,
-    );
+    final capella = ProxyService.getStrategy(Strategy.capella);
+    Category? category = await capella.activeCategory(branchId: branchId);
+    category ??= await ProxyService.strategy.activeCategory(branchId: branchId);
 
     if (category == null) {
       showWarningNotification(context, 'Please select a category first');
@@ -484,6 +485,8 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
       await _lock.synchronized(() async {
         talker.info("Inside _lock.synchronized");
 
+        final capella = ProxyService.getStrategy(Strategy.capella);
+
         // First, ensure we have a transaction by calling manageTransaction directly
         String? branchId = ProxyService.box.getBranchId();
         if (branchId == null || branchId.isEmpty) {
@@ -491,12 +494,12 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
         }
 
         final List<dynamic> created = await Future.wait<dynamic>([
-          ProxyService.strategy.manageTransaction(
+          capella.manageTransaction(
             branchId: branchId,
             transactionType: transactionType,
             isExpense: !isIncome,
           ),
-          ProxyService.strategy.getUtilityVariant(
+          capella.getUtilityVariant(
             name: transactionType,
             branchId: branchId,
           ),
@@ -584,7 +587,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
             taxAmt: utilityVariant.taxAmt,
           );
 
-          await ProxyService.strategy.saveTransactionItem(
+          await capella.saveTransactionItem(
             variation: utilityVariant,
             amountTotal: cashReceived,
             customItem: true,
@@ -620,8 +623,8 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
         HapticFeedback.lightImpact();
 
         // collectPayment recalculates subtotal from line items
-        ITransaction updatedTransaction = await ProxyService.strategy
-            .collectPayment(
+        ITransaction updatedTransaction =
+            await capella.collectPayment(
               cashReceived: cashReceived,
               countryCode: countryCode,
               branchId: branchId,

@@ -2,6 +2,7 @@ import 'package:flipper_dashboard/widgets/admin_dashboard_svgs.dart';
 import 'package:flipper_models/models/lead.dart';
 import 'package:flipper_models/providers/leads_provider.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -60,7 +61,11 @@ class _AddLeadSheetState extends ConsumerState<AddLeadSheet> {
               children: [
                 _sourceTabs(),
                 const SizedBox(height: 14),
-                _field(label: 'FULL NAME *', controller: _nameCtrl, hint: 'Full name'),
+                _field(
+                  label: 'FULL NAME *',
+                  controller: _nameCtrl,
+                  hint: 'Full name',
+                ),
                 const SizedBox(height: 12),
                 Row(
                   children: [
@@ -130,8 +135,9 @@ class _AddLeadSheetState extends ConsumerState<AddLeadSheet> {
                             : null,
                         style: FilledButton.styleFrom(
                           backgroundColor: _blue,
-                          disabledBackgroundColor:
-                              _blue.withValues(alpha: 0.35),
+                          disabledBackgroundColor: _blue.withValues(
+                            alpha: 0.35,
+                          ),
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(14),
@@ -193,8 +199,7 @@ class _AddLeadSheetState extends ConsumerState<AddLeadSheet> {
                 AdminDashboardSvgs.leadsUsersMultiple,
                 width: 18,
                 height: 18,
-                colorFilter:
-                    const ColorFilter.mode(_blue, BlendMode.srcIn),
+                colorFilter: const ColorFilter.mode(_blue, BlendMode.srcIn),
               ),
             ),
           ),
@@ -434,10 +439,7 @@ class _AddLeadSheetState extends ConsumerState<AddLeadSheet> {
         child: Center(
           child: Text(
             '$emoji $label',
-            style: GoogleFonts.outfit(
-              fontWeight: FontWeight.w800,
-              color: fg,
-            ),
+            style: GoogleFonts.outfit(fontWeight: FontWeight.w800, color: fg),
           ),
         ),
       ),
@@ -479,8 +481,10 @@ class _AddLeadSheetState extends ConsumerState<AddLeadSheet> {
               hintText: hint,
               hintStyle: GoogleFonts.outfit(color: _ink3),
               border: InputBorder.none,
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 12,
+              ),
             ),
           ),
         ),
@@ -506,8 +510,12 @@ class _AddLeadSheetState extends ConsumerState<AddLeadSheet> {
       updatedAt: now,
       lastTouched: now,
       fullName: _nameCtrl.text.trim(),
-      phoneNumber: _phoneCtrl.text.trim().isEmpty ? null : _phoneCtrl.text.trim(),
-      emailAddress: _emailCtrl.text.trim().isEmpty ? null : _emailCtrl.text.trim(),
+      phoneNumber: _phoneCtrl.text.trim().isEmpty
+          ? null
+          : _phoneCtrl.text.trim(),
+      emailAddress: _emailCtrl.text.trim().isEmpty
+          ? null
+          : _emailCtrl.text.trim(),
       source: _source,
       status: LeadStatus.newLead,
       heat: _heat,
@@ -528,15 +536,7 @@ class _AddLeadSheetState extends ConsumerState<AddLeadSheet> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _isSaving = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Failed to save lead. $e',
-            style: GoogleFonts.outfit(),
-          ),
-        ),
-      );
+      showErrorNotification(context, 'Failed to save lead. $e');
     }
   }
 }
-

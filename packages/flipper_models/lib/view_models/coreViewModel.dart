@@ -16,6 +16,7 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/drive_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
+
 import 'package:intl/intl.dart';
 
 import 'package:stacked/stacked.dart';
@@ -126,7 +127,7 @@ class CoreViewModel extends FlipperBaseModel
   }
 
   Future<bool> updateCategoryCore({required Category category}) async {
-    String branchId = ProxyService.box.getBranchId()!;
+    final String branchId = ProxyService.box.getBranchId()!;
 
     try {
       List<Category> allCategories = await ProxyService.strategy.categories(

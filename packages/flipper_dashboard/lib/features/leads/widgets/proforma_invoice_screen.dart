@@ -3,6 +3,7 @@ import 'package:flipper_models/models/lead.dart';
 import 'package:flipper_models/providers/all_providers.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/utils.dart';
+import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -96,7 +97,9 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
       padding: const EdgeInsets.fromLTRB(8, 10, 12, 10),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border(bottom: BorderSide(color: Colors.black.withValues(alpha: 0.06))),
+        border: Border(
+          bottom: BorderSide(color: Colors.black.withValues(alpha: 0.06)),
+        ),
       ),
       child: Row(
         children: [
@@ -106,7 +109,10 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
               AdminDashboardSvgs.leadsBackChevronLeft,
               width: 22,
               height: 22,
-              colorFilter: const ColorFilter.mode(Color(0xFF4B4E58), BlendMode.srcIn),
+              colorFilter: const ColorFilter.mode(
+                Color(0xFF4B4E58),
+                BlendMode.srcIn,
+              ),
             ),
           ),
           const SizedBox(width: 6),
@@ -143,14 +149,19 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
             onPressed: _isSending ? null : () => _sendToCustomer(context),
             style: FilledButton.styleFrom(
               backgroundColor: const Color(0xFF2563EB),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             ),
             icon: SvgPicture.string(
               AdminDashboardSvgs.leadsSendPaperPlane,
               width: 18,
               height: 18,
-              colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+              colorFilter: const ColorFilter.mode(
+                Colors.white,
+                BlendMode.srcIn,
+              ),
             ),
             label: Text(
               _isSending ? 'Sending…' : 'Send to customer',
@@ -162,14 +173,19 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
             onPressed: _isConverting ? null : () => _convertToSale(context),
             style: FilledButton.styleFrom(
               backgroundColor: const Color(0xFF16A34A),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
             ),
             icon: SvgPicture.string(
               AdminDashboardSvgs.leadsCheckmark,
               width: 18,
               height: 18,
-              colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+              colorFilter: const ColorFilter.mode(
+                Colors.white,
+                BlendMode.srcIn,
+              ),
             ),
             label: Text(
               _isConverting ? 'Converting…' : 'Convert to sale',
@@ -199,7 +215,13 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
         height: 18,
         colorFilter: const ColorFilter.mode(Color(0xFF4B4E58), BlendMode.srcIn),
       ),
-      label: Text(label, style: GoogleFonts.outfit(fontWeight: FontWeight.w900, color: const Color(0xFF4B4E58))),
+      label: Text(
+        label,
+        style: GoogleFonts.outfit(
+          fontWeight: FontWeight.w900,
+          color: const Color(0xFF4B4E58),
+        ),
+      ),
     );
   }
 
@@ -223,7 +245,9 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
             padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
             decoration: BoxDecoration(
               color: const Color(0xFFF5F3FF),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(18),
+              ),
               border: Border(
                 bottom: BorderSide(color: Colors.black.withValues(alpha: 0.06)),
               ),
@@ -234,7 +258,10 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
                   AdminDashboardSvgs.leadsAiInfoCircle,
                   width: 18,
                   height: 18,
-                  colorFilter: const ColorFilter.mode(Color(0xFF7C3AED), BlendMode.srcIn),
+                  colorFilter: const ColorFilter.mode(
+                    Color(0xFF7C3AED),
+                    BlendMode.srcIn,
+                  ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
@@ -247,7 +274,10 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFEDE9FE),
                     borderRadius: BorderRadius.circular(999),
@@ -273,11 +303,19 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
                   children: [
                     _docHeader(lead: lead),
                     const SizedBox(height: 14),
-                    _metaGrid(lead: lead, issueDate: issueDate, validUntil: validUntil),
+                    _metaGrid(
+                      lead: lead,
+                      issueDate: issueDate,
+                      validUntil: validUntil,
+                    ),
                     const SizedBox(height: 14),
                     _linesTable(),
                     const SizedBox(height: 16),
-                    _totals(subTotal: subTotal, vat: vat, grandTotal: grandTotal),
+                    _totals(
+                      subTotal: subTotal,
+                      vat: vat,
+                      grandTotal: grandTotal,
+                    ),
                     const SizedBox(height: 16),
                     _terms(),
                   ],
@@ -305,7 +343,10 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
               AdminDashboardSvgs.leadsFlipperLogoLines,
               width: 20,
               height: 20,
-              colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+              colorFilter: const ColorFilter.mode(
+                Colors.white,
+                BlendMode.srcIn,
+              ),
             ),
           ),
         ),
@@ -314,33 +355,63 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Flipper — Demo Shop',
-                  style: GoogleFonts.outfit(fontWeight: FontWeight.w900, fontSize: 16)),
-              Text('Kigali, Rwanda',
-                  style: GoogleFonts.outfit(color: const Color(0xFF9499A5), fontWeight: FontWeight.w600)),
+              Text(
+                'Flipper — Demo Shop',
+                style: GoogleFonts.outfit(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 16,
+                ),
+              ),
+              Text(
+                'Kigali, Rwanda',
+                style: GoogleFonts.outfit(
+                  color: const Color(0xFF9499A5),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ],
           ),
         ),
         Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            Text('Proforma Invoice',
-                style: GoogleFonts.outfit(fontWeight: FontWeight.w900, fontSize: 18, color: const Color(0xFF2563EB))),
+            Text(
+              'Proforma Invoice',
+              style: GoogleFonts.outfit(
+                fontWeight: FontWeight.w900,
+                fontSize: 18,
+                color: const Color(0xFF2563EB),
+              ),
+            ),
             const SizedBox(height: 4),
             Row(
               children: [
-                Text('PF-2026-0042',
-                    style: GoogleFonts.jetBrainsMono(fontWeight: FontWeight.w800, color: const Color(0xFF9499A5))),
+                Text(
+                  'PF-2026-0042',
+                  style: GoogleFonts.jetBrainsMono(
+                    fontWeight: FontWeight.w800,
+                    color: const Color(0xFF9499A5),
+                  ),
+                ),
                 const SizedBox(width: 10),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFFFFBEB),
                     borderRadius: BorderRadius.circular(999),
                     border: Border.all(color: const Color(0xFFFDE68A)),
                   ),
-                  child: Text('Draft — not sent',
-                      style: GoogleFonts.outfit(fontWeight: FontWeight.w900, color: const Color(0xFFB45309), fontSize: 12)),
+                  child: Text(
+                    'Draft — not sent',
+                    style: GoogleFonts.outfit(
+                      fontWeight: FontWeight.w900,
+                      color: const Color(0xFFB45309),
+                      fontSize: 12,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -350,7 +421,11 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
     );
   }
 
-  Widget _metaGrid({required Lead lead, required DateTime issueDate, required DateTime validUntil}) {
+  Widget _metaGrid({
+    required Lead lead,
+    required DateTime issueDate,
+    required DateTime validUntil,
+  }) {
     Widget block(String title, Widget child) {
       return Expanded(
         child: Container(
@@ -362,12 +437,15 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title,
-                  style: GoogleFonts.outfit(
-                      fontWeight: FontWeight.w900,
-                      color: const Color(0xFF9499A5),
-                      fontSize: 11,
-                      letterSpacing: 0.08 * 11)),
+              Text(
+                title,
+                style: GoogleFonts.outfit(
+                  fontWeight: FontWeight.w900,
+                  color: const Color(0xFF9499A5),
+                  fontSize: 11,
+                  letterSpacing: 0.08 * 11,
+                ),
+              ),
               const SizedBox(height: 6),
               child,
             ],
@@ -383,11 +461,17 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(lead.fullName, style: GoogleFonts.outfit(fontWeight: FontWeight.w900)),
+              Text(
+                lead.fullName,
+                style: GoogleFonts.outfit(fontWeight: FontWeight.w900),
+              ),
               const SizedBox(height: 2),
               Text(
                 '${lead.emailAddress ?? ''} ${lead.phoneNumber ?? ''}'.trim(),
-                style: GoogleFonts.outfit(color: const Color(0xFF4B4E58), fontWeight: FontWeight.w600),
+                style: GoogleFonts.outfit(
+                  color: const Color(0xFF4B4E58),
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
           ),
@@ -398,18 +482,25 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(DateFormat('dd MMM yyyy').format(issueDate),
-                  style: GoogleFonts.outfit(fontWeight: FontWeight.w900)),
+              Text(
+                DateFormat('dd MMM yyyy').format(issueDate),
+                style: GoogleFonts.outfit(fontWeight: FontWeight.w900),
+              ),
               const SizedBox(height: 8),
-              Text('VALID UNTIL',
-                  style: GoogleFonts.outfit(
-                      fontWeight: FontWeight.w900,
-                      color: const Color(0xFF9499A5),
-                      fontSize: 11,
-                      letterSpacing: 0.08 * 11)),
+              Text(
+                'VALID UNTIL',
+                style: GoogleFonts.outfit(
+                  fontWeight: FontWeight.w900,
+                  color: const Color(0xFF9499A5),
+                  fontSize: 11,
+                  letterSpacing: 0.08 * 11,
+                ),
+              ),
               const SizedBox(height: 6),
-              Text(DateFormat('dd MMM yyyy').format(validUntil),
-                  style: GoogleFonts.outfit(fontWeight: FontWeight.w900)),
+              Text(
+                DateFormat('dd MMM yyyy').format(validUntil),
+                style: GoogleFonts.outfit(fontWeight: FontWeight.w900),
+              ),
             ],
           ),
         ),
@@ -420,17 +511,25 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                lead.source == LeadSource.gmail ? 'Gmail enquiry' : 'Manual entry',
+                lead.source == LeadSource.gmail
+                    ? 'Gmail enquiry'
+                    : 'Manual entry',
                 style: GoogleFonts.outfit(fontWeight: FontWeight.w900),
               ),
               const SizedBox(height: 2),
               Text(
                 'AI matched items to catalogue',
-                style: GoogleFonts.outfit(color: const Color(0xFF4B4E58), fontWeight: FontWeight.w600),
+                style: GoogleFonts.outfit(
+                  color: const Color(0xFF4B4E58),
+                  fontWeight: FontWeight.w600,
+                ),
               ),
               const SizedBox(height: 8),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFEDE9FE),
                   borderRadius: BorderRadius.circular(999),
@@ -507,13 +606,20 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
                 TextButton(
                   onPressed: () {
                     setState(() {
-                      _lines.add(_ProformaLine(name: 'New item', unitPrice: 0, qty: 1));
+                      _lines.add(
+                        _ProformaLine(name: 'New item', unitPrice: 0, qty: 1),
+                      );
                     });
                   },
                   style: TextButton.styleFrom(
                     backgroundColor: const Color(0xFFF6F7FB),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 10,
+                    ),
                   ),
                   child: Row(
                     children: [
@@ -521,10 +627,19 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
                         AdminDashboardSvgs.leadsPlusAdd,
                         width: 16,
                         height: 16,
-                        colorFilter: const ColorFilter.mode(Color(0xFF2563EB), BlendMode.srcIn),
+                        colorFilter: const ColorFilter.mode(
+                          Color(0xFF2563EB),
+                          BlendMode.srcIn,
+                        ),
                       ),
                       const SizedBox(width: 8),
-                      Text('Add line', style: GoogleFonts.outfit(fontWeight: FontWeight.w900, color: const Color(0xFF2563EB))),
+                      Text(
+                        'Add line',
+                        style: GoogleFonts.outfit(
+                          fontWeight: FontWeight.w900,
+                          color: const Color(0xFF2563EB),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -559,12 +674,22 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
                 ),
                 const SizedBox(width: 10),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
                   decoration: BoxDecoration(
                     color: const Color(0xFFEDE9FE),
                     borderRadius: BorderRadius.circular(999),
                   ),
-                  child: Text('AI', style: GoogleFonts.outfit(fontWeight: FontWeight.w900, color: const Color(0xFF6D28D9), fontSize: 12)),
+                  child: Text(
+                    'AI',
+                    style: GoogleFonts.outfit(
+                      fontWeight: FontWeight.w900,
+                      color: const Color(0xFF6D28D9),
+                      fontSize: 12,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -586,13 +711,26 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  _qtyBtn('-', () => setState(() => line.qty = (line.qty - 1).clamp(1, 999))),
+                  _qtyBtn(
+                    '-',
+                    () =>
+                        setState(() => line.qty = (line.qty - 1).clamp(1, 999)),
+                  ),
                   Container(
                     width: 34,
                     alignment: Alignment.center,
-                    child: Text('${line.qty}', style: GoogleFonts.jetBrainsMono(fontWeight: FontWeight.w900)),
+                    child: Text(
+                      '${line.qty}',
+                      style: GoogleFonts.jetBrainsMono(
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
                   ),
-                  _qtyBtn('+', () => setState(() => line.qty = (line.qty + 1).clamp(1, 999))),
+                  _qtyBtn(
+                    '+',
+                    () =>
+                        setState(() => line.qty = (line.qty + 1).clamp(1, 999)),
+                  ),
                 ],
               ),
             ),
@@ -601,7 +739,13 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
             flex: 2,
             child: Align(
               alignment: Alignment.centerRight,
-              child: Text('0', style: GoogleFonts.jetBrainsMono(fontWeight: FontWeight.w900, color: const Color(0xFF9499A5))),
+              child: Text(
+                '0',
+                style: GoogleFonts.jetBrainsMono(
+                  fontWeight: FontWeight.w900,
+                  color: const Color(0xFF9499A5),
+                ),
+              ),
             ),
           ),
           Expanded(
@@ -634,25 +778,47 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
         child: Center(
           child: Text(
             t,
-            style: GoogleFonts.outfit(fontWeight: FontWeight.w900, color: const Color(0xFF4B4E58)),
+            style: GoogleFonts.outfit(
+              fontWeight: FontWeight.w900,
+              color: const Color(0xFF4B4E58),
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _totals({required double subTotal, required double vat, required double grandTotal}) {
+  Widget _totals({
+    required double subTotal,
+    required double vat,
+    required double grandTotal,
+  }) {
     Widget row(String k, String v, {bool strong = false, Color? valueColor}) {
       return Padding(
         padding: const EdgeInsets.only(bottom: 6),
         child: Row(
           children: [
-            Expanded(child: Text(k, style: GoogleFonts.outfit(color: const Color(0xFF4B4E58), fontWeight: FontWeight.w700))),
+            Expanded(
+              child: Text(
+                k,
+                style: GoogleFonts.outfit(
+                  color: const Color(0xFF4B4E58),
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
             Text(
               v,
               style: strong
-                  ? GoogleFonts.jetBrainsMono(fontWeight: FontWeight.w900, fontSize: 18, color: valueColor ?? Colors.black)
-                  : GoogleFonts.jetBrainsMono(fontWeight: FontWeight.w900, color: valueColor ?? Colors.black),
+                  ? GoogleFonts.jetBrainsMono(
+                      fontWeight: FontWeight.w900,
+                      fontSize: 18,
+                      color: valueColor ?? Colors.black,
+                    )
+                  : GoogleFonts.jetBrainsMono(
+                      fontWeight: FontWeight.w900,
+                      color: valueColor ?? Colors.black,
+                    ),
             ),
           ],
         ),
@@ -669,7 +835,12 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
             row('VAT 18%', 'RWF ${formatNumber(vat)}'),
             row('Discount', 'RWF 0', valueColor: const Color(0xFF16A34A)),
             const SizedBox(height: 6),
-            row('Grand Total', 'RWF ${formatNumber(grandTotal)}', strong: true, valueColor: const Color(0xFF2563EB)),
+            row(
+              'Grand Total',
+              'RWF ${formatNumber(grandTotal)}',
+              strong: true,
+              valueColor: const Color(0xFF2563EB),
+            ),
           ],
         ),
       ),
@@ -687,16 +858,22 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('NOTES / TERMS',
-              style: GoogleFonts.outfit(
-                  fontWeight: FontWeight.w900,
-                  color: const Color(0xFF9499A5),
-                  fontSize: 11,
-                  letterSpacing: 0.08 * 11)),
+          Text(
+            'NOTES / TERMS',
+            style: GoogleFonts.outfit(
+              fontWeight: FontWeight.w900,
+              color: const Color(0xFF9499A5),
+              fontSize: 11,
+              letterSpacing: 0.08 * 11,
+            ),
+          ),
           const SizedBox(height: 10),
           Text(
             'This proforma is valid for 7 days. Payment due upon delivery. Bank transfer or mobile money accepted.',
-            style: GoogleFonts.outfit(fontWeight: FontWeight.w700, color: const Color(0xFF4B4E58)),
+            style: GoogleFonts.outfit(
+              fontWeight: FontWeight.w700,
+              color: const Color(0xFF4B4E58),
+            ),
           ),
         ],
       ),
@@ -733,17 +910,31 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
               OutlinedButton.icon(
                 onPressed: _isSharing ? null : () => _shareLink(context),
                 style: OutlinedButton.styleFrom(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
                   side: const BorderSide(color: Color(0xFFEAECF0)),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
                 ),
                 icon: SvgPicture.string(
                   AdminDashboardSvgs.leadsShareExternalLink,
                   width: 18,
                   height: 18,
-                  colorFilter: const ColorFilter.mode(Color(0xFF4B4E58), BlendMode.srcIn),
+                  colorFilter: const ColorFilter.mode(
+                    Color(0xFF4B4E58),
+                    BlendMode.srcIn,
+                  ),
                 ),
-                label: Text('Share link', style: GoogleFonts.outfit(fontWeight: FontWeight.w900, color: const Color(0xFF4B4E58))),
+                label: Text(
+                  'Share link',
+                  style: GoogleFonts.outfit(
+                    fontWeight: FontWeight.w900,
+                    color: const Color(0xFF4B4E58),
+                  ),
+                ),
               ),
             ],
           ),
@@ -756,7 +947,11 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
               _kv('Lines', '${_lines.length} lines'),
               _kv('Subtotal', 'RWF ${formatNumber(subTotal)}'),
               _kv('VAT 18%', 'RWF ${formatNumber(vat)}'),
-              _kv('Grand total', 'RWF ${formatNumber(grandTotal)}', strong: true),
+              _kv(
+                'Grand total',
+                'RWF ${formatNumber(grandTotal)}',
+                strong: true,
+              ),
               _kv('Status', 'Draft', valueColor: const Color(0xFFD97706)),
             ],
           ),
@@ -768,11 +963,23 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _historyDot(const Color(0xFF7C3AED), 'AI drafted from Gmail email', 'Today · 09:17'),
+                _historyDot(
+                  const Color(0xFF7C3AED),
+                  'AI drafted from Gmail email',
+                  'Today · 09:17',
+                ),
                 const SizedBox(height: 10),
-                _historyDot(const Color(0xFF2563EB), 'Lead created, proforma generated', 'Today · 09:17'),
+                _historyDot(
+                  const Color(0xFF2563EB),
+                  'Lead created, proforma generated',
+                  'Today · 09:17',
+                ),
                 const SizedBox(height: 10),
-                _historyDot(const Color(0xFF9CA3AF), 'Awaiting user review', 'Now · Pending'),
+                _historyDot(
+                  const Color(0xFF9CA3AF),
+                  'Awaiting user review',
+                  'Now · Pending',
+                ),
               ],
             ),
           ),
@@ -812,7 +1019,9 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
         onPressed: onTap,
         style: FilledButton.styleFrom(
           backgroundColor: color,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         ),
         icon: SvgPicture.string(
@@ -821,7 +1030,10 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
           height: 18,
           colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
         ),
-        label: Text(label, style: GoogleFonts.outfit(fontWeight: FontWeight.w900)),
+        label: Text(
+          label,
+          style: GoogleFonts.outfit(fontWeight: FontWeight.w900),
+        ),
       ),
     );
   }
@@ -831,12 +1043,26 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
       padding: const EdgeInsets.only(bottom: 10),
       child: Row(
         children: [
-          Expanded(child: Text(k, style: GoogleFonts.outfit(color: const Color(0xFF9499A5), fontWeight: FontWeight.w700))),
+          Expanded(
+            child: Text(
+              k,
+              style: GoogleFonts.outfit(
+                color: const Color(0xFF9499A5),
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
           Text(
             v,
             style: strong
-                ? GoogleFonts.jetBrainsMono(fontWeight: FontWeight.w900, color: valueColor ?? Colors.black)
-                : GoogleFonts.jetBrainsMono(fontWeight: FontWeight.w900, color: valueColor ?? Colors.black),
+                ? GoogleFonts.jetBrainsMono(
+                    fontWeight: FontWeight.w900,
+                    color: valueColor ?? Colors.black,
+                  )
+                : GoogleFonts.jetBrainsMono(
+                    fontWeight: FontWeight.w900,
+                    color: valueColor ?? Colors.black,
+                  ),
           ),
         ],
       ),
@@ -860,9 +1086,18 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(title, style: GoogleFonts.outfit(fontWeight: FontWeight.w900)),
+              Text(
+                title,
+                style: GoogleFonts.outfit(fontWeight: FontWeight.w900),
+              ),
               const SizedBox(height: 2),
-              Text(subtitle, style: GoogleFonts.outfit(color: const Color(0xFF9499A5), fontWeight: FontWeight.w700)),
+              Text(
+                subtitle,
+                style: GoogleFonts.outfit(
+                  color: const Color(0xFF9499A5),
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ],
           ),
         ),
@@ -870,10 +1105,12 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
     );
   }
 
-  void _toast(BuildContext context, String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg, style: GoogleFonts.outfit())),
-    );
+  void _toast(
+    BuildContext context,
+    String msg, {
+    NotificationType type = NotificationType.info,
+  }) {
+    showCustomSnackBarUtil(context, msg, type: type);
   }
 
   String _buildShareLink(Lead lead) {
@@ -887,7 +1124,10 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
     required DateTime issueDate,
     required DateTime validUntil,
   }) async {
-    final subTotal = _lines.fold<double>(0.0, (a, b) => a + (b.unitPrice * b.qty));
+    final subTotal = _lines.fold<double>(
+      0.0,
+      (a, b) => a + (b.unitPrice * b.qty),
+    );
     final vat = subTotal * 0.18;
     final grandTotal = subTotal + vat;
 
@@ -895,10 +1135,16 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
     final page = document.pages.add();
     final size = page.getClientSize();
 
-    final titleFont =
-        PdfStandardFont(PdfFontFamily.helvetica, 18, style: PdfFontStyle.bold);
-    final labelFont =
-        PdfStandardFont(PdfFontFamily.helvetica, 10, style: PdfFontStyle.bold);
+    final titleFont = PdfStandardFont(
+      PdfFontFamily.helvetica,
+      18,
+      style: PdfFontStyle.bold,
+    );
+    final labelFont = PdfStandardFont(
+      PdfFontFamily.helvetica,
+      10,
+      style: PdfFontStyle.bold,
+    );
     final valueFont = PdfStandardFont(PdfFontFamily.helvetica, 10);
 
     double y = 0;
@@ -909,33 +1155,52 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
     );
     y += 30;
 
-    page.graphics.drawString('Bill to:', labelFont,
-        bounds: Rect.fromLTWH(0, y, 120, 16));
-    page.graphics.drawString(lead.fullName, valueFont,
-        bounds: Rect.fromLTWH(70, y, size.width - 70, 16));
+    page.graphics.drawString(
+      'Bill to:',
+      labelFont,
+      bounds: Rect.fromLTWH(0, y, 120, 16),
+    );
+    page.graphics.drawString(
+      lead.fullName,
+      valueFont,
+      bounds: Rect.fromLTWH(70, y, size.width - 70, 16),
+    );
     y += 16;
 
     final contact = [
-      if ((lead.emailAddress ?? '').trim().isNotEmpty) lead.emailAddress!.trim(),
+      if ((lead.emailAddress ?? '').trim().isNotEmpty)
+        lead.emailAddress!.trim(),
       if ((lead.phoneNumber ?? '').trim().isNotEmpty) lead.phoneNumber!.trim(),
     ].join('  ');
     if (contact.isNotEmpty) {
-      page.graphics.drawString('Contact:', labelFont,
-          bounds: Rect.fromLTWH(0, y, 120, 16));
-      page.graphics.drawString(contact, valueFont,
-          bounds: Rect.fromLTWH(70, y, size.width - 70, 16));
+      page.graphics.drawString(
+        'Contact:',
+        labelFont,
+        bounds: Rect.fromLTWH(0, y, 120, 16),
+      );
+      page.graphics.drawString(
+        contact,
+        valueFont,
+        bounds: Rect.fromLTWH(70, y, size.width - 70, 16),
+      );
       y += 16;
     }
 
-    page.graphics.drawString('Issue date:', labelFont,
-        bounds: Rect.fromLTWH(0, y, 120, 16));
+    page.graphics.drawString(
+      'Issue date:',
+      labelFont,
+      bounds: Rect.fromLTWH(0, y, 120, 16),
+    );
     page.graphics.drawString(
       DateFormat('dd MMM yyyy').format(issueDate),
       valueFont,
       bounds: Rect.fromLTWH(70, y, 180, 16),
     );
-    page.graphics.drawString('Valid until:', labelFont,
-        bounds: Rect.fromLTWH(260, y, 120, 16));
+    page.graphics.drawString(
+      'Valid until:',
+      labelFont,
+      bounds: Rect.fromLTWH(260, y, 120, 16),
+    );
     page.graphics.drawString(
       DateFormat('dd MMM yyyy').format(validUntil),
       valueFont,
@@ -951,8 +1216,11 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
     header.cells[1].value = 'Unit';
     header.cells[2].value = 'Qty';
     header.cells[3].value = 'Total';
-    header.style.font =
-        PdfStandardFont(PdfFontFamily.helvetica, 10, style: PdfFontStyle.bold);
+    header.style.font = PdfStandardFont(
+      PdfFontFamily.helvetica,
+      10,
+      style: PdfFontStyle.bold,
+    );
 
     for (final l in _lines) {
       final row = grid.rows.add();
@@ -973,16 +1241,31 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
     );
 
     final totalsY = size.height - 70;
-    page.graphics.drawString('Subtotal:', labelFont,
-        bounds: Rect.fromLTWH(size.width - 200, totalsY, 90, 14));
-    page.graphics.drawString('RWF ${formatNumber(subTotal)}', valueFont,
-        bounds: Rect.fromLTWH(size.width - 110, totalsY, 110, 14));
-    page.graphics.drawString('VAT 18%:', labelFont,
-        bounds: Rect.fromLTWH(size.width - 200, totalsY + 16, 90, 14));
-    page.graphics.drawString('RWF ${formatNumber(vat)}', valueFont,
-        bounds: Rect.fromLTWH(size.width - 110, totalsY + 16, 110, 14));
-    page.graphics.drawString('Grand total:', labelFont,
-        bounds: Rect.fromLTWH(size.width - 200, totalsY + 32, 90, 14));
+    page.graphics.drawString(
+      'Subtotal:',
+      labelFont,
+      bounds: Rect.fromLTWH(size.width - 200, totalsY, 90, 14),
+    );
+    page.graphics.drawString(
+      'RWF ${formatNumber(subTotal)}',
+      valueFont,
+      bounds: Rect.fromLTWH(size.width - 110, totalsY, 110, 14),
+    );
+    page.graphics.drawString(
+      'VAT 18%:',
+      labelFont,
+      bounds: Rect.fromLTWH(size.width - 200, totalsY + 16, 90, 14),
+    );
+    page.graphics.drawString(
+      'RWF ${formatNumber(vat)}',
+      valueFont,
+      bounds: Rect.fromLTWH(size.width - 110, totalsY + 16, 110, 14),
+    );
+    page.graphics.drawString(
+      'Grand total:',
+      labelFont,
+      bounds: Rect.fromLTWH(size.width - 200, totalsY + 32, 90, 14),
+    );
     page.graphics.drawString(
       'RWF ${formatNumber(grandTotal)}',
       PdfStandardFont(PdfFontFamily.helvetica, 11, style: PdfFontStyle.bold),
@@ -1006,9 +1289,17 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
       final filePath = await FileUtils.savePdfFile(document);
       document.dispose();
       await FileUtils.openOrShareFile(filePath);
-      if (mounted) _toast(context, 'Proforma PDF saved.');
+      if (mounted) {
+        _toast(context, 'Proforma PDF saved.', type: NotificationType.success);
+      }
     } catch (e) {
-      if (mounted) _toast(context, 'Failed to export PDF: $e');
+      if (mounted) {
+        _toast(
+          context,
+          'Failed to export PDF: $e',
+          type: NotificationType.error,
+        );
+      }
     } finally {
       if (mounted) setState(() => _isDownloading = false);
     }
@@ -1046,10 +1337,7 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
           final mail = Uri(
             scheme: 'mailto',
             path: email,
-            queryParameters: {
-              'subject': 'Proforma invoice',
-              'body': message,
-            },
+            queryParameters: {'subject': 'Proforma invoice', 'body': message},
           );
           if (await canLaunchUrl(mail)) {
             await launchUrl(mail, mode: LaunchMode.externalApplication);
@@ -1058,9 +1346,21 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
       }
 
       await FileUtils.shareFileAsAttachment(filePath);
-      if (mounted) _toast(context, 'Ready to send: shared as attachment.');
+      if (mounted) {
+        _toast(
+          context,
+          'Ready to send: shared as attachment.',
+          type: NotificationType.success,
+        );
+      }
     } catch (e) {
-      if (mounted) _toast(context, 'Failed to prepare send: $e');
+      if (mounted) {
+        _toast(
+          context,
+          'Failed to prepare send: $e',
+          type: NotificationType.error,
+        );
+      }
     } finally {
       if (mounted) setState(() => _isSending = false);
     }
@@ -1073,7 +1373,13 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
       final msg = 'Proforma invoice link for ${widget.lead.fullName}\n$link';
       ProxyService.share.share(msg);
     } catch (e) {
-      if (mounted) _toast(context, 'Failed to share link: $e');
+      if (mounted) {
+        _toast(
+          context,
+          'Failed to share link: $e',
+          type: NotificationType.error,
+        );
+      }
     } finally {
       if (mounted) setState(() => _isSharing = false);
     }
@@ -1084,9 +1390,17 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
     try {
       final upsert = ref.read(leadsUpsertProvider);
       await upsert(widget.lead.copyWith(status: LeadStatus.converted));
-      if (mounted) _toast(context, 'Lead converted to sale.');
+      if (mounted) {
+        _toast(
+          context,
+          'Lead converted to sale.',
+          type: NotificationType.success,
+        );
+      }
     } catch (e) {
-      if (mounted) _toast(context, 'Failed to convert: $e');
+      if (mounted) {
+        _toast(context, 'Failed to convert: $e', type: NotificationType.error);
+      }
     } finally {
       if (mounted) setState(() => _isConverting = false);
     }
@@ -1097,12 +1411,19 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
     if (raw.isEmpty) {
       return [_ProformaLine(name: 'Item', unitPrice: 0, qty: 1)];
     }
-    final names = raw.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
-    if (names.isEmpty) return [_ProformaLine(name: 'Item', unitPrice: 0, qty: 1)];
+    final names = raw
+        .split(',')
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
+    if (names.isEmpty)
+      return [_ProformaLine(name: 'Item', unitPrice: 0, qty: 1)];
     // Use estimatedValue as a hint to populate a reasonable unit price split.
     final total = (lead.estimatedValue ?? 0).toDouble();
     final per = names.isEmpty ? 0.0 : (total / names.length);
-    return names.map((n) => _ProformaLine(name: n, unitPrice: per, qty: 1)).toList();
+    return names
+        .map((n) => _ProformaLine(name: n, unitPrice: per, qty: 1))
+        .toList();
   }
 }
 
@@ -1110,6 +1431,9 @@ class _ProformaLine {
   final String name;
   double unitPrice;
   int qty;
-  _ProformaLine({required this.name, required this.unitPrice, required this.qty});
+  _ProformaLine({
+    required this.name,
+    required this.unitPrice,
+    required this.qty,
+  });
 }
-
