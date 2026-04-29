@@ -14,8 +14,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
-import 'package:flipper_dashboard/BuildGaugeOrList.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:intl/intl.dart';
 import 'package:synchronized/synchronized.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
@@ -30,7 +30,18 @@ abstract final class _CashbookColors {
   static const Color beigeField = Color(0xFFF5F4EE);
   static const Color beigeInactive = Color(0xFFEDEADF);
   static const Color labelMuted = Color(0xFF6B7280);
+
+  /// Recent-transactions card (design spec)
+  static const Color designBlue = Color(0xFF2563EB);
+  static const Color cashInGreen = Color(0xFF1B5E20);
+  static const Color cashInSurface = Color(0xFFE8F5E9);
+  static const Color cashOutRed = Color(0xFFB71C1C);
+  static const Color cashOutSurface = Color(0xFFFFEBEE);
+  static const Color rowHighlight = Color(0xFFFAF8F3);
+  static const Color chipBorder = Color(0xFFE5E7EB);
 }
+
+enum _RecentTxFilter { all, cashIn, cashOut, momo }
 
 class Cashbook extends StatefulHookConsumerWidget {
   const Cashbook({Key? key, required this.isBigScreen}) : super(key: key);
@@ -50,6 +61,8 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
   bool _isMomoMode = false;
   String _momoTransactionType = TransactionType.cashIn;
 
+  _RecentTxFilter _recentTxFilter = _RecentTxFilter.all;
+
   @override
   void dispose() {
     _amountController.dispose();
@@ -64,21 +77,22 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
         return Scaffold(
-          backgroundColor:
-              widget.isBigScreen ? _CashbookColors.pageBg : Colors.white,
+          backgroundColor: widget.isBigScreen
+              ? _CashbookColors.pageBg
+              : Colors.white,
           body: SafeArea(
             child: LayoutBuilder(
               builder: (context, constraints) {
                 final shell = DecoratedBox(
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius:
-                        BorderRadius.circular(widget.isBigScreen ? 22 : 0),
+                    borderRadius: BorderRadius.circular(
+                      widget.isBigScreen ? 22 : 0,
+                    ),
                     border: widget.isBigScreen
                         ? Border.all(color: Colors.grey.shade300)
                         : Border(
-                            bottom:
-                                BorderSide(color: Colors.grey.shade200),
+                            bottom: BorderSide(color: Colors.grey.shade200),
                           ),
                     boxShadow: widget.isBigScreen
                         ? [
@@ -91,8 +105,9 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
                         : const [],
                   ),
                   child: ClipRRect(
-                    borderRadius:
-                        BorderRadius.circular(widget.isBigScreen ? 22 : 0),
+                    borderRadius: BorderRadius.circular(
+                      widget.isBigScreen ? 22 : 0,
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
@@ -104,7 +119,8 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
                 );
 
                 if (widget.isBigScreen) {
-                  return Center(
+                  return Align(
+                    alignment: Alignment.topCenter,
                     child: Padding(
                       padding: const EdgeInsets.all(24),
                       child: ConstrainedBox(
@@ -133,32 +149,39 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
 
   Widget _buildCashbookHeader() {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(10, 14, 10, 10),
-      child: Row(
+      padding: const EdgeInsets.fromLTRB(8, 14, 8, 10),
+      child: Stack(
+        alignment: Alignment.center,
         children: [
-          _headerRoundIconButton(
-            icon: Icons.close,
-            iconColor: Colors.grey.shade700,
-            borderColor: Colors.grey.shade400,
-            onPressed: () => Navigator.of(context).pop(),
-            tooltip: 'Close',
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              _headerRoundIconButton(
+                icon: Icons.close,
+                iconColor: Colors.grey.shade700,
+                borderColor: Colors.grey.shade400,
+                onPressed: () => Navigator.of(context).pop(),
+                tooltip: 'Close',
+              ),
+              const Expanded(child: SizedBox()),
+              _headerRoundIconButton(
+                icon: Icons.calendar_today_rounded,
+                iconColor: Colors.blue.shade600,
+                borderColor: Colors.blue.shade300,
+                onPressed: handleDateTimePicker,
+                tooltip: 'Select Date',
+              ),
+            ],
           ),
-          Expanded(
+          IgnorePointer(
             child: Text(
               'Cash Book',
-              textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey.shade900,
-                  ),
+                fontWeight: FontWeight.bold,
+                color: Colors.grey.shade900,
+              ),
             ),
-          ),
-          _headerRoundIconButton(
-            icon: Icons.calendar_today_rounded,
-            iconColor: Colors.blue.shade600,
-            borderColor: Colors.blue.shade300,
-            onPressed: handleDateTimePicker,
-            tooltip: 'Select Date',
           ),
         ],
       ),
@@ -234,20 +257,640 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
     final dateRange = ref.watch(dateRangeProvider);
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 0, 12, 4),
+      padding: const EdgeInsets.only(bottom: 4),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Expanded(
-            child: BuildGaugeOrList(
-              startDate: dateRange.startDate,
-              endDate: dateRange.endDate,
-              context: context,
-              model: model,
-              widgetType: 'list',
-              data: transactionData,
+            child: transactionData.when(
+              data: (all) => _buildRecentTransactionsCard(
+                allTransactions: all,
+                dateRange: dateRange,
+              ),
+              loading: () => const Center(
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+              error: (e, _) => Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Text(
+                    e.toString(),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.grey.shade700),
+                  ),
+                ),
+              ),
             ),
           ),
           _buildActionButtons(model),
+        ],
+      ),
+    );
+  }
+
+  /// When the global range is “today only”, show the last 30 calendar days (design default).
+  ({DateTime start, DateTime end}) _effectiveTransactionWindow(
+    DateRangeModel range,
+  ) {
+    final s = range.startDate!;
+    final e = range.endDate!;
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final startDay = DateTime(s.year, s.month, s.day);
+    final endDay = DateTime(e.year, e.month, e.day);
+    final singleDay = startDay == endDay;
+    final isToday =
+        startDay.year == today.year &&
+        startDay.month == today.month &&
+        startDay.day == today.day;
+
+    if (singleDay && isToday) {
+      final start30 = today.subtract(const Duration(days: 29));
+      final endToday = DateTime(today.year, today.month, today.day, 23, 59, 59);
+      return (start: start30, end: endToday);
+    }
+    return (start: s, end: DateTime(e.year, e.month, e.day, 23, 59, 59));
+  }
+
+  String _recentTxPeriodSubtitle(({DateTime start, DateTime end}) window) {
+    final start = window.start;
+    final end = window.end;
+    final startDay = DateTime(start.year, start.month, start.day);
+    final endDay = DateTime(end.year, end.month, end.day);
+    final days = endDay.difference(startDay).inDays;
+    if (days >= 26 && days <= 31) {
+      return 'Last 30 days';
+    }
+    if (startDay == endDay) {
+      return DateFormat('MMM d, yyyy').format(startDay);
+    }
+    return '${DateFormat('MMM d').format(startDay)} – ${DateFormat('MMM d, yyyy').format(endDay)}';
+  }
+
+  bool _isMomoTransaction(ITransaction t) {
+    final p = (t.paymentType ?? '').toUpperCase();
+    if (p.contains('MOMO') ||
+        p.contains('MOBILE MONEY') ||
+        p.contains('AIRTEL')) {
+      return true;
+    }
+    return t.status == WAITING_MOMO_COMPLETE;
+  }
+
+  List<ITransaction> _filterByDateWindow(
+    List<ITransaction> value,
+    ({DateTime start, DateTime end}) window,
+  ) {
+    final startDate = window.start;
+    final endDate = window.end;
+    return value.where((trans) {
+      final d = trans.lastTouched;
+      if (d == null) return false;
+      return (d.isAtSameMomentAs(startDate) || d.isAfter(startDate)) &&
+          (d.isAtSameMomentAs(endDate) || d.isBefore(endDate));
+    }).toList()..sort((a, b) {
+      final ta = a.lastTouched ?? DateTime.fromMillisecondsSinceEpoch(0);
+      final tb = b.lastTouched ?? DateTime.fromMillisecondsSinceEpoch(0);
+      return tb.compareTo(ta);
+    });
+  }
+
+  List<ITransaction> _applyChipFilter(
+    List<ITransaction> list,
+    _RecentTxFilter filter,
+  ) {
+    switch (filter) {
+      case _RecentTxFilter.all:
+        return list;
+      case _RecentTxFilter.cashIn:
+        return list.where((t) => t.isIncome == true).toList();
+      case _RecentTxFilter.cashOut:
+        return list.where((t) => t.isIncome == false).toList();
+      case _RecentTxFilter.momo:
+        return list.where(_isMomoTransaction).toList();
+    }
+  }
+
+  String _transactionRowTitle(ITransaction t) {
+    final raw = (t.transactionType ?? '').trim();
+    if (raw.isEmpty) {
+      return 'Transaction';
+    }
+    // Category names are stored as plain text; avoid over-formatting acronyms.
+    if (raw.length <= 40 && !RegExp(r'[a-z][A-Z]').hasMatch(raw)) {
+      return raw.toUpperCase();
+    }
+    return raw
+        .replaceAllMapped(RegExp(r'([a-z])([A-Z])'), (m) => '${m[1]} ${m[2]}')
+        .toUpperCase();
+  }
+
+  Widget _buildRecentTransactionsCard({
+    required List<ITransaction> allTransactions,
+    required DateRangeModel dateRange,
+  }) {
+    final window = _effectiveTransactionWindow(dateRange);
+    final byDate = _filterByDateWindow(allTransactions, window);
+    final filtered = _applyChipFilter(byDate, _recentTxFilter);
+
+    final subtitle = _recentTxPeriodSubtitle(window);
+    final currency = ProxyService.box.defaultCurrency();
+
+    if (byDate.isEmpty) {
+      return _buildRecentTxEmptyState(subtitle: subtitle);
+    }
+
+    if (filtered.isEmpty) {
+      return _buildRecentTxEmptyFilterState(
+        subtitle: subtitle,
+        periodLabel: subtitle,
+      );
+    }
+
+    final sumIn = filtered
+        .where((t) => t.isIncome == true)
+        .fold<double>(0, (s, t) => s + (t.subTotal ?? 0));
+    final sumOut = filtered
+        .where((t) => t.isIncome == false)
+        .fold<double>(0, (s, t) => s + (t.subTotal ?? 0));
+
+    return SizedBox.expand(
+      child: Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(0),
+          border: Border.all(color: _CashbookColors.chipBorder),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _buildRecentTxHeader(count: filtered.length, subtitle: subtitle),
+            Divider(height: 1, color: Colors.grey.shade200),
+            _buildRecentTxFilterChips(),
+            Divider(height: 1, color: Colors.grey.shade200),
+            Expanded(
+              child: ListView.builder(
+                padding: EdgeInsets.zero,
+                itemCount: filtered.length,
+                itemBuilder: (context, index) {
+                  return _buildRecentTxRow(
+                    transaction: filtered[index],
+                    currency: currency,
+                    highlight: index == 0,
+                    showBottomBorder: index < filtered.length - 1,
+                  );
+                },
+              ),
+            ),
+            Divider(height: 1, color: Colors.grey.shade200),
+            _buildRecentTxFooter(
+              currency: currency,
+              sumIn: sumIn,
+              sumOut: sumOut,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRecentTxHeader({required int count, required String subtitle}) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(18, 18, 18, 14),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: _CashbookColors.designBlue,
+              borderRadius: BorderRadius.circular(0),
+            ),
+            child: const Icon(
+              Icons.credit_card_outlined,
+              color: Colors.white,
+              size: 22,
+            ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Recent transactions',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: Colors.grey.shade900,
+                    fontSize: 18,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w400,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          DecoratedBox(
+            decoration: BoxDecoration(
+              color: const Color(0xFFF3F4F6),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: _CashbookColors.chipBorder),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 7,
+                    height: 7,
+                    decoration: const BoxDecoration(
+                      color: _CashbookColors.designBlue,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    '$count',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.grey.shade900,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRecentTxFilterChips() {
+    Widget chip(String label, _RecentTxFilter value) {
+      final selected = _recentTxFilter == value;
+      return Expanded(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: Material(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(8),
+            child: InkWell(
+              onTap: () => setState(() => _recentTxFilter = value),
+              borderRadius: BorderRadius.circular(8),
+              child: Container(
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: selected
+                        ? Colors.grey.shade400
+                        : _CashbookColors.chipBorder,
+                  ),
+                  color: selected ? Colors.grey.shade50 : Colors.white,
+                ),
+                alignment: Alignment.center,
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                    color: Colors.grey.shade900,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+      child: Row(
+        children: [
+          chip('All', _RecentTxFilter.all),
+          chip('Cash in', _RecentTxFilter.cashIn),
+          chip('Cash out', _RecentTxFilter.cashOut),
+          chip('MoMo', _RecentTxFilter.momo),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRecentTxRow({
+    required ITransaction transaction,
+    required String currency,
+    required bool highlight,
+    required bool showBottomBorder,
+  }) {
+    final routerService = locator<RouterService>();
+    final isIncome = transaction.isIncome ?? true;
+    final rawAmount = transaction.subTotal ?? 0;
+    final formatted = NumberFormat('#,###').format(rawAmount);
+    final dt = transaction.lastTouched ?? DateTime.now();
+
+    final Color iconBg = isIncome
+        ? _CashbookColors.cashInSurface
+        : _CashbookColors.cashOutSurface;
+    final Color iconFg = isIncome
+        ? _CashbookColors.cashInGreen
+        : _CashbookColors.cashOutRed;
+    final Color amountColor = iconFg;
+
+    final badgeBg = iconBg;
+    final badgeFg = iconFg;
+    final badgeLabel = isIncome ? 'Cash in' : 'Cash out';
+
+    return SizedBox(
+      width: double.infinity,
+      child: Material(
+        color: highlight ? _CashbookColors.rowHighlight : Colors.white,
+        child: InkWell(
+          onTap: () => routerService.navigateTo(
+            TransactionDetailRoute(transaction: transaction),
+          ),
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            decoration: showBottomBorder
+                ? BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(color: Colors.grey.shade200),
+                    ),
+                  )
+                : null,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 44,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    color: iconBg,
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    isIncome
+                        ? Icons.arrow_upward_rounded
+                        : Icons.arrow_downward_rounded,
+                    color: iconFg,
+                    size: 22,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 2),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _transactionRowTitle(transaction),
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: Colors.grey.shade900,
+                            height: 1.2,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          '${DateFormat('MMM d, yyyy').format(dt)} · ${DateFormat('HH:mm').format(dt)}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey.shade600,
+                            height: 1.2,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(left: 8, top: 2),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      FittedBox(
+                        fit: BoxFit.scaleDown,
+                        alignment: Alignment.centerRight,
+                        child: Text(
+                          '${isIncome ? '+' : '-'}$formatted $currency',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: amountColor,
+                            height: 1.1,
+                          ),
+                          maxLines: 1,
+                          textAlign: TextAlign.right,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      DecoratedBox(
+                        decoration: BoxDecoration(
+                          color: badgeBg,
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
+                          child: Text(
+                            badgeLabel,
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: badgeFg,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: Icon(
+                    Icons.chevron_right_rounded,
+                    color: Colors.grey.shade400,
+                    size: 22,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRecentTxFooter({
+    required String currency,
+    required double sumIn,
+    required double sumOut,
+  }) {
+    final fmt = NumberFormat('#,###');
+    final (
+      String leftLabel,
+      String rightText,
+      Color amountColor,
+    ) = switch (_recentTxFilter) {
+      _RecentTxFilter.cashOut => (
+        'Total out',
+        '-${fmt.format(sumOut)} $currency',
+        _CashbookColors.cashOutRed,
+      ),
+      _RecentTxFilter.momo => () {
+        final net = sumIn - sumOut;
+        return (
+          'MoMo net',
+          '${net >= 0 ? '+' : '-'}${fmt.format(net.abs())} $currency',
+          net >= 0 ? _CashbookColors.cashInGreen : _CashbookColors.cashOutRed,
+        );
+      }(),
+      _RecentTxFilter.all || _RecentTxFilter.cashIn => (
+        'Total in',
+        '+${fmt.format(sumIn)} $currency',
+        _CashbookColors.cashInGreen,
+      ),
+    };
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 14, 14, 14),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            flex: 2,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  leftLabel,
+                  style: TextStyle(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.grey.shade600,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    rightText,
+                    style: TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                      color: amountColor,
+                      height: 1.1,
+                    ),
+                    maxLines: 1,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          TextButton(
+            style: TextButton.styleFrom(
+              foregroundColor: _CashbookColors.designBlue,
+              padding: const EdgeInsets.only(left: 12, top: 0),
+              minimumSize: Size.zero,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              alignment: Alignment.topRight,
+            ),
+            onPressed: () =>
+                locator<RouterService>().navigateTo(const TransactionsRoute()),
+            child: const Text(
+              'View all',
+              style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRecentTxEmptyState({required String subtitle}) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: _CashbookColors.chipBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _buildRecentTxHeader(count: 0, subtitle: subtitle),
+          const Expanded(
+            child: Padding(
+              padding: EdgeInsets.all(28),
+              child: Center(
+                child: Text(
+                  'Your transactions will appear here once you start adding them.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 14, color: Color(0xFF6B7280)),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRecentTxEmptyFilterState({
+    required String subtitle,
+    required String periodLabel,
+  }) {
+    final msg = switch (_recentTxFilter) {
+      _RecentTxFilter.cashIn => 'No cash in transactions for $periodLabel.',
+      _RecentTxFilter.cashOut => 'No cash out transactions for $periodLabel.',
+      _RecentTxFilter.momo => 'No MoMo transactions for $periodLabel.',
+      _RecentTxFilter.all => 'No transactions for $periodLabel.',
+    };
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: _CashbookColors.chipBorder),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _buildRecentTxHeader(count: 0, subtitle: subtitle),
+          Divider(height: 1, color: Colors.grey.shade200),
+          _buildRecentTxFilterChips(),
+          Expanded(
+            child: Center(
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Text(
+                  msg,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 14, color: Colors.grey.shade600),
+                ),
+              ),
+            ),
+          ),
         ],
       ),
     );
@@ -259,13 +902,13 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
       child: Row(
         children: [
           _buildTransactionButton(
-            text: TransactionType.cashIn,
+            text: '↑ ${TransactionType.cashIn}',
             color: _CashbookColors.primaryGreen,
             onPressed: () =>
                 _showPaymentMethodSelector(model, TransactionType.cashIn),
           ),
           _buildTransactionButton(
-            text: TransactionType.cashOut,
+            text: '↓ ${TransactionType.cashOut}',
             color: const Color(0xFFFF0331),
             onPressed: () =>
                 _showPaymentMethodSelector(model, TransactionType.cashOut),
@@ -277,7 +920,9 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
 
   void _showPaymentMethodSelector(CoreViewModel model, String transactionType) {
     final isIncome = transactionType == TransactionType.cashIn;
-    final color = isIncome ? _CashbookColors.primaryGreen : const Color(0xFFFF0331);
+    final color = isIncome
+        ? _CashbookColors.primaryGreen
+        : const Color(0xFFFF0331);
 
     showModalBottomSheet(
       context: context,
@@ -346,7 +991,15 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
     return Expanded(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 4.0),
-        child: FlipperButton(text: text, color: color, onPressed: onPressed),
+        child: FlipperButton(
+          text: text,
+          color: color,
+          width: double.infinity,
+          height: 52,
+          radius: 12,
+          textColor: Colors.white,
+          onPressed: onPressed,
+        ),
       ),
     );
   }
@@ -414,10 +1067,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
                     const SizedBox(height: 10),
                     _buildCategoryGrid(model),
                     const SizedBox(height: 18),
-                    Text(
-                      'DESCRIPTION',
-                      style: _captionLabelStyle(context),
-                    ),
+                    Text('DESCRIPTION', style: _captionLabelStyle(context)),
                     const SizedBox(height: 10),
                     TextFormField(
                       controller: _descriptionController,
@@ -460,11 +1110,11 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
 
   TextStyle _captionLabelStyle(BuildContext context) {
     return Theme.of(context).textTheme.labelSmall!.copyWith(
-          letterSpacing: 1.1,
-          fontWeight: FontWeight.w600,
-          color: _CashbookColors.labelMuted,
-          fontSize: 11,
-        );
+      letterSpacing: 1.1,
+      fontWeight: FontWeight.w600,
+      color: _CashbookColors.labelMuted,
+      fontSize: 11,
+    );
   }
 
   Widget _buildCashTypeSegment(CoreViewModel model) {
@@ -510,7 +1160,9 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
           ],
         ),
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: _CashbookColors.primaryGreen.withValues(alpha: 0.25)),
+        border: Border.all(
+          color: _CashbookColors.primaryGreen.withValues(alpha: 0.25),
+        ),
       ),
       child: Padding(
         padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
@@ -520,11 +1172,11 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
             Text(
               'AMOUNT',
               style: Theme.of(context).textTheme.labelSmall!.copyWith(
-                    letterSpacing: 1.2,
-                    fontWeight: FontWeight.w700,
-                    color: _CashbookColors.primaryGreen,
-                    fontSize: 11,
-                  ),
+                letterSpacing: 1.2,
+                fontWeight: FontWeight.w700,
+                color: _CashbookColors.primaryGreen,
+                fontSize: 11,
+              ),
             ),
             const SizedBox(height: 8),
             Row(
@@ -536,24 +1188,28 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
                   child: Text(
                     currency,
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: _CashbookColors.primaryGreen,
-                          fontWeight: FontWeight.w600,
-                        ),
+                      color: _CashbookColors.primaryGreen,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
                 Expanded(
                   child: TextFormField(
                     controller: _amountController,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     inputFormatters: [
-                      FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
+                      FilteringTextInputFormatter.allow(
+                        RegExp(r'^\d+\.?\d{0,2}'),
+                      ),
                     ],
                     autofocus: true,
                     style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: const Color(0xFF166534),
-                          letterSpacing: -0.5,
-                        ),
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF166534),
+                      letterSpacing: -0.5,
+                    ),
                     decoration: const InputDecoration(
                       isDense: true,
                       border: InputBorder.none,
@@ -600,7 +1256,9 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
       onPressed: onTap,
       style: OutlinedButton.styleFrom(
         foregroundColor: const Color(0xFF166534),
-        side: BorderSide(color: _CashbookColors.primaryGreen.withValues(alpha: 0.45)),
+        side: BorderSide(
+          color: _CashbookColors.primaryGreen.withValues(alpha: 0.45),
+        ),
         backgroundColor: Colors.white,
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         minimumSize: Size.zero,
@@ -622,9 +1280,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
     return active.take(3).toList();
   }
 
-  String? _resolvedSelectedCategoryId(
-    List<Category> categories,
-  ) {
+  String? _resolvedSelectedCategoryId(List<Category> categories) {
     final optimistic = ref.watch(optimisticFocusedCategoryProvider);
     if (optimistic != null && optimistic.id.isNotEmpty) {
       return optimistic.id;
@@ -681,9 +1337,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
                 }),
                 SizedBox(
                   width: cellWidth,
-                  child: _addCategoryTile(
-                    onTap: _openCategoriesForTransaction,
-                  ),
+                  child: _addCategoryTile(onTap: _openCategoriesForTransaction),
                 ),
               ],
             );
@@ -715,10 +1369,14 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
           duration: const Duration(milliseconds: 180),
           padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
           decoration: BoxDecoration(
-            color: selected ? _CashbookColors.mintAmountBg : _CashbookColors.beigeInactive,
+            color: selected
+                ? _CashbookColors.mintAmountBg
+                : _CashbookColors.beigeInactive,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: selected ? _CashbookColors.primaryGreen : Colors.grey.shade300,
+              color: selected
+                  ? _CashbookColors.primaryGreen
+                  : Colors.grey.shade300,
               width: selected ? 2 : 1,
             ),
           ),
@@ -727,7 +1385,9 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
             children: [
               Icon(
                 icon,
-                color: selected ? const Color(0xFF166534) : Colors.grey.shade700,
+                color: selected
+                    ? const Color(0xFF166534)
+                    : Colors.grey.shade700,
                 size: 26,
               ),
               const SizedBox(height: 8),
@@ -739,7 +1399,9 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
                 style: TextStyle(
                   fontWeight: FontWeight.w600,
                   fontSize: 13,
-                  color: selected ? const Color(0xFF166534) : Colors.grey.shade800,
+                  color: selected
+                      ? const Color(0xFF166534)
+                      : Colors.grey.shade800,
                 ),
               ),
             ],
@@ -820,7 +1482,9 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
               backgroundColor: _CashbookColors.beigeField,
               padding: const EdgeInsets.symmetric(vertical: 16),
               side: BorderSide(color: Colors.grey.shade300),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
             ),
             child: const Text('Cancel'),
           ),
@@ -829,19 +1493,26 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
         Expanded(
           flex: 2,
           child: ElevatedButton(
-            onPressed: model.isBusy ? null : () => _handleSaveTransaction(model, 'N/A'),
+            onPressed: model.isBusy
+                ? null
+                : () => _handleSaveTransaction(model, 'N/A'),
             style: ElevatedButton.styleFrom(
               backgroundColor: _CashbookColors.primaryGreen,
               foregroundColor: Colors.white,
               padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
               elevation: 0,
             ),
             child: model.isBusy
                 ? const SizedBox(
                     height: 22,
                     width: 22,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
                   )
                 : const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -878,8 +1549,9 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
     final String branchId = ProxyService.box.getBranchId()!;
     // Transaction list + pending streams use SQLite (ProxyService.strategy).
     // Saving via Capella/Ditto-only would not show in those providers.
-    final Category? category =
-        await ProxyService.strategy.activeCategory(branchId: branchId);
+    final Category? category = await ProxyService.strategy.activeCategory(
+      branchId: branchId,
+    );
 
     if (category == null) {
       showWarningNotification(context, 'Please select a category first');
@@ -928,9 +1600,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
           return;
         }
         ref.refresh(transactionItemsProvider(transactionId: tid));
-        ref.refresh(
-          pendingTransactionStreamProvider(isExpense: !wasIncome),
-        );
+        ref.refresh(pendingTransactionStreamProvider(isExpense: !wasIncome));
         ref.refresh(dashboardTransactionsProvider);
       });
     } catch (e) {
@@ -972,10 +1642,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
             transactionType: transactionType,
             isExpense: !isIncome,
           ),
-          strategy.getUtilityVariant(
-            name: transactionType,
-            branchId: branchId,
-          ),
+          strategy.getUtilityVariant(name: transactionType, branchId: branchId),
         ]);
         ITransaction? pendingTransaction = created[0] as ITransaction?;
         Variant? utilityVariant = created[1] as Variant?;
@@ -998,8 +1665,8 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
           final formattedType = transactionType.toLowerCase() == 'cashin'
               ? 'CASH-IN'
               : transactionType.toLowerCase() == 'cashout'
-                  ? 'CASH-OUT'
-                  : transactionType.toUpperCase();
+              ? 'CASH-OUT'
+              : transactionType.toUpperCase();
 
           final itemCode = '$formattedType-$dateStr';
 
@@ -1123,10 +1790,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
 
 /// Draws a dashed rounded rectangle behind [child] content.
 final class _DashedRoundedBorderPainter extends CustomPainter {
-  _DashedRoundedBorderPainter({
-    required this.color,
-    required this.radius,
-  });
+  _DashedRoundedBorderPainter({required this.color, required this.radius});
 
   final Color color;
   final double radius;
