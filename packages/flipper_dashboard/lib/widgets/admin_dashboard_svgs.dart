@@ -8,6 +8,85 @@ abstract final class AdminDashboardSvgs {
 
   static const String _xmlns = 'xmlns="http://www.w3.org/2000/svg"';
 
+  // ---- Leads feature icon set (shared desktop + mobile) ----
+  static const String leadsBackChevronLeft =
+      '''<svg viewBox="0 0 24 24" fill="none" $_xmlns stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18L9 12l6-6"/></svg>''';
+
+  static const String leadsChevronRight24 =
+      '''<svg viewBox="0 0 24 24" fill="none" $_xmlns stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>''';
+
+  static const String leadsCloseX =
+      '''<svg viewBox="0 0 24 24" fill="none" $_xmlns stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18M6 6l12 12"/></svg>''';
+
+  static const String leadsPlusAdd =
+      '''<svg viewBox="0 0 24 24" fill="none" $_xmlns stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>''';
+
+  static const String leadsFilter =
+      '''<svg viewBox="0 0 24 24" fill="none" $_xmlns stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M7 12h10M10 18h4"/></svg>''';
+
+  static const String leadsSearch =
+      '''<svg viewBox="0 0 24 24" fill="none" $_xmlns stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>''';
+
+  static const String leadsDownloadExport =
+      '''<svg viewBox="0 0 24 24" fill="none" $_xmlns stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12M8 11l4 4 4-4M3 19h18"/></svg>''';
+
+  static const String leadsShareExternalLink =
+      '''<svg viewBox="0 0 24 24" fill="none" $_xmlns stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>''';
+
+  static const String leadsUsersMultiple =
+      '''<svg viewBox="0 0 24 24" fill="none" $_xmlns stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>''';
+
+  static const String leadsUserSingle =
+      '''<svg viewBox="0 0 24 24" fill="none" $_xmlns stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>''';
+
+  static const String leadsPhoneCall =
+      '''<svg viewBox="0 0 24 24" fill="none" $_xmlns stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.8 19.8 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.8 19.8 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/></svg>''';
+
+  static const String leadsEmailEnvelope =
+      '''<svg viewBox="0 0 24 24" fill="none" $_xmlns stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>''';
+
+  static const String leadsAiInfoCircle =
+      '''<svg viewBox="0 0 24 24" fill="none" $_xmlns stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>''';
+
+  static const String leadsDocumentProforma =
+      '''<svg viewBox="0 0 24 24" fill="none" $_xmlns stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>''';
+
+  static const String leadsSendPaperPlane =
+      '''<svg viewBox="0 0 24 24" fill="none" $_xmlns stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>''';
+
+  static const String leadsPrint =
+      '''<svg viewBox="0 0 24 24" fill="none" $_xmlns stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>''';
+
+  static const String leadsEditPencil =
+      '''<svg viewBox="0 0 24 24" fill="none" $_xmlns stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>''';
+
+  static const String leadsTrashDelete =
+      '''<svg viewBox="0 0 24 24" fill="none" $_xmlns stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/></svg>''';
+
+  static const String leadsFlipperLogoLines =
+      '''<svg viewBox="0 0 24 24" fill="none" $_xmlns stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="15" y2="12"/><line x1="3" y1="18" x2="17" y2="18"/></svg>''';
+
+  static const String leadsCheckmark =
+      '''<svg viewBox="0 0 24 24" fill="none" $_xmlns stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>''';
+
+  static const String leadsTrendingUp =
+      '''<svg viewBox="0 0 24 24" fill="none" $_xmlns stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>''';
+
+  static const String leadsDollarCurrency =
+      '''<svg viewBox="0 0 24 24" fill="none" $_xmlns stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>''';
+
+  static const String leadsHomePos =
+      '''<svg viewBox="0 0 24 24" fill="none" $_xmlns stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>''';
+
+  static const String leadsGridDashboard =
+      '''<svg viewBox="0 0 24 24" fill="none" $_xmlns stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>''';
+
+  static const String leadsMoreSettings =
+      '''<svg viewBox="0 0 24 24" fill="none" $_xmlns stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 010 14.14M4.93 4.93a10 10 0 000 14.14"/></svg>''';
+
+  static const String leadsClockHistory =
+      '''<svg viewBox="0 0 24 24" fill="none" $_xmlns stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>''';
+
   static const String backArrow =
       '''<svg viewBox="0 0 14 14" fill="none" $_xmlns><path d="M9 2L4 7l5 5" stroke="#4B4E58" stroke-width="1.8" stroke-linecap="round"/></svg>''';
 

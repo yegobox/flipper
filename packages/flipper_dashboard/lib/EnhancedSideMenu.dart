@@ -15,6 +15,9 @@ import 'package:flipper_dashboard/logout/shift_before_logout.dart';
 import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_dashboard/mfa_setup_view.dart';
 import 'package:flipper_dashboard/widgets/dashboard_quick_access_svgs.dart';
+import 'package:flipper_dashboard/widgets/admin_dashboard_svgs.dart';
+import 'package:flipper_models/providers/access_provider.dart';
+import 'package:flipper_services/constants.dart';
 
 class EnhancedSideMenu extends ConsumerWidget {
   const EnhancedSideMenu({super.key});
@@ -39,6 +42,12 @@ class EnhancedSideMenu extends ConsumerWidget {
     final showProduction = ref.watch(sideMenuShowProductionProvider);
     final showShiftHistory = ref.watch(sideMenuShowShiftHistoryProvider);
     final showDelegations = ref.watch(sideMenuShowDelegationsProvider);
+    final uid = ProxyService.box.getUserId() ?? '';
+    final showLeads = uid.isNotEmpty
+        ? ref.watch(
+            featureAccessProvider(userId: uid, featureName: AppFeature.Leads),
+          )
+        : false;
 
     final menuItems = [
       _SideMenuItem(
@@ -62,6 +71,21 @@ class EnhancedSideMenu extends ConsumerWidget {
         },
         tooltip: 'Chat',
       ),
+      if (showLeads)
+        _SideMenuItem(
+          iconBuilder: (c) => SvgPicture.string(
+            AdminDashboardSvgs.leadsUsersMultiple,
+            width: 24,
+            height: 24,
+            colorFilter: ColorFilter.mode(c, BlendMode.srcIn),
+          ),
+          isSelected: selectedItem == 10,
+          onTap: () {
+            ref.read(selectedMenuItemProvider.notifier).state = 10;
+            ref.read(selectedPageProvider.notifier).state = DashboardPage.leads;
+          },
+          tooltip: 'Leads',
+        ),
       if (isDesktop)
         _SideMenuItem(
           iconBuilder: (_) =>

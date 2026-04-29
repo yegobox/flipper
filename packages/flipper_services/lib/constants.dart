@@ -70,6 +70,7 @@ final features = [
   AppFeature.Reports,
   AppFeature.Tickets,
   AppFeature.Orders,
+  AppFeature.Leads,
   AppFeature.AddProduct,
   AppFeature.Sales,
   AppFeature.Driver,
@@ -84,6 +85,7 @@ class AppFeature {
   static const String Settings = "Settings";
   static const String ShiftHistory = "ShiftHistory";
   static const String Tickets = "Tickets";
+  static const String Leads = "Leads";
   static const String AddProduct = "Add Product";
   static const String Orders = "Orders";
   static const String CustomAmount = "Custom Amount";

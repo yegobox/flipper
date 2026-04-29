@@ -16,6 +16,9 @@ import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_dashboard/CreditIcon.dart';
 import 'package:flipper_dashboard/features/services_gigs/providers/services_gig_admin_provider.dart';
 import 'package:flipper_dashboard/widgets/dashboard_quick_access_svgs.dart';
+import 'package:flipper_dashboard/features/leads/leads_mobile_screen.dart';
+import 'package:flipper_dashboard/widgets/admin_dashboard_svgs.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class AppIconsGrid extends ConsumerWidget {
   final bool isBigScreen;
@@ -105,6 +108,12 @@ class AppIconsGrid extends ConsumerWidget {
       case "Orders":
         await _routerService.navigateTo(InventoryRequestMobileViewRoute());
         break;
+      case "Leads":
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const LeadsMobileScreen()),
+        );
+        break;
       default:
         await _routerService.navigateTo(
           CheckOutRoute(isBigScreen: isBigScreen),
@@ -150,6 +159,15 @@ class AppIconsGrid extends ConsumerWidget {
         'page': "Contacts",
         'label': "Contacts",
         'feature': 'Contacts',
+      },
+      {
+        'icon': FluentIcons.people_32_regular,
+        'color': const Color(0xFF2563EB),
+        'page': "Leads",
+        'label': "Leads",
+        'feature': AppFeature.Leads,
+        'svg': AdminDashboardSvgs.leadsUsersMultiple,
+        'svgBg': const Color(0xFFEFF2FF),
       },
       {
         'icon': Icons.call,
@@ -334,6 +352,15 @@ class AppIconsGrid extends ConsumerWidget {
       iconArea = Center(
         child: DashboardQuickAccessSvgs.mobileTileIcon(page),
       );
+    } else if (app['svg'] != null) {
+      iconArea = Center(
+        child: SvgPicture.string(
+          app['svg'] as String,
+          width: isBigScreen ? 26 : 24,
+          height: isBigScreen ? 26 : 24,
+          colorFilter: ColorFilter.mode(effectiveColor, BlendMode.srcIn),
+        ),
+      );
     } else {
       iconArea = Icon(
         app['icon'] as IconData,
@@ -351,7 +378,8 @@ class AppIconsGrid extends ConsumerWidget {
           decoration: BoxDecoration(
             color: useMobileSvg
                 ? DashboardQuickAccessSvgs.mobileTileBackground(page)
-                : effectiveColor.withValues(alpha: 0.1),
+                : (app['svgBg'] as Color?) ??
+                    effectiveColor.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(16),
           ),
           child: iconArea,

@@ -9,6 +9,7 @@ import 'package:flipper_dashboard/stock_recount_list_screen.dart';
 import 'package:flipper_dashboard/delegation_list_screen.dart';
 import 'package:flipper_dashboard/features/incoming_orders/screens/incoming_orders_screen.dart';
 import 'package:flipper_dashboard/features/production_output/production_output_app.dart';
+import 'package:flipper_dashboard/features/leads/leads_desktop_screen.dart';
 import 'package:flipper_dashboard/shift_history_content.dart';
 import 'package:flipper_dashboard/dashboard_shell.dart';
 import 'package:flipper_dashboard/hooks/use_access_permissions_realtime.dart';
@@ -161,6 +162,8 @@ class DashboardLayout extends HookConsumerWidget {
         return InventoryApp(searchController: searchController);
       case DashboardPage.ai:
         return const Ai();
+      case DashboardPage.leads:
+        return const LeadsDesktopScreen();
       case DashboardPage.reports:
         return const InventoryDashboardApp();
       case DashboardPage.kitchen:
