@@ -1,12 +1,13 @@
 // ignore_for_file: unused_result
-import 'package:flipper_dashboard/create/category_selector.dart';
+
 import 'package:flipper_dashboard/widgets/contact_picker_button.dart';
-import 'package:flipper_models/db_model_export.dart' hide Category;
-import 'package:supabase_models/brick/models/category.model.dart' show Category;
+import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/providers/category_provider.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
-// import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
+import 'package:flipper_routing/app.locator.dart';
+import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/momo_ussd_service.dart';
 import 'package:flipper_services/proxy.dart';
@@ -15,24 +16,37 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:synchronized/synchronized.dart';
+import 'package:stacked_services/stacked_services.dart';
 
-/// Widget for creating MoMo/Airtel mobile money transactions in the cashbook
+/// Tokens aligned with Cash Book redesign (mint, beige, primary green).
+abstract final class _MomoUiColors {
+  static const Color primaryGreen = Color(0xFF22C55E);
+  static const Color mintAmountBg = Color(0xFFE8F8EF);
+  static const Color beigeField = Color(0xFFF5F4EE);
+  static const Color beigeInactive = Color(0xFFEDEADF);
+  static const Color labelMuted = Color(0xFF6B7280);
+  static const Color cashOutAccent = Color(0xFFFF0331);
+}
+
+/// Widget for creating MoMo/Airtel mobile money transactions in the cashbook.
 class MomoTransactionForm extends ConsumerStatefulWidget {
-  /// The transaction type: either 'Cash In' or 'Cash Out'
-  final String transactionType;
-
-  /// Callback when the user cancels the form
-  final VoidCallback onCancel;
-
-  /// Callback when the transaction is completed (dialed and saved)
-  final VoidCallback onComplete;
-
   const MomoTransactionForm({
     Key? key,
     required this.transactionType,
+    required this.coreViewModel,
     required this.onCancel,
     required this.onComplete,
   }) : super(key: key);
+
+  /// Either [TransactionType.cashIn] or [TransactionType.cashOut].
+  final String transactionType;
+
+  /// Shared view model for category focus updates (matches cash entry form).
+  final CoreViewModel coreViewModel;
+
+  final VoidCallback onCancel;
+
+  final VoidCallback onComplete;
 
   @override
   ConsumerState<MomoTransactionForm> createState() =>
@@ -57,12 +71,11 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
     _amountController.addListener(_updateUssdPreview);
     _phoneController.addListener(_updateUssdPreview);
     _momoCodeController.addListener(_updateUssdPreview);
-    _updateUssdPreview(); // Initialize the notifier
+    _updateUssdPreview();
   }
 
   void _updateUssdPreview() {
-    _ussdPreviewNotifier.value = _amountController
-        .text; // Use amount text as the value to trigger updates
+    _ussdPreviewNotifier.value = _amountController.text;
     setState(() {});
   }
 
@@ -80,350 +93,157 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
 
   bool get _isIncome => widget.transactionType == TransactionType.cashIn;
 
+  Color get _accentColor =>
+      _isIncome ? _MomoUiColors.primaryGreen : _MomoUiColors.cashOutAccent;
+
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final isIncome = _isIncome;
+    final currency = ProxyService.box.defaultCurrency();
 
     return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: SingleChildScrollView(
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Header with Icon and Title
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: (isIncome ? Colors.green : const Color(0xFFFF0331))
-                      .withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: isIncome
-                            ? Colors.green
-                            : const Color(0xFFFF0331),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: const Icon(
-                        Icons.phone_android,
-                        color: Colors.white,
-                        size: 28,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            isIncome ? 'MoMo Cash In' : 'MoMo Cash Out',
-                            style: Theme.of(context).textTheme.titleLarge
-                                ?.copyWith(
-                                  color: isIncome
-                                      ? Colors.green
-                                      : const Color(0xFFFF0331),
-                                  fontWeight: FontWeight.bold,
-                                ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            isIncome
-                                ? 'Receive money via MTN MoMo'
-                                : 'Send money via MTN MoMo',
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(color: Colors.black54),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Payment Type Selector
-              _buildPaymentTypeSelector(),
-              const SizedBox(height: 20),
-
-              // Phone Number or MoMo Code Input
-              if (_paymentType == MomoPaymentType.phoneNumber)
-                _buildPhoneNumberField()
-              else
-                _buildMomoCodeField(),
-              const SizedBox(height: 20),
-
-              // Amount field
-              TextFormField(
-                controller: _amountController,
-                decoration: InputDecoration(
-                  labelText: 'Amount',
-                  prefixText: '${ProxyService.box.defaultCurrency()} ',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  filled: true,
-                  fillColor: Colors.grey.shade50,
-                  helperText:
-                      'Enter the amount to ${isIncome ? "receive" : "send"}',
-                ),
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}')),
-                ],
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter an amount';
-                  }
-                  if (double.tryParse(value) == null) {
-                    return 'Please enter a valid amount';
-                  }
-                  if (double.parse(value) <= 0) {
-                    return 'Amount must be greater than zero';
-                  }
-                  return null;
-                },
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Category selector
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.shade300),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          isIncome ? 'Cash in for' : 'Cash out for',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                            color: Colors.black54,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        const Text(
-                          'Select category',
-                          style: TextStyle(fontSize: 12, color: Colors.black38),
-                        ),
-                      ],
-                    ),
-                    const CategorySelector.transactionMode(),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 20),
-
-              // Description field
-              TextFormField(
-                controller: _descriptionController,
-                decoration: InputDecoration(
-                  labelText: 'Description (Optional)',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  filled: true,
-                  fillColor: Colors.grey.shade50,
-                  prefixIcon: const Icon(Icons.notes),
-                  helperText: 'Add any additional notes about this transaction',
-                ),
-                maxLines: 2,
-              ),
-
-              const SizedBox(height: 20),
-
-              // USSD Preview (for user reference)
-              ValueListenableBuilder<String>(
-                valueListenable: _ussdPreviewNotifier,
-                builder: (context, _, __) {
-                  return _amountController.text.isNotEmpty
-                      ? _buildUssdPreview()
-                      : const SizedBox.shrink();
-                },
-              ),
-              const SizedBox(height: 24),
-
-              // Info banner
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.blue.shade50,
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.blue.shade200),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.info_outline,
-                      color: Colors.blue.shade700,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        'The USSD code will be dialed automatically. Confirm the transaction on your phone.',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.blue.shade900,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 24),
-
-              // Action buttons
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: _isBusy ? null : widget.onCancel,
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        side: BorderSide(
-                          color: colorScheme.primary,
-                          width: 1.5,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      child: const Text(
-                        'Cancel',
-                        style: TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    flex: 2,
-                    child: ElevatedButton.icon(
-                      onPressed: _isBusy ? null : _handleDialAndSave,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: isIncome
-                            ? Colors.green
-                            : const Color(0xFFFF0331),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        elevation: 2,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                      icon: _isBusy
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2.5,
-                                color: Colors.white,
-                              ),
-                            )
-                          : const Icon(Icons.phone, size: 22),
-                      label: Text(
-                        _isBusy ? 'Processing...' : 'Dial & Save',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPaymentTypeSelector() {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.grey.shade100,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      padding: const EdgeInsets.all(4),
-      child: Row(
-        children: [
-          Expanded(
-            child: _buildPaymentTypeButton(
-              type: MomoPaymentType.phoneNumber,
-              icon: Icons.phone,
-              label: 'Phone Number',
-            ),
-          ),
-          Expanded(
-            child: _buildPaymentTypeButton(
-              type: MomoPaymentType.momoCode,
-              icon: Icons.qr_code,
-              label: 'MoMo Code',
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPaymentTypeButton({
-    required MomoPaymentType type,
-    required IconData icon,
-    required String label,
-  }) {
-    final isSelected = _paymentType == type;
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _paymentType = type;
-        });
-        HapticFeedback.lightImpact();
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? Colors.white : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ]
-              : null,
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Icon(icon, size: 20, color: isSelected ? Colors.blue : Colors.grey),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: TextStyle(
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                color: isSelected ? Colors.blue : Colors.grey,
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _buildHeroBanner(context),
+                    const SizedBox(height: 18),
+                    _buildPaymentTypeSelector(),
+                    const SizedBox(height: 18),
+                    if (_paymentType == MomoPaymentType.phoneNumber)
+                      _buildRecipientSection(context)
+                    else
+                      _buildMomoCodeSection(context),
+                    const SizedBox(height: 18),
+                    _buildAmountSection(context, currency),
+                    const SizedBox(height: 18),
+                    Text(
+                      _isIncome ? 'CASH IN FOR' : 'CASH OUT FOR',
+                      style: _captionLabelStyle(context),
+                    ),
+                    const SizedBox(height: 10),
+                    _buildCategoryGrid(),
+                    const SizedBox(height: 18),
+                    Text(
+                      'DESCRIPTION',
+                      style: _captionLabelStyle(context),
+                    ),
+                    const SizedBox(height: 10),
+                    TextFormField(
+                      controller: _descriptionController,
+                      decoration: InputDecoration(
+                        hintText:
+                            'Add any additional notes about this transaction...',
+                        hintStyle: TextStyle(color: Colors.grey.shade500),
+                        filled: true,
+                        fillColor: _MomoUiColors.beigeField,
+                        contentPadding: const EdgeInsets.all(16),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(color: Colors.grey.shade300),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(color: Colors.grey.shade300),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          borderSide: BorderSide(
+                            color: _accentColor,
+                            width: 1.5,
+                          ),
+                        ),
+                      ),
+                      maxLines: 4,
+                      minLines: 3,
+                    ),
+                    const SizedBox(height: 16),
+                    ValueListenableBuilder<String>(
+                      valueListenable: _ussdPreviewNotifier,
+                      builder: (context, _, __) {
+                        return _amountController.text.isNotEmpty
+                            ? _buildUssdPreview()
+                            : const SizedBox.shrink();
+                      },
+                    ),
+                    if (_amountController.text.isNotEmpty)
+                      const SizedBox(height: 16),
+                    _buildInfoBanner(context),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 16),
+            _buildFooter(context),
+          ],
+        ),
+      ),
+    );
+  }
+
+  TextStyle _captionLabelStyle(BuildContext context) {
+    return Theme.of(context).textTheme.labelSmall!.copyWith(
+          letterSpacing: 1.1,
+          fontWeight: FontWeight.w600,
+          color: _MomoUiColors.labelMuted,
+          fontSize: 11,
+        );
+  }
+
+  Widget _buildHeroBanner(BuildContext context) {
+    final bg = _accentColor.withValues(alpha: 0.12);
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: bg,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: _accentColor.withValues(alpha: 0.35)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: _accentColor,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.phone_android_rounded,
+                color: Colors.white,
+                size: 26,
+              ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _isIncome ? 'MoMo Cash In' : 'MoMo Cash Out',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: _isIncome
+                              ? const Color(0xFF166534)
+                              : const Color(0xFFB91C1C),
+                        ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    _isIncome
+                        ? 'Receive money via MTN MoMo'
+                        : 'Send money via MTN MoMo',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Colors.grey.shade700,
+                        ),
+                  ),
+                ],
               ),
             ),
           ],
@@ -432,65 +252,643 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
     );
   }
 
-  Widget _buildPhoneNumberField() {
-    return TextFormField(
-      controller: _phoneController,
-      decoration: InputDecoration(
-        labelText: 'Recipient Phone Number',
-        hintText: '0788 123 456',
-        helperText: 'MTN or Airtel number',
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        filled: true,
-        fillColor: Colors.grey.shade50,
-        prefixIcon: const Icon(Icons.phone),
-        suffixIcon: ContactPickerButton(
-          onPhoneSelected: (phone) {
-            setState(() {
-              _phoneController.text = phone;
-            });
-            HapticFeedback.lightImpact();
-          },
+  Widget _buildPaymentTypeSelector() {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: _MomoUiColors.beigeInactive,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(5),
+        child: Row(
+          children: [
+            Expanded(
+              child: _paymentToggleChip(
+                type: MomoPaymentType.phoneNumber,
+                icon: Icons.phone_android_rounded,
+                label: 'Phone Number',
+              ),
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: _paymentToggleChip(
+                type: MomoPaymentType.momoCode,
+                icon: Icons.apps_rounded,
+                label: 'MoMo Code',
+              ),
+            ),
+          ],
         ),
       ),
-      keyboardType: TextInputType.phone,
-      inputFormatters: [
-        FilteringTextInputFormatter.allow(RegExp(r'[\d\s\-\+]')),
-      ],
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Please enter a phone number';
-        }
-        if (!MomoUssdService.isValidPhoneNumber(value)) {
-          return 'Please enter a valid Rwandan phone number (07x or 08x)';
-        }
-        return null;
-      },
     );
   }
 
-  Widget _buildMomoCodeField() {
-    return TextFormField(
-      controller: _momoCodeController,
-      decoration: InputDecoration(
-        labelText: 'MoMo Payment Code',
-        hintText: 'Enter code from recipient',
-        helperText: 'Usually 6-10 digits',
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        filled: true,
-        fillColor: Colors.grey.shade50,
-        prefixIcon: const Icon(Icons.qr_code),
+  Widget _paymentToggleChip({
+    required MomoPaymentType type,
+    required IconData icon,
+    required String label,
+  }) {
+    final selected = _paymentType == type;
+    final blue = Colors.blue.shade600;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          setState(() => _paymentType = type);
+          HapticFeedback.lightImpact();
+        },
+        borderRadius: BorderRadius.circular(12),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
+          decoration: BoxDecoration(
+            color: selected ? Colors.white : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: selected ? blue : Colors.transparent,
+              width: selected ? 2 : 1,
+            ),
+            boxShadow: selected
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.06),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                size: 20,
+                color: selected ? blue : Colors.grey.shade600,
+              ),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                    fontSize: 13,
+                    color: selected ? blue : Colors.grey.shade700,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
-      keyboardType: TextInputType.number,
-      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'Please enter a MoMo code';
-        }
-        if (!MomoUssdService.isValidMomoCode(value)) {
-          return 'Code must be 6-10 digits';
-        }
-        return null;
+    );
+  }
+
+  Widget _buildRecipientSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('RECIPIENT', style: _captionLabelStyle(context)),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: _phoneController,
+          decoration: InputDecoration(
+            hintText: 'MTN or Airtel number',
+            hintStyle: TextStyle(color: Colors.grey.shade500),
+            filled: true,
+            fillColor: _MomoUiColors.beigeField,
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+            prefixIcon:
+                Icon(Icons.phone_outlined, color: Colors.grey.shade700),
+            suffixIcon: ContactPickerButton(
+              icon: Icons.person_add_alt_1_rounded,
+              tooltip: 'Pick from contacts',
+              onPhoneSelected: (phone) {
+                setState(() => _phoneController.text = phone);
+                HapticFeedback.lightImpact();
+              },
+            ),
+            helperText: 'MTN or Airtel number',
+            helperStyle: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide(color: Colors.grey.shade300),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide(color: Colors.grey.shade300),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide(color: _accentColor, width: 1.5),
+            ),
+          ),
+          keyboardType: TextInputType.phone,
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(RegExp(r'[\d\s\-\+]')),
+          ],
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Please enter a phone number';
+            }
+            if (!MomoUssdService.isValidPhoneNumber(value)) {
+              return 'Please enter a valid Rwandan phone number (07x or 08x)';
+            }
+            return null;
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMomoCodeSection(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('PAYMENT CODE', style: _captionLabelStyle(context)),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: _momoCodeController,
+          decoration: InputDecoration(
+            hintText: 'Enter code from recipient',
+            hintStyle: TextStyle(color: Colors.grey.shade500),
+            filled: true,
+            fillColor: _MomoUiColors.beigeField,
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+            prefixIcon: Icon(Icons.apps_rounded, color: Colors.grey.shade700),
+            helperText: 'Usually 6–10 digits',
+            helperStyle: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide(color: Colors.grey.shade300),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide(color: Colors.grey.shade300),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide(color: _accentColor, width: 1.5),
+            ),
+          ),
+          keyboardType: TextInputType.number,
+          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Please enter a MoMo code';
+            }
+            if (!MomoUssdService.isValidMomoCode(value)) {
+              return 'Code must be 6-10 digits';
+            }
+            return null;
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAmountSection(BuildContext context, String currency) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            _MomoUiColors.mintAmountBg,
+            _MomoUiColors.mintAmountBg.withValues(alpha: 0.88),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: _MomoUiColors.primaryGreen.withValues(alpha: 0.35),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'AMOUNT',
+              style: Theme.of(context).textTheme.labelSmall!.copyWith(
+                    letterSpacing: 1.2,
+                    fontWeight: FontWeight.w700,
+                    color: _MomoUiColors.primaryGreen,
+                    fontSize: 11,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.baseline,
+              textBaseline: TextBaseline.alphabetic,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: Text(
+                    currency,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          color: _MomoUiColors.primaryGreen,
+                          fontWeight: FontWeight.w600,
+                        ),
+                  ),
+                ),
+                Expanded(
+                  child: TextFormField(
+                    controller: _amountController,
+                    keyboardType:
+                        const TextInputType.numberWithOptions(decimal: true),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(
+                        RegExp(r'^\d+\.?\d{0,2}'),
+                      ),
+                    ],
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: const Color(0xFF166534),
+                          letterSpacing: -0.5,
+                        ),
+                    decoration: const InputDecoration(
+                      isDense: true,
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.zero,
+                      hintText: '0',
+                      hintStyle: TextStyle(color: Color(0x33166534)),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please enter an amount';
+                      }
+                      if (double.tryParse(value) == null) {
+                        return 'Please enter a valid amount';
+                      }
+                      if (double.parse(value) <= 0) {
+                        return 'Amount must be greater than zero';
+                      }
+                      return null;
+                    },
+                  ),
+                ),
+              ],
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 6),
+              child: Text(
+                _isIncome
+                    ? 'Enter the amount to receive'
+                    : 'Enter the amount to send',
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: _MomoUiColors.primaryGreen.withValues(alpha: 0.95),
+                      fontWeight: FontWeight.w500,
+                    ),
+              ),
+            ),
+            const SizedBox(height: 14),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                _amountChip('+500', () => _adjustAmount(500)),
+                _amountChip('+1,000', () => _adjustAmount(1000)),
+                _amountChip('+5,000', () => _adjustAmount(5000)),
+                _amountChip('Clear', _clearAmount),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _adjustAmount(double delta) {
+    final text = _amountController.text.trim();
+    final cur = double.tryParse(text) ?? 0;
+    final next = cur + delta;
+    final formatted = next == next.roundToDouble()
+        ? next.toInt().toString()
+        : next.toStringAsFixed(2);
+    _amountController.value = TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
+    );
+    _updateUssdPreview();
+  }
+
+  void _clearAmount() {
+    _amountController.clear();
+    _updateUssdPreview();
+  }
+
+  Widget _amountChip(String label, VoidCallback onTap) {
+    return OutlinedButton(
+      onPressed: onTap,
+      style: OutlinedButton.styleFrom(
+        foregroundColor: const Color(0xFF166534),
+        side: BorderSide(
+          color: _MomoUiColors.primaryGreen.withValues(alpha: 0.45),
+        ),
+        backgroundColor: Colors.white,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        minimumSize: Size.zero,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+      ),
+      child: Text(label),
+    );
+  }
+
+  List<Category> _sortedCategoriesForGrid(List<Category> all) {
+    final active = all.where((c) => c.active ?? false).toList();
+    active.sort((a, b) {
+      final af = a.focused ? 0 : 1;
+      final bf = b.focused ? 0 : 1;
+      if (af != bf) return af.compareTo(bf);
+      return (a.name ?? '').compareTo(b.name ?? '');
+    });
+    return active.take(3).toList();
+  }
+
+  String? _resolvedSelectedCategoryId(List<Category> categories) {
+    final optimistic = ref.watch(optimisticFocusedCategoryProvider);
+    if (optimistic != null && optimistic.id.isNotEmpty) {
+      return optimistic.id;
+    }
+    try {
+      final focused = categories.firstWhere(
+        (c) => c.focused && (c.active ?? false),
+      );
+      return focused.id;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  IconData _categorySlotIcon(int index) {
+    switch (index) {
+      case 0:
+        return Icons.person_outline_rounded;
+      case 1:
+        return Icons.business_center_outlined;
+      default:
+        return Icons.schedule_outlined;
+    }
+  }
+
+  Widget _buildCategoryGrid() {
+    final categoriesAsync = ref.watch(categoryProvider);
+
+    return categoriesAsync.when(
+      data: (list) {
+        final tiles = _sortedCategoriesForGrid(list);
+        final selectedId = _resolvedSelectedCategoryId(list);
+
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final spacing = 10.0;
+            final cellWidth = (constraints.maxWidth - spacing) / 2;
+            return Wrap(
+              spacing: spacing,
+              runSpacing: spacing,
+              children: [
+                ...List.generate(tiles.length, (i) {
+                  final c = tiles[i];
+                  final sel = selectedId != null && selectedId == c.id;
+                  return SizedBox(
+                    width: cellWidth,
+                    child: _categoryChoiceTile(
+                      label: c.name ?? '',
+                      icon: _categorySlotIcon(i),
+                      selected: sel,
+                      onTap: () => _onCategoryTap(c),
+                    ),
+                  );
+                }),
+                SizedBox(
+                  width: cellWidth,
+                  child: _addCategoryTile(onTap: _openCategoriesForTransaction),
+                ),
+              ],
+            );
+          },
+        );
       },
+      loading: () => const Center(
+        child: Padding(
+          padding: EdgeInsets.all(24),
+          child: CircularProgressIndicator(strokeWidth: 2),
+        ),
+      ),
+      error: (e, _) => Text('Categories error: $e'),
+    );
+  }
+
+  Widget _categoryChoiceTile({
+    required String label,
+    required IconData icon,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
+          decoration: BoxDecoration(
+            color: selected
+                ? _MomoUiColors.mintAmountBg
+                : _MomoUiColors.beigeInactive,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(
+              color: selected
+                  ? _MomoUiColors.primaryGreen
+                  : Colors.grey.shade300,
+              width: selected ? 2 : 1,
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                color:
+                    selected ? const Color(0xFF166534) : Colors.grey.shade700,
+                size: 26,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                label,
+                textAlign: TextAlign.center,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                  color:
+                      selected ? const Color(0xFF166534) : Colors.grey.shade800,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _addCategoryTile({required VoidCallback onTap}) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: CustomPaint(
+          painter: _MomoDashedRoundedBorderPainter(
+            color: Colors.grey.shade400,
+            radius: 14,
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.add, color: Colors.grey.shade600, size: 26),
+                const SizedBox(height: 8),
+                Text(
+                  'Add new',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                    color: Colors.grey.shade700,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _onCategoryTap(Category category) async {
+    final ok =
+        await widget.coreViewModel.updateCategoryCore(category: category);
+    if (!mounted || !ok) return;
+    ref.read(optimisticFocusedCategoryProvider.notifier).setFocused(category);
+    ref.invalidate(categoryProvider);
+    final bid = ProxyService.box.getBranchId();
+    if (bid != null) {
+      ref.invalidate(categoriesProvider(branchId: bid));
+    }
+    setState(() {});
+  }
+
+  Future<void> _openCategoriesForTransaction() async {
+    final routerService = locator<RouterService>();
+    await routerService.navigateTo(
+      ListCategoriesRoute(modeOfOperation: 'transaction'),
+    );
+    if (!mounted) return;
+    ref.invalidate(categoryProvider);
+    final bid = ProxyService.box.getBranchId();
+    if (bid != null) {
+      ref.invalidate(categoriesProvider(branchId: bid));
+    }
+  }
+
+  Widget _buildInfoBanner(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.blue.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.blue.shade200),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(Icons.info_outline_rounded,
+                color: Colors.blue.shade700, size: 22),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'The USSD code will be dialed automatically. Confirm the transaction on your phone.',
+                style: TextStyle(
+                  fontSize: 13,
+                  height: 1.35,
+                  color: Colors.blue.shade900,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFooter(BuildContext context) {
+    final accent = _accentColor;
+
+    return Row(
+      children: [
+        Expanded(
+          child: OutlinedButton(
+            onPressed: _isBusy ? null : widget.onCancel,
+            style: OutlinedButton.styleFrom(
+              foregroundColor: Colors.grey.shade900,
+              backgroundColor: _MomoUiColors.beigeField,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              side: BorderSide(color: Colors.grey.shade300),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
+            child: const Text('Cancel'),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          flex: 2,
+          child: ElevatedButton(
+            onPressed: _isBusy ? null : _handleDialAndSave,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: accent,
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
+            child: _isBusy
+                ? const SizedBox(
+                    height: 22,
+                    width: 22,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Colors.white,
+                    ),
+                  )
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
+                    children: const [
+                      Icon(Icons.phone_rounded, color: Colors.white, size: 22),
+                      SizedBox(width: 8),
+                      Text(
+                        'Dial & Save',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+          ),
+        ),
+      ],
     );
   }
 
@@ -516,96 +914,94 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
 
     if (ussdCode.isEmpty) return const SizedBox.shrink();
 
-    return Container(
-      padding: const EdgeInsets.all(16),
+    return DecoratedBox(
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            const Color(0xFFFFCC00).withValues(alpha: 0.1),
+            const Color(0xFFFFCC00).withValues(alpha: 0.12),
             const Color(0xFFFFCC00).withValues(alpha: 0.05),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(14),
         border: Border.all(color: const Color(0xFFFFCC00), width: 1.5),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFFFCC00),
-                  borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFCC00),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Icon(Icons.dialpad, size: 20, color: Colors.black87),
                 ),
-                child: const Icon(
-                  Icons.dialpad,
-                  size: 20,
-                  color: Colors.black87,
+                const SizedBox(width: 12),
+                const Expanded(
+                  child: Text(
+                    'USSD Code Preview',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: Colors.black87,
+                    ),
+                  ),
                 ),
+                IconButton(
+                  icon: const Icon(Icons.copy, size: 20),
+                  tooltip: 'Copy to clipboard',
+                  style: IconButton.styleFrom(
+                    backgroundColor: const Color(0xFFFFCC00).withValues(alpha: 0.25),
+                  ),
+                  onPressed: () {
+                    Clipboard.setData(ClipboardData(text: ussdCode));
+                    HapticFeedback.lightImpact();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: const Row(
+                          children: [
+                            Icon(Icons.check_circle, color: Colors.white),
+                            SizedBox(width: 8),
+                            Text('USSD code copied!'),
+                          ],
+                        ),
+                        backgroundColor: Colors.green,
+                        behavior: SnackBarBehavior.floating,
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            DecoratedBox(
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
               ),
-              const SizedBox(width: 12),
-              const Expanded(
-                child: Text(
-                  'USSD Code Preview',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: SelectableText(
+                  ussdCode,
+                  style: const TextStyle(
+                    fontFamily: 'monospace',
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
                     color: Colors.black87,
+                    letterSpacing: 1.1,
                   ),
                 ),
               ),
-              IconButton(
-                icon: const Icon(Icons.copy, size: 20),
-                tooltip: 'Copy to clipboard',
-                style: IconButton.styleFrom(
-                  backgroundColor: const Color(
-                    0xFFFFCC00,
-                  ).withValues(alpha: 0.2),
-                ),
-                onPressed: () {
-                  Clipboard.setData(ClipboardData(text: ussdCode));
-                  HapticFeedback.lightImpact();
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: const Row(
-                        children: [
-                          Icon(Icons.check_circle, color: Colors.white),
-                          SizedBox(width: 8),
-                          Text('USSD code copied!'),
-                        ],
-                      ),
-                      backgroundColor: Colors.green,
-                      behavior: SnackBarBehavior.floating,
-                      duration: const Duration(seconds: 2),
-                    ),
-                  );
-                },
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8),
             ),
-            child: SelectableText(
-              ussdCode,
-              style: const TextStyle(
-                fontFamily: 'monospace',
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-                letterSpacing: 1.2,
-              ),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -623,11 +1019,9 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
       final amount = double.parse(_amountController.text);
       final isIncome = _isIncome;
 
-      // Validate category selection
       final String branchId = ProxyService.box.getBranchId()!;
-      final Category? category = await ProxyService.strategy.activeCategory(
-        branchId: branchId,
-      );
+      final Category? category =
+          await ProxyService.strategy.activeCategory(branchId: branchId);
 
       if (category == null) {
         if (mounted) {
@@ -637,7 +1031,6 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
         return;
       }
 
-      // Generate USSD code
       String ussdCode;
       String paymentDetails;
 
@@ -655,11 +1048,9 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
         paymentDetails = 'MoMo Code: ${_momoCodeController.text}';
       }
 
-      // Try to dial the USSD code
       final dialSuccess = await MomoUssdService.dialUssdCode(ussdCode);
 
       if (!dialSuccess) {
-        // Show the code for manual dialing if automatic dial fails
         if (mounted) {
           showWarningNotification(
             context,
@@ -668,7 +1059,6 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
         }
       }
 
-      // Save the transaction regardless of dial success
       await _saveTransaction(
         amount: amount,
         isIncome: isIncome,
@@ -707,7 +1097,6 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
     await _lock.synchronized(() async {
       final String branchId = ProxyService.box.getBranchId()!;
 
-      // Create the transaction
       ITransaction? pendingTransaction = await ProxyService.strategy
           .manageTransaction(
             branchId: branchId,
@@ -723,7 +1112,6 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
         'MomoTransactionForm: Created pending transaction: ${pendingTransaction.id}',
       );
 
-      // Get utility variant for the transaction
       Variant? utilityVariant = await ProxyService.strategy.getUtilityVariant(
         name: widget.transactionType,
         branchId: branchId,
@@ -799,31 +1187,27 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
         );
       }
 
-      // Combine payment details with description
       final note = _descriptionController.text.isNotEmpty
           ? '${_descriptionController.text}\n$paymentDetails'
           : paymentDetails;
 
-      // Collect payment and mark as waiting for MoMo completion
-      ITransaction updatedTransaction = await ProxyService.strategy
-          .collectPayment(
-            cashReceived: amount,
-            countryCode: 'RW',
-            branchId: branchId,
-            bhfId: (await ProxyService.box.bhfId()) ?? '00',
-            isProformaMode: false,
-            isTrainingMode: ProxyService.box.isTrainingMode(),
-            transaction: pendingTransaction,
-            paymentType: 'MTN MOMO',
-            discount: 0,
-            transactionType: category.name ?? widget.transactionType,
-            directlyHandleReceipt: false,
-            isIncome: isIncome,
-            categoryId: category.id.toString(),
-            note: note,
-          );
+      ITransaction updatedTransaction = await ProxyService.strategy.collectPayment(
+        cashReceived: amount,
+        countryCode: 'RW',
+        branchId: branchId,
+        bhfId: (await ProxyService.box.bhfId()) ?? '00',
+        isProformaMode: false,
+        isTrainingMode: ProxyService.box.isTrainingMode(),
+        transaction: pendingTransaction,
+        paymentType: 'MTN MOMO',
+        discount: 0,
+        transactionType: category.name ?? widget.transactionType,
+        directlyHandleReceipt: false,
+        isIncome: isIncome,
+        categoryId: category.id.toString(),
+        note: note,
+      );
 
-      // Mark transaction with special MoMo waiting status
       await ProxyService.strategy.updateTransaction(
         transaction: updatedTransaction,
         status: WAITING_MOMO_COMPLETE,
@@ -834,12 +1218,51 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
         'MomoTransactionForm: Transaction saved with WAITING_MOMO_COMPLETE status',
       );
 
-      // Refresh providers
       ref.refresh(
         transactionItemsProvider(transactionId: pendingTransaction.id),
       );
       ref.refresh(pendingTransactionStreamProvider(isExpense: !isIncome));
       ref.refresh(dashboardTransactionsProvider);
     });
+  }
+}
+
+final class _MomoDashedRoundedBorderPainter extends CustomPainter {
+  _MomoDashedRoundedBorderPainter({
+    required this.color,
+    required this.radius,
+  });
+
+  final Color color;
+  final double radius;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final rect = RRect.fromRectAndRadius(
+      Rect.fromLTWH(0, 0, size.width, size.height),
+      Radius.circular(radius),
+    );
+    final path = Path()..addRRect(rect);
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.2;
+
+    const dashLen = 5.0;
+    const gap = 4.0;
+    for (final metric in path.computeMetrics()) {
+      double dist = 0;
+      while (dist < metric.length) {
+        final next = (dist + dashLen).clamp(0.0, metric.length);
+        final extract = metric.extractPath(dist, next);
+        canvas.drawPath(extract, paint);
+        dist = next + gap;
+      }
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _MomoDashedRoundedBorderPainter oldDelegate) {
+    return oldDelegate.color != color || oldDelegate.radius != radius;
   }
 }
