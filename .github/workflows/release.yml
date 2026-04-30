@@ -25,6 +25,7 @@ env:
   URL: ${{ secrets.DB_URL }}
   PASSWORD: ${{ secrets.DB_PASSWORD }}
   SHOREBIRD_TOKEN: ${{ secrets.SHOREBIRD_TOKEN }}
+  FLUTTER_VERSION: "3.41.8"
   # SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }} # Securely store this
   IS_TEST_ENV: true
 
@@ -53,7 +54,7 @@ jobs:
 
       - uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.38.8"
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: "stable"
       - run: |
           git submodule update --init
@@ -122,7 +123,7 @@ jobs:
       - name: Clone Flutter repository with stable channel
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.38.8" # Consider using a more recent stable Flutter version if possible/needed
+          flutter-version: ${{ env.FLUTTER_VERSION }} # Consider using a more recent stable Flutter version if possible/needed
           channel: stable
       - run: flutter doctor -v
 
@@ -224,7 +225,7 @@ jobs:
       - name: Clone Flutter repository with stable channel
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.38.8"
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
       - run: flutter doctor -v
 
@@ -293,7 +294,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.38.8"
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
 
@@ -384,7 +385,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.38.8"
+          flutter-version: ${{ env.FLUTTER_VERSION }}
           channel: stable
           cache: true
 
@@ -481,7 +482,7 @@ jobs:
       - name: Clone Flutter repository with stable channel
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.38.8" #firebase_auth_desktop is broken with  3.10.6
+          flutter-version: ${{ env.FLUTTER_VERSION }} #firebase_auth_desktop is broken with  3.10.6
           channel: stable
       - run: flutter doctor -v
 
