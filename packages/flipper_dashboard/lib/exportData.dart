@@ -818,11 +818,16 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
       sheet.autoFitColumn(totalSalesColumn);
     }
 
+    // [getRangeByIndex] columns are 1-based; when NetProfit is column 1,
+    // [netProfitColumn - 1] was 0 and Syncfusion threw "out of the range".
+    final netProfitLabelCol =
+        netProfitColumn > 1 ? netProfitColumn - 1 : netProfitColumn;
+
     sheet
-        .getRangeByIndex(netProfitTotalRowIndex, netProfitColumn - 1)
+        .getRangeByIndex(netProfitTotalRowIndex, netProfitLabelCol)
         .setText('Total Net Profit (Before Expenses):');
     sheet
-        .getRangeByIndex(netProfitTotalRowIndex, netProfitColumn - 1)
+        .getRangeByIndex(netProfitTotalRowIndex, netProfitLabelCol)
         .cellStyle = summaryStyle;
 
     final sumCell =
@@ -833,7 +838,7 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
     sumCell.cellStyle = summaryStyle;
     sumCell.numberFormat = _excelPluAmountNumberFormat;
 
-    sheet.autoFitColumn(netProfitColumn - 1);
+    sheet.autoFitColumn(netProfitLabelCol);
     sheet.autoFitColumn(netProfitColumn);
 
     // Note: Final Net Profit (after expenses) calculation is now handled by the _addFinalNetProfitRow method
@@ -937,10 +942,10 @@ mixin ExportMixin<T extends ConsumerStatefulWidget> on ConsumerState<T> {
 
       // Add 'Final Net Profit (After Expenses):' label
       reportSheet
-          .getRangeByIndex(finalNetProfitRowIndex, netProfitColumn - 1)
+          .getRangeByIndex(finalNetProfitRowIndex, labelCol)
           .setText('Final Net Profit (After Expenses):');
       reportSheet
-              .getRangeByIndex(finalNetProfitRowIndex, netProfitColumn - 1)
+              .getRangeByIndex(finalNetProfitRowIndex, labelCol)
               .cellStyle =
           finalNetProfitStyle;
 

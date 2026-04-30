@@ -24,27 +24,62 @@ class TransactionReportKpiStrip extends ConsumerWidget {
   final DateTime endDate;
   final bool showDetailed;
 
-  static double _pluLineRevenueFromItemList(List<TransactionItem> items) {
+  /// IDs of non-expense transactions (sales). PLU KPIs count only these lines.
+  static Set<String> _salesTransactionIds(List<ITransaction> txs) {
+    return {
+      for (final t in txs)
+        if (t.isExpense != true) t.id.toString(),
+    };
+  }
+
+  static double _pluLineRevenueFromItemList(
+    List<TransactionItem> items,
+    Set<String> salesTransactionIds,
+  ) {
     if (items.isEmpty) return 0.0;
     return items.fold<double>(
       0.0,
-      (sum, item) => sum + item.price.toDouble() * item.qty.toDouble(),
+      (sum, item) {
+        final tid = item.transactionId?.toString();
+        if (tid == null || !salesTransactionIds.contains(tid)) {
+          return sum;
+        }
+        return sum + item.price.toDouble() * item.qty.toDouble();
+      },
     );
   }
 
-  static double _pluGrossProfitFromItemList(List<TransactionItem> items) {
+  static double _pluGrossProfitFromItemList(
+    List<TransactionItem> items,
+    Set<String> salesTransactionIds,
+  ) {
     if (items.isEmpty) return 0.0;
     return items.fold<double>(
       0.0,
-      (sum, item) => sum + TransactionItemPluMetrics.profitMade(item),
+      (sum, item) {
+        final tid = item.transactionId?.toString();
+        if (tid == null || !salesTransactionIds.contains(tid)) {
+          return sum;
+        }
+        return sum + TransactionItemPluMetrics.profitMade(item);
+      },
     );
   }
 
-  static double _pluTotalLineTaxFromList(List<TransactionItem> items) {
+  static double _pluTotalLineTaxFromList(
+    List<TransactionItem> items,
+    Set<String> salesTransactionIds,
+  ) {
     if (items.isEmpty) return 0.0;
     return items.fold<double>(
       0.0,
-      (sum, item) => sum + TransactionItemPluMetrics.taxPayable(item),
+      (sum, item) {
+        final tid = item.transactionId?.toString();
+        if (tid == null || !salesTransactionIds.contains(tid)) {
+          return sum;
+        }
+        return sum + TransactionItemPluMetrics.taxPayable(item);
+      },
     );
   }
 
@@ -135,6 +170,7 @@ class TransactionReportKpiStrip extends ConsumerWidget {
   }
 
   Widget _twoCardRow(WidgetRef ref) {
+    final salesIds = _salesTransactionIds(transactions);
     return Row(
       children: [
         const SizedBox(width: 12),
@@ -144,7 +180,7 @@ class TransactionReportKpiStrip extends ConsumerWidget {
               final itemsAsync = ref.watch(transactionItemListProvider);
               final items = _profitCardItems(itemsAsync);
               final loading = _profitCardItemsLoading(itemsAsync);
-              final lineSales = _pluLineRevenueFromItemList(items);
+              final lineSales = _pluLineRevenueFromItemList(items, salesIds);
               return _summaryCard('Total Sales', lineSales, loading, Colors.green);
             },
           ),
@@ -156,8 +192,8 @@ class TransactionReportKpiStrip extends ConsumerWidget {
               final itemsAsync = ref.watch(transactionItemListProvider);
               final items = _profitCardItems(itemsAsync);
               final itemsLoading = _profitCardItemsLoading(itemsAsync);
-              final gross = _pluGrossProfitFromItemList(items);
-              final tax = _pluTotalLineTaxFromList(items);
+              final gross = _pluGrossProfitFromItemList(items, salesIds);
+              final tax = _pluTotalLineTaxFromList(items, salesIds);
               final bid = ProxyService.box.getBranchId();
 
               if (bid == null) {
@@ -201,10 +237,12 @@ class TransactionReportKpiStrip extends ConsumerWidget {
   }
 
   Widget _fourCardRow(WidgetRef ref) {
+    final salesIds = _salesTransactionIds(transactions);
     final sumsMap = paymentSumsByTransactionId ?? <String, TransactionPaymentSums>{};
     var byHand = 0.0;
     var credit = 0.0;
     for (final tx in transactions) {
+      if (tx.isExpense == true) continue;
       final s = sumsMap[tx.id.toString()];
       byHand += transactionReportByHandForTotals(tx, s);
       credit += transactionReportCreditForTotals(tx, s);
@@ -220,7 +258,7 @@ class TransactionReportKpiStrip extends ConsumerWidget {
               final itemsAsync = ref.watch(transactionItemListProvider);
               final items = _profitCardItems(itemsAsync);
               final loading = _profitCardItemsLoading(itemsAsync);
-              final lineSales = _pluLineRevenueFromItemList(items);
+              final lineSales = _pluLineRevenueFromItemList(items, salesIds);
               return _summaryCard('Total Sales', lineSales, loading, Colors.green);
             },
           ),
@@ -232,8 +270,8 @@ class TransactionReportKpiStrip extends ConsumerWidget {
               final itemsAsync = ref.watch(transactionItemListProvider);
               final items = _profitCardItems(itemsAsync);
               final itemsLoading = _profitCardItemsLoading(itemsAsync);
-              final gross = _pluGrossProfitFromItemList(items);
-              final tax = _pluTotalLineTaxFromList(items);
+              final gross = _pluGrossProfitFromItemList(items, salesIds);
+              final tax = _pluTotalLineTaxFromList(items, salesIds);
               final bid = ProxyService.box.getBranchId();
 
               if (bid == null) {

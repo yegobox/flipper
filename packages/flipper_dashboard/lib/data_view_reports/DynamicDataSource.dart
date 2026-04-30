@@ -32,6 +32,16 @@ String _transactionReportStatusLabel(ITransaction tx) {
   return tx.status ?? '—';
 }
 
+/// Grid + export Type column: Cash In / Cash Out for cash book; else receipt code (NS, …).
+String transactionReportGridTypeLabel(ITransaction t) {
+  final rt = t.receiptType;
+  if (rt != null &&
+      (rt == TransactionType.cashIn || rt == TransactionType.cashOut)) {
+    return rt;
+  }
+  return rt ?? '-';
+}
+
 double _reportByHand(ITransaction tx, TransactionPaymentSums? sums) {
   if (sums == null || !sums.hasAnyRecord) {
     return tx.cashReceived ?? 0.0;
@@ -49,6 +59,12 @@ double _reportBalanceDue(ITransaction tx) {
   if (rb != null && rb > 0.01) return rb.toDouble();
   if (tx.isLoan == true) return (rb ?? 0.0).toDouble();
   return 0.0;
+}
+
+/// Display amount: expenses (cash out, etc.) show as negative in Transaction Reports.
+double _signedReportMoney(double raw, ITransaction tx) {
+  if (tx.isExpense == true) return -raw.abs();
+  return raw;
 }
 
 /// Public wrappers for DataView export and period totals.
@@ -76,11 +92,11 @@ Map<String, Object?> transactionSummaryExportRow(
       transaction,
       directory: cashierDirectory,
     ),
-    'Type': transaction.receiptType ?? 'Sale',
+    'Type': transactionReportGridTypeLabel(transaction),
     'Status': _transactionReportStatusLabel(transaction),
-    'SaleTotal': transaction.subTotal ?? 0.0,
-    'ByHand': _reportByHand(transaction, sums),
-    'Credit': _reportCredit(transaction, sums),
+    'SaleTotal': _signedReportMoney(transaction.subTotal ?? 0.0, transaction),
+    'ByHand': _signedReportMoney(_reportByHand(transaction, sums), transaction),
+    'Credit': _signedReportMoney(_reportCredit(transaction, sums), transaction),
     'Tax': TransactionSummaryTax.taxColumn(transaction),
     'BalanceDue': _reportBalanceDue(transaction),
     'Actions': '',
@@ -377,7 +393,7 @@ abstract class DynamicDataSource<T> extends DataGridSource {
         ),
         DataGridCell<String>(
           columnName: 'Type',
-          value: trans.receiptType ?? "-",
+          value: transactionReportGridTypeLabel(trans),
         ),
         DataGridCell<String>(
           columnName: 'Status',
@@ -385,15 +401,15 @@ abstract class DynamicDataSource<T> extends DataGridSource {
         ),
         DataGridCell<double>(
           columnName: 'SaleTotal',
-          value: trans.subTotal ?? 0.0,
+          value: _signedReportMoney(trans.subTotal ?? 0.0, trans),
         ),
         DataGridCell<double>(
           columnName: 'ByHand',
-          value: _reportByHand(trans, sums),
+          value: _signedReportMoney(_reportByHand(trans, sums), trans),
         ),
         DataGridCell<double>(
           columnName: 'Credit',
-          value: _reportCredit(trans, sums),
+          value: _signedReportMoney(_reportCredit(trans, sums), trans),
         ),
         DataGridCell<double>(columnName: 'Tax', value: taxValue),
         DataGridCell<double>(

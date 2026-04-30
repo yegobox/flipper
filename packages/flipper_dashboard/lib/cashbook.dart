@@ -1,5 +1,7 @@
 // ignore_for_file: unused_result
 
+import 'dart:async';
+
 import 'package:flipper_dashboard/DateCoreWidget.dart';
 import 'package:flipper_dashboard/widgets/momo_transaction_form.dart';
 import 'package:flipper_models/providers/category_provider.dart';
@@ -11,12 +13,13 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/flipper_ui.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
+import 'package:flipper_models/cache/utility_cash_variant_cache.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:intl/intl.dart';
-import 'package:synchronized/synchronized.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -55,13 +58,23 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
   final _formKey = GlobalKey<FormState>();
   final _amountController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final _lock = Lock();
 
   /// Track if MoMo transaction form is active
   bool _isMomoMode = false;
   String _momoTransactionType = TransactionType.cashIn;
 
   _RecentTxFilter _recentTxFilter = _RecentTxFilter.all;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final bid = ProxyService.box.getBranchId();
+      if (bid != null && bid.isNotEmpty) {
+        unawaited(UtilityCashVariantCache.prefetch(ProxyService.strategy, bid));
+      }
+    });
+  }
 
   @override
   void dispose() {
@@ -1601,7 +1614,11 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
         }
         ref.refresh(transactionItemsProvider(transactionId: tid));
         ref.refresh(pendingTransactionStreamProvider(isExpense: !wasIncome));
-        ref.refresh(dashboardTransactionsProvider);
+        SchedulerBinding.instance.scheduleTask(() {
+          if (context.mounted) {
+            ref.invalidate(dashboardTransactionsProvider);
+          }
+        }, Priority.idle);
       });
     } catch (e) {
       talker.error('Error saving transaction: $e');
@@ -1625,161 +1642,42 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
     String? note,
   }) async {
     try {
-      ({String transactionId, bool isIncome})? out;
-      await _lock.synchronized(() async {
-        talker.info('Inside _lock.synchronized');
+      final strategy = ProxyService.strategy;
 
-        final strategy = ProxyService.strategy;
+      String? branchId = ProxyService.box.getBranchId();
+      if (branchId == null || branchId.isEmpty) {
+        throw Exception('Branch ID is null or empty');
+      }
 
-        String? branchId = ProxyService.box.getBranchId();
-        if (branchId == null || branchId.isEmpty) {
-          throw Exception('Branch ID is null or empty');
-        }
+      talker.info('Starting completeCashMovement with amount: $cashReceived');
+      talker.info('Transaction type: $transactionType, isIncome: $isIncome');
 
-        final List<dynamic> created = await Future.wait<dynamic>([
-          strategy.manageTransaction(
-            branchId: branchId,
-            transactionType: transactionType,
-            isExpense: !isIncome,
-          ),
-          strategy.getUtilityVariant(name: transactionType, branchId: branchId),
-        ]);
-        ITransaction? pendingTransaction = created[0] as ITransaction?;
-        Variant? utilityVariant = created[1] as Variant?;
+      HapticFeedback.lightImpact();
 
-        if (pendingTransaction == null) {
-          talker.error('Failed to create or get a pending transaction');
-          return;
-        }
+      final updatedTransaction = await strategy.completeCashMovement(
+        branchId: branchId,
+        bhfId: bhfId,
+        cashReceived: cashReceived,
+        isIncome: isIncome,
+        utilityVariantName: transactionType,
+        paymentType: paymentType,
+        discount: discount.toDouble(),
+        countryCode: countryCode,
+        isProformaMode: ProxyService.box.isProformaMode(),
+        isTrainingMode: ProxyService.box.isTrainingMode(),
+        transactionTypeForRecord: category.name ?? TransactionType.sale,
+        categoryId: category.id.toString(),
+        note: note,
+      );
 
-        talker.info(
-          'Created pending transaction with ID: ${pendingTransaction.id}',
-        );
+      talker.info(
+        'Transaction save completed successfully: ${updatedTransaction.id}',
+      );
 
-        List<TransactionItem>? preloadedForPayment;
-        if (utilityVariant != null) {
-          final today = DateTime.now();
-          final dateStr =
-              '${today.year}-${today.month.toString().padLeft(2, '0')}-${today.day.toString().padLeft(2, '0')}';
-
-          final formattedType = transactionType.toLowerCase() == 'cashin'
-              ? 'CASH-IN'
-              : transactionType.toLowerCase() == 'cashout'
-              ? 'CASH-OUT'
-              : transactionType.toUpperCase();
-
-          final itemCode = '$formattedType-$dateStr';
-
-          utilityVariant = Variant(
-            id: utilityVariant.id,
-            name: utilityVariant.name,
-            color: utilityVariant.color,
-            sku: utilityVariant.sku,
-            productId: utilityVariant.productId,
-            unit: utilityVariant.unit,
-            productName: utilityVariant.productName,
-            branchId: utilityVariant.branchId,
-            taxName: utilityVariant.taxName,
-            taxPercentage: utilityVariant.taxPercentage,
-            retailPrice: cashReceived,
-            supplyPrice: utilityVariant.supplyPrice,
-            lastTouched: utilityVariant.lastTouched,
-            itemSeq: utilityVariant.itemSeq,
-            isrccCd: utilityVariant.isrccCd,
-            isrccNm: utilityVariant.isrccNm,
-            isrcRt: utilityVariant.isrcRt,
-            isrcAmt: utilityVariant.isrcAmt,
-            taxTyCd: utilityVariant.taxTyCd,
-            bcd: utilityVariant.bcd,
-            itemClsCd: utilityVariant.itemClsCd,
-            itemTyCd: utilityVariant.itemTyCd,
-            itemStdNm: utilityVariant.itemStdNm,
-            orgnNatCd: utilityVariant.orgnNatCd,
-            pkg: utilityVariant.pkg,
-            itemCd: itemCode,
-            pkgUnitCd: utilityVariant.pkgUnitCd,
-            qtyUnitCd: utilityVariant.qtyUnitCd,
-            itemNm: utilityVariant.itemNm,
-            qty: utilityVariant.qty,
-            prc: utilityVariant.prc,
-            splyAmt: utilityVariant.splyAmt,
-            tin: utilityVariant.tin,
-            bhfId: utilityVariant.bhfId,
-            dftPrc: utilityVariant.dftPrc,
-            addInfo: utilityVariant.addInfo,
-            isrcAplcbYn: utilityVariant.isrcAplcbYn,
-            useYn: utilityVariant.useYn,
-            regrId: utilityVariant.regrId,
-            regrNm: utilityVariant.regrNm,
-            modrId: utilityVariant.modrId,
-            modrNm: utilityVariant.modrNm,
-            rsdQty: utilityVariant.rsdQty,
-            dcRt: utilityVariant.dcRt,
-            dcAmt: utilityVariant.dcAmt,
-            stock: utilityVariant.stock,
-            ebmSynced: utilityVariant.ebmSynced,
-            taxAmt: utilityVariant.taxAmt,
-          );
-
-          await strategy.saveTransactionItem(
-            variation: utilityVariant,
-            amountTotal: cashReceived,
-            customItem: true,
-            pendingTransaction: pendingTransaction,
-            currentStock: 0,
-            partOfComposite: false,
-            doneWithTransaction: true,
-            ignoreForReport: false,
-            updatePendingTransactionSubtotal: false,
-          );
-          preloadedForPayment = [
-            TransactionItem(
-              name: utilityVariant.name,
-              qty: 1,
-              price: cashReceived,
-              discount: 0,
-              prc: cashReceived,
-              totAmt: cashReceived,
-              transactionId: pendingTransaction.id,
-              variantId: utilityVariant.id,
-              branchId: branchId,
-              dcAmt: 0,
-              ttCatCd: utilityVariant.taxTyCd ?? 'B',
-            ),
-          ];
-        }
-
-        talker.info('Called keyboardKeyPressed with \'+\' key');
-        HapticFeedback.lightImpact();
-
-        ITransaction updatedTransaction = await strategy.collectPayment(
-          cashReceived: cashReceived,
-          countryCode: countryCode,
-          branchId: branchId,
-          bhfId: bhfId,
-          isProformaMode: ProxyService.box.isProformaMode(),
-          isTrainingMode: ProxyService.box.isTrainingMode(),
-          transaction: pendingTransaction,
-          paymentType: paymentType,
-          discount: discount.toDouble(),
-          transactionType: category.name ?? TransactionType.sale,
-          directlyHandleReceipt: false,
-          isIncome: isIncome,
-          categoryId: category.id.toString(),
-          note: note,
-          completionStatus: COMPLETE,
-          preloadedLineItems: preloadedForPayment,
-        );
-
-        talker.info(
-          'Called collectPayment, got updated transaction with ID: ${updatedTransaction.id}',
-        );
-
-        out = (transactionId: pendingTransaction.id, isIncome: isIncome);
-
-        talker.info('Transaction save completed successfully');
-      });
-      return out;
+      return (
+        transactionId: updatedTransaction.id,
+        isIncome: isIncome,
+      );
     } catch (e, s) {
       talker.error('Error in _saveTransaction: $e');
       talker.error(s);

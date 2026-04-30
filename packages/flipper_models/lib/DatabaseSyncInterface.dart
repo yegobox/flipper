@@ -222,6 +222,26 @@ abstract class DatabaseSyncInterface extends AiStrategy
     List<TransactionItem>? preloadedLineItems,
   });
 
+  /// Cash book fast path: one pending txn, one utility line, then completion.
+  ///
+  /// [utilityVariantName] is typically [TransactionType.cashIn] or [TransactionType.cashOut].
+  /// [transactionTypeForRecord] is the category/reporting label (see cashbook / keypad).
+  Future<ITransaction> completeCashMovement({
+    required String branchId,
+    required String bhfId,
+    required double cashReceived,
+    required bool isIncome,
+    required String utilityVariantName,
+    required String paymentType,
+    required double discount,
+    required String countryCode,
+    required bool isProformaMode,
+    required bool isTrainingMode,
+    required String transactionTypeForRecord,
+    String? categoryId,
+    String? note,
+  });
+
   Future<Setting?> getSetting({required String businessId});
 
   FutureOr<void> assignCustomerToTransaction({

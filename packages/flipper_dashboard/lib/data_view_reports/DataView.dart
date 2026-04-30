@@ -12,6 +12,7 @@ import 'package:flipper_dashboard/export/report_service.dart';
 import 'package:flipper_dashboard/export/utils/plu_excel_formula_builder.dart';
 import 'package:flipper_dashboard/exportData.dart';
 import 'package:flipper_dashboard/export/models/expense.dart';
+import 'package:flipper_dashboard/export/export_report_transactions.dart';
 import 'package:flipper_dashboard/popup_modal.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -52,6 +53,7 @@ class DataView extends StatefulHookConsumerWidget {
   });
 
   final List<ITransaction>? transactions;
+
   /// Per-row payment breakdown for summary reports (from [transactionReportSnapshotProvider]).
   final Map<String, TransactionPaymentSums>? paymentSumsByTransactionId;
   final List<Variant>? variants;
@@ -67,9 +69,11 @@ class DataView extends StatefulHookConsumerWidget {
   final GlobalKey<SfDataGridState> workBookKey;
   final bool forceEmpty;
   final bool disablePagination;
+
   /// When false, KPI cards are omitted (e.g. parent hosts [TransactionReportKpiStrip]).
   final bool showKpiStrip;
   final EdgeInsetsGeometry contentPadding;
+
   /// Supabase staff keyed by `users.id` (same as transaction [ITransaction.agentId] when set).
   final Map<String, TransactionReportCashierProfile>? cashierDirectory;
 
@@ -741,7 +745,7 @@ class DataViewState extends ConsumerState<DataView>
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.grey.shade200),
       ),
-        child: Row(
+      child: Row(
         children: [
           Container(
             width: 6,
@@ -910,15 +914,15 @@ class DataViewState extends ConsumerState<DataView>
     BuildContext context,
     List<ITransaction> txs,
   ) {
-    final total = txs.fold<double>(
-      0.0,
-      (sum, t) => sum + (t.subTotal ?? 0.0),
-    );
+    final total = txs.fold<double>(0.0, (sum, t) {
+      final st = t.subTotal ?? 0.0;
+      return sum + (t.isExpense == true ? -st.abs() : st);
+    });
     final n = txs.length;
     final sym = ProxyService.box.defaultCurrency();
-    final amt = double.parse(total.toStringAsFixed(2)).toCurrencyFormatted(
-      symbol: sym,
-    );
+    final amt = double.parse(
+      total.toStringAsFixed(2),
+    ).toCurrencyFormatted(symbol: sym);
     final pageCount = widget.disablePagination
         ? 1
         : (txs.length / widget.rowsPerPage).ceil().clamp(1, 9999);
@@ -931,7 +935,11 @@ class DataViewState extends ConsumerState<DataView>
       });
     }
 
-    Widget pagerIcon(IconData icon, {required bool enabled, required VoidCallback? onTap}) {
+    Widget pagerIcon(
+      IconData icon, {
+      required bool enabled,
+      required VoidCallback? onTap,
+    }) {
       return SizedBox(
         width: 28,
         height: 28,
@@ -1131,7 +1139,9 @@ class DataViewState extends ConsumerState<DataView>
       if (widget.showDetailedReport) {
         columns = pluReportTableHeader(headerPadding); // 11 columns
       } else {
-        columns = zReportTableHeader(headerPadding); // summary + cashier + actions
+        columns = zReportTableHeader(
+          headerPadding,
+        ); // summary + cashier + actions
       }
     } else if (widget.variants != null && widget.variants!.isNotEmpty) {
       columns = stockTableHeader(headerPadding);
@@ -1233,8 +1243,7 @@ class DataViewState extends ConsumerState<DataView>
     if (fullSummaryTransactions != null && fullSummaryTransactions.isNotEmpty) {
       final preparedData = <Map<String, dynamic>>[];
       for (final transaction in fullSummaryTransactions) {
-        final sums =
-            fullPaymentSumsByTransactionId?[transaction.id.toString()];
+        final sums = fullPaymentSumsByTransactionId?[transaction.id.toString()];
         preparedData.add(
           Map<String, dynamic>.from(
             transactionSummaryExportRow(
@@ -1250,14 +1259,17 @@ class DataViewState extends ConsumerState<DataView>
 
     final List<TransactionItem>? pluItems =
         (fullDetailTransactionItems != null &&
-                fullDetailTransactionItems.isNotEmpty)
-            ? fullDetailTransactionItems
-            : (_dataGridSource is TransactionItemDataSource
-                ? _dataGridSource.data.cast<TransactionItem>()
-                : null);
+            fullDetailTransactionItems.isNotEmpty)
+        ? fullDetailTransactionItems
+        : (_dataGridSource is TransactionItemDataSource
+              ? _dataGridSource.data.cast<TransactionItem>()
+              : null);
 
     if (pluItems != null && pluItems.isNotEmpty) {
-      final items = pluItems;
+      final items = stripCashMovementPluLines(pluItems);
+      if (items.isEmpty) {
+        return (manualData: [], columnNames: columnNames);
+      }
 
       // Batch tax rate lookups: one DB call per unique tax type instead of per item
       final uniqueTaxTypes = items
@@ -1323,7 +1335,8 @@ class DataViewState extends ConsumerState<DataView>
 
       final preparedData = <Map<String, dynamic>>[];
       for (final transaction in transactions) {
-        final sums = widget.paymentSumsByTransactionId?[transaction.id.toString()];
+        final sums =
+            widget.paymentSumsByTransactionId?[transaction.id.toString()];
         preparedData.add(
           Map<String, dynamic>.from(
             transactionSummaryExportRow(
@@ -1413,15 +1426,21 @@ class DataViewState extends ConsumerState<DataView>
         transactionReportSnapshotProvider(forceRealData: forceRealData).future,
       );
       final sales = filteredSummaryTransactions ?? reportSnap.transactions;
+      final exportSales = exportSalesTransactionsOnly(sales);
+      final paymentSumsForExport = exportPaymentSumsSubsetForTransactions(
+        filteredPaymentSumsByTransactionId ??
+            reportSnap.paymentSumsByTransactionId,
+        exportSales,
+      );
       final expenses = await Expense.fromTransactions(
         expenseTransactions,
-        sales: sales,
+        sales: exportSales,
       );
 
       final isStockRecount =
           widget.variants != null && widget.variants!.isNotEmpty;
       final config = ExportConfig(
-        transactions: sales,
+        transactions: exportSales,
         endDate: widget.endDate,
         startDate: widget.startDate,
       );
@@ -1433,15 +1452,17 @@ class DataViewState extends ConsumerState<DataView>
       List<TransactionItem>? detailLines;
       if (widget.showDetailedReport) {
         final lines = await ref.read(transactionItemListProvider.future);
+        final exportSaleIds = exportSales.map((t) => t.id.toString()).toSet();
         if (allowedTransactionIds != null && allowedTransactionIds.isNotEmpty) {
-          detailLines = lines
-              .where((i) {
-                final tid = i.transactionId?.toString();
-                return tid != null && allowedTransactionIds.contains(tid);
-              })
-              .toList();
+          final effectiveIds = allowedTransactionIds
+              .where(exportSaleIds.contains)
+              .toSet();
+          detailLines = lines.where((i) {
+            final tid = i.transactionId?.toString();
+            return tid != null && effectiveIds.contains(tid);
+          }).toList();
         } else {
-          detailLines = lines;
+          detailLines = exportPluItemsSalesOnly(lines, exportSales);
         }
         talker.info(
           'triggerExport: detailed mode, ${detailLines.length} line items (filtered=${allowedTransactionIds != null})',
@@ -1449,11 +1470,10 @@ class DataViewState extends ConsumerState<DataView>
       }
 
       final (:manualData, :columnNames) = await _buildManualDataForExport(
-        fullSummaryTransactions: widget.showDetailedReport ? null : sales,
+        fullSummaryTransactions: widget.showDetailedReport ? null : exportSales,
         fullPaymentSumsByTransactionId: widget.showDetailedReport
             ? null
-            : (filteredPaymentSumsByTransactionId ??
-                reportSnap.paymentSumsByTransactionId),
+            : paymentSumsForExport,
         fullDetailTransactionItems: detailLines,
       );
 
@@ -1529,16 +1549,17 @@ class DataViewState extends ConsumerState<DataView>
       transactionReportSnapshotProvider(forceRealData: forceRealData).future,
     );
     final sales = reportSnap.transactions;
+    final exportSales = exportSalesTransactionsOnly(sales);
     // Convert transactions to Expense model
     final expenses = await Expense.fromTransactions(
       expenseTransactions,
-      sales: sales,
+      sales: exportSales,
     );
 
     final isStockRecount =
         widget.variants != null && widget.variants!.isNotEmpty;
     final config = ExportConfig(
-      transactions: sales,
+      transactions: exportSales,
       endDate: widget.endDate,
       startDate: widget.startDate,
     );
@@ -1549,8 +1570,11 @@ class DataViewState extends ConsumerState<DataView>
     }
 
     final (:manualData, :columnNames) = await _buildManualDataForExport(
-      fullSummaryTransactions: sales,
-      fullPaymentSumsByTransactionId: reportSnap.paymentSumsByTransactionId,
+      fullSummaryTransactions: exportSales,
+      fullPaymentSumsByTransactionId: exportPaymentSumsSubsetForTransactions(
+        reportSnap.paymentSumsByTransactionId,
+        exportSales,
+      ),
     );
 
     await _withSummaryPdfFullGridRows(() async {
@@ -1626,11 +1650,12 @@ class DataViewState extends ConsumerState<DataView>
         transactionReportSnapshotProvider(forceRealData: forceRealData).future,
       );
       final sales = reportSnap.transactions;
+      final exportSales = exportSalesTransactionsOnly(sales);
 
       // Convert transactions to Expense model
       final expenses = await Expense.fromTransactions(
         expenseTransactions,
-        sales: sales,
+        sales: exportSales,
       );
 
       final isStockRecount =
@@ -1638,7 +1663,7 @@ class DataViewState extends ConsumerState<DataView>
 
       // Create export config
       final config = ExportConfig(
-        transactions: sales,
+        transactions: exportSales,
         endDate: widget.endDate,
         startDate: widget.startDate,
       );
@@ -1656,7 +1681,12 @@ class DataViewState extends ConsumerState<DataView>
       // Get data from the appropriate data source based on view type
       if (_dataGridSource is TransactionItemDataSource) {
         // Use transaction items directly from widget
-        manualData = widget.transactionItems ?? [];
+        final exportSaleIds = exportSales.map((t) => t.id.toString()).toSet();
+        final rawItems = widget.transactionItems ?? [];
+        manualData = rawItems.where((e) {
+          final tid = e.transactionId?.toString();
+          return tid != null && exportSaleIds.contains(tid);
+        }).toList();
 
         // Get column names from the headers
         final headers = _getTableHeaders();
@@ -1714,9 +1744,12 @@ class DataViewState extends ConsumerState<DataView>
         );
         manualData = preparedData;
       } else if (_dataGridSource is TransactionDataSource) {
-        // Full date-range list (same as [ExportConfig.transactions]), not grid/widget subset.
-        final transactions = sales;
-        final sumsMap = reportSnap.paymentSumsByTransactionId;
+        // Full date-range sales-only list for export, not expense rows.
+        final transactions = exportSales;
+        final sumsMap = exportPaymentSumsSubsetForTransactions(
+          reportSnap.paymentSumsByTransactionId,
+          exportSales,
+        );
 
         // Prepare data with explicit mapping to ensure all columns are included
         List<Map<String, dynamic>> preparedData = [];

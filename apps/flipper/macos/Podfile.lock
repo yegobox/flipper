@@ -473,7 +473,7 @@ SPEC CHECKSUMS:
   flutter_contacts: 5fef1796794563aebfcf2a0bfc5a56b4113cbc8f
   flutter_local_notifications: 4ccab5b7a22835214a6672e3f9c5e8ae207dab36
   flutter_localization: 4035848ae2ed142875d5fd3dde328250a5e81f42
-  flutter_soloud: 1b9bde781de22ebd2ae8b2c213ec84ab3b531f16
+  flutter_soloud: d8352f2d1b07b9b28396b0c5ad269ef8a36900ef
   FlutterMacOS: d0db08ddef1a9af05a5ec4b724367152bb0500b1
   geolocator_apple: 66b711889fd333205763b83c9dcf0a57a28c7afd
   google_sign_in_ios: 7411fab6948df90490dc4620ecbcabdc3ca04017

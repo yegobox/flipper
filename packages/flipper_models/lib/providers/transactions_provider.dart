@@ -12,13 +12,12 @@ import 'package:rxdart/rxdart.dart';
 
 part 'transactions_provider.g.dart';
 
-/// Non-expense sales shown in Transaction Reports: completed and parked only.
+/// Transactions shown in Transaction Reports grid: completed and parked,
+/// including expenses (cash out, etc.) so rows match KPIs that use [expensesStream].
 List<ITransaction> transactionReportScopeFilter(List<ITransaction> all) {
   return all
       .where(
-        (tx) =>
-            tx.isExpense != true &&
-            (tx.status == COMPLETE || tx.status == PARKED),
+        (tx) => tx.status == COMPLETE || tx.status == PARKED,
       )
       .toList();
 }
@@ -82,7 +81,7 @@ Stream<List<ITransaction>> coreTransactionsStream(
 
 // ---------------------------------------------------------------------------
 // transactionReportSnapshot — Transaction Reports grid + payment breakdown.
-// Parked + completed non-expense; by-hand vs CREDIT from payment records.
+// Parked + completed (sales and expenses); by-hand vs CREDIT from payment records.
 // ---------------------------------------------------------------------------
 @riverpod
 Stream<TransactionReportSnapshot> transactionReportSnapshot(
@@ -184,7 +183,7 @@ Stream<List<ITransaction>> transactions(Ref ref, {bool forceRealData = true}) {
 }
 
 // ---------------------------------------------------------------------------
-// transactionItemList — line-items for completed + parked non-expense sales.
+// transactionItemList — line-items for completed + parked transactions in report scope.
 // Joins items with the same scope as [transactionReportSnapshot] / summary grid.
 // ---------------------------------------------------------------------------
 @riverpod
@@ -243,7 +242,7 @@ Stream<List<TransactionItem>> transactionItemList(Ref ref) {
           })
           .toList();
       talker.debug(
-        'transactionItemList: ${items.length} raw → ${filtered.length} completed-sale lines',
+        'transactionItemList: ${items.length} raw → ${filtered.length} report-scoped lines',
       );
       return filtered;
     },

@@ -4,6 +4,8 @@ import 'dart:isolate';
 import 'dart:ui';
 import 'package:amplify_flutter/amplify_flutter.dart' as amplify;
 import 'package:flipper_models/DatabaseSyncInterface.dart';
+import 'package:flipper_models/cache/utility_cash_variant_cache.dart';
+import 'package:flipper_models/helpers/cash_movement_utility_variant.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
@@ -2234,6 +2236,96 @@ class CoreSync extends AiStrategyImpl
       }
     }
     throw Exception("transaction is null");
+  }
+
+  @override
+  Future<ITransaction> completeCashMovement({
+    required String branchId,
+    required String bhfId,
+    required double cashReceived,
+    required bool isIncome,
+    required String utilityVariantName,
+    required String paymentType,
+    required double discount,
+    required String countryCode,
+    required bool isProformaMode,
+    required bool isTrainingMode,
+    required String transactionTypeForRecord,
+    String? categoryId,
+    String? note,
+  }) async {
+    final pending = await manageTransaction(
+      branchId: branchId,
+      transactionType: utilityVariantName,
+      isExpense: !isIncome,
+    );
+    if (pending == null) {
+      throw StateError(
+        'completeCashMovement: could not create or load pending transaction',
+      );
+    }
+
+    final baseVariant = await UtilityCashVariantCache.instance.getOrFetch(
+      db: this,
+      branchId: branchId,
+      utilityName: utilityVariantName,
+    );
+    if (baseVariant == null) {
+      throw StateError(
+        'completeCashMovement: missing utility variant for $utilityVariantName',
+      );
+    }
+
+    final linedVariant = cloneUtilityVariantForCashLine(
+      utilityVariant: baseVariant,
+      cashReceived: cashReceived,
+      transactionType: utilityVariantName,
+    );
+
+    await addTransactionItem(
+      transaction: pending,
+      variation: linedVariant,
+      name: linedVariant.name,
+      amountTotal: cashReceived,
+      quantity: 1,
+      currentStock: 0,
+      partOfComposite: false,
+      ignoreForReport: false,
+      doneWithTransaction: true,
+      discount: 0,
+      lastTouched: DateTime.now().toUtc(),
+    );
+
+    final preloaded = syntheticPreloadedCashLine(
+      linedVariant: linedVariant,
+      transactionId: pending.id,
+      branchId: branchId,
+      cashReceived: cashReceived,
+    );
+
+    final txn = await collectPayment(
+      cashReceived: cashReceived,
+      transaction: pending,
+      paymentType: paymentType,
+      discount: discount,
+      branchId: branchId,
+      bhfId: bhfId,
+      countryCode: countryCode,
+      isProformaMode: isProformaMode,
+      isTrainingMode: isTrainingMode,
+      transactionType: transactionTypeForRecord,
+      categoryId: categoryId,
+      directlyHandleReceipt: false,
+      isIncome: isIncome,
+      note: note,
+      completionStatus: COMPLETE,
+      preloadedLineItems: preloaded,
+    );
+    // Cash book: use receiptType so Transaction Reports Type column is Cash In / Out (not NS).
+    txn.receiptType =
+        isIncome ? TransactionType.cashIn : TransactionType.cashOut;
+    await repository.upsert<ITransaction>(txn);
+    return txn;
   }
 
   @override

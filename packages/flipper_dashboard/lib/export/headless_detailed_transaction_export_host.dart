@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:flipper_dashboard/export/export_report_transactions.dart';
 import 'package:flipper_dashboard/export/models/expense.dart';
 import 'package:flipper_dashboard/export/utils/plu_excel_formula_builder.dart';
 import 'package:flipper_dashboard/exportData.dart';
@@ -327,10 +328,12 @@ class DetailedTransactionReportExportHostState
     final List<ITransaction> sales = salesSnap.hasValue
         ? salesSnap.requireValue
         : await _awaitPluSales(ref, forceRealData: forceRealData);
+    final exportSales = exportSalesTransactionsOnly(sales);
 
     var items = await _awaitPluLineItems(ref);
-    if (items.isEmpty && sales.isNotEmpty) {
-      items = await _loadLineItemsFromSaleIds(sales);
+    items = exportPluItemsSalesOnly(items, exportSales);
+    if (items.isEmpty && exportSales.isNotEmpty) {
+      items = await _loadLineItemsFromSaleIds(exportSales);
     }
 
     final expenseTransactions = await ProxyService.getStrategy(Strategy.capella)
@@ -343,7 +346,7 @@ class DetailedTransactionReportExportHostState
         );
     final expenses = await Expense.fromTransactions(
       expenseTransactions,
-      sales: sales,
+      sales: exportSales,
     );
     if (items.isEmpty) {
       throw StateError('no_line_items');
@@ -352,7 +355,7 @@ class DetailedTransactionReportExportHostState
     final (:manualData, :columnNames) = await buildPluManualExportRows(items);
 
     final config = ExportConfig(
-      transactions: sales,
+      transactions: exportSales,
       endDate: endDate,
       startDate: startDate,
     );

@@ -5,6 +5,8 @@ import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:flipper_models/DatabaseSyncInterface.dart';
+import 'package:flipper_models/cache/utility_cash_variant_cache.dart';
+import 'package:flipper_models/helpers/cash_movement_utility_variant.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/business_type.dart';
 import 'package:flipper_models/sync/capella/mixins/delegation_mixin.dart';
@@ -52,6 +54,8 @@ import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 
 import 'package:flipper_models/SyncStrategy.dart';
+
+import 'package:flipper_services/constants.dart';
 
 class CapellaSync extends AiStrategyImpl
     with
@@ -600,6 +604,99 @@ class CapellaSync extends AiStrategyImpl
       talker.error('Capella collectPayment failed: $e', s);
       rethrow;
     }
+  }
+
+  @override
+  Future<ITransaction> completeCashMovement({
+    required String branchId,
+    required String bhfId,
+    required double cashReceived,
+    required bool isIncome,
+    required String utilityVariantName,
+    required String paymentType,
+    required double discount,
+    required String countryCode,
+    required bool isProformaMode,
+    required bool isTrainingMode,
+    required String transactionTypeForRecord,
+    String? categoryId,
+    String? note,
+  }) async {
+    final pending = await manageTransaction(
+      branchId: branchId,
+      transactionType: utilityVariantName,
+      isExpense: !isIncome,
+    );
+    if (pending == null) {
+      throw StateError(
+        'completeCashMovement: could not create or load pending transaction',
+      );
+    }
+
+    final baseVariant = await UtilityCashVariantCache.instance.getOrFetch(
+      db: this,
+      branchId: branchId,
+      utilityName: utilityVariantName,
+    );
+    if (baseVariant == null) {
+      throw StateError(
+        'completeCashMovement: missing utility variant for $utilityVariantName',
+      );
+    }
+
+    final linedVariant = cloneUtilityVariantForCashLine(
+      utilityVariant: baseVariant,
+      cashReceived: cashReceived,
+      transactionType: utilityVariantName,
+    );
+
+    await saveTransactionItem(
+      variation: linedVariant,
+      amountTotal: cashReceived,
+      customItem: true,
+      pendingTransaction: pending,
+      currentStock: 0,
+      partOfComposite: false,
+      doneWithTransaction: true,
+      ignoreForReport: false,
+      updatePendingTransactionSubtotal: false,
+    );
+
+    final preloaded = syntheticPreloadedCashLine(
+      linedVariant: linedVariant,
+      transactionId: pending.id,
+      branchId: branchId,
+      cashReceived: cashReceived,
+    );
+
+    final txn = await collectPayment(
+      cashReceived: cashReceived,
+      transaction: pending,
+      paymentType: paymentType,
+      discount: discount,
+      branchId: branchId,
+      bhfId: bhfId,
+      countryCode: countryCode,
+      isProformaMode: isProformaMode,
+      isTrainingMode: isTrainingMode,
+      transactionType: transactionTypeForRecord,
+      categoryId: categoryId,
+      directlyHandleReceipt: false,
+      isIncome: isIncome,
+      note: note,
+      completionStatus: COMPLETE,
+      preloadedLineItems: preloaded,
+    );
+    final movementReceipt =
+        isIncome ? TransactionType.cashIn : TransactionType.cashOut;
+    await updateTransaction(
+      transaction: txn,
+      receiptType: movementReceipt,
+      updatedAt: DateTime.now(),
+      lastTouched: DateTime.now(),
+    );
+    txn.receiptType = movementReceipt;
+    return txn;
   }
 
   @override
