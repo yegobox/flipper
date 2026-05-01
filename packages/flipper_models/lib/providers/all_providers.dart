@@ -23,3 +23,4 @@ export 'product_sort_provider.dart';
 export 'counter_provider.dart';
 export 'ditto_presence_provider.dart';
 export 'leads_provider.dart';
+export '../leads/lead_ui_utils.dart';

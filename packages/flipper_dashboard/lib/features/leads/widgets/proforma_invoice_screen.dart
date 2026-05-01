@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/widgets/admin_dashboard_svgs.dart';
+import 'package:flipper_models/leads/lead_ui_utils.dart';
 import 'package:flipper_models/models/lead.dart';
 import 'package:flipper_models/providers/all_providers.dart';
 import 'package:flipper_services/proxy.dart';
@@ -1700,22 +1701,15 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
   }
 
   static List<_ProformaLine> _seedLines(Lead lead) {
-    final raw = (lead.productsInterestedIn ?? '').trim();
-    if (raw.isEmpty) {
-      return [_ProformaLine(name: 'Item', unitPrice: 0, qty: 1)];
-    }
-    final names = raw
-        .split(',')
-        .map((e) => e.trim())
-        .where((e) => e.isNotEmpty)
-        .toList();
-    if (names.isEmpty)
-      return [_ProformaLine(name: 'Item', unitPrice: 0, qty: 1)];
-    // Use estimatedValue as a hint to populate a reasonable unit price split.
-    final total = (lead.estimatedValue ?? 0).toDouble();
-    final per = names.isEmpty ? 0.0 : (total / names.length);
-    return names
-        .map((n) => _ProformaLine(name: n, unitPrice: per, qty: 1))
+    final seeds = proformaSeedsFromLead(lead);
+    return seeds
+        .map(
+          (s) => _ProformaLine(
+            name: s.name,
+            unitPrice: s.unitPrice,
+            qty: s.qty,
+          ),
+        )
         .toList();
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flipper_dashboard/widgets/admin_dashboard_svgs.dart';
 import 'package:flipper_dashboard/features/leads/widgets/proforma_invoice_screen.dart';
+import 'package:flipper_models/leads/lead_ui_utils.dart';
 import 'package:flipper_models/models/lead.dart';
 import 'package:flipper_models/providers/leads_provider.dart';
 import 'package:flipper_services/utils.dart';
@@ -244,7 +245,7 @@ class _LeadDetailDialogState extends ConsumerState<LeadDetailDialog> {
   }
 
   Widget _aiExtractedCard() {
-    final items = _itemsOfInterest();
+    final items = parseLeadItemRows(widget.lead);
     return Container(
       decoration: BoxDecoration(
         color: const Color(0xFFF5F3FF),
@@ -285,14 +286,19 @@ class _LeadDetailDialogState extends ConsumerState<LeadDetailDialog> {
     );
   }
 
-  Widget _aiRow(String name) {
+  Widget _aiRow(LeadItemRow row) {
+    final qtyLabel = row.quantity == 1 ? '×1' : '×${row.quantity}';
+    final matchLabel = row.matchPercent != null
+        ? '${row.matchPercent!.round()}% match'
+        : null;
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
       child: Row(
         children: [
           Expanded(
             child: Text(
-              name,
+              row.title,
               style: GoogleFonts.outfit(
                 fontWeight: FontWeight.w900,
                 color: _ink,
@@ -300,28 +306,29 @@ class _LeadDetailDialogState extends ConsumerState<LeadDetailDialog> {
             ),
           ),
           Text(
-            '×1',
+            qtyLabel,
             style: GoogleFonts.outfit(
               fontWeight: FontWeight.w900,
               color: _ink3,
             ),
           ),
           const SizedBox(width: 10),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: const Color(0xFFEDE9FE),
-              borderRadius: BorderRadius.circular(999),
-            ),
-            child: Text(
-              '94% match',
-              style: GoogleFonts.outfit(
-                fontWeight: FontWeight.w900,
-                color: const Color(0xFF6D28D9),
-                fontSize: 12,
+          if (matchLabel != null)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEDE9FE),
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: Text(
+                matchLabel,
+                style: GoogleFonts.outfit(
+                  fontWeight: FontWeight.w900,
+                  color: const Color(0xFF6D28D9),
+                  fontSize: 12,
+                ),
               ),
             ),
-          ),
         ],
       ),
     );
@@ -395,6 +402,11 @@ class _LeadDetailDialogState extends ConsumerState<LeadDetailDialog> {
       );
     }
 
+    final model = lead.aiExtracted?['model']?.toString();
+    final d = DateFormat('MMM d').format(lead.createdAt.toLocal());
+    final aiSubtitle =
+        (model != null && model.isNotEmpty) ? '$d · $model' : '$d · AI';
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -418,9 +430,8 @@ class _LeadDetailDialogState extends ConsumerState<LeadDetailDialog> {
         ),
         entry(
           const Color(0xFF7C3AED),
-          'AI extracted ${_itemsOfInterest().length} product(s) of interest',
-          DateFormat('MMM d').format(lead.createdAt.toLocal()) +
-              ' · Claude API',
+          'AI extracted ${parseLeadItemRows(lead).length} product(s) of interest',
+          aiSubtitle,
           isLast: false,
         ),
         entry(
@@ -660,22 +671,5 @@ class _LeadDetailDialogState extends ConsumerState<LeadDetailDialog> {
       ),
     );
   }
-
-  List<String> _itemsOfInterest() {
-    final extracted = widget.lead.aiExtracted;
-    if (extracted != null && extracted['items'] is List) {
-      final items = (extracted['items'] as List)
-          .map((e) => e.toString())
-          .where((e) => e.trim().isNotEmpty)
-          .toList();
-      if (items.isNotEmpty) return items;
-    }
-    final raw = widget.lead.productsInterestedIn ?? '';
-    if (raw.trim().isEmpty) return const ['—'];
-    return raw
-        .split(',')
-        .map((e) => e.trim())
-        .where((e) => e.isNotEmpty)
-        .toList();
-  }
 }
+

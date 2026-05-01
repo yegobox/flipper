@@ -1,9 +1,14 @@
+import 'dart:async';
+
 import 'package:flipper_dashboard/widgets/admin_dashboard_svgs.dart';
+import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/models/lead.dart';
 import 'package:flipper_models/providers/leads_provider.dart';
+import 'package:flipper_models/services/lead_ai_match_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -498,6 +503,8 @@ class _AddLeadSheetState extends ConsumerState<AddLeadSheet> {
     if (branchId.isEmpty) return;
     if (_isSaving) return;
 
+    final container = ProviderScope.containerOf(context);
+
     final now = DateTime.now().toUtc();
     final id = const Uuid().v4();
     final value = num.tryParse(_valueCtrl.text.trim().replaceAll(',', ''));
@@ -533,10 +540,26 @@ class _AddLeadSheetState extends ConsumerState<AddLeadSheet> {
       await upsert(lead);
       if (!mounted) return;
       Navigator.of(context).pop();
+      unawaited(_enrichLeadAfterSave(container, lead));
     } catch (e) {
       if (!mounted) return;
       setState(() => _isSaving = false);
       showErrorNotification(context, 'Failed to save lead. $e');
     }
+  }
+}
+
+Future<void> _enrichLeadAfterSave(ProviderContainer container, Lead lead) async {
+  try {
+    final enriched = await enrichLeadWithCatalogAi(
+      container: container,
+      lead: lead,
+    );
+    final upsert = container.read(leadsUpsertProvider);
+    await upsert(enriched);
+    talker.info('Lead AI enrichment saved for lead ${lead.id}');
+  } catch (e, st) {
+    talker.error('Lead AI enrichment failed: $e');
+    talker.error(st);
   }
 }
