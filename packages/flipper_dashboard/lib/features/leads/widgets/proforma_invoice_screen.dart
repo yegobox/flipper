@@ -1132,144 +1132,431 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
     final grandTotal = subTotal + vat;
 
     final document = PdfDocument();
+    document.pageSettings.margins.all = 0;
     final page = document.pages.add();
     final size = page.getClientSize();
 
+    PdfColor color(int hex) =>
+        PdfColor((hex >> 16) & 0xFF, (hex >> 8) & 0xFF, hex & 0xFF);
+
+    final bg = color(0xF4F6FB);
+    final surface = color(0xFFFFFF);
+    final border = color(0xEAECF0);
+    final ink = color(0x0D0E12);
+    final ink2 = color(0x4B4E58);
+    final ink3 = color(0x9499A5);
+    final blue = color(0x2563EB);
+    final purple = color(0x7C3AED);
+    final purpleSoft = color(0xF5F3FF);
+    final purplePill = color(0xEDE9FE);
+    final amberSoft = color(0xFFFBEB);
+    final amber = color(0xB45309);
+    final green = color(0x16A34A);
+
     final titleFont = PdfStandardFont(
       PdfFontFamily.helvetica,
-      18,
+      20,
       style: PdfFontStyle.bold,
     );
     final labelFont = PdfStandardFont(
       PdfFontFamily.helvetica,
-      10,
+      8,
       style: PdfFontStyle.bold,
     );
     final valueFont = PdfStandardFont(PdfFontFamily.helvetica, 10);
+    final valueBoldFont = PdfStandardFont(
+      PdfFontFamily.helvetica,
+      10,
+      style: PdfFontStyle.bold,
+    );
+    final smallFont = PdfStandardFont(PdfFontFamily.helvetica, 8);
+    final smallBoldFont = PdfStandardFont(
+      PdfFontFamily.helvetica,
+      8,
+      style: PdfFontStyle.bold,
+    );
+    final monoBoldFont = PdfStandardFont(
+      PdfFontFamily.courier,
+      9,
+      style: PdfFontStyle.bold,
+    );
 
-    double y = 0;
-    page.graphics.drawString(
+    void rect(
+      Rect bounds, {
+      PdfColor? fill,
+      PdfColor? stroke,
+      double strokeWidth = 0.8,
+    }) {
+      page.graphics.drawRectangle(
+        brush: fill == null ? null : PdfSolidBrush(fill),
+        pen: stroke == null ? null : PdfPen(stroke, width: strokeWidth),
+        bounds: bounds,
+      );
+    }
+
+    void text(
+      String value,
+      PdfFont font,
+      Rect bounds, {
+      PdfColor? fill,
+      PdfTextAlignment alignment = PdfTextAlignment.left,
+    }) {
+      page.graphics.drawString(
+        value,
+        font,
+        brush: PdfSolidBrush(fill ?? ink),
+        bounds: bounds,
+        format: PdfStringFormat(
+          alignment: alignment,
+          lineAlignment: PdfVerticalAlignment.middle,
+        ),
+      );
+    }
+
+    void pill(
+      String value,
+      Rect bounds, {
+      required PdfColor fill,
+      required PdfColor foreground,
+      PdfColor? stroke,
+    }) {
+      rect(bounds, fill: fill, stroke: stroke);
+      text(
+        value,
+        smallBoldFont,
+        bounds,
+        fill: foreground,
+        alignment: PdfTextAlignment.center,
+      );
+    }
+
+    void card(Rect bounds) => rect(bounds, fill: surface, stroke: border);
+
+    page.graphics.drawRectangle(
+      brush: PdfSolidBrush(bg),
+      bounds: Rect.fromLTWH(0, 0, size.width, size.height),
+    );
+
+    const pageMargin = 34.0;
+    final contentX = pageMargin;
+    final contentW = size.width - (pageMargin * 2);
+    double y = 26;
+
+    final banner = Rect.fromLTWH(contentX, y, contentW, 34);
+    rect(banner, fill: purpleSoft, stroke: color(0xDDD6FE));
+    text(
+      'AI drafted this proforma from the customer email',
+      valueBoldFont,
+      Rect.fromLTWH(
+        banner.left + 16,
+        banner.top,
+        banner.width - 150,
+        banner.height,
+      ),
+      fill: color(0x5B21B6),
+    );
+    pill(
+      'All fields editable',
+      Rect.fromLTWH(banner.right - 120, banner.top + 8, 96, 18),
+      fill: purplePill,
+      foreground: color(0x6D28D9),
+    );
+    y += 48;
+
+    final docCard = Rect.fromLTWH(contentX, y, contentW, size.height - y - 28);
+    card(docCard);
+    y += 18;
+
+    final headerX = docCard.left + 18;
+    final headerW = docCard.width - 36;
+    rect(Rect.fromLTWH(headerX, y + 2, 34, 34), fill: blue);
+    text(
+      'F',
+      PdfStandardFont(PdfFontFamily.helvetica, 18, style: PdfFontStyle.bold),
+      Rect.fromLTWH(headerX, y + 2, 34, 34),
+      fill: surface,
+      alignment: PdfTextAlignment.center,
+    );
+    text(
+      'Flipper - Demo Shop',
+      valueBoldFont,
+      Rect.fromLTWH(headerX + 46, y, 180, 16),
+    );
+    text(
+      'Kigali, Rwanda',
+      smallFont,
+      Rect.fromLTWH(headerX + 46, y + 17, 180, 14),
+      fill: ink3,
+    );
+    text(
       'Proforma Invoice',
       titleFont,
-      bounds: Rect.fromLTWH(0, y, size.width, 24),
+      Rect.fromLTWH(headerX + headerW - 210, y - 2, 210, 24),
+      fill: blue,
+      alignment: PdfTextAlignment.right,
     );
-    y += 30;
-
-    page.graphics.drawString(
-      'Bill to:',
-      labelFont,
-      bounds: Rect.fromLTWH(0, y, 120, 16),
+    text(
+      'PF-2026-0042',
+      monoBoldFont,
+      Rect.fromLTWH(headerX + headerW - 210, y + 24, 100, 16),
+      fill: ink3,
+      alignment: PdfTextAlignment.right,
     );
-    page.graphics.drawString(
-      lead.fullName,
-      valueFont,
-      bounds: Rect.fromLTWH(70, y, size.width - 70, 16),
+    pill(
+      'Draft - not sent',
+      Rect.fromLTWH(headerX + headerW - 96, y + 23, 96, 18),
+      fill: amberSoft,
+      foreground: amber,
+      stroke: color(0xFDE68A),
     );
-    y += 16;
+    y += 56;
 
     final contact = [
       if ((lead.emailAddress ?? '').trim().isNotEmpty)
         lead.emailAddress!.trim(),
       if ((lead.phoneNumber ?? '').trim().isNotEmpty) lead.phoneNumber!.trim(),
     ].join('  ');
-    if (contact.isNotEmpty) {
-      page.graphics.drawString(
-        'Contact:',
+
+    final gap = 10.0;
+    final metaW = (headerW - (gap * 2)) / 3;
+    void metaCard({
+      required double x,
+      required String title,
+      required List<(String, PdfFont, PdfColor)> lines,
+      String? badge,
+    }) {
+      final bounds = Rect.fromLTWH(x, y, metaW, 72);
+      card(bounds);
+      text(
+        title,
         labelFont,
-        bounds: Rect.fromLTWH(0, y, 120, 16),
+        Rect.fromLTWH(bounds.left + 10, bounds.top + 8, bounds.width - 20, 10),
+        fill: ink3,
       );
-      page.graphics.drawString(
-        contact,
-        valueFont,
-        bounds: Rect.fromLTWH(70, y, size.width - 70, 16),
-      );
-      y += 16;
+      var lineY = bounds.top + 24;
+      for (final line in lines) {
+        text(
+          line.$1,
+          line.$2,
+          Rect.fromLTWH(bounds.left + 10, lineY, bounds.width - 20, 13),
+          fill: line.$3,
+        );
+        lineY += 13;
+      }
+      if (badge != null) {
+        pill(
+          badge,
+          Rect.fromLTWH(bounds.left + 10, bounds.bottom - 24, 62, 16),
+          fill: purplePill,
+          foreground: color(0x6D28D9),
+        );
+      }
     }
 
-    page.graphics.drawString(
-      'Issue date:',
-      labelFont,
-      bounds: Rect.fromLTWH(0, y, 120, 16),
+    metaCard(
+      x: headerX,
+      title: 'BILL TO',
+      lines: [
+        (lead.fullName, valueBoldFont, ink),
+        (contact.isEmpty ? 'No contact provided' : contact, smallFont, ink2),
+      ],
     );
-    page.graphics.drawString(
-      DateFormat('dd MMM yyyy').format(issueDate),
-      valueFont,
-      bounds: Rect.fromLTWH(70, y, 180, 16),
+    metaCard(
+      x: headerX + metaW + gap,
+      title: 'ISSUE DATE',
+      lines: [
+        (DateFormat('dd MMM yyyy').format(issueDate), valueBoldFont, ink),
+        ('VALID UNTIL', labelFont, ink3),
+        (DateFormat('dd MMM yyyy').format(validUntil), valueBoldFont, ink),
+      ],
     );
-    page.graphics.drawString(
-      'Valid until:',
-      labelFont,
-      bounds: Rect.fromLTWH(260, y, 120, 16),
+    metaCard(
+      x: headerX + ((metaW + gap) * 2),
+      title: 'LEAD SOURCE',
+      lines: [
+        (
+          lead.source == LeadSource.gmail ? 'Gmail enquiry' : 'Manual entry',
+          valueBoldFont,
+          ink,
+        ),
+        ('AI matched items to catalogue', smallFont, ink2),
+      ],
+      badge: 'Claude API',
     );
-    page.graphics.drawString(
-      DateFormat('dd MMM yyyy').format(validUntil),
-      valueFont,
-      bounds: Rect.fromLTWH(330, y, size.width - 330, 16),
-    );
-    y += 22;
+    y += 90;
 
-    final grid = PdfGrid();
-    grid.columns.add(count: 4);
-    grid.headers.add(1);
-    final header = grid.headers[0];
-    header.cells[0].value = 'Description';
-    header.cells[1].value = 'Unit';
-    header.cells[2].value = 'Qty';
-    header.cells[3].value = 'Total';
-    header.style.font = PdfStandardFont(
-      PdfFontFamily.helvetica,
-      10,
-      style: PdfFontStyle.bold,
-    );
+    final tableX = headerX;
+    final tableW = headerW;
+    final headerH = 28.0;
+    final rowH = 30.0;
+    final descW = tableW * 0.52;
+    final unitW = tableW * 0.16;
+    final qtyW = tableW * 0.10;
+    final discountW = tableW * 0.10;
+    final totalW = tableW - descW - unitW - qtyW - discountW;
+    final tableH = headerH + (_lines.length * rowH);
 
-    for (final l in _lines) {
-      final row = grid.rows.add();
-      row.cells[0].value = l.name;
-      row.cells[1].value = formatNumber(l.unitPrice);
-      row.cells[2].value = '${l.qty}';
-      row.cells[3].value = formatNumber(l.unitPrice * l.qty);
+    rect(
+      Rect.fromLTWH(tableX, y, tableW, tableH),
+      fill: surface,
+      stroke: border,
+    );
+    rect(Rect.fromLTWH(tableX, y, tableW, headerH), fill: color(0xF8FAFC));
+    text(
+      'DESCRIPTION',
+      labelFont,
+      Rect.fromLTWH(tableX + 12, y, descW - 12, headerH),
+      fill: ink3,
+    );
+    text(
+      'UNIT PRICE',
+      labelFont,
+      Rect.fromLTWH(tableX + descW, y, unitW, headerH),
+      fill: ink3,
+      alignment: PdfTextAlignment.right,
+    );
+    text(
+      'QTY',
+      labelFont,
+      Rect.fromLTWH(tableX + descW + unitW, y, qtyW, headerH),
+      fill: ink3,
+      alignment: PdfTextAlignment.center,
+    );
+    text(
+      'DISCOUNT',
+      labelFont,
+      Rect.fromLTWH(tableX + descW + unitW + qtyW, y, discountW, headerH),
+      fill: ink3,
+      alignment: PdfTextAlignment.right,
+    );
+    text(
+      'TOTAL',
+      labelFont,
+      Rect.fromLTWH(
+        tableX + descW + unitW + qtyW + discountW,
+        y,
+        totalW - 12,
+        headerH,
+      ),
+      fill: ink3,
+      alignment: PdfTextAlignment.right,
+    );
+    y += headerH;
+
+    for (final line in _lines) {
+      rect(
+        Rect.fromLTWH(tableX, y, tableW, rowH),
+        stroke: border,
+        strokeWidth: 0.4,
+      );
+      text(
+        line.name,
+        valueBoldFont,
+        Rect.fromLTWH(tableX + 12, y, descW - 56, rowH),
+      );
+      pill(
+        'AI',
+        Rect.fromLTWH(tableX + descW - 38, y + 7, 24, 16),
+        fill: purplePill,
+        foreground: purple,
+      );
+      text(
+        formatNumber(line.unitPrice),
+        monoBoldFont,
+        Rect.fromLTWH(tableX + descW, y, unitW, rowH),
+        alignment: PdfTextAlignment.right,
+      );
+      text(
+        '${line.qty}',
+        monoBoldFont,
+        Rect.fromLTWH(tableX + descW + unitW, y, qtyW, rowH),
+        alignment: PdfTextAlignment.center,
+      );
+      text(
+        '0',
+        monoBoldFont,
+        Rect.fromLTWH(tableX + descW + unitW + qtyW, y, discountW, rowH),
+        fill: ink3,
+        alignment: PdfTextAlignment.right,
+      );
+      text(
+        'RWF ${formatNumber(line.unitPrice * line.qty)}',
+        monoBoldFont,
+        Rect.fromLTWH(
+          tableX + descW + unitW + qtyW + discountW,
+          y,
+          totalW - 12,
+          rowH,
+        ),
+        alignment: PdfTextAlignment.right,
+      );
+      y += rowH;
     }
-    grid.style.font = PdfStandardFont(PdfFontFamily.helvetica, 10);
-    grid.columns[0].width = size.width * 0.52;
-    grid.columns[1].width = size.width * 0.16;
-    grid.columns[2].width = size.width * 0.10;
-    grid.columns[3].width = size.width * 0.18;
+    y += 16;
 
-    grid.draw(
-      page: page,
-      bounds: Rect.fromLTWH(0, y, size.width, size.height - y - 80),
-    );
+    final totalsX = headerX + headerW - 185;
+    final totalsW = 185.0;
+    final totalsH = 86.0;
+    card(Rect.fromLTWH(totalsX, y, totalsW, totalsH));
 
-    final totalsY = size.height - 70;
-    page.graphics.drawString(
-      'Subtotal:',
-      labelFont,
-      bounds: Rect.fromLTWH(size.width - 200, totalsY, 90, 14),
-    );
-    page.graphics.drawString(
-      'RWF ${formatNumber(subTotal)}',
-      valueFont,
-      bounds: Rect.fromLTWH(size.width - 110, totalsY, 110, 14),
-    );
-    page.graphics.drawString(
-      'VAT 18%:',
-      labelFont,
-      bounds: Rect.fromLTWH(size.width - 200, totalsY + 16, 90, 14),
-    );
-    page.graphics.drawString(
-      'RWF ${formatNumber(vat)}',
-      valueFont,
-      bounds: Rect.fromLTWH(size.width - 110, totalsY + 16, 110, 14),
-    );
-    page.graphics.drawString(
-      'Grand total:',
-      labelFont,
-      bounds: Rect.fromLTWH(size.width - 200, totalsY + 32, 90, 14),
-    );
-    page.graphics.drawString(
+    void totalRow(
+      String label,
+      String value,
+      double rowY, {
+      bool strong = false,
+      PdfColor? valueColor,
+    }) {
+      text(
+        label,
+        strong ? valueBoldFont : valueFont,
+        Rect.fromLTWH(totalsX + 12, rowY, 76, 16),
+        fill: ink2,
+      );
+      text(
+        value,
+        strong ? monoBoldFont : smallBoldFont,
+        Rect.fromLTWH(totalsX + 88, rowY, totalsW - 100, 16),
+        fill: valueColor ?? ink,
+        alignment: PdfTextAlignment.right,
+      );
+    }
+
+    totalRow('Subtotal', 'RWF ${formatNumber(subTotal)}', y + 10);
+    totalRow('VAT 18%', 'RWF ${formatNumber(vat)}', y + 28);
+    totalRow('Discount', 'RWF 0', y + 46, valueColor: green);
+    rect(Rect.fromLTWH(totalsX + 12, y + 64, totalsW - 24, 0.5), fill: border);
+    totalRow(
+      'Grand Total',
       'RWF ${formatNumber(grandTotal)}',
-      PdfStandardFont(PdfFontFamily.helvetica, 11, style: PdfFontStyle.bold),
-      bounds: Rect.fromLTWH(size.width - 110, totalsY + 32, 110, 14),
+      y + 67,
+      strong: true,
+      valueColor: blue,
+    );
+    y += totalsH + 18;
+
+    final termsBounds = Rect.fromLTWH(headerX, y, headerW, 54);
+    rect(termsBounds, fill: color(0xF8FAFC), stroke: border);
+    text(
+      'NOTES / TERMS',
+      labelFont,
+      Rect.fromLTWH(
+        termsBounds.left + 12,
+        termsBounds.top + 9,
+        termsBounds.width - 24,
+        10,
+      ),
+      fill: ink3,
+    );
+    text(
+      'This proforma is valid for 7 days. Payment due upon delivery. Bank transfer or mobile money accepted.',
+      valueBoldFont,
+      Rect.fromLTWH(
+        termsBounds.left + 12,
+        termsBounds.top + 26,
+        termsBounds.width - 24,
+        16,
+      ),
+      fill: ink2,
     );
 
     return document;
@@ -1278,7 +1565,6 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
   Future<void> _downloadPdf(BuildContext context) async {
     setState(() => _isDownloading = true);
     try {
-      await FileUtils.requestPermissions();
       final issueDate = DateTime.now();
       final validUntil = issueDate.add(const Duration(days: 7));
       final document = await _buildPdfDocument(
@@ -1286,8 +1572,15 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
         issueDate: issueDate,
         validUntil: validUntil,
       );
-      final filePath = await FileUtils.savePdfFile(document);
+      final filePath = await FileUtils.downloadPdfFile(
+        document,
+        fileName:
+            '${DateFormat('yyyyMMdd_HHmmss').format(issueDate)}-Proforma-Invoice.pdf',
+      );
       document.dispose();
+      if (filePath == null) {
+        return;
+      }
       await FileUtils.openOrShareFile(filePath);
       if (mounted) {
         _toast(context, 'Proforma PDF saved.', type: NotificationType.success);
