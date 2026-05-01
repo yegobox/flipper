@@ -78,8 +78,11 @@ class SettingsService with ListenableServiceMixin {
         setting.isCurrencyDecimal = map['isCurrencyDecimal'];
         _isCurrencyDecimal.value = map['isCurrencyDecimal'];
       }
+      setting.lastTouched = DateTime.now().toUtc();
 
-      await ProxyService.strategy.patchSettings(setting: setting);
+      await ProxyService.getStrategy(
+        Strategy.capella,
+      ).patchSettings(setting: setting);
       return true;
     } else {
       Setting newSetting = Setting(
@@ -99,6 +102,7 @@ class SettingsService with ListenableServiceMixin {
         enablePriceQuantityAdjustment:
             map['enablePriceQuantityAdjustment'] ?? false,
         isCurrencyDecimal: map['isCurrencyDecimal'] ?? false,
+        lastTouched: DateTime.now().toUtc(),
       );
 
       await ProxyService.getStrategy(
