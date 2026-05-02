@@ -121,6 +121,7 @@ class DashboardQuickAccessSvgs {
       case 'Cashbook':
       case 'Transactions':
       case 'Contacts':
+      case 'Leads':
       case 'Support':
       case 'Credits':
       case 'Chat':
@@ -144,6 +145,7 @@ class DashboardQuickAccessSvgs {
       case 'Cashbook':
         return const Color.fromRGBO(124, 58, 237, 0.10);
       case 'Contacts':
+      case 'Leads':
         return const Color.fromRGBO(13, 148, 136, 0.10);
       case 'Support':
       case 'Credits':
@@ -176,6 +178,8 @@ class DashboardQuickAccessSvgs {
         return _transactionsIcon('#DC2626');
       case 'Contacts':
         return _usersIcon('#0D9488');
+      case 'Leads':
+        return _usersIcon('#2563EB');
       case 'Support':
         return _supportIcon('#D97706');
       case 'Credits':
