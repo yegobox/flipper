@@ -1,9 +1,12 @@
 import 'dart:async';
 
 import 'package:flipper_dashboard/widgets/admin_dashboard_svgs.dart';
+import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/models/lead.dart';
+import 'package:flipper_models/providers/ebm_provider.dart';
 import 'package:flipper_models/providers/leads_provider.dart';
+import 'package:flipper_models/repositories/ai_model_repository.dart';
 import 'package:flipper_models/services/lead_ai_match_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
@@ -12,7 +15,34 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:supabase_models/supabase_models.dart';
 import 'package:uuid/uuid.dart';
+
+class _CatalogPick {
+  const _CatalogPick({
+    required this.variantId,
+    required this.name,
+    this.sku,
+    this.bcd,
+    this.unitPrice,
+  });
+
+  final String variantId;
+  final String name;
+  final String? sku;
+  final String? bcd;
+  final double? unitPrice;
+
+  factory _CatalogPick.fromVariant(Variant v) {
+    return _CatalogPick(
+      variantId: v.id,
+      name: v.name,
+      sku: v.sku,
+      bcd: v.bcd,
+      unitPrice: v.prc ?? v.retailPrice ?? v.dftPrc,
+    );
+  }
+}
 
 class AddLeadSheet extends ConsumerStatefulWidget {
   const AddLeadSheet({super.key});
@@ -32,6 +62,7 @@ class _AddLeadSheetState extends ConsumerState<AddLeadSheet> {
   String _source = LeadSource.walkIn;
   String _heat = LeadHeat.hot;
   bool _isSaving = false;
+  final List<_CatalogPick> _catalogPicks = [];
 
   static const Color _ink = Color(0xFF0D0E12);
   static const Color _ink3 = Color(0xFF9499A5);
@@ -94,11 +125,7 @@ class _AddLeadSheetState extends ConsumerState<AddLeadSheet> {
                   ],
                 ),
                 const SizedBox(height: 12),
-                _field(
-                  label: 'PRODUCTS INTERESTED IN *',
-                  controller: _productsCtrl,
-                  hint: 'Type product name or BCD…',
-                ),
+                _productsInterestedSection(),
                 const SizedBox(height: 12),
                 _valueField(),
                 const SizedBox(height: 12),
@@ -178,8 +205,157 @@ class _AddLeadSheetState extends ConsumerState<AddLeadSheet> {
   }
 
   bool get _saveEnabled {
-    return _nameCtrl.text.trim().isNotEmpty &&
-        _productsCtrl.text.trim().isNotEmpty;
+    final hasProducts =
+        _catalogPicks.isNotEmpty || _productsCtrl.text.trim().isNotEmpty;
+    return _nameCtrl.text.trim().isNotEmpty && hasProducts;
+  }
+
+  String _mergedProductsInterestedIn() {
+    final chipNames = _catalogPicks.map((p) => p.name).join(', ');
+    final typed = _productsCtrl.text.trim();
+    if (chipNames.isEmpty) return typed;
+    if (typed.isEmpty) return chipNames;
+    return '$chipNames, $typed';
+  }
+
+  Map<String, dynamic>? _manualCatalogExtracted() {
+    if (_catalogPicks.isEmpty) return null;
+    final matchedAt = DateTime.now().toUtc().toIso8601String();
+    return {
+      'items': _catalogPicks.map((p) => p.name).toList(),
+      'matches': _catalogPicks
+          .map(
+            (p) => <String, dynamic>{
+              'query': p.name,
+              'variantId': p.variantId,
+              'variantName': p.name,
+              'sku': p.sku,
+              'bcd': p.bcd,
+              'quantity': 1,
+              'confidence': 1.0,
+              if (p.unitPrice != null) 'unitPrice': p.unitPrice,
+            },
+          )
+          .toList(),
+      'source': 'manual_catalog',
+      'model': 'manual',
+      'matchedAt': matchedAt,
+    };
+  }
+
+  Future<void> _openCatalogPicker() async {
+    final branchId = ProxyService.box.getBranchId() ?? '';
+    if (branchId.isEmpty || !mounted) return;
+    await showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(ctx).viewInsets.bottom),
+        child: _AddLeadCatalogPickerSheet(
+          branchId: branchId,
+          onPick: (pick) {
+            setState(() {
+              if (!_catalogPicks.any((e) => e.variantId == pick.variantId)) {
+                _catalogPicks.add(pick);
+              }
+            });
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _productsInterestedSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'PRODUCTS INTERESTED IN *',
+          style: GoogleFonts.outfit(
+            fontSize: 11,
+            fontWeight: FontWeight.w800,
+            color: _ink3,
+            letterSpacing: 0.08 * 11,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFFF6F7FB),
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: _border),
+          ),
+          padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (_catalogPicks.isNotEmpty)
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: _catalogPicks.map((p) {
+                    final sub = [
+                      if (p.sku != null && p.sku!.trim().isNotEmpty)
+                        'SKU ${p.sku}',
+                    ].join(' · ');
+                    return InputChip(
+                      label: Text(
+                        sub.isEmpty ? p.name : '${p.name} ($sub)',
+                        style: GoogleFonts.outfit(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 12,
+                        ),
+                      ),
+                      onDeleted: () {
+                        setState(() {
+                          _catalogPicks.removeWhere(
+                            (e) => e.variantId == p.variantId,
+                          );
+                        });
+                      },
+                      visualDensity: VisualDensity.compact,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      backgroundColor: Colors.white,
+                      side: const BorderSide(color: _border),
+                      deleteIconColor: _ink3,
+                    );
+                  }).toList(),
+                ),
+              if (_catalogPicks.isNotEmpty) const SizedBox(height: 8),
+              Align(
+                alignment: Alignment.centerLeft,
+                child: TextButton.icon(
+                  onPressed: _openCatalogPicker,
+                  icon: Icon(Icons.inventory_2_outlined, color: _blue, size: 20),
+                  label: Text(
+                    'Browse catalogue',
+                    style: GoogleFonts.outfit(
+                      fontWeight: FontWeight.w800,
+                      color: _blue,
+                    ),
+                  ),
+                ),
+              ),
+              TextField(
+                controller: _productsCtrl,
+                maxLines: 1,
+                onChanged: (_) => setState(() {}),
+                decoration: InputDecoration(
+                  hintText: 'Or type product name, SKU, BCD…',
+                  hintStyle: GoogleFonts.outfit(color: _ink3),
+                  border: InputBorder.none,
+                  isDense: true,
+                  contentPadding: EdgeInsets.zero,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _header(BuildContext context) {
@@ -394,6 +570,10 @@ class _AddLeadSheetState extends ConsumerState<AddLeadSheet> {
                 label: 'Hot',
                 emoji: '🔥',
                 selected: _heat == LeadHeat.hot,
+                selectedBg: const Color(0xFFFFE4E6),
+                selectedBorder: const Color(0xFFE11D48),
+                selectedFg: const Color(0xFF9F1239),
+                checkColor: const Color(0xFFE11D48),
                 onTap: () => setState(() => _heat = LeadHeat.hot),
               ),
             ),
@@ -403,6 +583,10 @@ class _AddLeadSheetState extends ConsumerState<AddLeadSheet> {
                 label: 'Warm',
                 emoji: '☀️',
                 selected: _heat == LeadHeat.warm,
+                selectedBg: const Color(0xFFFFFBEB),
+                selectedBorder: const Color(0xFFD97706),
+                selectedFg: const Color(0xFFB45309),
+                checkColor: const Color(0xFFD97706),
                 onTap: () => setState(() => _heat = LeadHeat.warm),
               ),
             ),
@@ -412,6 +596,10 @@ class _AddLeadSheetState extends ConsumerState<AddLeadSheet> {
                 label: 'Cold',
                 emoji: '🧊',
                 selected: _heat == LeadHeat.cold,
+                selectedBg: const Color(0xFFEFF6FF),
+                selectedBorder: const Color(0xFF2563EB),
+                selectedFg: const Color(0xFF1E3A8A),
+                checkColor: const Color(0xFF2563EB),
                 onTap: () => setState(() => _heat = LeadHeat.cold),
               ),
             ),
@@ -425,26 +613,60 @@ class _AddLeadSheetState extends ConsumerState<AddLeadSheet> {
     required String label,
     required String emoji,
     required bool selected,
+    required Color selectedBg,
+    required Color selectedBorder,
+    required Color selectedFg,
+    required Color checkColor,
     required VoidCallback onTap,
   }) {
-    final bg = selected ? const Color(0xFFFFEEF1) : const Color(0xFFF6F7FB);
-    final border = selected ? const Color(0xFFF3D2D7) : _border;
-    final fg = selected ? const Color(0xFFB42318) : _ink3;
+    final bg = selected ? selectedBg : const Color(0xFFF6F7FB);
+    final border = selected ? selectedBorder : _border;
+    final fg = selected ? selectedFg : _ink3;
+    final width = selected ? 2.0 : 1.0;
 
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(14),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: border),
-        ),
-        child: Center(
-          child: Text(
-            '$emoji $label',
-            style: GoogleFonts.outfit(fontWeight: FontWeight.w800, color: fg),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(14),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 6),
+          decoration: BoxDecoration(
+            color: bg,
+            borderRadius: BorderRadius.circular(14),
+            border: Border.all(color: border, width: width),
+            boxShadow: selected
+                ? [
+                    BoxShadow(
+                      color: selectedBorder.withValues(alpha: 0.25),
+                      blurRadius: 8,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (selected) ...[
+                Icon(Icons.check_rounded, size: 18, color: checkColor),
+                const SizedBox(width: 4),
+              ],
+              Flexible(
+                child: Text(
+                  '$emoji $label',
+                  textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis,
+                  style: GoogleFonts.outfit(
+                    fontWeight: FontWeight.w800,
+                    color: fg,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -508,6 +730,9 @@ class _AddLeadSheetState extends ConsumerState<AddLeadSheet> {
     final now = DateTime.now().toUtc();
     final id = const Uuid().v4();
     final value = num.tryParse(_valueCtrl.text.trim().replaceAll(',', ''));
+    final mergedProducts = _mergedProductsInterestedIn();
+    final manualExtracted = _manualCatalogExtracted();
+    final num? aiConf = manualExtracted != null ? 1.0 : null;
 
     final lead = Lead(
       id: id,
@@ -526,12 +751,12 @@ class _AddLeadSheetState extends ConsumerState<AddLeadSheet> {
       source: _source,
       status: LeadStatus.newLead,
       heat: _heat,
-      productsInterestedIn: _productsCtrl.text.trim(),
+      productsInterestedIn: mergedProducts,
       estimatedValue: value,
       notes: _notesCtrl.text.trim().isEmpty ? null : _notesCtrl.text.trim(),
       externalThreadId: null,
-      aiConfidence: null,
-      aiExtracted: null,
+      aiConfidence: aiConf,
+      aiExtracted: manualExtracted,
     );
 
     final upsert = ref.read(leadsUpsertProvider);
@@ -551,6 +776,25 @@ class _AddLeadSheetState extends ConsumerState<AddLeadSheet> {
 
 Future<void> _enrichLeadAfterSave(ProviderContainer container, Lead lead) async {
   try {
+    final businessId = lead.businessId;
+    if (businessId == null || businessId.isEmpty) {
+      talker.info('Lead AI enrichment skipped: no businessId');
+      return;
+    }
+
+    final repo = AIModelRepository();
+    if (!await repo.isLeadsAiMatchEnabledForBusiness(businessId)) {
+      talker.info('Lead AI enrichment disabled for business $businessId');
+      return;
+    }
+
+    if (lead.aiExtracted?['source'] == 'manual_catalog') {
+      talker.info(
+        'Lead AI enrichment skipped: manual catalogue picks (${lead.id})',
+      );
+      return;
+    }
+
     final enriched = await enrichLeadWithCatalogAi(
       container: container,
       lead: lead,
@@ -561,5 +805,187 @@ Future<void> _enrichLeadAfterSave(ProviderContainer container, Lead lead) async 
   } catch (e, st) {
     talker.error('Lead AI enrichment failed: $e');
     talker.error(st);
+  }
+}
+
+class _AddLeadCatalogPickerSheet extends StatefulWidget {
+  const _AddLeadCatalogPickerSheet({
+    required this.branchId,
+    required this.onPick,
+  });
+
+  final String branchId;
+  final void Function(_CatalogPick) onPick;
+
+  @override
+  State<_AddLeadCatalogPickerSheet> createState() =>
+      _AddLeadCatalogPickerSheetState();
+}
+
+class _AddLeadCatalogPickerSheetState extends State<_AddLeadCatalogPickerSheet> {
+  final _searchCtrl = TextEditingController();
+  Timer? _debounce;
+  List<Variant> _results = [];
+  bool _loading = true;
+
+  static const Color _ink = Color(0xFF0D0E12);
+  static const Color _ink3 = Color(0xFF9499A5);
+  static const Color _border = Color(0xFFEAECF0);
+
+  @override
+  void initState() {
+    super.initState();
+    unawaited(_fetch(''));
+    _searchCtrl.addListener(() {
+      _debounce?.cancel();
+      _debounce = Timer(const Duration(milliseconds: 300), () {
+        unawaited(_fetch(_searchCtrl.text));
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _debounce?.cancel();
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _fetch(String q) async {
+    setState(() => _loading = true);
+    try {
+      final vatEnabled = await getVatEnabledFromEbm();
+      final taxTyCds = vatEnabled ? ['A', 'B', 'C', 'TT'] : ['D', 'TT'];
+      final paged = await ProxyService.getStrategy(Strategy.capella).variants(
+        branchId: widget.branchId,
+        name: q.trim().toLowerCase(),
+        page: 0,
+        itemsPerPage: 40,
+        taxTyCds: taxTyCds,
+        scanMode: false,
+        fetchRemote: q.trim().isNotEmpty,
+      );
+      if (!mounted) return;
+      setState(() {
+        _results = List<Variant>.from(paged.variants as Iterable);
+        _loading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _results = [];
+        _loading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final h = MediaQuery.of(context).size.height * 0.72;
+    return SafeArea(
+      child: SizedBox(
+        height: h,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 8, 8),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Pick from catalogue',
+                      style: GoogleFonts.outfit(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                        color: _ink,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.of(context).pop(),
+                    icon: const Icon(Icons.close_rounded, color: _ink3),
+                  ),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: TextField(
+                controller: _searchCtrl,
+                decoration: InputDecoration(
+                  hintText: 'Search name, SKU, BCD…',
+                  hintStyle: GoogleFonts.outfit(color: _ink3),
+                  prefixIcon: const Icon(Icons.search_rounded, color: _ink3),
+                  filled: true,
+                  fillColor: const Color(0xFFF6F7FB),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: const BorderSide(color: _border),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    borderSide: const BorderSide(color: _border),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+            Expanded(
+              child: _loading
+                  ? const Center(child: CircularProgressIndicator())
+                  : _results.isEmpty
+                  ? Center(
+                      child: Text(
+                        'No items found',
+                        style: GoogleFonts.outfit(
+                          color: _ink3,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    )
+                  : ListView.separated(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                      itemCount: _results.length,
+                      separatorBuilder: (_, __) =>
+                          Divider(height: 1, color: _border.withValues(alpha: 0.8)),
+                      itemBuilder: (context, i) {
+                        final v = _results[i];
+                        final sub = [
+                          if (v.sku != null && v.sku!.trim().isNotEmpty)
+                            'SKU ${v.sku}',
+                          if (v.bcd != null && v.bcd!.trim().isNotEmpty)
+                            'BCD ${v.bcd}',
+                        ].join(' · ');
+                        return ListTile(
+                          onTap: () {
+                            widget.onPick(_CatalogPick.fromVariant(v));
+                            Navigator.of(context).pop();
+                          },
+                          title: Text(
+                            v.name,
+                            style: GoogleFonts.outfit(
+                              fontWeight: FontWeight.w800,
+                              color: _ink,
+                            ),
+                          ),
+                          subtitle: sub.isEmpty
+                              ? null
+                              : Text(
+                                  sub,
+                                  style: GoogleFonts.outfit(
+                                    fontSize: 12,
+                                    color: _ink3,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

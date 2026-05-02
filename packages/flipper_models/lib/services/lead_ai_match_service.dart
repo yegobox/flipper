@@ -15,7 +15,18 @@ Future<Lead> enrichLeadWithCatalogAi({
   required ProviderContainer container,
   required Lead lead,
 }) async {
+  if (lead.aiExtracted?['source'] == 'manual_catalog') {
+    return lead;
+  }
+
   final repo = AIModelRepository();
+  final bid = lead.businessId;
+  if (bid != null && bid.isNotEmpty) {
+    if (!await repo.isLeadsAiMatchEnabledForBusiness(bid)) {
+      return lead;
+    }
+  }
+
   final model = await repo.getDefaultModel();
   if (model == null) {
     throw StateError('No default AI model configured in ai_models');

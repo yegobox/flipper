@@ -68,103 +68,116 @@ class _LeadsDesktopScreenState extends ConsumerState<LeadsDesktopScreen> {
       orElse: () => const <Lead>[],
     );
 
-    return ColoredBox(
-      color: _bg,
-      child: Padding(
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+    return Scaffold(
+      backgroundColor: _bg,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        centerTitle: false,
+        titleSpacing: 12,
+        automaticallyImplyLeading: false,
+        toolbarHeight: 64,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Divider(
+            height: 1,
+            thickness: 1,
+            color: Colors.grey.shade200,
+          ),
+        ),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            _topRow(context),
-            const SizedBox(height: 14),
-            _statsRow(statsAsync),
-            const SizedBox(height: 14),
-            Expanded(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Expanded(flex: 7, child: _leadsTableCard(leadsAsync, leads)),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    flex: 3,
-                    child: Column(
-                      children: [
-                        _pipelineCard(leads),
-                        const SizedBox(height: 14),
-                        _performanceCard(statsAsync),
-                      ],
-                    ),
-                  ),
-                ],
+            Text(
+              'Leads',
+              style: GoogleFonts.outfit(
+                fontWeight: FontWeight.w700,
+                fontSize: 20,
+                color: Colors.black,
               ),
+            ),
+            Text(
+              'Track customers, enquiries and pipeline value',
+              style: GoogleFonts.outfit(fontSize: 13, color: _ink3),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _topRow(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Leads',
-                style: GoogleFonts.outfit(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w800,
-                  color: _ink,
-                  letterSpacing: -0.3,
-                ),
+        actions: [
+          _pill(
+            icon: AdminDashboardSvgs.leadsEmailEnvelope,
+            text: '0 emails need review',
+            bg: const Color(0xFFFFEEF1),
+            fg: const Color(0xFFB42318),
+            border: const Color(0xFFF3D2D7),
+            onPressed: () => _showEmailLeadsComingSoon(context),
+          ),
+          const SizedBox(width: 10),
+          Builder(
+            builder: (buttonContext) => _ghostButton(
+              icon: AdminDashboardSvgs.leadsFilter,
+              label: 'Filter',
+              onPressed: () => _showFilterMenu(buttonContext),
+            ),
+          ),
+          const SizedBox(width: 10),
+          FilledButton.icon(
+            onPressed: () => _openAddLeadDialog(context),
+            style: FilledButton.styleFrom(
+              backgroundColor: _blue,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
-              Text(
-                'Track customers, enquiries and pipeline value',
-                style: GoogleFonts.outfit(fontSize: 13, color: _ink3),
+            ),
+            icon: SvgPicture.string(
+              AdminDashboardSvgs.leadsPlusAdd,
+              width: 18,
+              height: 18,
+              colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
+            ),
+            label: Text(
+              'Add lead',
+              style: GoogleFonts.outfit(fontWeight: FontWeight.w800),
+            ),
+          ),
+          const SizedBox(width: 12),
+        ],
+      ),
+      body: ColoredBox(
+        color: _bg,
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _statsRow(statsAsync),
+              const SizedBox(height: 14),
+              Expanded(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Expanded(flex: 7, child: _leadsTableCard(leadsAsync, leads)),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      flex: 3,
+                      child: Column(
+                        children: [
+                          _pipelineCard(leads),
+                          const SizedBox(height: 14),
+                          _performanceCard(statsAsync),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
         ),
-        _pill(
-          icon: AdminDashboardSvgs.leadsEmailEnvelope,
-          text: '0 emails need review',
-          bg: const Color(0xFFFFEEF1),
-          fg: const Color(0xFFB42318),
-          border: const Color(0xFFF3D2D7),
-          onPressed: () => _showEmailLeadsComingSoon(context),
-        ),
-        const SizedBox(width: 10),
-        Builder(
-          builder: (buttonContext) => _ghostButton(
-            icon: AdminDashboardSvgs.leadsFilter,
-            label: 'Filter',
-            onPressed: () => _showFilterMenu(buttonContext),
-          ),
-        ),
-        const SizedBox(width: 10),
-        FilledButton.icon(
-          onPressed: () => _openAddLeadDialog(context),
-          style: FilledButton.styleFrom(
-            backgroundColor: _blue,
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-          icon: SvgPicture.string(
-            AdminDashboardSvgs.leadsPlusAdd,
-            width: 18,
-            height: 18,
-            colorFilter: const ColorFilter.mode(Colors.white, BlendMode.srcIn),
-          ),
-          label: Text(
-            'Add lead',
-            style: GoogleFonts.outfit(fontWeight: FontWeight.w800),
-          ),
-        ),
-      ],
+      ),
     );
   }
 

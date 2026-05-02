@@ -32,9 +32,16 @@ class _LeadDetailDialogState extends ConsumerState<LeadDetailDialog> {
     final lead = widget.lead;
     final dateText = DateFormat('MMM d').format(lead.createdAt.toLocal());
     final isGmail = lead.source == LeadSource.gmail;
+    final screenW = MediaQuery.sizeOf(context).width;
+    final narrow = screenW < 520;
+    final horizontalInset = narrow ? 12.0 : 32.0;
+    final verticalInset = narrow ? 16.0 : 28.0;
 
     return Dialog(
-      insetPadding: const EdgeInsets.symmetric(horizontal: 32, vertical: 28),
+      insetPadding: EdgeInsets.symmetric(
+        horizontal: horizontalInset,
+        vertical: verticalInset,
+      ),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       child: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 740, maxHeight: 860),
@@ -445,6 +452,113 @@ class _LeadDetailDialogState extends ConsumerState<LeadDetailDialog> {
   }
 
   Widget _bottomActions(BuildContext context) {
+    final narrow = MediaQuery.sizeOf(context).width < 520;
+
+    final closeButton = SizedBox(
+      height: 44,
+      width: narrow ? double.infinity : null,
+      child: OutlinedButton(
+        onPressed: () => Navigator.of(context).pop(),
+        style: OutlinedButton.styleFrom(
+          backgroundColor: const Color(0xFFF6F7FB),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          side: const BorderSide(color: _border),
+          padding: const EdgeInsets.symmetric(horizontal: 18),
+        ),
+        child: Text(
+          'Close',
+          style: GoogleFonts.outfit(
+            fontWeight: FontWeight.w900,
+            color: _ink2,
+            fontSize: 14,
+          ),
+        ),
+      ),
+    );
+
+    final reviewProformaButton = SizedBox(
+      height: 44,
+      width: narrow ? double.infinity : null,
+      child: FilledButton.icon(
+        onPressed: () {
+          // Close detail dialog then open proforma screen.
+          Navigator.of(context).pop();
+          Future.microtask(() {
+            Navigator.of(context, rootNavigator: true).push(
+              MaterialPageRoute(
+                builder: (_) => ProformaInvoiceScreen(lead: widget.lead),
+              ),
+            );
+          });
+        },
+        style: FilledButton.styleFrom(
+          backgroundColor: const Color(0xFF7C3AED),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 22),
+        ),
+        icon: SvgPicture.string(
+          AdminDashboardSvgs.leadsDocumentProforma,
+          width: 18,
+          height: 18,
+          colorFilter: const ColorFilter.mode(
+            Colors.white,
+            BlendMode.srcIn,
+          ),
+        ),
+        label: Text(
+          'Review proforma',
+          style: GoogleFonts.outfit(
+            fontWeight: FontWeight.w900,
+            fontSize: 14,
+          ),
+        ),
+      ),
+    );
+
+    final convertButton = SizedBox(
+      height: 44,
+      width: narrow ? double.infinity : null,
+      child: FilledButton.icon(
+        onPressed: _isConverting ? null : () => _convertToSale(context),
+        style: FilledButton.styleFrom(
+          backgroundColor: const Color(0xFF16A34A),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 22),
+        ),
+        icon: _isConverting
+            ? const SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white,
+                ),
+              )
+            : SvgPicture.string(
+                AdminDashboardSvgs.leadsCheckmark,
+                width: 18,
+                height: 18,
+                colorFilter: const ColorFilter.mode(
+                  Colors.white,
+                  BlendMode.srcIn,
+                ),
+              ),
+        label: Text(
+          _isConverting ? 'Converting…' : 'Convert to sale',
+          style: GoogleFonts.outfit(
+            fontWeight: FontWeight.w900,
+            fontSize: 14,
+          ),
+        ),
+      ),
+    );
+
     return Container(
       padding: const EdgeInsets.fromLTRB(18, 12, 18, 12),
       decoration: BoxDecoration(
@@ -453,126 +567,36 @@ class _LeadDetailDialogState extends ConsumerState<LeadDetailDialog> {
           top: BorderSide(color: Colors.black.withValues(alpha: 0.06)),
         ),
       ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: SizedBox(
-                height: 44,
-                child: OutlinedButton(
-                  onPressed: () => Navigator.of(context).pop(),
-                  style: OutlinedButton.styleFrom(
-                    backgroundColor: const Color(0xFFF6F7FB),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    side: const BorderSide(color: _border),
-                    padding: const EdgeInsets.symmetric(horizontal: 18),
-                  ),
-                  child: Text(
-                    'Close',
-                    style: GoogleFonts.outfit(
-                      fontWeight: FontWeight.w900,
-                      color: _ink2,
-                      fontSize: 14,
-                    ),
+      child: narrow
+          ? Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                closeButton,
+                const SizedBox(height: 10),
+                reviewProformaButton,
+                const SizedBox(height: 10),
+                convertButton,
+              ],
+            )
+          : Row(
+              children: [
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: closeButton,
                   ),
                 ),
-              ),
-            ),
-          ),
-          Expanded(
-            child: Center(
-              child: SizedBox(
-                height: 44,
-                child: FilledButton.icon(
-                  onPressed: () {
-                    // Close detail dialog then open proforma screen.
-                    Navigator.of(context).pop();
-                    Future.microtask(() {
-                      Navigator.of(context, rootNavigator: true).push(
-                        MaterialPageRoute(
-                          builder: (_) =>
-                              ProformaInvoiceScreen(lead: widget.lead),
-                        ),
-                      );
-                    });
-                  },
-                  style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFF7C3AED),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 22),
-                  ),
-                  icon: SvgPicture.string(
-                    AdminDashboardSvgs.leadsDocumentProforma,
-                    width: 18,
-                    height: 18,
-                    colorFilter: const ColorFilter.mode(
-                      Colors.white,
-                      BlendMode.srcIn,
-                    ),
-                  ),
-                  label: Text(
-                    'Review proforma',
-                    style: GoogleFonts.outfit(
-                      fontWeight: FontWeight.w900,
-                      fontSize: 14,
-                    ),
+                Expanded(
+                  child: Center(child: reviewProformaButton),
+                ),
+                Expanded(
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: convertButton,
                   ),
                 ),
-              ),
+              ],
             ),
-          ),
-          Expanded(
-            child: Align(
-              alignment: Alignment.centerRight,
-              child: SizedBox(
-                height: 44,
-                child: FilledButton.icon(
-                  onPressed: _isConverting
-                      ? null
-                      : () => _convertToSale(context),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFF16A34A),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: const EdgeInsets.symmetric(horizontal: 22),
-                  ),
-                  icon: _isConverting
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : SvgPicture.string(
-                          AdminDashboardSvgs.leadsCheckmark,
-                          width: 18,
-                          height: 18,
-                          colorFilter: const ColorFilter.mode(
-                            Colors.white,
-                            BlendMode.srcIn,
-                          ),
-                        ),
-                  label: Text(
-                    _isConverting ? 'Converting…' : 'Convert to sale',
-                    style: GoogleFonts.outfit(
-                      fontWeight: FontWeight.w900,
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 

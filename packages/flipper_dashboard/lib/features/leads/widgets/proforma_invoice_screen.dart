@@ -1,8 +1,6 @@
 import 'package:flipper_dashboard/widgets/admin_dashboard_svgs.dart';
-import 'package:flipper_models/leads/lead_ui_utils.dart';
 import 'package:flipper_models/models/lead.dart';
 import 'package:flipper_models/providers/all_providers.dart';
-import 'package:flipper_services/proxy.dart';
 import 'package:flipper_services/utils.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flutter/material.dart';
@@ -11,7 +9,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:syncfusion_flutter_pdf/pdf.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../../export/utils/file_utils.dart';
 
@@ -26,10 +23,26 @@ class ProformaInvoiceScreen extends ConsumerStatefulWidget {
 
 class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
   late final List<_ProformaLine> _lines;
+  final TextEditingController _addProductController = TextEditingController();
   bool _isDownloading = false;
   bool _isSending = false;
   bool _isConverting = false;
-  bool _isSharing = false;
+
+  static const Color _proformaIconCircleBorder = Color(0xFFE0E4EB);
+  static const Color _mobileAddProductChipBg = Color(0xFFEFF6FF);
+
+  /// Matches [TicketsScreen] / leads mobile header icon buttons.
+  static ButtonStyle _headerCircleIconStyle() {
+    return IconButton.styleFrom(
+      backgroundColor: Colors.white,
+      foregroundColor: Colors.black87,
+      shape: const CircleBorder(),
+      side: const BorderSide(color: _proformaIconCircleBorder, width: 1),
+      padding: const EdgeInsets.all(10),
+      minimumSize: const Size(40, 40),
+      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    );
+  }
 
   @override
   void initState() {
@@ -38,10 +51,42 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
   }
 
   @override
+  void dispose() {
+    _addProductController.dispose();
+    super.dispose();
+  }
+
+  void _addProductFromField() {
+    final name = _addProductController.text.trim();
+    setState(() {
+      _lines.add(
+        _ProformaLine(
+          name: name.isEmpty ? 'New item' : name,
+          unitPrice: 0,
+          qty: 1,
+          variantId: null,
+        ),
+      );
+      _addProductController.clear();
+    });
+  }
+
+  static bool _isNarrowProforma(BuildContext context) =>
+      MediaQuery.sizeOf(context).width < 720;
+
+  static String _proformaRef(DateTime issueDate, Lead lead) {
+    final y = issueDate.year;
+    final suffix = lead.id.hashCode.abs() % 10000;
+    return 'PF-$y-${suffix.toString().padLeft(4, '0')}';
+  }
+
+  @override
   Widget build(BuildContext context) {
     final lead = widget.lead;
     final issueDate = DateTime.now();
     final validUntil = issueDate.add(const Duration(days: 7));
+    final narrow = _isNarrowProforma(context);
+    final proformaRef = _proformaRef(issueDate, lead);
 
     final subTotal = _lines.fold<double>(
       0.0,
@@ -52,47 +97,168 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFFF4F6FB),
-      body: SafeArea(
-        child: Column(
-          children: [
-            _topBar(context),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(18, 14, 18, 18),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Expanded(
-                      flex: 7,
-                      child: _documentCard(
-                        lead: lead,
-                        issueDate: issueDate,
-                        validUntil: validUntil,
-                        subTotal: subTotal,
-                        vat: vat,
-                        grandTotal: grandTotal,
-                      ),
+      appBar: narrow ? _mobileProformaAppBar(context) : null,
+      body: narrow
+          ? Column(
+              children: [
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(16, 14, 16, 8),
+                    child: _documentCard(
+                      lead: lead,
+                      issueDate: issueDate,
+                      validUntil: validUntil,
+                      subTotal: subTotal,
+                      vat: vat,
+                      grandTotal: grandTotal,
+                      narrow: true,
+                      proformaRef: proformaRef,
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      flex: 3,
-                      child: _rightPanel(
-                        lead: lead,
-                        subTotal: subTotal,
-                        vat: vat,
-                        grandTotal: grandTotal,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
+                _mobileBottomBar(context),
+              ],
+            )
+          : SafeArea(
+              child: Column(
+                children: [
+                  _topBar(context),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(18, 14, 18, 18),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Expanded(
+                            flex: 7,
+                            child: _documentCard(
+                              lead: lead,
+                              issueDate: issueDate,
+                              validUntil: validUntil,
+                              subTotal: subTotal,
+                              vat: vat,
+                              grandTotal: grandTotal,
+                              narrow: false,
+                              proformaRef: proformaRef,
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            flex: 3,
+                            child: _rightPanel(
+                              subTotal: subTotal,
+                              vat: vat,
+                              grandTotal: grandTotal,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
-      ),
     );
   }
 
+  PreferredSizeWidget _mobileProformaAppBar(BuildContext context) {
+    return AppBar(
+      backgroundColor: Colors.white,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      centerTitle: false,
+      titleSpacing: 12,
+      leadingWidth: 56,
+      toolbarHeight: 64,
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(1),
+        child: Divider(height: 1, thickness: 1, color: Colors.grey.shade200),
+      ),
+      leading: IconButton(
+        style: _headerCircleIconStyle(),
+        onPressed: () => Navigator.of(context).maybePop(),
+        icon: const Icon(Icons.close, size: 22),
+      ),
+      title: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'Proforma',
+            style: GoogleFonts.outfit(
+              fontWeight: FontWeight.w700,
+              fontSize: 16,
+              color: Colors.black,
+            ),
+          ),
+          Text(
+            'Lead: ${widget.lead.fullName} · AI draft — review before sending',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: GoogleFonts.outfit(
+              fontSize: 12,
+              color: const Color(0xFF9499A5),
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        Padding(
+          padding: const EdgeInsets.only(right: 8),
+          child: _isSending
+              ? Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: SizedBox(
+                    width: 22,
+                    height: 22,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: const Color(0xFF2563EB),
+                    ),
+                  ),
+                )
+              : FilledButton.icon(
+                  onPressed: () => _sendToCustomer(context),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFF2563EB),
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
+                    minimumSize: const Size(0, 36),
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  icon: SvgPicture.string(
+                    AdminDashboardSvgs.leadsSendPaperPlane,
+                    width: 16,
+                    height: 16,
+                    colorFilter: const ColorFilter.mode(
+                      Colors.white,
+                      BlendMode.srcIn,
+                    ),
+                  ),
+                  label: Text(
+                    'Send',
+                    style: GoogleFonts.outfit(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+        ),
+      ],
+    );
+  }
+
+  /// Desktop / tablet top bar (custom row). Mobile uses [_mobileProformaAppBar].
   Widget _topBar(BuildContext context) {
     return Container(
       padding: const EdgeInsets.fromLTRB(8, 10, 12, 10),
@@ -147,30 +313,6 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
           ),
           const SizedBox(width: 10),
           FilledButton.icon(
-            onPressed: _isSending ? null : () => _sendToCustomer(context),
-            style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFF2563EB),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            ),
-            icon: SvgPicture.string(
-              AdminDashboardSvgs.leadsSendPaperPlane,
-              width: 18,
-              height: 18,
-              colorFilter: const ColorFilter.mode(
-                Colors.white,
-                BlendMode.srcIn,
-              ),
-            ),
-            label: Text(
-              _isSending ? 'Sending…' : 'Send to customer',
-              style: GoogleFonts.outfit(fontWeight: FontWeight.w900),
-            ),
-          ),
-          const SizedBox(width: 10),
-          FilledButton.icon(
             onPressed: _isConverting ? null : () => _convertToSale(context),
             style: FilledButton.styleFrom(
               backgroundColor: const Color(0xFF16A34A),
@@ -194,6 +336,96 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _mobileBottomBar(BuildContext context) {
+    return Material(
+      elevation: 6,
+      color: Colors.white,
+      shadowColor: Colors.black.withValues(alpha: 0.08),
+      child: SafeArea(
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 10, 16, 10),
+          child: Row(
+            children: [
+              Expanded(
+                child: SizedBox(
+                  height: 48,
+                  child: FilledButton.icon(
+                    onPressed: _isSending
+                        ? null
+                        : () => _sendToCustomer(context),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: const Color(0xFF2563EB),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                    ),
+                    icon: SvgPicture.string(
+                      AdminDashboardSvgs.leadsSendPaperPlane,
+                      width: 18,
+                      height: 18,
+                      colorFilter: const ColorFilter.mode(
+                        Colors.white,
+                        BlendMode.srcIn,
+                      ),
+                    ),
+                    label: Text(
+                      _isSending ? 'Sending…' : 'Send',
+                      style: GoogleFonts.outfit(fontWeight: FontWeight.w900),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: SizedBox(
+                  height: 48,
+                  child: FilledButton.icon(
+                    onPressed: _isConverting
+                        ? null
+                        : () => _convertToSale(context),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: const Color(0xFF16A34A),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14),
+                      ),
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                    ),
+                    icon: _isConverting
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : SvgPicture.string(
+                            AdminDashboardSvgs.leadsCheckmark,
+                            width: 18,
+                            height: 18,
+                            colorFilter: const ColorFilter.mode(
+                              Colors.white,
+                              BlendMode.srcIn,
+                            ),
+                          ),
+                    label: Text(
+                      _isConverting ? 'Converting…' : 'Convert to sale',
+                      style: GoogleFonts.outfit(fontWeight: FontWeight.w900),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -233,7 +465,37 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
     required double subTotal,
     required double vat,
     required double grandTotal,
+    required bool narrow,
+    required String proformaRef,
   }) {
+    final content = Padding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _docHeader(lead: lead, narrow: narrow, proformaRef: proformaRef),
+          const SizedBox(height: 14),
+          _metaGrid(
+            lead: lead,
+            issueDate: issueDate,
+            validUntil: validUntil,
+            narrow: narrow,
+          ),
+          const SizedBox(height: 14),
+          _linesTable(narrow: narrow),
+          const SizedBox(height: 16),
+          _totals(
+            subTotal: subTotal,
+            vat: vat,
+            grandTotal: grandTotal,
+            narrow: narrow,
+          ),
+          const SizedBox(height: 16),
+          _terms(narrow: narrow),
+        ],
+      ),
+    );
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -241,37 +503,176 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
         border: Border.all(color: const Color(0xFFEAECF0)),
       ),
       child: Column(
+        mainAxisSize: narrow ? MainAxisSize.min : MainAxisSize.max,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Container(
-            padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
-            decoration: BoxDecoration(
-              color: const Color(0xFFF5F3FF),
-              borderRadius: const BorderRadius.vertical(
-                top: Radius.circular(18),
-              ),
-              border: Border(
-                bottom: BorderSide(color: Colors.black.withValues(alpha: 0.06)),
+          if (!narrow) _aiBanner(narrow: false),
+          if (narrow)
+            content
+          else
+            Expanded(child: SingleChildScrollView(child: content)),
+        ],
+      ),
+    );
+  }
+
+  Widget _aiBanner({required bool narrow}) {
+    final message = narrow
+        ? 'AI drafted from email. Tap any price or quantity to edit. Review all lines before sending.'
+        : 'AI drafted this proforma from the customer’s email';
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF5F3FF),
+        borderRadius: BorderRadius.vertical(top: const Radius.circular(18)),
+        border: Border(
+          bottom: BorderSide(color: Colors.black.withValues(alpha: 0.06)),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: SvgPicture.string(
+              AdminDashboardSvgs.leadsAiInfoCircle,
+              width: 18,
+              height: 18,
+              colorFilter: const ColorFilter.mode(
+                Color(0xFF7C3AED),
+                BlendMode.srcIn,
               ),
             ),
-            child: Row(
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              message,
+              style: GoogleFonts.outfit(
+                fontWeight: FontWeight.w900,
+                color: const Color(0xFF5B21B6),
+                fontSize: narrow ? 13 : 14,
+                height: 1.35,
+              ),
+            ),
+          ),
+          if (!narrow) ...[
+            const SizedBox(width: 10),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEDE9FE),
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: Text(
+                'All fields editable',
+                style: GoogleFonts.outfit(
+                  fontWeight: FontWeight.w900,
+                  color: const Color(0xFF6D28D9),
+                  fontSize: 12,
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _docHeader({
+    required Lead lead,
+    required bool narrow,
+    required String proformaRef,
+  }) {
+    final badgeLabel = narrow ? 'Draft' : 'Draft — not sent';
+
+    final shopBlock = Expanded(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Flipper — Demo Shop',
+            style: GoogleFonts.outfit(
+              fontWeight: FontWeight.w900,
+              fontSize: 16,
+              color: const Color(0xFF0D0E12),
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            'Kigali, Rwanda',
+            style: GoogleFonts.outfit(
+              color: const Color(0xFF9499A5),
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+            ),
+          ),
+        ],
+      ),
+    );
+
+    final rightBlock = Flexible(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: [
+          Text(
+            narrow ? 'Proforma' : 'Proforma Invoice',
+            style: GoogleFonts.outfit(
+              fontWeight: FontWeight.w700,
+              fontSize: narrow ? 17 : 18,
+              color: const Color(0xFF2563EB),
+            ),
+            textAlign: TextAlign.right,
+          ),
+          const SizedBox(height: 4),
+          if (narrow)
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                SvgPicture.string(
-                  AdminDashboardSvgs.leadsAiInfoCircle,
-                  width: 18,
-                  height: 18,
-                  colorFilter: const ColorFilter.mode(
-                    Color(0xFF7C3AED),
-                    BlendMode.srcIn,
+                Text(
+                  proformaRef,
+                  textAlign: TextAlign.right,
+                  style: GoogleFonts.jetBrainsMono(
+                    fontWeight: FontWeight.w800,
+                    color: const Color(0xFF9499A5),
+                    fontSize: 12,
                   ),
                 ),
-                const SizedBox(width: 10),
-                Expanded(
+                const SizedBox(height: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFFBEB),
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(color: const Color(0xFFFDE68A)),
+                  ),
                   child: Text(
-                    'AI drafted this proforma from the customer’s email',
+                    badgeLabel,
                     style: GoogleFonts.outfit(
-                      fontWeight: FontWeight.w900,
-                      color: const Color(0xFF5B21B6),
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFFB45309),
+                      fontSize: 12,
                     ),
+                  ),
+                ),
+              ],
+            )
+          else
+            Wrap(
+              alignment: WrapAlignment.end,
+              spacing: 10,
+              runSpacing: 6,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                Text(
+                  proformaRef,
+                  style: GoogleFonts.jetBrainsMono(
+                    fontWeight: FontWeight.w800,
+                    color: const Color(0xFF9499A5),
                   ),
                 ),
                 Container(
@@ -280,57 +681,34 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
                     vertical: 6,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFEDE9FE),
+                    color: const Color(0xFFFFFBEB),
                     borderRadius: BorderRadius.circular(999),
+                    border: Border.all(color: const Color(0xFFFDE68A)),
                   ),
                   child: Text(
-                    'All fields editable',
+                    badgeLabel,
                     style: GoogleFonts.outfit(
                       fontWeight: FontWeight.w900,
-                      color: const Color(0xFF6D28D9),
+                      color: const Color(0xFFB45309),
                       fontSize: 12,
                     ),
                   ),
                 ),
               ],
             ),
-          ),
-          Expanded(
-            child: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _docHeader(lead: lead),
-                    const SizedBox(height: 14),
-                    _metaGrid(
-                      lead: lead,
-                      issueDate: issueDate,
-                      validUntil: validUntil,
-                    ),
-                    const SizedBox(height: 14),
-                    _linesTable(),
-                    const SizedBox(height: 16),
-                    _totals(
-                      subTotal: subTotal,
-                      vat: vat,
-                      grandTotal: grandTotal,
-                    ),
-                    const SizedBox(height: 16),
-                    _terms(),
-                  ],
-                ),
-              ),
-            ),
-          ),
         ],
       ),
     );
-  }
 
-  Widget _docHeader({required Lead lead}) {
+    if (narrow) {
+      return Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [shopBlock, const SizedBox(width: 12), rightBlock],
+      );
+    }
+
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Container(
           width: 40,
@@ -352,110 +730,100 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
           ),
         ),
         const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Flipper — Demo Shop',
-                style: GoogleFonts.outfit(
-                  fontWeight: FontWeight.w900,
-                  fontSize: 16,
-                ),
-              ),
-              Text(
-                'Kigali, Rwanda',
-                style: GoogleFonts.outfit(
-                  color: const Color(0xFF9499A5),
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
-          ),
-        ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(
-              'Proforma Invoice',
-              style: GoogleFonts.outfit(
-                fontWeight: FontWeight.w900,
-                fontSize: 18,
-                color: const Color(0xFF2563EB),
-              ),
-            ),
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                Text(
-                  'PF-2026-0042',
-                  style: GoogleFonts.jetBrainsMono(
-                    fontWeight: FontWeight.w800,
-                    color: const Color(0xFF9499A5),
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFFFBEB),
-                    borderRadius: BorderRadius.circular(999),
-                    border: Border.all(color: const Color(0xFFFDE68A)),
-                  ),
-                  child: Text(
-                    'Draft — not sent',
-                    style: GoogleFonts.outfit(
-                      fontWeight: FontWeight.w900,
-                      color: const Color(0xFFB45309),
-                      fontSize: 12,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+        shopBlock,
+        const SizedBox(width: 8),
+        rightBlock,
       ],
     );
+  }
+
+  String _billToContactLine(Lead lead) {
+    final email = (lead.emailAddress ?? '').trim();
+    final phone = (lead.phoneNumber ?? '').trim();
+    if (email.isEmpty && phone.isEmpty) {
+      return '—';
+    }
+    if (email.isEmpty) {
+      return phone;
+    }
+    if (phone.isEmpty) {
+      return email;
+    }
+    return '$email · $phone';
   }
 
   Widget _metaGrid({
     required Lead lead,
     required DateTime issueDate,
     required DateTime validUntil,
+    required bool narrow,
   }) {
-    Widget block(String title, Widget child) {
-      return Expanded(
-        child: Container(
-          padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
-          decoration: BoxDecoration(
-            border: Border.all(color: const Color(0xFFEAECF0)),
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: GoogleFonts.outfit(
-                  fontWeight: FontWeight.w900,
-                  color: const Color(0xFF9499A5),
-                  fontSize: 11,
-                  letterSpacing: 0.08 * 11,
-                ),
-              ),
-              const SizedBox(height: 6),
-              child,
-            ],
-          ),
+    Widget block(String title, Widget child, {bool expanded = true}) {
+      final box = Container(
+        padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+        decoration: BoxDecoration(
+          border: Border.all(color: const Color(0xFFEAECF0)),
+          borderRadius: BorderRadius.circular(14),
         ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: GoogleFonts.outfit(
+                fontWeight: FontWeight.w900,
+                color: const Color(0xFF9499A5),
+                fontSize: 11,
+                letterSpacing: 0.08 * 11,
+              ),
+            ),
+            const SizedBox(height: 6),
+            child,
+          ],
+        ),
+      );
+      if (!expanded) return box;
+      return Expanded(child: box);
+    }
+
+    if (narrow) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(
+            'BILL TO',
+            style: GoogleFonts.outfit(
+              fontWeight: FontWeight.w900,
+              color: const Color(0xFF9499A5),
+              fontSize: 11,
+              letterSpacing: 0.08 * 11,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            lead.fullName,
+            style: GoogleFonts.outfit(
+              fontWeight: FontWeight.w900,
+              fontSize: 16,
+              color: const Color(0xFF0D0E12),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            _billToContactLine(lead),
+            style: GoogleFonts.outfit(
+              color: const Color(0xFF4B4E58),
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+              height: 1.4,
+            ),
+          ),
+        ],
       );
     }
 
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         block(
           'BILL TO',
@@ -468,7 +836,7 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
               ),
               const SizedBox(height: 2),
               Text(
-                '${lead.emailAddress ?? ''} ${lead.phoneNumber ?? ''}'.trim(),
+                _billToContactLine(lead),
                 style: GoogleFonts.outfit(
                   color: const Color(0xFF4B4E58),
                   fontWeight: FontWeight.w600,
@@ -551,7 +919,7 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
     );
   }
 
-  Widget _linesTable() {
+  Widget _linesTable({required bool narrow}) {
     Widget header(String t, {int flex = 1, bool right = false}) {
       return Expanded(
         flex: flex,
@@ -566,6 +934,116 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
               letterSpacing: 0.08 * 11,
             ),
           ),
+        ),
+      );
+    }
+
+    if (narrow) {
+      final labelStyle = GoogleFonts.outfit(
+        fontWeight: FontWeight.w900,
+        color: const Color(0xFF9499A5),
+        fontSize: 11,
+        letterSpacing: 0.08 * 11,
+      );
+      return Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: const Color(0xFFEAECF0)),
+        ),
+        child: Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
+              color: const Color(0xFFFBFBFD),
+              child: Row(
+                children: [
+                  Expanded(child: Text('ITEM', style: labelStyle)),
+                  SizedBox(
+                    width: 84,
+                    child: Align(
+                      alignment: Alignment.center,
+                      child: Text('PRICE', style: labelStyle),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 104,
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: Text('TOTAL', style: labelStyle),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            ..._lines.map((l) => _lineRow(l, narrow: true)),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(12, 10, 12, 12),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFEAECF0)),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 4, right: 4),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _addProductController,
+                          style: GoogleFonts.outfit(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 14,
+                            color: const Color(0xFF0D0E12),
+                          ),
+                          decoration: InputDecoration(
+                            hintText: 'Add product...',
+                            hintStyle: GoogleFonts.outfit(
+                              color: const Color(0xFFC5C8D0),
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                            ),
+                            border: InputBorder.none,
+                            isDense: true,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 14,
+                            ),
+                          ),
+                          textInputAction: TextInputAction.done,
+                          onSubmitted: (_) => _addProductFromField(),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: _addProductFromField,
+                        style: TextButton.styleFrom(
+                          backgroundColor: _mobileAddProductChipBg,
+                          foregroundColor: const Color(0xFF2563EB),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 10,
+                          ),
+                          minimumSize: const Size(0, 40),
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        child: Text(
+                          '+ Add',
+                          style: GoogleFonts.outfit(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 14,
+                            color: const Color(0xFF2563EB),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       );
     }
@@ -590,7 +1068,7 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
               ],
             ),
           ),
-          ..._lines.map((l) => _lineRow(l)).toList(),
+          ..._lines.map((l) => _lineRow(l, narrow: false)),
           Padding(
             padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
             child: Row(
@@ -608,7 +1086,12 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
                   onPressed: () {
                     setState(() {
                       _lines.add(
-                        _ProformaLine(name: 'New item', unitPrice: 0, qty: 1),
+                        _ProformaLine(
+                          name: 'New item',
+                          unitPrice: 0,
+                          qty: 1,
+                          variantId: null,
+                        ),
                       );
                     });
                   },
@@ -652,7 +1135,177 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
     );
   }
 
-  Widget _lineRow(_ProformaLine line) {
+  void _removeLine(_ProformaLine line) {
+    if (_lines.length <= 1) return;
+    setState(() {
+      _lines.remove(line);
+    });
+  }
+
+  Widget _lineRow(_ProformaLine line, {required bool narrow}) {
+    if (narrow) {
+      return _lineRowNarrow(line);
+    }
+    return _lineRowWide(line);
+  }
+
+  Widget _lineRowNarrow(_ProformaLine line) {
+    final total = line.unitPrice * line.qty;
+    final idLine = (line.variantId != null && line.variantId!.trim().isNotEmpty)
+        ? ''
+        : null;
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 14),
+      decoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(color: Colors.black.withValues(alpha: 0.06)),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        line.name,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: GoogleFonts.outfit(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 15,
+                          color: const Color(0xFF0D0E12),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEDE9FE),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        'AI',
+                        style: GoogleFonts.outfit(
+                          fontWeight: FontWeight.w800,
+                          color: const Color(0xFF6D28D9),
+                          fontSize: 11,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                if (idLine != null) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    idLine,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.jetBrainsMono(
+                      fontSize: 11,
+                      color: const Color(0xFF9499A5),
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    _qtyBtn(
+                      '-',
+                      () => setState(
+                        () => line.qty = (line.qty - 1).clamp(1, 999),
+                      ),
+                    ),
+                    Container(
+                      width: 32,
+                      alignment: Alignment.center,
+                      child: Text(
+                        '${line.qty}',
+                        style: GoogleFonts.jetBrainsMono(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 14,
+                        ),
+                      ),
+                    ),
+                    _qtyBtn(
+                      '+',
+                      () => setState(
+                        () => line.qty = (line.qty + 1).clamp(1, 999),
+                      ),
+                    ),
+                    const Spacer(),
+                    IconButton(
+                      visualDensity: VisualDensity.compact,
+                      padding: EdgeInsets.zero,
+                      constraints: const BoxConstraints(
+                        minWidth: 40,
+                        minHeight: 40,
+                      ),
+                      icon: Icon(
+                        Icons.delete_outline,
+                        size: 22,
+                        color: _lines.length > 1
+                            ? const Color(0xFF9CA3AF)
+                            : const Color(0xFFE5E7EB),
+                      ),
+                      onPressed: _lines.length > 1
+                          ? () => _removeLine(line)
+                          : null,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
+          SizedBox(
+            width: 100,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  formatNumber(line.unitPrice),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.right,
+                  style: GoogleFonts.jetBrainsMono(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 13,
+                    color: const Color(0xFF0D0E12),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  'RWF ${formatNumber(total)}',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.right,
+                  style: GoogleFonts.jetBrainsMono(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 12,
+                    color: const Color(0xFF0D0E12),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _lineRowWide(_ProformaLine line) {
     final total = line.unitPrice * line.qty;
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 12, 14, 12),
@@ -671,6 +1324,7 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
                   child: Text(
                     line.name,
                     style: GoogleFonts.outfit(fontWeight: FontWeight.w900),
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
                 const SizedBox(width: 10),
@@ -753,9 +1407,38 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
             flex: 2,
             child: Align(
               alignment: Alignment.centerRight,
-              child: Text(
-                'RWF ${formatNumber(total)}',
-                style: GoogleFonts.jetBrainsMono(fontWeight: FontWeight.w900),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Flexible(
+                    child: Text(
+                      'RWF ${formatNumber(total)}',
+                      textAlign: TextAlign.right,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.jetBrainsMono(
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    visualDensity: VisualDensity.compact,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(
+                      minWidth: 32,
+                      minHeight: 32,
+                    ),
+                    icon: Icon(
+                      Icons.delete_outline,
+                      size: 20,
+                      color: _lines.length > 1
+                          ? const Color(0xFF9CA3AF)
+                          : const Color(0xFFE5E7EB),
+                    ),
+                    onPressed: _lines.length > 1
+                        ? () => _removeLine(line)
+                        : null,
+                  ),
+                ],
               ),
             ),
           ),
@@ -793,8 +1476,10 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
     required double subTotal,
     required double vat,
     required double grandTotal,
+    required bool narrow,
   }) {
     Widget row(String k, String v, {bool strong = false, Color? valueColor}) {
+      final isGrand = k == 'Grand Total';
       return Padding(
         padding: const EdgeInsets.only(bottom: 6),
         child: Row(
@@ -803,35 +1488,51 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
               child: Text(
                 k,
                 style: GoogleFonts.outfit(
-                  color: const Color(0xFF4B4E58),
-                  fontWeight: FontWeight.w700,
+                  color: isGrand
+                      ? const Color(0xFF0D0E12)
+                      : const Color(0xFF4B4E58),
+                  fontWeight: isGrand ? FontWeight.w900 : FontWeight.w700,
+                  fontSize: isGrand && narrow ? 16 : 14,
                 ),
               ),
             ),
-            Text(
-              v,
-              style: strong
-                  ? GoogleFonts.jetBrainsMono(
-                      fontWeight: FontWeight.w900,
-                      fontSize: 18,
-                      color: valueColor ?? Colors.black,
-                    )
-                  : GoogleFonts.jetBrainsMono(
-                      fontWeight: FontWeight.w900,
-                      color: valueColor ?? Colors.black,
-                    ),
+            Flexible(
+              child: Text(
+                v,
+                textAlign: TextAlign.right,
+                overflow: TextOverflow.ellipsis,
+                maxLines: 2,
+                style: strong
+                    ? GoogleFonts.jetBrainsMono(
+                        fontWeight: FontWeight.w900,
+                        fontSize: narrow ? 20 : 18,
+                        color: valueColor ?? Colors.black,
+                      )
+                    : GoogleFonts.jetBrainsMono(
+                        fontWeight: FontWeight.w900,
+                        fontSize: narrow ? 14 : 13,
+                        color: valueColor ?? Colors.black,
+                      ),
+              ),
             ),
           ],
         ),
       );
     }
 
-    return Align(
-      alignment: Alignment.centerRight,
-      child: SizedBox(
-        width: 320,
-        child: Column(
-          children: [
+    final rows = narrow
+        ? <Widget>[
+            row('Subtotal', 'RWF ${formatNumber(subTotal)}'),
+            row('VAT 18%', 'RWF ${formatNumber(vat)}'),
+            const SizedBox(height: 6),
+            row(
+              'Grand Total',
+              'RWF ${formatNumber(grandTotal)}',
+              strong: true,
+              valueColor: const Color(0xFF2563EB),
+            ),
+          ]
+        : <Widget>[
             row('Subtotal', 'RWF ${formatNumber(subTotal)}'),
             row('VAT 18%', 'RWF ${formatNumber(vat)}'),
             row('Discount', 'RWF 0', valueColor: const Color(0xFF16A34A)),
@@ -842,18 +1543,37 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
               strong: true,
               valueColor: const Color(0xFF2563EB),
             ),
-          ],
+          ];
+
+    if (narrow) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: rows,
+      );
+    }
+
+    return Align(
+      alignment: Alignment.centerRight,
+      child: SizedBox(
+        width: 320,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: rows,
         ),
       ),
     );
   }
 
-  Widget _terms() {
+  Widget _terms({required bool narrow}) {
+    final body = narrow
+        ? 'Valid 7 days. Payment due on delivery.'
+        : 'This proforma is valid for 7 days. Payment due upon delivery. Bank transfer or mobile money accepted.';
+
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8FAFC),
-        borderRadius: BorderRadius.circular(14),
+        color: narrow ? Colors.white : const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: const Color(0xFFEAECF0)),
       ),
       child: Column(
@@ -870,10 +1590,12 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
           ),
           const SizedBox(height: 10),
           Text(
-            'This proforma is valid for 7 days. Payment due upon delivery. Bank transfer or mobile money accepted.',
+            body,
             style: GoogleFonts.outfit(
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w600,
               color: const Color(0xFF4B4E58),
+              fontSize: narrow ? 14 : 13,
+              height: 1.4,
             ),
           ),
         ],
@@ -882,7 +1604,6 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
   }
 
   Widget _rightPanel({
-    required Lead lead,
     required double subTotal,
     required double vat,
     required double grandTotal,
@@ -895,47 +1616,10 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
           child: Column(
             children: [
               _sideBtn(
-                color: const Color(0xFF2563EB),
-                icon: AdminDashboardSvgs.leadsSendPaperPlane,
-                label: 'Send to customer',
-                onTap: _isSending ? () {} : () => _sendToCustomer(context),
-              ),
-              const SizedBox(height: 10),
-              _sideBtn(
                 color: const Color(0xFF16A34A),
                 icon: AdminDashboardSvgs.leadsCheckmark,
                 label: 'Convert to sale',
                 onTap: _isConverting ? () {} : () => _convertToSale(context),
-              ),
-              const SizedBox(height: 10),
-              OutlinedButton.icon(
-                onPressed: _isSharing ? null : () => _shareLink(context),
-                style: OutlinedButton.styleFrom(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  side: const BorderSide(color: Color(0xFFEAECF0)),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 12,
-                  ),
-                ),
-                icon: SvgPicture.string(
-                  AdminDashboardSvgs.leadsShareExternalLink,
-                  width: 18,
-                  height: 18,
-                  colorFilter: const ColorFilter.mode(
-                    Color(0xFF4B4E58),
-                    BlendMode.srcIn,
-                  ),
-                ),
-                label: Text(
-                  'Share link',
-                  style: GoogleFonts.outfit(
-                    fontWeight: FontWeight.w900,
-                    color: const Color(0xFF4B4E58),
-                  ),
-                ),
               ),
             ],
           ),
@@ -1114,11 +1798,8 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
     showCustomSnackBarUtil(context, msg, type: type);
   }
 
-  String _buildShareLink(Lead lead) {
-    final branchId = lead.branchId;
-    final encodedLeadId = Uri.encodeComponent(lead.id);
-    return 'flipper://leads/proforma?leadId=$encodedLeadId&branchId=$branchId';
-  }
+  String _proformaPdfFileName(DateTime issueDate) =>
+      '${DateFormat('yyyyMMdd_HHmmss').format(issueDate)}-Proforma-Invoice.pdf';
 
   Future<PdfDocument> _buildPdfDocument({
     required Lead lead,
@@ -1575,8 +2256,7 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
       );
       final filePath = await FileUtils.downloadPdfFile(
         document,
-        fileName:
-            '${DateFormat('yyyyMMdd_HHmmss').format(issueDate)}-Proforma-Invoice.pdf',
+        fileName: _proformaPdfFileName(issueDate),
       );
       document.dispose();
       if (filePath == null) {
@@ -1610,40 +2290,17 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
         issueDate: issueDate,
         validUntil: validUntil,
       );
-      final filePath = await FileUtils.savePdfFile(document);
+      final filePath = await FileUtils.savePdfFile(
+        document,
+        fileName: _proformaPdfFileName(issueDate),
+      );
       document.dispose();
-
-      final link = _buildShareLink(widget.lead);
-      final message =
-          'Proforma invoice for ${widget.lead.fullName}\n$link\n\nSent from Flipper.';
-
-      final phone = (widget.lead.phoneNumber ?? '').trim();
-      if (phone.isNotEmpty) {
-        final wa = Uri.parse(
-          'https://wa.me/${Uri.encodeComponent(phone)}?text=${Uri.encodeComponent(message)}',
-        );
-        if (await canLaunchUrl(wa)) {
-          await launchUrl(wa, mode: LaunchMode.externalApplication);
-        }
-      } else {
-        final email = (widget.lead.emailAddress ?? '').trim();
-        if (email.isNotEmpty) {
-          final mail = Uri(
-            scheme: 'mailto',
-            path: email,
-            queryParameters: {'subject': 'Proforma invoice', 'body': message},
-          );
-          if (await canLaunchUrl(mail)) {
-            await launchUrl(mail, mode: LaunchMode.externalApplication);
-          }
-        }
-      }
 
       await FileUtils.shareFileAsAttachment(filePath);
       if (mounted) {
         _toast(
           context,
-          'Ready to send: shared as attachment.',
+          'Proforma PDF ready to share.',
           type: NotificationType.success,
         );
       }
@@ -1657,25 +2314,6 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
       }
     } finally {
       if (mounted) setState(() => _isSending = false);
-    }
-  }
-
-  Future<void> _shareLink(BuildContext context) async {
-    setState(() => _isSharing = true);
-    try {
-      final link = _buildShareLink(widget.lead);
-      final msg = 'Proforma invoice link for ${widget.lead.fullName}\n$link';
-      ProxyService.share.share(msg);
-    } catch (e) {
-      if (mounted) {
-        _toast(
-          context,
-          'Failed to share link: $e',
-          type: NotificationType.error,
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _isSharing = false);
     }
   }
 
@@ -1708,6 +2346,7 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
             name: s.name,
             unitPrice: s.unitPrice,
             qty: s.qty,
+            variantId: s.variantId,
           ),
         )
         .toList();
@@ -1716,11 +2355,13 @@ class _ProformaInvoiceScreenState extends ConsumerState<ProformaInvoiceScreen> {
 
 class _ProformaLine {
   final String name;
+  final String? variantId;
   double unitPrice;
   int qty;
   _ProformaLine({
     required this.name,
     required this.unitPrice,
     required this.qty,
+    this.variantId,
   });
 }

@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/features/leads/widgets/add_lead_sheet.dart';
+import 'package:flipper_dashboard/features/leads/widgets/lead_detail_dialog.dart';
 import 'package:flipper_dashboard/widgets/admin_dashboard_svgs.dart';
 import 'package:flipper_models/models/lead.dart';
 import 'package:flipper_models/providers/leads_provider.dart';
@@ -19,6 +20,21 @@ class LeadsMobileScreen extends ConsumerStatefulWidget {
 class _LeadsMobileScreenState extends ConsumerState<LeadsMobileScreen> {
   String _filter = 'All';
   String _search = '';
+
+  static const Color _leadsIconCircleBorder = Color(0xFFE0E4EB);
+
+  /// Matches tickets [TicketsScreen] header icon buttons.
+  static ButtonStyle _headerCircleIconStyle() {
+    return IconButton.styleFrom(
+      backgroundColor: Colors.white,
+      foregroundColor: Colors.black87,
+      shape: const CircleBorder(),
+      side: const BorderSide(color: _leadsIconCircleBorder, width: 1),
+      padding: const EdgeInsets.all(10),
+      minimumSize: const Size(40, 40),
+      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+    );
+  }
 
   static const Color _bg = Color(0xFFF4F6FB);
   static const Color _ink = Color(0xFF0D0E12);
@@ -61,10 +77,67 @@ class _LeadsMobileScreenState extends ConsumerState<LeadsMobileScreen> {
 
     return Scaffold(
       backgroundColor: _bg,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        centerTitle: false,
+        titleSpacing: 12,
+        leadingWidth: 56,
+        toolbarHeight: 64,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Divider(
+            height: 1,
+            thickness: 1,
+            color: Colors.grey.shade200,
+          ),
+        ),
+        leading: IconButton(
+          style: _headerCircleIconStyle(),
+          onPressed: () => Navigator.of(context).maybePop(),
+          icon: const Icon(Icons.close, size: 22),
+        ),
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Leads',
+              style: GoogleFonts.outfit(
+                fontWeight: FontWeight.w700,
+                fontSize: 16,
+                color: Colors.black,
+              ),
+            ),
+            Text(
+              'Track customers, enquiries and pipeline value',
+              style: GoogleFonts.outfit(fontSize: 12, color: _ink3),
+            ),
+          ],
+        ),
+        actions: [
+          _topBarPill(
+            icon: AdminDashboardSvgs.leadsEmailEnvelope,
+            text: '0',
+            bg: const Color(0xFFFFEEF1),
+            fg: const Color(0xFFDC2626),
+            onTap: () => _showEmailLeadsComingSoon(context),
+          ),
+          const SizedBox(width: 8),
+          _topBarButton(
+            icon: AdminDashboardSvgs.leadsFilter,
+            label: 'Filter',
+            onTap: () => _showFilterSheet(context),
+          ),
+          const SizedBox(width: 8),
+        ],
+      ),
       body: SafeArea(
+        top: false,
         child: Column(
           children: [
-            _topBar(context),
             Expanded(
               child: RefreshIndicator(
                 onRefresh: () async {
@@ -111,65 +184,6 @@ class _LeadsMobileScreenState extends ConsumerState<LeadsMobileScreen> {
           'Add lead',
           style: GoogleFonts.outfit(fontWeight: FontWeight.w700),
         ),
-      ),
-    );
-  }
-
-  Widget _topBar(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(8, 6, 8, 10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border(
-          bottom: BorderSide(color: Colors.black.withValues(alpha: 0.06)),
-        ),
-      ),
-      child: Row(
-        children: [
-          IconButton(
-            onPressed: () => Navigator.of(context).maybePop(),
-            icon: SvgPicture.string(
-              AdminDashboardSvgs.leadsBackChevronLeft,
-              colorFilter: const ColorFilter.mode(_ink2, BlendMode.srcIn),
-              width: 22,
-              height: 22,
-            ),
-          ),
-          const SizedBox(width: 4),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Leads',
-                  style: GoogleFonts.outfit(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                    color: _ink,
-                    letterSpacing: -0.2,
-                  ),
-                ),
-                Text(
-                  'Track customers, enquiries and pipeline value',
-                  style: GoogleFonts.outfit(fontSize: 12, color: _ink3),
-                ),
-              ],
-            ),
-          ),
-          _topBarPill(
-            icon: AdminDashboardSvgs.leadsEmailEnvelope,
-            text: '0',
-            bg: const Color(0xFFFFEEF1),
-            fg: const Color(0xFFDC2626),
-            onTap: () => _showEmailLeadsComingSoon(context),
-          ),
-          const SizedBox(width: 8),
-          _topBarButton(
-            icon: AdminDashboardSvgs.leadsFilter,
-            label: 'Filter',
-            onTap: () => _showFilterSheet(context),
-          ),
-        ],
       ),
     );
   }
@@ -578,90 +592,97 @@ class _LeadsMobileScreenState extends ConsumerState<LeadsMobileScreen> {
             fg: const Color(0xFF0D9488),
           );
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 18,
-            backgroundColor: const Color(0xFFEFF2FF),
-            child: Text(
-              initials,
-              style: GoogleFonts.outfit(
-                fontWeight: FontWeight.w800,
-                color: const Color(0xFF1D4ED8),
-              ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  lead.fullName,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => _openLeadDetail(context, lead),
+        borderRadius: BorderRadius.circular(12),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          child: Row(
+            children: [
+              CircleAvatar(
+                radius: 18,
+                backgroundColor: const Color(0xFFEFF2FF),
+                child: Text(
+                  initials,
                   style: GoogleFonts.outfit(
-                    fontSize: 14,
                     fontWeight: FontWeight.w800,
-                    color: _ink,
+                    color: const Color(0xFF1D4ED8),
                   ),
                 ),
-                const SizedBox(height: 6),
-                Wrap(
-                  spacing: 8,
-                  runSpacing: 6,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    sourceBadge,
-                    _pill(
-                      text: lead.productsInterestedIn?.isNotEmpty == true
-                          ? lead.productsInterestedIn!
-                          : '—',
-                      bg: const Color(0xFFF3F4F6),
-                      fg: _ink2,
+                    Text(
+                      lead.fullName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.outfit(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w800,
+                        color: _ink,
+                      ),
                     ),
-                    _pill(
-                      text: lead.heat == LeadHeat.hot
-                          ? 'Hot lead'
-                          : lead.heat == LeadHeat.warm
-                          ? 'Warm lead'
-                          : 'Cold lead',
-                      bg: heatColors.$1,
-                      fg: heatColors.$2,
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 6,
+                      children: [
+                        sourceBadge,
+                        _pill(
+                          text: lead.productsInterestedIn?.isNotEmpty == true
+                              ? lead.productsInterestedIn!
+                              : '—',
+                          bg: const Color(0xFFF3F4F6),
+                          fg: _ink2,
+                        ),
+                        _pill(
+                          text: lead.heat == LeadHeat.hot
+                              ? 'Hot lead'
+                              : lead.heat == LeadHeat.warm
+                              ? 'Warm lead'
+                              : 'Cold lead',
+                          bg: heatColors.$1,
+                          fg: heatColors.$2,
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 10),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                lead.estimatedValue == null
-                    ? '—'
-                    : 'RWF ${formatNumber(lead.estimatedValue!.toDouble())}',
-                style: GoogleFonts.jetBrainsMono(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                  color: _ink,
-                ),
               ),
-              const SizedBox(height: 6),
-              Text(
-                lead.status.toUpperCase(),
-                style: GoogleFonts.outfit(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  color: _ink3,
-                  letterSpacing: 0.08 * 11,
-                ),
+              const SizedBox(width: 10),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(
+                    lead.estimatedValue == null
+                        ? '—'
+                        : 'RWF ${formatNumber(lead.estimatedValue!.toDouble())}',
+                    style: GoogleFonts.jetBrainsMono(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w800,
+                      color: _ink,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    lead.status.toUpperCase(),
+                    style: GoogleFonts.outfit(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w700,
+                      color: _ink3,
+                      letterSpacing: 0.08 * 11,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -717,6 +738,14 @@ class _LeadsMobileScreenState extends ConsumerState<LeadsMobileScreen> {
           color: fg,
         ),
       ),
+    );
+  }
+
+  void _openLeadDetail(BuildContext context, Lead lead) {
+    showDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      builder: (_) => LeadDetailDialog(lead: lead),
     );
   }
 

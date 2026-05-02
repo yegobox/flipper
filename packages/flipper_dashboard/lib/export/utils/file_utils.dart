@@ -59,14 +59,17 @@ class FileUtils {
   }
 
   /// Saves a PDF document to a file and returns the file path
-  static Future<String> savePdfFile(PdfDocument document) async {
+  static Future<String> savePdfFile(
+    PdfDocument document, {
+    String? fileName,
+  }) async {
     final List<int> bytes = await document.save();
     final formattedDate = DateFormat('yyyyMMdd_HHmmss').format(DateTime.now());
-    final fileName = '${formattedDate}-Report.pdf';
+    final resolvedFileName = fileName ?? '${formattedDate}-Report.pdf';
 
     try {
       final tempDir = await getApplicationDocumentsDirectory();
-      final filePath = path.join(tempDir.path, fileName);
+      final filePath = path.join(tempDir.path, resolvedFileName);
       final file = File(filePath);
 
       await file.create(recursive: true);
