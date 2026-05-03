@@ -46,6 +46,8 @@ abstract final class _CashbookColors {
 
 enum _RecentTxFilter { all, cashIn, cashOut, momo }
 
+enum _PaymentSheetChoice { cash, momo }
+
 class Cashbook extends StatefulHookConsumerWidget {
   const Cashbook({Key? key, required this.isBigScreen}) : super(key: key);
   final bool isBigScreen;
@@ -89,70 +91,85 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
       fireOnViewModelReadyOnce: true,
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {
-        return Scaffold(
-          backgroundColor: widget.isBigScreen
-              ? _CashbookColors.pageBg
-              : Colors.white,
-          body: SafeArea(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final shell = DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(
-                      widget.isBigScreen ? 22 : 0,
-                    ),
-                    border: widget.isBigScreen
-                        ? Border.all(color: Colors.grey.shade300)
-                        : Border(
-                            bottom: BorderSide(color: Colors.grey.shade200),
-                          ),
-                    boxShadow: widget.isBigScreen
-                        ? [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.04),
-                              blurRadius: 12,
-                              offset: const Offset(0, 4),
+        return PopScope(
+          canPop: !_isMomoMode && !model.newTransactionPressed,
+          onPopInvokedWithResult: (didPop, _) {
+            if (didPop) return;
+            if (_isMomoMode) {
+              setState(() {
+                _isMomoMode = false;
+              });
+              return;
+            }
+            if (model.newTransactionPressed) {
+              _cancelTransaction(model);
+            }
+          },
+          child: Scaffold(
+            backgroundColor: widget.isBigScreen
+                ? _CashbookColors.pageBg
+                : Colors.white,
+            body: SafeArea(
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final shell = DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(
+                        widget.isBigScreen ? 22 : 0,
+                      ),
+                      border: widget.isBigScreen
+                          ? Border.all(color: Colors.grey.shade300)
+                          : Border(
+                              bottom: BorderSide(color: Colors.grey.shade200),
                             ),
-                          ]
-                        : const [],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(
-                      widget.isBigScreen ? 22 : 0,
+                      boxShadow: widget.isBigScreen
+                          ? [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.04),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              ),
+                            ]
+                          : const [],
                     ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        _buildCashbookHeader(),
-                        Expanded(child: _buildShellBody(model)),
-                      ],
-                    ),
-                  ),
-                );
-
-                if (widget.isBigScreen) {
-                  return Align(
-                    alignment: Alignment.topCenter,
-                    child: Padding(
-                      padding: const EdgeInsets.all(24),
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(
-                          maxWidth: 560,
-                          maxHeight: constraints.maxHeight - 48,
-                        ),
-                        child: shell,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(
+                        widget.isBigScreen ? 22 : 0,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          _buildCashbookHeader(model),
+                          Expanded(child: _buildShellBody(model)),
+                        ],
                       ),
                     ),
                   );
-                }
 
-                return SizedBox(
-                  width: constraints.maxWidth,
-                  height: constraints.maxHeight,
-                  child: shell,
-                );
-              },
+                  if (widget.isBigScreen) {
+                    return Align(
+                      alignment: Alignment.topCenter,
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            maxWidth: 560,
+                            maxHeight: constraints.maxHeight - 48,
+                          ),
+                          child: shell,
+                        ),
+                      ),
+                    );
+                  }
+
+                  return SizedBox(
+                    width: constraints.maxWidth,
+                    height: constraints.maxHeight,
+                    child: shell,
+                  );
+                },
+              ),
             ),
           ),
         );
@@ -160,7 +177,22 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
     );
   }
 
-  Widget _buildCashbookHeader() {
+  void _onCashbookClosePressed(CoreViewModel model) {
+    if (_isMomoMode) {
+      setState(() {
+        _isMomoMode = false;
+      });
+      return;
+    }
+    if (model.newTransactionPressed) {
+      _cancelTransaction(model);
+      return;
+    }
+    if (!context.mounted) return;
+    Navigator.of(context).maybePop();
+  }
+
+  Widget _buildCashbookHeader(CoreViewModel model) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(8, 14, 8, 10),
       child: Stack(
@@ -174,7 +206,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
                 icon: Icons.close,
                 iconColor: Colors.grey.shade700,
                 borderColor: Colors.grey.shade400,
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: () => _onCashbookClosePressed(model),
                 tooltip: 'Close',
               ),
               const Expanded(child: SizedBox()),
@@ -266,7 +298,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
   }
 
   Widget _buildTransactionList(CoreViewModel model) {
-    final transactionData = ref.watch(dashboardTransactionsProvider);
+    final transactionData = ref.watch(cashbookRecentTransactionsProvider);
     final dateRange = ref.watch(dateRangeProvider);
 
     return Padding(
@@ -350,6 +382,11 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
     return t.status == WAITING_MOMO_COMPLETE;
   }
 
+  /// Prefer [lastTouched]; fall back so Capella-completed rows still match the UI window.
+  DateTime? _transactionWindowInstant(ITransaction t) {
+    return t.lastTouched ?? t.updatedAt ?? t.createdAt;
+  }
+
   List<ITransaction> _filterByDateWindow(
     List<ITransaction> value,
     ({DateTime start, DateTime end}) window,
@@ -357,13 +394,17 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
     final startDate = window.start;
     final endDate = window.end;
     return value.where((trans) {
-      final d = trans.lastTouched;
+      final d = _transactionWindowInstant(trans);
       if (d == null) return false;
       return (d.isAtSameMomentAs(startDate) || d.isAfter(startDate)) &&
           (d.isAtSameMomentAs(endDate) || d.isBefore(endDate));
     }).toList()..sort((a, b) {
-      final ta = a.lastTouched ?? DateTime.fromMillisecondsSinceEpoch(0);
-      final tb = b.lastTouched ?? DateTime.fromMillisecondsSinceEpoch(0);
+      final ta =
+          _transactionWindowInstant(a) ??
+          DateTime.fromMillisecondsSinceEpoch(0);
+      final tb =
+          _transactionWindowInstant(b) ??
+          DateTime.fromMillisecondsSinceEpoch(0);
       return tb.compareTo(ta);
     });
   }
@@ -612,7 +653,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
     final isIncome = transaction.isIncome ?? true;
     final rawAmount = transaction.subTotal ?? 0;
     final formatted = NumberFormat('#,###').format(rawAmount);
-    final dt = transaction.lastTouched ?? DateTime.now();
+    final dt = _transactionWindowInstant(transaction) ?? DateTime.now();
 
     final Color iconBg = isIncome
         ? _CashbookColors.cashInSurface
@@ -917,32 +958,38 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
           _buildTransactionButton(
             text: '↑ ${TransactionType.cashIn}',
             color: _CashbookColors.primaryGreen,
-            onPressed: () =>
-                _showPaymentMethodSelector(model, TransactionType.cashIn),
+            onPressed: () => unawaited(
+              _showPaymentMethodSelector(model, TransactionType.cashIn),
+            ),
           ),
           _buildTransactionButton(
             text: '↓ ${TransactionType.cashOut}',
             color: const Color(0xFFFF0331),
-            onPressed: () =>
-                _showPaymentMethodSelector(model, TransactionType.cashOut),
+            onPressed: () => unawaited(
+              _showPaymentMethodSelector(model, TransactionType.cashOut),
+            ),
           ),
         ],
       ),
     );
   }
 
-  void _showPaymentMethodSelector(CoreViewModel model, String transactionType) {
+  Future<void> _showPaymentMethodSelector(
+    CoreViewModel model,
+    String transactionType,
+  ) async {
     final isIncome = transactionType == TransactionType.cashIn;
     final color = isIncome
         ? _CashbookColors.primaryGreen
         : const Color(0xFFFF0331);
 
-    showModalBottomSheet(
+    final choice = await showModalBottomSheet<_PaymentSheetChoice>(
       context: context,
+      useRootNavigator: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      builder: (context) => SafeArea(
+      builder: (sheetContext) => SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Column(
@@ -952,7 +999,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
               Text(
                 'Select Payment Method',
                 style: Theme.of(
-                  context,
+                  sheetContext,
                 ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
@@ -963,10 +1010,8 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
                 ),
                 title: const Text('Cash'),
                 subtitle: const Text('Regular cash transaction'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _startNewTransaction(model, transactionType);
-                },
+                onTap: () =>
+                    Navigator.of(sheetContext).pop(_PaymentSheetChoice.cash),
               ),
               const Divider(),
               ListTile(
@@ -976,16 +1021,24 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
                 ),
                 title: const Text('MoMo/Airtel'),
                 subtitle: const Text('Mobile money transaction'),
-                onTap: () {
-                  Navigator.pop(context);
-                  _startMomoTransaction(transactionType);
-                },
+                onTap: () =>
+                    Navigator.of(sheetContext).pop(_PaymentSheetChoice.momo),
               ),
             ],
           ),
         ),
       ),
     );
+
+    if (!context.mounted) return;
+    switch (choice) {
+      case _PaymentSheetChoice.cash:
+        _startNewTransaction(model, transactionType);
+      case _PaymentSheetChoice.momo:
+        _startMomoTransaction(transactionType);
+      case null:
+        break;
+    }
   }
 
   void _startMomoTransaction(String transactionType) {
@@ -1560,8 +1613,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
     final transactionType = model.newTransactionType;
 
     final String branchId = ProxyService.box.getBranchId()!;
-    // Transaction list + pending streams use SQLite (ProxyService.strategy).
-    // Saving via Capella/Ditto-only would not show in those providers.
+    // Pending streams stay on SQLite; recent list uses Capella ([cashbookRecentTransactionsProvider]).
     final Category? category = await ProxyService.strategy.activeCategory(
       branchId: branchId,
     );
@@ -1617,6 +1669,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
         SchedulerBinding.instance.scheduleTask(() {
           if (context.mounted) {
             ref.invalidate(dashboardTransactionsProvider);
+            ref.invalidate(cashbookRecentTransactionsProvider);
           }
         }, Priority.idle);
       });
@@ -1674,10 +1727,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
         'Transaction save completed successfully: ${updatedTransaction.id}',
       );
 
-      return (
-        transactionId: updatedTransaction.id,
-        isIncome: isIncome,
-      );
+      return (transactionId: updatedTransaction.id, isIncome: isIncome);
     } catch (e, s) {
       talker.error('Error in _saveTransaction: $e');
       talker.error(s);

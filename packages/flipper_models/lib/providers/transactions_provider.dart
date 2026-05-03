@@ -16,9 +16,7 @@ part 'transactions_provider.g.dart';
 /// including expenses (cash out, etc.) so rows match KPIs that use [expensesStream].
 List<ITransaction> transactionReportScopeFilter(List<ITransaction> all) {
   return all
-      .where(
-        (tx) => tx.status == COMPLETE || tx.status == PARKED,
-      )
+      .where((tx) => tx.status == COMPLETE || tx.status == PARKED)
       .toList();
 }
 
@@ -79,6 +77,32 @@ Stream<List<ITransaction>> coreTransactionsStream(
   );
 }
 
+/// Recent Cash Book list: same Capella [coreTransactionsStream] source as dashboard KPIs,
+/// rolling 30-day window, completed transactions only.
+@riverpod
+Stream<List<ITransaction>> cashbookRecentTransactions(Ref ref) {
+  final endDate = DateTime.now();
+  final startDate = endDate.subtract(const Duration(days: 30));
+  final branchId =
+      ProxyService.box.branchIdString() ?? ProxyService.box.getBranchId();
+  if (branchId == null || branchId.isEmpty) {
+    throw StateError('Branch ID is required');
+  }
+
+  talker.debug(
+    'cashbookRecentTransactions: Capella 30-day window branch=$branchId',
+  );
+
+  return coreTransactionsStream(
+    ref,
+    startDate: startDate,
+    endDate: endDate,
+    branchId: branchId,
+    forceRealData: true,
+    includeParked: false,
+  ).map((all) => all.where((tx) => tx.status == COMPLETE).toList());
+}
+
 // ---------------------------------------------------------------------------
 // transactionReportSnapshot — Transaction Reports grid + payment breakdown.
 // Parked + completed (sales and expenses); by-hand vs CREDIT from payment records.
@@ -122,8 +146,9 @@ Stream<TransactionReportSnapshot> transactionReportSnapshot(
 
     final ids = filtered.map((t) => t.id.toString()).toList();
     try {
-      final sums = await ProxyService.getStrategy(Strategy.capella)
-          .getPaymentSumsByTransactionIds(ids, branchId: branchId);
+      final sums = await ProxyService.getStrategy(
+        Strategy.capella,
+      ).getPaymentSumsByTransactionIds(ids, branchId: branchId);
       return TransactionReportSnapshot(
         transactions: filtered,
         paymentSumsByTransactionId: sums,
@@ -153,9 +178,10 @@ Stream<List<ITransaction>> transactionList(
   Ref ref, {
   required bool forceRealData,
 }) {
-  return transactionReportSnapshot(ref, forceRealData: forceRealData).map(
-    (snap) => snap.transactions,
-  );
+  return transactionReportSnapshot(
+    ref,
+    forceRealData: forceRealData,
+  ).map((snap) => snap.transactions);
 }
 
 // ---------------------------------------------------------------------------
@@ -224,32 +250,27 @@ Stream<List<TransactionItem>> transactionItemList(Ref ref) {
     branchId: branchId,
     forceRealData: forceRealData,
     includeParked: true,
-  )
-      .map(transactionReportScopeFilter)
-      .startWith(const <ITransaction>[]);
+  ).map(transactionReportScopeFilter).startWith(const <ITransaction>[]);
 
-  return Rx.combineLatest2<List<TransactionItem>, List<ITransaction>,
-      List<TransactionItem>>(
-    itemStream,
-    completedSalesStream,
-    (items, txs) {
-      final allowed =
-          txs.map((t) => t.id.toString()).toSet();
-      final filtered = items
-          .where((i) {
-            final tid = i.transactionId?.toString();
-            return tid != null && allowed.contains(tid);
-          })
-          .toList();
-      talker.debug(
-        'transactionItemList: ${items.length} raw → ${filtered.length} report-scoped lines',
-      );
-      return filtered;
-    },
-  ).handleError((error, stackTrace) {
-    talker.error('Error loading transaction items: $error');
-    throw error;
-  });
+  return Rx.combineLatest2<
+        List<TransactionItem>,
+        List<ITransaction>,
+        List<TransactionItem>
+      >(itemStream, completedSalesStream, (items, txs) {
+        final allowed = txs.map((t) => t.id.toString()).toSet();
+        final filtered = items.where((i) {
+          final tid = i.transactionId?.toString();
+          return tid != null && allowed.contains(tid);
+        }).toList();
+        talker.debug(
+          'transactionItemList: ${items.length} raw → ${filtered.length} report-scoped lines',
+        );
+        return filtered;
+      })
+      .handleError((error, stackTrace) {
+        talker.error('Error loading transaction items: $error');
+        throw error;
+      });
 }
 
 // ---------------------------------------------------------------------------
@@ -305,10 +326,7 @@ Stream<double> grossProfitStream(
     final income = all.where(
       (tx) => !(tx.isExpense ?? false) && !(tx.isRefunded ?? false),
     );
-    return income.fold<double>(
-      0.0,
-      (sum, tx) => sum + (tx.subTotal ?? 0.0),
-    );
+    return income.fold<double>(0.0, (sum, tx) => sum + (tx.subTotal ?? 0.0));
   });
 }
 
@@ -402,10 +420,7 @@ Stream<double> totalIncomeStream(
     forceRealData: forceRealData,
   ).map((all) {
     final income = all.where((tx) => !(tx.isExpense ?? false));
-    return income.fold<double>(
-      0.0,
-      (sum, tx) => sum + (tx.subTotal ?? 0.0),
-    );
+    return income.fold<double>(0.0, (sum, tx) => sum + (tx.subTotal ?? 0.0));
   });
 }
 
@@ -531,19 +546,22 @@ final dashboardGaugeSnapshotProvider =
           )
           .startWith(const <TransactionItem>[]);
 
-      final completedSalesStream = coreTransactionsStream(
-        ref,
-        startDate: start,
-        endDate: end,
-        branchId: branchId,
-        forceRealData: true,
-      )
-          .map(
-            (all) => all
-                .where((tx) => tx.isExpense != true && tx.status == COMPLETE)
-                .toList(),
-          )
-          .startWith(const <ITransaction>[]);
+      final completedSalesStream =
+          coreTransactionsStream(
+                ref,
+                startDate: start,
+                endDate: end,
+                branchId: branchId,
+                forceRealData: true,
+              )
+              .map(
+                (all) => all
+                    .where(
+                      (tx) => tx.isExpense != true && tx.status == COMPLETE,
+                    )
+                    .toList(),
+              )
+              .startWith(const <ITransaction>[]);
 
       final expenseTxStream = expensesStream(
         ref,
@@ -558,32 +576,27 @@ final dashboardGaugeSnapshotProvider =
         List<ITransaction>,
         List<ITransaction>,
         DashboardGaugeSnapshot
-      >(
-        itemStream,
-        completedSalesStream,
-        expenseTxStream,
-        (items, txs, exps) {
-          final allowed = txs.map((t) => t.id.toString()).toSet();
-          final filtered = items.where((i) {
-            final tid = i.transactionId?.toString();
-            return tid != null && allowed.contains(tid);
-          }).toList();
-          final gross = filtered.fold<double>(
-            0.0,
-            (s, i) => s + TransactionItemPluMetrics.profitMade(i),
-          );
-          final tax = filtered.fold<double>(
-            0.0,
-            (s, i) => s + TransactionItemPluMetrics.taxPayable(i),
-          );
-          final expSum = exps.fold<double>(
-            0.0,
-            (s, e) => s + (e.subTotal ?? 0.0),
-          );
-          return DashboardGaugeSnapshot(
-            grossProfit: gross,
-            deductions: tax + expSum,
-          );
-        },
-      );
+      >(itemStream, completedSalesStream, expenseTxStream, (items, txs, exps) {
+        final allowed = txs.map((t) => t.id.toString()).toSet();
+        final filtered = items.where((i) {
+          final tid = i.transactionId?.toString();
+          return tid != null && allowed.contains(tid);
+        }).toList();
+        final gross = filtered.fold<double>(
+          0.0,
+          (s, i) => s + TransactionItemPluMetrics.profitMade(i),
+        );
+        final tax = filtered.fold<double>(
+          0.0,
+          (s, i) => s + TransactionItemPluMetrics.taxPayable(i),
+        );
+        final expSum = exps.fold<double>(
+          0.0,
+          (s, e) => s + (e.subTotal ?? 0.0),
+        );
+        return DashboardGaugeSnapshot(
+          grossProfit: gross,
+          deductions: tax + expSum,
+        );
+      });
     });
