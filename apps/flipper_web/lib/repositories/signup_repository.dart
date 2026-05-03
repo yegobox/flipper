@@ -180,7 +180,11 @@ class SignupRepository {
     try {
       final supabase = Supabase.instance.client;
       final response = await supabase.from('business_types').select();
-      return (response as List).map((e) => BusinessType.fromJson(e)).toList();
+      return (response as List)
+          .map((e) => BusinessType.fromSupabaseRow(
+                Map<String, dynamic>.from(e as Map),
+              ))
+          .toList();
     } catch (e) {
       if (kDebugMode) {
         print('Error fetching business types: $e');

@@ -31,6 +31,8 @@ import 'package:flipper_dashboard/features/product_entry/widgets/pricing_section
 import 'package:flipper_dashboard/features/product_entry/widgets/action_buttons.dart';
 import 'package:flipper_dashboard/features/product_entry/widgets/inventory_section.dart';
 import 'package:flipper_dashboard/features/product_entry/widgets/scan_section.dart';
+import 'package:flipper_dashboard/responsive_layout.dart' as responsive;
+import 'package:flutter/services.dart';
 
 class ProductEntryScreen extends StatefulHookConsumerWidget {
   const ProductEntryScreen({super.key, this.productId});
@@ -100,6 +102,24 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
     toast('No Product saved!');
   }
 
+  /// Keeps [ScannViewModel.kProductName] and in-memory variant titles aligned with
+  /// the product name field before persistence (fixes stale `temp` / placeholder).
+  String _syncProductNameFromForm(ScannViewModel model, Product productRef) {
+    final name = productNameController.text.trim();
+    model.setProductName(name: name);
+    final productTitle = productRef.name.trim();
+    for (final v in model.scannedVariants) {
+      final n = v.name.trim();
+      if (n.isEmpty || n == TEMP_PRODUCT || n == productTitle) {
+        v.name = name;
+        v.productName = name;
+        v.regrNm = name;
+      }
+    }
+    model.notifyListeners();
+    return name;
+  }
+
   void _addVariantsToProvider(List<Variant> variants) {
     final branchId = ProxyService.box.getBranchId();
     if (branchId != null && mounted) {
@@ -117,21 +137,24 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
     try {
       ref.read(loadingProvider.notifier).startLoading();
 
-      if (model.kProductName == null) {
-        _showNoProductNameToast();
-        ref.read(loadingProvider.notifier).stopLoading();
-        return;
-      }
-
       if (_formKey.currentState!.validate() &&
           !ref.watch(isCompositeProvider)) {
+        final syncedProductName = _syncProductNameFromForm(model, productRef);
+        if (syncedProductName.length < 3) {
+          _showNoProductNameToast();
+          ref.read(loadingProvider.notifier).stopLoading();
+          return;
+        }
+        final isPhone =
+            responsive.ResponsiveLayout.isPhone(context) ||
+            responsive.ResponsiveLayout.isTinyLimit(context);
         if (widget.productId != null) {
           if (!mounted) return;
           await model.bulkUpdateVariants(
             true,
             color: pickerColor.toHex(),
             categoryId: selectedCategoryId,
-            productName: productNameController.text,
+            productName: syncedProductName,
             selectedProductType: selectedProductType,
             newRetailPrice: double.tryParse(retailPriceController.text) ?? 0,
             rates: _rates,
@@ -181,7 +204,8 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
           if (!mounted) return;
           await model.addVariant(
             model: model,
-            productName: model.kProductName!,
+            productName: syncedProductName,
+            preserveVariationFields: isPhone,
             countryofOrigin: countryOfOriginController.text.isEmpty
                 ? "RW"
                 : countryOfOriginController.text,
@@ -244,7 +268,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
           mproduct: productRef,
           color: model.currentColor,
           inUpdateProcess: widget.productId != null,
-          productName: model.kProductName!,
+          productName: syncedProductName,
         );
 
         if (!mounted) return;
@@ -265,7 +289,35 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
         ref.read(loadingProvider.notifier).stopLoading();
         if (mounted) {
           toast("Product saved successfully!");
-          Navigator.pop(context);
+          final isPhone =
+              responsive.ResponsiveLayout.isPhone(context) ||
+              responsive.ResponsiveLayout.isTinyLimit(context);
+
+          // Phone-only: show a confirmation screen for new products.
+          if (isPhone && widget.productId == null) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(
+                builder: (ctx) => _ProductSavedScreen(
+                  productName: productNameController.text,
+                  retailPrice:
+                      double.tryParse(retailPriceController.text) ?? 0.0,
+                  supplyPrice:
+                      double.tryParse(supplyPriceController.text) ?? 0.0,
+                  variantsCount: model.scannedVariants.length,
+                  onDone: () => Navigator.of(ctx).maybePop(),
+                  onAddAnother: () => Navigator.of(ctx).pushReplacement(
+                    MaterialPageRoute(
+                      builder: (_) => const Scaffold(
+                        body: SafeArea(child: ProductEntryScreen()),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          } else {
+            Navigator.pop(context);
+          }
         }
       } else if (_fieldComposite.currentState?.validate() ?? false) {
         await _handleCompositeProductSave(model);
@@ -655,6 +707,9 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
               ref.read(loadingProvider.notifier).stopLoading();
             },
             builder: (context, model, child) {
+              final isPhone =
+                  responsive.ResponsiveLayout.isPhone(context) ||
+                  responsive.ResponsiveLayout.isTinyLimit(context);
               for (var variant in model.scannedVariants) {
                 if (variant.itemTyCd != selectedProductType) {
                   variant.itemTyCd = selectedProductType;
@@ -663,6 +718,118 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                   }
                 }
               }
+              if (isPhone && !ref.watch(isCompositeProvider)) {
+                return Form(
+                  key: _formKey,
+                  child: _MobileProductEntry(
+                    productId: widget.productId,
+                    productRef: productRef,
+                    model: model,
+                    formKey: _formKey,
+                    onSave: () async {
+                      if (!mounted) return;
+                      if (_formKey.currentState!.validate()) {
+                        if (productRef == null) {
+                          toast("Invalid product reference");
+                          return;
+                        }
+                        await _onSaveButtonPressed(
+                          model,
+                          context,
+                          productRef,
+                          selectedProductType: selectedProductType,
+                        );
+                      }
+                    },
+                    onClose: () => Navigator.maybePop(context),
+                    // Controllers
+                    productNameController: productNameController,
+                    retailPriceController: retailPriceController,
+                    supplyPriceController: supplyPriceController,
+                    scannedInputController: scannedInputController,
+                    scannedInputFocusNode: _scannedInputFocusNode,
+                    // Advanced/inventory plumbing
+                    selectedPackageUnitValue: selectedPackageUnitValue,
+                    pkgUnits: model.pkgUnits,
+                    onPackageUnitChanged: (newValue) {
+                      if (newValue != null) {
+                        setState(() => selectedPackageUnitValue = newValue);
+                      }
+                    },
+                    selectedCategoryId: selectedCategoryId,
+                    selectedCategoryName: selectedCategoryName,
+                    onCategoryChanged: (newValue) {
+                      if (newValue != null) {
+                        setState(() => selectedCategoryId = newValue);
+                      }
+                    },
+                    onAddCategory: () => showAddCategoryModal(context),
+                    selectedProductType: selectedProductType,
+                    onProductTypeChanged: (newValue) {
+                      if (newValue != null) {
+                        setState(() => selectedProductType = newValue);
+                      }
+                    },
+                    countryOfOriginController: countryOfOriginController,
+                    isSaving: isLoading,
+                    onScan: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ScannView(
+                            intent: BARCODE,
+                            scannerActions: DashboardScannerActions(
+                              context,
+                              ref,
+                            ),
+                          ),
+                        ),
+                      );
+                      final barcode = ProxyService.productService.barCode;
+                      if (barcode.trim().isNotEmpty) {
+                        await _showVariantSheet(
+                          context: context,
+                          model: model,
+                          productRef: productRef,
+                          retailPriceController: retailPriceController,
+                          supplyPriceController: supplyPriceController,
+                          countryOfOriginController: countryOfOriginController,
+                          selectedProductType: selectedProductType,
+                          isEditMode: widget.productId != null,
+                          initialBarcode: barcode.trim(),
+                        );
+                      }
+                    },
+                    onAddVariant: () {
+                      _showVariantSheet(
+                        context: context,
+                        model: model,
+                        productRef: productRef,
+                        retailPriceController: retailPriceController,
+                        supplyPriceController: supplyPriceController,
+                        countryOfOriginController: countryOfOriginController,
+                        selectedProductType: selectedProductType,
+                        isEditMode: widget.productId != null,
+                      );
+                    },
+                    onEditVariant: (variant) {
+                      _showVariantSheet(
+                        context: context,
+                        model: model,
+                        productRef: productRef,
+                        retailPriceController: retailPriceController,
+                        supplyPriceController: supplyPriceController,
+                        countryOfOriginController: countryOfOriginController,
+                        selectedProductType: selectedProductType,
+                        isEditMode: widget.productId != null,
+                        existingVariant: variant,
+                      );
+                    },
+                    onDeleteVariant: (variant) => model.removeVariant(id: variant.id),
+                  ),
+                );
+              }
+
               return Form(
                 key: _formKey,
                 child: SingleChildScrollView(
@@ -708,41 +875,92 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
 
                           if (!ref.watch(isCompositeProvider)) ...[
                             const SizedBox(height: 16),
-                            InventorySection(
-                              selectedPackageUnitValue:
-                                  selectedPackageUnitValue,
-                              pkgUnits: model.pkgUnits,
-                              onPackageUnitChanged: (newValue) {
-                                if (newValue != null) {
-                                  setState(() {
-                                    selectedPackageUnitValue = newValue;
-                                  });
-                                }
-                              },
-                              selectedCategoryId: selectedCategoryId,
-                              selectedCategoryName: selectedCategoryName,
-                              onCategoryChanged: (newValue) {
-                                if (newValue != null) {
-                                  setState(() {
-                                    selectedCategoryId = newValue;
-                                  });
-                                }
-                              },
-                              onAddCategory: () {
-                                showAddCategoryModal(context);
-                              },
-                              selectedProductType: selectedProductType,
-                              onProductTypeChanged: (newValue) {
-                                if (newValue != null) {
-                                  setState(() {
-                                    selectedProductType = newValue;
-                                  });
-                                }
-                              },
-                              countryOfOriginController:
-                                  countryOfOriginController,
-                              isEditMode: widget.productId != null,
-                            ),
+                            if (isPhone)
+                              ExpansionTile(
+                                initiallyExpanded: false,
+                                tilePadding: EdgeInsets.zero,
+                                childrenPadding: const EdgeInsets.only(top: 8),
+                                title: Text(
+                                  'Advanced',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleMedium
+                                      ?.copyWith(fontWeight: FontWeight.w600),
+                                ),
+                                children: [
+                                  InventorySection(
+                                    selectedPackageUnitValue:
+                                        selectedPackageUnitValue,
+                                    pkgUnits: model.pkgUnits,
+                                    onPackageUnitChanged: (newValue) {
+                                      if (newValue != null) {
+                                        setState(() {
+                                          selectedPackageUnitValue = newValue;
+                                        });
+                                      }
+                                    },
+                                    selectedCategoryId: selectedCategoryId,
+                                    selectedCategoryName: selectedCategoryName,
+                                    onCategoryChanged: (newValue) {
+                                      if (newValue != null) {
+                                        setState(() {
+                                          selectedCategoryId = newValue;
+                                        });
+                                      }
+                                    },
+                                    onAddCategory: () {
+                                      showAddCategoryModal(context);
+                                    },
+                                    selectedProductType: selectedProductType,
+                                    onProductTypeChanged: (newValue) {
+                                      if (newValue != null) {
+                                        setState(() {
+                                          selectedProductType = newValue;
+                                        });
+                                      }
+                                    },
+                                    countryOfOriginController:
+                                        countryOfOriginController,
+                                    isEditMode: widget.productId != null,
+                                  ),
+                                ],
+                              )
+                            else
+                              InventorySection(
+                                selectedPackageUnitValue:
+                                    selectedPackageUnitValue,
+                                pkgUnits: model.pkgUnits,
+                                onPackageUnitChanged: (newValue) {
+                                  if (newValue != null) {
+                                    setState(() {
+                                      selectedPackageUnitValue = newValue;
+                                    });
+                                  }
+                                },
+                                selectedCategoryId: selectedCategoryId,
+                                selectedCategoryName: selectedCategoryName,
+                                onCategoryChanged: (newValue) {
+                                  if (newValue != null) {
+                                    setState(() {
+                                      selectedCategoryId = newValue;
+                                    });
+                                  }
+                                },
+                                onAddCategory: () {
+                                  showAddCategoryModal(context);
+                                },
+                                selectedProductType: selectedProductType,
+                                onProductTypeChanged: (newValue) {
+                                  if (newValue != null) {
+                                    setState(() {
+                                      selectedProductType = newValue;
+                                    });
+                                  }
+                                },
+                                countryOfOriginController:
+                                    countryOfOriginController,
+                                isEditMode: widget.productId != null,
+                              ),
                             const SizedBox(height: 16),
                             ScanSection(
                               controller: scannedInputController,
@@ -931,18 +1149,926 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
   }
 }
 
-class ResponsiveLayout extends StatelessWidget {
-  final Widget mobile;
-  final Widget tablet;
+class _ProductSavedScreen extends StatelessWidget {
+  const _ProductSavedScreen({
+    required this.productName,
+    required this.retailPrice,
+    required this.supplyPrice,
+    required this.variantsCount,
+    required this.onDone,
+    required this.onAddAnother,
+  });
 
-  const ResponsiveLayout({Key? key, required this.mobile, required this.tablet})
-    : super(key: key);
+  final String productName;
+  final double retailPrice;
+  final double supplyPrice;
+  final int variantsCount;
+  final VoidCallback onDone;
+  final VoidCallback onAddAnother;
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isMobile = screenWidth < 768; // or 600, depending on your preference
+    return Scaffold(
+      appBar: AppBar(title: const Text('Product saved')),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+          child: Column(
+            children: [
+              const Spacer(),
+              Container(
+                width: 88,
+                height: 88,
+                decoration: BoxDecoration(
+                  color: Colors.green.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: const Icon(
+                  Icons.check,
+                  size: 42,
+                  color: Colors.green,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                '$productName saved!',
+                textAlign: TextAlign.center,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleLarge
+                    ?.copyWith(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Your product and variants have been added to inventory.',
+                textAlign: TextAlign.center,
+                style: Theme.of(context)
+                    .textTheme
+                    .bodyMedium
+                    ?.copyWith(color: Colors.grey.shade700),
+              ),
+              const SizedBox(height: 20),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(14),
+                  border: Border.all(color: Colors.grey.shade200),
+                ),
+                child: Column(
+                  children: [
+                    _SummaryRow(label: 'Product', value: productName),
+                    const SizedBox(height: 8),
+                    _SummaryRow(
+                      label: 'Retail price',
+                      value: retailPrice.toStringAsFixed(2),
+                    ),
+                    const SizedBox(height: 8),
+                    _SummaryRow(
+                      label: 'Supply price',
+                      value: supplyPrice.toStringAsFixed(2),
+                    ),
+                    const SizedBox(height: 8),
+                    _SummaryRow(
+                      label: 'Variants',
+                      value: '$variantsCount variants',
+                    ),
+                  ],
+                ),
+              ),
+              const Spacer(),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: onDone,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text('Done'),
+                ),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton(
+                  onPressed: onAddAnother,
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: const Text('Add another product'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
 
-    return isMobile ? mobile : tablet;
+class _SummaryRow extends StatelessWidget {
+  const _SummaryRow({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text(
+            label,
+            style: Theme.of(context)
+                .textTheme
+                .bodySmall
+                ?.copyWith(color: Colors.grey.shade600),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Flexible(
+          child: Text(
+            value,
+            textAlign: TextAlign.right,
+            style: Theme.of(context)
+                .textTheme
+                .bodyMedium
+                ?.copyWith(fontWeight: FontWeight.w600),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+Future<void> _showVariantSheet({
+  required BuildContext context,
+  required ScannViewModel model,
+  required Product? productRef,
+  required TextEditingController retailPriceController,
+  required TextEditingController supplyPriceController,
+  required TextEditingController countryOfOriginController,
+  required String selectedProductType,
+  required bool isEditMode,
+  Variant? existingVariant,
+  String? initialBarcode,
+}) async {
+  final nameController = TextEditingController(text: existingVariant?.name ?? '');
+  final barcodeController =
+      TextEditingController(text: initialBarcode ?? existingVariant?.bcd ?? existingVariant?.sku ?? '');
+  final stockController = TextEditingController(
+    text: (existingVariant?.stock?.currentStock ?? existingVariant?.qty ?? 0)
+        .toString(),
+  );
+  final discountController = TextEditingController(
+    text: (existingVariant?.dcRt ?? 0).toInt().toString(),
+  );
+  final priceOverrideController = TextEditingController(
+    text: existingVariant?.retailPrice != null &&
+            existingVariant!.retailPrice !=
+                (double.tryParse(retailPriceController.text) ?? 0)
+        ? existingVariant.retailPrice!.toString()
+        : '',
+  );
+
+  String taxTyCd = existingVariant?.taxTyCd ?? 'B';
+
+  final formKey = GlobalKey<FormState>();
+  var savingVariant = false;
+
+  await showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    useSafeArea: true,
+    backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+    ),
+    builder: (ctx) {
+      return StatefulBuilder(
+        builder: (ctx, setModalState) {
+          return DraggableScrollableSheet(
+            initialChildSize: 0.96,
+            minChildSize: 0.70,
+            maxChildSize: 0.98,
+            expand: false,
+            builder: (ctx, scrollController) {
+              final bottomInset = MediaQuery.of(ctx).viewInsets.bottom;
+              return Padding(
+                padding: EdgeInsets.only(bottom: bottomInset),
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: ListView(
+                        controller: scrollController,
+                        padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  existingVariant == null
+                                      ? 'Add variant'
+                                      : 'Edit variant',
+                                  style: Theme.of(ctx)
+                                      .textTheme
+                                      .titleLarge
+                                      ?.copyWith(fontWeight: FontWeight.w600),
+                                ),
+                              ),
+                              IconButton(
+                                onPressed: () => Navigator.of(ctx).maybePop(),
+                                icon: const Icon(Icons.close),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Form(
+                            key: formKey,
+                            child: Column(
+                              children: [
+                                TextFormField(
+                                  controller: nameController,
+                                  textInputAction: TextInputAction.next,
+                                  decoration: InputDecoration(
+                                    labelText: 'Variant name',
+                                    hintText: 'e.g. Sandals, Size 10',
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                  validator: (v) {
+                                    if (v == null || v.trim().isEmpty) {
+                                      return 'Name is required';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                                const SizedBox(height: 12),
+                                TextFormField(
+                                  controller: priceOverrideController,
+                                  textInputAction: TextInputAction.next,
+                                  keyboardType: TextInputType.number,
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.allow(
+                                      RegExp(r'[0-9.]'),
+                                    ),
+                                  ],
+                                  decoration: InputDecoration(
+                                    labelText: 'Retail price override',
+                                    helperText:
+                                        'Base retail price: ${(double.tryParse(retailPriceController.text) ?? 0).toStringAsFixed(2)}',
+                                    hintText:
+                                        'Leave blank to use base retail price',
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                  validator: (v) {
+                                    if (v == null || v.trim().isEmpty) {
+                                      return null;
+                                    }
+                                    if (double.tryParse(v) == null) {
+                                      return 'Invalid price';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                                const SizedBox(height: 12),
+                                TextFormField(
+                                  controller: barcodeController,
+                                  textInputAction: TextInputAction.next,
+                                  decoration: InputDecoration(
+                                    labelText: 'Barcode',
+                                    hintText: 'SKU / barcode',
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                  validator: (v) {
+                                    if (v == null || v.trim().isEmpty) {
+                                      return 'Barcode is required';
+                                    }
+                                    return null;
+                                  },
+                                ),
+                                const SizedBox(height: 12),
+                                TextFormField(
+                                  controller: stockController,
+                                  textInputAction: TextInputAction.next,
+                                  keyboardType: TextInputType.number,
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.digitsOnly,
+                                  ],
+                                  decoration: InputDecoration(
+                                    labelText: 'Stock quantity',
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    'Tax',
+                                    style: Theme.of(ctx)
+                                        .textTheme
+                                        .titleSmall
+                                        ?.copyWith(
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Wrap(
+                                  spacing: 8,
+                                  runSpacing: 8,
+                                  children: [
+                                    ChoiceChip(
+                                      label: const Text('Standard B'),
+                                      selected: taxTyCd == 'B',
+                                      onSelected: (_) => setModalState(
+                                        () => taxTyCd = 'B',
+                                      ),
+                                    ),
+                                    ChoiceChip(
+                                      label: const Text('Standard A'),
+                                      selected: taxTyCd == 'A',
+                                      onSelected: (_) => setModalState(
+                                        () => taxTyCd = 'A',
+                                      ),
+                                    ),
+                                    ChoiceChip(
+                                      label: const Text('None'),
+                                      selected: taxTyCd == 'D',
+                                      onSelected: (_) => setModalState(
+                                        () => taxTyCd = 'D',
+                                      ),
+                                    ),
+                                    ChoiceChip(
+                                      label: const Text('Exempt'),
+                                      selected: taxTyCd == 'C',
+                                      onSelected: (_) => setModalState(
+                                        () => taxTyCd = 'C',
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                TextFormField(
+                                  controller: discountController,
+                                  textInputAction: TextInputAction.done,
+                                  keyboardType: TextInputType.number,
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.digitsOnly,
+                                  ],
+                                  decoration: InputDecoration(
+                                    labelText: 'Discount %',
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                      child: SizedBox(
+                        width: double.infinity,
+                        child: FilledButton(
+                          onPressed: savingVariant
+                              ? null
+                              : () async {
+                                  if (!formKey.currentState!.validate()) {
+                                    return;
+                                  }
+                                  if (productRef == null) {
+                                    toast('Invalid product reference');
+                                    return;
+                                  }
+
+                                  setModalState(() => savingVariant = true);
+                                  try {
+                                    final barcode = barcodeController.text.trim();
+                                    final baseRetail =
+                                        double.tryParse(
+                                              retailPriceController.text,
+                                            ) ??
+                                            0;
+                                    final baseSupply =
+                                        double.tryParse(
+                                              supplyPriceController.text,
+                                            ) ??
+                                            0;
+                                    final override = double.tryParse(
+                                      priceOverrideController.text.trim(),
+                                    );
+                                    final qty =
+                                        double.tryParse(
+                                          stockController.text.trim(),
+                                        ) ??
+                                        0;
+                                    final discount =
+                                        int.tryParse(
+                                          discountController.text.trim(),
+                                        ) ??
+                                        0;
+
+                                    if (existingVariant == null) {
+                                      final variantName =
+                                          nameController.text.trim();
+                                      await model.onScanItem(
+                                        countryCode:
+                                            countryOfOriginController.text,
+                                        editmode: isEditMode,
+                                        barCode: barcode,
+                                        retailPrice: override ?? baseRetail,
+                                        supplyPrice: baseSupply,
+                                        isTaxExempted: taxTyCd == 'C',
+                                        product: productRef,
+                                        variantDisplayName: variantName,
+                                      );
+
+                                      final idx =
+                                          model.scannedVariants.indexWhere(
+                                        (v) => v.bcd == barcode,
+                                      );
+                                      final v = idx != -1
+                                          ? model.scannedVariants[idx]
+                                          : (model.scannedVariants.isNotEmpty
+                                              ? model.scannedVariants.last
+                                              : null);
+                                      if (v != null) {
+                                        v.name = variantName;
+                                        v.taxTyCd = taxTyCd;
+                                        v.dcRt = discount.toDouble();
+                                        model.getDiscountController(v.id).text =
+                                            discount.toString();
+                                        await model.updateVariantQuantity(
+                                          v.id,
+                                          qty,
+                                          persistToBackend: false,
+                                        );
+                                        model.notifyListeners();
+                                      }
+                                    } else {
+                                      existingVariant.name =
+                                          nameController.text.trim();
+                                      existingVariant.bcd = barcode;
+                                      existingVariant.sku = barcode;
+                                      existingVariant.taxTyCd = taxTyCd;
+                                      existingVariant.retailPrice =
+                                          override ?? baseRetail;
+                                      existingVariant.supplyPrice = baseSupply;
+                                      existingVariant.dcRt =
+                                          discount.toDouble();
+                                      model
+                                          .getDiscountController(
+                                            existingVariant.id,
+                                          )
+                                          .text = discount.toString();
+                                      await model.updateVariantQuantity(
+                                        existingVariant.id,
+                                        qty,
+                                        persistToBackend: false,
+                                      );
+                                      model.notifyListeners();
+                                    }
+
+                                    if (ctx.mounted) {
+                                      await Navigator.of(ctx).maybePop();
+                                    }
+                                  } catch (e, st) {
+                                    talker.error(
+                                      'Save variant failed: $e',
+                                      e,
+                                      st,
+                                    );
+                                    if (ctx.mounted) {
+                                      toast(
+                                        'Could not save variant. Please try again.',
+                                      );
+                                    }
+                                  } finally {
+                                    // Do not call setModalState after a successful pop: the sheet
+                                    // is deactivating and rebuild triggers InheritedElement asserts.
+                                    if (ctx.mounted) {
+                                      setModalState(
+                                        () => savingVariant = false,
+                                      );
+                                    }
+                                  }
+                                },
+                          style: FilledButton.styleFrom(
+                            backgroundColor: const Color(0xFF0078D4)
+                                .withValues(alpha: 0.12),
+                            foregroundColor: const Color(0xFF0078D4),
+                            disabledBackgroundColor: const Color(0xFF0078D4)
+                                .withValues(alpha: 0.12),
+                            disabledForegroundColor: const Color(0xFF0078D4),
+                            padding: const EdgeInsets.symmetric(vertical: 16),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                          child: savingVariant
+                              ? const SizedBox(
+                                  height: 22,
+                                  width: 22,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2.5,
+                                    color: Color(0xFF0078D4),
+                                  ),
+                                )
+                              : Text(
+                                  existingVariant == null
+                                      ? 'Save variant'
+                                      : 'Save',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
+        },
+      );
+    },
+  );
+
+  // The sheet route can still be animating out or finishing unmount when this
+  // future completes; disposing controllers synchronously races EditableText and
+  // triggers "used after being disposed". Dispose after this frame.
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    nameController.dispose();
+    barcodeController.dispose();
+    stockController.dispose();
+    priceOverrideController.dispose();
+    discountController.dispose();
+  });
+}
+
+class _MobileProductEntry extends StatelessWidget {
+  const _MobileProductEntry({
+    required this.productId,
+    required this.productRef,
+    required this.model,
+    required this.formKey,
+    required this.onSave,
+    required this.onClose,
+    required this.productNameController,
+    required this.retailPriceController,
+    required this.supplyPriceController,
+    required this.scannedInputController,
+    required this.scannedInputFocusNode,
+    required this.selectedPackageUnitValue,
+    required this.pkgUnits,
+    required this.onPackageUnitChanged,
+    required this.selectedCategoryId,
+    required this.selectedCategoryName,
+    required this.onCategoryChanged,
+    required this.onAddCategory,
+    required this.selectedProductType,
+    required this.onProductTypeChanged,
+    required this.countryOfOriginController,
+    required this.isSaving,
+    required this.onScan,
+    required this.onAddVariant,
+    required this.onEditVariant,
+    required this.onDeleteVariant,
+  });
+
+  final String? productId;
+  final Product? productRef;
+  final ScannViewModel model;
+  final GlobalKey<FormState> formKey;
+  final VoidCallback onSave;
+  final VoidCallback onClose;
+
+  final TextEditingController productNameController;
+  final TextEditingController retailPriceController;
+  final TextEditingController supplyPriceController;
+  final TextEditingController scannedInputController;
+  final FocusNode scannedInputFocusNode;
+
+  final String selectedPackageUnitValue;
+  final List<String> pkgUnits;
+  final void Function(String?) onPackageUnitChanged;
+  final String? selectedCategoryId;
+  final String? selectedCategoryName;
+  final void Function(String?) onCategoryChanged;
+  final VoidCallback onAddCategory;
+  final String selectedProductType;
+  final void Function(String?) onProductTypeChanged;
+  final TextEditingController countryOfOriginController;
+
+  final bool isSaving;
+  final VoidCallback onScan;
+  final VoidCallback onAddVariant;
+  final void Function(Variant) onEditVariant;
+  final void Function(Variant) onDeleteVariant;
+
+  @override
+  Widget build(BuildContext context) {
+    const accentBlue = Color(0xFF0078D4);
+    final sym = ProxyService.box.defaultCurrency();
+
+    return ColoredBox(
+      color: const Color(0xFFF2F2F7),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Column(
+          children: [
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.only(top: 12, bottom: 12),
+                children: [
+                  Text(
+                    'Product info',
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleSmall
+                        ?.copyWith(color: Colors.grey.shade600),
+                  ),
+                  const SizedBox(height: 8),
+                  BasicInfoSection(
+                    productNameController: productNameController,
+                    model: model,
+                    isEditMode: productId != null,
+                  ),
+                  const SizedBox(height: 12),
+                  PricingSection(
+                    retailPriceController: retailPriceController,
+                    supplyPriceController: supplyPriceController,
+                    model: model,
+                    isComposite: false,
+                    forceHorizontalPrices: true,
+                  ),
+                  const SizedBox(height: 12),
+                  ExpansionTile(
+                    initiallyExpanded: false,
+                    tilePadding: EdgeInsets.zero,
+                    childrenPadding: const EdgeInsets.only(top: 8),
+                    title: Text(
+                      'Advanced',
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleMedium
+                          ?.copyWith(fontWeight: FontWeight.w600),
+                    ),
+                    children: [
+                      InventorySection(
+                        selectedPackageUnitValue: selectedPackageUnitValue,
+                        pkgUnits: pkgUnits,
+                        onPackageUnitChanged: onPackageUnitChanged,
+                        selectedCategoryId: selectedCategoryId,
+                        selectedCategoryName: selectedCategoryName,
+                        onCategoryChanged: onCategoryChanged,
+                        onAddCategory: onAddCategory,
+                        selectedProductType: selectedProductType,
+                        onProductTypeChanged: onProductTypeChanged,
+                        countryOfOriginController: countryOfOriginController,
+                        isEditMode: productId != null,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Variants (${model.scannedVariants.length})',
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                      OutlinedButton(
+                        onPressed: onScan,
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: accentBlue,
+                          side: const BorderSide(color: Color(0xFFD1D1D6)),
+                          backgroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 10,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text('Scan'),
+                      ),
+                      const SizedBox(width: 8),
+                      OutlinedButton(
+                        onPressed: onAddVariant,
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: accentBlue,
+                          side: const BorderSide(color: Color(0xFFD1D1D6)),
+                          backgroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 10,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: const Text('+ Add'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Tap a variant to expand · Edit or delete inside · swipe to delete',
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodySmall
+                        ?.copyWith(color: Colors.grey.shade600),
+                  ),
+                  const SizedBox(height: 8),
+                  ...model.scannedVariants.reversed.map((v) {
+                    final displayName =
+                        v.name.isNotEmpty ? v.name : (v.bcd ?? 'Variant');
+                    final priceStr =
+                        '${(v.retailPrice ?? 0).toStringAsFixed(2)}';
+                    return Dismissible(
+                      key: ValueKey('variant-${v.id}'),
+                      direction: DismissDirection.endToStart,
+                      background: Container(
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.only(right: 16),
+                        color: Colors.red.shade600,
+                        child: const Icon(Icons.delete, color: Colors.white),
+                      ),
+                      confirmDismiss: (_) async => true,
+                      onDismissed: (_) => onDeleteVariant(v),
+                      child: Card(
+                        elevation: 0,
+                        color: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                          side: BorderSide(color: Colors.grey.shade200),
+                        ),
+                        margin: const EdgeInsets.only(bottom: 8),
+                        child: ExpansionTile(
+                          key: PageStorageKey<String>('vexp-${v.id}'),
+                          tilePadding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 4,
+                          ),
+                          childrenPadding: const EdgeInsets.fromLTRB(
+                            12,
+                            0,
+                            12,
+                            12,
+                          ),
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(14)),
+                          ),
+                          collapsedShape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(14)),
+                          ),
+                          leading: CircleAvatar(
+                            radius: 20,
+                            backgroundColor: Colors.grey.shade100,
+                            child: const Icon(
+                              Icons.inventory_2_outlined,
+                              size: 20,
+                              color: Colors.black54,
+                            ),
+                          ),
+                          title: Text(
+                            displayName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 16,
+                            ),
+                          ),
+                          subtitle: Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Text(
+                              '$sym $priceStr',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w700,
+                                color: accentBlue,
+                                fontSize: 15,
+                              ),
+                            ),
+                          ),
+                          children: [
+                            Row(
+                              children: [
+                                TextButton.icon(
+                                  onPressed: () => onEditVariant(v),
+                                  icon: const Icon(Icons.edit_outlined, size: 20),
+                                  label: const Text('Edit variant'),
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: accentBlue,
+                                  ),
+                                ),
+                                const Spacer(),
+                                TextButton.icon(
+                                  onPressed: () => onDeleteVariant(v),
+                                  icon: Icon(
+                                    Icons.delete_outline,
+                                    size: 20,
+                                    color: Colors.red.shade700,
+                                  ),
+                                  label: Text(
+                                    'Delete',
+                                    style: TextStyle(
+                                      color: Colors.red.shade700,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: Colors.red.shade700,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton(
+                onPressed: isSaving ? null : onSave,
+                style: FilledButton.styleFrom(
+                  backgroundColor: accentBlue.withValues(alpha: 0.12),
+                  foregroundColor: accentBlue,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                child: isSaving
+                    ? const SizedBox(
+                        height: 18,
+                        width: 18,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Text(
+                        'Save product',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 16,
+                        ),
+                      ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: isSaving ? null : onClose,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: accentBlue,
+                  side: const BorderSide(color: Color(0xFFD1D1D6)),
+                  backgroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                child: const Text(
+                  'Close',
+                  style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
+        ),
+      ),
+    );
   }
 }

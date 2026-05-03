@@ -20,6 +20,7 @@ import 'package:flipper_dashboard/mfa_setup_view.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flipper_models/providers/device_provider.dart';
 import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
+import 'package:supabase_models/brick/repository/local_storage.dart';
 import 'package:flipper_dashboard/BranchSelectionMixin.dart';
 import 'package:flipper_auth/auth_scanner_actions.dart';
 import 'package:flipper_scanner/scanner_view.dart';
@@ -61,6 +62,10 @@ class _MyDrawerState extends ConsumerState<MyDrawer> with BranchSelectionMixin {
         skipInitialFetch:
             true, // Skip initial fetch to prevent upserting all models on startup
       );
+      final prefsBox = ProxyService.box;
+      if (prefsBox is SharedPreferenceStorage) {
+        await prefsBox.attachDittoPersistence();
+      }
     }
   }
 
@@ -466,6 +471,10 @@ class _MyDrawerState extends ConsumerState<MyDrawer> with BranchSelectionMixin {
                     skipInitialFetch:
                         true, // Skip initial fetch to prevent upserting all models on startup
                   );
+                  final prefsBox = ProxyService.box;
+                  if (prefsBox is SharedPreferenceStorage) {
+                    await prefsBox.attachDittoPersistence();
+                  }
                   await ProxyService.notification.sendLocalNotification(
                     body:
                         "Background Sync Enabled, to disable it, go to settings and disable it",

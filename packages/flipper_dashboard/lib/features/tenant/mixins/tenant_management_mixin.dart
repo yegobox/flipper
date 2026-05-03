@@ -21,6 +21,10 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
   String selectedUserType = 'Agent';
   Map<String, bool> activeFeatures = {};
   Map<String, String> tenantAllowedFeatures = {};
+  /// Captured when opening a tenant for edit; used to send only changed accesses to `create_agent`.
+  Map<String, String> _tenantPermissionsBaseline = {};
+  Map<String, bool> _tenantActiveBaseline = {};
+  bool _hasTenantPermissionBaseline = false;
   String? userId;
   Tenant? editedTenant;
 
@@ -40,6 +44,9 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
       editMode = false;
       userId = null;
       editedTenant = null;
+      _tenantPermissionsBaseline = {};
+      _tenantActiveBaseline = {};
+      _hasTenantPermissionBaseline = false;
     });
   }
 
@@ -54,12 +61,20 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
       controller: controller,
       keyboardType: keyboardType,
       validator: validator,
+      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
       decoration: InputDecoration(
         labelText: labelText,
-        prefixIcon: Icon(icon),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        labelStyle: TextStyle(color: Colors.grey[600]),
+        prefixIcon: Icon(icon, color: Colors.blueAccent),
+        border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none),
+        focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Colors.blueAccent, width: 1.5)),
         filled: true,
-        fillColor: Colors.grey[200],
+        fillColor: const Color(0xFFF3F4F6),
+        contentPadding: const EdgeInsets.symmetric(vertical: 16),
       ),
     );
   }
@@ -74,15 +89,22 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
       },
       items: <String>['Agent', 'Cashier', 'Admin', 'Driver']
           .map<DropdownMenuItem<String>>((String value) {
-            return DropdownMenuItem<String>(value: value, child: Text(value));
+            return DropdownMenuItem<String>(value: value, child: Text(value, style: const TextStyle(fontWeight: FontWeight.w500)));
           })
           .toList(),
       decoration: InputDecoration(
         labelText: "Select User Type",
-        prefixIcon: Icon(Icons.person_outline),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        labelStyle: TextStyle(color: Colors.grey[600]),
+        prefixIcon: const Icon(Icons.person_outline, color: Colors.blueAccent),
+        border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide.none),
+        focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: Colors.blueAccent, width: 1.5)),
         filled: true,
-        fillColor: Colors.grey[200],
+        fillColor: const Color(0xFFF3F4F6),
+        contentPadding: const EdgeInsets.symmetric(vertical: 16),
       ),
     );
   }
@@ -108,6 +130,14 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
         ref: ref,
         tenantAllowedFeatures: tenantAllowedFeatures,
         activeFeatures: activeFeatures,
+        permissionsBaseline:
+            editMode && _hasTenantPermissionBaseline
+                ? _tenantPermissionsBaseline
+                : null,
+        activeFeaturesBaseline:
+            editMode && _hasTenantPermissionBaseline
+                ? _tenantActiveBaseline
+                : null,
       );
     } catch (error) {
       // Log the error to a logging service
@@ -156,6 +186,9 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
       phoneController,
       formKey,
     );
+    _tenantPermissionsBaseline = Map<String, String>.from(tenantAllowedFeatures);
+    _tenantActiveBaseline = Map<String, bool>.from(activeFeatures);
+    _hasTenantPermissionBaseline = true;
   }
 
   void updateTenantPermissions(List<Access> tenantAccesses) {
@@ -223,11 +256,20 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
   }
 
   Widget buildAddTenantForm(FlipperBaseModel model, BuildContext context) {
-    return Card(
-      elevation: 4,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 20,
+            offset: const Offset(0, 4),
+          )
+        ]
+      ),
       child: Padding(
-        padding: const EdgeInsets.all(20.0),
+        padding: const EdgeInsets.all(24.0),
         child: Form(
           key: formKey,
           child: Column(
@@ -235,10 +277,14 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
             children: [
               Text(
                 editMode ? "Edit User" : "Add New User",
-                style: Theme.of(context).textTheme.titleMedium,
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: -0.5,
+                ),
                 textAlign: TextAlign.center,
               ),
-              SizedBox(height: 24),
+              const SizedBox(height: 30),
               buildTextFormField(
                 controller: nameController,
                 labelText: "Name",
@@ -272,7 +318,7 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
                 children: [
                   Expanded(
                     child: FlipperButton(
-                      color: Colors.blue,
+                      color: Colors.blueAccent,
                       textColor: Colors.white,
                       isLoading: isAddingUser,
                       onPressed: isAddingUser
@@ -310,8 +356,8 @@ mixin TenantManagementMixin<T extends ConsumerStatefulWidget>
                       child: FlipperButton(
                         onPressed: () => resetForm(),
                         text: 'Cancel',
-                        textColor: Colors.blue,
-                        color: Colors.white,
+                        textColor: Colors.blueAccent,
+                        color: const Color(0xFFF3F4F6),
                       ),
                     ),
                   ],

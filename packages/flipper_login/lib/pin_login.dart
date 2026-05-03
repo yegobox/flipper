@@ -5,8 +5,10 @@ import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_login/mfa_provider.dart';
+import 'package:flipper_login/pin_login_side_illustration.dart';
 
 enum AuthMethod { authenticator, sms }
 
@@ -46,6 +48,12 @@ class _PinLoginState extends State<PinLogin>
     super.initState();
     _initializeAnimations();
     _pinFocusNode.addListener(_onFocusChange);
+    _pinController.addListener(_onSecretFieldTextChanged);
+    _otpController.addListener(_onSecretFieldTextChanged);
+  }
+
+  void _onSecretFieldTextChanged() {
+    if (mounted) setState(() {});
   }
 
   void _initializeAnimations() {
@@ -108,6 +116,8 @@ class _PinLoginState extends State<PinLogin>
     _shakeController.dispose();
     _pinFocusNode.dispose();
     _otpFocusNode.dispose();
+    _pinController.removeListener(_onSecretFieldTextChanged);
+    _otpController.removeListener(_onSecretFieldTextChanged);
     _pinController.dispose();
     _otpController.dispose();
     super.dispose();
@@ -309,6 +319,92 @@ class _PinLoginState extends State<PinLogin>
     }
   }
 
+  static const double _desktopTwoColumnBreakpoint = 800;
+
+  Widget _buildDesktopSideIllustration(bool isDark) {
+    final concealEyes = _pinController.text.isNotEmpty ||
+        (_showOtpField && _otpController.text.isNotEmpty);
+
+    return ColoredBox(
+      color: isDark ? const Color(0xFF222222) : const Color(0xFFE8F4FC),
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 40),
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 280),
+            switchInCurve: Curves.easeOut,
+            switchOutCurve: Curves.easeIn,
+            child: SvgPicture.string(
+              buildPinLoginSideIllustrationSvg(
+                concealSecretInput: concealEyes,
+              ),
+              key: ValueKey<bool>(concealEyes),
+              fit: BoxFit.contain,
+              alignment: Alignment.center,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPinForm(
+    LoginViewModel model,
+    bool isDark,
+    double screenHeight,
+  ) {
+    return Form(
+      key: _formKey,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(height: screenHeight * 0.05),
+          FadeTransition(
+            opacity: _fadeAnimation,
+            child: SlideTransition(
+              position: _slideAnimation,
+              child: AnimatedBuilder(
+                animation: _shakeAnimation,
+                builder: (context, child) {
+                  return Transform.translate(
+                    offset: Offset(
+                      _shakeAnimation.value * 8 * (1 - _shakeAnimation.value),
+                      0,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildWelcomeSection(isDark, screenHeight),
+                        SizedBox(height: screenHeight < 600 ? 32 : 56),
+                        _buildPinField(isDark, screenHeight),
+                        if (_showOtpField) ...[
+                          SizedBox(height: screenHeight < 600 ? 16 : 24),
+                          _buildMethodToggle(isDark, screenHeight),
+                          SizedBox(height: screenHeight < 600 ? 16 : 24),
+                          _buildOtpField(isDark, screenHeight),
+                        ],
+                        if (_hasError) ...[
+                          SizedBox(height: screenHeight < 600 ? 12 : 16),
+                          _buildErrorMessage(isDark),
+                        ],
+                        SizedBox(height: screenHeight < 600 ? 32 : 48),
+                        _buildLoginButton(model, isDark, screenHeight),
+                        SizedBox(height: screenHeight < 600 ? 16 : 24),
+                        _buildHelpText(isDark, screenHeight),
+                        SizedBox(height: screenHeight < 600 ? 24 : 40),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _showHelpDialog() {
     showDialog(
       context: context,
@@ -336,7 +432,6 @@ class _PinLoginState extends State<PinLogin>
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final screenHeight = MediaQuery.of(context).size.height;
-    final screenWidth = MediaQuery.of(context).size.width;
 
     return ViewModelBuilder<LoginViewModel>.reactive(
       viewModelBuilder: () => LoginViewModel(),
@@ -352,7 +447,40 @@ class _PinLoginState extends State<PinLogin>
                     ? EdgeInsets.symmetric(horizontal: 24, vertical: 16)
                     : EdgeInsets.symmetric(horizontal: 32, vertical: 32);
 
-                final cardWidth = screenWidth > 800 ? 400.0 : double.infinity;
+                final isWideDesktop =
+                    constraints.maxWidth > _desktopTwoColumnBreakpoint;
+                final cardWidth =
+                    isWideDesktop ? 400.0 : double.infinity;
+
+                if (isWideDesktop) {
+                  return Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(
+                        child: SingleChildScrollView(
+                          physics: BouncingScrollPhysics(),
+                          padding: contentPadding,
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              minHeight: constraints.maxHeight -
+                                  contentPadding.vertical,
+                            ),
+                            child: Center(
+                              child: SizedBox(
+                                width: cardWidth,
+                                child: _buildPinForm(
+                                    model, isDark, screenHeight),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: _buildDesktopSideIllustration(isDark),
+                      ),
+                    ],
+                  );
+                }
 
                 return SingleChildScrollView(
                   physics: BouncingScrollPhysics(),
@@ -364,80 +492,7 @@ class _PinLoginState extends State<PinLogin>
                     ),
                     child: Container(
                       width: cardWidth,
-                      child: Form(
-                        key: _formKey,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            SizedBox(height: screenHeight * 0.05),
-                            FadeTransition(
-                              opacity: _fadeAnimation,
-                              child: SlideTransition(
-                                position: _slideAnimation,
-                                child: AnimatedBuilder(
-                                  animation: _shakeAnimation,
-                                  builder: (context, child) {
-                                    return Transform.translate(
-                                      offset: Offset(
-                                        _shakeAnimation.value *
-                                            8 *
-                                            (1 - _shakeAnimation.value),
-                                        0,
-                                      ),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          _buildWelcomeSection(
-                                              isDark, screenHeight),
-                                          SizedBox(
-                                              height:
-                                                  screenHeight < 600 ? 32 : 56),
-                                          _buildPinField(isDark, screenHeight),
-                                          if (_showOtpField) ...[
-                                            SizedBox(
-                                                height: screenHeight < 600
-                                                    ? 16
-                                                    : 24),
-                                            _buildMethodToggle(
-                                                isDark, screenHeight),
-                                            SizedBox(
-                                                height: screenHeight < 600
-                                                    ? 16
-                                                    : 24),
-                                            _buildOtpField(
-                                                isDark, screenHeight),
-                                          ],
-                                          if (_hasError) ...[
-                                            SizedBox(
-                                                height: screenHeight < 600
-                                                    ? 12
-                                                    : 16),
-                                            _buildErrorMessage(isDark),
-                                          ],
-                                          SizedBox(
-                                              height:
-                                                  screenHeight < 600 ? 32 : 48),
-                                          _buildLoginButton(
-                                              model, isDark, screenHeight),
-                                          SizedBox(
-                                              height:
-                                                  screenHeight < 600 ? 16 : 24),
-                                          _buildHelpText(isDark, screenHeight),
-                                          SizedBox(
-                                              height:
-                                                  screenHeight < 600 ? 24 : 40),
-                                        ],
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                      child: _buildPinForm(model, isDark, screenHeight),
                     ),
                   ),
                 );

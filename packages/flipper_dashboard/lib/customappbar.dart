@@ -1,12 +1,24 @@
-// ignoreforfile: constantidentifiernames
+// ignore_for_file: constant_identifier_names
 
 library customappbar;
 
 import 'package:flipper_ui/style_widget/text.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'flipper_ui.dart';
 
 enum CLOSEBUTTON { ICON, BUTTON, WIDGET }
+
+bool _useCupertinoStyle(BuildContext context) {
+  if (kIsWeb) return false;
+  switch (Theme.of(context).platform) {
+    case TargetPlatform.iOS:
+    case TargetPlatform.macOS:
+      return true;
+    default:
+      return false;
+  }
+}
 
 class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
   const CustomAppBar({
@@ -53,38 +65,74 @@ class CustomAppBar extends StatefulWidget implements PreferredSizeWidget {
   State<CustomAppBar> createState() => _CustomAppBarState();
 
   @override
-  Size get preferredSize => Size.fromHeight(64.0 * (multi ?? 0.8));
+  Size get preferredSize => Size.fromHeight(80.0 * (multi ?? 1.0));
 }
 
 class _CustomAppBarState extends State<CustomAppBar> {
+  static const double _horizontalPadding = 8;
+
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final cupertino = _useCupertinoStyle(context);
+
     return SafeArea(
       top: true,
+      bottom: false,
       child: SizedBox(
-        height: widget.bottomSpacer ?? 64.0, // Use default value if null
+        height: widget.bottomSpacer ?? 80.0,
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            ListTile(
-              contentPadding: const EdgeInsets.symmetric(horizontal: 0),
-              leading: buildLeading(),
-              title: widget.title != null
-                  ? Flippertext(widget.title!)
-                  : const SizedBox.shrink(),
-              trailing: buildTrailing(),
-              dense: true,
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: _horizontalPadding,
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    buildLeading(
+                      cupertino: cupertino,
+                      colorScheme: colorScheme,
+                    ),
+                    Expanded(
+                      child: widget.title != null
+                          ? Align(
+                              alignment: AlignmentDirectional.centerStart,
+                              child: Flippertext(
+                                widget.title!,
+                                color: colorScheme.onSurface,
+                                fontWeight: FontWeight.w600,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            )
+                          : const SizedBox.shrink(),
+                    ),
+                    buildTrailing(
+                      context: context,
+                      cupertino: cupertino,
+                      colorScheme: colorScheme,
+                    ),
+                  ],
+                ),
+              ),
             ),
             if (widget.additionalText != null) widget.additionalText!,
             if (widget.bottomWidget != null)
               Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16.0), // Add padding
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
                 child: widget.bottomWidget!,
               ),
             if (widget.isDividerVisible ?? true)
-              const Divider(
-                thickness: 0.5,
-                color: Colors.grey,
+              Divider(
+                height: 1,
+                thickness: cupertino ? 0.0 : 1,
+                color: cupertino
+                    ? CupertinoColors.separator.resolveFrom(context)
+                    : colorScheme.outlineVariant,
               ),
           ],
         ),
@@ -92,41 +140,124 @@ class _CustomAppBarState extends State<CustomAppBar> {
     );
   }
 
-  Widget buildTrailing() {
+  Widget buildTrailing({
+    required BuildContext context,
+    required bool cupertino,
+    required ColorScheme colorScheme,
+  }) {
     if (widget.customTrailingWidget != null) {
       return widget.customTrailingWidget!;
     }
 
-    return widget.showActionButton == null || !widget.showActionButton!
-        ? const SizedBox.shrink()
-        : FLipperButton(
-            transparent: widget.useTransparentButton,
-            disableButton: widget.disableButton ?? false,
-            onPressedCallback: widget.onActionButtonClicked ?? () {},
-            buttonName: widget.rightActionButtonName ?? "Save",
-          );
+    if (widget.showActionButton == null || !widget.showActionButton!) {
+      return const SizedBox.shrink();
+    }
+
+    final disabled = widget.disableButton ?? false;
+    final label = widget.rightActionButtonName ?? "Save";
+    final onPressed = disabled ? null : (widget.onActionButtonClicked ?? () {});
+
+    if (cupertino) {
+      return CupertinoTheme(
+        data: CupertinoTheme.of(context).copyWith(
+          primaryColor: CupertinoColors.activeBlue.resolveFrom(context),
+        ),
+        child: CupertinoButton(
+          padding: const EdgeInsetsDirectional.only(start: 8, end: 4),
+          onPressed: onPressed,
+          child: Text(
+            label,
+            style: TextStyle(
+              fontWeight: FontWeight.w400,
+              fontSize: 17,
+              color: disabled
+                  ? CupertinoColors.placeholderText.resolveFrom(context)
+                  : CupertinoColors.activeBlue.resolveFrom(context),
+            ),
+          ),
+        ),
+      );
+    }
+
+    if (widget.useTransparentButton) {
+      return TextButton(onPressed: onPressed, child: Text(label));
+    }
+
+    return FilledButton(
+      onPressed: onPressed,
+      style: FilledButton.styleFrom(
+        visualDensity: VisualDensity.compact,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        backgroundColor: colorScheme.primary,
+        foregroundColor: colorScheme.onPrimary,
+      ),
+      child: Text(label),
+    );
   }
 
-  Widget buildLeading() {
+  Widget buildLeading({
+    required bool cupertino,
+    required ColorScheme colorScheme,
+  }) {
     switch (widget.closeButton) {
       case CLOSEBUTTON.WIDGET:
         return widget.customLeadingWidget!;
       case CLOSEBUTTON.ICON:
+        final iconData =
+            widget.icon ?? (cupertino ? CupertinoIcons.clear : Icons.close);
+        final loc = MaterialLocalizations.of(context);
+        final isClose =
+            widget.icon == null ||
+            widget.icon == Icons.close ||
+            widget.icon == CupertinoIcons.clear;
+
+        if (cupertino) {
+          return SizedBox(
+            width: 44,
+            height: 44,
+            child: CupertinoButton(
+              padding: EdgeInsets.zero,
+              onPressed: widget.onPop,
+              child: Icon(
+                iconData,
+                size: 22,
+                color: CupertinoColors.label.resolveFrom(context),
+              ),
+            ),
+          );
+        }
+
         return IconButton(
-          icon: Icon(
-            widget.icon ?? Icons.close,
-            color: Colors.black,
-            size: 30,
+          tooltip: isClose ? loc.closeButtonTooltip : null,
+          style: IconButton.styleFrom(
+            foregroundColor: colorScheme.onSurface,
+            visualDensity: VisualDensity.standard,
           ),
+          icon: Icon(iconData, size: 24),
           onPressed: widget.onPop,
         );
       case CLOSEBUTTON.BUTTON:
-        return FLipperButton(
-          transparent: widget.useTransparentButton,
-          disableButton: widget.disableButton ?? false,
-          onPressedCallback: widget.onPop ?? () {},
-          buttonName: widget.leftActionButtonName ?? '',
-        );
+        final disabled = widget.disableButton ?? false;
+        final label = widget.leftActionButtonName ?? '';
+        final onPressed = disabled ? null : (widget.onPop ?? () {});
+
+        if (cupertino) {
+          return CupertinoButton(
+            padding: const EdgeInsetsDirectional.only(start: 4, end: 8),
+            onPressed: onPressed,
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 17,
+                color: disabled
+                    ? CupertinoColors.placeholderText.resolveFrom(context)
+                    : CupertinoColors.activeBlue.resolveFrom(context),
+              ),
+            ),
+          );
+        }
+
+        return TextButton(onPressed: onPressed, child: Text(label));
     }
   }
 }

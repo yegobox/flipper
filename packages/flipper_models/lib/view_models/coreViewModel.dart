@@ -926,11 +926,14 @@ class CoreViewModel extends FlipperBaseModel
   /// Finally, the function sets the tenant on the `app` object.
 
   void defaultBranch() async {
-    final branch = await ProxyService.strategy.activeBranch(
-      branchId: ProxyService.box.getBranchId()!,
-    );
+    String? branchId = ProxyService.box.getBranchId();
+    if (branchId != null) {
+      final branch = await ProxyService.strategy.activeBranch(
+        branchId: branchId,
+      );
 
-    app.setActiveBranch(branch: branch);
+      app.setActiveBranch(branch: branch);
+    }
   }
 
   /// a method that listen on given tenantId and perform a sale to a POS

@@ -3,7 +3,7 @@ description: "A new Flutter project."
 publish_to: 'none'  # Remove this line if you wish to publish to pub.dev
 
 
-version: 1.0.138+1232
+version: 1.0.169+1263
 
 
 environment:
@@ -46,6 +46,7 @@ dependency_overrides:
   # nfc_manager: ^4.0.2
   cbor: ^6.3.7
   jni: ^0.14.2
+  path_provider_android: ">=2.2.5 <2.3.0"
   meta: ^1.16.0
   source_gen: ">=3.1.0 <4.0.0"  # allow compatible version with json_serializable
 

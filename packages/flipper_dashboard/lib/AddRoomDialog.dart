@@ -8,6 +8,16 @@ import 'package:uuid/uuid.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/providers/ebm_provider.dart';
 
+class _RoomModalPalette {
+  static const Color teal = Color(0xFF10B981);
+  static const Color tealSoft = Color(0xFFD1FAE5);
+  static const Color title = Color(0xFF0F172A);
+  static const Color muted = Color(0xFF64748B);
+  static const Color border = Color(0xFFE2E8F0);
+  static const Color handle = Color(0xFFE2E8F0);
+  static const Color rwfBadgeBg = Color(0xFFF1F5F9);
+}
+
 class AddRoomDialog extends StatefulHookConsumerWidget {
   final Function(Map<String, dynamic>) onRoomAdded;
 
@@ -22,7 +32,6 @@ class _AddRoomDialogState extends ConsumerState<AddRoomDialog> {
   final _roomNumberController = TextEditingController();
   final _priceController = TextEditingController();
 
-  // Room type mapping
   final Map<String, String> _roomTypes = {
     'Single': '01',
     'Double': '02',
@@ -34,6 +43,8 @@ class _AddRoomDialogState extends ConsumerState<AddRoomDialog> {
   bool _isExempted = false;
   String? _selectedTaxCode;
 
+  static const double _modalRadius = 32;
+
   @override
   void dispose() {
     _roomNumberController.dispose();
@@ -41,125 +52,233 @@ class _AddRoomDialogState extends ConsumerState<AddRoomDialog> {
     super.dispose();
   }
 
+  List<String> _taxCodesFor(bool vatEnabled) =>
+      vatEnabled ? ['A', 'B', 'C'] : ['D'];
+
+  String _effectiveTaxCode(bool vatEnabled) {
+    final codes = _taxCodesFor(vatEnabled);
+    if (_selectedTaxCode != null && codes.contains(_selectedTaxCode)) {
+      return _selectedTaxCode!;
+    }
+    return vatEnabled ? 'B' : 'D';
+  }
+
+  InputDecoration _fieldDecoration({
+    required String label,
+    String? hint,
+    Color? enabledBorderColor,
+    Widget? suffix,
+  }) {
+    final borderColor = enabledBorderColor ?? _RoomModalPalette.border;
+    final baseBorder = OutlineInputBorder(
+      borderRadius: BorderRadius.circular(12),
+      borderSide: BorderSide(color: borderColor, width: enabledBorderColor != null ? 1.5 : 1),
+    );
+    return InputDecoration(
+      hintText: hint,
+      hintStyle: const TextStyle(
+        color: _RoomModalPalette.muted,
+        fontWeight: FontWeight.w500,
+      ),
+      floatingLabelBehavior: FloatingLabelBehavior.always,
+      label: _uppercaseLabel(label),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+      filled: true,
+      fillColor: Colors.white,
+      border: baseBorder,
+      enabledBorder: baseBorder,
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: _RoomModalPalette.teal, width: 1.5),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.red.shade400),
+      ),
+      focusedErrorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.red.shade600),
+      ),
+      suffixIcon: suffix,
+      suffixIconConstraints: const BoxConstraints(minHeight: 36, minWidth: 36),
+    );
+  }
+
+  Widget _uppercaseLabel(String text) {
+    return Text(
+      text.toUpperCase(),
+      style: const TextStyle(
+        fontSize: 11,
+        fontWeight: FontWeight.w600,
+        letterSpacing: 0.8,
+        color: _RoomModalPalette.muted,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final vatEnabledAsync = ref.watch(ebmVatEnabledProvider);
 
     return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Container(
-        constraints: const BoxConstraints(maxWidth: 500),
-        padding: const EdgeInsets.all(24),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeader(),
-              const SizedBox(height: 24),
-              _buildTextField(
-                controller: _roomNumberController,
-                label: 'Room Number',
-                hint: 'Enter room number',
-                validator: (value) =>
-                    (value?.isEmpty ?? true) ? 'Required' : null,
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
+      child: Material(
+        color: Colors.white,
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(_modalRadius),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 500),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(22, 10, 22, 20),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _buildDragHandle(),
+                  const SizedBox(height: 8),
+                  _buildHeader(context),
+                  const SizedBox(height: 22),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        flex: 2,
+                        child: _buildRoomNumberField(),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        flex: 3,
+                        child: _buildRoomTypeDropdown(),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  _buildPriceField(),
+                  const SizedBox(height: 16),
+                  vatEnabledAsync.when(
+                    data: (vatEnabled) => _buildTaxCodeDropdown(vatEnabled),
+                    loading: () => const SizedBox.shrink(),
+                    error: (_, __) => const SizedBox.shrink(),
+                  ),
+                  vatEnabledAsync.when(
+                    data: (vatEnabled) => vatEnabled
+                        ? Column(
+                            children: [
+                              const SizedBox(height: 16),
+                              _buildTaxExemptCard(),
+                            ],
+                          )
+                        : const SizedBox.shrink(),
+                    loading: () => const SizedBox.shrink(),
+                    error: (_, __) => const SizedBox.shrink(),
+                  ),
+                  const SizedBox(height: 22),
+                  _buildPrimaryButton(),
+                  const SizedBox(height: 8),
+                  _buildCancelButton(context),
+                ],
               ),
-              const SizedBox(height: 16),
-              _buildRoomTypeDropdown(),
-              const SizedBox(height: 16),
-              _buildTextField(
-                controller: _priceController,
-                label: 'Price per Night',
-                hint: 'Enter price',
-                keyboardType: TextInputType.number,
-                validator: (value) =>
-                    (value?.isEmpty ?? true) ? 'Required' : null,
-              ),
-              const SizedBox(height: 16),
-              // Tax code dropdown - shown for both VAT and non-VAT
-              vatEnabledAsync.when(
-                data: (vatEnabled) => _buildTaxCodeDropdown(vatEnabled),
-                loading: () => const SizedBox.shrink(),
-                error: (_, __) => const SizedBox.shrink(),
-              ),
-              const SizedBox(height: 16),
-              // Exemption checkbox - shown only when VAT is enabled
-              vatEnabledAsync.when(
-                data: (vatEnabled) => vatEnabled
-                    ? _buildExemptionCheckbox()
-                    : const SizedBox.shrink(),
-                loading: () => const SizedBox.shrink(),
-                error: (_, __) => const SizedBox.shrink(),
-              ),
-              const SizedBox(height: 24),
-              _buildButtons(),
-            ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildDragHandle() {
+    return Center(
+      child: Container(
+        width: 40,
+        height: 4,
+        decoration: BoxDecoration(
+          color: _RoomModalPalette.handle,
+          borderRadius: BorderRadius.circular(999),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Container(
-          padding: const EdgeInsets.all(12),
+          width: 52,
+          height: 52,
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(8),
+            color: _RoomModalPalette.tealSoft,
+            borderRadius: BorderRadius.circular(14),
           ),
-          child: Icon(
-            Icons.hotel,
-            color: Theme.of(context).colorScheme.primary,
+          child: const Icon(
+            Icons.apartment_rounded,
+            color: _RoomModalPalette.teal,
+            size: 28,
           ),
         ),
         const SizedBox(width: 16),
-        Text(
-          'Add Room',
-          style: Theme.of(
-            context,
-          ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Add Room',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: _RoomModalPalette.title,
+                      letterSpacing: -0.2,
+                    ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                'Hotel & accommodation',
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: _RoomModalPalette.muted,
+                      fontWeight: FontWeight.w500,
+                    ),
+              ),
+            ],
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildTextField({
-    required TextEditingController controller,
-    required String label,
-    required String hint,
-    TextInputType? keyboardType,
-    String? Function(String?)? validator,
-  }) {
+  Widget _buildRoomNumberField() {
     return TextFormField(
-      controller: controller,
-      keyboardType: keyboardType,
-      validator: validator,
-      decoration: InputDecoration(
-        labelText: label,
-        hintText: hint,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
-        ),
+      controller: _roomNumberController,
+      validator: (value) => (value?.isEmpty ?? true) ? 'Required' : null,
+      style: const TextStyle(
+        color: _RoomModalPalette.title,
+        fontWeight: FontWeight.w600,
+      ),
+      decoration: _fieldDecoration(
+        label: 'Room No.',
+        hint: '101',
+        enabledBorderColor: _RoomModalPalette.teal,
       ),
     );
   }
 
   Widget _buildRoomTypeDropdown() {
     return DropdownButtonFormField<String>(
-      initialValue: _selectedRoomType,
-      decoration: InputDecoration(
-        labelText: 'Room Type',
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
+      // ignore: deprecated_member_use
+      value: _selectedRoomType,
+      decoration: _fieldDecoration(label: 'Room Type'),
+      hint: const Text(
+        'Select',
+        style: TextStyle(
+          color: _RoomModalPalette.muted,
+          fontWeight: FontWeight.w500,
         ),
       ),
+      icon: const Icon(Icons.keyboard_arrow_down_rounded, color: _RoomModalPalette.muted),
       items: _roomTypes.keys.map((String roomType) {
         return DropdownMenuItem<String>(value: roomType, child: Text(roomType));
       }).toList(),
@@ -172,49 +291,60 @@ class _AddRoomDialogState extends ConsumerState<AddRoomDialog> {
     );
   }
 
-  Widget _buildTaxCodeDropdown(bool vatEnabled) {
-    // Tax codes: A (Exempt), B, C for VAT-enabled branches; D for non-VAT branches
-    final taxCodes = vatEnabled ? ['A', 'B', 'C'] : ['D'];
-
-    // Set default if not already set
-    if (_selectedTaxCode == null || !taxCodes.contains(_selectedTaxCode)) {
-      _selectedTaxCode = vatEnabled ? 'B' : 'D';
-    }
-
-    return DropdownButtonFormField<String>(
-      initialValue: _selectedTaxCode,
-      decoration: InputDecoration(
-        labelText: 'Tax Code',
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide(color: Theme.of(context).colorScheme.primary),
+  Widget _buildPriceField() {
+    return TextFormField(
+      controller: _priceController,
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      validator: (value) => (value?.isEmpty ?? true) ? 'Required' : null,
+      style: const TextStyle(
+        color: _RoomModalPalette.title,
+        fontWeight: FontWeight.w600,
+      ),
+      decoration: _fieldDecoration(
+        label: 'Price Per Night',
+        hint: 'RWF 0.00',
+      ).copyWith(
+        suffixIcon: Padding(
+          padding: const EdgeInsets.only(right: 10),
+          child: Center(
+            widthFactor: 1,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: _RoomModalPalette.rwfBadgeBg,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Text(
+                'RWF',
+                style: TextStyle(
+                  color: _RoomModalPalette.muted,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 12,
+                ),
+              ),
+            ),
+          ),
         ),
       ),
+    );
+  }
+
+  Widget _buildTaxCodeDropdown(bool vatEnabled) {
+    final taxCodes = _taxCodesFor(vatEnabled);
+    final effective = _effectiveTaxCode(vatEnabled);
+
+    return DropdownButtonFormField<String>(
+      // ignore: deprecated_member_use
+      value: effective,
+      decoration: _fieldDecoration(label: 'Tax Code'),
+      icon: const Icon(Icons.keyboard_arrow_down_rounded, color: _RoomModalPalette.muted),
       items: taxCodes.map((String code) {
-        String label;
-        switch (code) {
-          case 'A':
-            label = 'A - Exempt';
-            break;
-          case 'B':
-            label = 'B - Standard Rate';
-            break;
-          case 'C':
-            label = 'C - Reduced Rate';
-            break;
-          case 'D':
-            label = 'D - Non-VAT';
-            break;
-          default:
-            label = code;
-        }
+        final label = _taxCodeLabel(code);
         return DropdownMenuItem<String>(value: code, child: Text(label));
       }).toList(),
       onChanged: (String? newValue) {
         setState(() {
           _selectedTaxCode = newValue;
-          // Update exemption status based on tax code
           _isExempted = (newValue == 'A');
         });
       },
@@ -222,50 +352,125 @@ class _AddRoomDialogState extends ConsumerState<AddRoomDialog> {
     );
   }
 
-  Widget _buildExemptionCheckbox() {
-    return CheckboxListTile(
-      value: _isExempted,
-      onChanged: (bool? value) {
-        setState(() {
-          _isExempted = value ?? false;
-          // If exempted, set tax code to A (Exempt)
-          if (_isExempted) {
-            _selectedTaxCode = 'A';
-          } else {
-            // If unchecked, reset to default B
-            _selectedTaxCode = 'B';
-          }
-        });
-      },
-      title: const Text('Tax Exempt'),
-      subtitle: const Text('Check if this room is exempt from VAT'),
-      controlAffinity: ListTileControlAffinity.leading,
+  String _taxCodeLabel(String code) {
+    switch (code) {
+      case 'A':
+        return 'A – Exempt';
+      case 'B':
+        return 'B – Standard Rate';
+      case 'C':
+        return 'C – Reduced Rate';
+      case 'D':
+        return 'D – Non-VAT';
+      default:
+        return code;
+    }
+  }
+
+  Widget _buildTaxExemptCard() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: _RoomModalPalette.border),
+        color: Colors.white,
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Tax Exempt',
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: _RoomModalPalette.title,
+                      ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Exempt this room from VAT',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: _RoomModalPalette.muted,
+                        height: 1.35,
+                      ),
+                ),
+              ],
+            ),
+          ),
+          Switch.adaptive(
+            value: _isExempted,
+            activeThumbColor: _RoomModalPalette.teal,
+            activeTrackColor: _RoomModalPalette.tealSoft,
+            onChanged: (bool value) {
+              setState(() {
+                _isExempted = value;
+                if (_isExempted) {
+                  _selectedTaxCode = 'A';
+                } else {
+                  _selectedTaxCode = 'B';
+                }
+              });
+            },
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildButtons() {
+  Widget _buildPrimaryButton() {
     final isLoading = ref.watch(loadingProvider);
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.end,
-      children: [
-        TextButton(
-          onPressed: isLoading.isLoading
-              ? null
-              : () => Navigator.of(context).pop(),
-          child: const Text('Cancel'),
+    return SizedBox(
+      width: double.infinity,
+      height: 52,
+      child: FilledButton(
+        onPressed: isLoading.isLoading ? null : _handleSave,
+        style: FilledButton.styleFrom(
+          backgroundColor: _RoomModalPalette.teal,
+          foregroundColor: Colors.white,
+          disabledBackgroundColor: _RoomModalPalette.teal.withValues(alpha: 0.5),
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          textStyle: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
         ),
-        const SizedBox(width: 16),
-        ElevatedButton(
-          onPressed: isLoading.isLoading ? null : _handleSave,
-          child: isLoading.isLoading
-              ? const SizedBox(
-                  width: 16,
-                  height: 16,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : const Text('Add Room'),
+        child: isLoading.isLoading
+            ? const SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  color: Colors.white,
+                ),
+              )
+            : const Text('Add Room'),
+      ),
+    );
+  }
+
+  Widget _buildCancelButton(BuildContext context) {
+    return Center(
+      child: TextButton(
+        onPressed: ref.watch(loadingProvider).isLoading
+            ? null
+            : () => Navigator.of(context).pop(),
+        style: TextButton.styleFrom(
+          foregroundColor: _RoomModalPalette.muted,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         ),
-      ],
+        child: Text(
+          'Cancel',
+          style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                color: _RoomModalPalette.muted,
+                fontWeight: FontWeight.bold,
+              ),
+        ),
+      ),
     );
   }
 
@@ -274,10 +479,12 @@ class _AddRoomDialogState extends ConsumerState<AddRoomDialog> {
       try {
         ref.read(loadingProvider.notifier).startLoading();
 
-        // Use the selected tax code from the dropdown
-        final taxCode = _selectedTaxCode ?? "B";
+        final vatEnabled = ref.read(ebmVatEnabledProvider).maybeWhen(
+              data: (v) => v,
+              orElse: () => false,
+            );
+        final taxCode = _effectiveTaxCode(vatEnabled);
 
-        // Create temp product like DesktopProductAdd
         final model = ScannViewModel();
         Product? product = await model.createProduct(
           name: TEMP_PRODUCT,
@@ -287,10 +494,8 @@ class _AddRoomDialogState extends ConsumerState<AddRoomDialog> {
         if (product != null) {
           ref.read(unsavedProductProvider.notifier).emitProduct(value: product);
 
-          // Set product name
           model.setProductName(name: _roomNumberController.text);
 
-          // Create stock for the room variant
           String stockId = const Uuid().v4();
           Stock roomStock = Stock(
             id: stockId,
@@ -301,7 +506,6 @@ class _AddRoomDialogState extends ConsumerState<AddRoomDialog> {
             currentStock: 0.0,
           );
 
-          // Create a room variant first
           Variant roomVariant = Variant(
             branchId: ProxyService.box.getBranchId()!,
             name: _roomNumberController.text,
@@ -310,16 +514,15 @@ class _AddRoomDialogState extends ConsumerState<AddRoomDialog> {
             propertyTyCd: "01",
             roomTypeCd: _roomTypes[_selectedRoomType] ?? "03",
             ttCatCd: "TT",
-            itemTyCd: "3", // Service type
-            taxTyCd: taxCode, // Tax type code: "B" for VAT, "D" for non-VAT
-            taxName: "TT", // Tax name
+            itemTyCd: "3",
+            taxTyCd: taxCode,
+            taxName: "TT",
             taxPercentage: 3.0,
             qty: 0.0,
             stock: roomStock,
             stockId: stockId,
           );
 
-          // Add variant using model.addVariant like DesktopProductAdd
           await model.addVariant(
             model: model,
             productName: _roomNumberController.text,
@@ -331,18 +534,15 @@ class _AddRoomDialogState extends ConsumerState<AddRoomDialog> {
             supplyPrice: double.tryParse(_priceController.text) ?? 0.0,
             variations: [roomVariant],
             product: product,
-            selectedProductType: "3", // Service type
+            selectedProductType: "3",
             packagingUnit: "NT",
             categoryId: null,
             roomTypeCd: _roomTypes[_selectedRoomType] ?? "03",
             propertyTyCd: "01",
             ttCatCd: "TT",
-            onCompleteCallback: (List<Variant> variants) async {
-              // Update room-specific fields after variant is saved
-            },
+            onCompleteCallback: (List<Variant> variants) async {},
           );
 
-          // Save product like DesktopProductAdd
           await model.saveProduct(
             mproduct: product,
             color: "#FF0000",
@@ -350,7 +550,6 @@ class _AddRoomDialogState extends ConsumerState<AddRoomDialog> {
             productName: _roomNumberController.text,
           );
 
-          // Refresh providers
           final combinedNotifier = ref.read(refreshProvider);
           combinedNotifier.performActions(productName: "", scanMode: true);
         }

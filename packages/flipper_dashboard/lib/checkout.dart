@@ -1,5 +1,7 @@
 // ignore_for_file: unused_result
 
+import 'dart:math' as math;
+
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
 import 'package:flipper_dashboard/CheckoutProductView.dart';
 import 'package:flipper_dashboard/mixins/previewCart.dart';
@@ -21,6 +23,11 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_services/navigation_guard_service.dart';
+
+/// Space left below the stacked [SearchInputWithDropdown] (single search row
+/// with in-field suffix actions + padding). Kept tight to the strip height so
+/// the summary toolbar sits close without overlapping.
+const double _kDesktopCheckoutBodyTopInset = 74.0;
 
 enum OrderStatus { pending, approved }
 
@@ -80,10 +87,7 @@ class CheckOutState extends ConsumerState<CheckOut>
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.white,
-      child: _buildMainContent(),
-    );
+    return Material(color: Colors.white, child: _buildMainContent());
   }
 
   Widget _buildMainContent() {
@@ -92,8 +96,13 @@ class CheckOutState extends ConsumerState<CheckOut>
     );
 
     return transactionAsyncValue.when(
+      // Keep last transaction visible when the stream reloads (e.g. dependency
+      // change); only the initial load uses loading: below.
+      skipLoadingOnReload: true,
       data: (transaction) => _buildDataWidget(transaction),
-      loading: () => const Center(child: CircularProgressIndicator()),
+      // Show product grid / POS shell immediately; QuickSellingView and
+      // PosDefaultView handle their own loading; footer waits for transaction id.
+      loading: () => _buildDataWidget(null),
       error: (error, stackTrace) => Center(
         child: Padding(
           padding: const EdgeInsets.all(24.0),
@@ -102,17 +111,15 @@ class CheckOutState extends ConsumerState<CheckOut>
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(16),
               side: BorderSide(
-                color: Theme.of(context)
-                    .colorScheme
-                    .errorContainer
-                    .withValues(alpha: 0.5),
+                color: Theme.of(
+                  context,
+                ).colorScheme.errorContainer.withValues(alpha: 0.5),
                 width: 1,
               ),
             ),
-            color: Theme.of(context)
-                .colorScheme
-                .errorContainer
-                .withValues(alpha: 0.2),
+            color: Theme.of(
+              context,
+            ).colorScheme.errorContainer.withValues(alpha: 0.2),
             child: Padding(
               padding: const EdgeInsets.all(32.0),
               child: Column(
@@ -135,18 +142,18 @@ class CheckOutState extends ConsumerState<CheckOut>
                   Text(
                     'Failed to Load Checkout',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.onSurface,
-                        ),
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).colorScheme.onSurface,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 12),
                   Text(
                     error.toString(),
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                          height: 1.5,
-                        ),
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      height: 1.5,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 32),
@@ -180,20 +187,15 @@ class CheckOutState extends ConsumerState<CheckOut>
     );
   }
 
-  Widget _buildDataWidget(ITransaction transaction) {
+  Widget _buildDataWidget(ITransaction? transaction) {
+    final showCart = ref.watch(oldImplementationOfRiverpod.previewingCart);
     return widget.isBigScreen
-        ? _buildBigScreenLayout(
-            transaction,
-            showCart: ref.watch(oldImplementationOfRiverpod.previewingCart),
-          )
-        : _buildSmallScreenLayout(
-            transaction,
-            showCart: ref.watch(oldImplementationOfRiverpod.previewingCart),
-          );
+        ? _buildBigScreenLayout(transaction, showCart: showCart)
+        : _buildSmallScreenLayout(showCart: showCart);
   }
 
   Widget _buildBigScreenLayout(
-    ITransaction transaction, {
+    ITransaction? transaction, {
     required bool showCart,
   }) {
     return ViewModelBuilder<CoreViewModel>.reactive(
@@ -206,52 +208,67 @@ class CheckOutState extends ConsumerState<CheckOut>
     );
   }
 
-  Widget _buildBigScreenContent(ITransaction transaction, CoreViewModel model) {
+  Widget _buildBigScreenContent(
+    ITransaction? transaction,
+    CoreViewModel model,
+  ) {
     return LayoutBuilder(
       builder: (context, constraints) {
         return Stack(
           children: [
             Padding(
-              padding: const EdgeInsets.only(top: 80.0),
+              padding: const EdgeInsets.only(top: _kDesktopCheckoutBodyTopInset),
               child: SizedBox(
                 width: constraints.maxWidth,
-                height: constraints.maxHeight,
+                height: math.max(
+                  0.0,
+                  constraints.maxHeight - _kDesktopCheckoutBodyTopInset,
+                ),
                 child: FadeTransition(
                   opacity: _animation,
                   child: PosDefaultView(
                     transaction: transaction,
                     quickSellingView: _buildQuickSellingView(),
-                    onCompleteTransaction: (immediateCompletion, [onPaymentConfirmed, onPaymentFailed]) async {
-                      return await _handleCompleteTransaction(
-                        transaction,
-                        immediateCompletion,
-                        onPaymentConfirmed,
-                        onPaymentFailed,
-                      );
+                    onCompleteTransaction:
+                        (
+                          immediateCompletion, [
+                          onPaymentConfirmed,
+                          onPaymentFailed,
+                        ]) async {
+                          final txn = transaction;
+                          if (txn == null) {
+                            return false;
+                          }
+                          return await _handleCompleteTransaction(
+                            txn,
+                            immediateCompletion,
+                            onPaymentConfirmed,
+                            onPaymentFailed,
+                          );
+                        },
+                    onTicketNavigation: () {
+                      final txn = transaction;
+                      if (txn != null) {
+                        handleTicketNavigation(txn);
+                      }
                     },
-                    onTicketNavigation: () => handleTicketNavigation(transaction),
                   ),
                 ),
               ),
             ),
+            // Match [PosDefaultView] horizontal padding so customer search lines
+            // up with [UnifiedTopBar] product search when the side rail is shown.
             Positioned(
-              top: 5.0,
-              left: 5.0,
-              right: 5.0,
-              child: ConstrainedBox(
-                constraints: BoxConstraints(
-                  maxWidth: (constraints.maxWidth - 10).clamp(200.0, 560.0),
-                ),
-                child: SearchInputWithDropdown(),
-              ),
+              top: 4.0,
+              left: 8.0,
+              right: 8.0,
+              child: SearchInputWithDropdown(),
             ),
           ],
         );
       },
     );
   }
-
-
 
   Widget _buildQuickSellingView() {
     return QuickSellingView(
@@ -291,7 +308,7 @@ class CheckOutState extends ConsumerState<CheckOut>
     Function(String)? onPaymentFailed,
   ]) async {
     final controller = CheckoutController(ref: ref, context: context);
-    
+
     return await controller.handleCompleteTransaction(
       transaction: transaction,
       immediateCompletion: immediateCompletion,
@@ -309,10 +326,7 @@ class CheckOutState extends ConsumerState<CheckOut>
     );
   }
 
-  Widget _buildSmallScreenLayout(
-    ITransaction transaction, {
-    required bool showCart,
-  }) {
+  Widget _buildSmallScreenLayout({required bool showCart}) {
     return ViewModelBuilder<CoreViewModel>.reactive(
       viewModelBuilder: () => CoreViewModel(),
       builder: (context, model, child) {

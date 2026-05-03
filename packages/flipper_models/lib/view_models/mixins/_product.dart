@@ -1,6 +1,7 @@
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/product_service.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/ebm_helper.dart';
@@ -33,6 +34,7 @@ mixin ProductMixin {
       Map<String, TextEditingController>? dates,
       double? retailPrice,
       double? supplyPrice,
+      bool preserveVariationFields = false,
       required String countryofOrigin,
       required String productName,
       required String selectedProductType,
@@ -122,9 +124,16 @@ mixin ProductMixin {
         variations[i].productName = productName;
         variations[i].productId = product.id;
         variations[i].modrId = number;
-        variations[i].prc = retailPrice;
-        variations[i].supplyPrice = supplyPrice;
-        variations[i].retailPrice = retailPrice;
+        final effectiveRetailPrice = preserveVariationFields
+            ? (variations[i].retailPrice ?? retailPrice)
+            : retailPrice;
+        final effectiveSupplyPrice = preserveVariationFields
+            ? (variations[i].supplyPrice ?? supplyPrice)
+            : supplyPrice;
+
+        variations[i].prc = effectiveRetailPrice;
+        variations[i].supplyPrice = effectiveSupplyPrice;
+        variations[i].retailPrice = effectiveRetailPrice;
         variations[i].regrId = randomNumber().toString().substring(0, 5);
 
         variations[i].itemTyCd = selectedProductType;
@@ -157,8 +166,25 @@ mixin ProductMixin {
         /// country of origin for this item comes from the selected country in CountryOfOriginSelector
         /// and this will happen when we do import.
         variations[i].orgnNatCd = countryofOrigin;
-        variations[i].itemNm = productName;
-        variations[i].name = productName;
+        // When preserving per-variant fields (mobile), still replace placeholder
+        // titles created while the product row was TEMP_PRODUCT / unnamed.
+        final vn = variations[i].name.trim();
+        final isUnsetOrPlaceholder =
+            vn.isEmpty || vn == TEMP_PRODUCT || vn == CUSTOM_PRODUCT;
+        if (!preserveVariationFields || isUnsetOrPlaceholder) {
+          variations[i].itemNm = productName;
+          variations[i].name = productName;
+        }
+        // Ditto/RRA require non-empty itemNm. When preserving per-variant names,
+        // [onScanItem] sets name but not always itemNm — fill from name or title.
+        final rawItemNm = variations[i].itemNm?.trim() ?? '';
+        if (rawItemNm.isEmpty || rawItemNm.toLowerCase() == 'null') {
+          final fromName = variations[i].name.trim();
+          final resolved = fromName.isNotEmpty
+              ? fromName
+              : (productName.trim().isNotEmpty ? productName.trim() : 'Item');
+          variations[i].itemNm = resolved;
+        }
 
         /// registration name
         variations[i].regrNm = productName;

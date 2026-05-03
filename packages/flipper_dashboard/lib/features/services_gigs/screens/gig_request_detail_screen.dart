@@ -7,6 +7,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 /// Full request view: timeline, chat, pay / job actions, review.
 class GigRequestDetailScreen extends StatefulWidget {
@@ -30,6 +31,8 @@ class GigRequestDetailScreen extends StatefulWidget {
 class _GigRequestDetailScreenState extends State<GigRequestDetailScreen> {
   final _repo = ServiceGigRequestRepository();
   final _messageController = TextEditingController();
+  final _scrollController = ScrollController();
+  RealtimeChannel? _messageChannel;
   ServiceGigRequest? _request;
   List<ServiceGigChatMessage> _messages = [];
   bool _loading = true;
@@ -41,25 +44,95 @@ class _GigRequestDetailScreenState extends State<GigRequestDetailScreen> {
   @override
   void initState() {
     super.initState();
-    _refresh();
+    _bootstrap();
+  }
+
+  Future<void> _bootstrap() async {
+    await _syncFromServer(showFullScreenLoader: true);
+    if (!mounted) return;
+    _subscribeMessagesRealtime();
   }
 
   @override
   void dispose() {
+    _messageChannel?.unsubscribe();
+    _messageChannel = null;
     _messageController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
-  Future<void> _refresh() async {
-    setState(() => _loading = true);
-    final r = await _repo.getRequestForParticipant(widget.requestId);
-    final msgs = r != null ? await _repo.listMessages(widget.requestId) : <ServiceGigChatMessage>[];
-    if (!mounted) return;
-    setState(() {
-      _request = r;
-      _messages = msgs;
-      _loading = false;
+  void _scrollTowardsEnd() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || !_scrollController.hasClients) return;
+      final pos = _scrollController.position;
+      _scrollController.animateTo(
+        pos.maxScrollExtent,
+        duration: const Duration(milliseconds: 220),
+        curve: Curves.easeOut,
+      );
     });
+  }
+
+  void _mergeMessage(ServiceGigChatMessage m) {
+    if (_messages.any((x) => x.id == m.id)) return;
+    final next = [..._messages, m]
+      ..sort((a, b) => a.createdAt.compareTo(b.createdAt));
+    _messages = next;
+  }
+
+  /// Reload request + messages. Use [showFullScreenLoader] only for first paint.
+  Future<void> _syncFromServer({required bool showFullScreenLoader}) async {
+    if (showFullScreenLoader) {
+      setState(() => _loading = true);
+    }
+    try {
+      final r = await _repo.getRequestForParticipant(widget.requestId);
+      final msgs = r != null
+          ? await _repo.listMessages(widget.requestId)
+          : <ServiceGigChatMessage>[];
+      if (!mounted) return;
+      setState(() {
+        _request = r;
+        _messages = msgs;
+      });
+      _scrollTowardsEnd();
+    } finally {
+      if (showFullScreenLoader && mounted) {
+        setState(() => _loading = false);
+      }
+    }
+  }
+
+  void _subscribeMessagesRealtime() {
+    final id = widget.requestId;
+    _messageChannel?.unsubscribe();
+    _messageChannel = Supabase.instance.client
+        .channel(
+          'gig_request_messages_$id',
+          opts: const RealtimeChannelConfig(ack: true),
+        )
+        .onPostgresChanges(
+          event: PostgresChangeEvent.insert,
+          schema: 'public',
+          table: 'service_gig_request_messages',
+          filter: PostgresChangeFilter(
+            type: PostgresChangeFilterType.eq,
+            column: 'request_id',
+            value: id,
+          ),
+          callback: (PostgresChangePayload payload) {
+            final raw = payload.newRecord;
+            if (raw.isEmpty) return;
+            final map = Map<String, dynamic>.from(raw);
+            if (map['id'] == null) return;
+            final m = ServiceGigChatMessage.fromJson(map);
+            if (!mounted) return;
+            setState(() => _mergeMessage(m));
+            _scrollTowardsEnd();
+          },
+        )
+        .subscribe();
   }
 
   Future<void> _sendMessage() async {
@@ -67,9 +140,14 @@ class _GigRequestDetailScreenState extends State<GigRequestDetailScreen> {
     if (text.trim().isEmpty) return;
     setState(() => _sending = true);
     try {
-      await _repo.sendMessage(requestId: widget.requestId, body: text);
+      final sent = await _repo.sendMessage(
+        requestId: widget.requestId,
+        body: text,
+      );
       _messageController.clear();
-      await _refresh();
+      if (!mounted) return;
+      setState(() => _mergeMessage(sent));
+      _scrollTowardsEnd();
     } on ServiceGigRequestException catch (e) {
       if (mounted) showErrorNotification(context, e.message);
     } catch (_) {
@@ -97,7 +175,7 @@ class _GigRequestDetailScreenState extends State<GigRequestDetailScreen> {
     );
     if (done == true && mounted) {
       showSuccessNotification(context, 'Payment recorded.');
-      await _refresh();
+      await _syncFromServer(showFullScreenLoader: false);
       if (mounted) Navigator.of(context).pop(true);
     }
   }
@@ -107,7 +185,7 @@ class _GigRequestDetailScreenState extends State<GigRequestDetailScreen> {
     try {
       await _repo.providerStartJob(widget.requestId);
       if (mounted) showSuccessNotification(context, 'Marked as in progress.');
-      await _refresh();
+      await _syncFromServer(showFullScreenLoader: false);
     } on ServiceGigRequestException catch (e) {
       if (mounted) showErrorNotification(context, e.message);
     } finally {
@@ -122,7 +200,7 @@ class _GigRequestDetailScreenState extends State<GigRequestDetailScreen> {
       if (mounted) {
         showSuccessNotification(context, 'Job marked complete. Customer can review.');
       }
-      await _refresh();
+      await _syncFromServer(showFullScreenLoader: false);
     } on ServiceGigRequestException catch (e) {
       if (mounted) showErrorNotification(context, e.message);
     } finally {
@@ -202,7 +280,7 @@ class _GigRequestDetailScreenState extends State<GigRequestDetailScreen> {
         comment: comment,
       );
       if (mounted) showSuccessNotification(context, 'Thanks for your review.');
-      await _refresh();
+      await _syncFromServer(showFullScreenLoader: false);
     } on ServiceGigRequestException catch (e) {
       if (mounted) showErrorNotification(context, e.message);
     } finally {
@@ -234,9 +312,11 @@ class _GigRequestDetailScreenState extends State<GigRequestDetailScreen> {
                   ),
                 )
               : RefreshIndicator(
-                  onRefresh: _refresh,
+                  onRefresh: () =>
+                      _syncFromServer(showFullScreenLoader: false),
                   color: const Color(0xFF0D9488),
                   child: ListView(
+                    controller: _scrollController,
                     padding: const EdgeInsets.all(16),
                     children: [
                       Text(

@@ -465,31 +465,47 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     // Use the provided (already filtered) variants for display and counts.
     final loadedCount = variants.length;
     final estimatedTotalPages = notifier.estimatedTotalPages();
+    final isMobileLayout = MediaQuery.sizeOf(context).width < 600;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
         const SizedBox.shrink(),
-        const SizedBox(height: 16),
-        // Top summary row similar to attached screenshot
+        SizedBox(height: isMobileLayout ? 8 : 16),
+        // Top summary row: compact POS copy on phone, range text on wider layouts.
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              // Showing X–Y of Z results
               Expanded(
                 child: Builder(
                   builder: (context) {
+                    final total = notifier.totalCount ?? loadedCount;
+                    final totalText = total.toString();
+                    if (isMobileLayout) {
+                      final pages = estimatedTotalPages < 1
+                          ? 1
+                          : estimatedTotalPages;
+                      return Text(
+                        '$totalText products · page ${_currentPage + 1} of $pages',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onSurfaceVariant,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 13,
+                            ),
+                        overflow: TextOverflow.ellipsis,
+                      );
+                    }
                     final start = loadedCount == 0
                         ? 0
                         : (_currentPage * ipp) + 1;
-                    final total = notifier.totalCount ?? loadedCount;
                     final end = ((_currentPage + 1) * ipp) > total
                         ? total
                         : ((_currentPage + 1) * ipp);
-                    final totalText = total.toString();
                     return Text(
                       'Showing $start–$end of $totalText results',
                       style: Theme.of(context).textTheme.bodyMedium,
@@ -498,8 +514,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                   },
                 ),
               ),
-              // Sorting dropdown
-              _buildSortingDropdown(context),
+              _buildSortingDropdown(context, compact: isMobileLayout),
             ],
           ),
         ),
@@ -529,20 +544,19 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
             ),
             child: Row(
               children: [
-                // Previous button
-                IconButton(
-                  icon: const Icon(FluentIcons.chevron_left_20_regular),
+                _paginationSideButton(
+                  context: context,
+                  icon: FluentIcons.chevron_left_20_regular,
                   onPressed: _currentPage > 0
                       ? () => _goToPage(_currentPage - 1)
                       : null,
+                  usePosStyle: isMobileLayout,
                 ),
-                // Page numbers (show up to 5 pages centered around current)
                 Expanded(
                   child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: List.generate(estimatedTotalPages, (index) {
-                        // limit displayed page buttons to reasonable number
                         if (estimatedTotalPages > 10) {
                           final low = (_currentPage - 2).clamp(
                             0,
@@ -553,34 +567,54 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                             estimatedTotalPages - 1,
                           );
                           if (index < low || index > high) {
-                            // show ellipsis instead of the button
                             return const SizedBox.shrink();
                           }
                         }
                         final page = index;
                         final isCurrent = page == _currentPage;
                         return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 6.0),
-                          child: InkWell(
-                            onTap: () => _goToPage(page),
-                            child: Container(
-                              width: 40,
-                              height: 36,
-                              alignment: Alignment.center,
-                              decoration: BoxDecoration(
-                                color: isCurrent
+                          padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                          child: Material(
+                            color: isMobileLayout
+                                ? (isCurrent
+                                    ? const Color(0xFFE8E8ED)
+                                    : Colors.white)
+                                : (isCurrent
                                     ? Theme.of(context).colorScheme.primary
-                                    : Colors.transparent,
-                                border: Border.all(
-                                  color: Theme.of(context).colorScheme.primary,
+                                    : Colors.transparent),
+                            borderRadius: BorderRadius.circular(10),
+                            child: InkWell(
+                              borderRadius: BorderRadius.circular(10),
+                              onTap: () => _goToPage(page),
+                              child: Container(
+                                width: 40,
+                                height: 40,
+                                alignment: Alignment.center,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: isMobileLayout
+                                        ? const Color(0xFFD1D1D6)
+                                        : Theme.of(context).colorScheme.primary,
+                                  ),
                                 ),
-                              ),
-                              child: Text(
-                                '${page + 1}',
-                                style: TextStyle(
-                                  color: isCurrent
-                                      ? Theme.of(context).colorScheme.onPrimary
-                                      : Theme.of(context).colorScheme.primary,
+                                child: Text(
+                                  '${page + 1}',
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 14,
+                                    color: isMobileLayout
+                                        ? (isCurrent
+                                            ? Colors.black87
+                                            : const Color(0xFF3C3C43))
+                                        : (isCurrent
+                                            ? Theme.of(
+                                                context,
+                                              ).colorScheme.onPrimary
+                                            : Theme.of(
+                                                context,
+                                              ).colorScheme.primary),
+                                  ),
                                 ),
                               ),
                             ),
@@ -590,12 +624,13 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                     ),
                   ),
                 ),
-                // Next button
-                IconButton(
-                  icon: const Icon(FluentIcons.chevron_right_20_regular),
+                _paginationSideButton(
+                  context: context,
+                  icon: FluentIcons.chevron_right_20_regular,
                   onPressed: _currentPage < (estimatedTotalPages - 1)
                       ? () => _goToPage(_currentPage + 1)
                       : null,
+                  usePosStyle: isMobileLayout,
                 ),
               ],
             ),
@@ -623,24 +658,30 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     ProductViewModel model,
     List<Variant> variants,
   ) {
-    // Check if the current platform is mobile
-    final bool isMobile =
-        defaultTargetPlatform == TargetPlatform.android ||
-        defaultTargetPlatform == TargetPlatform.iOS;
+    // Mobile vs desktop should be decided by available width, not platform.
+    //
+    // We run in many environments (desktop shells, tablets, web) where
+    // [defaultTargetPlatform] doesn't reliably map to "phone-like UI".
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final bool isMobileLayout = screenWidth < 600;
 
     // Use ListView for mobile platforms and GridView for desktop platforms
-    if (isMobile) {
-      return ListView.builder(
+    if (isMobileLayout) {
+      return ListView.separated(
         controller: _scrollController,
         itemCount: variants.length,
+        separatorBuilder: (_, __) => const SizedBox(height: 10),
         itemBuilder: (context, index) {
-          return buildVariantRow(
-            forceRemoteUrl: false,
-            context: context,
-            model: model,
-            variant: variants[index],
-            isOrdering: false,
-            forceListView: true,
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 2),
+            child: buildVariantRow(
+              forceRemoteUrl: false,
+              context: context,
+              model: model,
+              variant: variants[index],
+              isOrdering: false,
+              forceListView: true,
+            ),
           );
         },
         physics: const AlwaysScrollableScrollPhysics(),
@@ -648,7 +689,6 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
       );
     } else {
       // For desktop and web, use a responsive grid extent
-      final screenWidth = MediaQuery.of(context).size.width;
       // High-density pos format on wide screens, slightly larger on smaller screens
       final double crossAxisExtent = screenWidth >= 1200
           ? 140.0
@@ -709,29 +749,103 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
           );
   }
 
-  Widget _buildSortingDropdown(BuildContext context) {
+  String _compactSortLabel(ProductSortOption option) {
+    switch (option) {
+      case ProductSortOption.latest:
+        return 'Latest';
+      case ProductSortOption.defaultSorting:
+        return 'Default';
+      case ProductSortOption.popularity:
+        return 'Popular';
+      case ProductSortOption.averageRating:
+        return 'Rating';
+      case ProductSortOption.priceLowToHigh:
+        return 'Price ↑';
+      case ProductSortOption.priceHighToLow:
+        return 'Price ↓';
+      case ProductSortOption.eventDateOldToNew:
+        return 'Date ↑';
+      case ProductSortOption.eventDateNewToOld:
+        return 'Date ↓';
+    }
+  }
+
+  Widget _paginationSideButton({
+    required BuildContext context,
+    required IconData icon,
+    required VoidCallback? onPressed,
+    required bool usePosStyle,
+  }) {
+    if (!usePosStyle) {
+      return IconButton(
+        icon: Icon(icon),
+        onPressed: onPressed,
+      );
+    }
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 2),
+      child: Material(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(10),
+          onTap: onPressed,
+          child: Container(
+            width: 40,
+            height: 40,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: const Color(0xFFD1D1D6)),
+            ),
+            child: Icon(
+              icon,
+              size: 18,
+              color: onPressed == null
+                  ? const Color(0xFFC7C7CC)
+                  : const Color(0xFF3C3C43),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSortingDropdown(BuildContext context, {bool compact = false}) {
     return Consumer(
       builder: (context, ref, _) {
         final currentSort = ref.watch(productSortProvider);
+        final label =
+            compact ? _compactSortLabel(currentSort) : currentSort.label;
         return PopupMenuButton<ProductSortOption>(
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: EdgeInsets.symmetric(
+              horizontal: compact ? 10 : 12,
+              vertical: compact ? 6 : 8,
+            ),
             decoration: BoxDecoration(
+              color: compact ? Colors.white : null,
               border: Border.all(
                 color: Theme.of(
                   context,
-                ).colorScheme.onSurface.withValues(alpha: 0.2),
+                ).colorScheme.onSurface.withValues(alpha: 0.15),
               ),
-              borderRadius: BorderRadius.circular(4),
+              borderRadius: BorderRadius.circular(compact ? 10 : 4),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Text(currentSort.label),
-                const SizedBox(width: 8),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: compact ? 13 : 14,
+                  ),
+                ),
+                SizedBox(width: compact ? 4 : 8),
                 Icon(
                   FluentIcons.chevron_down_20_regular,
-                  size: 16,
+                  size: compact ? 14 : 16,
                   color: Theme.of(context).colorScheme.onSurface,
                 ),
               ],

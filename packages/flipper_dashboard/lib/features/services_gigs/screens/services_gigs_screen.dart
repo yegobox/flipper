@@ -1,4 +1,7 @@
 import 'package:flipper_dashboard/features/services_gigs/models/service_gig_provider.dart';
+import 'package:flipper_dashboard/features/services_gigs/providers/services_gig_admin_provider.dart';
+import 'package:flipper_dashboard/features/services_gigs/screens/admin_metrics_screen.dart';
+import 'package:flipper_dashboard/features/services_gigs/screens/admin_payout_dispatch_screen.dart';
 import 'package:flipper_dashboard/features/services_gigs/screens/customer_my_requests_screen.dart';
 import 'package:flipper_dashboard/features/services_gigs/screens/gig_activity_screen.dart';
 import 'package:flipper_dashboard/features/services_gigs/screens/provider_browse_screen.dart';
@@ -8,18 +11,24 @@ import 'package:flipper_dashboard/features/services_gigs/screens/provider_regist
 import 'package:flipper_dashboard/features/services_gigs/services/service_gig_provider_repository.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+/// Less pill-like than the default Material 3 filled button shape.
+const _kServicesHubButtonShape = RoundedRectangleBorder(
+  borderRadius: BorderRadius.all(Radius.circular(4)),
+);
 
 /// Product shell for the services marketplace. Backend, MTN charge/disbursement
 /// endpoints, and real-time timers will plug in here later.
-class ServicesGigsScreen extends StatefulWidget {
+class ServicesGigsScreen extends ConsumerStatefulWidget {
   const ServicesGigsScreen({Key? key}) : super(key: key);
 
   @override
-  State<ServicesGigsScreen> createState() => _ServicesGigsScreenState();
+  ConsumerState<ServicesGigsScreen> createState() => _ServicesGigsScreenState();
 }
 
-class _ServicesGigsScreenState extends State<ServicesGigsScreen> {
+class _ServicesGigsScreenState extends ConsumerState<ServicesGigsScreen> {
   final _repo = ServiceGigProviderRepository();
   ServiceGigProvider? _provider;
   bool _loadingProfile = true;
@@ -32,8 +41,7 @@ class _ServicesGigsScreenState extends State<ServicesGigsScreen> {
 
   Future<void> _refreshProfile() async {
     final userId = ProxyService.box.getUserId();
-    final profile =
-        userId != null ? await _repo.load(userId) : null;
+    final profile = userId != null ? await _repo.load(userId) : null;
     if (mounted) {
       setState(() {
         _provider = profile;
@@ -45,9 +53,8 @@ class _ServicesGigsScreenState extends State<ServicesGigsScreen> {
   Future<void> _openRegistration() async {
     final changed = await Navigator.of(context).push<bool>(
       MaterialPageRoute(
-        builder: (context) => ProviderRegistrationScreen(
-          initialProfile: _provider,
-        ),
+        builder: (context) =>
+            ProviderRegistrationScreen(initialProfile: _provider),
       ),
     );
     if (changed == true && mounted) await _refreshProfile();
@@ -55,34 +62,26 @@ class _ServicesGigsScreenState extends State<ServicesGigsScreen> {
 
   void _openBrowseProviders() {
     Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => const ProviderBrowseScreen(),
-      ),
+      MaterialPageRoute(builder: (context) => const ProviderBrowseScreen()),
     );
   }
 
   void _openProviderInbox() {
     Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => const ProviderInboxScreen(),
-      ),
+      MaterialPageRoute(builder: (context) => const ProviderInboxScreen()),
     );
   }
 
   void _openMyRequests() {
     Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => const CustomerMyRequestsScreen(),
-      ),
+      MaterialPageRoute(builder: (context) => const CustomerMyRequestsScreen()),
     );
   }
 
   void _openActivity() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => const GigActivityScreen(),
-      ),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (context) => const GigActivityScreen()));
   }
 
   void _openProviderDashboard() {
@@ -95,8 +94,135 @@ class _ServicesGigsScreenState extends State<ServicesGigsScreen> {
     );
   }
 
+  void _openAdminPayoutDispatch() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const AdminPayoutDispatchScreen()),
+    );
+  }
+
+  void _openAdminMetrics() {
+    Navigator.of(context).push(
+      MaterialPageRoute(builder: (context) => const AdminMetricsScreen()),
+    );
+  }
+
+  static List<Widget> _howItWorksSectionCards() => [
+    _SectionCard(
+      icon: Icons.person_add_alt_1_outlined,
+      title: 'Providers',
+      body:
+          'Workers register and list the services they can perform for others.',
+    ),
+    _SectionCard(
+      icon: Icons.star_outline_rounded,
+      title: 'Ratings',
+      body:
+          'We assign and update ratings from our verification and client feedback.',
+    ),
+    _SectionCard(
+      icon: Icons.send_outlined,
+      title: 'Requests',
+      body:
+          'Customers send a service request to a chosen provider. The provider must accept or decline within 30 minutes.',
+      highlight: '30 min to accept',
+    ),
+    _SectionCard(
+      icon: Icons.payments_outlined,
+      title: 'Payment window',
+      body:
+          'After acceptance, the customer completes payment within 5 minutes so the job is confirmed and funded.',
+      highlight: '5 min to pay',
+    ),
+    _SectionCard(
+      icon: Icons.route_outlined,
+      title: 'Execution',
+      body:
+          'Once paid, the worker can contact the customer and perform the service.',
+    ),
+    _SectionCard(
+      icon: Icons.account_balance_wallet_outlined,
+      title: 'Escrow & payout',
+      body:
+          'We collect funds via MTN (and dedicated charge APIs). Money is released after both sides confirm completion; ledgers track balances, commission, and who is owed what.',
+    ),
+  ];
+
+  void _showHowItWorksSheet() {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
+      builder: (sheetContext) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.88,
+          minChildSize: 0.45,
+          maxChildSize: 0.95,
+          expand: false,
+          builder: (context, scrollController) {
+            return DecoratedBox(
+              decoration: BoxDecoration(
+                color: Colors.grey.shade50,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(16),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(8, 8, 4, 4),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.only(left: 8),
+                            child: Text(
+                              'How Services hub works',
+                              style: GoogleFonts.poppins(
+                                fontWeight: FontWeight.w600,
+                                fontSize: 17,
+                                color: Colors.grey.shade900,
+                              ),
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.close),
+                          onPressed: () => Navigator.of(sheetContext).pop(),
+                          color: Colors.grey.shade700,
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: ListView(
+                      controller: scrollController,
+                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+                      children: _howItWorksSectionCards(),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final userId = ProxyService.box.getUserId() ?? '';
+    final isAdminAsync = userId.isEmpty
+        ? const AsyncValue<bool>.data(false)
+        : ref.watch(servicesGigAdminProvider(userId));
+    final sectionTitleStyle = GoogleFonts.poppins(
+      fontWeight: FontWeight.w600,
+      fontSize: 13,
+      color: Colors.grey.shade600,
+    );
+
     return Scaffold(
       backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
@@ -113,12 +239,91 @@ class _ServicesGigsScreenState extends State<ServicesGigsScreen> {
           fontSize: 18,
           fontWeight: FontWeight.w600,
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.help_outline),
+            tooltip: 'How it works',
+            onPressed: _showHowItWorksSheet,
+          ),
+        ],
       ),
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
         children: [
+          isAdminAsync.when(
+            data: (isAdmin) {
+              if (!isAdmin) return const SizedBox.shrink();
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Card(
+                    elevation: 0,
+                    color: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      side: BorderSide(color: Colors.red.shade100),
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                          child: Text('Admin tools', style: sectionTitleStyle),
+                        ),
+                        ListTile(
+                          leading: Icon(
+                            Icons.payments_outlined,
+                            color: Colors.red.shade700,
+                          ),
+                          title: Text(
+                            'Dispatch payouts',
+                            style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.w500,
+                              fontSize: 15,
+                            ),
+                          ),
+                          trailing: Icon(
+                            Icons.chevron_right,
+                            color: Colors.grey.shade400,
+                          ),
+                          onTap: _openAdminPayoutDispatch,
+                        ),
+                        Divider(
+                          height: 1,
+                          thickness: 1,
+                          color: Colors.grey.shade100,
+                        ),
+                        ListTile(
+                          leading: Icon(
+                            Icons.query_stats_outlined,
+                            color: Colors.red.shade700,
+                          ),
+                          title: Text(
+                            'Metrics',
+                            style: GoogleFonts.poppins(
+                              fontWeight: FontWeight.w500,
+                              fontSize: 15,
+                            ),
+                          ),
+                          trailing: Icon(
+                            Icons.chevron_right,
+                            color: Colors.grey.shade400,
+                          ),
+                          onTap: _openAdminMetrics,
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              );
+            },
+            loading: () => const SizedBox.shrink(),
+            error: (_, __) => const SizedBox.shrink(),
+          ),
           Text(
-            'Offer skills, request help, and pay safely through the platform.',
+            'Find people for jobs, or offer your skills—payments stay on the platform.',
             style: GoogleFonts.poppins(
               fontSize: 15,
               height: 1.45,
@@ -133,48 +338,109 @@ class _ServicesGigsScreenState extends State<ServicesGigsScreen> {
             style: FilledButton.styleFrom(
               backgroundColor: const Color(0xFF0F766E),
               padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+              shape: _kServicesHubButtonShape,
             ),
           ),
-          const SizedBox(height: 10),
-          OutlinedButton.icon(
-            onPressed: _openProviderInbox,
-            icon: const Icon(Icons.inbox_outlined),
-            label: const Text('Incoming requests'),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: const Color(0xFF0F766E),
-              side: const BorderSide(color: Color(0xFF0F766E)),
-              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+          const SizedBox(height: 16),
+          Card(
+            elevation: 0,
+            color: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+              side: BorderSide(color: Colors.grey.shade200),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                  child: Text('Your activity', style: sectionTitleStyle),
+                ),
+                ListTile(
+                  leading: Icon(
+                    Icons.receipt_long_outlined,
+                    color: Colors.grey.shade700,
+                  ),
+                  title: Text(
+                    'My requests',
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.w500,
+                      fontSize: 15,
+                    ),
+                  ),
+                  trailing: Icon(
+                    Icons.chevron_right,
+                    color: Colors.grey.shade400,
+                  ),
+                  onTap: _openMyRequests,
+                ),
+                Divider(height: 1, thickness: 1, color: Colors.grey.shade100),
+                ListTile(
+                  leading: Icon(
+                    Icons.notifications_active_outlined,
+                    color: Colors.grey.shade700,
+                  ),
+                  title: Text(
+                    'Notifications',
+                    style: GoogleFonts.poppins(
+                      fontWeight: FontWeight.w500,
+                      fontSize: 15,
+                    ),
+                  ),
+                  trailing: Icon(
+                    Icons.chevron_right,
+                    color: Colors.grey.shade400,
+                  ),
+                  onTap: _openActivity,
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 10),
-          OutlinedButton.icon(
-            onPressed: _openMyRequests,
-            icon: const Icon(Icons.receipt_long_outlined),
-            label: const Text('My requests'),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: const Color(0xFF0F766E),
-              side: const BorderSide(color: Color(0xFF0F766E)),
-              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-            ),
-          ),
-          const SizedBox(height: 10),
-          OutlinedButton.icon(
-            onPressed: _openActivity,
-            icon: const Icon(Icons.notifications_active_outlined),
-            label: const Text('Notifications'),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: const Color(0xFF0F766E),
-              side: const BorderSide(color: Color(0xFF0F766E)),
-              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
-            ),
-          ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 16),
           if (_loadingProfile)
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 12),
               child: Center(child: CircularProgressIndicator()),
             )
           else if (_provider != null) ...[
+            Card(
+              elevation: 0,
+              color: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+                side: BorderSide(color: Colors.grey.shade200),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+                    child: Text('Provider tools', style: sectionTitleStyle),
+                  ),
+                  ListTile(
+                    leading: Icon(
+                      Icons.inbox_outlined,
+                      color: Colors.grey.shade700,
+                    ),
+                    title: Text(
+                      'Incoming requests',
+                      style: GoogleFonts.poppins(
+                        fontWeight: FontWeight.w500,
+                        fontSize: 15,
+                      ),
+                    ),
+                    trailing: Icon(
+                      Icons.chevron_right,
+                      color: Colors.grey.shade400,
+                    ),
+                    onTap: _openProviderInbox,
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
             _RegisteredProviderCard(
               profile: _provider!,
               onEdit: _openRegistration,
@@ -186,50 +452,15 @@ class _ServicesGigsScreenState extends State<ServicesGigsScreen> {
               label: const Text('Provider dashboard'),
               style: FilledButton.styleFrom(
                 backgroundColor: const Color(0xFF0D9488),
-                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 14,
+                  horizontal: 20,
+                ),
+                shape: _kServicesHubButtonShape,
               ),
             ),
           ] else
             _BecomeProviderCallout(onRegister: _openRegistration),
-          const SizedBox(height: 20),
-          _SectionCard(
-            icon: Icons.person_add_alt_1_outlined,
-            title: 'Providers',
-            body:
-                'Workers register and list the services they can perform for others.',
-          ),
-          _SectionCard(
-            icon: Icons.star_outline_rounded,
-            title: 'Ratings',
-            body:
-                'We assign and update ratings from our verification and client feedback.',
-          ),
-          _SectionCard(
-            icon: Icons.send_outlined,
-            title: 'Requests',
-            body:
-                'Customers send a service request to a chosen provider. The provider must accept or decline within 30 minutes.',
-            highlight: '30 min to accept',
-          ),
-          _SectionCard(
-            icon: Icons.payments_outlined,
-            title: 'Payment window',
-            body:
-                'After acceptance, the customer completes payment within 5 minutes so the job is confirmed and funded.',
-            highlight: '5 min to pay',
-          ),
-          _SectionCard(
-            icon: Icons.route_outlined,
-            title: 'Execution',
-            body:
-                'Once paid, the worker can contact the customer and perform the service.',
-          ),
-          _SectionCard(
-            icon: Icons.account_balance_wallet_outlined,
-            title: 'Escrow & payout',
-            body:
-                'We collect funds via MTN (and dedicated charge APIs). Money is released after both sides confirm completion; ledgers track balances, commission, and who is owed what.',
-          ),
         ],
       ),
     );
@@ -248,7 +479,9 @@ class _BecomeProviderCallout extends StatelessWidget {
       color: const Color(0xFF0D9488).withValues(alpha: 0.08),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(14),
-        side: BorderSide(color: const Color(0xFF0D9488).withValues(alpha: 0.35)),
+        side: BorderSide(
+          color: const Color(0xFF0D9488).withValues(alpha: 0.35),
+        ),
       ),
       child: Padding(
         padding: const EdgeInsets.all(16),
@@ -279,7 +512,11 @@ class _BecomeProviderCallout extends StatelessWidget {
               label: const Text('Become a provider'),
               style: FilledButton.styleFrom(
                 backgroundColor: const Color(0xFF0D9488),
-                padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 20),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 14,
+                  horizontal: 20,
+                ),
+                shape: _kServicesHubButtonShape,
               ),
             ),
           ],
@@ -293,10 +530,7 @@ class _RegisteredProviderCard extends StatelessWidget {
   final ServiceGigProvider profile;
   final VoidCallback onEdit;
 
-  const _RegisteredProviderCard({
-    required this.profile,
-    required this.onEdit,
-  });
+  const _RegisteredProviderCard({required this.profile, required this.onEdit});
 
   @override
   Widget build(BuildContext context) {

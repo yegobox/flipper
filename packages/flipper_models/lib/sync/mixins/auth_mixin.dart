@@ -18,6 +18,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart' as foundation;
 import 'package:supabase_models/brick/repository.dart';
+import 'package:supabase_models/brick/repository/local_storage.dart';
 import 'package:flipper_services/locator.dart' as loc;
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.locator.dart';
@@ -1021,6 +1022,10 @@ mixin AuthMixin implements AuthInterface {
             true, // Skip initial fetch to prevent upserting all models on startup
       );
       _isDittoInitialized = true; // Mark as initialized after successful setup
+      final box = ProxyService.box;
+      if (box is SharedPreferenceStorage) {
+        await box.attachDittoPersistence();
+      }
     } catch (e) {
       talker.error("Failed to initialize Ditto: $e");
       rethrow;

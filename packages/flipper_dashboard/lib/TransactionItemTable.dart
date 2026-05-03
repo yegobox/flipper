@@ -203,7 +203,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
             ),
           if (internalTransactionItems.isEmpty)
             pinGrandTotal
-                ? Expanded(child: Center(child: _buildEmptyState()))
+                ? Expanded(child: _buildPinnedEmptyStateScrollSlot())
                 : _buildEmptyState()
           else if (pinGrandTotal)
             Expanded(child: _buildItemsList(isOrdering, scrollable: true))
@@ -215,36 +215,63 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     );
   }
 
-  Widget _buildEmptyState() {
+  /// Empty cart when the list sits in a fixed [Expanded] (pinGrandTotal).
+  /// [Center] alone does not clip: large padding + copy can overflow the slot.
+  Widget _buildPinnedEmptyStateScrollSlot() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: Center(
+              child: _buildEmptyState(compact: true),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildEmptyState({bool compact = false}) {
+    final outerPad = compact ? 16.0 : 60.0;
+    final iconInnerPad = compact ? 12.0 : 20.0;
+    final iconSize = compact ? 36.0 : 48.0;
+    final titleSize = compact ? 16.0 : 18.0;
+    final gapAfterIcon = compact ? 12.0 : 20.0;
+    final gapBeforeSubtitle = compact ? 6.0 : 8.0;
+
     return Container(
-      padding: const EdgeInsets.all(60),
+      padding: EdgeInsets.all(outerPad),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.all(iconInnerPad),
             decoration: BoxDecoration(
               color: Colors.grey[100],
               shape: BoxShape.circle,
             ),
             child: Icon(
               Icons.shopping_cart_outlined,
-              size: 48,
+              size: iconSize,
               color: Colors.grey[400],
             ),
           ),
-          const SizedBox(height: 20),
+          SizedBox(height: gapAfterIcon),
           Text(
             'No items yet',
             style: TextStyle(
-              fontSize: 18,
+              fontSize: titleSize,
               fontWeight: FontWeight.w600,
               color: Colors.grey[600],
             ),
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: gapBeforeSubtitle),
           Text(
             'Add your first item to get started',
-            style: TextStyle(fontSize: 14, color: Colors.grey[500]),
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: compact ? 13 : 14, color: Colors.grey[500]),
           ),
         ],
       ),
@@ -378,19 +405,25 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
 
   // === DUOLINGO-INSPIRED QUICK CONTROLS ===
   Widget _buildQuickQuantityControls(TransactionItem item, bool isOrdering) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        _buildModernQuantityButton(
-          icon: Icons.remove,
-          color: Colors.red[400]!,
-          onTap: () => _decrementQuantity(item, isOrdering),
-          enabled: item.qty > 0,
-          id: '${item.id}-remove',
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Container(
+    // Intrinsic-width row + scaleDown avoids overflow when the flex slot is
+    // narrower than buttons+spacing+label minimum; Expanded inside FittedBox
+    // would get unbounded horizontal constraints.
+    return FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: Alignment.center,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          _buildModernQuantityButton(
+            icon: Icons.remove,
+            color: Colors.red[400]!,
+            onTap: () => _decrementQuantity(item, isOrdering),
+            enabled: item.qty > 0,
+            id: '${item.id}-remove',
+          ),
+          const SizedBox(width: 12),
+          Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
               color: Colors.grey[100],
@@ -409,16 +442,16 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
               textAlign: TextAlign.center,
             ),
           ),
-        ),
-        const SizedBox(width: 12),
-        _buildModernQuantityButton(
-          icon: Icons.add,
-          color: Colors.blue[400]!,
-          onTap: () => _incrementQuantity(item, isOrdering),
-          enabled: true,
-          id: '${item.id}-add',
-        ),
-      ],
+          const SizedBox(width: 12),
+          _buildModernQuantityButton(
+            icon: Icons.add,
+            color: Colors.blue[400]!,
+            onTap: () => _incrementQuantity(item, isOrdering),
+            enabled: true,
+            id: '${item.id}-add',
+          ),
+        ],
+      ),
     );
   }
 

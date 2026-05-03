@@ -59,6 +59,12 @@ class ServiceGigRequest {
   final String? cancelledBy;
   final DateTime? cancelledAt;
   
+  /// Provider payout dispatch (admin-only).
+  final String providerPayoutStatus;
+  final DateTime? providerPayoutDispatchedAt;
+  final String? providerPayoutDispatchedBy;
+  final String? providerPayoutReference;
+
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -101,6 +107,10 @@ class ServiceGigRequest {
     this.cancellationReason,
     this.cancelledBy,
     this.cancelledAt,
+    this.providerPayoutStatus = 'pending',
+    this.providerPayoutDispatchedAt,
+    this.providerPayoutDispatchedBy,
+    this.providerPayoutReference,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -291,6 +301,14 @@ class ServiceGigRequest {
       cancelledAt: json['cancelled_at'] != null
           ? parseTs(json['cancelled_at'])
           : null,
+      providerPayoutStatus:
+          json['provider_payout_status']?.toString() ?? 'pending',
+      providerPayoutDispatchedAt: json['provider_payout_dispatched_at'] != null
+          ? parseTs(json['provider_payout_dispatched_at'])
+          : null,
+      providerPayoutDispatchedBy:
+          json['provider_payout_dispatched_by']?.toString(),
+      providerPayoutReference: json['provider_payout_reference']?.toString(),
       createdAt: parseTs(json['created_at']),
       updatedAt: parseTs(json['updated_at']),
     );
@@ -342,6 +360,12 @@ class ServiceGigRequest {
         'cancellation_reason': cancellationReason,
         'cancelled_by': cancelledBy,
         if (cancelledAt != null) 'cancelled_at': cancelledAt!.toIso8601String(),
+        'provider_payout_status': providerPayoutStatus,
+        if (providerPayoutDispatchedAt != null)
+          'provider_payout_dispatched_at':
+              providerPayoutDispatchedAt!.toIso8601String(),
+        'provider_payout_dispatched_by': providerPayoutDispatchedBy,
+        'provider_payout_reference': providerPayoutReference,
         'created_at': createdAt.toIso8601String(),
         'updated_at': updatedAt.toIso8601String(),
       };

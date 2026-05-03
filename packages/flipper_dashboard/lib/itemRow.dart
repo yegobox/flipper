@@ -27,6 +27,8 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flipper_services/DeviceType.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_dashboard/transaction_item_adder.dart';
+import 'package:flipper_models/providers/transaction_items_provider.dart';
+import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:flipper_ui/dialogs/AdminPinDialog.dart';
 import 'package:flipper_services/setting_service.dart';
@@ -450,6 +452,20 @@ class _RowItemState extends ConsumerState<RowItem>
     TextTheme textTheme,
     ColorScheme colorScheme,
   ) {
+    // POS compact list row (matches the new mobile POS design).
+    //
+    // Do NOT gate on [DeviceType] == 'Phone': diagonal-based classification
+    // labels many real phones as 'Phablet', which would incorrectly fall back
+    // to the legacy list row (no +/- controls). Keep this in sync with
+    // [ProductView] mobile layout (< 600 width) + forced list from POS.
+    final bool isCompactPosList =
+        widget.forceListView &&
+        !widget.isOrdering &&
+        MediaQuery.sizeOf(context).width < 600;
+    if (isCompactPosList) {
+      return _buildPosMobileListRow(textTheme, colorScheme);
+    }
+
     return LayoutBuilder(
       builder: (context, constraints) {
         // Calculate available width for product info
@@ -579,6 +595,344 @@ class _RowItemState extends ConsumerState<RowItem>
         );
       },
     );
+  }
+
+  Widget _buildPosMobileListRow(TextTheme textTheme, ColorScheme colorScheme) {
+    // Match non-compact rows: when variant label differs from product title,
+    // lead with variant name so POS/search rows match what was saved per SKU.
+    final productTitle = widget.productName.trim();
+    final variantTitle = widget.variantName.trim();
+    final hasDistinctVariant =
+        variantTitle.isNotEmpty && variantTitle != productTitle;
+    final String primaryLine = hasDistinctVariant
+        ? variantTitle
+        : (productTitle.isNotEmpty
+            ? productTitle
+            : (widget.variant?.productName?.trim().isNotEmpty == true
+                  ? widget.variant!.productName!.trim()
+                  : variantTitle));
+    final String? productSubtitle =
+        hasDistinctVariant && productTitle.isNotEmpty ? productTitle : null;
+
+    final String initials = primaryLine
+        .split(RegExp(r'\s+'))
+        .where((p) => p.isNotEmpty)
+        .take(2)
+        .map((p) => p.characters.first.toUpperCase())
+        .join();
+
+    final num retailPrice = widget.variant?.retailPrice ?? 0;
+    final String priceText = retailPrice.toCurrencyFormatted(
+      symbol: ProxyService.box.defaultCurrency(),
+    );
+
+    return SizedBox(
+      height: 68,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          // Leading avatar (color tile / initials), no heavy image loading.
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: HexColor(widget.color.isEmpty ? "#673AB7" : widget.color)
+                  .withValues(alpha: 0.18),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            alignment: Alignment.center,
+            child: Text(
+              initials.isEmpty ? 'PRD' : initials,
+              style: textTheme.labelLarge?.copyWith(
+                fontWeight: FontWeight.w800,
+                color: HexColor(widget.color.isEmpty ? "#673AB7" : widget.color)
+                    .withValues(alpha: 0.9),
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+
+          const SizedBox(width: 12),
+
+          // Middle: name + barcode
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  primaryLine.isNotEmpty ? primaryLine : 'Unnamed',
+                  style: textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: Colors.black87,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (productSubtitle != null) ...[
+                  const SizedBox(height: 2),
+                  Text(
+                    productSubtitle,
+                    style: textTheme.bodySmall?.copyWith(
+                      color: colorScheme.onSurfaceVariant,
+                      fontWeight: FontWeight.w500,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+                const SizedBox(height: 4),
+                Text(
+                  widget.variant?.bcd?.isNotEmpty == true
+                      ? 'BCD: ${widget.variant!.bcd}'
+                      : '',
+                  style: textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+
+          const SizedBox(width: 12),
+
+          // Right: price + stock pill + plus button
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                priceText,
+                style: textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Stock pill (live)
+                  RepaintBoundary(
+                    child: Consumer(
+                      builder: (context, ref, _) {
+                        final stockAsync = ref.watch(
+                          stockByVariantProvider(widget.variant?.stockId ?? ''),
+                        );
+                        final stockRaw = stockAsync.value?.currentStock ?? 0;
+                        final stockValue = stockRaw is int
+                            ? stockRaw
+                            : stockRaw.floor();
+
+                        final Color bg = stockValue <= 0
+                            ? Colors.red.withValues(alpha: 0.12)
+                            : (stockValue <= 5
+                                  ? Colors.orange.withValues(alpha: 0.14)
+                                  : Colors.green.withValues(alpha: 0.14));
+                        final Color fg = stockValue <= 0
+                            ? Colors.red.shade700
+                            : (stockValue <= 5
+                                  ? Colors.orange.shade800
+                                  : Colors.green.shade800);
+
+                        return Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: bg,
+                            borderRadius: BorderRadius.circular(999),
+                          ),
+                          child: Text(
+                            '$stockValue left',
+                            style: textTheme.labelSmall?.copyWith(
+                              fontWeight: FontWeight.w800,
+                              color: fg,
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  _buildCartQtyControl(textTheme, colorScheme),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCartQtyControl(TextTheme textTheme, ColorScheme colorScheme) {
+    final v = widget.variant;
+    if (v == null) {
+      return const SizedBox.shrink();
+    }
+
+    return Consumer(
+      builder: (context, ref, _) {
+        final txnAsync = ref.watch(pendingTransactionStreamProvider(isExpense: false));
+        final txn = txnAsync.asData?.value;
+        if (txn == null || txn.id.isEmpty) {
+          return _buildPlusOnlyButton(textTheme, colorScheme);
+        }
+
+        final itemsAsync = ref.watch(
+          transactionItemsStreamProvider(
+            transactionId: txn.id,
+            branchId: ProxyService.box.branchIdString() ?? '0',
+          ),
+        );
+
+        final items = itemsAsync.asData?.value ?? const <TransactionItem>[];
+        final matching = items
+            .where((it) => it.active != false)
+            .where((it) => it.variantId == v.id)
+            .toList();
+
+        final num totalQty = matching.fold<num>(0, (sum, it) => sum + (it.qty));
+
+        // Requirement: when qty is 1, only show "+" (no minus).
+        if (totalQty <= 1) {
+          return _buildPlusOnlyButton(textTheme, colorScheme);
+        }
+
+        return _buildStepper(
+          textTheme: textTheme,
+          colorScheme: colorScheme,
+          qty: totalQty,
+          onDecrement: () async {
+            await _decrementOne(
+              transactionId: txn.id,
+              matchingItems: matching,
+            );
+          },
+          onIncrement: () async {
+            final core = CoreViewModel();
+            await onTapItem(model: core, isOrdering: widget.isOrdering);
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildPlusOnlyButton(TextTheme textTheme, ColorScheme colorScheme) {
+    return SizedBox(
+      width: 38,
+      height: 32,
+      child: OutlinedButton(
+        onPressed: () async {
+          final core = CoreViewModel();
+          await onTapItem(model: core, isOrdering: widget.isOrdering);
+        },
+        style: OutlinedButton.styleFrom(
+          padding: EdgeInsets.zero,
+          side: BorderSide(color: colorScheme.outline.withValues(alpha: 0.22)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          foregroundColor: colorScheme.onSurface,
+        ),
+        child: const Icon(Icons.add, size: 18),
+      ),
+    );
+  }
+
+  Widget _buildStepper({
+    required TextTheme textTheme,
+    required ColorScheme colorScheme,
+    required num qty,
+    required Future<void> Function() onDecrement,
+    required Future<void> Function() onIncrement,
+  }) {
+    return Container(
+      height: 32,
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.18)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          SizedBox(
+            width: 32,
+            height: 32,
+            child: IconButton(
+              padding: EdgeInsets.zero,
+              onPressed: () async => onDecrement(),
+              icon: const Icon(Icons.remove, size: 18),
+              color: colorScheme.onSurface,
+              tooltip: 'Decrease quantity',
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 6),
+            child: Text(
+              qty.toString(),
+              style: textTheme.labelLarge?.copyWith(
+                fontWeight: FontWeight.w800,
+                color: colorScheme.onSurface,
+              ),
+            ),
+          ),
+          SizedBox(
+            width: 32,
+            height: 32,
+            child: IconButton(
+              padding: EdgeInsets.zero,
+              onPressed: () async => onIncrement(),
+              icon: const Icon(Icons.add, size: 18),
+              color: colorScheme.onSurface,
+              tooltip: 'Increase quantity',
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _decrementOne({
+    required String transactionId,
+    required List<TransactionItem> matchingItems,
+  }) async {
+    if (matchingItems.isEmpty) return;
+
+    // Prefer decrementing an item with qty > 1; otherwise delete one row
+    // (handles the case where the same variant exists as multiple qty=1 rows).
+    matchingItems.sort((a, b) {
+      final aq = a.qty;
+      final bq = b.qty;
+      return bq.compareTo(aq);
+    });
+
+    final item = matchingItems.first;
+    final currentQty = item.qty;
+
+    try {
+      if (currentQty > 1) {
+        await ProxyService.getStrategy(Strategy.capella).updateTransactionItem(
+          qty: (currentQty - 1).toDouble(),
+          transactionItemId: item.id,
+          ignoreForReport: false,
+        );
+      } else {
+        await ProxyService.getStrategy(Strategy.capella).deleteItemFromCart(
+          transactionItemId: item,
+          transactionId: transactionId,
+        );
+      }
+    } catch (e) {
+      // Keep UI resilient; errors are surfaced via existing global handlers/logging.
+      talker.error('Failed to decrement item: $e');
+    }
   }
 
   Widget _buildProductImageSection(bool isSelected) {

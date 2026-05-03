@@ -164,7 +164,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     final scheme = Theme.of(context).colorScheme;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(4, 2, 4, 6),
+      padding: const EdgeInsets.fromLTRB(4, 0, 4, 6),
       child: Material(
         elevation: 2,
         shadowColor: Colors.black.withValues(alpha: 0.14),
@@ -1812,6 +1812,49 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                     transactionId: transactionAsyncValue.value?.id ?? "",
                     alreadyPaid: alreadyPaid,
                   ),
+                ],
+              ],
+            ),
+          );
+        }
+
+        // Phone landscape and other short panels: flex split leaves too little
+        // height for toolbar + cart card (header, list, grand total) and form,
+        // causing bottom overflow. One vertical scroll matches unbounded-height
+        // behavior above.
+        const sharedViewScrollHeightThreshold = 560.0;
+        if (constraints.maxHeight < sharedViewScrollHeightThreshold) {
+          if (isOrdering) {
+            return SizedBox(
+              width: constraints.maxWidth,
+              height: constraints.maxHeight,
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(2.0),
+                child: _buildSharedViewItemsPane(
+                  alreadyPaid: alreadyPaid,
+                  transactionAsyncValue: transactionAsyncValue,
+                  model: model,
+                  isOrdering: isOrdering,
+                  pinGrandTotal: false,
+                ),
+              ),
+            );
+          }
+          return SingleChildScrollView(
+            padding: const EdgeInsets.all(2.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _buildSharedViewItemsPane(
+                  alreadyPaid: alreadyPaid,
+                  transactionAsyncValue: transactionAsyncValue,
+                  model: model,
+                  isOrdering: isOrdering,
+                  pinGrandTotal: false,
+                ),
+                if (!isOrdering) ...[
+                  const SizedBox(height: 12),
+                  pinnedBottomColumn,
                 ],
               ],
             ),

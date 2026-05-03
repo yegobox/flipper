@@ -266,6 +266,8 @@ class EventService
   Timer? _loginPollingTimer;
   // Track processed event IDs to avoid duplicate processing
   final Set<String> _processedLoginEventIds = {};
+  // Reduce log spam from polling when there are no events.
+  int _loginEmptyPollCount = 0;
 
   /// Actually set up the login event subscription (called when Ditto is ready)
   void _doSubscribeLoginEvent(String channel, dynamic ditto) {
@@ -273,6 +275,7 @@ class EventService
       // Clear previously processed events for new subscription
       _processedLoginEventIds.clear();
       _loginPollingTimer?.cancel();
+      _loginEmptyPollCount = 0;
 
       // Subscribe to sync events for this specific channel
       ditto.sync.registerSubscription(
@@ -328,9 +331,20 @@ class EventService
         arguments: {"channel": channel},
       );
 
-      talker.debug(
-        'Polling found ${result.items.length} events for channel $channel',
-      );
+      final count = result.items.length;
+      if (count == 0) {
+        _loginEmptyPollCount++;
+        // Log only occasionally to avoid spamming the console in debug builds.
+        // (First time, then every ~minute at a 2s polling interval.)
+        if (_loginEmptyPollCount == 1 || _loginEmptyPollCount % 30 == 0) {
+          talker.debug('Polling found 0 events for channel $channel');
+        }
+        return;
+      }
+
+      // Reset once we see activity.
+      _loginEmptyPollCount = 0;
+      talker.debug('Polling found $count events for channel $channel');
 
       for (final item in result.items) {
         final event = Map<String, dynamic>.from(item.value);

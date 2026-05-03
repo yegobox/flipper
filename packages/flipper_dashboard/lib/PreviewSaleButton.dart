@@ -76,14 +76,14 @@ class PreviewSaleButton extends ConsumerWidget {
 
     return SizedBox(
       height: 64,
-      // Make button wider and adjust based on mode
-      width: showCompleteNow ? 400 : 300,
+      width: double.infinity,
       child: Row(
         children: [
           // Left Side: Main Button (Pay/Preview Cart)
           Expanded(
             child: icon == null
                 ? FlipperButton(
+                    width: double.infinity,
                     height: 64,
                     key: const Key("PaymentButton"),
                     color: Colors.blue.shade700,
@@ -97,6 +97,7 @@ class PreviewSaleButton extends ConsumerWidget {
                     isLoading: payButtonLoading[ButtonType.pay] ?? false,
                   )
                 : FlipperIconButton(
+                    width: double.infinity,
                     height: 64,
                     color: Colors.blue.shade700,
                     key: const Key("PaymentButton"),
@@ -116,6 +117,7 @@ class PreviewSaleButton extends ConsumerWidget {
             Expanded(
               child: icon == null
                   ? FlipperButton(
+                      width: double.infinity,
                       isLoading:
                           payButtonLoading[ButtonType.completeNow] ?? false,
                       height: 64,
@@ -129,6 +131,7 @@ class PreviewSaleButton extends ConsumerWidget {
                       ),
                     )
                   : FlipperIconButton(
+                      width: double.infinity,
                       color: Colors.blue.shade700,
                       isLoading:
                           payButtonLoading[ButtonType.completeNow] ?? false,
