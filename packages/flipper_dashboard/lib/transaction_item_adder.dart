@@ -22,7 +22,8 @@ class TransactionItemAdder {
 
   TransactionItemAdder(this.context, this.ref);
 
-  Future<void> addItemToTransaction({
+  /// Returns `true` when the item was saved to the pending transaction.
+  Future<bool> addItemToTransaction({
     required Variant variant,
     required bool isOrdering,
   }) async {
@@ -73,7 +74,7 @@ class TransactionItemAdder {
             }
             ref.read(optimisticOrderCountProvider.notifier).decrement();
             showErrorNotification(context, "You do not have enough stock");
-            return;
+            return false;
           }
         }
       }
@@ -131,12 +132,13 @@ class TransactionItemAdder {
       // Ditto observer auto-fires on local INSERT/UPDATE since we now write
       // directly via Capella. No manual ref.invalidate needed.
       w?.log("ItemAddedToTransactionSuccess");
+      return true;
     } catch (e, s) {
       if (context.mounted) {
         ref.read(optimisticOrderCountProvider.notifier).decrement();
       }
 
-      if (!context.mounted) return;
+      if (!context.mounted) return false;
 
       ScaffoldMessenger.of(context).hideCurrentSnackBar();
 
@@ -154,6 +156,7 @@ class TransactionItemAdder {
       if (context.mounted) {
         w?.log("ItemAddedToTransactionFailed");
       }
+      return false;
     }
   }
 }

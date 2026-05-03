@@ -10,6 +10,14 @@ class AppInputDecoration {
     Widget? suffixIcon,
     TextEditingController? controller,
     VoidCallback? onClearPressed,
+    /// When set, used for enabled/focused borders instead of [Theme.primaryColor].
+    Color? outlineColor,
+    /// Corner radius when [outlineBorderRadius] is null.
+    double borderRadius = 4.0,
+    BorderRadius? outlineBorderRadius,
+    Color? hintColor,
+    Color? labelColor,
+    Color? fillColor,
   }) {
     Widget? resolvedSuffix = suffixIcon;
     if (resolvedSuffix == null &&
@@ -34,32 +42,59 @@ class AppInputDecoration {
       );
     }
 
+    final radius =
+        outlineBorderRadius ?? BorderRadius.circular(borderRadius);
+    final baseColor = outlineColor ?? Theme.of(context).primaryColor;
+    final iconColor = outlineColor ?? Theme.of(context).primaryColor;
+    final resolvedLabelColor = labelColor ?? Theme.of(context).primaryColor;
+    final resolvedHintColor =
+        hintColor ?? Theme.of(context).hintColor.withValues(alpha: .7);
+    final resolvedFill = fillColor ?? Theme.of(context).cardColor;
+
     return InputDecoration(
       labelText: labelText,
       hintText: hintText,
       hintStyle: TextStyle(
-        color: Theme.of(context).hintColor.withValues(alpha: .7),
+        color: resolvedHintColor,
         fontSize: 14.0,
       ),
       labelStyle: TextStyle(
-        color: Theme.of(context).primaryColor,
+        color: resolvedLabelColor,
+        fontWeight: FontWeight.w500,
+      ),
+      floatingLabelStyle: TextStyle(
+        color: resolvedLabelColor,
         fontWeight: FontWeight.w500,
       ),
       prefixIcon: prefixIcon != null
           ? Icon(
               prefixIcon,
-              color: Theme.of(context).primaryColor,
+              color: iconColor,
               size: 22.0,
             )
           : null,
       suffixIcon: resolvedSuffix,
-      border: _buildBorder(context, opacity: 0.5),
-      enabledBorder: _buildBorder(context, opacity: 0.3),
-      focusedBorder: _buildBorder(context, opacity: 1.0, width: 2.0),
-      errorBorder: _buildErrorBorder(context),
-      focusedErrorBorder: _buildErrorBorder(context, width: 2.0),
+      border: _outlineBorder(
+        borderRadius: radius,
+        color: baseColor.withValues(alpha: 0.55),
+      ),
+      enabledBorder: _outlineBorder(
+        borderRadius: radius,
+        color: baseColor.withValues(alpha: 0.55),
+      ),
+      focusedBorder: _outlineBorder(
+        borderRadius: radius,
+        color: baseColor,
+        width: 2.0,
+      ),
+      errorBorder: _buildErrorBorder(context, borderRadius: radius),
+      focusedErrorBorder: _buildErrorBorder(
+        context,
+        borderRadius: radius,
+        width: 2.0,
+      ),
       filled: true,
-      fillColor: Theme.of(context).cardColor,
+      fillColor: resolvedFill,
       contentPadding: const EdgeInsets.symmetric(
         horizontal: 16.0,
         vertical: 12.0,
@@ -67,26 +102,24 @@ class AppInputDecoration {
     );
   }
 
-  static OutlineInputBorder _buildBorder(
-    BuildContext context, {
-    double opacity = 1.0,
+  static OutlineInputBorder _outlineBorder({
+    required BorderRadius borderRadius,
+    required Color color,
     double width = 1.0,
   }) {
     return OutlineInputBorder(
-      borderRadius: BorderRadius.circular(4.0),
-      borderSide: BorderSide(
-        color: Theme.of(context).primaryColor.withValues(alpha: opacity),
-        width: width,
-      ),
+      borderRadius: borderRadius,
+      borderSide: BorderSide(color: color, width: width),
     );
   }
 
   static OutlineInputBorder _buildErrorBorder(
     BuildContext context, {
+    required BorderRadius borderRadius,
     double width = 1.0,
   }) {
     return OutlineInputBorder(
-      borderRadius: BorderRadius.circular(4.0),
+      borderRadius: borderRadius,
       borderSide: BorderSide(
         color: Theme.of(context).colorScheme.error,
         width: width,
@@ -118,6 +151,13 @@ class StyledTextFormField {
     String? Function(String?)? validator,
     void Function(String)? onChanged,
     Key? key, // Add optional Key parameter
+    Color? outlineColor,
+    double borderRadius = 4.0,
+    BorderRadius? outlineBorderRadius,
+    Color? hintColor,
+    Color? labelColor,
+    Color? fillColor,
+    TextStyle? style,
   }) {
     return TextFormField(
       key: key, // Pass the key to the TextFormField
@@ -128,7 +168,7 @@ class StyledTextFormField {
       minLines: minLines,
       onChanged: onChanged,
       validator: validator,
-      style: AppInputDecoration.inputStyle(context),
+      style: style ?? AppInputDecoration.inputStyle(context),
       decoration: AppInputDecoration.buildDecoration(
         context: context,
         labelText: labelText,
@@ -142,6 +182,12 @@ class StyledTextFormField {
                 // Note: You'll need to handle setState in the parent widget
               }
             : null,
+        outlineColor: outlineColor,
+        borderRadius: borderRadius,
+        outlineBorderRadius: outlineBorderRadius,
+        hintColor: hintColor,
+        labelColor: labelColor,
+        fillColor: fillColor,
       ),
     );
   }

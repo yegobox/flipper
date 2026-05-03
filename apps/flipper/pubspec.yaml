@@ -1,9 +1,10 @@
 name: flipper_rw
 description: "A new Flutter project."
 publish_to: "none"
+#  ios : 1.184
+# macos : 1.181
 
-
-version: 1.181.4252223235069+1756529074
+version: 1.185.4252223235152+1756529157
 
 
 environment:
@@ -133,7 +134,7 @@ dependencies:
   flipper_services: any
   flipper_login: any
   supabase_models: any
-  sqlite3: ^3.1.3
+  sqlite3: ^3.3.1
   amplify_core: ^2.8.0
   amplify_api: ^2.8.0
   amplify_flutter: ^2.7.0
@@ -155,7 +156,7 @@ dependency_overrides:
   http: ^1.2.2
   meta: ^1.16.0
   web: ^1.1.0
-  sqlite3: ^3.1.3
+  sqlite3: ^3.3.1
   stacked_services: ^1.6.0
   stacked: ^3.5.0
   device_info_plus: ^12.3.0
@@ -216,7 +217,7 @@ msix_config:
   publisher_display_name: yegobox ltd
   identity_name: yegobox.yegoboxflipper
   # identity_name: yegobox.yegoboxflipper_6y224vs1dg1rr
-  msix_version: 1.170.5052.172
+  msix_version: 1.170.5052.255
   publisher: CN=B0F98A1E-8AE8-4B2B-BD1B-F494D4F791AE
   # publisher: CN=B0F334A1E-8AET-4B2C-BD1B-F239D4F791AE
   # B0F98A1E-8AE8-4B2B-BD1B-F494D4F791AE

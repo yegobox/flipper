@@ -126,7 +126,7 @@ class TransactionsState extends ConsumerState<Transactions>
               const SizedBox(width: 8),
               Text(
                 'Filter Transactions',
-                style: GoogleFonts.poppins(
+                style: GoogleFonts.outfit(
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                   color: const Color(0xFF1A1A1A),
@@ -378,7 +378,7 @@ Widget _buildModernTransactionItem({
                           .last
                           .replaceAll(RegExp(r'([a-z])([A-Z])'), r'$1 $2')
                           .toUpperCase(),
-                      style: GoogleFonts.poppins(
+                      style: GoogleFonts.outfit(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
                         color: const Color(0xFF374151),
@@ -390,9 +390,10 @@ Widget _buildModernTransactionItem({
                           : isIncome == false
                               ? '-$amount RWF'
                               : '$amount RWF', // No prefix for unclassified
-                      style: GoogleFonts.poppins(
+                      style: GoogleFonts.jetBrainsMono(
                         fontSize: 16,
-                        fontWeight: FontWeight.w700,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: -0.5,
                         color: isIncome == true
                             ? const Color(0xFF059669)
                             : isIncome == false
@@ -415,7 +416,7 @@ Widget _buildModernTransactionItem({
                       DateFormat(
                         'MMM dd, yyyy',
                       ).format(transaction.lastTouched!),
-                      style: GoogleFonts.poppins(
+                      style: GoogleFonts.outfit(
                         fontSize: 13,
                         fontWeight: FontWeight.w400,
                         color: Colors.grey.shade600,
@@ -430,7 +431,7 @@ Widget _buildModernTransactionItem({
                     const SizedBox(width: 6),
                     Text(
                       DateFormat('HH:mm').format(transaction.lastTouched!),
-                      style: GoogleFonts.poppins(
+                      style: GoogleFonts.outfit(
                         fontSize: 13,
                         fontWeight: FontWeight.w400,
                         color: Colors.grey.shade600,
@@ -486,7 +487,7 @@ Widget _buildEmptyStateWithPeriod(BuildContext context, String period) {
         const SizedBox(height: 20),
         Text(
           'No records for ${period.toLowerCase()}',
-          style: GoogleFonts.poppins(
+          style: GoogleFonts.outfit(
             fontSize: 20,
             fontWeight: FontWeight.w600,
             color: const Color(0xFF4B4B4B),
@@ -496,7 +497,7 @@ Widget _buildEmptyStateWithPeriod(BuildContext context, String period) {
         Text(
           'Try selecting a different time period or add some transactions.',
           textAlign: TextAlign.center,
-          style: GoogleFonts.poppins(
+          style: GoogleFonts.outfit(
             fontSize: 14,
             fontWeight: FontWeight.w400,
             color: const Color(0xFF777777),
@@ -531,7 +532,7 @@ Widget _buildLoadingState(BuildContext context) {
         const SizedBox(height: 24),
         Text(
           'Loading transactions...',
-          style: GoogleFonts.poppins(
+          style: GoogleFonts.outfit(
             fontSize: 16,
             fontWeight: FontWeight.w500,
             color: const Color(0xFF605E5C),
@@ -565,7 +566,7 @@ Widget _buildErrorState(BuildContext context, String error) {
         const SizedBox(height: 20),
         Text(
           'Something went wrong',
-          style: GoogleFonts.poppins(
+          style: GoogleFonts.outfit(
             fontSize: 18,
             fontWeight: FontWeight.w600,
             color: const Color(0xFF1F2937),
@@ -575,7 +576,7 @@ Widget _buildErrorState(BuildContext context, String error) {
         Text(
           error,
           textAlign: TextAlign.center,
-          style: GoogleFonts.poppins(
+          style: GoogleFonts.outfit(
             fontSize: 14,
             fontWeight: FontWeight.w400,
             color: const Color(0xFF6B7280),

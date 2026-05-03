@@ -1,32 +1,16 @@
 // GENERATED CODE DO NOT EDIT
 // This file should be version controlled
 import 'package:brick_sqlite/db.dart';
-part '20260131115249.migration.dart';
-part '20260210125423.migration.dart';
-part '20260216095950.migration.dart';
-part '20260219185654.migration.dart';
-part '20260223114710.migration.dart';
-part '20260225075135.migration.dart';
-part '20260226120531.migration.dart';
-part '20260310051019.migration.dart';
-part '20260310052105.migration.dart';
+part '20260425064844.migration.dart';
+part '20260423201159.migration.dart';
 
 /// All intelligently-generated migrations from all `@Migratable` classes on disk
 final migrations = <Migration>{
-  const Migration20260131115249(),
-  const Migration20260210125423(),
-  const Migration20260216095950(),
-  const Migration20260219185654(),
-  const Migration20260223114710(),
-  const Migration20260225075135(),
-  const Migration20260226120531(),
-  const Migration20260310051019(),
-  const Migration20260310052105(),
-};
+  const Migration20260425064844(),const Migration20260423201159()};
 
 /// A consumable database structure including the latest generated migration.
 final schema = Schema(
-  20260310052105,
+  20260423201159,
   generatorVersion: 1,
   tables: <SchemaTable>{
     SchemaTable(
@@ -139,6 +123,7 @@ final schema = Schema(
         SchemaColumn('business_id', Column.varchar),
         SchemaColumn('asset_name', Column.varchar),
         SchemaColumn('product_id', Column.varchar),
+        SchemaColumn('variant_id', Column.varchar),
         SchemaColumn('is_uploaded', Column.boolean),
         SchemaColumn('local_path', Column.varchar),
         SchemaColumn('sub_path', Column.varchar),
@@ -1018,76 +1003,6 @@ final schema = Schema(
       },
     ),
     SchemaTable(
-      '_brick_Plan_addons',
-      columns: <SchemaColumn>{
-        SchemaColumn(
-          '_brick_id',
-          Column.integer,
-          autoincrement: true,
-          nullable: false,
-          isPrimaryKey: true,
-        ),
-        SchemaColumn(
-          'l_Plan_brick_id',
-          Column.integer,
-          isForeignKey: true,
-          foreignTableName: 'Plan',
-          onDeleteCascade: true,
-          onDeleteSetDefault: false,
-        ),
-        SchemaColumn(
-          'f_PlanAddon_brick_id',
-          Column.integer,
-          isForeignKey: true,
-          foreignTableName: 'PlanAddon',
-          onDeleteCascade: true,
-          onDeleteSetDefault: false,
-        ),
-      },
-      indices: <SchemaIndex>{
-        SchemaIndex(
-          columns: ['l_Plan_brick_id', 'f_PlanAddon_brick_id'],
-          unique: true,
-        ),
-      },
-    ),
-    SchemaTable(
-      'Plan',
-      columns: <SchemaColumn>{
-        SchemaColumn(
-          '_brick_id',
-          Column.integer,
-          autoincrement: true,
-          nullable: false,
-          isPrimaryKey: true,
-        ),
-        SchemaColumn('id', Column.varchar, unique: true),
-        SchemaColumn('business_id', Column.varchar),
-        SchemaColumn('branch_id', Column.varchar),
-        SchemaColumn('selected_plan', Column.varchar),
-        SchemaColumn('additional_devices', Column.integer),
-        SchemaColumn('is_yearly_plan', Column.boolean),
-        SchemaColumn('total_price', Column.integer),
-        SchemaColumn('created_at', Column.datetime),
-        SchemaColumn('payment_completed_by_user', Column.boolean),
-        SchemaColumn('rule', Column.varchar),
-        SchemaColumn('payment_method', Column.varchar),
-        SchemaColumn('next_billing_date', Column.datetime),
-        SchemaColumn('number_of_payments', Column.integer),
-        SchemaColumn('phone_number', Column.varchar),
-        SchemaColumn('external_id', Column.varchar),
-        SchemaColumn('payment_status', Column.varchar),
-        SchemaColumn('last_processed_at', Column.datetime),
-        SchemaColumn('last_error', Column.varchar),
-        SchemaColumn('updated_at', Column.datetime),
-        SchemaColumn('last_updated', Column.datetime),
-        SchemaColumn('processing_status', Column.varchar),
-      },
-      indices: <SchemaIndex>{
-        SchemaIndex(columns: ['id'], unique: true),
-      },
-    ),
-    SchemaTable(
       '_brick_Product_composites',
       columns: <SchemaColumn>{
         SchemaColumn(
@@ -1703,6 +1618,7 @@ final schema = Schema(
         SchemaColumn('discount_amount', Column.num),
         SchemaColumn('customer_phone', Column.varchar),
         SchemaColumn('agent_id', Column.varchar),
+        SchemaColumn('cashier_name', Column.varchar),
       },
       indices: <SchemaIndex>{
         SchemaIndex(columns: ['id'], unique: true),
@@ -2005,6 +1921,7 @@ final schema = Schema(
         SchemaColumn('bhf_id', Column.varchar),
         SchemaColumn('dft_prc', Column.Double),
         SchemaColumn('add_info', Column.varchar),
+        SchemaColumn('image_url', Column.varchar),
         SchemaColumn('isrc_aplcb_yn', Column.varchar),
         SchemaColumn('use_yn', Column.varchar),
         SchemaColumn('regr_id', Column.varchar),

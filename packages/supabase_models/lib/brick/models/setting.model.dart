@@ -66,7 +66,7 @@ class Setting extends OfflineFirstWithSupabaseModel {
 
   factory Setting.fromJson(Map<String, dynamic> json) {
     return Setting(
-      id: json['id'] as String?,
+      id: (json['_id'] ?? json['id']) as String?,
       email: json['email'] as String?,
       userId: json['userId'] as String?,
       openReceiptFileOSaleComplete:
@@ -101,6 +101,7 @@ class Setting extends OfflineFirstWithSupabaseModel {
 
   Map<String, dynamic> toJson() {
     return {
+      '_id': id,
       'id': id,
       'email': email,
       'userId': userId,

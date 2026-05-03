@@ -1,14 +1,21 @@
 import 'package:flipper_dashboard/data_view_reports/DataView.dart';
 import 'package:flipper_dashboard/DateCoreWidget.dart';
+import 'package:flipper_dashboard/providers/transaction_report_business_cashiers_provider.dart';
+import 'package:flipper_dashboard/providers/transaction_report_filters_provider.dart';
 import 'package:flipper_models/providers/date_range_provider.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/helperModels/transaction_payment_sums.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
+import 'package:intl/intl.dart';
+import 'package:flipper_dashboard/transaction_report_cashier_profile.dart';
+import 'package:flipper_dashboard/widgets/sales_by_cashier_chart.dart';
+import 'package:flipper_dashboard/widgets/transaction_report_kpi_strip.dart';
 
 class TransactionList extends StatefulHookConsumerWidget {
   TransactionList({
@@ -26,16 +33,31 @@ class TransactionList extends StatefulHookConsumerWidget {
   TransactionListState createState() => TransactionListState();
 }
 
+/// Primary actions / selection (shared Transaction Reports mock).
+const Color _kReportPrimary = Color(0xFF2563EB);
+
+BoxDecoration _reportChromeCardDecoration() {
+  return BoxDecoration(
+    color: Colors.white,
+    borderRadius: BorderRadius.circular(12),
+    border: Border.all(color: const Color(0xFFE5E7EB)),
+    boxShadow: [
+      const BoxShadow(
+        color: Color(0x08000000),
+        blurRadius: 10,
+        offset: Offset(0, 4),
+      ),
+    ],
+  );
+}
+
 class TransactionListState extends ConsumerState<TransactionList>
     with WidgetsBindingObserver, DateCoreWidget {
   // Use a late initialized key to ensure it's created fresh when needed
   late GlobalKey<SfDataGridState> workBookKey;
   late GlobalKey<DataViewState> dataViewKey;
   final TextEditingController _searchController = TextEditingController();
-  String _searchQuery = '';
   bool _isExporting = false;
-  int _currentPage = 0;
-  int _totalCount = 0;
 
   @override
   void initState() {
@@ -49,6 +71,13 @@ class TransactionListState extends ConsumerState<TransactionList>
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  static final DateFormat _rangeFmt = DateFormat('dd/MM/yyyy');
+
+  String _formatRange(DateTime? startDate, DateTime? endDate) {
+    if (startDate == null || endDate == null) return 'Select a date range';
+    return '${_rangeFmt.format(startDate)} — ${_rangeFmt.format(endDate)}';
   }
 
   // Export using the already-mounted DataView on screen
@@ -91,8 +120,28 @@ class TransactionListState extends ConsumerState<TransactionList>
       
       // Delay so the UI has time to show the loading spinner state
       await Future.delayed(const Duration(milliseconds: 100));
-      
-      await dataViewKey.currentState!.triggerExport(headerTitle: 'Report');
+
+      final forceRealData = !(ProxyService.box.enableDebug() ?? false);
+      final snapAsync =
+          ref.read(filteredTransactionReportSnapshotProvider(forceRealData));
+      final snap = snapAsync.asData?.value;
+      if (snap == null) {
+        if (mounted) {
+          showWarningNotification(
+            context,
+            'Report data is still loading. Please try again in a moment.',
+          );
+        }
+        return;
+      }
+      final allowedIds = snap.transactions.map((t) => t.id.toString()).toSet();
+
+      await dataViewKey.currentState!.triggerExport(
+        headerTitle: 'Report',
+        filteredSummaryTransactions: snap.transactions,
+        filteredPaymentSumsByTransactionId: snap.paymentSumsByTransactionId,
+        allowedTransactionIds: allowedIds,
+      );
       print('🔵 EXPORT BUTTON: triggerExport completed');
     } catch (e) {
       print('🔴 EXPORT BUTTON: Error caught: $e');
@@ -112,74 +161,95 @@ class TransactionListState extends ConsumerState<TransactionList>
     final startDate = dateRange.startDate;
     final endDate = dateRange.endDate;
 
-    // Watch the toggle value and immediately refresh the appropriate provider when it changes
     final showDetailed = ref.watch(toggleBooleanValueProvider);
     final rowsPerPage = ref.watch(rowsPerPageProvider);
-
- 
-
+    final filters = ref.watch(transactionReportFiltersProvider);
     final forceRealData = !(ProxyService.box.enableDebug() ?? false);
-    final reportSnapshotAsync = ref.watch(
-      transactionReportSnapshotProvider(forceRealData: forceRealData),
+
+    final baseSnapAsync =
+        ref.watch(transactionReportSnapshotProvider(forceRealData: forceRealData));
+
+    final filteredSnapAsync =
+        ref.watch(filteredTransactionReportSnapshotProvider(forceRealData));
+
+    final transactions = filteredSnapAsync.asData?.value.transactions;
+    final paymentSumsForGrid =
+        filteredSnapAsync.asData?.value.paymentSumsByTransactionId;
+
+    final AsyncValue<List<TransactionItem>> itemsAsync =
+        ref.watch(filteredTransactionItemListProvider(forceRealData));
+    final transactionItems = itemsAsync.asData?.value;
+
+    final AsyncValue<List<dynamic>> dataProvider = switch (showDetailed) {
+      true => switch (itemsAsync) {
+          AsyncData(:final value) =>
+            AsyncValue<List<dynamic>>.data(value.cast<dynamic>()),
+          AsyncError(:final error, :final stackTrace) =>
+            AsyncValue<List<dynamic>>.error(error, stackTrace),
+          _ => const AsyncValue<List<dynamic>>.loading(),
+        },
+      false => switch (filteredSnapAsync) {
+          AsyncData(:final value) => AsyncValue<List<dynamic>>.data(
+              value.transactions.cast<dynamic>(),
+            ),
+          AsyncError(:final error, :final stackTrace) =>
+            AsyncValue<List<dynamic>>.error(error, stackTrace),
+          _ => const AsyncValue<List<dynamic>>.loading(),
+        }
+    };
+
+    final cashiersAsync = ref.watch(transactionReportBusinessCashiersProvider);
+    final businessCashiers = cashiersAsync.asData?.value ??
+        const <TransactionReportCashierProfile>[];
+    final cashierDirectory = businessCashiers.isEmpty
+        ? null
+        : {for (final p in businessCashiers) p.userId: p};
+
+    return _buildReportScaffold(
+      context,
+      startDate,
+      endDate,
+      showDetailed,
+      rowsPerPage,
+      dataProvider,
+      transactions,
+      transactionItems,
+      paymentSumsForGrid,
+      filters: filters,
+      baseTransactions: baseSnapAsync.asData?.value.transactions,
+      businessCashiers: businessCashiers,
+      cashierDirectory: cashierDirectory,
+      cashiersLoading: cashiersAsync.isLoading,
     );
-    final itemListAsync = ref.watch(transactionItemListProvider);
+  }
 
-    // Align list async with grid: summary uses snapshot → transactions list
-    final AsyncValue<List<dynamic>> dataProvider = showDetailed
-        ? itemListAsync
-        : switch (reportSnapshotAsync) {
-            AsyncData(:final value) =>
-              AsyncData(value.transactions as List<dynamic>),
-            AsyncError(:final error, :final stackTrace) =>
-              AsyncError(error, stackTrace),
-            _ => const AsyncLoading<List<dynamic>>(),
-          };
-
-    // Conditionally cast the data based on the `showDetailed` flag
-    List<ITransaction>? transactions;
-    List<TransactionItem>? transactionItems;
-    Map<String, TransactionPaymentSums>? paymentSumsForGrid;
-
-    if (showDetailed) {
-      if (itemListAsync.hasValue && itemListAsync.value!.isNotEmpty) {
-        try {
-          transactionItems = itemListAsync.value!.cast<TransactionItem>();
-        } catch (e) {
-          print("Error casting data: $e");
-        }
-      }
-    } else {
-      final snap = reportSnapshotAsync.asData?.value;
-      if (snap != null) {
-        var txs = List<ITransaction>.from(snap.transactions);
-        if (_searchQuery.isNotEmpty) {
-          final q = _searchQuery.toLowerCase();
-          txs = txs.where((transaction) {
-            final receiptNumber = transaction.receiptNumber?.toString() ?? '';
-            return receiptNumber.toLowerCase().contains(q);
-          }).toList();
-        }
-        transactions = txs;
-        paymentSumsForGrid = {
-          for (final t in txs)
-            t.id:
-                snap.paymentSumsByTransactionId[t.id] ??
-                const TransactionPaymentSums(
-                  byHand: 0,
-                  credit: 0,
-                  hasAnyRecord: false,
-                ),
-        };
-      }
-    }
-
+  Widget _buildReportScaffold(
+    BuildContext context,
+    DateTime? startDate,
+    DateTime? endDate,
+    bool showDetailed,
+    int rowsPerPage,
+    AsyncValue<List<dynamic>> dataProvider,
+    List<ITransaction>? transactions,
+    List<TransactionItem>? transactionItems,
+    Map<String, TransactionPaymentSums>? paymentSumsForGrid,
+    {required TransactionReportFilters filters,
+    required List<ITransaction>? baseTransactions,
+    required List<TransactionReportCashierProfile> businessCashiers,
+    required Map<String, TransactionReportCashierProfile>? cashierDirectory,
+    required bool cashiersLoading,}
+  ) {
     return LayoutBuilder(
       builder: (context, constraints) {
         final isDesktop = constraints.maxWidth > 900;
         final horizontalPadding = isDesktop ? 24.0 : 12.0;
 
+        final kpiStart =
+            startDate ?? DateTime.now().subtract(const Duration(days: 7));
+        final kpiEnd = endDate ?? DateTime.now();
+
         return Container(
-          decoration: BoxDecoration(color: Colors.grey[50]),
+          decoration: const BoxDecoration(color: Color(0xFFF2F4F7)),
           child: Padding(
             padding: EdgeInsets.symmetric(
               horizontal: horizontalPadding,
@@ -189,13 +259,49 @@ class TransactionListState extends ConsumerState<TransactionList>
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 if (!widget.hideHeader) ...[
-                  _buildHeader(context, startDate, endDate, isDesktop),
-                  const SizedBox(height: 20),
-                  _buildControlsRow(showDetailed, isDesktop),
+                  _buildTopHeader(context, startDate, endDate, isDesktop),
                   const SizedBox(height: 16),
+                  TransactionReportKpiStrip(
+                    transactions: transactions ?? const <ITransaction>[],
+                    transactionItems: transactionItems,
+                    paymentSumsByTransactionId: paymentSumsForGrid,
+                    startDate: kpiStart,
+                    endDate: kpiEnd,
+                    showDetailed: showDetailed,
+                  ),
+                  const SizedBox(height: 16),
+                  Container(
+                    decoration: _reportChromeCardDecoration(),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    child: _buildFiltersRow(
+                      showDetailed,
+                      isDesktop,
+                      filters,
+                      baseTransactions ?? transactions,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Container(
+                    decoration: _reportChromeCardDecoration(),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 12,
+                    ),
+                    child: _buildCashierChipsRow(
+                      isDesktop,
+                      baseTransactions ?? transactions,
+                      filters,
+                      businessCashiers: businessCashiers,
+                      loading: cashiersLoading,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
                 ],
                 if (widget.showSearch && widget.hideHeader) ...[
-                  _buildSearchAndActions(isDesktop),
+                  _buildSearchAndActions(isDesktop, filters),
                   const SizedBox(height: 16),
                 ],
                 Expanded(
@@ -203,6 +309,7 @@ class TransactionListState extends ConsumerState<TransactionList>
                     decoration: BoxDecoration(
                       color: Colors.white,
                       borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: const Color(0xFFE5E7EB)),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.03),
@@ -223,11 +330,10 @@ class TransactionListState extends ConsumerState<TransactionList>
                             startDate,
                             endDate,
                             showDetailed,
+                            filters,
+                            cashierDirectory: cashierDirectory,
                           ),
                         ),
-                        if (dataProvider.hasValue &&
-                            dataProvider.value!.isNotEmpty)
-                          _buildPaginationControls(rowsPerPage),
                       ],
                     ),
                   ),
@@ -240,118 +346,329 @@ class TransactionListState extends ConsumerState<TransactionList>
     );
   }
 
-  Widget _buildHeader(
+  Widget _buildTopHeader(
     BuildContext context,
     DateTime? startDate,
     DateTime? endDate,
     bool isDesktop,
   ) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Colors.blue[700]!, Colors.blue[900]!],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.blue.withValues(alpha: 0.2),
-            blurRadius: 15,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.2),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(
-              Icons.calendar_month_rounded,
-              color: Colors.white,
-              size: 24,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Transaction Reports',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  startDate != null && endDate != null
-                      ? '${startDate.day}/${startDate.month}/${startDate.year} — ${endDate.day}/${endDate.month}/${endDate.year}'
-                      : 'Select a period to view reports',
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.8),
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (isDesktop) ...[
-            const SizedBox(width: 16),
-            ElevatedButton.icon(
-              icon: const Icon(Icons.date_range_rounded, size: 20),
-              label: const Text('Change Period'),
-              onPressed: handleDateTimePicker,
-              style:
-                  ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: Colors.blue[800],
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 12,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    elevation: 0,
-                  ).copyWith(
-                    overlayColor: WidgetStateProperty.all(
-                      Colors.blue.withValues(alpha: 0.05),
-                    ),
-                  ),
-            ),
-          ] else
-            IconButton(
-              icon: const Icon(Icons.date_range_rounded, color: Colors.white),
-              onPressed: handleDateTimePicker,
-            ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildControlsRow(bool showDetailed, bool isDesktop) {
+    final rangeText = _formatRange(startDate, endDate);
     return Row(
       children: [
-        _buildReportTypeSwitch(showDetailed),
-        const SizedBox(width: 20),
-        if (isDesktop)
-          Expanded(child: _buildSearchAndActions(isDesktop))
-        else
-          const Spacer(),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Transaction Reports',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.2,
+                      color: const Color(0xFF111827),
+                      fontSize: 22,
+                    ),
+              ),
+              const SizedBox(height: 8),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.grey.shade200),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.calendar_month_outlined,
+                      size: 18,
+                      color: Colors.grey.shade700,
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      rangeText,
+                      style: TextStyle(
+                        color: Colors.grey.shade800,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 12),
+        _buildActionButton(
+          icon: Icons.file_download_outlined,
+          tooltip: 'Export',
+          onTap: () async {
+            setState(() => _isExporting = true);
+            try {
+              await _exportAllData();
+            } finally {
+              if (mounted) setState(() => _isExporting = false);
+            }
+          },
+          isLoading: _isExporting,
+        ),
+        const SizedBox(width: 8),
+        _buildActionButton(
+          icon: Icons.print_outlined,
+          tooltip: 'Print',
+          onTap: () {
+            // TODO: Implement
+          },
+        ),
+        const SizedBox(width: 12),
+        FilledButton.icon(
+          onPressed: handleDateTimePicker,
+          icon: const Icon(Icons.date_range_outlined, size: 18),
+          label: const Text('Change Date'),
+          style: FilledButton.styleFrom(
+            backgroundColor: _kReportPrimary,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildSearchAndActions(bool isDesktop) {
+  Widget _buildFiltersRow(
+    bool showDetailed,
+    bool isDesktop,
+    TransactionReportFilters filters,
+    List<ITransaction>? baseTransactions,
+  ) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Expanded(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              Expanded(
+                child: _buildSearchAndActions(
+                  isDesktop,
+                  filters,
+                  embeddedInToolbar: true,
+                ),
+              ),
+              const SizedBox(width: 12),
+              _buildDropdownFilter(
+                label: 'All statuses',
+                value: (filters.status == null || filters.status!.isEmpty)
+                    ? null
+                    : filters.status,
+                options: () {
+                  final txs = baseTransactions ?? const <ITransaction>[];
+                  final set = txs
+                      .map((t) => t.status)
+                      .whereType<String>()
+                      .where((s) => s.isNotEmpty)
+                      .toSet()
+                      .toList()
+                    ..sort();
+                  return set;
+                }(),
+                onChanged: (v) => ref
+                    .read(transactionReportFiltersProvider.notifier)
+                    .setStatus(v),
+              ),
+              const SizedBox(width: 12),
+              _buildDropdownFilter(
+                label: 'All types',
+                value: (filters.transactionType == null ||
+                        filters.transactionType!.isEmpty)
+                    ? null
+                    : filters.transactionType,
+                options: () {
+                  final txs = baseTransactions ?? const <ITransaction>[];
+                  final set = txs
+                      .map((t) => t.receiptType)
+                      .whereType<String>()
+                      .where((s) => s.isNotEmpty)
+                      .toSet()
+                      .toList()
+                    ..sort();
+                  return set;
+                }(),
+                onChanged: (v) => ref
+                    .read(transactionReportFiltersProvider.notifier)
+                    .setTransactionType(v),
+              ),
+              const SizedBox(width: 12),
+              _buildDropdownFilter<TransactionReportPaymentFilter>(
+                label: 'All payments',
+                value: filters.payment == TransactionReportPaymentFilter.all
+                    ? null
+                    : filters.payment,
+                options: const [
+                  TransactionReportPaymentFilter.byHand,
+                  TransactionReportPaymentFilter.credit,
+                ],
+                itemLabel: (p) => p == TransactionReportPaymentFilter.byHand
+                    ? 'By hand'
+                    : 'Credit',
+                onChanged: (v) => ref
+                    .read(transactionReportFiltersProvider.notifier)
+                    .setPayment(v ?? TransactionReportPaymentFilter.all),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(width: 12),
+        _buildReportTypeSwitch(showDetailed),
+        const SizedBox(width: 10),
+        _buildViewModeButtons(filters),
+      ],
+    );
+  }
+
+  Widget _buildViewModeButtons(TransactionReportFilters filters) {
+    Widget iconBtn(TransactionReportViewMode mode, IconData icon) {
+      final selected = filters.viewMode == mode;
+      return InkWell(
+        borderRadius: BorderRadius.circular(10),
+        onTap: () => ref
+            .read(transactionReportFiltersProvider.notifier)
+            .setViewMode(mode),
+        child: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: selected ? _kReportPrimary : Colors.white,
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(
+              color: selected ? _kReportPrimary : const Color(0xFFE5E7EB),
+            ),
+          ),
+          child: Icon(
+            icon,
+            size: 18,
+            color: selected ? Colors.white : Colors.grey.shade600,
+          ),
+        ),
+      );
+    }
+
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        iconBtn(TransactionReportViewMode.chart, Icons.bar_chart_outlined),
+        const SizedBox(width: 8),
+        iconBtn(TransactionReportViewMode.table, Icons.table_rows_outlined),
+      ],
+    );
+  }
+
+  Widget _buildDropdownFilter<T>({
+    required String label,
+    required T? value,
+    required List<T> options,
+    required ValueChanged<T?> onChanged,
+    String Function(T)? itemLabel,
+  }) {
+    final text = itemLabel ?? (T v) => v.toString();
+    return SizedBox(
+      width: 150,
+      child: DropdownButtonFormField<T>(
+        isExpanded: true,
+        value: value,
+        items: [
+          DropdownMenuItem<T>(
+            value: null,
+            child: Text(label, overflow: TextOverflow.ellipsis),
+          ),
+          for (final opt in options)
+            DropdownMenuItem<T>(
+              value: opt,
+              child: Text(text(opt), overflow: TextOverflow.ellipsis),
+            ),
+        ],
+        onChanged: onChanged,
+        decoration: InputDecoration(
+          isDense: true,
+          filled: true,
+          fillColor: Colors.white,
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide(color: Colors.grey.shade200),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide(color: Colors.grey.shade200),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSearchAndActions(
+    bool isDesktop,
+    TransactionReportFilters filters, {
+    bool embeddedInToolbar = false,
+  }) {
+    final field = TextField(
+      controller: _searchController,
+      decoration: InputDecoration(
+        hintText: 'Search receipt number...',
+        hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
+        prefixIcon: Icon(Icons.search_rounded, color: Colors.grey[400]),
+        suffixIcon: filters.receiptQuery.isNotEmpty
+            ? IconButton(
+                icon: const Icon(Icons.close_rounded, size: 20),
+                onPressed: () {
+                  _searchController.clear();
+                  ref
+                      .read(transactionReportFiltersProvider.notifier)
+                      .clearReceiptQuery();
+                },
+              )
+            : null,
+        border: embeddedInToolbar
+            ? OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+              )
+            : InputBorder.none,
+        enabledBorder: embeddedInToolbar
+            ? OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+              )
+            : InputBorder.none,
+        focusedBorder: embeddedInToolbar
+            ? OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: const BorderSide(color: _kReportPrimary, width: 1.2),
+              )
+            : InputBorder.none,
+        filled: embeddedInToolbar,
+        fillColor: embeddedInToolbar ? const Color(0xFFF9FAFB) : null,
+        contentPadding: const EdgeInsets.symmetric(vertical: 14, horizontal: 4),
+        isDense: true,
+      ),
+      onChanged: (value) => ref
+          .read(transactionReportFiltersProvider.notifier)
+          .setReceiptQuery(value),
+    );
+
+    if (embeddedInToolbar) {
+      return Row(
+        children: [
+          Expanded(child: field),
+        ],
+      );
+    }
+
     return Row(
       children: [
         Expanded(
@@ -368,50 +685,156 @@ class TransactionListState extends ConsumerState<TransactionList>
                 ),
               ],
             ),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Search receipt number...',
-                hintStyle: TextStyle(color: Colors.grey[400], fontSize: 14),
-                prefixIcon: Icon(Icons.search_rounded, color: Colors.grey[400]),
-                suffixIcon: _searchQuery.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.close_rounded, size: 20),
-                        onPressed: () {
-                          _searchController.clear();
-                          setState(() => _searchQuery = '');
-                        },
-                      )
-                    : null,
-                border: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(vertical: 12),
+            child: field,
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Design-mock cashier chips: padded pill, soft fill when selected, no FilterChip overlap.
+  Widget _reportCashierFilterChip({
+    required bool selected,
+    required String title,
+    required String initials,
+    required Color avatarBg,
+    required VoidCallback onTap,
+  }) {
+    const radius = BorderRadius.all(Radius.circular(999));
+    return Semantics(
+      button: true,
+      selected: selected,
+      label: title,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: radius,
+          onTap: onTap,
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 160),
+            curve: Curves.easeOut,
+            padding: const EdgeInsets.fromLTRB(4, 6, 14, 6),
+            decoration: BoxDecoration(
+              color: selected ? const Color(0xFFEFF6FF) : Colors.white,
+              borderRadius: radius,
+              border: Border.all(
+                color: selected ? _kReportPrimary : const Color(0xFFD1D5DB),
+                width: selected ? 1.5 : 1,
               ),
-              onChanged: (value) => setState(() => _searchQuery = value),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircleAvatar(
+                  radius: 12,
+                  backgroundColor: avatarBg,
+                  child: Text(
+                    initials,
+                    style: const TextStyle(
+                      fontSize: 9.5,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      height: 1,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+                    fontSize: 13,
+                    color: const Color(0xFF111827),
+                  ),
+                ),
+              ],
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildCashierChipsRow(
+    bool isDesktop,
+    List<ITransaction>? transactions,
+    TransactionReportFilters filters, {
+    required List<TransactionReportCashierProfile> businessCashiers,
+    required bool loading,
+  }) {
+    final allSelected = filters.cashierAgentId == null ||
+        filters.cashierAgentId!.isEmpty;
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Text(
+          'CASHIER',
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w800,
+            color: Colors.grey.shade600,
+            letterSpacing: 0.8,
+          ),
+        ),
         const SizedBox(width: 12),
-        _buildActionButton(
-          icon: Icons.file_download_outlined,
-          tooltip: 'Export CSV',
-          onTap: () async {
-            setState(() => _isExporting = true);
-            try {
-              // Fetch ALL data for export, not just current page
-              await _exportAllData();
-            } finally {
-              if (mounted) setState(() => _isExporting = false);
-            }
-          },
-          isLoading: _isExporting,
+        Expanded(
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Wrap(
+              spacing: 10,
+              runSpacing: 10,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              children: [
+                _reportCashierFilterChip(
+                  selected: allSelected,
+                  title: 'All',
+                  initials: 'AL',
+                  avatarBg: _kReportPrimary,
+                  onTap: () => ref
+                      .read(transactionReportFiltersProvider.notifier)
+                      .setCashierAgentId(null),
+                ),
+                for (final c in businessCashiers)
+                  _reportCashierFilterChip(
+                    selected: filters.cashierAgentId == c.userId,
+                    title: c.displayName,
+                    initials: c.initials,
+                    avatarBg: c.avatarColor,
+                    onTap: () => ref
+                        .read(transactionReportFiltersProvider.notifier)
+                        .setCashierAgentId(c.userId),
+                  ),
+                if (loading)
+                  const Padding(
+                    padding: EdgeInsets.only(left: 8),
+                    child: SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  ),
+              ],
+            ),
+          ),
         ),
         const SizedBox(width: 8),
-        _buildActionButton(
-          icon: Icons.print_outlined,
-          tooltip: 'Print Report',
-          onTap: () {
-            // TODO: Implement
-          },
+        TextButton(
+          style: TextButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            minimumSize: Size.zero,
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          onPressed: () =>
+              ref.read(transactionReportFiltersProvider.notifier).setCashierAgentId(null),
+          child: Text(
+            'Clear',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              color: Colors.grey.shade700,
+              fontSize: 13,
+            ),
+          ),
         ),
       ],
     );
@@ -434,16 +857,16 @@ class TransactionListState extends ConsumerState<TransactionList>
           child: Container(
             width: 44,
             height: 44,
-            decoration: BoxDecoration(
-              border: Border.all(color: Colors.grey[200]!),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: isLoading
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.grey.shade300),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: isLoading
                 ? const Padding(
                     padding: EdgeInsets.all(12.0),
                     child: CircularProgressIndicator(strokeWidth: 2.5),
                   )
-                : Icon(icon, size: 22, color: Colors.blueGrey[700]),
+                : Icon(icon, size: 22, color: Colors.grey.shade600),
           ),
         ),
       ),
@@ -460,13 +883,13 @@ class TransactionListState extends ConsumerState<TransactionList>
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          _buildSwitchOption('Detailed', showDetailed, () {
-            if (!showDetailed) {
+          _buildSwitchOption('Summarized', !showDetailed, () {
+            if (showDetailed) {
               ref.read(toggleBooleanValueProvider.notifier).toggleReport();
             }
           }),
-          _buildSwitchOption('Summary', !showDetailed, () {
-            if (showDetailed) {
+          _buildSwitchOption('Detailed', showDetailed, () {
+            if (!showDetailed) {
               ref.read(toggleBooleanValueProvider.notifier).toggleReport();
             }
           }),
@@ -483,80 +906,17 @@ class TransactionListState extends ConsumerState<TransactionList>
         curve: Curves.easeInOut,
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.white : Colors.transparent,
+          color: isSelected ? _kReportPrimary : Colors.transparent,
           borderRadius: BorderRadius.circular(10),
-          boxShadow: isSelected
-              ? [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.08),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ]
-              : null,
         ),
         child: Text(
           label,
           style: TextStyle(
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-            color: isSelected ? Colors.blue[800] : Colors.grey[600],
+            fontWeight: FontWeight.w700,
+            color: isSelected ? Colors.white : Colors.grey[600],
             fontSize: 14,
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildPaginationControls(int rowsPerPage) {
-    final totalPages = (_totalCount / rowsPerPage).ceil();
-    final currentPageDisplay = _currentPage + 1;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.grey[50],
-        border: Border(top: BorderSide(color: Colors.grey[200]!)),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            'Page $currentPageDisplay of $totalPages',
-            style: TextStyle(color: Colors.grey[700], fontSize: 14),
-          ),
-          Row(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.first_page),
-                onPressed: _currentPage > 0
-                    ? () => setState(() => _currentPage = 0)
-                    : null,
-                tooltip: 'First page',
-              ),
-              IconButton(
-                icon: const Icon(Icons.chevron_left),
-                onPressed: _currentPage > 0
-                    ? () => setState(() => _currentPage--)
-                    : null,
-                tooltip: 'Previous page',
-              ),
-              IconButton(
-                icon: const Icon(Icons.chevron_right),
-                onPressed: _currentPage < totalPages - 1
-                    ? () => setState(() => _currentPage++)
-                    : null,
-                tooltip: 'Next page',
-              ),
-              IconButton(
-                icon: const Icon(Icons.last_page),
-                onPressed: _currentPage < totalPages - 1
-                    ? () => setState(() => _currentPage = totalPages - 1)
-                    : null,
-                tooltip: 'Last page',
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }
@@ -569,7 +929,9 @@ class TransactionListState extends ConsumerState<TransactionList>
     DateTime? startDate,
     DateTime? endDate,
     bool showDetailed,
-  ) {
+    TransactionReportFilters filters, {
+    Map<String, TransactionReportCashierProfile>? cashierDirectory,
+  }) {
     return dataProvider.when(
       data: (data) {
         if (data.isEmpty) {
@@ -607,6 +969,14 @@ class TransactionListState extends ConsumerState<TransactionList>
             startDate ?? DateTime.now().subtract(const Duration(days: 7));
         final validEndDate = endDate ?? DateTime.now();
 
+        if (filters.viewMode == TransactionReportViewMode.chart) {
+          return SalesByCashierChart(
+            transactions: transactions ?? const <ITransaction>[],
+            paymentSumsByTransactionId: paymentSumsByTransactionId,
+            cashierDirectory: cashierDirectory,
+          );
+        }
+
         return DataView(
           key: dataViewKey,
           transactions: transactions,
@@ -617,6 +987,10 @@ class TransactionListState extends ConsumerState<TransactionList>
           rowsPerPage: ref.read(rowsPerPageProvider),
           showDetailedReport: showDetailed,
           showDetailed: showDetailed,
+          showActionsRow: false,
+          showKpiStrip: false,
+          contentPadding: EdgeInsets.zero,
+          cashierDirectory: cashierDirectory,
           workBookKey: workBookKey,
           forceEmpty: data.isEmpty,
           disablePagination: true, // Disable internal pagination

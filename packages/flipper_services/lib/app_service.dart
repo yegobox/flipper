@@ -9,7 +9,9 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
 import 'package:supabase_models/brick/repository/local_storage.dart';
+import 'locator.dart';
 import 'proxy.dart';
+import 'setting_service.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flipper_web/core/secrets.dart';
@@ -281,6 +283,14 @@ class AppService with ListenableServiceMixin {
     }
   }
 
+  Future<void> _hydrateSettingsToggles() async {
+    try {
+      await getIt<SettingsService>().hydrateToggleStatesFromSettings();
+    } catch (e) {
+      print('⚠️ hydrateToggleStatesFromSettings failed: $e');
+    }
+  }
+
   /// check the default business/branch
   /// set the env the current user is operating in.
   Future<void> appInit() async {
@@ -387,6 +397,7 @@ class AppService with ListenableServiceMixin {
         print(
           "✅ Using locally cached businessId=$businessId, branchId=$branchId",
         );
+        await _hydrateSettingsToggles();
         // Defer shift check to avoid blocking startup
         Future.delayed(Duration.zero, () async {
           await checkAndStartShift(userId: userId);
@@ -427,6 +438,8 @@ class AppService with ListenableServiceMixin {
     if ((hasMultipleBusinesses || hasMultipleBranches)) {
       throw LoginChoicesException(term: "Choose default business");
     }
+
+    await _hydrateSettingsToggles();
 
     // After successful business/branch selection, defer shift check to avoid blocking
     Future.delayed(Duration.zero, () async {

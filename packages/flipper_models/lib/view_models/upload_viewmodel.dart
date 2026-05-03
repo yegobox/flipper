@@ -50,6 +50,35 @@ class UploadViewModel extends ProductViewModel {
     required URLTYPE urlType,
     ImageSource? source,
   }) async {
+    await uploadAssetName(
+      id: id,
+      urlType: urlType,
+      source: source,
+      updateProductImage: true,
+      persistAssetRecord: true,
+    );
+    final branchId = ProxyService.box.getBranchId()!;
+    return (await ProxyService.strategy.getProduct(
+          id: id,
+          branchId: branchId,
+          businessId: ProxyService.box.getBusinessId()!,
+        ))!;
+  }
+
+  /// Uploads an image and returns the asset filename.
+  ///
+  /// When [updateProductImage] is false, this will still:
+  /// - upload to S3
+  /// - persist an `Assets` row linked to [id] (as productId)
+  /// But will NOT update the product's `imageUrl`.
+  Future<String> uploadAssetName({
+    required String id,
+    required URLTYPE urlType,
+    ImageSource? source,
+    bool updateProductImage = true,
+    bool persistAssetRecord = true,
+    String? variantId,
+  }) async {
     final talker = TalkerFlutter.init();
 
     String branchId = ProxyService.box.getBranchId()!;
@@ -127,20 +156,40 @@ class UploadViewModel extends ProductViewModel {
         },
       ).result;
 
-      talker.warning('Saving asset and updating database...');
+      if (persistAssetRecord) {
+        talker.warning('Saving asset and updating database...');
 
-      Product? product = await ProxyService.strategy.getProduct(
-          id: id,
-          branchId: branchId,
-          businessId: ProxyService.box.getBusinessId()!);
-      try {
-        Assets? asset =
-            await ProxyService.strategy.getAsset(productId: product!.id);
+        Product? product = await ProxyService.strategy.getProduct(
+            id: id,
+            branchId: branchId,
+            businessId: ProxyService.box.getBusinessId()!);
+        try {
+          final Assets? asset = variantId != null
+              ? await ProxyService.strategy.getAsset(
+                  productId: product!.id,
+                  variantId: variantId,
+                )
+              : await ProxyService.strategy.getAsset(productId: product!.id);
 
-        await ProxyService.strategy
-            .updateAsset(assetId: asset!.id, assetName: uniqueFileName);
-      } catch (e) {
-        await saveAsset(assetName: uniqueFileName, productId: id);
+          if (asset != null) {
+            await ProxyService.strategy.updateAsset(
+              assetId: asset.id,
+              assetName: uniqueFileName,
+            );
+          } else {
+            await saveAsset(
+              assetName: uniqueFileName,
+              productId: id,
+              variantId: variantId,
+            );
+          }
+        } catch (e) {
+          await saveAsset(
+            assetName: uniqueFileName,
+            productId: id,
+            variantId: variantId,
+          );
+        }
       }
 
       // Save the original file to local storage
@@ -148,19 +197,123 @@ class UploadViewModel extends ProductViewModel {
       final localFilePath = '${appSupportDir.path}/$uniqueFileName';
       await File(pickedPath).copy(localFilePath);
 
-      await ProxyService.strategy.updateProduct(
-        productId: id,
-        imageUrl: uniqueFileName,
-        branchId: ProxyService.box.getBranchId()!,
-        businessId: ProxyService.box.getBusinessId()!,
-      );
+      if (updateProductImage) {
+        await ProxyService.strategy.updateProduct(
+          productId: id,
+          imageUrl: uniqueFileName,
+          branchId: ProxyService.box.getBranchId()!,
+          businessId: ProxyService.box.getBusinessId()!,
+        );
+      }
 
       talker.warning('File uploaded and database updated successfully.');
+      return uniqueFileName;
+    } on StorageException catch (e) {
+      talker.warning('StorageException: ${e.message}');
+      rethrow;
+    } catch (e, s) {
+      talker.warning('General Exception: $e');
+      talker.error(s);
+      rethrow;
+    }
+  }
 
-      return (await ProxyService.strategy.getProduct(
+  /// Upload an already-picked local image path and return the generated filename.
+  ///
+  /// Use this when the UI needs to show an immediate preview from [pickedPath]
+  /// while the upload runs.
+  Future<String> uploadPickedImagePath({
+    required String pickedPath,
+    required String id,
+    required URLTYPE urlType,
+    bool updateProductImage = true,
+    bool persistAssetRecord = true,
+    String? variantId,
+  }) async {
+    final talker = TalkerFlutter.init();
+    final branchId = ProxyService.box.getBranchId()!;
+    final uuid = randomNumber().toString();
+
+    final pickedExtension =
+        p.extension(pickedPath).replaceFirst('.', '').toLowerCase().trim();
+    final effectiveExt = pickedExtension.isEmpty ? 'jpg' : pickedExtension;
+    final uniqueFileName = '$uuid.$effectiveExt';
+
+    try {
+      talker.warning('Authenticating user with AWS Cognito...');
+      await ProxyService.strategy
+          .syncUserWithAwsIncognito(identifier: "yegobox@gmail.com");
+
+      talker.warning('Saving picked file locally...');
+      await savePickedFilePathLocally(pickedPath, uniqueFileName);
+
+      final filePath = 'public/branch-$branchId/$uniqueFileName';
+      talker.warning('Uploading file to S3 at path: $filePath');
+
+      await Amplify.Storage.uploadFile(
+        localFile: AWSFile.fromPath(pickedPath),
+        path: StoragePath.fromString(filePath),
+        options: StorageUploadFileOptions(
+          metadata: {"contentType": 'image/$effectiveExt'},
+          pluginOptions: S3UploadFilePluginOptions(getProperties: true),
+        ),
+        onProgress: (progress) {
+          if (ref != null) {
+            ref!.read(uploadProgressProvider.notifier).setProgress(
+                  progress.fractionCompleted,
+                );
+          }
+        },
+      ).result;
+
+      if (persistAssetRecord) {
+        Product? product = await ProxyService.strategy.getProduct(
           id: id,
           branchId: branchId,
-          businessId: ProxyService.box.getBusinessId()!))!;
+          businessId: ProxyService.box.getBusinessId()!,
+        );
+        try {
+          final Assets? asset = variantId != null
+              ? await ProxyService.strategy.getAsset(
+                  productId: product!.id,
+                  variantId: variantId,
+                )
+              : await ProxyService.strategy.getAsset(productId: product!.id);
+          if (asset != null) {
+            await ProxyService.strategy.updateAsset(
+              assetId: asset.id,
+              assetName: uniqueFileName,
+            );
+          } else {
+            await saveAsset(
+              assetName: uniqueFileName,
+              productId: id,
+              variantId: variantId,
+            );
+          }
+        } catch (_) {
+          await saveAsset(
+            assetName: uniqueFileName,
+            productId: id,
+            variantId: variantId,
+          );
+        }
+      }
+
+      final appSupportDir = await getApplicationSupportDirectory();
+      final localFilePath = '${appSupportDir.path}/$uniqueFileName';
+      await File(pickedPath).copy(localFilePath);
+
+      if (updateProductImage) {
+        await ProxyService.strategy.updateProduct(
+          productId: id,
+          imageUrl: uniqueFileName,
+          branchId: ProxyService.box.getBranchId()!,
+          businessId: ProxyService.box.getBusinessId()!,
+        );
+      }
+
+      return uniqueFileName;
     } on StorageException catch (e) {
       talker.warning('StorageException: ${e.message}');
       rethrow;
@@ -193,13 +346,17 @@ class UploadViewModel extends ProductViewModel {
     await File(path).copy(localFile.path);
   }
 
-  FutureOr<void> saveAsset(
-      {required String productId, required assetName}) async {
+  FutureOr<void> saveAsset({
+    required String productId,
+    required assetName,
+    String? variantId,
+  }) async {
     await ProxyService.strategy.addAsset(
       productId: productId,
       assetName: assetName,
       branchId: ProxyService.box.getBranchId()!,
       businessId: ProxyService.box.getBusinessId()!,
+      variantId: variantId,
     );
   }
 }

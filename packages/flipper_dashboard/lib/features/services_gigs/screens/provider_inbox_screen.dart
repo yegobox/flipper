@@ -104,20 +104,20 @@ class _ProviderInboxScreenState extends State<ProviderInboxScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('Decline request?', style: GoogleFonts.poppins(fontWeight: FontWeight.w600)),
+        title: Text('Decline request?', style: GoogleFonts.outfit(fontWeight: FontWeight.w600)),
         content: Text(
           'The customer will see that you declined this request.',
-          style: GoogleFonts.poppins(fontSize: 14),
+          style: GoogleFonts.outfit(fontSize: 14),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: Text('Cancel', style: GoogleFonts.poppins()),
+            child: Text('Cancel', style: GoogleFonts.outfit()),
           ),
           FilledButton(
             onPressed: () => Navigator.pop(ctx, true),
             style: FilledButton.styleFrom(backgroundColor: Colors.red.shade700),
-            child: Text('Decline', style: GoogleFonts.poppins()),
+            child: Text('Decline', style: GoogleFonts.outfit()),
           ),
         ],
       ),
@@ -175,13 +175,13 @@ class _ProviderInboxScreenState extends State<ProviderInboxScreen> {
       appBar: AppBar(
         title: Text(
           'Incoming requests',
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+          style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
         ),
         elevation: 0,
         backgroundColor: const Color(0xFF0D9488),
         foregroundColor: Colors.white,
         iconTheme: const IconThemeData(color: Colors.white),
-        titleTextStyle: GoogleFonts.poppins(
+        titleTextStyle: GoogleFonts.outfit(
           color: Colors.white,
           fontSize: 18,
           fontWeight: FontWeight.w600,
@@ -208,7 +208,7 @@ class _ProviderInboxScreenState extends State<ProviderInboxScreen> {
                       Text(
                         'No requests yet',
                         textAlign: TextAlign.center,
-                        style: GoogleFonts.poppins(
+                        style: GoogleFonts.outfit(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
                         ),
@@ -217,7 +217,7 @@ class _ProviderInboxScreenState extends State<ProviderInboxScreen> {
                       Text(
                         'When someone asks you for a service through Services hub, their request will show up here. You will have a limited time to accept or decline.',
                         textAlign: TextAlign.center,
-                        style: GoogleFonts.poppins(
+                        style: GoogleFonts.outfit(
                           fontSize: 14,
                           height: 1.4,
                           color: Colors.grey.shade600,
@@ -251,7 +251,7 @@ class _ProviderInboxScreenState extends State<ProviderInboxScreen> {
                             children: [
                               Text(
                                 _customerLabel(r),
-                                style: GoogleFonts.poppins(
+                                style: GoogleFonts.outfit(
                                   fontWeight: FontWeight.w600,
                                   fontSize: 15,
                                 ),
@@ -262,7 +262,7 @@ class _ProviderInboxScreenState extends State<ProviderInboxScreen> {
                                   Expanded(
                                     child: Text(
                                       _statusLabel(r.status),
-                                      style: GoogleFonts.poppins(
+                                      style: GoogleFonts.outfit(
                                         fontWeight: FontWeight.w600,
                                         fontSize: 13,
                                         color: const Color(0xFF0F766E),
@@ -281,7 +281,7 @@ class _ProviderInboxScreenState extends State<ProviderInboxScreen> {
                                       ),
                                       child: Text(
                                         'Accept deadline passed',
-                                        style: GoogleFonts.poppins(
+                                        style: GoogleFonts.outfit(
                                           fontSize: 11,
                                           fontWeight: FontWeight.w500,
                                         ),
@@ -294,7 +294,7 @@ class _ProviderInboxScreenState extends State<ProviderInboxScreen> {
                                 const SizedBox(height: 8),
                                 Text(
                                   r.requestedService!,
-                                  style: GoogleFonts.poppins(
+                                  style: GoogleFonts.outfit(
                                     fontWeight: FontWeight.w600,
                                     fontSize: 15,
                                   ),
@@ -303,7 +303,7 @@ class _ProviderInboxScreenState extends State<ProviderInboxScreen> {
                               const SizedBox(height: 8),
                               Text(
                                 r.customerMessage,
-                                style: GoogleFonts.poppins(
+                                style: GoogleFonts.outfit(
                                   fontSize: 14,
                                   height: 1.4,
                                   color: Colors.grey.shade800,
@@ -314,7 +314,7 @@ class _ProviderInboxScreenState extends State<ProviderInboxScreen> {
                                 const SizedBox(height: 8),
                                 Text(
                                   'Customer budget: ${r.paymentAmountRwf} RWF',
-                                  style: GoogleFonts.poppins(
+                                  style: GoogleFonts.outfit(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w600,
                                     color: Colors.grey.shade800,
@@ -324,7 +324,7 @@ class _ProviderInboxScreenState extends State<ProviderInboxScreen> {
                               const SizedBox(height: 10),
                               Text(
                                 'Received ${df.format(r.createdAt.toLocal())}',
-                                style: GoogleFonts.poppins(
+                                style: GoogleFonts.outfit(
                                   fontSize: 12,
                                   color: Colors.grey.shade600,
                                 ),
@@ -333,7 +333,7 @@ class _ProviderInboxScreenState extends State<ProviderInboxScreen> {
                                 const SizedBox(height: 4),
                                 Text(
                                   'Respond by ${df.format(r.acceptDeadlineAt.toLocal())}',
-                                  style: GoogleFonts.poppins(
+                                  style: GoogleFonts.outfit(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w500,
                                     color: Colors.amber.shade900,
@@ -345,7 +345,7 @@ class _ProviderInboxScreenState extends State<ProviderInboxScreen> {
                                 const SizedBox(height: 4),
                                 Text(
                                   'Payment due by ${df.format(r.paymentDeadlineAt!.toLocal())}',
-                                  style: GoogleFonts.poppins(
+                                  style: GoogleFonts.outfit(
                                     fontSize: 12,
                                     color: Colors.grey.shade700,
                                   ),
@@ -377,7 +377,7 @@ class _ProviderInboxScreenState extends State<ProviderInboxScreen> {
                                           ),
                                           child: Text(
                                             'Decline',
-                                            style: GoogleFonts.poppins(
+                                            style: GoogleFonts.outfit(
                                               fontWeight: FontWeight.w600,
                                             ),
                                           ),
@@ -396,7 +396,7 @@ class _ProviderInboxScreenState extends State<ProviderInboxScreen> {
                                           ),
                                           child: Text(
                                             'Accept',
-                                            style: GoogleFonts.poppins(
+                                            style: GoogleFonts.outfit(
                                               fontWeight: FontWeight.w600,
                                             ),
                                           ),

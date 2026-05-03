@@ -28,11 +28,30 @@ class Stock extends OfflineFirstWithSupabaseModel {
   int? tin;
 
   String? bhfId;
+
+  /// SQLite may contain NULL legacy rows; Brick's default `as String` throws.
+  @Sqlite(
+    fromGenerator:
+        "data['branch_id'] == null ? '' : data['branch_id'].toString()",
+  )
+  @Supabase(
+    fromGenerator:
+        "data['branch_id'] == null ? '' : data['branch_id'].toString()",
+  )
   String branchId;
+
   @Supabase(defaultValue: "0.0")
+  @Sqlite(
+    fromGenerator:
+        "data['current_stock'] == null ? null : (data['current_stock'] as num).toDouble()",
+  )
   double? currentStock;
 
   @Supabase(defaultValue: "0.0")
+  @Sqlite(
+    fromGenerator:
+        "data['low_stock'] == null ? null : (data['low_stock'] as num).toDouble()",
+  )
   double? lowStock;
   @Sqlite(defaultValue: "true")
   @Supabase(defaultValue: "true")
@@ -41,13 +60,27 @@ class Stock extends OfflineFirstWithSupabaseModel {
   bool? showLowStockAlert;
 
   bool? active;
+
+  @Sqlite(
+    fromGenerator:
+        "data['value'] == null ? null : (data['value'] as num).toDouble()",
+  )
   double? value;
+
+  @Sqlite(
+    fromGenerator:
+        "data['rsd_qty'] == null ? null : (data['rsd_qty'] as num).toDouble()",
+  )
   double? rsdQty;
   DateTime? lastTouched;
   @Sqlite(defaultValue: "false")
   @Supabase(defaultValue: "false")
   bool? ebmSynced;
   @Supabase(defaultValue: "0.0")
+  @Sqlite(
+    fromGenerator:
+        "data['initial_stock'] == null ? null : (data['initial_stock'] as num).toDouble()",
+  )
   double? initialStock;
 
   Stock({

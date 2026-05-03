@@ -38,7 +38,7 @@ class DashboardScannerActions implements ScannerActions {
 
       // Play sound on successful barcode detection (mobile only)
       if (platform.isMobile && _soundSource != null) {
-        await _soloud!.play(_soundSource!);
+        _soloud!.play(_soundSource!);
       }
     } catch (e) {
       // Continue even if sound fails

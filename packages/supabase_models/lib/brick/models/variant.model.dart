@@ -46,7 +46,18 @@ class Variant extends OfflineFirstWithSupabaseModel {
   String? productName;
   String? categoryId; // Reference to the category
   String? categoryName; // Name of the category
+
+  /// Local/remote rows may have NULL branch_id; Brick's default `as String` throws on deserialize.
+  @Sqlite(
+    fromGenerator:
+        "data['branch_id'] == null ? '' : data['branch_id'].toString()",
+  )
+  @Supabase(
+    fromGenerator:
+        "data['branch_id'] == null ? '' : data['branch_id'].toString()",
+  )
   String branchId;
+
   String? taxName;
 
   // add RRA fields
@@ -74,6 +85,9 @@ class Variant extends OfflineFirstWithSupabaseModel {
   String? bhfId;
   double? dftPrc;
   String? addInfo;
+  @Sqlite(name: 'image_url')
+  @Supabase(name: 'image_url')
+  String? imageUrl;
   String? isrcAplcbYn;
   String? useYn;
   String? regrId;
@@ -206,6 +220,7 @@ class Variant extends OfflineFirstWithSupabaseModel {
     this.bhfId,
     this.dftPrc,
     this.addInfo,
+    this.imageUrl,
     this.isrcAplcbYn,
     this.useYn,
     this.regrId,
@@ -269,6 +284,13 @@ class Variant extends OfflineFirstWithSupabaseModel {
         return null;
       }
 
+      /// Ditto/SQLite rows often use snake_case; API/JSON uses camelCase.
+      String? optionalString(dynamic value) {
+        if (value == null) return null;
+        final s = value is String ? value : value.toString();
+        return s.isEmpty ? null : s;
+      }
+
       // Extract stock information if present
       Stock? stock;
       String? stockId =
@@ -321,7 +343,8 @@ class Variant extends OfflineFirstWithSupabaseModel {
         tin: parseOrDefault<int>(json['tin'], 0),
         bhfId: parseOrDefault<String?>(json['bhfId'], null),
         dftPrc: (parseNum(json['dftPrc']) ?? 0.0).toDouble(),
-        addInfo: parseOrDefault<String?>(json['addInfo'], null),
+        addInfo: optionalString(json['addInfo'] ?? json['add_info']),
+        imageUrl: optionalString(json['imageUrl'] ?? json['image_url']),
         isrcAplcbYn: parseOrDefault<String?>(json['isrcAplcbYn'], null),
         useYn: parseOrDefault<String?>(json['useYn'], null),
         regrId: parseOrDefault<String?>(json['regrId'], null),
@@ -370,8 +393,8 @@ class Variant extends OfflineFirstWithSupabaseModel {
         dcAmt: (parseNum(json['dcAmt']) ?? 0.0).toDouble(),
       );
     } catch (e, s) {
-      print('Error parsing Variant JSON: $e');
-      print(s);
+      debugPrint('Error parsing Variant JSON: $e');
+      debugPrint('$s');
       throw FormatException('Failed to parse Variant JSON: $e');
     }
   }
@@ -414,6 +437,7 @@ class Variant extends OfflineFirstWithSupabaseModel {
       'bhfId': bhfId,
       'dftPrc': dftPrc,
       'addInfo': addInfo,
+      'imageUrl': imageUrl,
       'isrcAplcbYn': isrcAplcbYn,
       'useYn': useYn,
       'regrId': regrId,
@@ -492,6 +516,7 @@ class Variant extends OfflineFirstWithSupabaseModel {
     String? bhfId,
     double? dftPrc,
     String? addInfo,
+    String? imageUrl,
     String? isrcAplcbYn,
     String? useYn,
     String? regrId,
@@ -571,6 +596,7 @@ class Variant extends OfflineFirstWithSupabaseModel {
       bhfId: bhfId ?? this.bhfId,
       dftPrc: dftPrc ?? this.dftPrc,
       addInfo: addInfo ?? this.addInfo,
+      imageUrl: imageUrl ?? this.imageUrl,
       isrcAplcbYn: isrcAplcbYn ?? this.isrcAplcbYn,
       useYn: useYn ?? this.useYn,
       regrId: regrId ?? this.regrId,
@@ -654,6 +680,7 @@ class Variant extends OfflineFirstWithSupabaseModel {
       bhfId: item.bhfId,
       dftPrc: item.dftPrc?.toDouble(),
       addInfo: item.addInfo,
+      imageUrl: null,
       isrcAplcbYn: item.isrcAplcbYn,
       useYn: item.useYn,
       regrId: item.regrId,

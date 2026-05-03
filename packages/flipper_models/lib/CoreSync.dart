@@ -4,6 +4,8 @@ import 'dart:isolate';
 import 'dart:ui';
 import 'package:amplify_flutter/amplify_flutter.dart' as amplify;
 import 'package:flipper_models/DatabaseSyncInterface.dart';
+import 'package:flipper_models/cache/utility_cash_variant_cache.dart';
+import 'package:flipper_models/helpers/cash_movement_utility_variant.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
@@ -796,9 +798,12 @@ class CoreSync extends AiStrategyImpl
         brick.Where('branchId').isExactly(branchId),
       ],
     );
-    final productResult = await repository.get<models.Product>(
+    // Local-first: avoid blocking every cash book save on awaitRemoteWhenNoneExist.
+    // Fall back to remote only if we have a Utility product locally but the cash
+    // line variant is missing (e.g. multi-device sync lag).
+    var productResult = await repository.get<models.Product>(
       query: productQuery,
-      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+      policy: OfflineFirstGetPolicy.localOnly,
     );
     models.Product? product = productResult.firstOrNull;
 
@@ -827,11 +832,18 @@ class CoreSync extends AiStrategyImpl
         brick.Where('name').isExactly(name),
       ],
     );
-    final variantResult = await repository.get<models.Variant>(
+    var variantResult = await repository.get<models.Variant>(
       query: variantQuery,
-      policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+      policy: OfflineFirstGetPolicy.localOnly,
     );
     models.Variant? variant = variantResult.firstOrNull;
+    if (variant == null) {
+      final variantRemote = await repository.get<models.Variant>(
+        query: variantQuery,
+        policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+      );
+      variant = variantRemote.firstOrNull;
+    }
 
     if (variant == null) {
       final sku = await getSku(branchId: branchId, businessId: businessId);
@@ -2085,6 +2097,8 @@ class CoreSync extends AiStrategyImpl
     String? customerTin,
     String? customerPhone,
     String? note,
+    String? completionStatus,
+    List<TransactionItem>? preloadedLineItems,
   }) async {
     if (transaction != null) {
       if (note != null) {
@@ -2092,9 +2106,52 @@ class CoreSync extends AiStrategyImpl
       }
       try {
         final userId = ProxyService.box.getUserId();
+        if (countryCode != "N/A" && countryCode != "") {
+          transaction.currentSaleCustomerPhoneNumber =
+              countryCode +
+              (customerPhone ??
+                  ProxyService.box.currentSaleCustomerPhoneNumber())!;
+        }
+        transaction.customerPhone =
+            customerPhone ?? ProxyService.box.currentSaleCustomerPhoneNumber();
+        transaction.customerName =
+            customerName ?? ProxyService.box.customerName();
+        // Fetch transaction items (or use caller-provided lines to avoid a duplicate read on hot paths)
+        final List<TransactionItem> items;
+        if (preloadedLineItems != null && preloadedLineItems.isNotEmpty) {
+          items = preloadedLineItems;
+          talker.info(
+            "collectPayment: Using preloaded line items (${items.length})",
+          );
+        } else {
+          talker.info("collectPayment: Explicitly fetching transaction items");
+          items = await repository.get<TransactionItem>(
+            query: brick.Query(
+              where: [brick.Where('transactionId').isExactly(transaction.id)],
+            ),
+            policy: OfflineFirstGetPolicy.localOnly,
+          );
+        }
+        talker.info("collectPayment: Found ${items.length} items");
+
+        // Update numberOfItems before completing the sale
+        transaction.numberOfItems = items.length;
+
+        // sum up all discount found on item then save them on a transaction
+        talker.info("collectPayment: Calculating discountAmount");
+        transaction.discountAmount = items.fold(
+          0,
+          (a, b) => a! + (b.dcAmt ?? 0),
+        );
+
+        transaction.subTotal = items.isEmpty
+            ? cashReceived
+            : items.fold(0.0, (a, b) => a! + (b.price * b.qty));
+
         if (userId != null) {
           transaction.customerTin = customerTin;
-          transaction.customerChangeDue = cashReceived - transaction.subTotal!;
+          transaction.customerChangeDue =
+              cashReceived - (transaction.subTotal ?? 0);
           final currentShift = await getCurrentShift(userId: userId);
           if (currentShift != null) {
             num saleAmount = transaction.subTotal ?? 0.0;
@@ -2113,39 +2170,6 @@ class CoreSync extends AiStrategyImpl
             await repository.upsert<Shift>(updatedShift);
           }
         }
-        if (countryCode != "N/A" && countryCode != "") {
-          transaction.currentSaleCustomerPhoneNumber =
-              countryCode +
-              (customerPhone ??
-                  ProxyService.box.currentSaleCustomerPhoneNumber())!;
-        }
-        transaction.customerPhone =
-            customerPhone ?? ProxyService.box.currentSaleCustomerPhoneNumber();
-        transaction.customerName =
-            customerName ?? ProxyService.box.customerName();
-        // Fetch transaction items
-        talker.info("collectPayment: Explicitly fetching transaction items");
-        final items = await repository.get<TransactionItem>(
-          query: brick.Query(
-            where: [brick.Where('transactionId').isExactly(transaction.id)],
-          ),
-          policy: OfflineFirstGetPolicy.localOnly,
-        );
-        talker.info("collectPayment: Found ${items.length} items");
-
-        // Update numberOfItems before completing the sale
-        transaction.numberOfItems = items.length;
-
-        // sum up all discount found on item then save them on a transaction
-        talker.info("collectPayment: Calculating discountAmount");
-        transaction.discountAmount = items.fold(
-          0,
-          (a, b) => a! + (b.dcAmt ?? 0),
-        );
-
-        transaction.subTotal = items.isEmpty
-            ? cashReceived
-            : items.fold(0.0, (a, b) => a! + (b.price * b.qty));
 
         if (transaction.isLoan == true) {
           transaction.originalLoanAmount ??= transaction.subTotal;
@@ -2170,7 +2194,6 @@ class CoreSync extends AiStrategyImpl
         transaction.isIncome = isIncome;
         transaction.isExpense = !isIncome;
         transaction.paymentType = ProxyService.box.paymentType() ?? paymentType;
-        transaction.customerTin = customerTin;
 
         if (isIncome) {
           talker.info(
@@ -2201,6 +2224,9 @@ class CoreSync extends AiStrategyImpl
 
         talker.info("collectPayment: Upserting transaction");
 
+        if (completionStatus != null) {
+          transaction.status = completionStatus;
+        }
         await repository.upsert<ITransaction>(transaction);
         talker.info("collectPayment: Transaction upserted successfully");
         return transaction;
@@ -2210,6 +2236,96 @@ class CoreSync extends AiStrategyImpl
       }
     }
     throw Exception("transaction is null");
+  }
+
+  @override
+  Future<ITransaction> completeCashMovement({
+    required String branchId,
+    required String bhfId,
+    required double cashReceived,
+    required bool isIncome,
+    required String utilityVariantName,
+    required String paymentType,
+    required double discount,
+    required String countryCode,
+    required bool isProformaMode,
+    required bool isTrainingMode,
+    required String transactionTypeForRecord,
+    String? categoryId,
+    String? note,
+  }) async {
+    final pending = await manageTransaction(
+      branchId: branchId,
+      transactionType: utilityVariantName,
+      isExpense: !isIncome,
+    );
+    if (pending == null) {
+      throw StateError(
+        'completeCashMovement: could not create or load pending transaction',
+      );
+    }
+
+    final baseVariant = await UtilityCashVariantCache.instance.getOrFetch(
+      db: this,
+      branchId: branchId,
+      utilityName: utilityVariantName,
+    );
+    if (baseVariant == null) {
+      throw StateError(
+        'completeCashMovement: missing utility variant for $utilityVariantName',
+      );
+    }
+
+    final linedVariant = cloneUtilityVariantForCashLine(
+      utilityVariant: baseVariant,
+      cashReceived: cashReceived,
+      transactionType: utilityVariantName,
+    );
+
+    await addTransactionItem(
+      transaction: pending,
+      variation: linedVariant,
+      name: linedVariant.name,
+      amountTotal: cashReceived,
+      quantity: 1,
+      currentStock: 0,
+      partOfComposite: false,
+      ignoreForReport: false,
+      doneWithTransaction: true,
+      discount: 0,
+      lastTouched: DateTime.now().toUtc(),
+    );
+
+    final preloaded = syntheticPreloadedCashLine(
+      linedVariant: linedVariant,
+      transactionId: pending.id,
+      branchId: branchId,
+      cashReceived: cashReceived,
+    );
+
+    final txn = await collectPayment(
+      cashReceived: cashReceived,
+      transaction: pending,
+      paymentType: paymentType,
+      discount: discount,
+      branchId: branchId,
+      bhfId: bhfId,
+      countryCode: countryCode,
+      isProformaMode: isProformaMode,
+      isTrainingMode: isTrainingMode,
+      transactionType: transactionTypeForRecord,
+      categoryId: categoryId,
+      directlyHandleReceipt: false,
+      isIncome: isIncome,
+      note: note,
+      completionStatus: COMPLETE,
+      preloadedLineItems: preloaded,
+    );
+    // Cash book: use receiptType so Transaction Reports Type column is Cash In / Out (not NS).
+    txn.receiptType =
+        isIncome ? TransactionType.cashIn : TransactionType.cashOut;
+    await repository.upsert<ITransaction>(txn);
+    return txn;
   }
 
   @override

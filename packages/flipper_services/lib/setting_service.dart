@@ -78,8 +78,11 @@ class SettingsService with ListenableServiceMixin {
         setting.isCurrencyDecimal = map['isCurrencyDecimal'];
         _isCurrencyDecimal.value = map['isCurrencyDecimal'];
       }
+      setting.lastTouched = DateTime.now().toUtc();
 
-      await ProxyService.strategy.patchSettings(setting: setting);
+      await ProxyService.getStrategy(
+        Strategy.capella,
+      ).patchSettings(setting: setting);
       return true;
     } else {
       Setting newSetting = Setting(
@@ -99,6 +102,7 @@ class SettingsService with ListenableServiceMixin {
         enablePriceQuantityAdjustment:
             map['enablePriceQuantityAdjustment'] ?? false,
         isCurrencyDecimal: map['isCurrencyDecimal'] ?? false,
+        lastTouched: DateTime.now().toUtc(),
       );
 
       await ProxyService.getStrategy(
@@ -204,6 +208,30 @@ class SettingsService with ListenableServiceMixin {
     if (setting != null) {
       _isAdminPinEnabled.value = setting.isAdminPinEnabled ?? false;
     }
+  }
+
+  /// Syncs toggle fields from persisted [Setting] so they survive app restarts.
+  /// In-memory getters (e.g. [isAdminPinEnabled]) default false until this runs.
+  Future<void> hydrateToggleStatesFromSettings() async {
+    final businessId = ProxyService.box.getBusinessId();
+    if (businessId == null || businessId.isEmpty) return;
+
+    final setting = await ProxyService.getStrategy(
+      Strategy.capella,
+    ).getSetting(businessId: businessId);
+    if (setting == null) return;
+
+    _isAdminPinEnabled.value = setting.isAdminPinEnabled ?? false;
+    _sendDailReport.value = setting.sendDailyReport == null
+        ? false
+        : setting.sendDailyReport!;
+    _isAttendanceEnabled.value = setting.isAttendanceEnabled == null
+        ? false
+        : setting.isAttendanceEnabled!;
+    _enablePriceQuantityAdjustment.value =
+        setting.enablePriceQuantityAdjustment ?? false;
+    _isCurrencyDecimal.value = setting.isCurrencyDecimal ?? false;
+    notifyListeners();
   }
 
   void getPriceQuantityAdjustmentToggleState() async {

@@ -153,7 +153,7 @@ class PaymentsState extends ConsumerState<Payments> {
         Text(
           '${ProxyService.box.defaultCurrency()} ' +
               NumberFormat('#,###').format(totalPayable),
-          style: GoogleFonts.poppins(
+          style: GoogleFonts.outfit(
             fontWeight: FontWeight.w400,
             fontSize: 32,
             color: Colors.black,
@@ -179,7 +179,7 @@ class PaymentsState extends ConsumerState<Payments> {
                 ),
                 child: Text(
                   showDiscountField ? "Hide Discount" : "Add Discount",
-                  style: GoogleFonts.poppins(fontSize: 14, color: Colors.black),
+                  style: GoogleFonts.outfit(fontSize: 14, color: Colors.black),
                 ),
               ),
             ),
@@ -213,7 +213,7 @@ class PaymentsState extends ConsumerState<Payments> {
         },
         child: Text(
           "Send Invoice",
-          style: GoogleFonts.poppins(
+          style: GoogleFonts.outfit(
             fontWeight: FontWeight.w400,
             fontSize: 20,
             color: Color(0xFF01B8E4),
@@ -466,7 +466,7 @@ class PaymentsState extends ConsumerState<Payments> {
             ),
             Text(
               type,
-              style: GoogleFonts.poppins(fontSize: 14, color: textColor),
+              style: GoogleFonts.outfit(fontSize: 14, color: textColor),
             ),
           ],
         ),

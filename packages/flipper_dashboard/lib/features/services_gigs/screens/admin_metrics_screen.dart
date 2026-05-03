@@ -42,7 +42,7 @@ class _AdminMetricsScreenState extends State<AdminMetricsScreen> {
       appBar: AppBar(
         title: Text(
           'Services hub metrics',
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+          style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
         ),
         elevation: 0,
         backgroundColor: const Color(0xFFDC2626),
@@ -129,7 +129,7 @@ class _MetricCard extends StatelessWidget {
           children: [
             Text(
               title,
-              style: GoogleFonts.poppins(
+              style: GoogleFonts.outfit(
                 fontWeight: FontWeight.w600,
                 fontSize: 14,
                 color: Colors.grey.shade900,
@@ -160,7 +160,7 @@ class _MetricRow extends StatelessWidget {
         Expanded(
           child: Text(
             label,
-            style: GoogleFonts.poppins(
+            style: GoogleFonts.outfit(
               fontSize: 13,
               color: Colors.grey.shade700,
             ),
@@ -168,9 +168,10 @@ class _MetricRow extends StatelessWidget {
         ),
         Text(
           value,
-          style: GoogleFonts.poppins(
+          style: GoogleFonts.jetBrainsMono(
             fontSize: 13,
             fontWeight: FontWeight.w600,
+            letterSpacing: -0.3,
             color: Colors.grey.shade900,
           ),
         ),

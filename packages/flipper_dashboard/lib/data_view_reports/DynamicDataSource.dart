@@ -1,3 +1,8 @@
+import 'package:flipper_dashboard/popup_modal.dart';
+import 'package:flipper_dashboard/Refund.dart';
+import 'package:flipper_dashboard/transaction_report_cashier_profile.dart';
+import 'package:flipper_dashboard/transaction_report_cashier_utils.dart';
+import 'package:flipper_dashboard/transaction_report_mock_cashiers.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -7,13 +12,34 @@ import 'package:talker_flutter/talker_flutter.dart';
 
 final talker = TalkerFlutter.init();
 
-/// Column count for transaction summary grid (non-PLU).
-const int kTransactionSummaryColumnCount = 8;
+/// Column count for transaction summary grid (non-PLU): receipt, cashier, …, actions.
+const int kTransactionSummaryColumnCount = 10;
+
+String transactionReportReceiptLabel(ITransaction t) {
+  final inv = t.invoiceNumber;
+  final rec = t.receiptNumber;
+  if (inv != null) return '#$inv';
+  if (rec != null) return '#$rec';
+  return '#${t.id}';
+}
 
 String _transactionReportStatusLabel(ITransaction tx) {
-  if (tx.status == PARKED) return 'Parked';
-  if (tx.status == COMPLETE) return 'Completed';
+  final s = (tx.status ?? '').toLowerCase();
+  if (s == PARKED) return 'Parked';
+  if (s == COMPLETE || s.contains('complete')) return 'Completed';
+  if (s.contains('cancel')) return 'Cancelled';
+  if (s == PENDING || s.contains('pending')) return 'Pending';
   return tx.status ?? '—';
+}
+
+/// Grid + export Type column: Cash In / Cash Out for cash book; else receipt code (NS, …).
+String transactionReportGridTypeLabel(ITransaction t) {
+  final rt = t.receiptType;
+  if (rt != null &&
+      (rt == TransactionType.cashIn || rt == TransactionType.cashOut)) {
+    return rt;
+  }
+  return rt ?? '-';
 }
 
 double _reportByHand(ITransaction tx, TransactionPaymentSums? sums) {
@@ -35,6 +61,12 @@ double _reportBalanceDue(ITransaction tx) {
   return 0.0;
 }
 
+/// Display amount: expenses (cash out, etc.) show as negative in Transaction Reports.
+double _signedReportMoney(double raw, ITransaction tx) {
+  if (tx.isExpense == true) return -raw.abs();
+  return raw;
+}
+
 /// Public wrappers for DataView export and period totals.
 double transactionReportByHandForTotals(
   ITransaction tx,
@@ -51,17 +83,23 @@ double transactionReportCreditForTotals(
 /// Row map for CSV/Excel summary export (keys match grid column names).
 Map<String, Object?> transactionSummaryExportRow(
   ITransaction transaction,
-  TransactionPaymentSums? sums,
-) {
+  TransactionPaymentSums? sums, {
+  Map<String, TransactionReportCashierProfile>? cashierDirectory,
+}) {
   return {
-    'Name': transaction.invoiceNumber?.toString() ?? transaction.id.toString(),
-    'Type': transaction.receiptType ?? 'Sale',
+    'Name': transactionReportReceiptLabel(transaction),
+    'Cashier': transactionReportCashierDisplayLabel(
+      transaction,
+      directory: cashierDirectory,
+    ),
+    'Type': transactionReportGridTypeLabel(transaction),
     'Status': _transactionReportStatusLabel(transaction),
-    'SaleTotal': transaction.subTotal ?? 0.0,
-    'ByHand': _reportByHand(transaction, sums),
-    'Credit': _reportCredit(transaction, sums),
+    'SaleTotal': _signedReportMoney(transaction.subTotal ?? 0.0, transaction),
+    'ByHand': _signedReportMoney(_reportByHand(transaction, sums), transaction),
+    'Credit': _signedReportMoney(_reportCredit(transaction, sums), transaction),
     'Tax': TransactionSummaryTax.taxColumn(transaction),
     'BalanceDue': _reportBalanceDue(transaction),
+    'Actions': '',
   };
 }
 
@@ -89,11 +127,15 @@ abstract class DynamicDataSource<T> extends DataGridSource {
   /// Per-transaction payment breakdown for summary reports (optional).
   Map<String, TransactionPaymentSums>? paymentSumsByTransactionId;
 
+  /// Supabase-backed staff directory for cashier column labels / avatars.
+  Map<String, TransactionReportCashierProfile>? cashierDirectory;
+
   DynamicDataSource(
     List<T> initialData,
     int rowsPerPage, {
     this.showPluReport = false,
     this.paymentSumsByTransactionId,
+    this.cashierDirectory,
   }) {
     data = initialData;
     _rowsPerPage = rowsPerPage;
@@ -116,11 +158,15 @@ abstract class DynamicDataSource<T> extends DataGridSource {
     List<T> newData,
     bool newShowPluReport, {
     Map<String, TransactionPaymentSums>? newPaymentSumsByTransactionId,
+    Map<String, TransactionReportCashierProfile>? newCashierDirectory,
   }) {
     data = newData;
     showPluReport = newShowPluReport;
     if (newPaymentSumsByTransactionId != null) {
       paymentSumsByTransactionId = newPaymentSumsByTransactionId;
+    }
+    if (newCashierDirectory != null) {
+      cashierDirectory = newCashierDirectory;
     }
     _dataGridRows = buildPaginatedDataGridRows();
     talker.info(
@@ -336,11 +382,18 @@ abstract class DynamicDataSource<T> extends DataGridSource {
       cells: [
         DataGridCell<String>(
           columnName: 'Name',
-          value: trans.invoiceNumber?.toString() ?? "-",
+          value: transactionReportReceiptLabel(trans),
+        ),
+        DataGridCell<String>(
+          columnName: 'Cashier',
+          value: transactionReportCashierDisplayLabel(
+            trans,
+            directory: cashierDirectory,
+          ),
         ),
         DataGridCell<String>(
           columnName: 'Type',
-          value: trans.receiptType ?? "-",
+          value: transactionReportGridTypeLabel(trans),
         ),
         DataGridCell<String>(
           columnName: 'Status',
@@ -348,20 +401,24 @@ abstract class DynamicDataSource<T> extends DataGridSource {
         ),
         DataGridCell<double>(
           columnName: 'SaleTotal',
-          value: trans.subTotal ?? 0.0,
+          value: _signedReportMoney(trans.subTotal ?? 0.0, trans),
         ),
         DataGridCell<double>(
           columnName: 'ByHand',
-          value: _reportByHand(trans, sums),
+          value: _signedReportMoney(_reportByHand(trans, sums), trans),
         ),
         DataGridCell<double>(
           columnName: 'Credit',
-          value: _reportCredit(trans, sums),
+          value: _signedReportMoney(_reportCredit(trans, sums), trans),
         ),
         DataGridCell<double>(columnName: 'Tax', value: taxValue),
         DataGridCell<double>(
           columnName: 'BalanceDue',
           value: _reportBalanceDue(trans),
+        ),
+        DataGridCell<String>(
+          columnName: 'Actions',
+          value: trans.id.toString(),
         ),
       ],
     );
@@ -383,14 +440,60 @@ abstract class DynamicDataSource<T> extends DataGridSource {
     return value.toString();
   }
 
+  ITransaction? _transactionForZReportRow(DataGridRow row) {
+    for (final c in row.getCells()) {
+      if (c.columnName == 'Actions') {
+        final id = c.value?.toString();
+        if (id == null || id.isEmpty) return null;
+        for (final item in data) {
+          if (item is ITransaction && item.id.toString() == id) {
+            return item;
+          }
+        }
+        return null;
+      }
+    }
+    return null;
+  }
+
+  (Color bg, Color fg) _statusBadgeColors(String label) {
+    final l = label.toLowerCase();
+    if (l.contains('completed')) {
+      return (const Color(0xFFDCFCE7), const Color(0xFF15803D));
+    }
+    if (l.contains('cancel')) {
+      return (const Color(0xFFFEE2E2), const Color(0xFFB91C1C));
+    }
+    if (l.contains('pending') || l.contains('parked')) {
+      return (const Color(0xFFFEF3C7), const Color(0xFFB45309));
+    }
+    return (Colors.grey.shade100, Colors.grey.shade800);
+  }
+
   @override
   DataGridRowAdapter buildRow(DataGridRow row) {
+    if (data.isEmpty) {
+      return DataGridRowAdapter(
+        cells: row.getCells().map<Widget>((_) {
+          return Container(
+            alignment: Alignment.center,
+            padding: const EdgeInsets.all(8.0),
+            child: const SizedBox.shrink(),
+          );
+        }).toList(),
+      );
+    }
+
+    if (!showPluReport && data.isNotEmpty && data.first is ITransaction) {
+      return _buildZReportStyledRow(row);
+    }
+
     final ix = _dataGridRows.indexOf(row);
     final isParked =
         ix >= 0 &&
         ix < data.length &&
         data[ix] is ITransaction &&
-        (data[ix] as ITransaction).status == PARKED;
+        ((data[ix] as ITransaction).status ?? '').toLowerCase() == PARKED;
     final bg = isParked
         ? Colors.amber.withValues(alpha: 0.08)
         : null;
@@ -404,6 +507,284 @@ abstract class DynamicDataSource<T> extends DataGridSource {
           child: Text(_displayCellValue(e.value)),
         );
       }).toList(),
+    );
+  }
+
+  DataGridRowAdapter _buildZReportStyledRow(DataGridRow row) {
+    final tx = _transactionForZReportRow(row);
+    final isParked =
+        tx != null && (tx.status ?? '').toLowerCase() == PARKED;
+    final rowBg = isParked ? Colors.amber.withValues(alpha: 0.06) : null;
+    final sym = ProxyService.box.defaultCurrency();
+
+    Widget actionPillButton({
+      required IconData icon,
+      required VoidCallback onTap,
+      required String tooltip,
+    }) {
+      const radius = BorderRadius.all(Radius.circular(8));
+      return Tooltip(
+        message: tooltip,
+        child: Material(
+          color: const Color(0xFFF3F4F6),
+          borderRadius: radius,
+          child: InkWell(
+            borderRadius: radius,
+            onTap: onTap,
+            child: Container(
+              width: 30,
+              height: 30,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                borderRadius: radius,
+                border: Border.all(color: const Color(0xFFE5E7EB)),
+              ),
+              child: Icon(icon, size: 16, color: const Color(0xFF6B7280)),
+            ),
+          ),
+        ),
+      );
+    }
+
+    Widget cellFor(DataGridCell e) {
+      final name = e.columnName;
+      if (name == 'Name') {
+        return Container(
+          alignment: Alignment.centerLeft,
+          color: rowBg,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          child: Text(
+            e.value?.toString() ?? '',
+            style: const TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: 13,
+              color: Color(0xFF111827),
+            ),
+          ),
+        );
+      }
+      if (name == 'Cashier') {
+        final label = tx != null
+            ? transactionReportCashierDisplayLabel(
+                tx,
+                directory: cashierDirectory,
+              )
+            : (e.value?.toString() ?? '');
+        final tint = tx != null
+            ? transactionReportCashierAvatarColor(
+                tx,
+                directory: cashierDirectory,
+              )
+            : const Color(0xFF2563EB);
+        final initials = tx != null
+            ? transactionReportCashierInitials(
+                tx,
+                directory: cashierDirectory,
+              )
+            : initialsFromLabel(label);
+        return Container(
+          color: rowBg,
+          alignment: Alignment.centerLeft,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircleAvatar(
+                radius: 13,
+                backgroundColor: tint,
+                child: Text(
+                  initials,
+                  style: const TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                    color: Color(0xFF111827),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+      if (name == 'Type') {
+        return Container(
+          alignment: Alignment.centerLeft,
+          color: rowBg,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Text(
+            e.value?.toString() ?? '',
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF374151),
+            ),
+          ),
+        );
+      }
+      if (name == 'Status') {
+        final label = e.value?.toString() ?? '';
+        final (badgeBg, badgeFg) = _statusBadgeColors(label);
+        return Container(
+          color: rowBg,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          alignment: Alignment.centerLeft,
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: badgeBg,
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Text(
+              label,
+              style: TextStyle(
+                fontWeight: FontWeight.w700,
+                fontSize: 11,
+                color: badgeFg,
+              ),
+            ),
+          ),
+        );
+      }
+      if (name == 'SaleTotal') {
+        final v = (e.value is num) ? (e.value as num).toDouble() : 0.0;
+        final red = v < -0.0001;
+        return Container(
+          alignment: Alignment.centerLeft,
+          color: rowBg,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Text(
+            '$sym ${v.toStringAsFixed(2)}',
+            style: TextStyle(
+              fontWeight: FontWeight.w800,
+              fontSize: 13,
+              color: red ? const Color(0xFFDC2626) : const Color(0xFF111827),
+            ),
+          ),
+        );
+      }
+      if (name == 'ByHand' || name == 'Tax') {
+        return Container(
+          alignment: Alignment.centerLeft,
+          color: rowBg,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Text(
+            _displayCellValue(e.value),
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF374151),
+            ),
+          ),
+        );
+      }
+      if (name == 'Credit') {
+        final v = (e.value is num) ? (e.value as num).toDouble() : 0.0;
+        final tint = v > 0.0001 ? const Color(0xFFD97706) : const Color(0xFF374151);
+        return Container(
+          alignment: Alignment.centerLeft,
+          color: rowBg,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Text(
+            _displayCellValue(e.value),
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: v > 0.0001 ? FontWeight.w700 : FontWeight.w600,
+              color: tint,
+            ),
+          ),
+        );
+      }
+      if (name == 'BalanceDue') {
+        final v = (e.value is num) ? (e.value as num).toDouble() : 0.0;
+        final due = v > 0.01;
+        return Container(
+          alignment: Alignment.centerLeft,
+          color: rowBg,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Text(
+            _displayCellValue(e.value),
+            style: TextStyle(
+              fontWeight: due ? FontWeight.w700 : FontWeight.w600,
+              fontSize: 13,
+              color: due ? const Color(0xFFDC2626) : const Color(0xFF374151),
+            ),
+          ),
+        );
+      }
+      if (name == 'Actions' && tx != null) {
+        return Container(
+          color: rowBg,
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          alignment: Alignment.center,
+          child: Builder(
+            builder: (ctx) {
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  actionPillButton(
+                    icon: Icons.visibility_outlined,
+                    tooltip: 'View',
+                    onTap: () {
+                      showDialog<void>(
+                        barrierDismissible: true,
+                        context: ctx,
+                        builder: (context) => OptionModal(
+                          child: Refund(
+                            refundAmount: tx.subTotal ?? 0,
+                            transactionId: tx.id.toString(),
+                            currency: sym,
+                            transaction: tx,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(width: 6),
+                  actionPillButton(
+                    icon: Icons.print_outlined,
+                    tooltip: 'Print',
+                    onTap: () {
+                      ScaffoldMessenger.maybeOf(ctx)?.showSnackBar(
+                        const SnackBar(
+                          content: Text('Print is not available yet.'),
+                          duration: Duration(seconds: 2),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              );
+            },
+          ),
+        );
+      }
+      return Container(
+        alignment: Alignment.centerLeft,
+        color: rowBg,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Text(
+          _displayCellValue(e.value),
+          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+        ),
+      );
+    }
+
+    return DataGridRowAdapter(
+      cells: row.getCells().map<Widget>((e) => cellFor(e)).toList(),
     );
   }
 }

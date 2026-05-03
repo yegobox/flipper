@@ -3,3 +3,9 @@
     "@supabase/supabase-js": "npm:@supabase/supabase-js@2.5.0"
   }
 }
+
+{
+  "imports": {
+    "@supabase/supabase-js": "npm:@supabase/supabase-js@2.5.0"
+  }
+}

@@ -43,7 +43,7 @@ class _NotificationsState extends State<Notifications>
                     height: 17.81,
                     child: Text(
                       "Notifications",
-                      style: GoogleFonts.poppins(
+                      style: GoogleFonts.outfit(
                           fontWeight: FontWeight.w600,
                           height: 0.31,
                           fontSize: 21,

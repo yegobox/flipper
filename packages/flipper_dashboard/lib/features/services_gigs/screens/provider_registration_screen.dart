@@ -158,13 +158,13 @@ class _ProviderRegistrationScreenState
       appBar: AppBar(
         title: Text(
           title,
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+          style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
         ),
         elevation: 0,
         backgroundColor: const Color(0xFF0D9488),
         foregroundColor: Colors.white,
         iconTheme: const IconThemeData(color: Colors.white),
-        titleTextStyle: GoogleFonts.poppins(
+        titleTextStyle: GoogleFonts.outfit(
           color: Colors.white,
           fontSize: 18,
           fontWeight: FontWeight.w600,
@@ -181,7 +181,7 @@ class _ProviderRegistrationScreenState
                   children: [
                     Text(
                       'Tell customers what you offer. You can update this anytime.',
-                      style: GoogleFonts.poppins(
+                      style: GoogleFonts.outfit(
                         fontSize: 14,
                         height: 1.45,
                         color: Colors.grey.shade700,
@@ -192,7 +192,7 @@ class _ProviderRegistrationScreenState
                       controller: _displayNameController,
                       textCapitalization: TextCapitalization.words,
                       decoration: _decoration('Display name'),
-                      style: GoogleFonts.poppins(fontSize: 15),
+                      style: GoogleFonts.outfit(fontSize: 15),
                       validator: (v) {
                         final t = v?.trim() ?? '';
                         if (t.length < 2) {
@@ -206,7 +206,7 @@ class _ProviderRegistrationScreenState
                       controller: _phoneController,
                       keyboardType: TextInputType.phone,
                       decoration: _decoration('Contact phone'),
-                      style: GoogleFonts.poppins(fontSize: 15),
+                      style: GoogleFonts.outfit(fontSize: 15),
                       validator: (v) {
                         final t = v?.trim() ?? '';
                         if (t.isEmpty) {
@@ -220,7 +220,7 @@ class _ProviderRegistrationScreenState
                       controller: _bioController,
                       maxLines: 4,
                       decoration: _decoration('About you'),
-                      style: GoogleFonts.poppins(fontSize: 15),
+                      style: GoogleFonts.outfit(fontSize: 15),
                       validator: (v) {
                         final t = v?.trim() ?? '';
                         if (t.length < 12) {
@@ -232,7 +232,7 @@ class _ProviderRegistrationScreenState
                     const SizedBox(height: 8),
                     Text(
                       'Services you provide',
-                      style: GoogleFonts.poppins(
+                      style: GoogleFonts.outfit(
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
                         color: Colors.grey.shade800,
@@ -241,7 +241,7 @@ class _ProviderRegistrationScreenState
                     const SizedBox(height: 6),
                     Text(
                       'One per line (e.g. plumbing, home cleaning, delivery).',
-                      style: GoogleFonts.poppins(
+                      style: GoogleFonts.outfit(
                         fontSize: 12,
                         color: Colors.grey.shade600,
                       ),
@@ -251,7 +251,7 @@ class _ProviderRegistrationScreenState
                       controller: _servicesController,
                       maxLines: 6,
                       decoration: _decoration('Services'),
-                      style: GoogleFonts.poppins(fontSize: 15),
+                      style: GoogleFonts.outfit(fontSize: 15),
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
@@ -261,12 +261,12 @@ class _ProviderRegistrationScreenState
                         'Service area (optional)',
                         hint: 'Neighborhood, city, or radius',
                       ),
-                      style: GoogleFonts.poppins(fontSize: 15),
+                      style: GoogleFonts.outfit(fontSize: 15),
                     ),
                     const SizedBox(height: 20),
                     Text(
                       'Categories (optional)',
-                      style: GoogleFonts.poppins(
+                      style: GoogleFonts.outfit(
                         fontWeight: FontWeight.w600,
                         fontSize: 14,
                         color: Colors.grey.shade800,
@@ -275,7 +275,7 @@ class _ProviderRegistrationScreenState
                     const SizedBox(height: 6),
                     Text(
                       'Helps customers filter the directory.',
-                      style: GoogleFonts.poppins(
+                      style: GoogleFonts.outfit(
                         fontSize: 12,
                         color: Colors.grey.shade600,
                       ),
@@ -289,7 +289,7 @@ class _ProviderRegistrationScreenState
                         return FilterChip(
                           label: Text(
                             c.name,
-                            style: GoogleFonts.poppins(fontSize: 12),
+                            style: GoogleFonts.outfit(fontSize: 12),
                           ),
                           selected: selected,
                           onSelected: (_) {
@@ -328,7 +328,7 @@ class _ProviderRegistrationScreenState
                               _hasExistingProfile
                                   ? 'Save changes'
                                   : 'Submit registration',
-                              style: GoogleFonts.poppins(
+                              style: GoogleFonts.outfit(
                                 fontWeight: FontWeight.w600,
                                 fontSize: 15,
                               ),
@@ -356,8 +356,8 @@ class _ProviderRegistrationScreenState
         borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(color: Color(0xFF0D9488), width: 2),
       ),
-      labelStyle: GoogleFonts.poppins(fontSize: 14),
-      hintStyle: GoogleFonts.poppins(fontSize: 13, color: Colors.grey.shade500),
+      labelStyle: GoogleFonts.outfit(fontSize: 14),
+      hintStyle: GoogleFonts.outfit(fontSize: 13, color: Colors.grey.shade500),
     );
   }
 }

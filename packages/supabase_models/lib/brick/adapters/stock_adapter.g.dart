@@ -10,7 +10,7 @@ Future<Stock> _$StockFromSupabase(
     id: data['id'] as String?,
     tin: data['tin'] == null ? null : data['tin'] as int?,
     bhfId: data['bhf_id'] == null ? null : data['bhf_id'] as String?,
-    branchId: data['branch_id'] as String,
+    branchId: data['branch_id'] == null ? '' : data['branch_id'].toString(),
     currentStock: data['current_stock'] == null
         ? null
         : data['current_stock'] as double? ?? 0.0,
@@ -72,11 +72,17 @@ Future<Stock> _$StockFromSqlite(
     id: data['id'] as String,
     tin: data['tin'] == null ? null : data['tin'] as int?,
     bhfId: data['bhf_id'] == null ? null : data['bhf_id'] as String?,
-    branchId: data['branch_id'] as String,
+    branchId: data['branch_id'] == null ? '' : data['branch_id'].toString(),
     currentStock: data['current_stock'] == null
         ? null
-        : data['current_stock'] as double?,
-    lowStock: data['low_stock'] == null ? null : data['low_stock'] as double?,
+        : data['current_stock'] == null
+        ? null
+        : (data['current_stock'] as num).toDouble(),
+    lowStock: data['low_stock'] == null
+        ? null
+        : data['low_stock'] == null
+        ? null
+        : (data['low_stock'] as num).toDouble(),
     canTrackingStock: data['can_tracking_stock'] == null
         ? null
         : data['can_tracking_stock'] == 1,
@@ -84,8 +90,16 @@ Future<Stock> _$StockFromSqlite(
         ? null
         : data['show_low_stock_alert'] == 1,
     active: data['active'] == null ? null : data['active'] == 1,
-    value: data['value'] == null ? null : data['value'] as double?,
-    rsdQty: data['rsd_qty'] == null ? null : data['rsd_qty'] as double?,
+    value: data['value'] == null
+        ? null
+        : data['value'] == null
+        ? null
+        : (data['value'] as num).toDouble(),
+    rsdQty: data['rsd_qty'] == null
+        ? null
+        : data['rsd_qty'] == null
+        ? null
+        : (data['rsd_qty'] as num).toDouble(),
     lastTouched: data['last_touched'] == null
         ? null
         : data['last_touched'] == null
@@ -94,7 +108,9 @@ Future<Stock> _$StockFromSqlite(
     ebmSynced: data['ebm_synced'] == null ? null : data['ebm_synced'] == 1,
     initialStock: data['initial_stock'] == null
         ? null
-        : data['initial_stock'] as double?,
+        : data['initial_stock'] == null
+        ? null
+        : (data['initial_stock'] as num).toDouble(),
   )..primaryKey = data['_brick_id'] as int;
 }
 

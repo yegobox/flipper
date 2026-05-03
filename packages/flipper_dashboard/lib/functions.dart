@@ -33,7 +33,7 @@ onWillPop({
         backgroundColor: Theme.of(context).colorScheme.surface,
         title: Text(
           'Confirm',
-          style: GoogleFonts.poppins(
+          style: GoogleFonts.outfit(
             fontSize: 24,
             fontWeight: FontWeight.bold,
             color: Theme.of(context).colorScheme.onSurface,
@@ -41,7 +41,7 @@ onWillPop({
         ),
         content: Text(
           message,
-          style: GoogleFonts.poppins(
+          style: GoogleFonts.outfit(
             fontSize: 16,
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
@@ -60,7 +60,7 @@ onWillPop({
                   ),
                   child: Text(
                     'No',
-                    style: GoogleFonts.poppins(
+                    style: GoogleFonts.outfit(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
                     ),
@@ -84,7 +84,7 @@ onWillPop({
                   ),
                   child: Text(
                     'Yes',
-                    style: GoogleFonts.poppins(
+                    style: GoogleFonts.outfit(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
                     ),

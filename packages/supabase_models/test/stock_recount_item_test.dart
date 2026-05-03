@@ -93,8 +93,8 @@ void main() {
       expect(error, contains('cannot be negative'));
     });
 
-    test('should validate counted quantity below previous quantity', () {
-      final invalidItem = StockRecountItem(
+    test('should allow counted quantity below previous quantity', () {
+      final validItem = StockRecountItem(
         recountId: 'recount123',
         variantId: 'variant456',
         stockId: 'stock789',
@@ -103,10 +103,9 @@ void main() {
         countedQuantity: 50.0,
       );
 
-      final error = invalidItem.validate();
-      expect(error, isNotNull);
-      expect(error, contains('Cannot count below existing stock'));
-      expect(error, contains('100.0'));
+      final error = validItem.validate();
+      expect(error, isNull);
+      expect(validItem.difference, equals(-50.0));
     });
 
     test('should validate successfully for valid counted quantity', () {

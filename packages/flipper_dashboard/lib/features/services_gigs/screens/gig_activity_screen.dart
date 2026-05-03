@@ -96,7 +96,7 @@ class _GigActivityScreenState extends State<GigActivityScreen> {
       appBar: AppBar(
         title: Text(
           'Notifications',
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+          style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
         ),
         elevation: 0,
         backgroundColor: const Color(0xFF0D9488),
@@ -124,7 +124,7 @@ class _GigActivityScreenState extends State<GigActivityScreen> {
                       Text(
                         'No activity yet',
                         textAlign: TextAlign.center,
-                        style: GoogleFonts.poppins(
+                        style: GoogleFonts.outfit(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
                         ),
@@ -134,7 +134,7 @@ class _GigActivityScreenState extends State<GigActivityScreen> {
                         'When you send or receive service requests, updates appear here. '
                         'Pull down to refresh.',
                         textAlign: TextAlign.center,
-                        style: GoogleFonts.poppins(
+                        style: GoogleFonts.outfit(
                           fontSize: 14,
                           height: 1.4,
                           color: Colors.grey.shade600,
@@ -167,7 +167,7 @@ class _GigActivityScreenState extends State<GigActivityScreen> {
                                   row.asCustomer
                                       ? 'Request to ${row.otherPartyLabel}'
                                       : 'Request from ${row.otherPartyLabel}',
-                                  style: GoogleFonts.poppins(
+                                  style: GoogleFonts.outfit(
                                     fontWeight: FontWeight.w600,
                                     fontSize: 14,
                                   ),
@@ -175,7 +175,7 @@ class _GigActivityScreenState extends State<GigActivityScreen> {
                                 const SizedBox(height: 4),
                                 Text(
                                   r.statusLabel,
-                                  style: GoogleFonts.poppins(
+                                  style: GoogleFonts.outfit(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w500,
                                     color: Color(r.statusColor),
@@ -184,7 +184,7 @@ class _GigActivityScreenState extends State<GigActivityScreen> {
                                 const SizedBox(height: 6),
                                 Text(
                                   'Updated ${df.format(r.updatedAt.toLocal())}',
-                                  style: GoogleFonts.poppins(
+                                  style: GoogleFonts.outfit(
                                     fontSize: 11,
                                     color: Colors.grey.shade600,
                                   ),

@@ -84,13 +84,15 @@ class _ItemsDialogState extends ConsumerState<ItemsDialog> {
         return;
       }
 
-      // Create Excel file
+      // Create Excel file (default sheet is Sheet1; rename to sheet1 for a single data sheet)
       final excel = Excel.createExcel();
-      final sheet = excel['Items'];
+      excel.rename('Sheet1', 'sheet1');
+      final sheet = excel['sheet1'];
 
       // Add headers
       sheet.appendRow([
-        TextCellValue('Item Name'),
+        TextCellValue('Product Name'),
+        TextCellValue('Variant Name'),
         TextCellValue('Item Code'),
         TextCellValue('SKU'),
         TextCellValue('Quantity'),
@@ -114,6 +116,7 @@ class _ItemsDialogState extends ConsumerState<ItemsDialog> {
         final qty = stockAsync?.currentStock ?? 0;
 
         sheet.appendRow([
+          TextCellValue(variant.productName ?? ''),
           TextCellValue(variant.name ?? ''),
           TextCellValue(variant.itemCd ?? ''),
           TextCellValue(variant.sku ?? ''),

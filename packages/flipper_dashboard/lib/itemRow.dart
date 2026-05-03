@@ -117,8 +117,8 @@ class _RowItemState extends ConsumerState<RowItem>
   }
 
   // Constants for consistent styling
-  static const double cardBorderRadius = 12.0;
-  static const double imageBorderRadius = 10.0;
+  static const double cardBorderRadius = 8.0;
+  static const double imageBorderRadius = 8.0;
   static const double contentPadding = 12.0;
   static const int animationDuration = 200;
 
@@ -127,6 +127,9 @@ class _RowItemState extends ConsumerState<RowItem>
   String? _imageUrl;
   String? _branchId;
   Widget? _cachedImageWidget;
+
+  /// Adds not yet reflected on [transactionItemsStreamProvider] — keeps +/- UI responsive.
+  int _cartOptimisticBump = 0;
 
   @override
   void initState() {
@@ -142,7 +145,11 @@ class _RowItemState extends ConsumerState<RowItem>
   void _initImageCache() {
     try {
       _imageUrl = widget.imageUrl;
-      _branchId = ProxyService.box.getBranchId();
+      // Objects live under `public/branch-{id}/…` for the branch that owned the
+      // upload. Prefer the variant's branch so rows match S3 even when the
+      // session branch id differs or is not ready yet.
+      _branchId =
+          widget.variant?.branchId ?? ProxyService.box.getBranchId();
 
       if (_imageUrl != null && _imageUrl!.isNotEmpty && _branchId != null) {
         _cachedRemoteUrlFuture = preSignedUrl(
@@ -158,6 +165,10 @@ class _RowItemState extends ConsumerState<RowItem>
   @override
   void didUpdateWidget(RowItem oldWidget) {
     super.didUpdateWidget(oldWidget);
+
+    if (widget.variant?.id != oldWidget.variant?.id) {
+      _cartOptimisticBump = 0;
+    }
 
     if (widget.imageUrl != oldWidget.imageUrl ||
         (widget.variant?.branchId != oldWidget.variant?.branchId)) {
@@ -175,6 +186,47 @@ class _RowItemState extends ConsumerState<RowItem>
 
   @override
   Widget build(BuildContext context) {
+    final pendingTxnForListen =
+        ref.watch(pendingTransactionStreamProvider(isExpense: false));
+    final txnForListen = pendingTxnForListen.asData?.value;
+    final variantIdForListen = widget.variant?.id;
+    if (txnForListen != null &&
+        txnForListen.id.isNotEmpty &&
+        variantIdForListen != null) {
+      ref.listen(
+        transactionItemsStreamProvider(
+          transactionId: txnForListen.id,
+          branchId: ProxyService.box.branchIdString() ?? '0',
+        ),
+        (prev, next) {
+          if (!mounted) return;
+          final v = widget.variant;
+          if (v == null || v.id != variantIdForListen) return;
+
+          int qtyFor(List<TransactionItem> list) {
+            return list
+                .where((it) => it.active != false && it.variantId == v.id)
+                .fold<num>(0, (s, it) => s + it.qty)
+                .round();
+          }
+
+          final prevItems = prev?.asData?.value;
+          final nextItems = next.asData?.value;
+          if (prevItems == null || nextItems == null) return;
+
+          final p = qtyFor(prevItems);
+          final n = qtyFor(nextItems);
+          if (n > p && _cartOptimisticBump > 0) {
+            final delta = n - p;
+            setState(() {
+              _cartOptimisticBump =
+                  (_cartOptimisticBump - delta).clamp(0, 999);
+            });
+          }
+        },
+      );
+    }
+
     final selectedItemIds = ref.watch(selectedItemIdsProvider);
     final itemId = widget.variant?.id ?? widget.product?.id;
     final isSelected = selectedItemIds.contains(itemId);
@@ -239,7 +291,7 @@ class _RowItemState extends ConsumerState<RowItem>
                     ? flipperWatch("onAddingItemToQuickSell")
                     : null;
                 w?.start();
-                await onTapItem(model: model, isOrdering: widget.isOrdering);
+                await _onAddToCartWithOptimistic(model);
                 w?.log("Item Added to Quick Sell");
               },
               onLongPress: () {
@@ -626,13 +678,23 @@ class _RowItemState extends ConsumerState<RowItem>
       symbol: ProxyService.box.defaultCurrency(),
     );
 
-    return SizedBox(
-      height: 68,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          // Leading avatar (color tile / initials), no heavy image loading.
-          Container(
+    final Widget leading = widget.imageUrl?.isNotEmpty == true
+        ? SizedBox(
+            width: 44,
+            height: 44,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: HexColor(
+                    widget.color.isEmpty ? "#673AB7" : widget.color,
+                  ).withValues(alpha: 0.12),
+                ),
+                child: _buildImage(),
+              ),
+            ),
+          )
+        : Container(
             width: 44,
             height: 44,
             decoration: BoxDecoration(
@@ -651,7 +713,14 @@ class _RowItemState extends ConsumerState<RowItem>
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
-          ),
+          );
+
+    return SizedBox(
+      height: 68,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          leading,
 
           const SizedBox(width: 12),
 
@@ -797,18 +866,24 @@ class _RowItemState extends ConsumerState<RowItem>
             .where((it) => it.variantId == v.id)
             .toList();
 
-        final num totalQty = matching.fold<num>(0, (sum, it) => sum + (it.qty));
+        final num streamTotalQty =
+            matching.fold<num>(0, (sum, it) => sum + (it.qty));
+        final int displayQty =
+            (streamTotalQty + _cartOptimisticBump).round().clamp(0, 999999);
 
-        // Requirement: when qty is 1, only show "+" (no minus).
-        if (totalQty <= 1) {
+        if (displayQty <= 0) {
           return _buildPlusOnlyButton(textTheme, colorScheme);
         }
+
+        final decrementEnabled = streamTotalQty > 0;
 
         return _buildStepper(
           textTheme: textTheme,
           colorScheme: colorScheme,
-          qty: totalQty,
+          qty: displayQty,
+          decrementEnabled: decrementEnabled,
           onDecrement: () async {
+            if (!decrementEnabled) return;
             await _decrementOne(
               transactionId: txn.id,
               matchingItems: matching,
@@ -816,7 +891,7 @@ class _RowItemState extends ConsumerState<RowItem>
           },
           onIncrement: () async {
             final core = CoreViewModel();
-            await onTapItem(model: core, isOrdering: widget.isOrdering);
+            await _onAddToCartWithOptimistic(core);
           },
         );
       },
@@ -830,7 +905,7 @@ class _RowItemState extends ConsumerState<RowItem>
       child: OutlinedButton(
         onPressed: () async {
           final core = CoreViewModel();
-          await onTapItem(model: core, isOrdering: widget.isOrdering);
+          await _onAddToCartWithOptimistic(core);
         },
         style: OutlinedButton.styleFrom(
           padding: EdgeInsets.zero,
@@ -849,6 +924,7 @@ class _RowItemState extends ConsumerState<RowItem>
     required TextTheme textTheme,
     required ColorScheme colorScheme,
     required num qty,
+    required bool decrementEnabled,
     required Future<void> Function() onDecrement,
     required Future<void> Function() onIncrement,
   }) {
@@ -867,9 +943,13 @@ class _RowItemState extends ConsumerState<RowItem>
             height: 32,
             child: IconButton(
               padding: EdgeInsets.zero,
-              onPressed: () async => onDecrement(),
+              onPressed: decrementEnabled
+                  ? () async => onDecrement()
+                  : null,
               icon: const Icon(Icons.remove, size: 18),
-              color: colorScheme.onSurface,
+              color: decrementEnabled
+                  ? colorScheme.onSurface
+                  : colorScheme.onSurface.withValues(alpha: 0.35),
               tooltip: 'Decrease quantity',
             ),
           ),
@@ -1163,8 +1243,30 @@ class _RowItemState extends ConsumerState<RowItem>
     );
   }
 
-  // Rest of the methods remain the same
-  Future<void> onTapItem({
+  /// Bumps cart UI immediately, then adds the line; rolls back bump on failure or throw.
+  Future<void> _onAddToCartWithOptimistic(CoreViewModel model) async {
+    final hasVariant = widget.variant != null;
+    if (hasVariant) {
+      setState(() => _cartOptimisticBump++);
+    }
+    try {
+      final ok = await onTapItem(model: model, isOrdering: widget.isOrdering);
+      if (hasVariant && !ok && mounted) {
+        setState(
+          () => _cartOptimisticBump = (_cartOptimisticBump - 1).clamp(0, 999),
+        );
+      }
+    } catch (_) {
+      if (hasVariant && mounted) {
+        setState(
+          () => _cartOptimisticBump = (_cartOptimisticBump - 1).clamp(0, 999),
+        );
+      }
+      rethrow;
+    }
+  }
+
+  Future<bool> onTapItem({
     required CoreViewModel model,
     required bool isOrdering,
   }) async {
@@ -1181,16 +1283,19 @@ class _RowItemState extends ConsumerState<RowItem>
 
       // Use the shared TransactionItemAdder
       final itemAdder = TransactionItemAdder(context, ref);
-      await itemAdder.addItemToTransaction(
+      final ok = await itemAdder.addItemToTransaction(
         variant: widget.variant!,
         isOrdering: isOrdering,
       );
+      w?.log("Item Added to Quick Sell");
+      return ok;
     } else if (widget.product != null) {
       // _routerService.navigateTo(SellRoute(product: widget.product!));
       throw Exception("Product navigation not implemented");
     }
 
     w?.log("Item Added to Quick Sell");
+    return false;
   }
 
   Future<String?> getImageFilePath({required String imageFileName}) async {
@@ -1220,6 +1325,22 @@ class _RowItemState extends ConsumerState<RowItem>
         if (await file.exists()) {
           return asset.localPath!;
         }
+      }
+
+      // Lazy download from S3 if missing locally (new device).
+      try {
+        final stream = await ProxyService.strategy.downloadAssetSave(
+          assetName: assetName,
+          subPath: 'branch',
+        );
+        await for (final p in stream) {
+          if (p >= 100) break;
+        }
+        final downloaded = await getImageFilePath(imageFileName: assetName);
+        if (downloaded != null) return downloaded;
+      } catch (e) {
+        // Best-effort; remote URL fallback will still work when online.
+        talker.error('Error downloading asset from S3: $e');
       }
       return null;
     } catch (e) {

@@ -24,6 +24,21 @@ mixin CapellaSettingsMixin {
   Talker get talker;
   DittoService get dittoService;
 
+  DateTime _settingLastTouched(Map<String, dynamic> data) {
+    final value =
+        data['lastTouched'] ??
+        data['last_touched'] ??
+        data['updatedAt'] ??
+        data['updated_at'] ??
+        data['createdAt'] ??
+        data['created_at'];
+    if (value is DateTime) return value;
+    if (value is String) {
+      return DateTime.tryParse(value) ?? DateTime.fromMillisecondsSinceEpoch(0);
+    }
+    return DateTime.fromMillisecondsSinceEpoch(0);
+  }
+
   Future<Setting?> getSetting({required String businessId}) async {
     try {
       final ditto = dittoService.dittoInstance;
@@ -47,9 +62,16 @@ mixin CapellaSettingsMixin {
       );
 
       if (result.items.isNotEmpty) {
-        return Setting.fromJson(
-          Map<String, dynamic>.from(result.items.first.value),
-        );
+        var latest = Map<String, dynamic>.from(result.items.first.value);
+        for (final item in result.items.skip(1)) {
+          final candidate = Map<String, dynamic>.from(item.value);
+          if (_settingLastTouched(
+            candidate,
+          ).isAfter(_settingLastTouched(latest))) {
+            latest = candidate;
+          }
+        }
+        return Setting.fromJson(latest);
       }
       return null;
     } catch (e) {

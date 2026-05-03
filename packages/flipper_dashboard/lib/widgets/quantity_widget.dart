@@ -23,7 +23,7 @@ Widget quantityWidget({
                 flex: 1,
                 child: Text(
                   'QUANTITY',
-                  style: GoogleFonts.poppins(
+                  style: GoogleFonts.outfit(
                     textStyle: TextStyle(
                       fontWeight: FontWeight.w900,
                       fontSize: 18,

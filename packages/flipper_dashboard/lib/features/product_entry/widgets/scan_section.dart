@@ -66,7 +66,7 @@ class _ScanSectionState extends State<ScanSection> {
               controller: widget.controller,
               focusNode: widget.focusNode,
               decoration: InputDecoration(
-                labelText: 'Scan or Type Barcode',
+                labelText: 'Scan or Type Variant Name',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(8.0),
                 ),

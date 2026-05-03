@@ -142,13 +142,13 @@ class _CustomerMyRequestsScreenState extends State<CustomerMyRequestsScreen> {
       appBar: AppBar(
         title: Text(
           'My requests',
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+          style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
         ),
         elevation: 0,
         backgroundColor: const Color(0xFF0D9488),
         foregroundColor: Colors.white,
         iconTheme: const IconThemeData(color: Colors.white),
-        titleTextStyle: GoogleFonts.poppins(
+        titleTextStyle: GoogleFonts.outfit(
           color: Colors.white,
           fontSize: 18,
           fontWeight: FontWeight.w600,
@@ -180,7 +180,7 @@ class _CustomerMyRequestsScreenState extends State<CustomerMyRequestsScreen> {
                       Text(
                         'No requests yet',
                         textAlign: TextAlign.center,
-                        style: GoogleFonts.poppins(
+                        style: GoogleFonts.outfit(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,
                           color: Colors.grey.shade900,
@@ -190,7 +190,7 @@ class _CustomerMyRequestsScreenState extends State<CustomerMyRequestsScreen> {
                       Text(
                         'When you ask someone for a service from Find providers, it will appear here. After they accept, you can pay with MTN within the time shown.',
                         textAlign: TextAlign.center,
-                        style: GoogleFonts.poppins(
+                        style: GoogleFonts.outfit(
                           fontSize: 14,
                           height: 1.45,
                           color: Colors.grey.shade600,
@@ -327,7 +327,7 @@ class _OutgoingRequestCard extends StatelessWidget {
                         const Color(0xFF0D9488).withValues(alpha: 0.12),
                     child: Text(
                       initial,
-                      style: GoogleFonts.poppins(
+                      style: GoogleFonts.outfit(
                         fontWeight: FontWeight.w600,
                         fontSize: 16,
                         color: const Color(0xFF0F766E),
@@ -345,7 +345,7 @@ class _OutgoingRequestCard extends StatelessWidget {
                             Expanded(
                               child: Text(
                                 providerLabel,
-                                style: GoogleFonts.poppins(
+                                style: GoogleFonts.outfit(
                                   fontWeight: FontWeight.w600,
                                   fontSize: 16,
                                   height: 1.25,
@@ -365,7 +365,7 @@ class _OutgoingRequestCard extends StatelessWidget {
                               ),
                               child: Text(
                                 statusLabel,
-                                style: GoogleFonts.poppins(
+                                style: GoogleFonts.outfit(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w600,
                                   height: 1.2,
@@ -380,7 +380,7 @@ class _OutgoingRequestCard extends StatelessWidget {
                           const SizedBox(height: 6),
                           Text(
                             request.requestedService!,
-                            style: GoogleFonts.poppins(
+                            style: GoogleFonts.outfit(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
                               color: Colors.grey.shade900,
@@ -392,7 +392,7 @@ class _OutgoingRequestCard extends StatelessWidget {
                           request.customerMessage,
                           maxLines: 3,
                           overflow: TextOverflow.ellipsis,
-                          style: GoogleFonts.poppins(
+                          style: GoogleFonts.outfit(
                             fontSize: 13,
                             height: 1.4,
                             color: Colors.grey.shade700,
@@ -441,7 +441,7 @@ class _OutgoingRequestCard extends StatelessWidget {
                         request.canCustomerPay
                             ? 'Pay by ${dateFormat.format(request.paymentDeadlineAt!.toLocal())}'
                             : 'You did not pay before ${dateFormat.format(request.paymentDeadlineAt!.toLocal())}',
-                        style: GoogleFonts.poppins(
+                        style: GoogleFonts.outfit(
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
                           height: 1.35,
@@ -473,7 +473,7 @@ class _OutgoingRequestCard extends StatelessWidget {
                                     request.paymentAmountRwf
                             ? 'Paid ${request.paymentAmountRwf} RWF · MTN settled ${request.mtnSettledAmountRwf} RWF'
                             : 'Paid ${request.paymentAmountRwf} RWF',
-                        style: GoogleFonts.poppins(
+                        style: GoogleFonts.outfit(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
                           height: 1.35,
@@ -523,13 +523,13 @@ class _MetaLine extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final caption = GoogleFonts.poppins(
+    final caption = GoogleFonts.outfit(
       fontSize: dense ? 12 : 12,
       fontWeight: FontWeight.w500,
       color: Colors.grey.shade600,
       height: 1.35,
     );
-    final valueStyle = GoogleFonts.poppins(
+    final valueStyle = GoogleFonts.outfit(
       fontSize: dense ? 12 : 13,
       fontWeight: FontWeight.w600,
       color: Colors.grey.shade900,

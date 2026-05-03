@@ -1,6 +1,7 @@
 // flipper_models/providers/outer_variant_provider.dart
 
 import 'dart:async';
+import 'dart:math' as math;
 import 'package:collection/collection.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/helperModels/talker.dart';
@@ -15,11 +16,54 @@ part 'outer_variant_provider.g.dart';
 
 @riverpod
 class OuterVariants extends _$OuterVariants {
-  int _currentPage = 0;
+  /// In-memory pages `[firstCachedPage … lastCachedPage]`; oldest dropped when
+  /// count exceeds [_maxCachedPages] so scroll "load more" cannot grow without bound.
+  final Map<int, List<Variant>> _pageCache = {};
+  int _firstCachedPage = 0;
+  int _lastCachedPage = -1;
+
+  static const int _maxCachedPages = 10;
+
   String _currentSearch = '';
   int? _totalCount;
   int? _itemsPerPage;
   bool _isVatEnabled = false;
+
+  List<Variant> _flattenContiguousPages() {
+    if (_pageCache.isEmpty) return [];
+    final keys = _pageCache.keys.toList()..sort();
+    final out = <Variant>[];
+    for (final k in keys) {
+      out.addAll(_pageCache[k]!);
+    }
+    return out;
+  }
+
+  void _repackFromFlatList(List<Variant> flat) {
+    _pageCache.clear();
+    final ipp = _itemsPerPage;
+    if (ipp == null || ipp <= 0 || flat.isEmpty) {
+      _firstCachedPage = 0;
+      _lastCachedPage = -1;
+      return;
+    }
+    for (var i = 0; i < flat.length; i += ipp) {
+      final pageIdx = i ~/ ipp;
+      _pageCache[pageIdx] = flat.sublist(i, math.min(i + ipp, flat.length));
+    }
+    _firstCachedPage = _pageCache.keys.reduce(math.min);
+    _lastCachedPage = _pageCache.keys.reduce(math.max);
+  }
+
+  void _syncBoundsFromCache() {
+    if (_pageCache.isEmpty) {
+      _firstCachedPage = 0;
+      _lastCachedPage = -1;
+    } else {
+      _firstCachedPage = _pageCache.keys.reduce(math.min);
+      _lastCachedPage = _pageCache.keys.reduce(math.max);
+    }
+  }
 
   @override
   FutureOr<List<Variant>> build(String branchId) async {
@@ -31,6 +75,10 @@ class OuterVariants extends _$OuterVariants {
         (prefIpp != null && prefIpp > 0 && prefIpp <= _maxPageSize)
         ? prefIpp
         : _defaultPageSize;
+    talker.info(
+      'OuterVariants: itemsPerPage=${_itemsPerPage ?? 'null'} '
+      '(pref=${prefIpp ?? 'null'}, default=$_defaultPageSize, max=$_maxPageSize)',
+    );
 
     // Fetch VAT enabled status from EBM and cache it
     _isVatEnabled = await getVatEnabledFromEbm();
@@ -41,22 +89,31 @@ class OuterVariants extends _$OuterVariants {
     // Always update current search and page when they change
     if (searchString != _currentSearch) {
       _currentSearch = searchString;
-      _currentPage = 0;
+      _pageCache.clear();
+      _firstCachedPage = 0;
+      _lastCachedPage = -1;
     }
+
+    const int fetchPageIndex = 0;
 
     // First page + no search: Ditto may still be pulling from the mesh after
     // app start. A single empty success would cache forever unless we retry.
     final PagedVariants paged;
-    if (_currentPage == 0 &&
+    if (fetchPageIndex == 0 &&
         _currentSearch.isEmpty &&
         branchId.isNotEmpty) {
       paged = await _fetchVariantsWithColdStartGrace(branchId);
     } else {
-      paged = await _fetchVariants(branchId, _currentPage, _currentSearch);
+      paged = await _fetchVariants(branchId, fetchPageIndex, _currentSearch);
     }
     _totalCount = paged.totalCount;
 
-    return List<Variant>.from(paged.variants);
+    _pageCache.clear();
+    _pageCache[0] = List<Variant>.from(paged.variants);
+    _firstCachedPage = 0;
+    _lastCachedPage = 0;
+
+    return _flattenContiguousPages();
   }
 
   /// Extra backoff after an empty first fetch so products appear on cold start
@@ -124,17 +181,30 @@ class OuterVariants extends _$OuterVariants {
   /// Loads the next page of variants for pagination.
   Future<void> loadMore() async {
     if (_totalCount == null ||
-        (_currentPage + 1) * _itemsPerPage! >= _totalCount!)
+        (_lastCachedPage + 1) * _itemsPerPage! >= _totalCount!) {
       return;
+    }
 
+    final nextPage = _lastCachedPage + 1;
     final paged = await _fetchVariants(
       branchId,
-      _currentPage + 1,
+      nextPage,
       _currentSearch,
     );
-    _currentPage++;
-    final newList = [...state.value!, ...List<Variant>.from(paged.variants)];
-    state = AsyncValue.data(newList);
+    _pageCache[nextPage] = List<Variant>.from(paged.variants);
+    _lastCachedPage = nextPage;
+
+    while (_pageCache.length > _maxCachedPages) {
+      final first = _pageCache.keys.reduce(math.min);
+      _pageCache.remove(first);
+      talker.info(
+        'OuterVariants: evicted page $first from cache '
+        '(max $_maxCachedPages pages in memory)',
+      );
+    }
+    _syncBoundsFromCache();
+
+    state = AsyncValue.data(_flattenContiguousPages());
   }
 
   /// Method to be called when VAT settings change to force a full refresh.
@@ -147,10 +217,13 @@ class OuterVariants extends _$OuterVariants {
   /// Method to force a full refresh of variants (e.g., after adding new products).
   Future<void> refresh() async {
     final paged = await _fetchVariants(branchId, 0, '');
-    _currentPage = 0;
     _currentSearch = '';
     _totalCount = paged.totalCount;
-    state = AsyncValue.data(List<Variant>.from(paged.variants));
+    _pageCache.clear();
+    _pageCache[0] = List<Variant>.from(paged.variants);
+    _firstCachedPage = 0;
+    _lastCachedPage = 0;
+    state = AsyncValue.data(_flattenContiguousPages());
   }
 
   /// Add newly created variants to the provider without full reload.
@@ -160,21 +233,52 @@ class OuterVariants extends _$OuterVariants {
     // Get IDs of new/updated variants
     final newVariantIds = newVariants.map((v) => v.id).toSet();
 
+    final existingFlat = _pageCache.isEmpty
+        ? List<Variant>.from(state.value!)
+        : _flattenContiguousPages();
+
     // Filter out existing variants that match the new IDs to prevent duplicates
-    final filteredExisting = state.value!
+    final filteredExisting = existingFlat
         .where((v) => !newVariantIds.contains(v.id))
         .toList();
 
     // Prepend the new/updated variants to the list
-    final newList = [...newVariants, ...filteredExisting];
-    state = AsyncValue.data(newList);
+    var newList = [...newVariants, ...filteredExisting];
+    final ipp = _itemsPerPage ?? 15;
+    final maxItems = _maxCachedPages * ipp;
+    if (newList.length > maxItems) {
+      newList = newList.sublist(0, maxItems);
+    }
+    _repackFromFlatList(newList);
+    state = AsyncValue.data(_flattenContiguousPages());
   }
 
   /// Removes a variant from the state.
   void removeVariantById(String variantId) {
     if (state.value == null) return;
-    final newList = state.value!.where((v) => v.id != variantId).toList();
-    state = AsyncValue.data(newList);
+    if (_pageCache.isEmpty) {
+      final newList = state.value!.where((v) => v.id != variantId).toList();
+      if (newList.isEmpty) {
+        _firstCachedPage = 0;
+        _lastCachedPage = -1;
+        state = AsyncValue.data([]);
+        return;
+      }
+      _repackFromFlatList(newList);
+      state = AsyncValue.data(_flattenContiguousPages());
+      return;
+    }
+    final keys = _pageCache.keys.toList();
+    for (final k in keys) {
+      final chunk = _pageCache[k];
+      if (chunk == null) continue;
+      _pageCache[k] = chunk.where((v) => v.id != variantId).toList();
+      if (_pageCache[k]!.isEmpty) {
+        _pageCache.remove(k);
+      }
+    }
+    _syncBoundsFromCache();
+    state = AsyncValue.data(_flattenContiguousPages());
   }
 
   /// Saves stock data to cache.
@@ -182,13 +286,18 @@ class OuterVariants extends _$OuterVariants {
   /// Public helper: fetch a specific page and replace current cache.
   Future<void> fetchPage(int page) async {
     final paged = await _fetchVariants(branchId, page, _currentSearch);
-    _currentPage = page;
-    state = AsyncValue.data(List<Variant>.from(paged.variants));
+    _pageCache
+      ..clear()
+      ..[page] = List<Variant>.from(paged.variants);
+    _firstCachedPage = page;
+    _lastCachedPage = page;
+    _totalCount = paged.totalCount;
+    state = AsyncValue.data(_flattenContiguousPages());
   }
 
   /// Return items for a given page (sliced from the locally cached variants).
   List<Variant> getPageItems(int page) {
-    return page == _currentPage ? state.value ?? [] : [];
+    return List<Variant>.from(_pageCache[page] ?? const <Variant>[]);
   }
 
   int get itemsPerPage => _itemsPerPage ?? 10;
@@ -197,11 +306,15 @@ class OuterVariants extends _$OuterVariants {
 
   int? get totalCount => _totalCount;
 
-  /// Current page index (0-based) for the cached page in the provider.
-  int get currentPage => _currentPage;
+  /// Highest page index currently present in the page cache (0-based).
+  int get currentPage => _lastCachedPage;
+
+  /// Lowest page index currently held in memory (after evictions, can be > 0).
+  int get firstCachedPage => _firstCachedPage;
 
   bool get hasMorePages =>
-      _totalCount == null || (_currentPage + 1) * _itemsPerPage! < _totalCount!;
+      _totalCount == null ||
+      (_lastCachedPage + 1) * _itemsPerPage! < _totalCount!;
 
   /// Returns an estimate of total pages based on loaded items and whether
   /// there are more pages available. This is an estimate because the provider

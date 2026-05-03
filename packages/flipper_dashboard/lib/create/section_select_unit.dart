@@ -38,7 +38,7 @@ class SectionSelectUnit extends StatelessWidget {
             dense: true,
             leading: Text(
               'Unit Type',
-              style: GoogleFonts.poppins(
+              style: GoogleFonts.outfit(
                   color: Colors.black,
                   fontSize: 17,
                   fontWeight: FontWeight.w400),

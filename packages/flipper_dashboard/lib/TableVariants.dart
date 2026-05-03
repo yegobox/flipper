@@ -1,4 +1,5 @@
 import 'package:flipper_dashboard/dialog_status.dart';
+import 'package:flipper_dashboard/widgets/variant_table_image_cell.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_dashboard/QuantityCell.dart';
@@ -37,9 +38,11 @@ class TableVariants extends StatelessWidget {
     required this.onDateChanged,
     this.isEditMode = false,
     required this.isEbmEnabled,
+    this.productId,
   }) : super(key: key);
   final bool isEditMode;
   final bool isEbmEnabled;
+  final String? productId;
 
   @override
   Widget build(BuildContext context) {
@@ -125,6 +128,14 @@ class TableVariants extends StatelessWidget {
               value: model.isSelected(variant.id),
               onChanged: (value) => model.toggleSelect(variant.id),
             ),
+            if (productId != null && productId!.isNotEmpty) ...[
+              VariantTableImageCell(
+                productId: productId!,
+                variant: variant,
+                model: model,
+              ),
+              const SizedBox(width: 8),
+            ],
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -186,6 +197,27 @@ class TableVariants extends StatelessWidget {
                         ).requestFocus(scannedInputFocusNode);
                       });
                     },
+                  ),
+                ),
+                _buildMobileInfoRow(
+                  'Low stock',
+                  TextFormField(
+                    controller: model.getLowStockController(variant.id),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+                    ],
+                    onChanged: (s) {
+                      final d = double.tryParse(s);
+                      if (d != null && variant.stock != null) {
+                        variant.stock!.lowStock = d;
+                      }
+                    },
+                    decoration: const InputDecoration(
+                      hintText: 'Reorder at',
+                    ),
                   ),
                 ),
                 _buildMobileInfoRow(
@@ -323,6 +355,9 @@ class TableVariants extends StatelessWidget {
         ),
       ),
       const DataColumn(
+        label: Text('Image', style: TextStyle(fontWeight: FontWeight.bold)),
+      ),
+      const DataColumn(
         label: Text('Name', style: TextStyle(fontWeight: FontWeight.bold)),
       ),
       const DataColumn(
@@ -330,6 +365,12 @@ class TableVariants extends StatelessWidget {
       ),
       const DataColumn(
         label: Text('Quantity', style: TextStyle(fontWeight: FontWeight.bold)),
+      ),
+      const DataColumn(
+        label: Text(
+          'Low stock',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
       ),
       const DataColumn(
         label: Text('Tax', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -372,6 +413,15 @@ class TableVariants extends StatelessWidget {
             onChanged: (value) => model.toggleSelect(variant.id),
           ),
         ),
+        DataCell(
+          productId != null && productId!.isNotEmpty
+              ? VariantTableImageCell(
+                  productId: productId!,
+                  variant: variant,
+                  model: model,
+                )
+              : const Text('—'),
+        ),
         DataCell(Text(variant.bcd ?? variant.name)),
         DataCell(Text(variant.retailPrice?.toStringAsFixed(2) ?? '')),
         DataCell(
@@ -382,6 +432,30 @@ class TableVariants extends StatelessWidget {
                 FocusScope.of(context).requestFocus(scannedInputFocusNode);
               });
             },
+          ),
+        ),
+        DataCell(
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 100),
+            child: TextFormField(
+              controller: model.getLowStockController(variant.id),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              inputFormatters: [
+                FilteringTextInputFormatter.allow(RegExp(r'[0-9.]')),
+              ],
+              onChanged: (s) {
+                final d = double.tryParse(s);
+                if (d != null && variant.stock != null) {
+                  variant.stock!.lowStock = d;
+                }
+              },
+              decoration: const InputDecoration(
+                isDense: true,
+                contentPadding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+              ),
+            ),
           ),
         ),
         DataCell(

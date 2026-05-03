@@ -8,6 +8,73 @@ part of 'category_provider.dart';
 
 // GENERATED CODE - DO NOT MODIFY BY HAND
 // ignore_for_file: type=lint, type=warning
+/// After updating focus flags in SQLite, [categoryProvider]'s Brick subscription can
+/// emit slightly later; set this synchronously when the user confirms a category so UI
+/// (e.g. cashbook Row) reflects the selection immediately. Cleared when the stream matches.
+
+@ProviderFor(OptimisticFocusedCategory)
+const optimisticFocusedCategoryProvider = OptimisticFocusedCategoryProvider._();
+
+/// After updating focus flags in SQLite, [categoryProvider]'s Brick subscription can
+/// emit slightly later; set this synchronously when the user confirms a category so UI
+/// (e.g. cashbook Row) reflects the selection immediately. Cleared when the stream matches.
+final class OptimisticFocusedCategoryProvider
+    extends $NotifierProvider<OptimisticFocusedCategory, Category?> {
+  /// After updating focus flags in SQLite, [categoryProvider]'s Brick subscription can
+  /// emit slightly later; set this synchronously when the user confirms a category so UI
+  /// (e.g. cashbook Row) reflects the selection immediately. Cleared when the stream matches.
+  const OptimisticFocusedCategoryProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'optimisticFocusedCategoryProvider',
+        isAutoDispose: false,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$optimisticFocusedCategoryHash();
+
+  @$internal
+  @override
+  OptimisticFocusedCategory create() => OptimisticFocusedCategory();
+
+  /// {@macro riverpod.override_with_value}
+  Override overrideWithValue(Category? value) {
+    return $ProviderOverride(
+      origin: this,
+      providerOverride: $SyncValueProvider<Category?>(value),
+    );
+  }
+}
+
+String _$optimisticFocusedCategoryHash() =>
+    r'ad7ae66ac3ddfda84129fa983f59d36f33b60c39';
+
+/// After updating focus flags in SQLite, [categoryProvider]'s Brick subscription can
+/// emit slightly later; set this synchronously when the user confirms a category so UI
+/// (e.g. cashbook Row) reflects the selection immediately. Cleared when the stream matches.
+
+abstract class _$OptimisticFocusedCategory extends $Notifier<Category?> {
+  Category? build();
+  @$mustCallSuper
+  @override
+  void runBuild() {
+    final created = build();
+    final ref = this.ref as $Ref<Category?, Category?>;
+    final element =
+        ref.element
+            as $ClassProviderElement<
+              AnyNotifier<Category?, Category?>,
+              Category?,
+              Object?,
+              Object?
+            >;
+    element.handleValue(ref, created);
+  }
+}
 
 @ProviderFor(category)
 const categoryProvider = CategoryProvider._();

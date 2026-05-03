@@ -67,6 +67,14 @@ mixin CapellaTransactionItemMixin implements TransactionItemInterface {
         conditions.add('branchId = :branchId');
         arguments['branchId'] = branchId;
       }
+      if (variantId != null) {
+        conditions.add('variantId = :variantId');
+        arguments['variantId'] = variantId;
+      }
+      if (id != null) {
+        conditions.add('id = :id');
+        arguments['id'] = id;
+      }
       if (active != null) {
         conditions.add('active = :active');
         arguments['active'] = active;

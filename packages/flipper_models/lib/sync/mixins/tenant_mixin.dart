@@ -110,12 +110,22 @@ mixin TenantMixin implements TenantInterface {
   }
 
   @override
-  Future<List<Tenant>> tenants({String? businessId, int? excludeUserId}) {
-    return repository.get<Tenant>(
-        query: Query(where: [
+  Future<List<Tenant>> tenants({String? businessId, int? excludeUserId}) async {
+    final query = Query(where: [
       Where('businessId').isExactly(businessId),
       if (excludeUserId != null) Where('userId').isNot(excludeUserId),
-    ]));
+    ]);
+    try {
+      return await repository.get<Tenant>(
+        policy: OfflineFirstGetPolicy.awaitRemote,
+        query: query,
+      );
+    } catch (_) {
+      return repository.get<Tenant>(
+        policy: OfflineFirstGetPolicy.localOnly,
+        query: query,
+      );
+    }
   }
 
   @override

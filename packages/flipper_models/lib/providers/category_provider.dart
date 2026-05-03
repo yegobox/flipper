@@ -5,6 +5,19 @@ import 'package:flipper_services/proxy.dart';
 import 'package:supabase_models/brick/models/all_models.dart';
 part 'category_provider.g.dart';
 
+/// After updating focus flags in SQLite, [categoryProvider]'s Brick subscription can
+/// emit slightly later; set this synchronously when the user confirms a category so UI
+/// (e.g. cashbook Row) reflects the selection immediately. Cleared when the stream matches.
+@Riverpod(keepAlive: true)
+class OptimisticFocusedCategory extends _$OptimisticFocusedCategory {
+  @override
+  Category? build() => null;
+
+  void setFocused(Category category) => state = category;
+
+  void clear() => state = null;
+}
+
 @riverpod
 Stream<List<Category>> category(Ref ref) {
   final branch = ref.watch(activeBranchProvider).value;

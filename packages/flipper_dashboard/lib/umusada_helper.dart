@@ -93,7 +93,7 @@ class UmusadaHelper {
                       children: [
                         Text(
                           'Umusada',
-                          style: GoogleFonts.poppins(
+                          style: GoogleFonts.outfit(
                             fontWeight: FontWeight.w700,
                             fontSize: 20,
                             color: _kTextPrimary,
@@ -103,7 +103,7 @@ class UmusadaHelper {
                         const SizedBox(height: 2),
                         Text(
                           'Business Financing',
-                          style: GoogleFonts.poppins(
+                          style: GoogleFonts.outfit(
                             fontSize: 13,
                             color: _kTextTertiary,
                             fontWeight: FontWeight.w400,
@@ -152,7 +152,7 @@ class UmusadaHelper {
                             Text(
                               'Unlock Business Loans',
                               textAlign: TextAlign.center,
-                              style: GoogleFonts.poppins(
+                              style: GoogleFonts.outfit(
                                 fontWeight: FontWeight.w700,
                                 fontSize: 18,
                                 color: Colors.white,
@@ -163,7 +163,7 @@ class UmusadaHelper {
                             Text(
                               'Get financing based on your order history',
                               textAlign: TextAlign.center,
-                              style: GoogleFonts.poppins(
+                              style: GoogleFonts.outfit(
                                 fontSize: 13,
                                 color: Colors.white.withOpacity(0.85),
                                 height: 1.4,
@@ -178,7 +178,7 @@ class UmusadaHelper {
                       // ─── Benefits ───
                       Text(
                         'How it works',
-                        style: GoogleFonts.poppins(
+                        style: GoogleFonts.outfit(
                           fontWeight: FontWeight.w600,
                           fontSize: 15,
                           color: _kTextPrimary,
@@ -262,7 +262,7 @@ class UmusadaHelper {
                         ),
                         child: Text(
                           'Join Umusada',
-                          style: GoogleFonts.poppins(
+                          style: GoogleFonts.outfit(
                             fontWeight: FontWeight.w600,
                             fontSize: 15,
                             letterSpacing: 0.3,
@@ -287,7 +287,7 @@ class UmusadaHelper {
                         ),
                         child: Text(
                           'Maybe later',
-                          style: GoogleFonts.poppins(
+                          style: GoogleFonts.outfit(
                             fontWeight: FontWeight.w500,
                             fontSize: 14,
                           ),
@@ -346,7 +346,7 @@ class UmusadaHelper {
               const SizedBox(height: 16),
               Text(
                 'Connecting…',
-                style: GoogleFonts.poppins(
+                style: GoogleFonts.outfit(
                   fontSize: 14,
                   fontWeight: FontWeight.w500,
                   color: _kTextSecondary,
@@ -465,7 +465,7 @@ class UmusadaHelper {
             const SizedBox(width: 12),
             Text(
               'Connection Failed',
-              style: GoogleFonts.poppins(
+              style: GoogleFonts.outfit(
                 fontWeight: FontWeight.w600,
                 fontSize: 17,
                 color: _kTextPrimary,
@@ -475,7 +475,7 @@ class UmusadaHelper {
         ),
         content: Text(
           'Could not connect to Umusada. Please try again later.',
-          style: GoogleFonts.poppins(
+          style: GoogleFonts.outfit(
             fontSize: 14,
             color: _kTextSecondary,
             height: 1.5,
@@ -495,7 +495,7 @@ class UmusadaHelper {
             ),
             child: Text(
               'Close',
-              style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+              style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
             ),
           ),
         ],
@@ -546,7 +546,7 @@ class _BenefitTile extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: GoogleFonts.poppins(
+                  style: GoogleFonts.outfit(
                     fontWeight: FontWeight.w600,
                     fontSize: 13,
                     color: const Color(0xFF1A1C1E),
@@ -555,7 +555,7 @@ class _BenefitTile extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   subtitle,
-                  style: GoogleFonts.poppins(
+                  style: GoogleFonts.outfit(
                     fontSize: 12,
                     color: const Color(0xFF72787F),
                     height: 1.4,

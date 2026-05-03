@@ -143,14 +143,14 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
                 ),
                 const SizedBox(height: 51),
                 Text('Done',
-                    style: GoogleFonts.poppins(
+                    style: GoogleFonts.outfit(
                         fontWeight: FontWeight.w400,
                         fontSize: 20,
                         color: Colors.black)),
                 const SizedBox(height: 40),
                 Text(
                     '${ProxyService.box.defaultCurrency()} ${NumberFormat('#,###').format(widget.transaction.cashReceived)}',
-                    style: GoogleFonts.poppins(
+                    style: GoogleFonts.outfit(
                         fontWeight: FontWeight.w400,
                         fontSize: 18,
                         color: Colors.black)),
@@ -232,7 +232,7 @@ class PaymentConfirmationState extends ConsumerState<PaymentConfirmation> {
                 (Set<WidgetState> states) => sideColor),
           ),
           child: Text(label,
-              style: GoogleFonts.poppins(
+              style: GoogleFonts.outfit(
                   fontSize: 14, color: color, fontWeight: FontWeight.w600)),
         ),
       ),

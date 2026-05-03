@@ -29,6 +29,7 @@ import 'package:flipper_models/power_sync/supabase.dart';
 import 'package:flipper_services/GlobalLogError.dart';
 // Flag to control dependency initialization in tests
 // import 'package:flipper_web/core/utils/initialization.dart';
+//
 import 'package:supabase_models/sync/ditto_sync_registry.dart';
 
 import 'package:ditto_live/ditto_live.dart';
@@ -258,6 +259,11 @@ Future<void> main() async {
   );
 }
 
+/// Keep in sync with [DevicePreview.enabled] on [FlipperApp]. When preview is on,
+/// `MaterialApp.router` must pass the inherited `MediaQuery` flag expected by
+/// `package:device_preview` (`isWidgetsAppUsingInheritedMediaQuery` assert).
+const bool kFlipperDevicePreviewEnabled = kDebugMode;
+
 class FlipperApp extends StatefulWidget {
   const FlipperApp({super.key});
 
@@ -267,12 +273,21 @@ class FlipperApp extends StatefulWidget {
 
 class _FlipperAppState extends State<FlipperApp> {
   late final ThemeData _theme;
+  /// Must be created once per app lifetime. Calling [stackedRouter.delegate] on every
+  /// [build] recreates the navigator delegate and can attach [RenderObject]s while an
+  /// ancestor [LayoutBuilder] is still in [performLayout], triggering Flutter's
+  /// "mutated in performLayout" assertion (often surfaced via DevicePreview).
+  late final RouterDelegate<Object> _routerDelegate;
+  late final RouteInformationParser<Object> _routeInformationParser;
 
   @override
   void initState() {
     debugPrint('🎬 [FlipperApp] initState called');
     super.initState();
     _theme = _buildTheme();
+    _routerDelegate = stackedRouter.delegate() as RouterDelegate<Object>;
+    _routeInformationParser =
+        stackedRouter.defaultRouteParser() as RouteInformationParser<Object>;
     // Remove splash screen after the first frame is rendered
     WidgetsBinding.instance.addPostFrameCallback((_) {
       debugPrint(
@@ -282,11 +297,12 @@ class _FlipperAppState extends State<FlipperApp> {
   }
 
   ThemeData _buildTheme() {
-    // Disable runtime fetching since we have fonts bundled in flipper/google_fonts
+    // Bundled `.ttf` files live under `google_fonts/` (see pubspec assets). Must stay false so
+    // release builds do not depend on runtime font downloads.
     GoogleFonts.config.allowRuntimeFetching = false;
 
     return ThemeData(
-      textTheme: GoogleFonts.poppinsTextTheme(),
+      textTheme: GoogleFonts.outfitTextTheme(),
       brightness: Brightness.light,
       primaryColor: Colors.blue,
       colorScheme: ColorScheme.fromSeed(
@@ -310,14 +326,11 @@ class _FlipperAppState extends State<FlipperApp> {
   Widget build(BuildContext context) {
     debugPrint('🎬 [FlipperApp] build start');
 
-    final routerDelegate = stackedRouter.delegate();
-    final routeInformationParser = stackedRouter.defaultRouteParser();
-
     return ProviderScope(
       observers: [StateObserver()],
       child: OverlaySupport.global(
         child: DevicePreview(
-          enabled: kDebugMode,
+          enabled: kFlipperDevicePreviewEnabled,
           tools: const [
             ...DevicePreview.defaultTools,
           ],
@@ -325,7 +338,8 @@ class _FlipperAppState extends State<FlipperApp> {
             debugShowCheckedModeBanner: false,
             title: 'flipper',
             theme: _theme,
-            useInheritedMediaQuery: true,
+            // Required by package:device_preview when enabled (assert).
+            useInheritedMediaQuery: kFlipperDevicePreviewEnabled, // ignore: deprecated_member_use
             localizationsDelegates: [
               FirebaseUILocalizations.withDefaultOverrides(
                 const LabelOverrides(),
@@ -341,8 +355,8 @@ class _FlipperAppState extends State<FlipperApp> {
             ],
             locale: const Locale('en'),
             themeMode: ThemeMode.system,
-            routerDelegate: routerDelegate,
-            routeInformationParser: routeInformationParser,
+            routerDelegate: _routerDelegate,
+            routeInformationParser: _routeInformationParser,
             builder: (context, child) {
               return child!;
             },

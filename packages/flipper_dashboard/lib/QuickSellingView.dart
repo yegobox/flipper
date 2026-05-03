@@ -2,6 +2,8 @@
 import 'dart:async';
 
 import 'package:flipper_dashboard/DateCoreWidget.dart';
+import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
+import 'package:flipper_dashboard/SearchCustomer.dart';
 import 'package:flipper_dashboard/TextEditingControllersMixin.dart';
 import 'package:flipper_dashboard/TransactionItemTable.dart';
 import 'package:flipper_dashboard/payable_view.dart';
@@ -157,32 +159,26 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   }) {
     final branchId = ProxyService.box.getBranchId();
     final transaction = transactionAsyncValue.asData?.value;
-    final displayId =
-        transaction != null ? transaction.id.toString() : 'Invalid';
+
     final showSaveTicket =
         transaction != null && internalTransactionItems.isNotEmpty;
-    final scheme = Theme.of(context).colorScheme;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(4, 0, 4, 6),
-      child: Material(
-        elevation: 2,
-        shadowColor: Colors.black.withValues(alpha: 0.14),
-        color: scheme.surface,
-        surfaceTintColor: scheme.surfaceTint,
-        shape: RoundedRectangleBorder(
+      padding: const EdgeInsets.fromLTRB(2, 0, 2, 6),
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          color: Colors.white,
           borderRadius: BorderRadius.circular(10),
-          side: BorderSide(color: scheme.outline.withValues(alpha: 0.2)),
+          border: Border.all(color: const Color(0xFFE5E7EB)),
         ),
-        clipBehavior: Clip.antiAlias,
         child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
           child: SizedBox(
             width: double.infinity,
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Align(
-                alignment: Alignment.centerRight,
+                alignment: Alignment.centerLeft,
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -194,8 +190,6 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                         model: model,
                       ),
                     ],
-                    _checkoutToolbarDivider(),
-                    _buildCompactTransactionIdRow(displayId),
                     if (branchId != null) ...[
                       _checkoutToolbarDivider(),
                       _buildTopBarInvoiceChip(branchId: branchId),
@@ -226,15 +220,12 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   }
 
   Widget _buildTopBarInvoiceChip({required String branchId}) {
-    final scheme = Theme.of(context).colorScheme;
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: scheme.primaryContainer.withValues(alpha: 0.4),
+        color: const Color(0xFFF3F4F6),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: scheme.primary.withValues(alpha: 0.22),
-        ),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
       ),
       child: _buildInvoiceNumberRow(branchId: branchId),
     );
@@ -244,25 +235,31 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     required ITransaction transaction,
     required CoreViewModel model,
   }) {
-    final primary = Theme.of(context).colorScheme.primary;
     return Tooltip(
       message: 'Park this sale as a ticket',
-      child: TextButton.icon(
+      child: OutlinedButton.icon(
         onPressed: () => _showParkDialog(transaction, model),
-        icon: Icon(Icons.bookmark_outline_rounded, size: 18, color: primary),
+        icon: Icon(
+          Icons.save_outlined,
+          size: 18,
+          color: Theme.of(context).colorScheme.onSurfaceVariant,
+        ),
         label: Text(
           'Save ticket',
-          style: TextStyle(
-            fontSize: 13,
+          style: Theme.of(context).textTheme.labelLarge?.copyWith(
             fontWeight: FontWeight.w600,
-            color: primary,
+            color: Theme.of(context).colorScheme.onSurface,
           ),
         ),
-        style: TextButton.styleFrom(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+        style: OutlinedButton.styleFrom(
+          backgroundColor: Colors.white,
+          foregroundColor: Theme.of(context).colorScheme.onSurface,
+          side: const BorderSide(color: Color(0xFFE5E7EB)),
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           minimumSize: Size.zero,
           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
           visualDensity: VisualDensity.compact,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       ),
     );
@@ -272,24 +269,24 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     final remaining = _remainingBalance(alreadyPaid);
     final change = _amountToChange(alreadyPaid);
     final isRemaining = remaining > 0;
-    final scheme = Theme.of(context).colorScheme;
     final labelColor = isRemaining
         ? Colors.red.shade700
-        : scheme.onSurface.withValues(alpha: 0.78);
-    final valueColor =
-        isRemaining ? Colors.red.shade700 : scheme.primary;
+        : PosLayoutBreakpoints.posAccentBlue.withValues(alpha: 0.9);
+    final valueColor = isRemaining
+        ? Colors.red.shade700
+        : PosLayoutBreakpoints.posAccentBlue;
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: isRemaining
             ? Colors.red.withValues(alpha: 0.06)
-            : scheme.primaryContainer.withValues(alpha: 0.35),
+            : const Color(0xFFEFF6FF),
         borderRadius: BorderRadius.circular(8),
         border: Border.all(
           color: isRemaining
               ? Colors.red.withValues(alpha: 0.28)
-              : scheme.primary.withValues(alpha: 0.22),
+              : const Color(0xFFBFDBFE),
         ),
       ),
       child: Row(
@@ -298,86 +295,17 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           Text(
             isRemaining ? 'Remaining Balance: ' : 'Amount to Change: ',
             style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: labelColor,
-                  fontWeight: FontWeight.w600,
-                ),
+              color: labelColor,
+              fontWeight: FontWeight.w600,
+            ),
           ),
           Text(
             (isRemaining ? remaining : change).toCurrencyFormatted(
               symbol: ProxyService.box.defaultCurrency(),
             ),
             style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  color: valueColor,
-                  fontWeight: FontWeight.w700,
-                ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCompactTransactionIdRow(String displayId) {
-    final scheme = Theme.of(context).colorScheme;
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-      decoration: BoxDecoration(
-        color: scheme.surfaceContainerHighest.withValues(alpha: 0.5),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: scheme.outline.withValues(alpha: 0.2)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.receipt_long_outlined,
-            size: 16,
-            color: scheme.onSurfaceVariant,
-          ),
-          const SizedBox(width: 6),
-          Text(
-            'ID',
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: scheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w600,
-                ),
-          ),
-          const SizedBox(width: 6),
-          ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 132),
-            child: Text(
-              displayId,
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    fontFamily: 'monospace',
-                    fontWeight: FontWeight.w600,
-                  ),
-              overflow: TextOverflow.ellipsis,
-              maxLines: 1,
-            ),
-          ),
-          const SizedBox(width: 2),
-          Tooltip(
-            message: 'Copy transaction ID',
-            child: InkWell(
-              onTap: () {
-                Clipboard.setData(ClipboardData(text: displayId));
-                ProxyService.strategy.notify(
-                  notification: AppNotification(
-                    identifier: ProxyService.box.getBranchId(),
-                    type: "internal",
-                    completed: false,
-                    message: "Transaction ID copied to clipboard",
-                  ),
-                );
-              },
-              borderRadius: BorderRadius.circular(4),
-              child: Padding(
-                padding: const EdgeInsets.all(4.0),
-                child: Icon(
-                  Icons.content_copy_outlined,
-                  size: 15,
-                  color: scheme.primary,
-                ),
-              ),
+              color: valueColor,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ],
@@ -483,17 +411,23 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   final Map<String, TextEditingController> _quantityControllers = {};
 
   // _formKeyboardListenerFocusNode is non-late so KeyboardListener always has a node.
-  late final FocusNode _receivedAmountFocusNode =
-      FocusNode(onKeyEvent: _handleReceivedAmountKey);
-  late final FocusNode _customerNameFocusNode =
-      FocusNode(onKeyEvent: _handleCustomerNameKey);
-  late final FocusNode _customerPhoneFocusNode =
-      FocusNode(onKeyEvent: _handleCustomerPhoneKey);
-  late final FocusNode _deliveryNoteFocusNode =
-      FocusNode(onKeyEvent: _handleDeliveryNoteKey);
+  late final FocusNode _receivedAmountFocusNode = FocusNode(
+    onKeyEvent: _handleReceivedAmountKey,
+  );
+  late final FocusNode _customerNameFocusNode = FocusNode(
+    onKeyEvent: _handleCustomerNameKey,
+  );
+  late final FocusNode _customerPhoneFocusNode = FocusNode(
+    onKeyEvent: _handleCustomerPhoneKey,
+  );
+  late final FocusNode _deliveryNoteFocusNode = FocusNode(
+    onKeyEvent: _handleDeliveryNoteKey,
+  );
+
   /// Stable node for [KeyboardListener] — do not allocate a new [FocusNode] per build.
-  final FocusNode _formKeyboardListenerFocusNode =
-      FocusNode(debugLabel: 'quickSellFormShortcuts');
+  final FocusNode _formKeyboardListenerFocusNode = FocusNode(
+    debugLabel: 'quickSellFormShortcuts',
+  );
 
   // Track last auto-set amount to detect manual changes
   double _lastAutoSetAmount = 0.0;
@@ -1147,8 +1081,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         );
 
         for (final item in items) {
-          await ProxyService.getStrategy(Strategy.capella)
-              .updateTransactionItem(
+          await ProxyService.getStrategy(
+            Strategy.capella,
+          ).updateTransactionItem(
             transactionItemId: item.id.toString(),
             active: false,
             ignoreForReport: false,
@@ -1211,7 +1146,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                       ),
                     ),
                     TextButton.icon(
-                      onPressed: (transactionAsyncValue.value?.cashReceived ?? 0) > 0
+                      onPressed:
+                          (transactionAsyncValue.value?.cashReceived ?? 0) > 0
                           ? null
                           : () => _deleteAllItems(transactionAsyncValue),
                       icon: Icon(Icons.delete_sweep, size: 18),
@@ -1224,7 +1160,11 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                   ],
                 ),
               ),
-              ...items.map((item) => _buildModernItemCard(item, transactionAsyncValue)).toList(),
+              ...items
+                  .map(
+                    (item) => _buildModernItemCard(item, transactionAsyncValue),
+                  )
+                  .toList(),
             ],
           ),
         );
@@ -1669,8 +1609,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           FilledButton(
             onPressed: () async {
               Navigator.of(context).pop();
-              await ProxyService.getStrategy(Strategy.capella)
-                  .updateTransactionItem(
+              await ProxyService.getStrategy(
+                Strategy.capella,
+              ).updateTransactionItem(
                 transactionItemId: item.id.toString(),
                 active: false,
                 ignoreForReport: false,
@@ -1725,6 +1666,10 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           model: model,
         ),
         const SizedBox(height: 6),
+        if (!isOrdering) ...[
+          const SearchInputWithDropdown(embeddedInCheckoutPane: true),
+          const SizedBox(height: 8),
+        ],
         if (pinGrandTotal)
           Expanded(
             child: Semantics(
@@ -1742,18 +1687,12 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
             label: 'Transaction items list',
             hint:
                 'List of items in the current transaction with quantities and prices',
-            child: buildTransactionItemsTable(
-              isOrdering,
-              pinGrandTotal: false,
-            ),
+            child: buildTransactionItemsTable(isOrdering, pinGrandTotal: false),
           ),
         if (isOrdering) ...[
           const SizedBox(height: 20),
           Container(
-            margin: const EdgeInsets.symmetric(
-              horizontal: 12.0,
-              vertical: 8.0,
-            ),
+            margin: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
             padding: const EdgeInsets.all(6.0),
             child: Column(
               children: [
@@ -1974,12 +1913,12 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                 transactionId: transactionId,
                 alreadyPaid: alreadyPaid,
               ),
-              const SizedBox(height: 6.0),
+              const SizedBox(height: 10.0),
               _customerNameField(),
-              const SizedBox(height: 6.0),
+              const SizedBox(height: 10.0),
             ],
             _buildCustomerPhoneField(),
-            const SizedBox(height: 6.0),
+            const SizedBox(height: 10.0),
             _buildPaymentRow(isOrdering, transactionId, alreadyPaid),
           ],
         ),
@@ -2104,9 +2043,30 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         maxLines: 1,
         minLines: 1,
         key: const Key('received-amount-field'), // Add this line
-        suffixIcon: Text(
-          ProxyService.box.defaultCurrency(),
-          style: const TextStyle(color: Colors.blue),
+        outlineColor: PosLayoutBreakpoints.posAccentBlue,
+        borderRadius: 8,
+        fillColor: Colors.white,
+        style: const TextStyle(
+          fontSize: 22,
+          fontWeight: FontWeight.w600,
+          color: Color(0xFF111827),
+        ),
+        suffixIcon: Container(
+          margin: const EdgeInsetsDirectional.only(end: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: const Color(0xFFF3F4F6),
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: const Color(0xFFE5E7EB)),
+          ),
+          child: Text(
+            ProxyService.box.defaultCurrency(),
+            style: const TextStyle(
+              color: Color(0xFF6B7280),
+              fontWeight: FontWeight.w600,
+              fontSize: 14,
+            ),
+          ),
         ),
         onChanged: (value) => setState(() {
           final receivedAmount = double.tryParse(value);
@@ -2160,14 +2120,21 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       hint: 'Enter the full name of the customer',
       child: StyledTextFormField.create(
         context: context,
-        labelText: 'Customer  Name',
-        hintText: 'Customer  Name',
+        labelText: null,
+        hintText: 'Customer Name',
         controller: customerNameController,
         focusNode: _customerNameFocusNode,
         keyboardType: TextInputType.text,
         maxLines: 3,
         minLines: 1,
-        suffixIcon: Icon(FluentIcons.person_20_regular, color: Colors.blue),
+        outlineColor: PosLayoutBreakpoints.posAccentBlue,
+        borderRadius: 8,
+        fillColor: Colors.white,
+        hintColor: PosLayoutBreakpoints.posAccentBlue.withValues(alpha: 0.82),
+        suffixIcon: Icon(
+          FluentIcons.person_20_regular,
+          color: PosLayoutBreakpoints.posAccentBlue,
+        ),
         validator: (String? value) {
           if (value == null || value.isEmpty) {
             ref.read(payButtonStateProvider.notifier).stopLoading();
@@ -2220,10 +2187,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       child: Container(
         height: 50,
         decoration: BoxDecoration(
-          border: Border.all(
-            color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.2),
-          ),
-          borderRadius: BorderRadius.circular(6),
+          border: Border.all(color: const Color(0xFFE5E7EB)),
+          borderRadius: BorderRadius.circular(8),
           color:
               Theme.of(context).inputDecorationTheme.fillColor ?? Colors.white,
         ),
@@ -2235,22 +2200,33 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
               padding: const EdgeInsets.symmetric(horizontal: 8),
               decoration: const BoxDecoration(
                 borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(6),
-                  bottomLeft: Radius.circular(6),
+                  topLeft: Radius.circular(8),
+                  bottomLeft: Radius.circular(8),
                 ),
               ),
               child: Center(
-                child: CountryCodePicker(
-                  onChanged: (countryCode) {
-                    widget.countryCodeController.text = countryCode.dialCode!;
-                  },
-                  initialSelection: 'RW',
-                  favorite: ['+250', 'RW'],
-                  showCountryOnly: false,
-                  showOnlyCountryWhenClosed: false,
-                  alignLeft: false,
-                  padding: EdgeInsets.zero,
-                  textStyle: const TextStyle(fontSize: 16),
+                child: DefaultTextStyle(
+                  style: const TextStyle(
+                    color: PosLayoutBreakpoints.posAccentBlue,
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  child: CountryCodePicker(
+                    onChanged: (countryCode) {
+                      widget.countryCodeController.text = countryCode.dialCode!;
+                    },
+                    initialSelection: 'RW',
+                    favorite: const ['+250', 'RW'],
+                    showCountryOnly: false,
+                    showOnlyCountryWhenClosed: false,
+                    alignLeft: false,
+                    padding: EdgeInsets.zero,
+                    textStyle: const TextStyle(
+                      color: PosLayoutBreakpoints.posAccentBlue,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
               ),
             ),
@@ -2266,9 +2242,17 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                 keyboardType: TextInputType.number,
                 maxLines: 1,
                 minLines: 1,
+                outlineColor: PosLayoutBreakpoints.posAccentBlue,
+                borderRadius: 8,
+                outlineBorderRadius: const BorderRadius.only(
+                  topRight: Radius.circular(8),
+                  bottomRight: Radius.circular(8),
+                ),
+                fillColor: Colors.white,
+                hintColor: const Color(0xFF6B7280),
                 suffixIcon: Icon(
                   FluentIcons.call_20_regular,
-                  color: Colors.blue,
+                  color: PosLayoutBreakpoints.posAccentBlue,
                 ),
                 onChanged: (value) async {
                   // Store the customer phone number
@@ -2344,5 +2328,4 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       model: model,
     );
   }
-
 }

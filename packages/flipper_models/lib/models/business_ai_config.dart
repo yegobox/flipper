@@ -11,6 +11,8 @@ class BusinessAIConfig with BusinessAIConfigMappable {
   final int usageLimit;
   @MappableField(key: 'current_usage')
   final int currentUsage;
+  @MappableField(key: 'leads_ai_match_enabled')
+  final bool leadsAiMatchEnabled;
   final DateTime updatedAt;
 
   BusinessAIConfig({
@@ -19,6 +21,7 @@ class BusinessAIConfig with BusinessAIConfigMappable {
     this.aiModelId,
     this.usageLimit = 100,
     this.currentUsage = 0,
+    this.leadsAiMatchEnabled = true,
     required this.updatedAt,
   });
 

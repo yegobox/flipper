@@ -116,7 +116,7 @@ class _RequestServiceSheetState extends State<RequestServiceSheet> {
               const SizedBox(height: 16),
               Text(
                 _p.displayName,
-                style: GoogleFonts.poppins(
+                style: GoogleFonts.outfit(
                   fontSize: 20,
                   fontWeight: FontWeight.w600,
                 ),
@@ -126,7 +126,7 @@ class _RequestServiceSheetState extends State<RequestServiceSheet> {
                   padding: const EdgeInsets.only(top: 4),
                   child: Text(
                     _p.serviceArea!,
-                    style: GoogleFonts.poppins(
+                    style: GoogleFonts.outfit(
                       fontSize: 14,
                       color: Colors.grey.shade600,
                     ),
@@ -137,7 +137,7 @@ class _RequestServiceSheetState extends State<RequestServiceSheet> {
                 _p.bio,
                 maxLines: 4,
                 overflow: TextOverflow.ellipsis,
-                style: GoogleFonts.poppins(
+                style: GoogleFonts.outfit(
                   fontSize: 14,
                   height: 1.45,
                   color: Colors.grey.shade800,
@@ -147,7 +147,7 @@ class _RequestServiceSheetState extends State<RequestServiceSheet> {
                 const SizedBox(height: 18),
                 Text(
                   'Which service do you need?',
-                  style: GoogleFonts.poppins(
+                  style: GoogleFonts.outfit(
                     fontWeight: FontWeight.w600,
                     fontSize: 14,
                   ),
@@ -159,7 +159,7 @@ class _RequestServiceSheetState extends State<RequestServiceSheet> {
                   children: services.map((s) {
                     final selected = _selectedService == s;
                     return FilterChip(
-                      label: Text(s, style: GoogleFonts.poppins(fontSize: 13)),
+                      label: Text(s, style: GoogleFonts.outfit(fontSize: 13)),
                       selected: selected,
                       onSelected: (_) {
                         setState(() {
@@ -176,7 +176,7 @@ class _RequestServiceSheetState extends State<RequestServiceSheet> {
               const SizedBox(height: 18),
               Text(
                 'Amount you will pay (RWF)',
-                style: GoogleFonts.poppins(
+                style: GoogleFonts.outfit(
                   fontWeight: FontWeight.w600,
                   fontSize: 14,
                 ),
@@ -186,10 +186,10 @@ class _RequestServiceSheetState extends State<RequestServiceSheet> {
                 controller: _amountController,
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                style: GoogleFonts.poppins(fontSize: 15),
+                style: GoogleFonts.outfit(fontSize: 15),
                 decoration: InputDecoration(
                   hintText: 'e.g. 5000',
-                  hintStyle: GoogleFonts.poppins(
+                  hintStyle: GoogleFonts.outfit(
                     fontSize: 13,
                     color: Colors.grey.shade500,
                   ),
@@ -223,7 +223,7 @@ class _RequestServiceSheetState extends State<RequestServiceSheet> {
               const SizedBox(height: 18),
               Text(
                 'Describe what you need',
-                style: GoogleFonts.poppins(
+                style: GoogleFonts.outfit(
                   fontWeight: FontWeight.w600,
                   fontSize: 14,
                 ),
@@ -233,11 +233,11 @@ class _RequestServiceSheetState extends State<RequestServiceSheet> {
                 controller: _messageController,
                 maxLines: 5,
                 minLines: 3,
-                style: GoogleFonts.poppins(fontSize: 15),
+                style: GoogleFonts.outfit(fontSize: 15),
                 decoration: InputDecoration(
                   hintText:
                       'Example: Fix a leaking kitchen tap this weekend. I am available Saturday morning.',
-                  hintStyle: GoogleFonts.poppins(
+                  hintStyle: GoogleFonts.outfit(
                     fontSize: 13,
                     color: Colors.grey.shade500,
                   ),
@@ -269,7 +269,7 @@ class _RequestServiceSheetState extends State<RequestServiceSheet> {
               const SizedBox(height: 8),
               Text(
                 'The provider has 30 minutes to accept. After that, you can send a new request.',
-                style: GoogleFonts.poppins(
+                style: GoogleFonts.outfit(
                   fontSize: 12,
                   height: 1.35,
                   color: Colors.grey.shade600,
@@ -293,12 +293,12 @@ class _RequestServiceSheetState extends State<RequestServiceSheet> {
                       )
                     : Text(
                         'Send request',
-                        style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                        style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
                       ),
               ),
               TextButton(
                 onPressed: _submitting ? null : () => Navigator.of(context).pop(false),
-                child: Text('Cancel', style: GoogleFonts.poppins()),
+                child: Text('Cancel', style: GoogleFonts.outfit()),
               ),
             ],
           ),

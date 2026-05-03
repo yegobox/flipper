@@ -216,6 +216,30 @@ abstract class DatabaseSyncInterface extends AiStrategy
     String? customerPhone,
     required String countryCode,
     String? note,
+    /// When set (e.g. [COMPLETE]), written in the same transaction update as payment fields.
+    String? completionStatus,
+    /// When set, skip loading line items from the local DB (faster for cash book after a fresh insert).
+    List<TransactionItem>? preloadedLineItems,
+  });
+
+  /// Cash book fast path: one pending txn, one utility line, then completion.
+  ///
+  /// [utilityVariantName] is typically [TransactionType.cashIn] or [TransactionType.cashOut].
+  /// [transactionTypeForRecord] is the category/reporting label (see cashbook / keypad).
+  Future<ITransaction> completeCashMovement({
+    required String branchId,
+    required String bhfId,
+    required double cashReceived,
+    required bool isIncome,
+    required String utilityVariantName,
+    required String paymentType,
+    required double discount,
+    required String countryCode,
+    required bool isProformaMode,
+    required bool isTrainingMode,
+    required String transactionTypeForRecord,
+    String? categoryId,
+    String? note,
   });
 
   Future<Setting?> getSetting({required String businessId});

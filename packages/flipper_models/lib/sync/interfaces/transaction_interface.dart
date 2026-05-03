@@ -133,6 +133,9 @@ abstract class TransactionInterface {
     TransactionItem? item,
     int? invoiceNumber,
     String? sarTyCd,
+    /// When false, avoid updating the parent transaction's subtotal on insert (Capella:
+    /// [collectPayment] will recompute from line items). Speeds up cash book save.
+    bool updatePendingTransactionSubtotal = true,
   });
 
   Future<void> markItemAsDoneWithTransaction({
@@ -177,6 +180,7 @@ abstract class TransactionInterface {
     bool? receiptPrinted,
     String? customerPhone,
     String? customerType,
+    String? cashierName,
     bool? isLoan,
     double? remainingBalance,
     bool skipDittoSync = false,

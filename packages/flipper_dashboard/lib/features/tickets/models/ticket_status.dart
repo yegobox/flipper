@@ -12,14 +12,14 @@ extension TicketStatusExtension on TicketStatus {
       case TicketStatus.inProgress:
         return 'In Progress';
       case TicketStatus.completed:
-        return 'Completed';
+        return 'Paid';
     }
   }
 
   Color get color {
     switch (this) {
       case TicketStatus.waiting:
-        return Colors.purple;
+        return const Color(0xFF8B6914);
       case TicketStatus.inProgress:
         return Colors.blue;
       case TicketStatus.completed:

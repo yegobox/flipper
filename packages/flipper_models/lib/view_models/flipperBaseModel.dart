@@ -5,7 +5,9 @@ import 'package:stacked/stacked.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class FlipperBaseModel extends ReactiveViewModel {
   List<Tenant> _tenants = [];
@@ -22,24 +24,113 @@ class FlipperBaseModel extends ReactiveViewModel {
   }
 
   Future<void> loadTenants() async {
-    List<Tenant> users = await ProxyService.strategy
-        .tenants(businessId: ProxyService.box.getBusinessId()!);
+    final businessId = ProxyService.box.getBusinessId();
+    if (businessId == null || businessId.isEmpty) {
+      _tenants = [];
+      notifyListeners();
+      return;
+    }
 
-    Set<String> uniqueUserIds = {};
-    List<Tenant> uniqueUsers = [];
+    List<Tenant> users;
+    try {
+      final raw = await Supabase.instance.client
+          .from('tenants')
+          .select()
+          .eq('business_id', businessId)
+          .order('name');
 
-    for (var user in users) {
+      final rows = List<Map<String, dynamic>>.from(
+        (raw as List).map((e) => Map<String, dynamic>.from(e as Map)),
+      );
+
+      users = rows
+          .where((r) => r['deleted_at'] == null)
+          .map(_tenantFromSupabaseRow)
+          .toList();
+
+      if (users.isEmpty) {
+        final rawJunction = await Supabase.instance.client
+            .from('tenant_businesses')
+            .select('tenants(*)')
+            .eq('business_id', businessId);
+
+        final seen = <String>{};
+        for (final row in rawJunction as List) {
+          final m = Map<String, dynamic>.from(row as Map);
+          final nested = m['tenants'];
+          if (nested is! Map) continue;
+          final t = _tenantFromSupabaseRow(
+            Map<String, dynamic>.from(nested),
+          );
+          if (t.deletedAt != null) continue;
+          if (seen.add(t.id)) users.add(t);
+        }
+      }
+    } catch (e, s) {
+      debugPrint('loadTenants Supabase: $e\n$s');
+      try {
+        users = await ProxyService.strategy.tenants(businessId: businessId);
+      } catch (_) {
+        users = [];
+      }
+    }
+
+    final uniqueUserIds = <String>{};
+    final uniqueUsers = <Tenant>[];
+
+    for (final user in users) {
       if (!uniqueUserIds.contains(user.id)) {
         uniqueUserIds.add(user.id);
         uniqueUsers.add(user);
       } else {
-        await ProxyService.strategy
-            .flipperDelete(id: user.id, endPoint: 'tenant');
+        try {
+          await ProxyService.strategy
+              .flipperDelete(id: user.id, endPoint: 'tenant');
+        } catch (_) {
+          // ignore duplicate cleanup failures
+        }
       }
     }
 
     _tenants = [...uniqueUsers];
     notifyListeners();
+  }
+
+  static Tenant _tenantFromSupabaseRow(Map<String, dynamic> r) {
+    String sid(Object? v) => v?.toString() ?? '';
+
+    final pinRaw = r['pin'];
+    int? pin;
+    if (pinRaw is int) {
+      pin = pinRaw;
+    } else if (pinRaw is num) {
+      pin = pinRaw.toInt();
+    } else if (pinRaw != null) {
+      pin = int.tryParse(pinRaw.toString());
+    }
+
+    DateTime? parseTs(Object? v) {
+      if (v == null) return null;
+      if (v is DateTime) return v;
+      return DateTime.tryParse(v.toString());
+    }
+
+    return Tenant(
+      id: sid(r['id']),
+      name: r['name'] as String?,
+      phoneNumber: r['phone_number'] as String?,
+      email: r['email'] as String?,
+      nfcEnabled: (r['nfc_enabled'] as bool?) ?? false,
+      businessId: r['business_id'] != null ? sid(r['business_id']) : null,
+      userId: r['user_id'] != null ? sid(r['user_id']) : null,
+      imageUrl: r['image_url'] as String?,
+      lastTouched: parseTs(r['last_touched']),
+      deletedAt: parseTs(r['deleted_at']),
+      pin: pin,
+      isDefault: r['is_default'] as bool?,
+      sessionActive: r['session_active'] as bool?,
+      type: (r['type'] as String?) ?? 'Agent',
+    );
   }
 
   /// keyboard events handler

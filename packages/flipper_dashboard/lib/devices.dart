@@ -55,7 +55,7 @@ class Devices extends ConsumerWidget {
             ),
             Text(
               "Use Flipper on other Devices",
-              style: GoogleFonts.poppins(
+              style: GoogleFonts.outfit(
                 fontSize: 16.0,
                 fontWeight: FontWeight.w500,
                 color: Colors.black,
@@ -69,7 +69,7 @@ class Devices extends ConsumerWidget {
               height: 40,
               child: OutlinedButton(
                 child: Text('Link A Device',
-                    style: GoogleFonts.poppins(
+                    style: GoogleFonts.outfit(
                       fontSize: 16.0,
                       fontWeight: FontWeight.w500,
                       color: Colors.white,
@@ -120,7 +120,7 @@ class Devices extends ConsumerWidget {
                 height: 40,
                 child: OutlinedButton(
                   child: Text('PIN: $pin',
-                      style: GoogleFonts.poppins(
+                      style: GoogleFonts.outfit(
                         fontSize: 16.0,
                         fontWeight: FontWeight.w500,
                         color: Colors.black,
@@ -155,7 +155,7 @@ class Devices extends ConsumerWidget {
             ),
             Text(
               "List of connected Devices",
-              style: GoogleFonts.poppins(
+              style: GoogleFonts.outfit(
                 fontSize: 16.0,
                 fontWeight: FontWeight.w500,
                 color: Colors.black,

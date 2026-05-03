@@ -39,12 +39,13 @@ SliverWoltModalSheetPage _buildPinPage(
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(8),
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(
               color: const Color(0xFF01B8E4).withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
+              shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.shield_outlined,
+            child: const Icon(Icons.lock_outlined,
                 color: Color(0xFF01B8E4), size: 24),
           ),
           const SizedBox(width: 16),
@@ -181,7 +182,8 @@ class _AdminPinContentState extends State<_AdminPinContent> {
       if (_lockoutUntil != null && DateTime.now().isBefore(_lockoutUntil!)) {
         final remaining = _lockoutUntil!.difference(DateTime.now()).inSeconds;
         setState(() {
-          _errorText = 'Too many failed attempts. Try again in $remaining seconds.';
+          _errorText =
+              'Too many failed attempts. Try again in $remaining seconds.';
         });
         return;
       } else if (_lockoutUntil != null) {
@@ -204,10 +206,12 @@ class _AdminPinContentState extends State<_AdminPinContent> {
           _pinController.clear();
           if (_failedAttempts >= _maxFailedAttempts) {
             _lockoutUntil = DateTime.now().add(_lockoutDuration);
-            _errorText = 'Too many failed attempts. Try again in ${_lockoutDuration.inSeconds} seconds.';
+            _errorText =
+                'Too many failed attempts. Try again in ${_lockoutDuration.inSeconds} seconds.';
             _failedAttempts = 0;
           } else {
-            _errorText = 'Incorrect PIN. ${_maxFailedAttempts - _failedAttempts} attempts remaining.';
+            _errorText =
+                'Incorrect PIN. ${_maxFailedAttempts - _failedAttempts} attempts remaining.';
           }
         });
       }
@@ -316,6 +320,36 @@ class _AdminPinContentState extends State<_AdminPinContent> {
         ),
         const SizedBox(height: 32),
         _buildNumericKeyboard(),
+        const SizedBox(height: 24),
+        SizedBox(
+          width: double.infinity,
+          height: 48,
+          child: TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            style: TextButton.styleFrom(
+              backgroundColor: Colors.grey[100],
+              foregroundColor: Colors.grey[700],
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: Text(
+              'Cancel',
+              style: GoogleFonts.poppins(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Text(
+          'Demo: try any 4 digits',
+          style: GoogleFonts.poppins(
+            fontSize: 14,
+            color: Colors.grey[500],
+          ),
+        ),
         const SizedBox(height: 40),
         if (widget.mode == AdminPinMode.set)
           SizedBox(
@@ -359,7 +393,7 @@ class _AdminPinContentState extends State<_AdminPinContent> {
       children: [
         for (var i = 0; i < 3; i++)
           Padding(
-            padding: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.only(bottom: 16),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -384,19 +418,20 @@ class _AdminPinContentState extends State<_AdminPinContent> {
       color: Colors.transparent,
       child: InkWell(
         onTap: () => _onKeyPress(value),
-        borderRadius: BorderRadius.circular(36),
+        borderRadius: BorderRadius.circular(12),
         child: Container(
           width: 72,
-          height: 72,
+          height: 56,
           decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: Colors.grey[100]!, width: 1),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey[300]!, width: 1),
+            color: Colors.white,
           ),
           alignment: Alignment.center,
           child: Text(
             value,
             style: GoogleFonts.poppins(
-              fontSize: 26,
+              fontSize: 24,
               fontWeight: FontWeight.w500,
               color: const Color(0xFF1A1C1E),
             ),
@@ -411,10 +446,15 @@ class _AdminPinContentState extends State<_AdminPinContent> {
       color: Colors.transparent,
       child: InkWell(
         onTap: _onBackspace,
-        borderRadius: BorderRadius.circular(36),
+        borderRadius: BorderRadius.circular(12),
         child: Container(
           width: 72,
-          height: 72,
+          height: 56,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey[300]!, width: 1),
+            color: Colors.white,
+          ),
           alignment: Alignment.center,
           child: const Icon(Icons.backspace_outlined,
               color: Color(0xFF1A1C1E), size: 24),

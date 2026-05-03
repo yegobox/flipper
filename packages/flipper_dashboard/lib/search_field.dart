@@ -42,6 +42,7 @@ class SearchField extends StatefulHookConsumerWidget {
     required this.showAddButton,
     required this.showDatePicker,
     this.hintText,
+    this.showTrailingToolbar = true,
   }) : super(key: key);
 
   final TextEditingController controller;
@@ -50,6 +51,10 @@ class SearchField extends StatefulHookConsumerWidget {
   final bool showAddButton;
   final bool showDatePicker;
   final String? hintText;
+
+  /// Full suffix (scan, notices, orders, …). When false, only a clear button
+  /// appears when there is text (e.g. product grid search strip).
+  final bool showTrailingToolbar;
 
   @override
   SearchFieldState createState() => SearchFieldState();
@@ -157,80 +162,93 @@ class SearchFieldState extends ConsumerState<SearchField>
                       ),
                     )
                   : Icon(FluentIcons.search_24_regular, color: Colors.grey),
-              suffixIcon: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Consumer(
-                    builder: (context, ref, child) {
-                      final isAutoAdd = ref.watch(autoAddSearchProvider);
-                      return IconButton(
-                        onPressed: () {
-                          ref.read(autoAddSearchProvider.notifier).toggle();
-                        },
-                        icon: Icon(
-                          isAutoAdd
-                              ? FluentIcons.barcode_scanner_24_filled
-                              : FluentIcons.barcode_scanner_24_regular,
-                          color: isAutoAdd ? Colors.blue : Colors.grey,
+              suffixIcon: widget.showTrailingToolbar
+                  ? Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Consumer(
+                          builder: (context, ref, child) {
+                            final isAutoAdd = ref.watch(autoAddSearchProvider);
+                            return IconButton(
+                              onPressed: () {
+                                ref.read(autoAddSearchProvider.notifier).toggle();
+                              },
+                              icon: Icon(
+                                isAutoAdd
+                                    ? FluentIcons.barcode_scanner_24_filled
+                                    : FluentIcons.barcode_scanner_24_regular,
+                                color: isAutoAdd ? Colors.blue : Colors.grey,
+                              ),
+                              tooltip: 'Toggle Scan Mode',
+                            );
+                          },
                         ),
-                        tooltip: 'Toggle Scan Mode',
-                      );
-                    },
-                  ),
-                  Consumer(
-                    builder: (context, ref, child) {
-                      final notice = ref.watch(noticesProvider);
-                      return notices(notice: notice.value ?? []);
-                    },
-                  ),
-                  Consumer(
-                    builder: (context, ref, child) {
-                      final orders = ref.watch(
-                        stockRequestsProvider(
-                          status: RequestStatus.pending,
-                          search: stringValue.isNotEmpty ? stringValue : null,
+                        Consumer(
+                          builder: (context, ref, child) {
+                            final notice = ref.watch(noticesProvider);
+                            return notices(notice: notice.value ?? []);
+                          },
                         ),
-                      );
-                      return orders.when(
-                        data: (orders) => widget.showOrderButton
-                            ? orderButton(orders.length).shouldSeeTheApp(
-                                ref,
-                                featureName: AppFeature.Orders,
-                              )
-                            : const SizedBox.shrink(),
-                        loading: () => widget.showOrderButton
-                            ? orderButton(0).shouldSeeTheApp(
-                                ref,
-                                featureName: AppFeature.Orders,
-                              )
-                            : const SizedBox.shrink(),
-                        error: (err, stack) => Text('Error: $err'),
-                      );
-                    },
-                  ),
-                  Consumer(
-                    builder: (context, ref, child) {
-                      final appMode = ref.watch(appModeProvider);
-                      final deviceType = _getDeviceType(context);
-                      return Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          if (widget.showIncomingButton &&
-                              deviceType != 'Phone' &&
-                              deviceType != 'Phablet' &&
-                              appMode)
-                            incomingButton(),
-                          if (widget.showAddButton && appMode)
-                            addButton().eligibleToSeeIfYouAre(ref, [
-                              UserType.ADMIN,
-                            ]),
-                        ],
-                      );
-                    },
-                  ),
-                  SizedBox(width: 12),
-                ],
-              ),
+                        Consumer(
+                          builder: (context, ref, child) {
+                            final orders = ref.watch(
+                              stockRequestsProvider(
+                                status: RequestStatus.pending,
+                                search: stringValue.isNotEmpty
+                                    ? stringValue
+                                    : null,
+                              ),
+                            );
+                            return orders.when(
+                              data: (orders) => widget.showOrderButton
+                                  ? orderButton(orders.length).shouldSeeTheApp(
+                                      ref,
+                                      featureName: AppFeature.Orders,
+                                    )
+                                  : const SizedBox.shrink(),
+                              loading: () => widget.showOrderButton
+                                  ? orderButton(0).shouldSeeTheApp(
+                                      ref,
+                                      featureName: AppFeature.Orders,
+                                    )
+                                  : const SizedBox.shrink(),
+                              error: (err, stack) => Text('Error: $err'),
+                            );
+                          },
+                        ),
+                        Consumer(
+                          builder: (context, ref, child) {
+                            final appMode = ref.watch(appModeProvider);
+                            final deviceType = _getDeviceType(context);
+                            return Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (widget.showIncomingButton &&
+                                    deviceType != 'Phone' &&
+                                    deviceType != 'Phablet' &&
+                                    appMode)
+                                  incomingButton(),
+                                if (widget.showAddButton && appMode)
+                                  addButton().eligibleToSeeIfYouAre(ref, [
+                                    UserType.ADMIN,
+                                  ]),
+                              ],
+                            );
+                          },
+                        ),
+                        SizedBox(width: 12),
+                      ],
+                    )
+                  : (hasText
+                      ? IconButton(
+                          onPressed: _clearSearchText,
+                          icon: const Icon(
+                            FluentIcons.dismiss_24_regular,
+                            color: Colors.grey,
+                          ),
+                          tooltip: 'Clear',
+                        )
+                      : null),
             ),
           );
         },

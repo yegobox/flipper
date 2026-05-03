@@ -31,6 +31,10 @@ import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:supabase_models/services/turbo_tax_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
+import 'package:flipper_dashboard/transaction_report_cashier_profile.dart';
+import 'package:brick_offline_first/brick_offline_first.dart';
+import 'package:supabase_models/brick/models/user.model.dart' as brick_user;
+import 'package:supabase_models/brick/repository.dart';
 
 // Stock validation functions have been moved to utils/stock_validator.dart
 
@@ -290,6 +294,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
   }) async {
     // Store original stock quantities for potential rollback
     final Map<String, double> originalStockQuantities = {};
+    String? completionCashierName;
 
     try {
       // Fetch the latest transaction from the database to ensure subTotal is up-to-date
@@ -301,6 +306,39 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
 
       if (transaction == null) {
         throw Exception("Transaction not found for completion.");
+      }
+
+      // Denormalize cashier name once at completion time to avoid per-row lookups in reports.
+      final currentUserId = ProxyService.box.getUserId();
+      if (currentUserId != null && currentUserId.trim().isNotEmpty) {
+        try {
+          final repo = Repository();
+          // Try local cache first (offline), then remote when available.
+          final q = Query(where: [Where('id').isExactly(currentUserId)]);
+          final local = await repo.get<brick_user.User>(
+            policy: OfflineFirstGetPolicy.localOnly,
+            query: q,
+          );
+          brick_user.User? u = local.isNotEmpty ? local.first : null;
+          if (u == null) {
+            try {
+              final remote = await repo.get<brick_user.User>(
+                policy: OfflineFirstGetPolicy.awaitRemoteWhenNoneExist,
+                query: q,
+              );
+              if (remote.isNotEmpty) u = remote.first;
+            } catch (_) {}
+          }
+          if (u != null) {
+            completionCashierName =
+                TransactionReportCashierProfile.displayNameFromUserRow(
+              name: u.name,
+              email: u.key,
+            );
+          }
+        } catch (_) {
+          // Best-effort: completion should still work offline.
+        }
       }
       final isValid = formKey.currentState?.validate() ?? true;
       if (!isValid) return false;
@@ -468,15 +506,19 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       final settingsService = locator<SettingsService>();
       final isCurrencyDecimal = settingsService.isCurrencyDecimal;
 
-      final double finalSubTotal = transactionItems.fold(0, (sum, item) {
-        final val = (item.price * item.qty).toDouble();
-        return sum +
-            (isCurrencyDecimal
-                ? val.roundToTwoDecimalPlaces()
-                : val.roundToDouble());
+      // Compute final subtotal using item discounts (dcAmt) if present.
+      // NOTE: `applyDiscount()` persists discounts to items + transaction.subTotal.
+      // We must not overwrite it here with a pre-discount recomputation.
+      final double finalSubTotal = transactionItems.fold(0.0, (sum, item) {
+        final lineGross = (item.price.toDouble() * item.qty.toDouble());
+        final lineDiscount = (item.dcAmt ?? 0).toDouble();
+        final lineNet = lineGross - lineDiscount;
+        final rounded = isCurrencyDecimal
+            ? lineNet.roundToTwoDecimalPlaces()
+            : lineNet.roundToDouble();
+        return sum + rounded;
       });
 
-      // Ensure transaction subTotal is updated for correct isFullyPaid check downstream
       transaction.subTotal = finalSubTotal;
 
       final amount = double.tryParse(receivedAmountController.text) ?? 0;
@@ -544,6 +586,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
               finalSubTotal: finalSubTotal,
               paymentMethods: paymentMethods,
               ticketName: ticketName,
+              cashierName: completionCashierName,
             );
             if (mounted && context.mounted) {
               showCustomSnackBarUtil(
@@ -604,18 +647,39 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     required double finalSubTotal,
     required List<Payment> paymentMethods,
     String? ticketName,
+    String? cashierName,
   }) async {
     // Use the in-memory transaction directly instead of re-fetching from DB.
-    // collectPayment already persisted the latest cashReceived, and the caller
-    // updated transaction.cashReceived before calling us.
-    final effectiveCashReceived = transaction.cashReceived ?? 0;
+    // collectPayment may persist cashReceived; the caller may also add the keypad amount.
+    // When nothing was typed, [transaction.cashReceived] is often still 0 — treat that as
+    // exact tender for the sale: use split payment lines if they have amounts, otherwise
+    // the computed sale total (same idea as assuming `transaction.subTotal`).
+    const _paymentEpsilon = 0.0001;
+    var effectiveCashReceived = transaction.cashReceived ?? 0;
+    if (effectiveCashReceived <= _paymentEpsilon) {
+      final sumFromPaymentLines = paymentMethods.fold<double>(
+        0,
+        (sum, p) => sum + p.amount,
+      );
+      effectiveCashReceived = sumFromPaymentLines > _paymentEpsilon
+          ? sumFromPaymentLines
+          : finalSubTotal;
+    }
 
     final totalCredit = paymentMethods
-        .where((p) => p.method == "CREDIT")
+        .where((p) => p.method.toUpperCase() == 'CREDIT')
         .fold<double>(0, (sum, p) => sum + p.amount);
 
-    final nonCreditCashReceived = effectiveCashReceived - totalCredit;
-    final isFullyPaid = nonCreditCashReceived >= (transaction.subTotal ?? 0);
+    // IMPORTANT: Use the computed `finalSubTotal` (includes discounts/updates) rather than
+    // `transaction.subTotal`, which can be stale at this point and incorrectly park a fully
+    // paid transaction as a loan.
+    final saleTotal = finalSubTotal;
+
+    final nonCreditCashReceivedRaw = effectiveCashReceived - totalCredit;
+    final nonCreditCashReceived = nonCreditCashReceivedRaw < 0
+        ? 0.0
+        : nonCreditCashReceivedRaw;
+    final isFullyPaid = (nonCreditCashReceived + _paymentEpsilon) >= saleTotal;
 
     final shouldBeLoan = totalCredit > 0 || !isFullyPaid;
     final status = shouldBeLoan ? PARKED : COMPLETE;
@@ -623,7 +687,9 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
     final remainingBalance = shouldBeLoan
         ? (totalCredit > 0
               ? totalCredit
-              : (transaction.subTotal ?? 0) - nonCreditCashReceived)
+              : ((saleTotal - nonCreditCashReceived) < 0
+                    ? 0.0
+                    : (saleTotal - nonCreditCashReceived)))
         : 0.0;
 
     final now = DateTime.now();
@@ -635,6 +701,7 @@ mixin PreviewCartMixin<T extends ConsumerStatefulWidget>
       cashReceived: nonCreditCashReceived,
       subTotal: finalSubTotal,
       lastTouched: now,
+      cashierName: cashierName,
       ticketName:
           (transaction.ticketName == null || transaction.ticketName!.isEmpty)
           ? ticketName

@@ -146,6 +146,9 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
 
   String? customerPhone;
   String? agentId;
+  @Sqlite(name: 'cashier_name')
+  @Supabase(name: 'cashier_name')
+  String? cashierName;
 
   /// Tracks which strategy/database this transaction was loaded from
   /// This ensures we delete from the correct database (Capella/Ditto or CloudSync/SQLite)
@@ -216,6 +219,8 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
     this.payments,
     this.customerPhone,
     required this.agentId,
+    this.cashierName,
+    this.dataSource,
   })  : id = id ?? const Uuid().v4(),
         isLoan = isLoan ?? false,
         isAutoBilled = isAutoBilled ?? false,
@@ -301,6 +306,9 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
     List<TransactionItem>? items,
     List<TransactionPaymentRecord>? payments,
     String? customerPhone,
+    String? agentId,
+    String? cashierName,
+    Strategy? dataSource,
   }) {
     return ITransaction(
       id: id ?? this.id,
@@ -366,7 +374,9 @@ class ITransaction extends OfflineFirstWithSupabaseModel {
       items: items ?? this.items,
       customerPhone: customerPhone ?? this.customerPhone,
       ticketName: ticketName ?? this.ticketName,
-      agentId: agentId,
+      agentId: agentId ?? this.agentId,
+      cashierName: cashierName ?? this.cashierName,
+      dataSource: dataSource ?? this.dataSource,
     );
   }
 }

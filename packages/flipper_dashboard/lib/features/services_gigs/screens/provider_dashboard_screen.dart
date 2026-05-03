@@ -103,7 +103,7 @@ class _ProviderDashboardScreenState extends State<ProviderDashboardScreen> {
       appBar: AppBar(
         title: Text(
           'Provider dashboard',
-          style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+          style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
         ),
         elevation: 0,
         backgroundColor: const Color(0xFF0D9488),
@@ -126,7 +126,7 @@ class _ProviderDashboardScreenState extends State<ProviderDashboardScreen> {
                 children: [
                   Text(
                     widget.profile.displayName,
-                    style: GoogleFonts.poppins(
+                    style: GoogleFonts.outfit(
                       fontWeight: FontWeight.w600,
                       fontSize: 20,
                     ),
@@ -141,11 +141,11 @@ class _ProviderDashboardScreenState extends State<ProviderDashboardScreen> {
                     child: SwitchListTile(
                       title: Text(
                         'Accept new requests',
-                        style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+                        style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
                       ),
                       subtitle: Text(
                         'When off, customers can still open your profile but booking is disabled.',
-                        style: GoogleFonts.poppins(fontSize: 12),
+                        style: GoogleFonts.outfit(fontSize: 12),
                       ),
                       value: _available,
                       onChanged: _busyAvailability ? null : _toggleAvailability,
@@ -179,7 +179,7 @@ class _ProviderDashboardScreenState extends State<ProviderDashboardScreen> {
                   const SizedBox(height: 20),
                   Text(
                     'Payouts and platform fees are handled by your existing MTN and ledger flows.',
-                    style: GoogleFonts.poppins(
+                    style: GoogleFonts.outfit(
                       fontSize: 12,
                       height: 1.4,
                       color: Colors.grey.shade600,
@@ -222,21 +222,21 @@ class _ProviderDashboardScreenState extends State<ProviderDashboardScreen> {
                 children: [
                   Text(
                     title,
-                    style: GoogleFonts.poppins(
+                    style: GoogleFonts.outfit(
                       fontSize: 13,
                       color: Colors.grey.shade700,
                     ),
                   ),
                   Text(
                     value,
-                    style: GoogleFonts.poppins(
+                    style: GoogleFonts.outfit(
                       fontWeight: FontWeight.w700,
                       fontSize: 22,
                     ),
                   ),
                   Text(
                     subtitle,
-                    style: GoogleFonts.poppins(
+                    style: GoogleFonts.outfit(
                       fontSize: 11,
                       color: Colors.grey.shade600,
                     ),

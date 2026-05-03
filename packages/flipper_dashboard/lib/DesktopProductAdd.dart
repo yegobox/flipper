@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/providers/ebm_provider.dart';
 import 'package:flipper_scanner/scanner_view.dart';
@@ -8,7 +9,7 @@ import 'package:flipper_dashboard/SearchProduct.dart';
 import 'package:flipper_dashboard/CompositeVariation.dart';
 import 'package:flipper_dashboard/TableVariants.dart';
 import 'package:flipper_dashboard/ToggleButtonWidget.dart';
-import 'package:flipper_dashboard/create/browsePhotos.dart';
+import 'package:flex_color_picker/flex_color_picker.dart';
 import 'package:flipper_models/helperModels/hexColor.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
@@ -18,6 +19,7 @@ import 'package:flipper_models/view_models/mixins/rraConstants.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/abstractions/upload.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -33,6 +35,8 @@ import 'package:flipper_dashboard/features/product_entry/widgets/inventory_secti
 import 'package:flipper_dashboard/features/product_entry/widgets/scan_section.dart';
 import 'package:flipper_dashboard/responsive_layout.dart' as responsive;
 import 'package:flutter/services.dart';
+import 'package:flipper_dashboard/utils/image_source_sheet.dart';
+import 'package:path_provider/path_provider.dart';
 
 class ProductEntryScreen extends StatefulHookConsumerWidget {
   const ProductEntryScreen({super.key, this.productId});
@@ -78,6 +82,70 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
       return HexColor(hexColor);
     } catch (e) {
       return Colors.amber;
+    }
+  }
+
+  Future<void> _showProductColorPicker(BuildContext context) async {
+    Color tempColor = pickerColor;
+    final Color? newColor = await showDialog<Color>(
+      context: context,
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: const Text('Pick a color'),
+              content: SingleChildScrollView(
+                child: ColorPicker(
+                  color: tempColor,
+                  onColorChanged: (Color color) {
+                    setDialogState(() {
+                      tempColor = color;
+                    });
+                  },
+                  pickersEnabled: const <ColorPickerType, bool>{
+                    ColorPickerType.both: false,
+                    ColorPickerType.primary: true,
+                    ColorPickerType.accent: true,
+                    ColorPickerType.bw: false,
+                    ColorPickerType.custom: true,
+                    ColorPickerType.wheel: true,
+                  },
+                  width: 44,
+                  height: 44,
+                  borderRadius: 22,
+                  spacing: 5,
+                  runSpacing: 5,
+                  wheelDiameter: 165,
+                  subheading: Text(
+                    'Select color shade',
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                  wheelSubheading: Text(
+                    'Selected color and its shades',
+                    style: Theme.of(context).textTheme.titleSmall,
+                  ),
+                ),
+              ),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(tempColor),
+                  child: const Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+    if (newColor != null && mounted) {
+      setState(() {
+        pickerColor = newColor;
+        isColorPicked = true;
+      });
     }
   }
 
@@ -789,6 +857,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                       if (barcode.trim().isNotEmpty) {
                         await _showVariantSheet(
                           context: context,
+                          ref: ref,
                           model: model,
                           productRef: productRef,
                           retailPriceController: retailPriceController,
@@ -803,6 +872,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                     onAddVariant: () {
                       _showVariantSheet(
                         context: context,
+                        ref: ref,
                         model: model,
                         productRef: productRef,
                         retailPriceController: retailPriceController,
@@ -815,6 +885,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                     onEditVariant: (variant) {
                       _showVariantSheet(
                         context: context,
+                        ref: ref,
                         model: model,
                         productRef: productRef,
                         retailPriceController: retailPriceController,
@@ -825,7 +896,14 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                         existingVariant: variant,
                       );
                     },
-                    onDeleteVariant: (variant) => model.removeVariant(id: variant.id),
+                    onDeleteVariant: (variant) =>
+                        model.removeVariant(id: variant.id),
+                    pickerColor: pickerColor,
+                    onColorSelected: (color) {
+                      setState(() {
+                        pickerColor = color;
+                      });
+                    },
                   ),
                 );
               }
@@ -845,14 +923,75 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Center(
-                            child: Browsephotos(
-                              imageUrl: productRef?.imageUrl,
-                              currentColor: pickerColor,
-                              onColorSelected: (color) {
-                                setState(() {
-                                  pickerColor = color;
-                                });
-                              },
+                            child: Column(
+                              children: [
+                                Text(
+                                  'Product color',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .titleSmall
+                                      ?.copyWith(fontWeight: FontWeight.w600),
+                                ),
+                                const SizedBox(height: 8),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Material(
+                                      color: Colors.transparent,
+                                      child: InkWell(
+                                        onTap: () =>
+                                            _showProductColorPicker(context),
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: Ink(
+                                          width: 56,
+                                          height: 56,
+                                          decoration: BoxDecoration(
+                                            color: pickerColor,
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                            border: Border.all(
+                                              color: Colors.grey.shade400,
+                                            ),
+                                          ),
+                                          child: Icon(
+                                            Icons.palette_outlined,
+                                            color: pickerColor.computeLuminance() >
+                                                    0.5
+                                                ? Colors.black87
+                                                : Colors.white,
+                                            shadows: const [
+                                              Shadow(
+                                                color: Colors.black26,
+                                                blurRadius: 4,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    TextButton.icon(
+                                      onPressed: () =>
+                                          _showProductColorPicker(context),
+                                      icon: const Icon(Icons.color_lens_outlined),
+                                      label: const Text('Choose color'),
+                                    ),
+                                  ],
+                                ),
+                                if (!ref.watch(isCompositeProvider)) ...[
+                                  const SizedBox(height: 6),
+                                  Text(
+                                    'Add photos on each variant in the table below.',
+                                    textAlign: TextAlign.center,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodySmall
+                                        ?.copyWith(
+                                          color: Colors.grey.shade700,
+                                        ),
+                                  ),
+                                ],
+                              ],
                             ),
                           ),
                           const SizedBox(height: 16),
@@ -882,9 +1021,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                                 childrenPadding: const EdgeInsets.only(top: 8),
                                 title: Text(
                                   'Advanced',
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .titleMedium
+                                  style: Theme.of(context).textTheme.titleMedium
                                       ?.copyWith(fontWeight: FontWeight.w600),
                                 ),
                                 children: [
@@ -997,6 +1134,7 @@ class ProductEntryScreenState extends ConsumerState<ProductEntryScreen>
                           const SizedBox(height: 16),
                           if (!ref.watch(isCompositeProvider))
                             TableVariants(
+                              productId: productRef?.id,
                               isEbmEnabled:
                                   ref.watch(ebmVatEnabledProvider).value ??
                                   false,
@@ -1168,6 +1306,7 @@ class _ProductSavedScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const accentBlue = Color(0xFF0078D4);
     return Scaffold(
       appBar: AppBar(title: const Text('Product saved')),
       body: SafeArea(
@@ -1183,29 +1322,23 @@ class _ProductSavedScreen extends StatelessWidget {
                   color: Colors.green.withValues(alpha: 0.12),
                   shape: BoxShape.circle,
                 ),
-                child: const Icon(
-                  Icons.check,
-                  size: 42,
-                  color: Colors.green,
-                ),
+                child: const Icon(Icons.check, size: 42, color: Colors.green),
               ),
               const SizedBox(height: 16),
               Text(
                 '$productName saved!',
                 textAlign: TextAlign.center,
-                style: Theme.of(context)
-                    .textTheme
-                    .titleLarge
-                    ?.copyWith(fontWeight: FontWeight.w600),
+                style: Theme.of(
+                  context,
+                ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 8),
               Text(
                 'Your product and variants have been added to inventory.',
                 textAlign: TextAlign.center,
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyMedium
-                    ?.copyWith(color: Colors.grey.shade700),
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: Colors.grey.shade700),
               ),
               const SizedBox(height: 20),
               Container(
@@ -1239,12 +1372,14 @@ class _ProductSavedScreen extends StatelessWidget {
               const Spacer(),
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton(
+                child: FilledButton(
                   onPressed: onDone,
-                  style: ElevatedButton.styleFrom(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: accentBlue.withValues(alpha: 0.12),
+                    foregroundColor: accentBlue,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(14),
                     ),
                   ),
                   child: const Text('Done'),
@@ -1256,9 +1391,12 @@ class _ProductSavedScreen extends StatelessWidget {
                 child: OutlinedButton(
                   onPressed: onAddAnother,
                   style: OutlinedButton.styleFrom(
+                    foregroundColor: accentBlue,
+                    side: const BorderSide(color: Color(0xFFD1D1D6)),
+                    backgroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(14),
                     ),
                   ),
                   child: const Text('Add another product'),
@@ -1285,10 +1423,9 @@ class _SummaryRow extends StatelessWidget {
         Expanded(
           child: Text(
             label,
-            style: Theme.of(context)
-                .textTheme
-                .bodySmall
-                ?.copyWith(color: Colors.grey.shade600),
+            style: Theme.of(
+              context,
+            ).textTheme.bodySmall?.copyWith(color: Colors.grey.shade600),
           ),
         ),
         const SizedBox(width: 12),
@@ -1296,10 +1433,9 @@ class _SummaryRow extends StatelessWidget {
           child: Text(
             value,
             textAlign: TextAlign.right,
-            style: Theme.of(context)
-                .textTheme
-                .bodyMedium
-                ?.copyWith(fontWeight: FontWeight.w600),
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
         ),
       ],
@@ -1309,6 +1445,7 @@ class _SummaryRow extends StatelessWidget {
 
 Future<void> _showVariantSheet({
   required BuildContext context,
+  required WidgetRef ref,
   required ScannViewModel model,
   required Product? productRef,
   required TextEditingController retailPriceController,
@@ -1319,28 +1456,89 @@ Future<void> _showVariantSheet({
   Variant? existingVariant,
   String? initialBarcode,
 }) async {
-  final nameController = TextEditingController(text: existingVariant?.name ?? '');
-  final barcodeController =
-      TextEditingController(text: initialBarcode ?? existingVariant?.bcd ?? existingVariant?.sku ?? '');
-  final stockController = TextEditingController(
-    text: (existingVariant?.stock?.currentStock ?? existingVariant?.qty ?? 0)
-        .toString(),
+  final nameController = TextEditingController(
+    text: existingVariant?.name ?? '',
   );
+  final barcodeController = TextEditingController(
+    text: initialBarcode ?? existingVariant?.bcd ?? existingVariant?.sku ?? '',
+  );
+  final _initialStockNum = (existingVariant?.stock?.currentStock ??
+          existingVariant?.qty ??
+          0)
+      .toDouble();
+  final stockController = TextEditingController(
+    text: _initialStockNum == 0
+        ? '0'
+        : (_initialStockNum == _initialStockNum.roundToDouble()
+            ? _initialStockNum.toInt().toString()
+            : _initialStockNum.toString()),
+  );
+  final stockFocusNode = FocusNode();
+  stockFocusNode.addListener(() {
+    if (!stockFocusNode.hasFocus) return;
+    final t = stockController.text.trim();
+    final n = double.tryParse(t);
+    if (n != null && n == 0) {
+      stockController.clear();
+    }
+  });
+  final lowStockText = (() {
+    final low = existingVariant?.stock?.lowStock;
+    if (low == null) return '0';
+    return (low == low.roundToDouble())
+        ? low.toInt().toString()
+        : low.toString();
+  })();
+  final lowStockController = TextEditingController(text: lowStockText);
   final discountController = TextEditingController(
     text: (existingVariant?.dcRt ?? 0).toInt().toString(),
   );
   final priceOverrideController = TextEditingController(
-    text: existingVariant?.retailPrice != null &&
+    text:
+        existingVariant?.retailPrice != null &&
             existingVariant!.retailPrice !=
                 (double.tryParse(retailPriceController.text) ?? 0)
         ? existingVariant.retailPrice!.toString()
         : '',
   );
 
-  String taxTyCd = existingVariant?.taxTyCd ?? 'B';
+  final branchId = ProxyService.box.getBranchId()!;
+  final ebm = await ProxyService.strategy.ebm(branchId: branchId);
+  final isVatEnabled = ebm?.vatEnabled ?? false;
+  // Match ScannViewModel / desktop: B when VAT, D when non-VAT. Hardcoding 'B'
+  // for new rows caused mobile saves to overwrite correct onScanItem tax with B.
+  // When VAT is enabled, "None" (D) is not offered — map legacy D to B.
+  String taxTyCd = isVatEnabled
+      ? (() {
+          final t = existingVariant?.taxTyCd ?? 'B';
+          if (t == 'D') return 'B';
+          if (t == 'A' || t == 'B' || t == 'C') return t;
+          return 'B';
+        })()
+      : 'D';
 
   final formKey = GlobalKey<FormState>();
   var savingVariant = false;
+  var uploadingImage = false;
+  String? variantAssetName = () {
+    final direct = existingVariant?.imageUrl;
+    if (direct != null && direct.isNotEmpty) return direct;
+    final raw = existingVariant?.addInfo;
+    if (raw == null) return null;
+    return raw.startsWith('asset:') ? raw.substring('asset:'.length) : null;
+  }();
+  String? variantPreviewPath;
+
+  Future<String?> tryGetLocalAssetPath(String assetName) async {
+    try {
+      final dir = await getApplicationSupportDirectory();
+      final p = '${dir.path}/$assetName';
+      final f = File(p);
+      return await f.exists() ? p : null;
+    } catch (_) {
+      return null;
+    }
+  }
 
   await showModalBottomSheet(
     context: context,
@@ -1376,9 +1574,7 @@ Future<void> _showVariantSheet({
                                   existingVariant == null
                                       ? 'Add variant'
                                       : 'Edit variant',
-                                  style: Theme.of(ctx)
-                                      .textTheme
-                                      .titleLarge
+                                  style: Theme.of(ctx).textTheme.titleLarge
                                       ?.copyWith(fontWeight: FontWeight.w600),
                                 ),
                               ),
@@ -1393,6 +1589,174 @@ Future<void> _showVariantSheet({
                             key: formKey,
                             child: Column(
                               children: [
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    'Image',
+                                    style: Theme.of(ctx).textTheme.titleSmall
+                                        ?.copyWith(fontWeight: FontWeight.w600),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                InkWell(
+                                  onTap: uploadingImage
+                                      ? null
+                                      : () async {
+                                          if (productRef == null) {
+                                            toast('Invalid product reference');
+                                            return;
+                                          }
+                                          final sourceResult =
+                                              await showImageSourceSheet(ctx);
+                                          if (sourceResult == null) return;
+
+                                          setModalState(
+                                            () => uploadingImage = true,
+                                          );
+                                          try {
+                                            // Pick first so we can preview immediately.
+                                            final pickedPath =
+                                                await pickLocalImagePathForSheetResult(
+                                              sourceResult,
+                                            );
+                                            if (pickedPath == null) return;
+
+                                            setModalState(() {
+                                              variantPreviewPath = pickedPath;
+                                            });
+
+                                            final uploader = UploadViewModel()
+                                              ..setRef(ref);
+                                            final fileName = await uploader
+                                                .uploadPickedImagePath(
+                                                  pickedPath: pickedPath,
+                                                  id: productRef.id,
+                                                  urlType: URLTYPE.PRODUCT,
+                                                  updateProductImage: false,
+                                                  // Persist a variant-scoped Assets row (not the product-level image).
+                                                  persistAssetRecord:
+                                                      existingVariant?.id !=
+                                                      null,
+                                                  variantId:
+                                                      existingVariant?.id,
+                                                );
+                                            setModalState(() {
+                                              variantAssetName = fileName;
+                                              // Keep preview; it will get replaced by local asset on next open.
+                                            });
+                                          } catch (e, st) {
+                                            talker.error(
+                                              'Variant image upload failed: $e',
+                                              e,
+                                              st,
+                                            );
+                                            toast(
+                                              'Could not upload image. Please try again.',
+                                            );
+                                          } finally {
+                                            if (ctx.mounted) {
+                                              setModalState(
+                                                () => uploadingImage = false,
+                                              );
+                                            }
+                                          }
+                                        },
+                                  child: Container(
+                                    width: double.infinity,
+                                    height: 140,
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey.shade100,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: Colors.grey.shade300,
+                                      ),
+                                    ),
+                                    child: Stack(
+                                      children: [
+                                        if (variantPreviewPath != null)
+                                          ClipRRect(
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                            child: Image.file(
+                                              File(variantPreviewPath!),
+                                              width: double.infinity,
+                                              height: double.infinity,
+                                              fit: BoxFit.cover,
+                                            ),
+                                          )
+                                        else if (variantAssetName != null)
+                                          FutureBuilder<String?>(
+                                            future: tryGetLocalAssetPath(
+                                              variantAssetName!,
+                                            ),
+                                            builder: (c, snap) {
+                                              final local = snap.data;
+                                              if (local != null) {
+                                                return ClipRRect(
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
+                                                  child: Image.file(
+                                                    File(local),
+                                                    width: double.infinity,
+                                                    height: double.infinity,
+                                                    fit: BoxFit.cover,
+                                                  ),
+                                                );
+                                              }
+                                              return Center(
+                                                child: Text(
+                                                  'Image selected',
+                                                  style: TextStyle(
+                                                    color: Colors.grey.shade700,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                          )
+                                        else
+                                          Center(
+                                            child: Column(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.center,
+                                              children: [
+                                                Icon(
+                                                  Icons.add_a_photo_outlined,
+                                                  color: Colors.grey.shade700,
+                                                ),
+                                                const SizedBox(height: 8),
+                                                Text(
+                                                  'Add image',
+                                                  style: TextStyle(
+                                                    color: Colors.grey.shade700,
+                                                    fontWeight: FontWeight.w600,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        if (uploadingImage)
+                                          Positioned.fill(
+                                            child: Container(
+                                              decoration: BoxDecoration(
+                                                color: Colors.black.withValues(
+                                                  alpha: 0.35,
+                                                ),
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                              ),
+                                              child: const Center(
+                                                child:
+                                                    CircularProgressIndicator(),
+                                              ),
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
                                 TextFormField(
                                   controller: nameController,
                                   textInputAction: TextInputAction.next,
@@ -1446,21 +1810,18 @@ Future<void> _showVariantSheet({
                                   textInputAction: TextInputAction.next,
                                   decoration: InputDecoration(
                                     labelText: 'Barcode',
-                                    hintText: 'SKU / barcode',
+                                    hintText: 'SKU / barcode (optional)',
+                                    helperText:
+                                        'Leave blank to use the variant name',
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12),
                                     ),
                                   ),
-                                  validator: (v) {
-                                    if (v == null || v.trim().isEmpty) {
-                                      return 'Barcode is required';
-                                    }
-                                    return null;
-                                  },
                                 ),
                                 const SizedBox(height: 12),
                                 TextFormField(
                                   controller: stockController,
+                                  focusNode: stockFocusNode,
                                   textInputAction: TextInputAction.next,
                                   keyboardType: TextInputType.number,
                                   inputFormatters: [
@@ -1474,54 +1835,101 @@ Future<void> _showVariantSheet({
                                   ),
                                 ),
                                 const SizedBox(height: 12),
+                                TextFormField(
+                                  controller: lowStockController,
+                                  textInputAction: TextInputAction.next,
+                                  keyboardType: const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                                  inputFormatters: [
+                                    FilteringTextInputFormatter.allow(
+                                      RegExp(r'[0-9.]'),
+                                    ),
+                                  ],
+                                  decoration: InputDecoration(
+                                    labelText: 'Low stock / reorder at',
+                                    helperText:
+                                        'Alert when on-hand quantity is at or below this level',
+                                    border: OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
                                 Align(
                                   alignment: Alignment.centerLeft,
                                   child: Text(
                                     'Tax',
+                                    style: Theme.of(ctx).textTheme.titleSmall
+                                        ?.copyWith(fontWeight: FontWeight.w600),
+                                  ),
+                                ),
+                                if (!isVatEnabled) ...[
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    'This branch is not VAT-registered. Only '
+                                    '"None" (D) applies.',
                                     style: Theme.of(ctx)
                                         .textTheme
-                                        .titleSmall
+                                        .bodySmall
                                         ?.copyWith(
-                                          fontWeight: FontWeight.w600,
+                                          color: Colors.grey.shade700,
                                         ),
+                                  ),
+                                ],
+                                const SizedBox(height: 8),
+                                if (isVatEnabled)
+                                  Wrap(
+                                    spacing: 8,
+                                    runSpacing: 8,
+                                    children: [
+                                      ChoiceChip(
+                                        label: const Text('Standard B'),
+                                        selected: taxTyCd == 'B',
+                                        onSelected: (_) => setModalState(
+                                          () => taxTyCd = 'B',
+                                        ),
+                                      ),
+                                      ChoiceChip(
+                                        label: const Text('Standard A'),
+                                        selected: taxTyCd == 'A',
+                                        onSelected: (_) => setModalState(
+                                          () => taxTyCd = 'A',
+                                        ),
+                                      ),
+                                      ChoiceChip(
+                                        label: const Text('Exempt'),
+                                        selected: taxTyCd == 'C',
+                                        onSelected: (_) => setModalState(
+                                          () => taxTyCd = 'C',
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                                else
+                                  Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Chip(
+                                      avatar: const Icon(
+                                        Icons.check_circle_outline,
+                                        size: 20,
+                                      ),
+                                      label: const Text('None (D)'),
+                                      backgroundColor: Theme.of(ctx)
+                                          .colorScheme
+                                          .surfaceContainerHighest,
+                                    ),
+                                  ),
+                                const SizedBox(height: 12),
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Text(
+                                    'Discount %',
+                                    style: Theme.of(ctx).textTheme.titleSmall
+                                        ?.copyWith(fontWeight: FontWeight.w600),
                                   ),
                                 ),
                                 const SizedBox(height: 8),
-                                Wrap(
-                                  spacing: 8,
-                                  runSpacing: 8,
-                                  children: [
-                                    ChoiceChip(
-                                      label: const Text('Standard B'),
-                                      selected: taxTyCd == 'B',
-                                      onSelected: (_) => setModalState(
-                                        () => taxTyCd = 'B',
-                                      ),
-                                    ),
-                                    ChoiceChip(
-                                      label: const Text('Standard A'),
-                                      selected: taxTyCd == 'A',
-                                      onSelected: (_) => setModalState(
-                                        () => taxTyCd = 'A',
-                                      ),
-                                    ),
-                                    ChoiceChip(
-                                      label: const Text('None'),
-                                      selected: taxTyCd == 'D',
-                                      onSelected: (_) => setModalState(
-                                        () => taxTyCd = 'D',
-                                      ),
-                                    ),
-                                    ChoiceChip(
-                                      label: const Text('Exempt'),
-                                      selected: taxTyCd == 'C',
-                                      onSelected: (_) => setModalState(
-                                        () => taxTyCd = 'C',
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 12),
                                 TextFormField(
                                   controller: discountController,
                                   textInputAction: TextInputAction.done,
@@ -1530,7 +1938,7 @@ Future<void> _showVariantSheet({
                                     FilteringTextInputFormatter.digitsOnly,
                                   ],
                                   decoration: InputDecoration(
-                                    labelText: 'Discount %',
+                                    hintText: '0',
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(12),
                                     ),
@@ -1544,7 +1952,12 @@ Future<void> _showVariantSheet({
                       ),
                     ),
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                      padding: EdgeInsets.fromLTRB(
+                        16,
+                        0,
+                        16,
+                        16 + MediaQuery.of(ctx).padding.bottom,
+                      ),
                       child: SizedBox(
                         width: double.infinity,
                         child: FilledButton(
@@ -1561,17 +1974,23 @@ Future<void> _showVariantSheet({
 
                                   setModalState(() => savingVariant = true);
                                   try {
-                                    final barcode = barcodeController.text.trim();
+                                    final barcode = barcodeController.text
+                                        .trim();
+                                    final variantName = nameController.text
+                                        .trim();
+                                    final effectiveBarcode = barcode.isNotEmpty
+                                        ? barcode
+                                        : variantName;
                                     final baseRetail =
                                         double.tryParse(
-                                              retailPriceController.text,
-                                            ) ??
-                                            0;
+                                          retailPriceController.text,
+                                        ) ??
+                                        0;
                                     final baseSupply =
                                         double.tryParse(
-                                              supplyPriceController.text,
-                                            ) ??
-                                            0;
+                                          supplyPriceController.text,
+                                        ) ??
+                                        0;
                                     final override = double.tryParse(
                                       priceOverrideController.text.trim(),
                                     );
@@ -1580,69 +1999,92 @@ Future<void> _showVariantSheet({
                                           stockController.text.trim(),
                                         ) ??
                                         0;
+                                    final lowStockVal =
+                                        double.tryParse(
+                                          lowStockController.text.trim(),
+                                        ) ??
+                                        0.0;
                                     final discount =
                                         int.tryParse(
                                           discountController.text.trim(),
                                         ) ??
                                         0;
+                                    final effectiveTaxTyCd = isVatEnabled
+                                        ? (taxTyCd == 'D' ? 'B' : taxTyCd)
+                                        : 'D';
 
                                     if (existingVariant == null) {
-                                      final variantName =
-                                          nameController.text.trim();
                                       await model.onScanItem(
                                         countryCode:
                                             countryOfOriginController.text,
                                         editmode: isEditMode,
-                                        barCode: barcode,
+                                        barCode: effectiveBarcode,
                                         retailPrice: override ?? baseRetail,
                                         supplyPrice: baseSupply,
-                                        isTaxExempted: taxTyCd == 'C',
+                                        isTaxExempted:
+                                            effectiveTaxTyCd == 'C',
                                         product: productRef,
                                         variantDisplayName: variantName,
                                       );
 
-                                      final idx =
-                                          model.scannedVariants.indexWhere(
-                                        (v) => v.bcd == barcode,
+                                      final idx = model.scannedVariants
+                                          .indexWhere(
+                                        (v) => v.bcd == effectiveBarcode,
                                       );
                                       final v = idx != -1
                                           ? model.scannedVariants[idx]
                                           : (model.scannedVariants.isNotEmpty
-                                              ? model.scannedVariants.last
-                                              : null);
+                                                ? model.scannedVariants.last
+                                                : null);
                                       if (v != null) {
                                         v.name = variantName;
-                                        v.taxTyCd = taxTyCd;
+                                        v.taxTyCd = effectiveTaxTyCd;
+                                        v.taxName = effectiveTaxTyCd;
                                         v.dcRt = discount.toDouble();
+                                        if (variantAssetName != null) {
+                                          v.imageUrl = variantAssetName;
+                                          // Backward-compatible fallback for older clients.
+                                          v.addInfo = 'asset:$variantAssetName';
+                                        }
                                         model.getDiscountController(v.id).text =
                                             discount.toString();
                                         await model.updateVariantQuantity(
                                           v.id,
                                           qty,
                                           persistToBackend: false,
+                                          lowStock: lowStockVal,
                                         );
                                         model.notifyListeners();
                                       }
                                     } else {
-                                      existingVariant.name =
-                                          nameController.text.trim();
-                                      existingVariant.bcd = barcode;
-                                      existingVariant.sku = barcode;
-                                      existingVariant.taxTyCd = taxTyCd;
+                                      existingVariant.name = variantName;
+                                      existingVariant.bcd = effectiveBarcode;
+                                      existingVariant.sku = effectiveBarcode;
+                                      existingVariant.taxTyCd = effectiveTaxTyCd;
+                                      existingVariant.taxName = effectiveTaxTyCd;
                                       existingVariant.retailPrice =
                                           override ?? baseRetail;
                                       existingVariant.supplyPrice = baseSupply;
-                                      existingVariant.dcRt =
-                                          discount.toDouble();
+                                      existingVariant.dcRt = discount
+                                          .toDouble();
+                                      if (variantAssetName != null) {
+                                        existingVariant.imageUrl =
+                                            variantAssetName;
+                                        // Backward-compatible fallback for older clients.
+                                        existingVariant.addInfo =
+                                            'asset:$variantAssetName';
+                                      }
                                       model
                                           .getDiscountController(
                                             existingVariant.id,
                                           )
-                                          .text = discount.toString();
+                                          .text = discount
+                                          .toString();
                                       await model.updateVariantQuantity(
                                         existingVariant.id,
                                         qty,
                                         persistToBackend: false,
+                                        lowStock: lowStockVal,
                                       );
                                       model.notifyListeners();
                                     }
@@ -1672,11 +2114,13 @@ Future<void> _showVariantSheet({
                                   }
                                 },
                           style: FilledButton.styleFrom(
-                            backgroundColor: const Color(0xFF0078D4)
-                                .withValues(alpha: 0.12),
+                            backgroundColor: const Color(
+                              0xFF0078D4,
+                            ).withValues(alpha: 0.12),
                             foregroundColor: const Color(0xFF0078D4),
-                            disabledBackgroundColor: const Color(0xFF0078D4)
-                                .withValues(alpha: 0.12),
+                            disabledBackgroundColor: const Color(
+                              0xFF0078D4,
+                            ).withValues(alpha: 0.12),
                             disabledForegroundColor: const Color(0xFF0078D4),
                             padding: const EdgeInsets.symmetric(vertical: 16),
                             shape: RoundedRectangleBorder(
@@ -1714,15 +2158,18 @@ Future<void> _showVariantSheet({
     },
   );
 
-  // The sheet route can still be animating out or finishing unmount when this
-  // future completes; disposing controllers synchronously races EditableText and
-  // triggers "used after being disposed". Dispose after this frame.
+  // The sheet route can still be animating out; disposing too early can race
+  // EditableText listeners and trigger "used after being disposed".
   WidgetsBinding.instance.addPostFrameCallback((_) {
-    nameController.dispose();
-    barcodeController.dispose();
-    stockController.dispose();
-    priceOverrideController.dispose();
-    discountController.dispose();
+    Future<void>.delayed(const Duration(milliseconds: 350), () {
+      nameController.dispose();
+      barcodeController.dispose();
+      stockFocusNode.dispose();
+      stockController.dispose();
+      lowStockController.dispose();
+      priceOverrideController.dispose();
+      discountController.dispose();
+    });
   });
 }
 
@@ -1754,6 +2201,8 @@ class _MobileProductEntry extends StatelessWidget {
     required this.onAddVariant,
     required this.onEditVariant,
     required this.onDeleteVariant,
+    required this.pickerColor,
+    required this.onColorSelected,
   });
 
   final String? productId;
@@ -1785,11 +2234,26 @@ class _MobileProductEntry extends StatelessWidget {
   final VoidCallback onAddVariant;
   final void Function(Variant) onEditVariant;
   final void Function(Variant) onDeleteVariant;
+  final Color pickerColor;
+  final ValueChanged<Color> onColorSelected;
 
   @override
   Widget build(BuildContext context) {
     const accentBlue = Color(0xFF0078D4);
     final sym = ProxyService.box.defaultCurrency();
+
+    String? _variantAssetName(Variant v) {
+      final direct = v.imageUrl;
+      if (direct != null && direct.isNotEmpty) return direct;
+      final raw = v.addInfo;
+      if (raw == null) return null;
+      return raw.startsWith('asset:') ? raw.substring('asset:'.length) : null;
+    }
+
+    // Cache download operations across rebuilds (keyed by assetName).
+    // This avoids re-triggering downloads while scrolling.
+    final Map<String, Future<void>> _downloadCache =
+        _MobileVariantThumbnail.globalDownloadCache;
 
     return ColoredBox(
       color: const Color(0xFFF2F2F7),
@@ -1803,10 +2267,9 @@ class _MobileProductEntry extends StatelessWidget {
                 children: [
                   Text(
                     'Product info',
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleSmall
-                        ?.copyWith(color: Colors.grey.shade600),
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                      color: Colors.grey.shade600,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   BasicInfoSection(
@@ -1829,10 +2292,9 @@ class _MobileProductEntry extends StatelessWidget {
                     childrenPadding: const EdgeInsets.only(top: 8),
                     title: Text(
                       'Advanced',
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleMedium
-                          ?.copyWith(fontWeight: FontWeight.w600),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     children: [
                       InventorySection(
@@ -1856,9 +2318,7 @@ class _MobileProductEntry extends StatelessWidget {
                       Expanded(
                         child: Text(
                           'Variants (${model.scannedVariants.length})',
-                          style: Theme.of(context)
-                              .textTheme
-                              .titleMedium
+                          style: Theme.of(context).textTheme.titleMedium
                               ?.copyWith(fontWeight: FontWeight.w600),
                         ),
                       ),
@@ -1900,15 +2360,15 @@ class _MobileProductEntry extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text(
                     'Tap a variant to expand · Edit or delete inside · swipe to delete',
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodySmall
-                        ?.copyWith(color: Colors.grey.shade600),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Colors.grey.shade600,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   ...model.scannedVariants.reversed.map((v) {
-                    final displayName =
-                        v.name.isNotEmpty ? v.name : (v.bcd ?? 'Variant');
+                    final displayName = v.name.isNotEmpty
+                        ? v.name
+                        : (v.bcd ?? 'Variant');
                     final priceStr =
                         '${(v.retailPrice ?? 0).toStringAsFixed(2)}';
                     return Dismissible(
@@ -1948,14 +2408,9 @@ class _MobileProductEntry extends StatelessWidget {
                           collapsedShape: const RoundedRectangleBorder(
                             borderRadius: BorderRadius.all(Radius.circular(14)),
                           ),
-                          leading: CircleAvatar(
-                            radius: 20,
-                            backgroundColor: Colors.grey.shade100,
-                            child: const Icon(
-                              Icons.inventory_2_outlined,
-                              size: 20,
-                              color: Colors.black54,
-                            ),
+                          leading: _MobileVariantThumbnail(
+                            assetName: _variantAssetName(v),
+                            downloadCache: _downloadCache,
                           ),
                           title: Text(
                             displayName,
@@ -1982,7 +2437,10 @@ class _MobileProductEntry extends StatelessWidget {
                               children: [
                                 TextButton.icon(
                                   onPressed: () => onEditVariant(v),
-                                  icon: const Icon(Icons.edit_outlined, size: 20),
+                                  icon: const Icon(
+                                    Icons.edit_outlined,
+                                    size: 20,
+                                  ),
                                   label: const Text('Edit variant'),
                                   style: TextButton.styleFrom(
                                     foregroundColor: accentBlue,
@@ -2065,10 +2523,114 @@ class _MobileProductEntry extends StatelessWidget {
                 ),
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: 12 + MediaQuery.of(context).padding.bottom),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _MobileVariantThumbnail extends StatefulWidget {
+  const _MobileVariantThumbnail({
+    required this.assetName,
+    required this.downloadCache,
+  });
+
+  final String? assetName;
+  final Map<String, Future<void>> downloadCache;
+
+  static final Map<String, Future<void>> globalDownloadCache =
+      <String, Future<void>>{};
+
+  @override
+  State<_MobileVariantThumbnail> createState() =>
+      _MobileVariantThumbnailState();
+}
+
+class _MobileVariantThumbnailState extends State<_MobileVariantThumbnail> {
+  String? _localPath;
+
+  @override
+  void initState() {
+    super.initState();
+    _kickoff();
+  }
+
+  @override
+  void didUpdateWidget(covariant _MobileVariantThumbnail oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.assetName != widget.assetName) {
+      _localPath = null;
+      _kickoff();
+    }
+  }
+
+  Future<void> _kickoff() async {
+    final assetName = widget.assetName;
+    if (assetName == null || assetName.isEmpty) return;
+
+    final dir = await getApplicationSupportDirectory();
+    final candidate = '${dir.path}/$assetName';
+    if (File(candidate).existsSync()) {
+      if (mounted) setState(() => _localPath = candidate);
+      return;
+    }
+
+    // Lazy download from S3 if missing locally.
+    widget.downloadCache[assetName] ??= () async {
+      try {
+        final stream = await ProxyService.strategy.downloadAssetSave(
+          assetName: assetName,
+          subPath: 'branch',
+        );
+        await for (final p in stream) {
+          if (p >= 100) break;
+        }
+      } catch (_) {
+        // Best-effort; UI will fall back to icon if download fails.
+      }
+    }();
+
+    await widget.downloadCache[assetName];
+
+    if (!mounted) return;
+    if (File(candidate).existsSync()) {
+      setState(() => _localPath = candidate);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final assetName = widget.assetName;
+    if (assetName == null || assetName.isEmpty) {
+      return CircleAvatar(
+        radius: 20,
+        backgroundColor: Colors.grey.shade100,
+        child: const Icon(
+          Icons.inventory_2_outlined,
+          size: 20,
+          color: Colors.black54,
+        ),
+      );
+    }
+
+    final local = _localPath;
+    if (local == null) {
+      return CircleAvatar(
+        radius: 20,
+        backgroundColor: Colors.grey.shade100,
+        child: const Icon(
+          Icons.image_outlined,
+          size: 20,
+          color: Colors.black54,
+        ),
+      );
+    }
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(10),
+      child: Image.file(File(local), width: 40, height: 40, fit: BoxFit.cover),
     );
   }
 }

@@ -5,10 +5,13 @@ import 'package:flipper_models/sync/interfaces/business_interface.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:talker/talker.dart';
+import 'package:flipper_web/services/ditto_service.dart';
+import 'package:flipper_models/sync/capella/category_ditto_mapper.dart';
 
 mixin CapellaBusinessMixin implements BusinessInterface {
   Repository get repository;
   Talker get talker;
+  DittoService get dittoService => DittoService.instance;
 
   @override
   Future<Business?> activeBusiness({int? userId}) async {
@@ -19,9 +22,24 @@ mixin CapellaBusinessMixin implements BusinessInterface {
 
   @override
   Future<Category?> activeCategory({required String branchId}) async {
-    throw UnimplementedError(
-      'activeCategory needs to be implemented for Capella',
-    );
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) {
+      talker.error('Ditto not initialized for activeCategory');
+      return null;
+    }
+    try {
+      final result = await ditto.store.execute(
+        'SELECT * FROM categories WHERE branchId = :branchId '
+        'AND focused = :focused AND active = :active LIMIT 1',
+        arguments: {'branchId': branchId, 'focused': true, 'active': true},
+      );
+      if (result.items.isEmpty) return null;
+      final data = Map<String, dynamic>.from(result.items.first.value);
+      return categoryFromDittoMap(data);
+    } catch (e, s) {
+      talker.error('Error in Capella activeCategory: $e', s);
+      return null;
+    }
   }
 
   @override

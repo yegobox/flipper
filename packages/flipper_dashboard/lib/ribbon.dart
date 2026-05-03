@@ -1,8 +1,14 @@
 // ignore_for_file: unused_result, unused_field
 
+import 'dart:async';
+
 import 'package:flipper_dashboard/BranchPerformance.dart';
 import 'package:flipper_dashboard/BranchSelectionMixin.dart';
-import 'package:flipper_dashboard/Reports.dart';
+import 'package:flipper_dashboard/import_purchase_dialog.dart';
+import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
+import 'package:flipper_dashboard/providers/app_mode_provider.dart';
+import 'package:flipper_dashboard/features/stock_value/stock_value_report_desktop_screen.dart';
+import 'package:flipper_models/providers/stock_value_report_provider.dart';
 import 'package:flipper_dashboard/tax_configuration.dart';
 import 'package:flipper_dashboard/transaction_list_wrapper.dart';
 import 'package:flipper_models/providers/branch_business_provider.dart';
@@ -13,13 +19,15 @@ import 'package:flipper_models/view_models/mixins/riverpod_states.dart'
         buttonIndexProvider,
         selectedBranchProvider;
 import 'package:flipper_routing/app.locator.dart' show locator;
+import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_services/DeviceType.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_ui/dialogs/AdminPinDialog.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:stacked_services/stacked_services.dart';
 import 'package:supabase_models/brick/models/branch.model.dart';
 import 'package:wolt_modal_sheet/wolt_modal_sheet.dart';
 
@@ -38,33 +46,26 @@ class IconText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final primary = PosLayoutBreakpoints.posAccentBlue;
 
     return Container(
       key: key,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color: isSelected
-            ? theme.primaryColor.withValues(alpha: 0.1)
+            ? primary.withValues(alpha: 0.12)
             : Colors.transparent,
-        borderRadius: BorderRadius.circular(4),
-        border: isSelected
-            ? Border(bottom: BorderSide(color: theme.primaryColor, width: 2))
-            : null,
+        borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(
-            icon,
-            color: isSelected ? theme.primaryColor : Colors.black54,
-            size: 20.0,
-          ),
+          Icon(icon, color: isSelected ? primary : Colors.black54, size: 20.0),
           const SizedBox(width: 8),
           Text(
             text,
             style: TextStyle(
-              color: isSelected ? theme.primaryColor : Colors.black87,
+              color: isSelected ? primary : Colors.black87,
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
               fontSize: 13.0,
             ),
@@ -84,181 +85,272 @@ class IconRow extends StatefulHookConsumerWidget {
 
 class IconRowState extends ConsumerState<IconRow>
     with CoreMiscellaneous, BranchSelectionMixin {
-  final List<bool> _isSelected = [true, false, false, false, false, false];
-  String? _loadingItemId; // Add this
+  /// Selection for main ribbon tabs: Home, Transactions, EOD, Analytics.
+  final List<bool> _selectedMain = [true, false, false, false];
+  String? _loadingItemId;
   bool _isLoading = false;
 
   String _getDeviceType(BuildContext context) {
     return DeviceType.getDeviceType(context);
   }
 
+  int _legacyButtonIndexForUi(int uiIndex) {
+    if (uiIndex < 0 || uiIndex > 3) return 0;
+    return uiIndex;
+  }
+
+  void _onMainTabPressed(int uiIndex) {
+    unawaited(_handleMainTabPressed(uiIndex));
+  }
+
+  Future<bool> _verifyAdminPinIfRequired(BuildContext context) async {
+    final settingsService = ProxyService.settings;
+    if (!settingsService.isAdminPinEnabled) return true;
+    final setting = await settingsService.settings();
+    final confirmed = await showAdminPinDialog(
+      context: context,
+      mode: AdminPinMode.verify,
+      expectedPin: setting?.adminPin,
+    );
+    return confirmed == true;
+  }
+
+  Future<void> _handleMainTabPressed(int uiIndex) async {
+    if (uiIndex != 0) {
+      final ok = await _verifyAdminPinIfRequired(context);
+      if (!ok || !mounted) return;
+    }
+    ref
+        .read(buttonIndexProvider.notifier)
+        .setIndex(_legacyButtonIndexForUi(uiIndex));
+    setState(() {
+      for (var i = 0; i < 4; i++) {
+        _selectedMain[i] = i == uiIndex;
+      }
+    });
+    _runNavigationForUi(uiIndex);
+  }
+
+  void _runNavigationForUi(int uiIndex) {
+    switch (uiIndex) {
+      case 0:
+        break;
+      case 1:
+        _showReport(context);
+        break;
+      case 2:
+        showBranchSwitchDialog(
+          context: context,
+          branches: null,
+          loadingItemId: _loadingItemId,
+          setDefaultBranch: (branch) async {
+            setState(() {
+              _isLoading = true;
+            });
+            handleBranchSelection(
+              branch,
+              context,
+              setLoadingState: (String? id) {
+                setState(() {
+                  _loadingItemId = id;
+                });
+              },
+              setDefaultBranch: _setDefaultBranch,
+              onComplete: () {
+                Navigator.of(context).pop();
+                setState(() {
+                  _isLoading = false;
+                });
+              },
+              setIsLoading: (bool value) {
+                setState(() {
+                  _isLoading = value;
+                });
+              },
+            );
+          },
+          handleBranchSelection: handleBranchSelection,
+          onLogout: () async {
+            await showLogoutConfirmationDialog(context);
+          },
+          setLoadingState: (String? id) {
+            setState(() {
+              _loadingItemId = id;
+            });
+          },
+        );
+        break;
+      case 3:
+        ref.invalidate(stockValueReportProvider);
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => const StockValueReportDesktopScreen(),
+            fullscreenDialog: true,
+          ),
+        );
+        break;
+    }
+  }
+
+  Widget _buildMainTab(
+    BuildContext context, {
+    required IconData icon,
+    required String label,
+    required int uiIndex,
+    required Key key,
+    VoidCallback? onDoubleTap,
+  }) {
+    return InkWell(
+      onTap: () => _onMainTabPressed(uiIndex),
+      onDoubleTap: onDoubleTap,
+      borderRadius: BorderRadius.circular(8),
+      child: IconText(
+        icon: icon,
+        text: label,
+        key: key,
+        isSelected: _selectedMain[uiIndex],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final deviceType = _getDeviceType(context);
+    final appMode = ref.watch(appModeProvider);
+    final showImportPurchase =
+        deviceType != 'Phone' && deviceType != 'Phablet' && appMode;
+
     return Row(
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        _buildIconText(
+        _buildMainTab(
           context,
-          Icons.home_outlined,
-          'Home',
-          0,
-          const Key('home_desktop'),
-          () {
-            _showTaxDialog(context);
+          icon: Icons.home_outlined,
+          label: 'Home',
+          uiIndex: 0,
+          key: const Key('home_desktop'),
+          onDoubleTap: () => _showTaxDialog(context),
+        ),
+        const SizedBox(width: 4),
+        _buildMainTab(
+          context,
+          icon: Icons.sync_outlined,
+          label: 'Transactions',
+          uiIndex: 1,
+          key: const Key('transactions_desktop'),
+        ),
+        const SizedBox(width: 4),
+        _buildMainTab(
+          context,
+          icon: Icons.payment_outlined,
+          label: 'EOD',
+          uiIndex: 2,
+          key: const Key('eod_desktop'),
+        ),
+        const SizedBox(width: 4),
+        _buildMainTab(
+          context,
+          icon: Icons.dashboard_outlined,
+          label: 'Analytics',
+          uiIndex: 3,
+          key: const Key('analytics_desktop'),
+        ),
+        if (showImportPurchase) ...[
+          const SizedBox(width: 4),
+          Tooltip(
+            message: 'Import & Purchase',
+            child: InkWell(
+              key: const Key('import_purchase_ribbon'),
+              onTap: () => unawaited(_handleImportPurchaseTap(context)),
+              borderRadius: BorderRadius.circular(8),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 8,
+                ),
+                child: Icon(
+                  FluentIcons.expand_up_right_16_regular,
+                  color: Colors.black54,
+                  size: 20,
+                ),
+              ),
+            ),
+          ),
+        ],
+        const SizedBox(width: 4),
+        PopupMenuButton<String>(
+          tooltip: 'More',
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            child: Icon(Icons.more_horiz, color: Colors.black54, size: 22),
+          ),
+          onSelected: (value) {
+            unawaited(_handleMoreMenuSelection(context, value));
           },
-        ),
-        const SizedBox(width: 4),
-        _buildIconText(
-          context,
-          Icons.sync_outlined,
-          'Transactions',
-          1,
-          const Key('transactions_desktop'),
-        ),
-        const SizedBox(width: 4),
-        _buildIconText(
-          context,
-          Icons.payment_outlined,
-          'EOD',
-          2,
-          const Key('eod_desktop'),
-        ),
-        const SizedBox(width: 4),
-        _buildIconText(
-          context,
-          Icons.dashboard_outlined,
-          'Analytics',
-          3,
-          const Key('analytics_desktop'),
-        ),
-        const SizedBox(width: 4),
-        _buildIconText(
-          context,
-          Icons.maps_home_work_outlined,
-          'Locations',
-          4,
-          const Key('locations'),
-          () {
-            final deviceType = _getDeviceType(context);
-            if (deviceType == 'Phone' || deviceType == 'Phablet') {
-              ref.read(selectedBranchProvider.notifier).state = null;
-              _showBranchPerformanceMobile(context);
-            } else {
-              _showBranchPerformance(context);
-            }
-          },
-        ),
-        const SizedBox(width: 4),
-        _buildIconText(
-          context,
-          Icons.inventory_2_outlined,
-          'Items',
-          5,
-          const Key('items_desktop'),
-          () {
-            final dialogService = locator<DialogService>();
-            dialogService.showCustomDialog(variant: DialogType.items);
-          },
+          itemBuilder: (context) => [
+            const PopupMenuItem(
+              value: 'locations',
+              child: ListTile(
+                dense: true,
+                leading: Icon(Icons.maps_home_work_outlined),
+                title: Text('Locations'),
+              ),
+            ),
+            const PopupMenuItem(
+              value: 'items',
+              child: ListTile(
+                dense: true,
+                leading: Icon(Icons.inventory_2_outlined),
+                title: Text('Items'),
+              ),
+            ),
+          ],
         ),
       ],
     );
   }
 
-  Widget _buildIconText(
+  Future<void> _handleImportPurchaseTap(BuildContext context) async {
+    final ok = await _verifyAdminPinIfRequired(context);
+    if (!ok || !mounted) return;
+    await ImportPurchaseDialog.show(context);
+  }
+
+  Future<void> _handleMoreMenuSelection(
     BuildContext context,
-    IconData icon,
-    String text,
-    int index,
-    Key key, [
-    VoidCallback? onDoubleTap,
-  ]) {
-    return InkWell(
-      onTap: () => _onTogglePressed(index),
-      onDoubleTap: onDoubleTap,
-      borderRadius: BorderRadius.circular(4),
-      child: IconText(
-        icon: icon,
-        text: text,
-        key: key,
-        isSelected: _isSelected[index],
-      ),
-    );
+    String value,
+  ) async {
+    final ok = await _verifyAdminPinIfRequired(context);
+    if (!ok || !mounted) return;
+    if (value == 'locations') {
+      _onMoreMenuLocations(context);
+    } else if (value == 'items') {
+      _onMoreMenuItems();
+    }
   }
 
-  void _onTogglePressed(int index) {
-    ref.read(buttonIndexProvider.notifier).setIndex(index);
-
-    setState(() {
-      for (int i = 0; i < _isSelected.length; i++) {
-        _isSelected[i] = i == index;
-      }
-    });
-
-    _navigateBasedOnIndex(index);
+  void _onMoreMenuLocations(BuildContext context) {
+    ref.read(buttonIndexProvider.notifier).setIndex(4);
+    final deviceType = _getDeviceType(context);
+    if (deviceType == 'Phone' || deviceType == 'Phablet') {
+      ref.read(selectedBranchProvider.notifier).state = null;
+      _showBranchPerformanceMobile(context);
+    } else {
+      _showBranchPerformance(context);
+    }
   }
 
-  final _routerService = locator<RouterService>();
-
-  Future<void> _navigateBasedOnIndex(int index) async {
-    if (index == 1) {
-      _showReport(context);
-    }
-    if (index == 3) {
-      preloadReportsData(ref);
-      showDialog(
-        context: context,
-        barrierDismissible: true,
-        builder: (BuildContext context) => const FastReportsDialog(),
-      );
-    } else if (index == 2) {
-      showBranchSwitchDialog(
-        context: context,
-        branches: null, // Now allowed: nullable
-        loadingItemId: _loadingItemId,
-        setDefaultBranch: (branch) async {
-          setState(() {
-            _isLoading = true;
-          });
-          handleBranchSelection(
-            branch,
-            context,
-            setLoadingState: (String? id) {
-              setState(() {
-                _loadingItemId = id;
-              });
-            },
-            setDefaultBranch: _setDefaultBranch,
-            onComplete: () {
-              Navigator.of(context).pop();
-              setState(() {
-                _isLoading = false;
-              });
-            },
-            setIsLoading: (bool value) {
-              setState(() {
-                _isLoading = value;
-              });
-            },
-          );
-        },
-        handleBranchSelection: handleBranchSelection, // Pass required argument
-        onLogout: () async {
-          await showLogoutConfirmationDialog(context);
-        },
-        setLoadingState: (String? id) {
-          setState(() {
-            _loadingItemId = id;
-          });
-        },
-      );
-    }
+  void _onMoreMenuItems() {
+    ref.read(buttonIndexProvider.notifier).setIndex(5);
+    final dialogService = locator<DialogService>();
+    dialogService.showCustomDialog(variant: DialogType.items);
   }
 
   Future<void> _setDefaultBranch(Branch branch) async {
     ref.read(branchSelectionProvider.notifier).setLoading(true);
     _refreshBusinessAndBranchProviders();
-    return Future.value(); // Return a completed Future<void>
+    return Future.value();
   }
 
   void _refreshBusinessAndBranchProviders() {
@@ -313,13 +405,7 @@ class IconRowState extends ConsumerState<IconRow>
       context: context,
       builder: (_) => Dialog(
         insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.9,
-            maxWidth: MediaQuery.of(context).size.width * 0.95,
-          ),
-          child: TransactionListWrapper(showDetailedReport: true),
-        ),
+        child: const _DeferredTransactionListDialogBody(),
       ),
     );
   }
@@ -361,7 +447,7 @@ class IconRowState extends ConsumerState<IconRow>
         child: ConstrainedBox(
           constraints: BoxConstraints(
             maxHeight: MediaQuery.of(context).size.height * 0.8,
-            minWidth: 400, // Optional: for desktop/tablet
+            minWidth: 400,
           ),
           child: SizedBox(
             height: MediaQuery.of(context).size.height * 0.7,
@@ -372,6 +458,54 @@ class IconRowState extends ConsumerState<IconRow>
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Opens the transactions dialog shell on the first frame, then mounts
+/// [TransactionListWrapper] (full report chrome: KPIs, filters, cashier, export)
+/// after layout so the modal appears immediately instead of blocking during
+/// [showDialog].
+class _DeferredTransactionListDialogBody extends ConsumerStatefulWidget {
+  const _DeferredTransactionListDialogBody();
+
+  @override
+  ConsumerState<_DeferredTransactionListDialogBody> createState() =>
+      _DeferredTransactionListDialogBodyState();
+}
+
+class _DeferredTransactionListDialogBodyState
+    extends ConsumerState<_DeferredTransactionListDialogBody> {
+  bool _mountList = false;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        setState(() => _mountList = true);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final maxH = MediaQuery.sizeOf(context).height * 0.9;
+    final maxW = MediaQuery.sizeOf(context).width * 0.95;
+
+    if (!_mountList) {
+      return ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: maxH, maxWidth: maxW),
+        child: const SizedBox(
+          height: 360,
+          child: Center(child: CircularProgressIndicator()),
+        ),
+      );
+    }
+
+    return ConstrainedBox(
+      constraints: BoxConstraints(maxHeight: maxH, maxWidth: maxW),
+      child: TransactionListWrapper(showDetailedReport: true),
     );
   }
 }

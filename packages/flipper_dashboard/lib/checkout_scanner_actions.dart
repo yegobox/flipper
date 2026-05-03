@@ -61,7 +61,7 @@ class CheckoutScannerActions extends ScannerActions {
         );
         // Play sound on successful barcode detection (mobile only)
         if ((Platform.isAndroid || Platform.isIOS) && _soundSource != null) {
-          await _soloud!.play(_soundSource!);
+          _soloud!.play(_soundSource!);
         }
       } else {
         showCustomSnackBarUtil(

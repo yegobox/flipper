@@ -32,6 +32,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
   final Map<String, bool> _selectedVariants = {};
   final Map<String, TextEditingController> _discountControllers = {};
   final Map<String, TextEditingController> _dateControllers = {};
+  final Map<String, TextEditingController> _lowStockControllers = {};
 
   // Toggles selection for a specific variant.
   void toggleSelect(String variantId) {
@@ -68,18 +69,16 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
         final existingVariant = scannedVariants[index]; //Get existing variant
         final boxBhfId = await ProxyService.box.bhfId();
         final ebmRow = await ProxyService.strategy.ebm(branchId: branchId);
-        final coercedBhfId =
-            _coerceBhfId(boxBhfId, ebmRow?.bhfId, existingVariant.bhfId);
+        final coercedBhfId = _coerceBhfId(
+          boxBhfId,
+          ebmRow?.bhfId,
+          existingVariant.bhfId,
+        );
         scannedVariants[index] = Variant(
           id: existingVariant.id,
           stockId: existingVariant.stock?.id ?? existingVariant.stockId,
           stock: existingVariant.stock != null
-              ? Stock(
-                  branchId: branchId,
-                  id: existingVariant.stock!.id,
-                  currentStock: existingVariant.stock!.currentStock,
-                  rsdQty: existingVariant.stock!.rsdQty,
-                  value: existingVariant.stock!.value,
+              ? existingVariant.stock!.copyWith(
                   lastTouched: DateTime.now().toUtc(),
                 )
               : null,
@@ -163,6 +162,28 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
     }
   }
 
+  /// Low stock / reorder threshold for table inline editing.
+  TextEditingController getLowStockController(String variantId) {
+    if (!_lowStockControllers.containsKey(variantId)) {
+      final variant = scannedVariants.firstWhere(
+        (v) => v.id == variantId,
+        orElse: () => Variant(
+          id: variantId,
+          name: '',
+          branchId: ProxyService.box.getBranchId()!,
+        ),
+      );
+      final low = variant.stock?.lowStock;
+      final text = low == null
+          ? '0'
+          : (low == low.roundToDouble()
+              ? low.toInt().toString()
+              : low.toString());
+      _lowStockControllers[variantId] = TextEditingController(text: text);
+    }
+    return _lowStockControllers[variantId]!;
+  }
+
   // Returns a TextEditingController for managing the discount of a variant.
   TextEditingController getDiscountController(
     String variantId, {
@@ -228,6 +249,9 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       controller.dispose();
     }
     for (var controller in _dateControllers.values) {
+      controller.dispose();
+    }
+    for (var controller in _lowStockControllers.values) {
       controller.dispose();
     }
     super.dispose();
@@ -297,9 +321,11 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
     required double supplyPrice,
     required bool editmode,
     required String countryCode,
+
     /// Per-variant label (e.g. from Add variant sheet). When null/empty, falls back
     /// to the in-progress product title so desktop scan-only flow still works.
     String? variantDisplayName,
+    double? lowStock,
   }) async {
     String branchId = ProxyService.box.getBranchId()!;
 
@@ -313,7 +339,8 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
         variant.supplyPrice = supplyPrice;
         variant.rsdQty = (variant.qty!) + 1;
         variant.qty = (variant.qty!) + 1; // Increment the quantity safely
-        if (variantDisplayName != null && variantDisplayName.trim().isNotEmpty) {
+        if (variantDisplayName != null &&
+            variantDisplayName.trim().isNotEmpty) {
           final label = variantDisplayName.trim();
           variant.name = label;
           variant.itemNm = label;
@@ -332,13 +359,14 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
     final resolvedBhfId = _coerceBhfId(boxBhfId, ebm?.bhfId, null);
     final isVatEnabled = ebm?.vatEnabled ?? false;
     // Prefer the in-progress product title (mobile) over persisted TEMP_PRODUCT name.
-    final productTitle = (kProductName != null && kProductName!.trim().isNotEmpty)
+    final productTitle =
+        (kProductName != null && kProductName!.trim().isNotEmpty)
         ? kProductName!.trim()
         : product.name;
     final variantRowName =
         (variantDisplayName != null && variantDisplayName.trim().isNotEmpty)
-            ? variantDisplayName.trim()
-            : productTitle;
+        ? variantDisplayName.trim()
+        : productTitle;
     final variant = Variant(
       name: variantRowName,
       itemNm: variantRowName,
@@ -357,6 +385,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       unit: 'Per Item',
       productName: productTitle,
       branchId: branchId,
+      taxName: isVatEnabled ? "B" : "D",
       taxTyCd: isVatEnabled
           ? "B"
           : "D", // Set correct tax type based on EBM VAT status
@@ -386,6 +415,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
       branchId: branchId,
       initialStock: 0,
       rsdQty: 0,
+      lowStock: lowStock ?? 0.0,
       tin: ebm?.tinNumber ?? -1,
       value: 0 * retailPrice,
       ebmSynced: false,
@@ -469,6 +499,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
     String id,
     double newQuantity, {
     bool persistToBackend = true,
+    double? lowStock,
   }) async {
     try {
       // Find the variant with the specified id
@@ -486,6 +517,9 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
           scannedVariant.stock!.value =
               newQuantity * (scannedVariant.retailPrice ?? 0.0);
           scannedVariant.stock!.lastTouched = DateTime.now().toUtc();
+          if (lowStock != null) {
+            scannedVariant.stock!.lowStock = lowStock;
+          }
         }
 
         // Notify listeners immediately to update UI
@@ -573,9 +607,7 @@ class ScannViewModel extends ProductViewModel with RRADEFAULTS {
         final branchId = ProxyService.box.getBranchId()!;
         if (finalCategoryId == null || finalCategoryId.isEmpty) {
           final category = await ProxyService.strategy
-              .ensureUncategorizedCategory(
-                branchId: branchId,
-              );
+              .ensureUncategorizedCategory(branchId: branchId);
           finalCategoryId = category.id;
         }
 

@@ -5,6 +5,8 @@ import 'dart:isolate';
 import 'dart:typed_data';
 
 import 'package:flipper_models/DatabaseSyncInterface.dart';
+import 'package:flipper_models/cache/utility_cash_variant_cache.dart';
+import 'package:flipper_models/helpers/cash_movement_utility_variant.dart';
 import 'package:flipper_models/flipper_http_client.dart';
 import 'package:flipper_models/helperModels/business_type.dart';
 import 'package:flipper_models/sync/capella/mixins/delegation_mixin.dart';
@@ -48,6 +50,12 @@ import 'package:flipper_models/sync/mixins/stock_recount_mixin.dart';
 import 'package:supabase_models/brick/models/all_models.dart' hide BusinessType;
 import 'package:flipper_models/sync/capella/mixins/production_output_mixin.dart';
 import 'package:flipper_web/services/ditto_service.dart';
+
+import 'package:flutter/foundation.dart' show kIsWeb;
+
+import 'package:flipper_models/SyncStrategy.dart';
+
+import 'package:flipper_services/constants.dart';
 
 class CapellaSync extends AiStrategyImpl
     with
@@ -267,6 +275,7 @@ class CapellaSync extends AiStrategyImpl
     required assetName,
     required String branchId,
     required String businessId,
+    String? variantId,
   }) {
     // TODO: implement addAsset
     throw UnimplementedError();
@@ -451,6 +460,8 @@ class CapellaSync extends AiStrategyImpl
     String? customerPhone,
     required String countryCode,
     String? note,
+    String? completionStatus,
+    List<TransactionItem>? preloadedLineItems,
   }) async {
     if (transaction == null) {
       throw Exception('transaction is null');
@@ -461,10 +472,41 @@ class CapellaSync extends AiStrategyImpl
 
       final userId = ProxyService.box.getUserId();
       transaction.customerTin = customerTin;
+
+      if (countryCode != "N/A" && countryCode != "") {
+        transaction.currentSaleCustomerPhoneNumber =
+            countryCode +
+            (customerPhone ??
+                ProxyService.box.currentSaleCustomerPhoneNumber())!;
+      }
+      transaction.customerPhone =
+          customerPhone ?? ProxyService.box.currentSaleCustomerPhoneNumber();
+      transaction.customerName =
+          customerName ?? ProxyService.box.customerName();
+
+      // Line items: caller can pass fresh lines to skip an extra Ditto read on hot paths.
+      final List<TransactionItem> items;
+      if (preloadedLineItems != null && preloadedLineItems.isNotEmpty) {
+        items = preloadedLineItems;
+      } else {
+        items = await transactionItems(transactionId: transaction.id);
+      }
+      transaction.numberOfItems = items.length;
+      transaction.discountAmount = items.fold<double>(
+        0.0,
+        (a, b) => a + (b.dcAmt?.toDouble() ?? 0.0),
+      );
+
+      final computedSubTotal = items.isEmpty
+          ? cashReceived
+          : items.fold(0.0, (a, b) => a + (b.price * b.qty));
+      transaction.subTotal = computedSubTotal;
+
       transaction.customerChangeDue =
           cashReceived - (transaction.subTotal ?? 0);
 
-      // Update shift totals via SQLite (shifts aren't managed in Ditto yet)
+      // Update shift totals via SQLite (shifts aren't managed in Ditto yet);
+      // must run after [transaction.subTotal] is known from line items.
       if (userId != null) {
         try {
           final shifts = await repository.get<Shift>(
@@ -482,7 +524,9 @@ class CapellaSync extends AiStrategyImpl
           final currentShift = shifts.lastOrNull;
           if (currentShift != null) {
             num saleAmount = transaction.subTotal ?? 0.0;
-            if (!isIncome) saleAmount = -saleAmount;
+            if (!isIncome) {
+              saleAmount = -saleAmount;
+            }
 
             final updatedCashSales = (currentShift.cashSales ?? 0) + saleAmount;
             final updatedExpectedCash =
@@ -499,30 +543,6 @@ class CapellaSync extends AiStrategyImpl
           talker.warning('Shift update during collectPayment failed: $e');
         }
       }
-
-      if (countryCode != "N/A" && countryCode != "") {
-        transaction.currentSaleCustomerPhoneNumber =
-            countryCode +
-            (customerPhone ??
-                ProxyService.box.currentSaleCustomerPhoneNumber())!;
-      }
-      transaction.customerPhone =
-          customerPhone ?? ProxyService.box.currentSaleCustomerPhoneNumber();
-      transaction.customerName =
-          customerName ?? ProxyService.box.customerName();
-
-      // Fetch items from Ditto (not SQLite)
-      final items = await transactionItems(transactionId: transaction.id);
-      transaction.numberOfItems = items.length;
-      transaction.discountAmount = items.fold<double>(
-        0.0,
-        (a, b) => a + (b.dcAmt?.toDouble() ?? 0.0),
-      );
-
-      final computedSubTotal = items.isEmpty
-          ? cashReceived
-          : items.fold(0.0, (a, b) => a + (b.price * b.qty));
-      transaction.subTotal = computedSubTotal;
 
       if (transaction.isLoan == true) {
         transaction.originalLoanAmount ??= computedSubTotal;
@@ -547,6 +567,7 @@ class CapellaSync extends AiStrategyImpl
       // Write transaction to Ditto
       await updateTransaction(
         transaction: transaction,
+        status: completionStatus,
         subTotal: transaction.subTotal,
         cashReceived: transaction.cashReceived,
         customerName: transaction.customerName,
@@ -583,6 +604,99 @@ class CapellaSync extends AiStrategyImpl
       talker.error('Capella collectPayment failed: $e', s);
       rethrow;
     }
+  }
+
+  @override
+  Future<ITransaction> completeCashMovement({
+    required String branchId,
+    required String bhfId,
+    required double cashReceived,
+    required bool isIncome,
+    required String utilityVariantName,
+    required String paymentType,
+    required double discount,
+    required String countryCode,
+    required bool isProformaMode,
+    required bool isTrainingMode,
+    required String transactionTypeForRecord,
+    String? categoryId,
+    String? note,
+  }) async {
+    final pending = await manageTransaction(
+      branchId: branchId,
+      transactionType: utilityVariantName,
+      isExpense: !isIncome,
+    );
+    if (pending == null) {
+      throw StateError(
+        'completeCashMovement: could not create or load pending transaction',
+      );
+    }
+
+    final baseVariant = await UtilityCashVariantCache.instance.getOrFetch(
+      db: this,
+      branchId: branchId,
+      utilityName: utilityVariantName,
+    );
+    if (baseVariant == null) {
+      throw StateError(
+        'completeCashMovement: missing utility variant for $utilityVariantName',
+      );
+    }
+
+    final linedVariant = cloneUtilityVariantForCashLine(
+      utilityVariant: baseVariant,
+      cashReceived: cashReceived,
+      transactionType: utilityVariantName,
+    );
+
+    await saveTransactionItem(
+      variation: linedVariant,
+      amountTotal: cashReceived,
+      customItem: true,
+      pendingTransaction: pending,
+      currentStock: 0,
+      partOfComposite: false,
+      doneWithTransaction: true,
+      ignoreForReport: false,
+      updatePendingTransactionSubtotal: false,
+    );
+
+    final preloaded = syntheticPreloadedCashLine(
+      linedVariant: linedVariant,
+      transactionId: pending.id,
+      branchId: branchId,
+      cashReceived: cashReceived,
+    );
+
+    final txn = await collectPayment(
+      cashReceived: cashReceived,
+      transaction: pending,
+      paymentType: paymentType,
+      discount: discount,
+      branchId: branchId,
+      bhfId: bhfId,
+      countryCode: countryCode,
+      isProformaMode: isProformaMode,
+      isTrainingMode: isTrainingMode,
+      transactionType: transactionTypeForRecord,
+      categoryId: categoryId,
+      directlyHandleReceipt: false,
+      isIncome: isIncome,
+      note: note,
+      completionStatus: COMPLETE,
+      preloadedLineItems: preloaded,
+    );
+    final movementReceipt =
+        isIncome ? TransactionType.cashIn : TransactionType.cashOut;
+    await updateTransaction(
+      transaction: txn,
+      receiptType: movementReceipt,
+      updatedAt: DateTime.now(),
+      lastTouched: DateTime.now(),
+    );
+    txn.receiptType = movementReceipt;
+    return txn;
   }
 
   @override
@@ -752,7 +866,11 @@ class CapellaSync extends AiStrategyImpl
   }
 
   @override
-  FutureOr<Assets?> getAsset({String? assetName, String? productId}) {
+  FutureOr<Assets?> getAsset({
+    String? assetName,
+    String? productId,
+    String? variantId,
+  }) {
     // TODO: implement getAsset
     throw UnimplementedError();
   }
@@ -829,9 +947,45 @@ class CapellaSync extends AiStrategyImpl
   Future<Variant?> getUtilityVariant({
     required String name,
     required String branchId,
-  }) {
-    // TODO: implement getUtilityVariant
-    throw UnimplementedError();
+  }) async {
+    try {
+      final businessId = ProxyService.box.getBusinessId();
+      final ditto = dittoService.dittoInstance;
+      if (businessId != null && ditto != null) {
+        final utilityProduct = await getProduct(
+          branchId: branchId,
+          businessId: businessId,
+          name: 'Utility',
+        );
+        if (utilityProduct != null) {
+          final r = await ditto.store.execute(
+            'SELECT * FROM variants WHERE branchId = :branchId '
+            'AND productId = :productId AND name = :name LIMIT 1',
+            arguments: {
+              'branchId': branchId,
+              'productId': utilityProduct.id,
+              'name': name,
+            },
+          );
+          if (r.items.isNotEmpty) {
+            return Variant.fromJson(
+              Map<String, dynamic>.from(r.items.first.value),
+            );
+          }
+        }
+      }
+    } catch (e, st) {
+      talker.warning('getUtilityVariant Ditto path failed: $e\n$st');
+    }
+    try {
+      return await ProxyService.getStrategy(Strategy.cloudSync).getUtilityVariant(
+        name: name,
+        branchId: branchId,
+      );
+    } catch (e, st) {
+      talker.error('getUtilityVariant fallback failed: $e\n$st');
+      return null;
+    }
   }
 
   @override
@@ -1083,6 +1237,7 @@ class CapellaSync extends AiStrategyImpl
     required String branchId,
     required String businessId,
     String subPath = 'branch',
+    String? variantId,
   }) {
     // TODO: implement saveImageLocally
     throw UnimplementedError();
@@ -1474,9 +1629,57 @@ class CapellaSync extends AiStrategyImpl
     bool? active,
     bool? focused,
     String? branchId,
-  }) {
-    // TODO: implement updateCategory
-    throw UnimplementedError();
+  }) async {
+    // Native: keep Brick/SQLite authoritative for focus flags (same as pre-Capella-category work).
+    // Web: only Ditto path below runs.
+    if (!kIsWeb) {
+      try {
+        await ProxyService.getStrategy(Strategy.cloudSync).updateCategory(
+          categoryId: categoryId,
+          name: name,
+          active: active,
+          focused: focused,
+          branchId: branchId,
+        );
+      } catch (e, s) {
+        talker.error('updateCategory SQLite/Brick failed: $e', s);
+        rethrow;
+      }
+    }
+
+    final ditto = dittoService.dittoInstance;
+    if (ditto == null) return;
+
+    final updates = <String>[];
+    final args = <String, dynamic>{'cid': categoryId};
+
+    final whereClause = branchId != null
+        ? '(_id = :cid OR id = :cid) AND branchId = :branchId'
+        : '(_id = :cid OR id = :cid)';
+    if (branchId != null) {
+      args['branchId'] = branchId;
+    }
+
+    void addIfNonNull(String col, dynamic v) {
+      if (v == null) return;
+      updates.add('$col = :$col');
+      args[col] = v is DateTime ? v.toUtc().toIso8601String() : v;
+    }
+
+    addIfNonNull('name', name);
+    addIfNonNull('active', active);
+    addIfNonNull('focused', focused);
+    if (updates.isEmpty) return;
+    addIfNonNull('lastTouched', DateTime.now());
+
+    try {
+      await ditto.store.execute(
+        'UPDATE categories SET ${updates.join(', ')} WHERE $whereClause',
+        arguments: args,
+      );
+    } catch (e, s) {
+      talker.warning('Capella updateCategory Ditto mirror failed (non-fatal): $e', s);
+    }
   }
 
   @override

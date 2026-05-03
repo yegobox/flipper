@@ -72,7 +72,7 @@ class _ProviderDetailScreenState extends State<ProviderDetailScreen> {
                   flexibleSpace: FlexibleSpaceBar(
                     title: Text(
                       p.displayName,
-                      style: GoogleFonts.poppins(
+                      style: GoogleFonts.outfit(
                         fontWeight: FontWeight.w600,
                         fontSize: 16,
                         color: Colors.white,
@@ -98,7 +98,7 @@ class _ProviderDetailScreenState extends State<ProviderDetailScreen> {
                           p.displayName.isNotEmpty
                               ? p.displayName[0].toUpperCase()
                               : '?',
-                          style: GoogleFonts.poppins(
+                          style: GoogleFonts.outfit(
                             fontSize: 28,
                             fontWeight: FontWeight.w600,
                             color: Colors.white,
@@ -119,7 +119,7 @@ class _ProviderDetailScreenState extends State<ProviderDetailScreen> {
                         if (p.serviceArea != null && p.serviceArea!.isNotEmpty)
                           Text(
                             p.serviceArea!,
-                            style: GoogleFonts.poppins(
+                            style: GoogleFonts.outfit(
                               fontSize: 14,
                               color: Colors.grey.shade700,
                             ),
@@ -127,7 +127,7 @@ class _ProviderDetailScreenState extends State<ProviderDetailScreen> {
                         const SizedBox(height: 12),
                         Text(
                           p.bio,
-                          style: GoogleFonts.poppins(
+                          style: GoogleFonts.outfit(
                             fontSize: 14,
                             height: 1.45,
                           ),
@@ -140,7 +140,7 @@ class _ProviderDetailScreenState extends State<ProviderDetailScreen> {
                           const SizedBox(height: 20),
                           Text(
                             'Pricing',
-                            style: GoogleFonts.poppins(
+                            style: GoogleFonts.outfit(
                               fontWeight: FontWeight.w600,
                               fontSize: 15,
                             ),
@@ -149,13 +149,13 @@ class _ProviderDetailScreenState extends State<ProviderDetailScreen> {
                           if (p.basePriceRwf != null)
                             Text(
                               'From ${p.formattedBasePrice}',
-                              style: GoogleFonts.poppins(fontSize: 14),
+                              style: GoogleFonts.outfit(fontSize: 14),
                             ),
                           if (p.pricingNotes != null &&
                               p.pricingNotes!.isNotEmpty)
                             Text(
                               p.pricingNotes!,
-                              style: GoogleFonts.poppins(
+                              style: GoogleFonts.outfit(
                                 fontSize: 13,
                                 color: Colors.grey.shade700,
                               ),
@@ -165,7 +165,7 @@ class _ProviderDetailScreenState extends State<ProviderDetailScreen> {
                               padding: const EdgeInsets.only(top: 6),
                               child: Text(
                                 '${sp.serviceName}: ${sp.formattedPrice}',
-                                style: GoogleFonts.poppins(fontSize: 13),
+                                style: GoogleFonts.outfit(fontSize: 13),
                               ),
                             ),
                         ],
@@ -174,7 +174,7 @@ class _ProviderDetailScreenState extends State<ProviderDetailScreen> {
                           const SizedBox(height: 16),
                           Text(
                             'Availability',
-                            style: GoogleFonts.poppins(
+                            style: GoogleFonts.outfit(
                               fontWeight: FontWeight.w600,
                               fontSize: 15,
                             ),
@@ -182,14 +182,14 @@ class _ProviderDetailScreenState extends State<ProviderDetailScreen> {
                           const SizedBox(height: 6),
                           Text(
                             p.availabilitySchedule!,
-                            style: GoogleFonts.poppins(fontSize: 13),
+                            style: GoogleFonts.outfit(fontSize: 13),
                           ),
                         ],
                         if (p.portfolio.isNotEmpty) ...[
                           const SizedBox(height: 20),
                           Text(
                             'Portfolio',
-                            style: GoogleFonts.poppins(
+                            style: GoogleFonts.outfit(
                               fontWeight: FontWeight.w600,
                               fontSize: 15,
                             ),
@@ -227,7 +227,7 @@ class _ProviderDetailScreenState extends State<ProviderDetailScreen> {
                           const SizedBox(height: 20),
                           Text(
                             'Reviews',
-                            style: GoogleFonts.poppins(
+                            style: GoogleFonts.outfit(
                               fontWeight: FontWeight.w600,
                               fontSize: 15,
                             ),
@@ -245,7 +245,7 @@ class _ProviderDetailScreenState extends State<ProviderDetailScreen> {
                                       children: [
                                         Text(
                                           rev.reviewerDisplayName,
-                                          style: GoogleFonts.poppins(
+                                          style: GoogleFonts.outfit(
                                             fontWeight: FontWeight.w600,
                                           ),
                                         ),
@@ -265,7 +265,7 @@ class _ProviderDetailScreenState extends State<ProviderDetailScreen> {
                                     const SizedBox(height: 6),
                                     Text(
                                       rev.comment,
-                                      style: GoogleFonts.poppins(fontSize: 13),
+                                      style: GoogleFonts.outfit(fontSize: 13),
                                     ),
                                   ],
                                 ),
@@ -288,7 +288,7 @@ class _ProviderDetailScreenState extends State<ProviderDetailScreen> {
             icon: const Icon(Icons.send_outlined),
             label: Text(
               p.isAvailable ? 'Request this provider' : 'Unavailable right now',
-              style: GoogleFonts.poppins(fontWeight: FontWeight.w600),
+              style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
             ),
             style: FilledButton.styleFrom(
               backgroundColor: const Color(0xFF0D9488),
@@ -308,7 +308,7 @@ class _ProviderDetailScreenState extends State<ProviderDetailScreen> {
       child: Text(
         title,
         textAlign: TextAlign.center,
-        style: GoogleFonts.poppins(fontSize: 12),
+        style: GoogleFonts.outfit(fontSize: 12),
       ),
     );
   }
@@ -340,7 +340,7 @@ class _VerificationRow extends StatelessWidget {
     if (chips.isEmpty) {
       return Text(
         'Standard provider profile',
-        style: GoogleFonts.poppins(
+        style: GoogleFonts.outfit(
           fontSize: 12,
           color: Colors.grey.shade600,
         ),
@@ -352,7 +352,7 @@ class _VerificationRow extends StatelessWidget {
   Widget _chip(IconData icon, String label, Color color) {
     return Chip(
       avatar: Icon(icon, size: 18, color: color),
-      label: Text(label, style: GoogleFonts.poppins(fontSize: 12)),
+      label: Text(label, style: GoogleFonts.outfit(fontSize: 12)),
       backgroundColor: color.withValues(alpha: 0.08),
       side: BorderSide(color: color.withValues(alpha: 0.35)),
     );
@@ -393,7 +393,7 @@ class _StatsRow extends StatelessWidget {
             Expanded(
               child: Text(
                 text,
-                style: GoogleFonts.poppins(
+                style: GoogleFonts.outfit(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                 ),

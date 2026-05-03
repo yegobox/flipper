@@ -15,6 +15,7 @@ import 'package:flipper_routing/app.locator.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_dashboard/dialog_status.dart';
+import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'dart:async';
 import 'package:flipper_dashboard/providers/customer_provider.dart';
@@ -152,7 +153,14 @@ class _CustomDropdownButtonState extends State<CustomDropdownButton> {
 }
 
 class SearchInputWithDropdown extends ConsumerStatefulWidget {
-  const SearchInputWithDropdown({Key? key}) : super(key: key);
+  /// When true, removes outer padding so the parent (e.g. checkout cart pane)
+  /// controls horizontal alignment; matches desktop POS mock.
+  final bool embeddedInCheckoutPane;
+
+  const SearchInputWithDropdown({
+    Key? key,
+    this.embeddedInCheckoutPane = false,
+  }) : super(key: key);
 
   @override
   ConsumerState<SearchInputWithDropdown> createState() =>
@@ -400,7 +408,9 @@ class _SearchInputWithDropdownState
     );
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(8, 6, 8, 2),
+      padding: widget.embeddedInCheckoutPane
+          ? EdgeInsets.zero
+          : const EdgeInsets.fromLTRB(8, 6, 8, 2),
       child: _buildSearchField(attachedCustomer, transaction.value),
     );
   }
@@ -424,7 +434,10 @@ class _SearchInputWithDropdownState
         },
         decoration: InputDecoration(
           hintText: 'Search Customer',
-          prefixIcon: const Icon(Icons.search),
+          prefixIcon: Icon(
+            Icons.search,
+            color: PosLayoutBreakpoints.posAccentBlue,
+          ),
           suffixIcon: Padding(
             padding: const EdgeInsetsDirectional.only(end: 4.0),
             child: Row(
@@ -432,7 +445,7 @@ class _SearchInputWithDropdownState
               children: [
                 CustomDropdownButton(
                   iconOnly: true,
-                  iconOnlyIconColor: Colors.green,
+                  iconOnlyIconColor: PosLayoutBreakpoints.posAccentBlue,
                   items: const ['Walk-in', 'Shop'],
                   selectedItem: _selectedCustomerType,
                   onChanged: (value) {
@@ -444,7 +457,7 @@ class _SearchInputWithDropdownState
                 ),
                 CustomDropdownButton(
                   iconOnly: true,
-                  iconOnlyIconColor: Colors.orangeAccent,
+                  iconOnlyIconColor: PosLayoutBreakpoints.posAccentBlue,
                   items: const ['Outgoing- Sale', 'Agent Sale'],
                   selectedItem: _selectedSaleType,
                   onChanged: (value) {
@@ -477,20 +490,31 @@ class _SearchInputWithDropdownState
                     onPressed: () {
                       locator<RouterService>().navigateTo(CustomersRoute());
                     },
-                    icon: const Icon(
+                    icon: Icon(
                       FluentIcons.person_add_16_regular,
-                      color: Colors.blue,
+                      color: PosLayoutBreakpoints.posAccentBlue,
                     ),
                   ),
               ],
             ),
           ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12.0),
+            borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12.0),
+            borderSide: const BorderSide(
+              color: PosLayoutBreakpoints.posAccentBlue,
+              width: 1.5,
+            ),
+          ),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12.0),
-            borderSide: BorderSide.none,
+            borderSide: const BorderSide(color: Color(0xFFE5E7EB)),
           ),
           filled: true,
-          fillColor: Colors.grey[200],
+          fillColor: Colors.white,
         ),
       ),
     );

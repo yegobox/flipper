@@ -155,7 +155,7 @@ class _TicketTileState extends State<TicketTile>
                             Flexible(
                               child: Text(
                                 ticket.ticketName ?? "N/A",
-                                style: GoogleFonts.poppins(
+                                style: GoogleFonts.outfit(
                                   fontWeight: FontWeight.w500,
                                   fontSize: 17,
                                   color: Colors.black,
@@ -167,7 +167,7 @@ class _TicketTileState extends State<TicketTile>
                             // Display ID in a smaller, subtle format
                             Text(
                               '(ID: ${safeSubstring(ticket.id, 0, end: 8, ellipsis: false)})',
-                              style: GoogleFonts.poppins(
+                              style: GoogleFonts.outfit(
                                 fontWeight: FontWeight.w400,
                                 fontSize: 12,
                                 color: Colors.grey[400],
@@ -181,7 +181,7 @@ class _TicketTileState extends State<TicketTile>
                             // Display time ago
                             Text(
                               timeago.format(ticket.updatedAt!),
-                              style: GoogleFonts.poppins(
+                              style: GoogleFonts.outfit(
                                 fontWeight: FontWeight.w400,
                                 fontSize: 14,
                                 color: Colors.grey[600],
@@ -192,7 +192,7 @@ class _TicketTileState extends State<TicketTile>
                             Flexible(
                               child: Text(
                                 'Subtotal: $subtotalFormatted',
-                                style: GoogleFonts.poppins(
+                                style: GoogleFonts.outfit(
                                   fontWeight: FontWeight.w500,
                                   fontSize: 14,
                                   color: Colors.grey[800],
@@ -211,7 +211,7 @@ class _TicketTileState extends State<TicketTile>
                                     const SizedBox(width: 3),
                                     Text(
                                       'Due: ${_dateFormat.format(ticket.dueDate!.toLocal())}', // Use formatted date
-                                      style: GoogleFonts.poppins(
+                                      style: GoogleFonts.outfit(
                                         fontWeight: FontWeight.w500,
                                         fontSize: 13,
                                         color: Colors.deepPurple,
@@ -315,7 +315,7 @@ class _TicketTileState extends State<TicketTile>
                                 ),
                                 child: Text(
                                   'LOAN',
-                                  style: GoogleFonts.poppins(
+                                  style: GoogleFonts.outfit(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 13,
                                     color: Colors.orange[800],
@@ -335,7 +335,7 @@ class _TicketTileState extends State<TicketTile>
                                 ),
                                 child: Text(
                                   ticketStatus.displayName,
-                                  style: GoogleFonts.poppins(
+                                  style: GoogleFonts.outfit(
                                     fontWeight: FontWeight.w500,
                                     fontSize: 14,
                                     color: ticketStatus.color,
@@ -363,7 +363,7 @@ class _TicketTileState extends State<TicketTile>
                     child: Center(
                       child: Text(
                         ticketStatus.displayName,
-                        style: GoogleFonts.poppins(
+                        style: GoogleFonts.outfit(
                           fontWeight: FontWeight.w500,
                           fontSize: 14,
                           color: ticketStatus.color,

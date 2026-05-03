@@ -24,7 +24,7 @@ class AddToFavorites extends StatelessWidget {
           children: [
             SizedBox(height: 30.0),
             Text('Set Favorite Product',
-                style: GoogleFonts.poppins(
+                style: GoogleFonts.outfit(
                     fontSize: 20, fontWeight: FontWeight.bold)),
             SizedBox(height: 16.0),
             Expanded(

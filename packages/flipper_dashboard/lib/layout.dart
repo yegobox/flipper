@@ -9,33 +9,19 @@ import 'package:flipper_dashboard/stock_recount_list_screen.dart';
 import 'package:flipper_dashboard/delegation_list_screen.dart';
 import 'package:flipper_dashboard/features/incoming_orders/screens/incoming_orders_screen.dart';
 import 'package:flipper_dashboard/features/production_output/production_output_app.dart';
+import 'package:flipper_dashboard/features/leads/leads_desktop_screen.dart';
 import 'package:flipper_dashboard/shift_history_content.dart';
+import 'package:flipper_dashboard/dashboard_shell.dart';
+import 'package:flipper_dashboard/hooks/use_access_permissions_realtime.dart';
+import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_dashboard/widgets/unified_top_bar.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
-import 'package:flutter_riverpod/legacy.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:stacked/stacked.dart';
-
-enum DashboardPage {
-  inventory,
-  ai,
-  reports,
-  kitchen,
-  orders,
-  stockRecount,
-  delegations,
-  incomingOrders,
-  shiftHistory,
-  productionOutput,
-}
-
-final selectedPageProvider = StateProvider<DashboardPage>(
-  (ref) => DashboardPage.inventory,
-);
 
 class DashboardLayout extends HookConsumerWidget {
   const DashboardLayout({Key? key}) : super(key: key);
@@ -43,6 +29,7 @@ class DashboardLayout extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final searchController = useTextEditingController();
+    useAccessPermissionsRealtimeSync(ref);
 
     return ViewModelBuilder<CoreViewModel>.nonReactive(
       viewModelBuilder: () => CoreViewModel(),
@@ -85,25 +72,73 @@ class DashboardLayout extends HookConsumerWidget {
               if (constraints.maxWidth == 0 || constraints.maxHeight == 0) {
                 return const SizedBox.shrink();
               }
-              if (constraints.maxWidth < 600) {
+              if (constraints.maxWidth <
+                  PosLayoutBreakpoints.mobileLayoutMaxWidth) {
                 return MobileView(
                   isBigScreen: false,
                   controller: searchController,
                   model: model,
                 );
               }
-              // Desktop layout with unified top bar
+              // Desktop: header row spans logo column + top bar so the logo aligns
+              // with FLIPPER; body row is sidebar + content.
               return Column(
                 children: [
-                  // SAP-style top bar with search, ribbon, and user info
-                  UnifiedTopBar(searchController: searchController),
-                  // Main content area
+                  DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.06),
+                          offset: const Offset(0, 2),
+                          blurRadius: 6,
+                        ),
+                      ],
+                    ),
+                    child: SizedBox(
+                      height: PosLayoutBreakpoints.desktopTopBarHeight,
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          SizedBox(
+                            width: PosLayoutBreakpoints.sideMenuWidth,
+                            child: Center(
+                              child: Image.asset(
+                                'assets/logo.png',
+                                package: 'flipper_dashboard',
+                                width: 32,
+                                height: 32,
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: UnifiedTopBar(
+                              searchController: searchController,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                   Expanded(
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        if (ProxyService.remoteConfig.isMultiUserEnabled())
-                          const EnhancedSideMenu(),
+                        SizedBox(
+                          width: PosLayoutBreakpoints.sideMenuWidth,
+                          child: Container(
+                            decoration: const BoxDecoration(
+                              color: Colors.white,
+                              border: Border(
+                                right: BorderSide(
+                                  color: Color(0xFFE5E7EB),
+                                  width: 1,
+                                ),
+                              ),
+                            ),
+                            child: const EnhancedSideMenu(),
+                          ),
+                        ),
                         Expanded(child: selectedPageWidget),
                       ],
                     ),
@@ -127,6 +162,8 @@ class DashboardLayout extends HookConsumerWidget {
         return InventoryApp(searchController: searchController);
       case DashboardPage.ai:
         return const Ai();
+      case DashboardPage.leads:
+        return const LeadsDesktopScreen();
       case DashboardPage.reports:
         return const InventoryDashboardApp();
       case DashboardPage.kitchen:

@@ -19,6 +19,8 @@ import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flipper_dashboard/widgets/variant_shimmer_placeholder.dart';
 import 'package:syncfusion_flutter_datagrid/datagrid.dart';
 import 'package:flipper_dashboard/dialog_status.dart';
+import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
+import 'package:flipper_dashboard/SearchFieldWidget.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:stacked_services/stacked_services.dart';
@@ -30,8 +32,9 @@ enum ViewMode { products, stocks }
 class ProductView extends StatefulHookConsumerWidget {
   final String? favIndex;
   final List<String> existingFavs;
+  final TextEditingController? linkedSearchController;
 
-  ProductView.normalMode({Key? key})
+  ProductView.normalMode({Key? key, this.linkedSearchController})
     : favIndex = null,
       existingFavs = [],
       super(key: key);
@@ -40,20 +43,99 @@ class ProductView extends StatefulHookConsumerWidget {
     Key? key,
     required this.favIndex,
     required this.existingFavs,
-  }) : super(key: key);
+  }) : linkedSearchController = null,
+       super(key: key);
 
   @override
   ProductViewState createState() => ProductViewState();
 }
 
 class ProductViewState extends ConsumerState<ProductView> with Datamixer {
-  final searchController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   // Pagination state
   int _currentPage = 0;
   Timer? _debounce;
   Timer? _branchSwitchTimer;
   int _lastCheckedBranchSwitchTimestamp = 0;
+
+  /// Track OuterVariants front-evictions to keep scroll position stable.
+  ProviderSubscription<AsyncValue<List<Variant>>>? _outerVariantsSub;
+  String? _listenedBranchId;
+  int? _lastFirstCachedPage;
+
+  /// Last-known layout metrics used for scroll compensation.
+  bool? _lastIsMobileLayout;
+  double? _lastPaneWidth;
+  int? _lastGridCrossAxisCount;
+  double? _lastGridMainAxisSpacing;
+  double? _lastGridChildAspectRatio;
+
+  static const double _estimatedMobileListItemExtent =
+      132.0; // card + separator
+
+  void _ensureOuterVariantsEvictionListener(String branchId) {
+    if (branchId.isEmpty) return;
+    if (_listenedBranchId == branchId && _outerVariantsSub != null) return;
+
+    _outerVariantsSub?.close();
+    _listenedBranchId = branchId;
+    _lastFirstCachedPage = null;
+
+    _outerVariantsSub = ref.listenManual<AsyncValue<List<Variant>>>(
+      outerVariantsProvider(branchId),
+      (prev, next) {
+        final notifier = ref.read(outerVariantsProvider(branchId).notifier);
+        final first = notifier.firstCachedPage;
+        final lastSeen = _lastFirstCachedPage;
+        _lastFirstCachedPage = first;
+
+        if (lastSeen == null) return;
+        if (first <= lastSeen) return;
+
+        if (!_scrollController.hasClients) return;
+        final currentOffset = _scrollController.offset;
+        if (currentOffset <= 0) return;
+
+        final deltaPages = first - lastSeen;
+        final removedItems = deltaPages * notifier.itemsPerPage;
+
+        final isMobile = _lastIsMobileLayout;
+        final paneWidth = _lastPaneWidth;
+        final crossAxisCount = _lastGridCrossAxisCount;
+        final mainAxisSpacing = _lastGridMainAxisSpacing;
+        final childAspectRatio = _lastGridChildAspectRatio;
+
+        double? removedPx;
+        if (isMobile == true) {
+          removedPx = removedItems * _estimatedMobileListItemExtent;
+        } else if (paneWidth != null &&
+            crossAxisCount != null &&
+            crossAxisCount > 0 &&
+            mainAxisSpacing != null &&
+            childAspectRatio != null &&
+            childAspectRatio > 0) {
+          // Grid layout has predictable row height: tileWidth/aspectRatio.
+          final tileWidth =
+              (paneWidth - (mainAxisSpacing * (crossAxisCount - 1))) /
+              crossAxisCount;
+          final tileHeight = tileWidth / childAspectRatio;
+          final removedRows = (removedItems / crossAxisCount).ceil();
+          removedPx = removedRows * (tileHeight + mainAxisSpacing);
+        }
+
+        if (removedPx == null || removedPx <= 0) return;
+
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!_scrollController.hasClients) return;
+          final newOffset = (currentOffset - removedPx!).clamp(
+            0.0,
+            _scrollController.position.maxScrollExtent,
+          );
+          _scrollController.jumpTo(newOffset);
+        });
+      },
+    );
+  }
 
   @override
   void initState() {
@@ -91,6 +173,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     _scrollController.removeListener(_scrollListener);
     _scrollController.dispose();
     _branchSwitchTimer?.cancel();
+    _outerVariantsSub?.close();
     super.dispose();
   }
 
@@ -171,23 +254,53 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     final selectedIds = ref.watch(selectedItemIdsProvider);
     final isSelectionMode = selectedIds.isNotEmpty;
     final progress = ref.watch(bulkDeleteProgressProvider);
+    final showProductList = ref.watch(showProductsList);
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        if (progress > 0)
-          LinearProgressIndicator(
-            value: progress,
-            backgroundColor: Colors.transparent,
-            valueColor: AlwaysStoppedAnimation<Color>(
-              Theme.of(context).colorScheme.primary,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final paneWidth = constraints.maxWidth;
+        final isMobileLayout =
+            paneWidth < PosLayoutBreakpoints.mobileLayoutMaxWidth;
+
+        final linked = widget.linkedSearchController;
+        final showLinkedSearch = linked != null && showProductList;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            if (progress > 0)
+              LinearProgressIndicator(
+                value: progress,
+                backgroundColor: Colors.transparent,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  Theme.of(context).colorScheme.primary,
+                ),
+                minHeight: 2,
+              ),
+            if (isSelectionMode)
+              _buildBulkSelectionBar(context, model, selectedIds),
+            if (showLinkedSearch) ...[
+              SizedBox(height: isMobileLayout ? 8 : 16),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+                child: Material(
+                  color: const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(8),
+                  child: SearchFieldWidget(
+                    controller: linked,
+                    hintText: 'Search products...',
+                    densePadding: true,
+                    showTrailingToolbar: false,
+                  ),
+                ),
+              ),
+            ],
+            Expanded(
+              child: _buildVariantList(context, model, paneWidth: paneWidth),
             ),
-            minHeight: 2,
-          ),
-        if (isSelectionMode)
-          _buildBulkSelectionBar(context, model, selectedIds),
-        Expanded(child: _buildVariantList(context, model)),
-      ],
+          ],
+        );
+      },
     );
   }
 
@@ -315,10 +428,15 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     }
   }
 
-  Widget _buildVariantList(BuildContext context, ProductViewModel model) {
+  Widget _buildVariantList(
+    BuildContext context,
+    ProductViewModel model, {
+    required double paneWidth,
+  }) {
     return Consumer(
       builder: (context, ref, _) {
         final branchId = ProxyService.box.getBranchId() ?? "";
+        _ensureOuterVariantsEvictionListener(branchId);
         // If the search string changed, reset our local page to the first page
         // so that search results always start from page 0.
         final currentSearch = ref.watch(searchStringProvider);
@@ -388,7 +506,12 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                     ),
                   );
                 }
-                return _buildVariantsGrid(context, model, variants: variants);
+                return _buildVariantsGrid(
+                  context,
+                  model,
+                  variants: variants,
+                  paneWidth: paneWidth,
+                );
               },
               error: (error, stackTrace) => Center(
                 child: Padding(
@@ -449,31 +572,28 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     BuildContext context,
     ProductViewModel model, {
     required List<Variant> variants,
+    required double paneWidth,
   }) {
-    // Debug display will be shown below after we obtain pagination helpers
     final showProductList = ref.watch(showProductsList);
 
     final dateRange = ref.watch(dateRangeProvider);
     final startDate = dateRange.startDate;
     final endDate = dateRange.endDate;
 
-    // Pagination helpers from provider
     final branchId = ProxyService.box.getBranchId() ?? "";
     final notifier = ref.read(outerVariantsProvider(branchId).notifier);
     final ipp = notifier.itemsPerPage;
 
-    // Use the provided (already filtered) variants for display and counts.
     final loadedCount = variants.length;
     final estimatedTotalPages = notifier.estimatedTotalPages();
-    final isMobileLayout = MediaQuery.sizeOf(context).width < 600;
+
+    final isMobileLayout =
+        paneWidth < PosLayoutBreakpoints.mobileLayoutMaxWidth;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        const SizedBox.shrink(),
-        SizedBox(height: isMobileLayout ? 8 : 16),
-        // Top summary row: compact POS copy on phone, range text on wider layouts.
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           child: Row(
@@ -491,12 +611,10 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                       return Text(
                         '$totalText products · page ${_currentPage + 1} of $pages',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurfaceVariant,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 13,
-                            ),
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                        ),
                         overflow: TextOverflow.ellipsis,
                       );
                     }
@@ -518,24 +636,37 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
             ],
           ),
         ),
-
         const SizedBox(height: 14),
-
-        // Flexible container that takes up remaining space
         Expanded(
-          // Only apply sorting when not searching to avoid interfering with auto-add
-          child: _buildMainContentSection(
-            context,
-            model,
-            _shouldApplySorting(ref) ? _sortVariants(variants, ref) : variants,
-            showProductList,
-            startDate,
-            endDate,
-            ref,
-          ),
+          child: showProductList && !isMobileLayout
+              ? ColoredBox(
+                  color: const Color(0xFFF8FAFC),
+                  child: _buildMainContentSection(
+                    context,
+                    model,
+                    _shouldApplySorting(ref)
+                        ? _sortVariants(variants, ref)
+                        : variants,
+                    showProductList,
+                    startDate,
+                    endDate,
+                    ref,
+                    paneWidth: paneWidth,
+                  ),
+                )
+              : _buildMainContentSection(
+                  context,
+                  model,
+                  _shouldApplySorting(ref)
+                      ? _sortVariants(variants, ref)
+                      : variants,
+                  showProductList,
+                  startDate,
+                  endDate,
+                  ref,
+                  paneWidth: paneWidth,
+                ),
         ),
-
-        // Bottom pagination controls
         if (estimatedTotalPages > 0)
           Padding(
             padding: const EdgeInsets.symmetric(
@@ -544,94 +675,124 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
             ),
             child: Row(
               children: [
-                _paginationSideButton(
-                  context: context,
-                  icon: FluentIcons.chevron_left_20_regular,
-                  onPressed: _currentPage > 0
-                      ? () => _goToPage(_currentPage - 1)
-                      : null,
-                  usePosStyle: isMobileLayout,
-                ),
                 Expanded(
-                  child: SingleChildScrollView(
-                    scrollDirection: Axis.horizontal,
-                    child: Row(
-                      children: List.generate(estimatedTotalPages, (index) {
-                        if (estimatedTotalPages > 10) {
-                          final low = (_currentPage - 2).clamp(
-                            0,
-                            estimatedTotalPages - 1,
-                          );
-                          final high = (_currentPage + 2).clamp(
-                            0,
-                            estimatedTotalPages - 1,
-                          );
-                          if (index < low || index > high) {
-                            return const SizedBox.shrink();
-                          }
-                        }
-                        final page = index;
-                        final isCurrent = page == _currentPage;
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4.0),
-                          child: Material(
-                            color: isMobileLayout
-                                ? (isCurrent
-                                    ? const Color(0xFFE8E8ED)
-                                    : Colors.white)
-                                : (isCurrent
-                                    ? Theme.of(context).colorScheme.primary
-                                    : Colors.transparent),
-                            borderRadius: BorderRadius.circular(10),
-                            child: InkWell(
-                              borderRadius: BorderRadius.circular(10),
-                              onTap: () => _goToPage(page),
-                              child: Container(
-                                width: 40,
-                                height: 40,
-                                alignment: Alignment.center,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(
-                                    color: isMobileLayout
-                                        ? const Color(0xFFD1D1D6)
-                                        : Theme.of(context).colorScheme.primary,
-                                  ),
-                                ),
-                                child: Text(
-                                  '${page + 1}',
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 14,
-                                    color: isMobileLayout
-                                        ? (isCurrent
-                                            ? Colors.black87
-                                            : const Color(0xFF3C3C43))
-                                        : (isCurrent
-                                            ? Theme.of(
-                                                context,
-                                              ).colorScheme.onPrimary
-                                            : Theme.of(
-                                                context,
-                                              ).colorScheme.primary),
-                                  ),
-                                ),
-                              ),
-                            ),
+                  child: Row(
+                    children: [
+                      _paginationSideButton(
+                        context: context,
+                        icon: FluentIcons.chevron_left_20_regular,
+                        onPressed: _currentPage > 0
+                            ? () => _goToPage(_currentPage - 1)
+                            : null,
+                        usePosStyle: isMobileLayout,
+                      ),
+                      Expanded(
+                        child: SingleChildScrollView(
+                          scrollDirection: Axis.horizontal,
+                          child: Row(
+                            children:
+                                List.generate(estimatedTotalPages, (index) {
+                                      if (estimatedTotalPages > 10) {
+                                        final low = (_currentPage - 2).clamp(
+                                          0,
+                                          estimatedTotalPages - 1,
+                                        );
+                                        final high = (_currentPage + 2).clamp(
+                                          0,
+                                          estimatedTotalPages - 1,
+                                        );
+                                        if (index < low || index > high) {
+                                          return const SizedBox.shrink();
+                                        }
+                                      }
+                                      final page = index;
+                                      final isCurrent = page == _currentPage;
+                                      return Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 4.0,
+                                        ),
+                                        child: Material(
+                                          color: isMobileLayout
+                                              ? (isCurrent
+                                                    ? const Color(0xFFE8E8ED)
+                                                    : Colors.white)
+                                              : (isCurrent
+                                                    ? Theme.of(
+                                                        context,
+                                                      ).colorScheme.primary
+                                                    : Colors.transparent),
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
+                                          child: InkWell(
+                                            borderRadius: BorderRadius.circular(
+                                              10,
+                                            ),
+                                            onTap: () => _goToPage(page),
+                                            child: Container(
+                                              width: 40,
+                                              height: 40,
+                                              alignment: Alignment.center,
+                                              decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                                border: Border.all(
+                                                  color: isMobileLayout
+                                                      ? const Color(0xFFD1D1D6)
+                                                      : Theme.of(
+                                                          context,
+                                                        ).colorScheme.primary,
+                                                ),
+                                              ),
+                                              child: Text(
+                                                '${page + 1}',
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.w700,
+                                                  fontSize: 14,
+                                                  color: isMobileLayout
+                                                      ? (isCurrent
+                                                            ? Colors.black87
+                                                            : const Color(
+                                                                0xFF3C3C43,
+                                                              ))
+                                                      : (isCurrent
+                                                            ? Theme.of(context)
+                                                                  .colorScheme
+                                                                  .onPrimary
+                                                            : Theme.of(context)
+                                                                  .colorScheme
+                                                                  .primary),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                      );
+                                    })
+                                    .where((w) => w != const SizedBox.shrink())
+                                    .toList(),
                           ),
-                        );
-                      }).where((w) => w != const SizedBox.shrink()).toList(),
-                    ),
+                        ),
+                      ),
+                      _paginationSideButton(
+                        context: context,
+                        icon: FluentIcons.chevron_right_20_regular,
+                        onPressed: _currentPage < (estimatedTotalPages - 1)
+                            ? () => _goToPage(_currentPage + 1)
+                            : null,
+                        usePosStyle: isMobileLayout,
+                      ),
+                    ],
                   ),
                 ),
-                _paginationSideButton(
-                  context: context,
-                  icon: FluentIcons.chevron_right_20_regular,
-                  onPressed: _currentPage < (estimatedTotalPages - 1)
-                      ? () => _goToPage(_currentPage + 1)
-                      : null,
-                  usePosStyle: isMobileLayout,
-                ),
+                if (!isMobileLayout)
+                  Text(
+                    'Page ${_currentPage + 1} of $estimatedTotalPages',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: const Color(0xFF64748B),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
               ],
             ),
           ),
@@ -646,27 +807,32 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     bool showProductList,
     DateTime? startDate,
     DateTime? endDate,
-    WidgetRef ref,
-  ) {
+    WidgetRef ref, {
+    required double paneWidth,
+  }) {
     return showProductList
-        ? _buildProductGrid(context, model, variants)
+        ? _buildProductGrid(context, model, variants, paneWidth: paneWidth)
         : _buildStockView(context, model, variants, startDate, endDate, ref);
   }
 
   Widget _buildProductGrid(
     BuildContext context,
     ProductViewModel model,
-    List<Variant> variants,
-  ) {
-    // Mobile vs desktop should be decided by available width, not platform.
-    //
-    // We run in many environments (desktop shells, tablets, web) where
-    // [defaultTargetPlatform] doesn't reliably map to "phone-like UI".
-    final screenWidth = MediaQuery.sizeOf(context).width;
-    final bool isMobileLayout = screenWidth < 600;
+    List<Variant> variants, {
+    required double paneWidth,
+  }) {
+    final bool isMobileLayout =
+        paneWidth < PosLayoutBreakpoints.mobileLayoutMaxWidth;
 
-    // Use ListView for mobile platforms and GridView for desktop platforms
+    // Capture layout metrics used for scroll compensation when pages are evicted
+    // from the front of the in-memory page cache.
+    _lastIsMobileLayout = isMobileLayout;
+    _lastPaneWidth = paneWidth;
+
     if (isMobileLayout) {
+      _lastGridCrossAxisCount = null;
+      _lastGridMainAxisSpacing = null;
+      _lastGridChildAspectRatio = null;
       return ListView.separated(
         controller: _scrollController,
         itemCount: variants.length,
@@ -687,42 +853,41 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
         physics: const AlwaysScrollableScrollPhysics(),
         cacheExtent: 500.0,
       );
-    } else {
-      // For desktop and web, use a responsive grid extent
-      // High-density pos format on wide screens, slightly larger on smaller screens
-      final double crossAxisExtent = screenWidth >= 1200
-          ? 140.0
-          : (screenWidth >= 800 ? 160.0 : 200.0);
-
-      // A slightly taller child aspect ratio allows both the image/color block
-      // and the multi-line text (title, variant, price, stock) to fit comfortably.
-      // e.g. at 140 width, a 0.78 ratio makes the height about 179px.
-      final double childAspectRatio = screenWidth >= 1200 ? 0.78 : 0.85;
-
-      return GridView.builder(
-        controller: _scrollController,
-        gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-          maxCrossAxisExtent: crossAxisExtent,
-          mainAxisSpacing: 12.0,
-          crossAxisSpacing: 12.0,
-          childAspectRatio: childAspectRatio,
-        ),
-        itemCount: variants.length,
-        itemBuilder: (context, index) {
-          return buildVariantRow(
-            forceRemoteUrl: false,
-            context: context,
-            model: model,
-            variant: variants[index],
-            isOrdering: false,
-            forceListView: false, // Explicitly set to false for desktop
-          );
-        },
-        physics: const AlwaysScrollableScrollPhysics(),
-        // Add cacheExtent for smoother scrolling
-        cacheExtent: 1000.0,
-      );
     }
+
+    final crossAxisCount =
+        PosLayoutBreakpoints.productGridCrossAxisCountForPaneWidth(paneWidth);
+    final spacing = PosLayoutBreakpoints.desktopGridSpacing(paneWidth);
+    final aspectRatio = PosLayoutBreakpoints.desktopGridChildAspectRatio(
+      crossAxisCount,
+    );
+
+    _lastGridCrossAxisCount = crossAxisCount;
+    _lastGridMainAxisSpacing = spacing;
+    _lastGridChildAspectRatio = aspectRatio;
+
+    return GridView.builder(
+      controller: _scrollController,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: crossAxisCount,
+        mainAxisSpacing: spacing,
+        crossAxisSpacing: spacing,
+        childAspectRatio: aspectRatio,
+      ),
+      itemCount: variants.length,
+      itemBuilder: (context, index) {
+        return buildVariantRow(
+          forceRemoteUrl: false,
+          context: context,
+          model: model,
+          variant: variants[index],
+          isOrdering: false,
+          forceListView: false,
+        );
+      },
+      physics: const AlwaysScrollableScrollPhysics(),
+      cacheExtent: 1000.0,
+    );
   }
 
   Widget _buildStockView(
@@ -777,10 +942,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     required bool usePosStyle,
   }) {
     if (!usePosStyle) {
-      return IconButton(
-        icon: Icon(icon),
-        onPressed: onPressed,
-      );
+      return IconButton(icon: Icon(icon), onPressed: onPressed);
     }
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 2),
@@ -815,8 +977,9 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     return Consumer(
       builder: (context, ref, _) {
         final currentSort = ref.watch(productSortProvider);
-        final label =
-            compact ? _compactSortLabel(currentSort) : currentSort.label;
+        final label = compact
+            ? _compactSortLabel(currentSort)
+            : currentSort.label;
         return PopupMenuButton<ProductSortOption>(
           child: Container(
             padding: EdgeInsets.symmetric(

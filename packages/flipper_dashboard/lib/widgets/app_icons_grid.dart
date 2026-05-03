@@ -9,18 +9,28 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:stacked_services/stacked_services.dart';
 import 'package:flipper_dashboard/CreditIcon.dart';
 import 'package:flipper_dashboard/features/services_gigs/providers/services_gig_admin_provider.dart';
+import 'package:flipper_dashboard/widgets/dashboard_quick_access_svgs.dart';
+import 'package:flipper_dashboard/features/leads/leads_mobile_screen.dart';
+import 'package:flipper_dashboard/widgets/admin_dashboard_svgs.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 class AppIconsGrid extends ConsumerWidget {
   final bool isBigScreen;
   final Function(String)? onAppSelected;
+  final VoidCallback? onQuickAccessSeeAll;
 
-  const AppIconsGrid({Key? key, required this.isBigScreen, this.onAppSelected})
-    : super(key: key);
+  const AppIconsGrid({
+    Key? key,
+    required this.isBigScreen,
+    this.onAppSelected,
+    this.onQuickAccessSeeAll,
+  }) : super(key: key);
 
   Future<void> _navigateToPage(
     String page,
@@ -98,6 +108,12 @@ class AppIconsGrid extends ConsumerWidget {
       case "Orders":
         await _routerService.navigateTo(InventoryRequestMobileViewRoute());
         break;
+      case "Leads":
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const LeadsMobileScreen()),
+        );
+        break;
       default:
         await _routerService.navigateTo(
           CheckOutRoute(isBigScreen: isBigScreen),
@@ -143,6 +159,15 @@ class AppIconsGrid extends ConsumerWidget {
         'page': "Contacts",
         'label': "Contacts",
         'feature': 'Contacts',
+      },
+      {
+        'icon': FluentIcons.people_32_regular,
+        'color': const Color(0xFF2563EB),
+        'page': "Leads",
+        'label': "Leads",
+        'feature': AppFeature.Leads,
+        'svg': AdminDashboardSvgs.leadsUsersMultiple,
+        'svgBg': const Color(0xFFEFF2FF),
       },
       {
         'icon': Icons.call,
@@ -191,27 +216,38 @@ class AppIconsGrid extends ConsumerWidget {
     ];
 
     // Filtering out apps the user does not have access to
+    final uid = ProxyService.box.getUserId() ?? '';
     final filteredApps = rippleApps.where((app) {
       if (app['feature'] == 'Orders') return true;
       if (app['feature'] == 'ServicesGigs') return true;
       if (app['feature'] == 'Settings') return true;
-      final hasAccess = ref.watch(
-        featureAccessProvider(
-          featureName: app['feature'],
-          userId: ProxyService.box.getUserId() ?? "",
-        ),
+      final feature = app['feature'] as String;
+      // POS hosts "Add product"; show tile if user can sell or add catalog items.
+      if (feature == 'Sales' || app['page'] == 'POS') {
+        final canSell = ref.watch(
+          featureAccessProvider(userId: uid, featureName: AppFeature.Sales),
+        );
+        final canAddProduct = ref.watch(
+          featureAccessProvider(
+            userId: uid,
+            featureName: AppFeature.AddProduct,
+          ),
+        );
+        return canSell || canAddProduct;
+      }
+      return ref.watch(
+        featureAccessProvider(userId: uid, featureName: feature),
       );
-      return hasAccess;
     }).toList();
 
-    return GridView.builder(
+    final grid = GridView.builder(
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: isBigScreen ? 6 : 3,
         crossAxisSpacing: 16,
         mainAxisSpacing: 16,
         childAspectRatio: 0.75,
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       itemCount: filteredApps.length,
@@ -225,6 +261,51 @@ class AppIconsGrid extends ConsumerWidget {
         );
       },
     );
+
+    if (!isBigScreen) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 24, 16, 12),
+            child: Row(
+              children: [
+                Text(
+                  'QUICK ACCESS',
+                  style: GoogleFonts.outfit(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: Colors.grey.shade700,
+                    letterSpacing: 0.8,
+                  ),
+                ),
+                const Spacer(),
+                if (onQuickAccessSeeAll != null)
+                  TextButton(
+                    onPressed: onQuickAccessSeeAll,
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      minimumSize: Size.zero,
+                      tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    ),
+                    child: Text(
+                      'See all',
+                      style: GoogleFonts.outfit(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF006AFE),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          grid,
+        ],
+      );
+    }
+
+    return grid;
   }
 
   Widget _buildAppCard(
@@ -238,6 +319,7 @@ class AppIconsGrid extends ConsumerWidget {
       return _CreditsAppCard(
         app: app,
         isBigScreen: isBigScreen,
+        wrapInMobileTile: !isBigScreen,
         onTap: () async {
           HapticFeedback.lightImpact();
           await _navigateToPage(app['page'], ref, app['feature'], context);
@@ -245,18 +327,79 @@ class AppIconsGrid extends ConsumerWidget {
       );
     }
 
-    final isServicesHub = app['page'] == "ServicesGigs";
-    final userId = ProxyService.box.getUserId() ?? '';
-    final isServicesHubAdminAsync =
-        isServicesHub && userId.isNotEmpty
-            ? ref.watch(servicesGigAdminProvider(userId))
-            : const AsyncValue.data(false);
+    final page = app['page'] as String;
+    final useMobileSvg = !isBigScreen && DashboardQuickAccessSvgs.hasSvgTile(page);
+
+    final isServicesHub = page == 'ServicesGigs';
     final baseColor = app['color'] as Color;
-    final effectiveColor = isServicesHubAdminAsync.when(
-      data: (isAdmin) =>
-          isServicesHub && isAdmin ? const Color(0xFFDC2626) : baseColor,
-      loading: () => baseColor,
-      error: (_, __) => baseColor,
+    final userId = ProxyService.box.getUserId() ?? '';
+    final Color effectiveColor;
+    if (useMobileSvg) {
+      effectiveColor = baseColor;
+    } else if (isServicesHub && userId.isNotEmpty) {
+      effectiveColor = ref.watch(servicesGigAdminProvider(userId)).when(
+            data: (isAdmin) =>
+                isAdmin ? const Color(0xFFDC2626) : baseColor,
+            loading: () => baseColor,
+            error: (_, __) => baseColor,
+          );
+    } else {
+      effectiveColor = baseColor;
+    }
+
+    final Widget iconArea;
+    if (useMobileSvg) {
+      iconArea = Center(
+        child: DashboardQuickAccessSvgs.mobileTileIcon(page),
+      );
+    } else if (app['svg'] != null) {
+      iconArea = Center(
+        child: SvgPicture.string(
+          app['svg'] as String,
+          width: isBigScreen ? 26 : 24,
+          height: isBigScreen ? 26 : 24,
+          colorFilter: ColorFilter.mode(effectiveColor, BlendMode.srcIn),
+        ),
+      );
+    } else {
+      iconArea = Icon(
+        app['icon'] as IconData,
+        color: effectiveColor,
+        size: isBigScreen ? 28 : 30,
+      );
+    }
+
+    final content = Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          width: isBigScreen ? 60 : 56,
+          height: isBigScreen ? 60 : 56,
+          decoration: BoxDecoration(
+            color: useMobileSvg
+                ? DashboardQuickAccessSvgs.mobileTileBackground(page)
+                : (app['svgBg'] as Color?) ??
+                    effectiveColor.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: iconArea,
+        ),
+        const SizedBox(height: 8),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: Text(
+            app['label'],
+                      style: GoogleFonts.outfit(
+              fontSize: isBigScreen ? 12 : 12,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey[800],
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
     );
 
     return GestureDetector(
@@ -264,38 +407,28 @@ class AppIconsGrid extends ConsumerWidget {
         HapticFeedback.lightImpact();
         await _navigateToPage(app['page'], ref, app['feature'], context);
       },
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: isBigScreen ? 60 : 72,
-            height: isBigScreen ? 60 : 72,
-            decoration: BoxDecoration(
-              color: effectiveColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(18), // Squircle
+      child: isBigScreen ? content : _quickAccessTileShell(child: content),
+    );
+  }
+
+  Widget _quickAccessTileShell({required Widget child}) {
+    return Material(
+      color: Colors.white,
+      borderRadius: BorderRadius.circular(20),
+      elevation: 0,
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.06),
+              offset: const Offset(0, 4),
+              blurRadius: 12,
             ),
-            child: Icon(
-              app['icon'],
-              color: effectiveColor,
-              size: isBigScreen ? 28 : 36,
-            ),
-          ),
-          const SizedBox(height: 10),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Text(
-              app['label'],
-              style: GoogleFonts.poppins(
-                fontSize: isBigScreen ? 12 : 13,
-                fontWeight: FontWeight.w500,
-                color: Colors.grey[800],
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
+          ],
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+        child: child,
       ),
     );
   }
@@ -304,12 +437,14 @@ class AppIconsGrid extends ConsumerWidget {
 class _CreditsAppCard extends ConsumerWidget {
   final Map<String, dynamic> app;
   final bool isBigScreen;
+  final bool wrapInMobileTile;
   final VoidCallback onTap;
 
   const _CreditsAppCard({
     Key? key,
     required this.app,
     required this.isBigScreen,
+    this.wrapInMobileTile = false,
     required this.onTap,
   }) : super(key: key);
 
@@ -320,58 +455,101 @@ class _CreditsAppCard extends ConsumerWidget {
         ? ref.watch(creditStreamProvider(branchId))
         : const AsyncValue.data(null); // Handle null branchId case
 
+    final inner = Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Container(
+          width: isBigScreen ? 60 : 56,
+          height: isBigScreen ? 60 : 56,
+          decoration: BoxDecoration(
+            color: !isBigScreen
+                ? DashboardQuickAccessSvgs.mobileTileBackground('Credits')
+                : Colors.orange.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Center(
+            child: !isBigScreen
+                ? creditAsyncValue.when(
+                    data: (_) => DashboardQuickAccessSvgs.mobileTileIcon(
+                      'Credits',
+                    ),
+                    loading: () => SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.orange.shade700,
+                      ),
+                    ),
+                    error: (_, __) => const Icon(
+                      Icons.error,
+                      color: Colors.red,
+                      size: 28,
+                    ),
+                  )
+                : creditAsyncValue.when(
+                    data: (credit) {
+                      final availableCredits = credit?.credits.toInt() ?? 100;
+                      return CreditIconWidget(
+                        credits: availableCredits,
+                        maxCredits: 1000000,
+                        size: 28,
+                      );
+                    },
+                    loading: () => SizedBox(
+                      width: 24,
+                      height: 24,
+                      child: const CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                    error: (error, stack) => const Icon(
+                      Icons.error,
+                      color: Colors.red,
+                      size: 28,
+                    ),
+                  ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: Text(
+            app['label'],
+                      style: GoogleFonts.outfit(
+              fontSize: isBigScreen ? 12 : 12,
+              fontWeight: FontWeight.w500,
+              color: Colors.grey[800],
+            ),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
+    );
+
     return GestureDetector(
       onTap: onTap,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            width: isBigScreen ? 60 : 72,
-            height: isBigScreen ? 60 : 72,
-            decoration: BoxDecoration(
-              color: Colors.orange.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(18), // Squircle
-            ),
-            child: Center(
-              child: creditAsyncValue.when(
-                data: (credit) {
-                  final availableCredits = credit?.credits.toInt() ?? 100;
-                  return CreditIconWidget(
-                    credits: availableCredits,
-                    maxCredits: 1000000,
-                    size: isBigScreen ? 28 : 36,
-                  );
-                },
-                loading: () => SizedBox(
-                  width: isBigScreen ? 24 : 32,
-                  height: isBigScreen ? 24 : 32,
-                  child: const CircularProgressIndicator(strokeWidth: 2),
+      child: wrapInMobileTile
+          ? Material(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              elevation: 0,
+              child: Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.06),
+                      offset: const Offset(0, 4),
+                      blurRadius: 12,
+                    ),
+                  ],
                 ),
-                error: (error, stack) => Icon(
-                  Icons.error,
-                  color: Colors.red,
-                  size: isBigScreen ? 28 : 36,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
+                child: inner,
               ),
-            ),
-          ),
-          const SizedBox(height: 10),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4),
-            child: Text(
-              app['label'],
-              style: GoogleFonts.poppins(
-                fontSize: isBigScreen ? 12 : 13,
-                fontWeight: FontWeight.w500,
-                color: Colors.grey[800],
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-        ],
-      ),
+            )
+          : inner,
     );
   }
 }

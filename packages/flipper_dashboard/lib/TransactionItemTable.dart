@@ -7,6 +7,7 @@ import 'package:flipper_services/proxy.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
+import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_services/setting_service.dart';
 import 'package:flipper_services/utils.dart';
@@ -163,12 +164,13 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFFE5E7EB)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -192,10 +194,20 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
                   ),
                   TextButton.icon(
                     onPressed: () => _showDeleteAllConfirmation(isOrdering),
-                    icon: const Icon(Icons.delete_sweep, size: 18),
-                    label: const Text('Delete All'),
+                    icon: Icon(
+                      Icons.delete_outline,
+                      size: 18,
+                      color: Colors.red.shade600,
+                    ),
+                    label: Text(
+                      'Delete All',
+                      style: TextStyle(
+                        color: Colors.red.shade600,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                     style: TextButton.styleFrom(
-                      foregroundColor: Colors.red,
+                      foregroundColor: Colors.red.shade600,
                     ),
                   ),
                 ],
@@ -305,7 +317,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 200),
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
         color: hasError
             ? Colors.red[50]
@@ -313,7 +325,10 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
             ? Colors.blue[50]
             : Colors.transparent,
         border: isExpanded
-            ? Border.all(color: const Color(0xFF0078D4), width: 2)
+            ? Border.all(
+                color: PosLayoutBreakpoints.posAccentBlue,
+                width: 2,
+              )
             : null,
       ),
       child: Column(
@@ -334,9 +349,10 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     bool isSaving,
     bool hasError,
   ) {
+    final plu = _lineItemInventoryLabel(item);
     return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Item info
         Expanded(
           flex: 3,
           child: Column(
@@ -346,68 +362,96 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
                 _getItemName(item),
                 style: TextStyle(
                   fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: hasError ? Colors.red[700] : Colors.grey[800],
+                  fontWeight: FontWeight.w700,
+                  color: hasError ? Colors.red[700] : const Color(0xFF111827),
                 ),
               ),
+              if (plu != null) ...[
+                const SizedBox(height: 2),
+                Text(
+                  plu,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
               if (hasError) ...[
                 const SizedBox(height: 4),
                 Row(
                   children: [
                     Icon(Icons.error_outline, size: 16, color: Colors.red[600]),
                     const SizedBox(width: 4),
-                    Text(
-                      _itemErrors[item.id] ?? '',
-                      style: TextStyle(fontSize: 12, color: Colors.red[600]),
+                    Expanded(
+                      child: Text(
+                        _itemErrors[item.id] ?? '',
+                        style: TextStyle(fontSize: 12, color: Colors.red[600]),
+                      ),
                     ),
                   ],
                 ),
               ],
+              const SizedBox(height: 4),
+              IconButton(
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                visualDensity: VisualDensity.compact,
+                tooltip: 'Delete item',
+                onPressed: isSaving
+                    ? null
+                    : () => _showDeleteConfirmation(item, isOrdering),
+                icon: Icon(
+                  Icons.delete_outline,
+                  size: 20,
+                  color: isSaving ? Colors.grey[300] : Colors.grey[400],
+                ),
+              ),
             ],
           ),
         ),
-
-        // Quick controls
         Expanded(flex: 2, child: _buildQuickQuantityControls(item, isOrdering)),
-
-        // Price display
         Expanded(
-          child: Text(
-            formatNumber(item.price.toDouble()),
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey[700],
+          child: Align(
+            alignment: Alignment.center,
+            child: Text(
+              formatNumber(item.price.toDouble()),
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: Colors.grey[600],
+              ),
+              textAlign: TextAlign.center,
             ),
-            textAlign: TextAlign.center,
           ),
         ),
-
-        // Total
         Expanded(
-          child: Text(
-            _getItemTotal(item),
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: const Color(0xFF0078D4),
-            ),
-            textAlign: TextAlign.right,
+          flex: 2,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              Flexible(
+                child: Text(
+                  _getItemTotal(item),
+                  style: const TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.w700,
+                    color: PosLayoutBreakpoints.posAccentBlue,
+                  ),
+                  textAlign: TextAlign.right,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              _buildItemActions(item, isOrdering, isSaving),
+            ],
           ),
         ),
-
-        // Actions
-        const SizedBox(width: 12),
-        Expanded(flex: 1, child: _buildItemActions(item, isOrdering, isSaving)),
       ],
     );
   }
 
   // === DUOLINGO-INSPIRED QUICK CONTROLS ===
   Widget _buildQuickQuantityControls(TransactionItem item, bool isOrdering) {
-    // Intrinsic-width row + scaleDown avoids overflow when the flex slot is
-    // narrower than buttons+spacing+label minimum; Expanded inside FittedBox
-    // would get unbounded horizontal constraints.
     return FittedBox(
       fit: BoxFit.scaleDown,
       alignment: Alignment.center,
@@ -415,37 +459,27 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
         mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
         children: [
-          _buildModernQuantityButton(
+          _buildCircularQtyButton(
             icon: Icons.remove,
-            color: Colors.red[400]!,
             onTap: () => _decrementQuantity(item, isOrdering),
             enabled: item.qty > 0,
             id: '${item.id}-remove',
           ),
-          const SizedBox(width: 12),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.grey[100],
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.grey[300]!),
+          const SizedBox(width: 10),
+          Text(
+            item.qty.toStringAsFixed(
+              item.qty.truncateToDouble() == item.qty ? 0 : 2,
             ),
-            child: Text(
-              item.qty.toStringAsFixed(
-                item.qty.truncateToDouble() == item.qty ? 0 : 2,
-              ),
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey[800],
-              ),
-              textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w700,
+              color: Color(0xFF111827),
             ),
+            textAlign: TextAlign.center,
           ),
-          const SizedBox(width: 12),
-          _buildModernQuantityButton(
+          const SizedBox(width: 10),
+          _buildCircularQtyButton(
             icon: Icons.add,
-            color: Colors.blue[400]!,
             onTap: () => _incrementQuantity(item, isOrdering),
             enabled: true,
             id: '${item.id}-add',
@@ -455,34 +489,38 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     );
   }
 
-  Widget _buildModernQuantityButton({
+  Widget _buildCircularQtyButton({
     required IconData icon,
-    required Color color,
     required VoidCallback onTap,
     required bool enabled,
     required String id,
   }) {
-    return GestureDetector(
+    final border = Border.all(
+      color: enabled ? const Color(0xFFE5E7EB) : Colors.grey[300]!,
+    );
+    return Material(
       key: Key('quantity-button-$id'),
-      behavior: HitTestBehavior.opaque,
-      onTap: enabled ? onTap : null,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 150),
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: enabled ? color : Colors.grey[300],
-          borderRadius: BorderRadius.circular(8),
-          boxShadow: enabled
-              ? [
-                  BoxShadow(
-                    color: color.withValues(alpha: 0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ]
-              : null,
+      color: Colors.white,
+      shape: const CircleBorder(),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: enabled ? onTap : null,
+        customBorder: const CircleBorder(),
+        child: Ink(
+          width: 34,
+          height: 34,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: border,
+          ),
+          child: Icon(
+            icon,
+            size: 18,
+            color: enabled
+                ? const Color(0xFF374151)
+                : Colors.grey[400],
+          ),
         ),
-        child: Icon(icon, color: Colors.white, size: 20),
       ),
     );
   }
@@ -495,52 +533,36 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Expand/Edit button
-        Expanded(
-          child: IconButton(
-            onPressed: isSaving
-                ? null
-                : () {
-                    setState(() {
-                      _expandedItemId = _expandedItemId == item.id
-                          ? null
-                          : item.id;
-                    });
-                  },
-            icon: Icon(
-              _expandedItemId == item.id
-                  ? Icons.expand_less
-                  : Icons.expand_more,
-              color: isSaving ? Colors.grey[400] : const Color(0xFF0078D4),
-            ),
-            tooltip: 'Edit details',
+        IconButton(
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+          visualDensity: VisualDensity.compact,
+          onPressed: isSaving
+              ? null
+              : () {
+                  setState(() {
+                    _expandedItemId =
+                        _expandedItemId == item.id ? null : item.id;
+                  });
+                },
+          icon: Icon(
+            _expandedItemId == item.id
+                ? Icons.expand_less
+                : Icons.expand_more,
+            color: isSaving
+                ? Colors.grey[400]
+                : PosLayoutBreakpoints.posAccentBlue,
           ),
+          tooltip: 'Edit details',
         ),
-
-        // Delete button
-        Expanded(
-          child: IconButton(
-            onPressed: isSaving
-                ? null
-                : () => _showDeleteConfirmation(item, isOrdering),
-            icon: Icon(
-              Icons.delete_outline,
-              color: isSaving ? Colors.grey[400] : Colors.red[400],
-            ),
-            tooltip: 'Delete item',
-          ),
-        ),
-
-        // Saving indicator
         if (isSaving)
-          Container(
-            width: 20,
-            height: 20,
-            margin: const EdgeInsets.only(left: 8),
+          SizedBox(
+            width: 18,
+            height: 18,
             child: CircularProgressIndicator(
               strokeWidth: 2,
               valueColor: AlwaysStoppedAnimation<Color>(
-                const Color(0xFF0078D4),
+                PosLayoutBreakpoints.posAccentBlue,
               ),
             ),
           ),
@@ -630,7 +652,10 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Color(0xFF0078D4), width: 2),
+          borderSide: const BorderSide(
+            color: PosLayoutBreakpoints.posAccentBlue,
+            width: 2,
+          ),
         ),
         filled: true,
         fillColor: Colors.white,
@@ -700,7 +725,10 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
-          borderSide: const BorderSide(color: Color(0xFF0078D4), width: 2),
+          borderSide: const BorderSide(
+            color: PosLayoutBreakpoints.posAccentBlue,
+            width: 2,
+          ),
         ),
         filled: true,
         fillColor: Colors.white,
@@ -740,26 +768,19 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
 
   Widget _buildModernSummary() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
-      decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: const BorderRadius.only(
-          bottomLeft: Radius.circular(12),
-          bottomRight: Radius.circular(12),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(8),
+          bottomRight: Radius.circular(8),
         ),
         border: Border(
           top: BorderSide(
-            color: Colors.grey.withValues(alpha: 0.35),
+            color: Color(0xFFE5E7EB),
             width: 1,
           ),
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 8,
-            offset: const Offset(0, -2),
-          ),
-        ],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -767,19 +788,23 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
           Text(
             'Grand Total',
             style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
+              fontSize: 18,
+              fontWeight: FontWeight.w700,
               color: Colors.grey[800],
             ),
           ),
-          Text(
-            grandTotal.toCurrencyFormatted(
-              symbol: ProxyService.box.defaultCurrency(),
-            ),
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Color(0xFF0078D4),
+          Flexible(
+            child: Text(
+              grandTotal.toCurrencyFormatted(
+                symbol: ProxyService.box.defaultCurrency(),
+              ),
+              style: const TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
+                color: PosLayoutBreakpoints.posAccentBlue,
+              ),
+              textAlign: TextAlign.end,
+              overflow: TextOverflow.ellipsis,
             ),
           ),
         ],
@@ -899,6 +924,15 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   // === PRESERVED CORE LOGIC ===
   String _getItemName(TransactionItem item) {
     return item.name.extractNameAndNumber();
+  }
+
+  /// Grey subtitle under the line name (BCD preferred, else SKU).
+  String? _lineItemInventoryLabel(TransactionItem item) {
+    final bcd = item.bcd?.trim();
+    if (bcd != null && bcd.isNotEmpty) return 'BCD: $bcd';
+    final sku = item.sku?.trim();
+    if (sku != null && sku.isNotEmpty) return 'SKU: $sku';
+    return null;
   }
 
   String _getItemTotal(TransactionItem item) {
