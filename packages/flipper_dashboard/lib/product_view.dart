@@ -70,7 +70,8 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
   double? _lastGridMainAxisSpacing;
   double? _lastGridChildAspectRatio;
 
-  static const double _estimatedMobileListItemExtent = 132.0; // card + separator
+  static const double _estimatedMobileListItemExtent =
+      132.0; // card + separator
 
   void _ensureOuterVariantsEvictionListener(String branchId) {
     if (branchId.isEmpty) return;
@@ -116,7 +117,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
           // Grid layout has predictable row height: tileWidth/aspectRatio.
           final tileWidth =
               (paneWidth - (mainAxisSpacing * (crossAxisCount - 1))) /
-                  crossAxisCount;
+              crossAxisCount;
           final tileHeight = tileWidth / childAspectRatio;
           final removedRows = (removedItems / crossAxisCount).ceil();
           removedPx = removedRows * (tileHeight + mainAxisSpacing);
@@ -255,48 +256,52 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     final progress = ref.watch(bulkDeleteProgressProvider);
     final showProductList = ref.watch(showProductsList);
 
-    return LayoutBuilder(builder: (context, constraints) {
-      final paneWidth = constraints.maxWidth;
-      final isMobileLayout =
-          paneWidth < PosLayoutBreakpoints.mobileLayoutMaxWidth;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final paneWidth = constraints.maxWidth;
+        final isMobileLayout =
+            paneWidth < PosLayoutBreakpoints.mobileLayoutMaxWidth;
 
-      final linked = widget.linkedSearchController;
-      final showLinkedSearch = linked != null && showProductList;
+        final linked = widget.linkedSearchController;
+        final showLinkedSearch = linked != null && showProductList;
 
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          if (progress > 0)
-            LinearProgressIndicator(
-              value: progress,
-              backgroundColor: Colors.transparent,
-              valueColor: AlwaysStoppedAnimation<Color>(
-                Theme.of(context).colorScheme.primary,
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            if (progress > 0)
+              LinearProgressIndicator(
+                value: progress,
+                backgroundColor: Colors.transparent,
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  Theme.of(context).colorScheme.primary,
+                ),
+                minHeight: 2,
               ),
-              minHeight: 2,
-            ),
-          if (isSelectionMode)
-            _buildBulkSelectionBar(context, model, selectedIds),
-          if (showLinkedSearch) ...[
-            SizedBox(height: isMobileLayout ? 8 : 16),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
-              child: Material(
-                color: const Color(0xFFF1F5F9),
-                borderRadius: BorderRadius.circular(8),
-                child: SearchFieldWidget(
-                  controller: linked,
-                  hintText: 'Search products...',
-                  densePadding: true,
-                  showTrailingToolbar: false,
+            if (isSelectionMode)
+              _buildBulkSelectionBar(context, model, selectedIds),
+            if (showLinkedSearch) ...[
+              SizedBox(height: isMobileLayout ? 8 : 16),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 10),
+                child: Material(
+                  color: const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(8),
+                  child: SearchFieldWidget(
+                    controller: linked,
+                    hintText: 'Search products...',
+                    densePadding: true,
+                    showTrailingToolbar: false,
+                  ),
                 ),
               ),
+            ],
+            Expanded(
+              child: _buildVariantList(context, model, paneWidth: paneWidth),
             ),
           ],
-          Expanded(child: _buildVariantList(context, model, paneWidth: paneWidth)),
-        ],
-      );
-    });
+        );
+      },
+    );
   }
 
   Widget _buildBulkSelectionBar(
@@ -423,8 +428,11 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
     }
   }
 
-  Widget _buildVariantList(BuildContext context, ProductViewModel model,
-      {required double paneWidth}) {
+  Widget _buildVariantList(
+    BuildContext context,
+    ProductViewModel model, {
+    required double paneWidth,
+  }) {
     return Consumer(
       builder: (context, ref, _) {
         final branchId = ProxyService.box.getBranchId() ?? "";
@@ -439,7 +447,9 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
           });
         }
 
-        return ref.watch(outerVariantsProvider(branchId)).when(
+        return ref
+            .watch(outerVariantsProvider(branchId))
+            .when(
               data: (variants) {
                 if (variants.isEmpty) {
                   final hasBranch = branchId.isNotEmpty;
@@ -459,9 +469,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                             hasBranch
                                 ? 'No products yet'
                                 : 'No branch selected',
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleLarge
+                            style: Theme.of(context).textTheme.titleLarge
                                 ?.copyWith(
                                   color: Theme.of(
                                     context,
@@ -475,9 +483,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                               'If you just opened the app, products may still '
                               'be syncing — tap refresh.',
                               textAlign: TextAlign.center,
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodyMedium
+                              style: Theme.of(context).textTheme.bodyMedium
                                   ?.copyWith(
                                     color: Theme.of(
                                       context,
@@ -500,8 +506,12 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                     ),
                   );
                 }
-                return _buildVariantsGrid(context, model,
-                    variants: variants, paneWidth: paneWidth);
+                return _buildVariantsGrid(
+                  context,
+                  model,
+                  variants: variants,
+                  paneWidth: paneWidth,
+                );
               },
               error: (error, stackTrace) => Center(
                 child: Padding(
@@ -585,10 +595,7 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
       mainAxisSize: MainAxisSize.min,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 16.0,
-            vertical: 8.0,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -598,21 +605,22 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                     final total = notifier.totalCount ?? loadedCount;
                     final totalText = total.toString();
                     if (isMobileLayout) {
-                      final pages =
-                          estimatedTotalPages < 1 ? 1 : estimatedTotalPages;
+                      final pages = estimatedTotalPages < 1
+                          ? 1
+                          : estimatedTotalPages;
                       return Text(
                         '$totalText products · page ${_currentPage + 1} of $pages',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Theme.of(
-                                context,
-                              ).colorScheme.onSurfaceVariant,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 13,
-                            ),
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                        ),
                         overflow: TextOverflow.ellipsis,
                       );
                     }
-                    final start = loadedCount == 0 ? 0 : (_currentPage * ipp) + 1;
+                    final start = loadedCount == 0
+                        ? 0
+                        : (_currentPage * ipp) + 1;
                     final end = ((_currentPage + 1) * ipp) > total
                         ? total
                         : ((_currentPage + 1) * ipp);
@@ -682,89 +690,87 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                         child: SingleChildScrollView(
                           scrollDirection: Axis.horizontal,
                           child: Row(
-                            children: List.generate(estimatedTotalPages, (index) {
-                              if (estimatedTotalPages > 10) {
-                                final low = (_currentPage - 2).clamp(
-                                  0,
-                                  estimatedTotalPages - 1,
-                                );
-                                final high = (_currentPage + 2).clamp(
-                                  0,
-                                  estimatedTotalPages - 1,
-                                );
-                                if (index < low || index > high) {
-                                  return const SizedBox.shrink();
-                                }
-                              }
-                              final page = index;
-                              final isCurrent = page == _currentPage;
-                              return Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 4.0,
-                                ),
-                                child: Material(
-                                  color: isMobileLayout
-                                      ? (isCurrent
-                                          ? const Color(
-                                              0xFFE8E8ED,
-                                            )
-                                          : Colors.white)
-                                      : (isCurrent
-                                          ? Theme.of(
-                                              context,
-                                            ).colorScheme.primary
-                                          : Colors.transparent),
-                                  borderRadius: BorderRadius.circular(10),
-                                  child: InkWell(
-                                    borderRadius: BorderRadius.circular(10),
-                                    onTap: () => _goToPage(page),
-                                    child: Container(
-                                      width: 40,
-                                      height: 40,
-                                      alignment: Alignment.center,
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(
-                                          10,
+                            children:
+                                List.generate(estimatedTotalPages, (index) {
+                                      if (estimatedTotalPages > 10) {
+                                        final low = (_currentPage - 2).clamp(
+                                          0,
+                                          estimatedTotalPages - 1,
+                                        );
+                                        final high = (_currentPage + 2).clamp(
+                                          0,
+                                          estimatedTotalPages - 1,
+                                        );
+                                        if (index < low || index > high) {
+                                          return const SizedBox.shrink();
+                                        }
+                                      }
+                                      final page = index;
+                                      final isCurrent = page == _currentPage;
+                                      return Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 4.0,
                                         ),
-                                        border: Border.all(
-                                          color: isMobileLayout
-                                              ? const Color(
-                                                  0xFFD1D1D6,
-                                                )
-                                              : Theme.of(context)
-                                                  .colorScheme
-                                                  .primary,
-                                        ),
-                                      ),
-                                      child: Text(
-                                        '${page + 1}',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.w700,
-                                          fontSize: 14,
+                                        child: Material(
                                           color: isMobileLayout
                                               ? (isCurrent
-                                                  ? Colors.black87
-                                                  : const Color(
-                                                      0xFF3C3C43,
-                                                    ))
+                                                    ? const Color(0xFFE8E8ED)
+                                                    : Colors.white)
                                               : (isCurrent
-                                                  ? Theme.of(
-                                                      context,
-                                                    ).colorScheme.onPrimary
-                                                  : Theme.of(
-                                                      context,
-                                                    ).colorScheme.primary),
+                                                    ? Theme.of(
+                                                        context,
+                                                      ).colorScheme.primary
+                                                    : Colors.transparent),
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
+                                          child: InkWell(
+                                            borderRadius: BorderRadius.circular(
+                                              10,
+                                            ),
+                                            onTap: () => _goToPage(page),
+                                            child: Container(
+                                              width: 40,
+                                              height: 40,
+                                              alignment: Alignment.center,
+                                              decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                                border: Border.all(
+                                                  color: isMobileLayout
+                                                      ? const Color(0xFFD1D1D6)
+                                                      : Theme.of(
+                                                          context,
+                                                        ).colorScheme.primary,
+                                                ),
+                                              ),
+                                              child: Text(
+                                                '${page + 1}',
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.w700,
+                                                  fontSize: 14,
+                                                  color: isMobileLayout
+                                                      ? (isCurrent
+                                                            ? Colors.black87
+                                                            : const Color(
+                                                                0xFF3C3C43,
+                                                              ))
+                                                      : (isCurrent
+                                                            ? Theme.of(context)
+                                                                  .colorScheme
+                                                                  .onPrimary
+                                                            : Theme.of(context)
+                                                                  .colorScheme
+                                                                  .primary),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
                                         ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              );
-                            })
-                                .where(
-                                  (w) => w != const SizedBox.shrink(),
-                                )
-                                .toList(),
+                                      );
+                                    })
+                                    .where((w) => w != const SizedBox.shrink())
+                                    .toList(),
                           ),
                         ),
                       ),
@@ -783,9 +789,9 @@ class ProductViewState extends ConsumerState<ProductView> with Datamixer {
                   Text(
                     'Page ${_currentPage + 1} of $estimatedTotalPages',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: const Color(0xFF64748B),
-                          fontWeight: FontWeight.w500,
-                        ),
+                      color: const Color(0xFF64748B),
+                      fontWeight: FontWeight.w500,
+                    ),
                   ),
               ],
             ),
