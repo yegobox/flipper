@@ -103,8 +103,9 @@ eval "find . -type f -name \"pubspec.yaml\" $EXCLUDE_PATTERN" | while read -r PU
       major="${BASH_REMATCH[1]}"
       minor="${BASH_REMATCH[2]}"
       build="${BASH_REMATCH[3]}"
-      # Keep the revision number pinned to 0 for now.
-      new_msix_version="$major.$minor.$build.0"
+      new_build=$((build + 1))
+      # Increment the build number and keep the revision pinned to 0 for now.
+      new_msix_version="$major.$minor.$new_build.0"
 
       SED_INPLACE "s/msix_version: $msix_version/msix_version: $new_msix_version/" pubspec.yaml
       if [[ "$msix_version" != "$new_msix_version" ]]; then
