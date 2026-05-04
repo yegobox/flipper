@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flipper_models/SyncStrategy.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_services/constants.dart';
@@ -849,7 +852,50 @@ class _PrimaryActions extends StatelessWidget {
   }
 }
 
-class _SecondaryActions extends StatelessWidget {
+bool _isMobileMoneyCashbookPayment(ITransaction t) {
+  final p = (t.paymentType ?? '').toUpperCase();
+  return p.contains('MOMO') ||
+      p.contains('MOBILE MONEY') ||
+      p.contains('AIRTEL');
+}
+
+Future<void> _markMobileMoneyNotCompleted(
+  BuildContext context,
+  WidgetRef ref,
+  ITransaction transaction,
+) async {
+  try {
+    await ProxyService.strategy.updateTransaction(
+      transaction: transaction,
+      status: WAITING,
+      subTotal: transaction.subTotal ?? transaction.cashReceived ?? 0,
+    );
+    ref.invalidate(cashbookRecentTransactionsProvider);
+    ref.invalidate(transactionsScreenTransactionsProvider);
+    ref.invalidate(dashboardTransactionsProvider);
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        behavior: SnackBarBehavior.floating,
+        content: Text(
+          'Marked as not completed. It no longer appears in Cash Book recent until completed again.',
+        ),
+      ),
+    );
+    Navigator.of(context).maybePop();
+  } catch (e) {
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          content: Text('Could not update: $e'),
+        ),
+      );
+    }
+  }
+}
+
+class _SecondaryActions extends ConsumerWidget {
   const _SecondaryActions({
     super.key,
     required this.onBackPressed,
@@ -860,8 +906,18 @@ class _SecondaryActions extends StatelessWidget {
   final ITransaction transaction;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final actions = [
+      if (transaction.status == COMPLETE &&
+          _isMobileMoneyCashbookPayment(transaction))
+        _ActionItem(
+          icon: Icons.hourglass_disabled_outlined,
+          label: 'Mark not completed',
+          color: const Color(0xFFFF9500),
+          onTap: () => unawaited(
+            _markMobileMoneyNotCompleted(context, ref, transaction),
+          ),
+        ),
       _ActionItem(
         icon: Icons.edit_note,
         label: 'Edit Note',

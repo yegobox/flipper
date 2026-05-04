@@ -19,7 +19,6 @@ import 'package:flutter/foundation.dart' hide Category;
 
 import 'package:ditto_live/ditto_live.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:supabase_models/brick/repository.dart';
 import 'package:supabase_models/sync/ditto_sync_coordinator.dart';
 
 /// A service class that manages scheduled tasks and periodic operations for the Flipper app.
@@ -455,9 +454,12 @@ class CronService {
 
   /// Sets up all periodic tasks with appropriate error handling.
   ///
-  /// Periodic DB work: only MoMo auto-complete runs on a timer. Other former
-  /// crons (transaction refresh, analytics, sales sync, asset download) are
-  /// disabled to avoid [_cronTaskRunning] contention and SQLite lock warnings.
+  /// Periodic DB work: **legacy** MoMo auto-complete runs on a timer for rows
+  /// still in [WAITING_MOMO_COMPLETE] from older app builds. New Cash Book
+  /// MoMo/Airtel flows complete immediately in the UI; this timer is only a
+  /// safety net. Other former crons (transaction refresh, analytics, sales sync,
+  /// asset download) are disabled to avoid [_cronTaskRunning] contention and
+  /// SQLite lock warnings.
   void _setupPeriodicTasks() {
     // Isolate heartbeat – lightweight send, no DB work, runs independently
     _activeTimers.add(
@@ -623,7 +625,8 @@ class CronService {
   bool get isMacOs => defaultTargetPlatform == TargetPlatform.macOS;
   bool get isIos => defaultTargetPlatform == TargetPlatform.iOS;
 
-  /// Automatically completes MoMo transactions that have been waiting long enough.
+  /// Legacy: auto-completes MoMo transactions stuck in [WAITING_MOMO_COMPLETE]
+  /// long enough. New saves use [COMPLETE] immediately; this clears backlog only.
   /// Concurrency is already guarded by [_runExclusiveTask].
   Future<void> _autoCompleteMomoTransactions() async {
     final branchId = ProxyService.box.getBranchId();
