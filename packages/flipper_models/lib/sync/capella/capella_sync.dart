@@ -473,14 +473,16 @@ class CapellaSync extends AiStrategyImpl
       final userId = ProxyService.box.getUserId();
       transaction.customerTin = customerTin;
 
-      if (countryCode != "N/A" && countryCode != "") {
-        transaction.currentSaleCustomerPhoneNumber =
-            countryCode +
-            (customerPhone ??
-                ProxyService.box.currentSaleCustomerPhoneNumber())!;
-      }
-      transaction.customerPhone =
+      final resolvedSalePhone =
           customerPhone ?? ProxyService.box.currentSaleCustomerPhoneNumber();
+      if (countryCode != "N/A" &&
+          countryCode != "" &&
+          resolvedSalePhone != null &&
+          resolvedSalePhone.isNotEmpty) {
+        transaction.currentSaleCustomerPhoneNumber =
+            countryCode + resolvedSalePhone;
+      }
+      transaction.customerPhone = resolvedSalePhone;
       transaction.customerName =
           customerName ?? ProxyService.box.customerName();
 

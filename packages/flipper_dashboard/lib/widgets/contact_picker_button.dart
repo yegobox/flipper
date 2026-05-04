@@ -124,12 +124,20 @@ class ContactPickerButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const buttonSize = 40.0;
+
     return IconButton(
       icon: Icon(icon),
+      iconSize: 22,
       tooltip: tooltip ?? 'Pick from contacts',
       onPressed: () => _pickContact(context),
       style: IconButton.styleFrom(
         backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+        fixedSize: const Size.square(buttonSize),
+        minimumSize: const Size.square(buttonSize),
+        maximumSize: const Size.square(buttonSize),
+        padding: EdgeInsets.zero,
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
       ),
     );
   }

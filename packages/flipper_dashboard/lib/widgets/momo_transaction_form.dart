@@ -362,13 +362,20 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
                 const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
             prefixIcon:
                 Icon(Icons.phone_outlined, color: Colors.grey.shade700),
-            suffixIcon: ContactPickerButton(
-              icon: Icons.person_add_alt_1_rounded,
-              tooltip: 'Pick from contacts',
-              onPhoneSelected: (phone) {
-                setState(() => _phoneController.text = phone);
-                HapticFeedback.lightImpact();
-              },
+            suffixIconConstraints: const BoxConstraints(
+              minWidth: 56,
+              minHeight: 48,
+            ),
+            suffixIcon: Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: ContactPickerButton(
+                icon: Icons.person_add_alt_1_rounded,
+                tooltip: 'Pick from contacts',
+                onPhoneSelected: (phone) {
+                  setState(() => _phoneController.text = phone);
+                  HapticFeedback.lightImpact();
+                },
+              ),
             ),
             helperText: 'MTN or Airtel number',
             helperStyle: TextStyle(color: Colors.grey.shade600, fontSize: 12),
@@ -1064,57 +1071,69 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
         isIncome: isIncome,
         category: category,
         paymentDetails: paymentDetails,
+        customerPhoneForCollect: _paymentType == MomoPaymentType.phoneNumber
+            ? _phoneController.text.replaceAll(RegExp(r'[\s\-\+]'), '')
+            : null,
       );
 
-      if (mounted) {
-        widget.onComplete();
+      if (!mounted) return;
+      final messenger = ScaffoldMessenger.of(context);
+      final providerContainer = ProviderScope.containerOf(
+        context,
+        listen: false,
+      );
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 10),
-            backgroundColor: Colors.green.shade700,
-            content: const Text(
-              'MoMo transaction saved as completed. It appears in Recent transactions.',
-              style: TextStyle(color: Colors.white),
-            ),
-            action: SnackBarAction(
-              label: 'Mark not completed',
-              textColor: Colors.white,
-              onPressed: () async {
-                try {
-                  await ProxyService.strategy.updateTransaction(
-                    transaction: saved,
-                    status: WAITING,
-                    subTotal: saved.subTotal ?? amount,
-                  );
-                  ref.invalidate(cashbookRecentTransactionsProvider);
-                  ref.invalidate(transactionsScreenTransactionsProvider);
-                  ref.invalidate(dashboardTransactionsProvider);
-                  if (context.mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        behavior: SnackBarBehavior.floating,
-                        content: const Text(
-                          'Marked as not completed (removed from cash book recent list until completed again).',
-                        ),
-                      ),
-                    );
-                  }
-                } catch (e) {
-                  talker.error('Momo undo (mark not completed) failed: $e');
-                  if (context.mounted) {
-                    showErrorNotification(
-                      context,
-                      'Could not update: ${e.toString()}',
-                    );
-                  }
-                }
-              },
-            ),
+      messenger.showSnackBar(
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          duration: const Duration(seconds: 10),
+          backgroundColor: Colors.green.shade700,
+          content: const Text(
+            'MoMo transaction saved as completed. It appears in Recent transactions.',
+            style: TextStyle(color: Colors.white),
           ),
-        );
-      }
+          action: SnackBarAction(
+            label: 'Mark not completed',
+            textColor: Colors.white,
+            onPressed: () async {
+              try {
+                await ProxyService.strategy.updateTransaction(
+                  transaction: saved,
+                  status: WAITING,
+                  subTotal: saved.subTotal ?? amount,
+                );
+                providerContainer.invalidate(cashbookRecentTransactionsProvider);
+                providerContainer.invalidate(
+                  transactionsScreenTransactionsProvider,
+                );
+                providerContainer.invalidate(dashboardTransactionsProvider);
+                messenger.showSnackBar(
+                  const SnackBar(
+                    behavior: SnackBarBehavior.floating,
+                    content: Text(
+                      'Marked as not completed (removed from cash book recent list until completed again).',
+                    ),
+                  ),
+                );
+              } catch (e) {
+                talker.error('Momo undo (mark not completed) failed: $e');
+                messenger.showSnackBar(
+                  SnackBar(
+                    behavior: SnackBarBehavior.floating,
+                    backgroundColor: Colors.red.shade700,
+                    content: Text(
+                      'Could not update: ${e.toString()}',
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  ),
+                );
+              }
+            },
+          ),
+        ),
+      );
+
+      widget.onComplete();
     } catch (e, s) {
       talker.error('MomoTransactionForm: Error in dial and save: $e');
       talker.error(s);
@@ -1135,6 +1154,7 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
     required bool isIncome,
     required Category category,
     required String paymentDetails,
+    String? customerPhoneForCollect,
   }) async {
     return _lock.synchronized(() async {
       final String branchId = ProxyService.box.getBranchId()!;
@@ -1233,6 +1253,12 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
           ? '${_descriptionController.text}\n$paymentDetails'
           : paymentDetails;
 
+      final phoneForCollect =
+          (customerPhoneForCollect != null &&
+                  customerPhoneForCollect.isNotEmpty)
+              ? customerPhoneForCollect
+              : null;
+
       ITransaction updatedTransaction =
           await ProxyService.strategy.collectPayment(
         cashReceived: amount,
@@ -1250,6 +1276,7 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
         categoryId: category.id.toString(),
         note: note,
         completionStatus: COMPLETE,
+        customerPhone: phoneForCollect,
       );
 
       final movementReceipt =
