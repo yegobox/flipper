@@ -1670,6 +1670,7 @@ class CashbookState extends ConsumerState<Cashbook> with DateCoreWidget {
           if (context.mounted) {
             ref.invalidate(dashboardTransactionsProvider);
             ref.invalidate(cashbookRecentTransactionsProvider);
+            ref.invalidate(transactionsScreenTransactionsProvider);
           }
         }, Priority.idle);
       });

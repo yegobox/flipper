@@ -1224,6 +1224,7 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
       ref.refresh(pendingTransactionStreamProvider(isExpense: !isIncome));
       ref.refresh(dashboardTransactionsProvider);
       ref.invalidate(cashbookRecentTransactionsProvider);
+      ref.invalidate(transactionsScreenTransactionsProvider);
     });
   }
 }

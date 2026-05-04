@@ -103,6 +103,38 @@ Stream<List<ITransaction>> cashbookRecentTransactions(Ref ref) {
   ).map((all) => all.where((tx) => tx.status == COMPLETE).toList());
 }
 
+/// Transactions screen list: Capella [coreTransactionsStream] for the global
+/// [dateRangeProvider] window (aligned with Cash Book / dashboard analytics).
+@riverpod
+Stream<List<ITransaction>> transactionsScreenTransactions(Ref ref) {
+  final dateRange = ref.watch(dateRangeProvider);
+  final startDate = dateRange.startDate;
+  final endDate = dateRange.endDate;
+
+  if (startDate == null || endDate == null) {
+    return Stream.value([]);
+  }
+
+  final branchId =
+      ProxyService.box.branchIdString() ?? ProxyService.box.getBranchId();
+  if (branchId == null || branchId.isEmpty) {
+    throw StateError('Branch ID is required');
+  }
+
+  talker.debug(
+    'transactionsScreenTransactions: $startDate → $endDate branch=$branchId',
+  );
+
+  return coreTransactionsStream(
+    ref,
+    startDate: startDate,
+    endDate: endDate,
+    branchId: branchId,
+    forceRealData: true,
+    includeParked: false,
+  ).map((all) => all.where((tx) => tx.status == COMPLETE).toList());
+}
+
 // ---------------------------------------------------------------------------
 // transactionReportSnapshot — Transaction Reports grid + payment breakdown.
 // Parked + completed (sales and expenses); by-hand vs CREDIT from payment records.

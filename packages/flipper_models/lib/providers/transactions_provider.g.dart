@@ -185,6 +185,57 @@ final class CashbookRecentTransactionsProvider
 String _$cashbookRecentTransactionsHash() =>
     r'9423209c2792dc7ee936c56662f028340a55ceaa';
 
+/// Transactions screen list: Capella [coreTransactionsStream] for the global
+/// [dateRangeProvider] window (aligned with Cash Book / dashboard analytics).
+
+@ProviderFor(transactionsScreenTransactions)
+const transactionsScreenTransactionsProvider =
+    TransactionsScreenTransactionsProvider._();
+
+/// Transactions screen list: Capella [coreTransactionsStream] for the global
+/// [dateRangeProvider] window (aligned with Cash Book / dashboard analytics).
+
+final class TransactionsScreenTransactionsProvider
+    extends
+        $FunctionalProvider<
+          AsyncValue<List<ITransaction>>,
+          List<ITransaction>,
+          Stream<List<ITransaction>>
+        >
+    with
+        $FutureModifier<List<ITransaction>>,
+        $StreamProvider<List<ITransaction>> {
+  /// Transactions screen list: Capella [coreTransactionsStream] for the global
+  /// [dateRangeProvider] window (aligned with Cash Book / dashboard analytics).
+  const TransactionsScreenTransactionsProvider._()
+    : super(
+        from: null,
+        argument: null,
+        retry: null,
+        name: r'transactionsScreenTransactionsProvider',
+        isAutoDispose: true,
+        dependencies: null,
+        $allTransitiveDependencies: null,
+      );
+
+  @override
+  String debugGetCreateSourceHash() => _$transactionsScreenTransactionsHash();
+
+  @$internal
+  @override
+  $StreamProviderElement<List<ITransaction>> $createElement(
+    $ProviderPointer pointer,
+  ) => $StreamProviderElement(pointer);
+
+  @override
+  Stream<List<ITransaction>> create(Ref ref) {
+    return transactionsScreenTransactions(ref);
+  }
+}
+
+String _$transactionsScreenTransactionsHash() =>
+    r'd7ab2497ab5474b87f990111c7ed976861edd754';
+
 @ProviderFor(transactionReportSnapshot)
 const transactionReportSnapshotProvider = TransactionReportSnapshotFamily._();
 
