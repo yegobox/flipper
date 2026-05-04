@@ -2106,14 +2106,16 @@ class CoreSync extends AiStrategyImpl
       }
       try {
         final userId = ProxyService.box.getUserId();
-        if (countryCode != "N/A" && countryCode != "") {
-          transaction.currentSaleCustomerPhoneNumber =
-              countryCode +
-              (customerPhone ??
-                  ProxyService.box.currentSaleCustomerPhoneNumber())!;
-        }
-        transaction.customerPhone =
+        final resolvedSalePhone =
             customerPhone ?? ProxyService.box.currentSaleCustomerPhoneNumber();
+        if (countryCode != "N/A" &&
+            countryCode != "" &&
+            resolvedSalePhone != null &&
+            resolvedSalePhone.isNotEmpty) {
+          transaction.currentSaleCustomerPhoneNumber =
+              countryCode + resolvedSalePhone;
+        }
+        transaction.customerPhone = resolvedSalePhone;
         transaction.customerName =
             customerName ?? ProxyService.box.customerName();
         // Fetch transaction items (or use caller-provided lines to avoid a duplicate read on hot paths)
