@@ -362,13 +362,20 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
                 const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
             prefixIcon:
                 Icon(Icons.phone_outlined, color: Colors.grey.shade700),
-            suffixIcon: ContactPickerButton(
-              icon: Icons.person_add_alt_1_rounded,
-              tooltip: 'Pick from contacts',
-              onPhoneSelected: (phone) {
-                setState(() => _phoneController.text = phone);
-                HapticFeedback.lightImpact();
-              },
+            suffixIconConstraints: const BoxConstraints(
+              minWidth: 56,
+              minHeight: 48,
+            ),
+            suffixIcon: Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: ContactPickerButton(
+                icon: Icons.person_add_alt_1_rounded,
+                tooltip: 'Pick from contacts',
+                onPhoneSelected: (phone) {
+                  setState(() => _phoneController.text = phone);
+                  HapticFeedback.lightImpact();
+                },
+              ),
             ),
             helperText: 'MTN or Airtel number',
             helperStyle: TextStyle(color: Colors.grey.shade600, fontSize: 12),
