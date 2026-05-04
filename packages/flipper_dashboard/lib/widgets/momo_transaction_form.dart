@@ -1059,7 +1059,7 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
         }
       }
 
-      await _saveTransaction(
+      final saved = await _saveTransaction(
         amount: amount,
         isIncome: isIncome,
         category: category,
@@ -1067,11 +1067,53 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
       );
 
       if (mounted) {
-        showSuccessNotification(
-          context,
-          'MoMo transaction saved. Please confirm manually after completion.',
-        );
         widget.onComplete();
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 10),
+            backgroundColor: Colors.green.shade700,
+            content: const Text(
+              'MoMo transaction saved as completed. It appears in Recent transactions.',
+              style: TextStyle(color: Colors.white),
+            ),
+            action: SnackBarAction(
+              label: 'Mark not completed',
+              textColor: Colors.white,
+              onPressed: () async {
+                try {
+                  await ProxyService.strategy.updateTransaction(
+                    transaction: saved,
+                    status: WAITING,
+                    subTotal: saved.subTotal ?? amount,
+                  );
+                  ref.invalidate(cashbookRecentTransactionsProvider);
+                  ref.invalidate(transactionsScreenTransactionsProvider);
+                  ref.invalidate(dashboardTransactionsProvider);
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        behavior: SnackBarBehavior.floating,
+                        content: const Text(
+                          'Marked as not completed (removed from cash book recent list until completed again).',
+                        ),
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  talker.error('Momo undo (mark not completed) failed: $e');
+                  if (context.mounted) {
+                    showErrorNotification(
+                      context,
+                      'Could not update: ${e.toString()}',
+                    );
+                  }
+                }
+              },
+            ),
+          ),
+        );
       }
     } catch (e, s) {
       talker.error('MomoTransactionForm: Error in dial and save: $e');
@@ -1088,13 +1130,13 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
     }
   }
 
-  Future<void> _saveTransaction({
+  Future<ITransaction> _saveTransaction({
     required double amount,
     required bool isIncome,
     required Category category,
     required String paymentDetails,
   }) async {
-    await _lock.synchronized(() async {
+    return _lock.synchronized(() async {
       final String branchId = ProxyService.box.getBranchId()!;
 
       ITransaction? pendingTransaction = await ProxyService.strategy
@@ -1191,7 +1233,8 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
           ? '${_descriptionController.text}\n$paymentDetails'
           : paymentDetails;
 
-      ITransaction updatedTransaction = await ProxyService.strategy.collectPayment(
+      ITransaction updatedTransaction =
+          await ProxyService.strategy.collectPayment(
         cashReceived: amount,
         countryCode: 'RW',
         branchId: branchId,
@@ -1206,16 +1249,21 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
         isIncome: isIncome,
         categoryId: category.id.toString(),
         note: note,
+        completionStatus: COMPLETE,
       );
 
+      final movementReceipt =
+          isIncome ? TransactionType.cashIn : TransactionType.cashOut;
       await ProxyService.strategy.updateTransaction(
         transaction: updatedTransaction,
-        status: WAITING_MOMO_COMPLETE,
-        subTotal: amount,
+        receiptType: movementReceipt,
+        updatedAt: DateTime.now(),
+        lastTouched: DateTime.now(),
       );
+      updatedTransaction.receiptType = movementReceipt;
 
       talker.info(
-        'MomoTransactionForm: Transaction saved with WAITING_MOMO_COMPLETE status',
+        'MomoTransactionForm: Transaction saved as COMPLETE (immediate cash book)',
       );
 
       ref.refresh(
@@ -1225,6 +1273,8 @@ class _MomoTransactionFormState extends ConsumerState<MomoTransactionForm> {
       ref.refresh(dashboardTransactionsProvider);
       ref.invalidate(cashbookRecentTransactionsProvider);
       ref.invalidate(transactionsScreenTransactionsProvider);
+
+      return updatedTransaction;
     });
   }
 }
