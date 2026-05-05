@@ -8,11 +8,16 @@ import 'package:flipper_rw/dependency_initializer.dart';
 import 'package:flipper_rw/state_observer.dart';
 import 'package:flipper_models/amplify_config_helper.dart';
 import 'package:flipper_localize/flipper_localize.dart';
+import 'package:flipper_dashboard/dashboard_quick_apps_navigation.dart';
+import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_routing/app.router.dart';
 import 'package:flipper_routing/app.locator.dart' as loc;
 import 'package:flipper_routing/app.dialogs.dart';
 import 'package:flipper_routing/app.bottomsheets.dart';
+import 'package:flipper_services/app_shortcuts_platform.dart';
+import 'package:flipper_services/constants.dart';
 import 'package:flipper_services/locator.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:firebase_ui_localizations/firebase_ui_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -34,6 +39,7 @@ import 'package:supabase_models/sync/ditto_sync_registry.dart';
 
 import 'package:ditto_live/ditto_live.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:stacked_services/stacked_services.dart';
 
 // Function to initialize Firebase
 Future<void> _initializeFirebase() async {
@@ -358,11 +364,81 @@ class _FlipperAppState extends State<FlipperApp> {
             routerDelegate: _routerDelegate,
             routeInformationParser: _routeInformationParser,
             builder: (context, child) {
-              return child!;
+              return LauncherShortcutRouterHost(child: child!);
             },
           ),
         ),
       ),
     );
   }
+}
+
+/// Registers Android launcher shortcut callbacks after init ([MaterialApp.router] is mounted).
+///
+/// Warm shortcuts persist [kPendingLauncherShortcutPageKey] until the dashboard applies them;
+/// when already on [FlipperAppRoute], navigates immediately.
+class LauncherShortcutRouterHost extends StatefulWidget {
+  const LauncherShortcutRouterHost({required this.child, super.key});
+
+  final Widget child;
+
+  @override
+  State<LauncherShortcutRouterHost> createState() =>
+      _LauncherShortcutRouterHostState();
+}
+
+class _LauncherShortcutRouterHostState extends State<LauncherShortcutRouterHost> {
+  @override
+  void initState() {
+    super.initState();
+    AppShortcutsPlatform.setShortcutLaunchListener((page) {
+      unawaited(_handleWarmLauncherShortcut(page));
+    });
+  }
+
+  @override
+  void dispose() {
+    AppShortcutsPlatform.setShortcutLaunchListener(null);
+    super.dispose();
+  }
+
+  Future<void> _handleWarmLauncherShortcut(String page) async {
+    if (!mounted || page.isEmpty) return;
+    await ProxyService.box.writeString(
+      key: kPendingLauncherShortcutPageKey,
+      value: page,
+    );
+    if (!mounted) return;
+
+    final ctx = StackedService.navigatorKey?.currentContext;
+    if (ctx == null || !ctx.mounted) return;
+    if (!_isFlipperBusinessShellRoute()) return;
+
+    final width = MediaQuery.sizeOf(ctx).width;
+    final isBigScreen =
+        width >= PosLayoutBreakpoints.mobileLayoutMaxWidth;
+    try {
+      await navigateToDashboardAppPage(
+        context: ctx,
+        isBigScreen: isBigScreen,
+        page: page,
+      );
+      if (!mounted) return;
+      ProxyService.box.remove(key: kPendingLauncherShortcutPageKey);
+    } catch (_) {
+      // Keep persisted key for dashboard shell to retry.
+    }
+  }
+
+  bool _isFlipperBusinessShellRoute() {
+    try {
+      final name = loc.locator<RouterService>().router.current.name;
+      return name == FlipperAppRoute.name;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }

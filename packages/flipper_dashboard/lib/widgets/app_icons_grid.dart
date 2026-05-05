@@ -1,24 +1,22 @@
-import 'package:flipper_ai_feature/flipper_ai_feature.dart';
-import 'package:flipper_dashboard/features/production_output/production_output_app.dart';
-import 'package:flipper_dashboard/features/services_gigs/services_gigs_app.dart';
+import 'dart:async';
+
+import 'package:flipper_dashboard/CreditIcon.dart';
+import 'package:flipper_dashboard/dashboard_app_shortcuts.dart';
+import 'package:flipper_dashboard/dashboard_quick_apps_navigation.dart';
+import 'package:flipper_dashboard/features/services_gigs/providers/services_gig_admin_provider.dart';
+import 'package:flipper_dashboard/widgets/admin_dashboard_svgs.dart';
+import 'package:flipper_dashboard/widgets/dashboard_quick_access_svgs.dart';
 import 'package:flipper_models/providers/all_providers.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:flipper_services/app_shortcuts_platform.dart';
+import 'package:flipper_services/constants.dart';
+import 'package:flipper_services/proxy.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:flutter/services.dart';
-import 'package:url_launcher/url_launcher.dart';
-import 'package:flipper_services/proxy.dart';
-import 'package:flipper_services/constants.dart';
-import 'package:flipper_routing/app.locator.dart';
-import 'package:flipper_routing/app.router.dart';
-import 'package:stacked_services/stacked_services.dart';
-import 'package:flipper_dashboard/CreditIcon.dart';
-import 'package:flipper_dashboard/features/services_gigs/providers/services_gig_admin_provider.dart';
-import 'package:flipper_dashboard/widgets/dashboard_quick_access_svgs.dart';
-import 'package:flipper_dashboard/features/leads/leads_mobile_screen.dart';
-import 'package:flipper_dashboard/widgets/admin_dashboard_svgs.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:universal_platform/universal_platform.dart';
 
 class AppIconsGrid extends ConsumerWidget {
   final bool isBigScreen;
@@ -31,95 +29,6 @@ class AppIconsGrid extends ConsumerWidget {
     this.onAppSelected,
     this.onQuickAccessSeeAll,
   }) : super(key: key);
-
-  Future<void> _navigateToPage(
-    String page,
-    WidgetRef ref,
-    String feature,
-    BuildContext context,
-  ) async {
-    if (onAppSelected != null) {
-      onAppSelected!(page);
-      return;
-    }
-
-    final _routerService = locator<RouterService>();
-    switch (page) {
-      case "POS":
-        await _routerService.navigateTo(
-          CheckOutRoute(isBigScreen: isBigScreen),
-        );
-        break;
-      case "Inventory":
-        await _routerService.navigateTo(
-          CheckOutRoute(isBigScreen: isBigScreen),
-        );
-        break;
-      case "Cashbook":
-        await _routerService.navigateTo(
-          CashbookRoute(isBigScreen: isBigScreen),
-        );
-        break;
-      case "Settings":
-        await _routerService.navigateTo(SettingPageRoute());
-        break;
-      case "Support":
-        final Uri whatsappUri = Uri.parse('https://wa.me/250788360058');
-        if (await canLaunchUrl(whatsappUri)) {
-          await launchUrl(whatsappUri, mode: LaunchMode.externalApplication);
-        } else {
-          throw 'Could not launch $whatsappUri';
-        }
-        break;
-      case "Connecta":
-        ProxyService.box.writeString(key: 'defaultApp', value: "2");
-        await _routerService.navigateTo(SocialHomeViewRoute());
-        break;
-      case "Transactions":
-        await _routerService.navigateTo(TransactionsRoute());
-        break;
-      case "Contacts":
-        await _routerService.navigateTo(CustomersRoute());
-        break;
-      case "Credits":
-        await _routerService.navigateTo(CreditAppRoute());
-        break;
-      case "Chat":
-        // Use the navigation service to navigate to the AI screen
-        // locator<NavigationService>().navigateToView(const Ai());
-        // use navigator to navigate to the AI screen
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const AiScreen()),
-        );
-        break;
-      case "ProductionOutput":
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const ProductionOutputApp()),
-        );
-        break;
-      case "ServicesGigs":
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const ServicesGigsApp()),
-        );
-        break;
-      case "Orders":
-        await _routerService.navigateTo(InventoryRequestMobileViewRoute());
-        break;
-      case "Leads":
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const LeadsMobileScreen()),
-        );
-        break;
-      default:
-        await _routerService.navigateTo(
-          CheckOutRoute(isBigScreen: isBigScreen),
-        );
-    }
-  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -256,6 +165,7 @@ class AppIconsGrid extends ConsumerWidget {
         return _buildAppCard(
           app,
           isBigScreen: isBigScreen,
+          shortcutsEnabled: onAppSelected == null,
           ref: ref,
           context: context,
         );
@@ -311,6 +221,7 @@ class AppIconsGrid extends ConsumerWidget {
   Widget _buildAppCard(
     Map<String, dynamic> app, {
     required bool isBigScreen,
+    required bool shortcutsEnabled,
     required WidgetRef ref,
     required BuildContext context,
   }) {
@@ -322,8 +233,16 @@ class AppIconsGrid extends ConsumerWidget {
         wrapInMobileTile: !isBigScreen,
         onTap: () async {
           HapticFeedback.lightImpact();
-          await _navigateToPage(app['page'], ref, app['feature'], context);
+          await navigateToDashboardAppPage(
+            context: context,
+            isBigScreen: isBigScreen,
+            page: app['page'] as String,
+            onAppSelected: onAppSelected,
+          );
         },
+        onLongPress: shortcutsEnabled
+            ? () => unawaited(_offerPinnedShortcut(context: context, app: app))
+            : null,
       );
     }
 
@@ -405,8 +324,18 @@ class AppIconsGrid extends ConsumerWidget {
     return GestureDetector(
       onTap: () async {
         HapticFeedback.lightImpact();
-        await _navigateToPage(app['page'], ref, app['feature'], context);
+        await navigateToDashboardAppPage(
+          context: context,
+          isBigScreen: isBigScreen,
+          page: app['page'] as String,
+          onAppSelected: onAppSelected,
+        );
       },
+      onLongPress: shortcutsEnabled &&
+              UniversalPlatform.isAndroid &&
+              dashboardAppPageSupportsLauncherShortcut(page)
+          ? () => unawaited(_offerPinnedShortcut(context: context, app: app))
+          : null,
       child: isBigScreen ? content : _quickAccessTileShell(child: content),
     );
   }
@@ -434,11 +363,57 @@ class AppIconsGrid extends ConsumerWidget {
   }
 }
 
+Future<void> _offerPinnedShortcut({
+  required BuildContext context,
+  required Map<String, dynamic> app,
+}) async {
+  final page = app['page'] as String;
+  final label = app['label'] as String;
+  if (!dashboardAppPageSupportsLauncherShortcut(page)) return;
+
+  final messenger = ScaffoldMessenger.maybeOf(context);
+  final supported = await AppShortcutsPlatform.isPinShortcutSupported();
+  if (!supported) {
+    messenger?.showSnackBar(
+      const SnackBar(
+        content: Text('Pinned shortcuts are not supported on this device.'),
+      ),
+    );
+    return;
+  }
+
+  final id = dashboardPinnedShortcutId(page);
+  final result = await AppShortcutsPlatform.requestPinShortcut(
+    id: id,
+    label: label,
+    page: page,
+  );
+
+  if (!context.mounted) return;
+
+  if (result.ok) {
+    messenger?.showSnackBar(
+      SnackBar(content: Text('Add "$label" to your home screen when prompted.')),
+    );
+  } else {
+    messenger?.showSnackBar(
+      SnackBar(
+        content: Text(
+          result.reason == 'launcher_unsupported'
+              ? 'Your launcher does not support pinned shortcuts.'
+              : 'Could not create shortcut.',
+        ),
+      ),
+    );
+  }
+}
+
 class _CreditsAppCard extends ConsumerWidget {
   final Map<String, dynamic> app;
   final bool isBigScreen;
   final bool wrapInMobileTile;
   final VoidCallback onTap;
+  final VoidCallback? onLongPress;
 
   const _CreditsAppCard({
     Key? key,
@@ -446,6 +421,7 @@ class _CreditsAppCard extends ConsumerWidget {
     required this.isBigScreen,
     this.wrapInMobileTile = false,
     required this.onTap,
+    this.onLongPress,
   }) : super(key: key);
 
   @override
@@ -529,6 +505,7 @@ class _CreditsAppCard extends ConsumerWidget {
 
     return GestureDetector(
       onTap: onTap,
+      onLongPress: onLongPress,
       child: wrapInMobileTile
           ? Material(
               color: Colors.white,
