@@ -429,6 +429,7 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
   // Controllers for quantity inputs per item (small device view)
   final Map<String, TextEditingController> _quantityControllers = {};
   final Map<String, double> _optimisticQtyByItemId = {};
+  final Set<String> _optimisticallyDeletedItemIds = {};
 
   // _formKeyboardListenerFocusNode is non-late so KeyboardListener always has a node.
   late final FocusNode _receivedAmountFocusNode = FocusNode(
@@ -768,10 +769,15 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
             internalTransactionItems = transactionItemsAsync.when(
               data: (items) {
                 return mergeTransactionItemsWithOptimisticCart(
-                  streamItems: items,
-                  optimistic: optimisticCart,
-                  transactionId: transactionId,
-                );
+                      streamItems: items,
+                      optimistic: optimisticCart,
+                      transactionId: transactionId,
+                    )
+                    .where(
+                      (item) =>
+                          !_optimisticallyDeletedItemIds.contains(item.id),
+                    )
+                    .toList();
               },
               loading: () => [],
               error: (err, stack) {
@@ -1106,13 +1112,21 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     );
 
     if (confirmed == true) {
+      var items = <TransactionItem>[];
       try {
-        final items = await ref.read(
+        items = await ref.read(
           transactionItemsStreamProvider(
             transactionId: transactionAsyncValue.value?.id ?? "",
             branchId: ProxyService.box.getBranchId()!,
           ).future,
         );
+
+        setState(() {
+          for (final item in items) {
+            _optimisticallyDeletedItemIds.add(item.id);
+            _optimisticQtyByItemId.remove(item.id);
+          }
+        });
 
         for (final item in items) {
           await ProxyService.getStrategy(
@@ -1129,6 +1143,11 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         }
       } catch (e) {
         if (mounted) {
+          setState(() {
+            for (final item in items) {
+              _optimisticallyDeletedItemIds.remove(item.id);
+            }
+          });
           showErrorNotification(
             context,
             'Error removing items: ${e.toString()}',
@@ -1149,11 +1168,16 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
     final transactionId = transactionAsyncValue.value?.id ?? '';
     return transactionItemsAsync.when(
       data: (rawItems) {
-        final items = mergeTransactionItemsWithOptimisticCart(
-          streamItems: rawItems,
-          optimistic: optimisticCart,
-          transactionId: transactionId,
-        );
+        final items =
+            mergeTransactionItemsWithOptimisticCart(
+                  streamItems: rawItems,
+                  optimistic: optimisticCart,
+                  transactionId: transactionId,
+                )
+                .where(
+                  (item) => !_optimisticallyDeletedItemIds.contains(item.id),
+                )
+                .toList();
         if (items.isEmpty) {
           return SliverToBoxAdapter(
             child: _buildEmptyStateCard(
@@ -1649,13 +1673,25 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           FilledButton(
             onPressed: () async {
               Navigator.of(context).pop();
-              await ProxyService.getStrategy(
-                Strategy.capella,
-              ).updateTransactionItem(
-                transactionItemId: item.id.toString(),
-                active: false,
-                ignoreForReport: false,
-              );
+              setState(() {
+                _optimisticallyDeletedItemIds.add(item.id);
+                _optimisticQtyByItemId.remove(item.id);
+              });
+              try {
+                await ProxyService.getStrategy(
+                  Strategy.capella,
+                ).updateTransactionItem(
+                  transactionItemId: item.id.toString(),
+                  active: false,
+                  ignoreForReport: false,
+                );
+              } catch (e, stackTrace) {
+                talker.error('Failed to remove item', e, stackTrace);
+                if (mounted) {
+                  setState(() => _optimisticallyDeletedItemIds.remove(item.id));
+                  showErrorNotification(context, 'Failed to remove item');
+                }
+              }
             },
             child: Text('Remove'),
           ),

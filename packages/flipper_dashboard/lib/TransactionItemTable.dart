@@ -25,6 +25,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   final Map<String, TextEditingController> _priceControllers = {};
   final Map<String, FocusNode> _priceFocusNodes = {};
   final Map<String, double> _optimisticQtyByItemId = {};
+  final Set<String> _optimisticallyDeletedItemIds = {};
   final SettingsService _settingsService = locator<SettingsService>();
 
   // === MODERN UX ENHANCEMENTS ===
@@ -47,7 +48,6 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
 
   void _initController(TransactionItem item) {
     final id = item.id;
-    final qty = item.qty;
     final price = item.price;
     final displayQty = _displayQtyFor(item);
 
@@ -100,6 +100,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
 
       // Clean up modern UX state and debounce timers
       _optimisticQtyByItemId.remove(id);
+      _optimisticallyDeletedItemIds.remove(id);
       _isItemSaving.remove(id);
       _hasItemChanged.remove(id);
       _itemErrors.remove(id);
@@ -141,7 +142,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   num get grandTotal {
     num total = 0;
 
-    for (final item in internalTransactionItems) {
+    for (final item in _visibleTransactionItems) {
       final price = (item.compositePrice ?? 0) != 0
           ? item.compositePrice!
           : item.price;
@@ -183,14 +184,14 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       child: Column(
         mainAxisSize: pinGrandTotal ? MainAxisSize.max : MainAxisSize.min,
         children: [
-          if (internalTransactionItems.isNotEmpty)
+          if (_visibleTransactionItems.isNotEmpty)
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    '${internalTransactionItems.length} item${internalTransactionItems.length > 1 ? 's' : ''}',
+                    '${_visibleTransactionItems.length} item${_visibleTransactionItems.length > 1 ? 's' : ''}',
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.grey[600],
@@ -218,7 +219,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
                 ],
               ),
             ),
-          if (internalTransactionItems.isEmpty)
+          if (_visibleTransactionItems.isEmpty)
             pinGrandTotal
                 ? Expanded(child: _buildPinnedEmptyStateScrollSlot())
                 : _buildEmptyState()
@@ -297,23 +298,28 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   }
 
   Widget _buildItemsList(bool isOrdering, {required bool scrollable}) {
+    final visibleItems = _visibleTransactionItems;
     return ListView.separated(
       shrinkWrap: !scrollable,
       physics: scrollable
           ? const AlwaysScrollableScrollPhysics()
           : const NeverScrollableScrollPhysics(),
-      itemCount: internalTransactionItems.length,
+      itemCount: visibleItems.length,
       separatorBuilder: (context, index) => Container(
         height: 1,
         color: Colors.grey[100],
         margin: const EdgeInsets.symmetric(horizontal: 20),
       ),
       itemBuilder: (context, index) {
-        final item = internalTransactionItems[index];
+        final item = visibleItems[index];
         return _buildModernItemRow(item, isOrdering);
       },
     );
   }
+
+  List<TransactionItem> get _visibleTransactionItems => internalTransactionItems
+      .where((item) => !_optimisticallyDeletedItemIds.contains(item.id))
+      .toList();
 
   Widget _buildModernItemRow(TransactionItem item, bool isOrdering) {
     final isExpanded = _expandedItemId == item.id;
@@ -823,7 +829,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
           ],
         ),
         content: Text(
-          'Are you sure you want to remove all ${internalTransactionItems.length} items from this transaction?',
+          'Are you sure you want to remove all ${_visibleTransactionItems.length} items from this transaction?',
         ),
         actions: [
           TextButton(
@@ -847,7 +853,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   }
 
   Future<void> _deleteAllItems(bool isOrdering) async {
-    final itemsToDelete = List<TransactionItem>.from(internalTransactionItems);
+    final itemsToDelete = List<TransactionItem>.from(_visibleTransactionItems);
 
     final txnId = itemsToDelete.isNotEmpty
         ? itemsToDelete.first.transactionId
@@ -856,11 +862,13 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       ref.read(optimisticCartProvider.notifier).clearForTransaction(txnId);
     }
 
-    for (final item in itemsToDelete) {
-      setState(() {
+    setState(() {
+      for (final item in itemsToDelete) {
         _isItemSaving[item.id] = true;
-      });
-    }
+        _optimisticallyDeletedItemIds.add(item.id);
+        _optimisticQtyByItemId.remove(item.id);
+      }
+    });
 
     try {
       for (final item in itemsToDelete) {
@@ -880,6 +888,11 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       }
     } catch (e, s) {
       talker.error('Error deleting items: $e', s);
+      setState(() {
+        for (final item in itemsToDelete) {
+          _optimisticallyDeletedItemIds.remove(item.id);
+        }
+      });
     } finally {
       for (final item in itemsToDelete) {
         setState(() {
@@ -1169,6 +1182,8 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
   Future<void> _deleteItem(TransactionItem item, bool isOrdering) async {
     setState(() {
       _isItemSaving[item.id] = true;
+      _optimisticallyDeletedItemIds.add(item.id);
+      _optimisticQtyByItemId.remove(item.id);
     });
     try {
       if (OptimisticCartIds.isOptimistic(item.id)) {
@@ -1214,6 +1229,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     } catch (e, s) {
       talker.error('Error deleting item: $e', s);
       setState(() {
+        _optimisticallyDeletedItemIds.remove(item.id);
         _itemErrors[item.id] = 'Failed to delete item';
       });
     } finally {

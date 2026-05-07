@@ -135,6 +135,7 @@ class _QuickSellingMobileContentState
   _lastTransactionId; // Track the last transaction ID for payment initialization
   String? _itemToDeleteId; // Track which item's delete button is visible
   final Map<String, double> _optimisticQtyByItemId = {};
+  final Set<String> _optimisticallyDeletedItemIds = {};
 
   @override
   void initState() {
@@ -753,6 +754,9 @@ class _QuickSellingMobileContentState
       data: (rawItems) {
         // Sort items newest-first so the last added item appears at the top
         final items = List<TransactionItem>.from(rawItems)
+          ..removeWhere(
+            (item) => _optimisticallyDeletedItemIds.contains(item.id),
+          )
           ..sort((a, b) {
             final aDate = a.createdAt ?? DateTime(2000);
             final bDate = b.createdAt ?? DateTime(2000);
@@ -978,6 +982,11 @@ class _QuickSellingMobileContentState
                         );
                       }
                     : () async {
+                        setState(() {
+                          _optimisticallyDeletedItemIds.add(transactionItem.id);
+                          _optimisticQtyByItemId.remove(transactionItem.id);
+                          _itemToDeleteId = null;
+                        });
                         try {
                           await ProxyService.getStrategy(
                             Strategy.capella,
@@ -991,11 +1000,15 @@ class _QuickSellingMobileContentState
                               branchId: ProxyService.box.getBranchId()!,
                             ),
                           );
-                          setState(() {
-                            _itemToDeleteId = null;
-                          });
                           widget.doneDelete();
                         } catch (e) {
+                          if (mounted) {
+                            setState(() {
+                              _optimisticallyDeletedItemIds.remove(
+                                transactionItem.id,
+                              );
+                            });
+                          }
                           showErrorNotification(
                             context,
                             'Error removing product: ${e.toString()}',
@@ -1160,13 +1173,21 @@ class _QuickSellingMobileContentState
     );
 
     if (confirmed == true) {
+      var items = <TransactionItem>[];
       try {
-        final items = await ref.read(
+        items = await ref.read(
           transactionItemsStreamProvider(
             transactionId: widget.transactionIdInt,
             branchId: ProxyService.box.getBranchId()!,
           ).future,
         );
+
+        setState(() {
+          for (final item in items) {
+            _optimisticallyDeletedItemIds.add(item.id);
+            _optimisticQtyByItemId.remove(item.id);
+          }
+        });
 
         for (final item in items) {
           await ProxyService.getStrategy(Strategy.capella).deleteItemFromCart(
@@ -1198,6 +1219,11 @@ class _QuickSellingMobileContentState
         }
       } catch (e) {
         if (mounted) {
+          setState(() {
+            for (final item in items) {
+              _optimisticallyDeletedItemIds.remove(item.id);
+            }
+          });
           showErrorNotification(
             context,
             'Error removing items: ${e.toString()}',
