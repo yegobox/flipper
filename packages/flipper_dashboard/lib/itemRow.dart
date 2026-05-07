@@ -1331,6 +1331,8 @@ class _RowItemState extends ConsumerState<RowItem>
       final ok = await itemAdder.addItemToTransaction(
         variant: widget.variant!,
         isOrdering: isOrdering,
+        productHint: widget.product,
+        isCompositeProduct: widget.isComposite,
       );
       w?.log("Item Added to Quick Sell");
       return ok;

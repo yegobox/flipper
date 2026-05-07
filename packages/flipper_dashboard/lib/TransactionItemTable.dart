@@ -11,6 +11,7 @@ import 'package:flipper_dashboard/pos_layout_breakpoints.dart';
 import 'package:flipper_routing/app.locator.dart';
 import 'package:flipper_services/setting_service.dart';
 import 'package:flipper_services/utils.dart';
+import 'package:flipper_models/providers/optimistic_cart_provider.dart';
 import 'dart:async'; // Import for Timer
 
 /// Modern Transaction Item Table Mixin
@@ -452,6 +453,10 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
 
   // === DUOLINGO-INSPIRED QUICK CONTROLS ===
   Widget _buildQuickQuantityControls(TransactionItem item, bool isOrdering) {
+    final pendingOpt =
+        ref.watch(optimisticCartProvider).pendingQtyByVariantId[item.variantId ?? ''] ?? 0;
+    final qtyLocked =
+        pendingOpt > 0 || OptimisticCartIds.isOptimistic(item.id);
     return FittedBox(
       fit: BoxFit.scaleDown,
       alignment: Alignment.center,
@@ -462,7 +467,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
           _buildCircularQtyButton(
             icon: Icons.remove,
             onTap: () => _decrementQuantity(item, isOrdering),
-            enabled: item.qty > 0,
+            enabled: item.qty > 0 && !qtyLocked,
             id: '${item.id}-remove',
           ),
           const SizedBox(width: 10),
@@ -481,7 +486,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
           _buildCircularQtyButton(
             icon: Icons.add,
             onTap: () => _incrementQuantity(item, isOrdering),
-            enabled: true,
+            enabled: !qtyLocked,
             id: '${item.id}-add',
           ),
         ],
@@ -851,7 +856,14 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
 
   Future<void> _deleteAllItems(bool isOrdering) async {
     final itemsToDelete = List<TransactionItem>.from(internalTransactionItems);
-    
+
+    final txnId = itemsToDelete.isNotEmpty
+        ? itemsToDelete.first.transactionId
+        : null;
+    if (txnId != null && txnId.isNotEmpty) {
+      ref.read(optimisticCartProvider.notifier).clearForTransaction(txnId);
+    }
+
     for (final item in itemsToDelete) {
       setState(() {
         _isItemSaving[item.id] = true;
@@ -860,6 +872,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
 
     try {
       for (final item in itemsToDelete) {
+        if (OptimisticCartIds.isOptimistic(item.id)) continue;
         if (!(item.partOfComposite ?? false)) {
           await ProxyService.getStrategy(Strategy.capella).flipperDelete(
             id: item.id,
@@ -867,7 +880,7 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
           );
         }
       }
-      
+
       if (itemsToDelete.isNotEmpty) {
         _refreshTransactionItems(
           isOrdering,
@@ -953,6 +966,12 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
     bool isOrdering = false,
   }) async {
     if (item.partOfComposite ?? false) return;
+    if (OptimisticCartIds.isOptimistic(item.id)) return;
+    final pendingOpt = ref
+            .read(optimisticCartProvider)
+            .pendingQtyByVariantId[item.variantId ?? ''] ??
+        0;
+    if (pendingOpt > 0) return;
 
     setState(() {
       _isItemSaving[item.id] = true;
@@ -1128,6 +1147,17 @@ mixin TransactionItemTable<T extends ConsumerStatefulWidget>
       _isItemSaving[item.id] = true;
     });
     try {
+      if (OptimisticCartIds.isOptimistic(item.id)) {
+        final tid = item.transactionId;
+        final vid = item.variantId;
+        if (tid != null && vid != null) {
+          ref.read(optimisticCartProvider.notifier).clearPendingForVariant(
+                transactionId: tid,
+                variantId: vid,
+              );
+        }
+        return;
+      }
       if (!(item.partOfComposite ?? false)) {
         await ProxyService.getStrategy(Strategy.capella).flipperDelete(
           id: item.id,

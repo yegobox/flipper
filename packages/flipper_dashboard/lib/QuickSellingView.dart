@@ -14,6 +14,7 @@ import 'package:flipper_models/providers/active_branch_provider.dart';
 import 'package:flipper_models/providers/pay_button_provider.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
 import 'package:flipper_models/providers/optimistic_order_count_provider.dart';
+import 'package:flipper_models/providers/optimistic_cart_provider.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_models/view_models/mixins/_transaction.dart';
 import 'package:flipper_models/view_models/mixins/riverpod_states.dart';
@@ -98,6 +99,21 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       transaction: transaction,
       discountPercent: discountPercent,
     );
+  }
+
+  /// Skip hints while cart lines are still catching up to Ditto, and never pass
+  /// client-only optimistic rows into sale completion.
+  List<TransactionItem>? _transactionItemsHintForCompletion(
+    String transactionId,
+  ) {
+    if (transactionId.isEmpty) return null;
+    if (ref.read(optimisticCartProvider.notifier).hasPendingFor(transactionId)) {
+      return null;
+    }
+    final out = internalTransactionItems
+        .where((i) => !OptimisticCartIds.isOptimistic(i.id))
+        .toList();
+    return out;
   }
 
   void _updateReceivedAmountIfNeeded(
@@ -539,6 +555,8 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
       return;
     }
 
+    ref.read(optimisticCartProvider.notifier).clearForTransaction(transaction.id);
+
     // Clear stale cart items for the completed transaction.
     ref.invalidate(
       transactionItemsStreamProvider(
@@ -618,16 +636,28 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
           branchId: ProxyService.box.getBranchId() ?? '0',
         ),
         (previous, next) {
-          final transaction = ref
-              .read(
-                pendingTransactionStreamProvider(
-                  isExpense: ProxyService.box.isOrdering() ?? false,
-                ),
-              )
-              .value;
-          if (transaction != null && next.hasValue) {
-            _updateReceivedAmountIfNeeded(transaction, items: next.value);
-          }
+          next.whenData((items) {
+            ref.read(optimisticCartProvider.notifier).onStreamEmitted(
+                  transactionId: transactionId,
+                  items: items,
+                );
+            final transaction = ref
+                .read(
+                  pendingTransactionStreamProvider(
+                    isExpense: ProxyService.box.isOrdering() ?? false,
+                  ),
+                )
+                .value;
+            if (transaction != null) {
+              final optimistic = ref.read(optimisticCartProvider);
+              final merged = mergeTransactionItemsWithOptimisticCart(
+                streamItems: items,
+                optimistic: optimistic,
+                transactionId: transactionId,
+              );
+              _updateReceivedAmountIfNeeded(transaction, items: merged);
+            }
+          });
         },
       );
     }
@@ -728,18 +758,16 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                 branchId: ProxyService.box.getBranchId() ?? '0',
               ),
             );
+            final optimisticCart = ref.watch(optimisticCartProvider);
 
             // Properly handle AsyncValue states instead of accessing .value directly
             internalTransactionItems = transactionItemsAsync.when(
               data: (items) {
-                // Sort newest-first so last added item appears at top
-                final sorted = List<TransactionItem>.from(items)
-                  ..sort((a, b) {
-                    final aDate = a.createdAt ?? DateTime(2000);
-                    final bDate = b.createdAt ?? DateTime(2000);
-                    return bDate.compareTo(aDate);
-                  });
-                return sorted;
+                return mergeTransactionItemsWithOptimisticCart(
+                  streamItems: items,
+                  optimistic: optimisticCart,
+                  transactionId: transactionId,
+                );
               },
               loading: () => [],
               error: (err, stack) {
@@ -1113,15 +1141,15 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
         branchId: ProxyService.box.getBranchId()!,
       ),
     );
+    final optimisticCart = ref.watch(optimisticCartProvider);
+    final transactionId = transactionAsyncValue.value?.id ?? '';
     return transactionItemsAsync.when(
       data: (rawItems) {
-        // Sort newest-first so last added item appears at top
-        final items = List<TransactionItem>.from(rawItems)
-          ..sort((a, b) {
-            final aDate = a.createdAt ?? DateTime(2000);
-            final bDate = b.createdAt ?? DateTime(2000);
-            return bDate.compareTo(aDate);
-          });
+        final items = mergeTransactionItemsWithOptimisticCart(
+          streamItems: rawItems,
+          optimistic: optimisticCart,
+          transactionId: transactionId,
+        );
         if (items.isEmpty) {
           return SliverToBoxAdapter(
             child: _buildEmptyStateCard(
@@ -1539,7 +1567,9 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
                                       transactionId: transaction.id,
                                       transactionHint: transaction,
                                       transactionItemsHint:
-                                          internalTransactionItems,
+                                          _transactionItemsHintForCompletion(
+                                            transaction.id,
+                                          ),
                                       paymentMethods: ref.watch(
                                         paymentMethodsProvider,
                                       ),
@@ -1879,15 +1909,20 @@ class _QuickSellingViewState extends ConsumerState<QuickSellingView>
             );
             transactionAsyncValue.whenData((ITransaction transaction) {
               final branchId = ProxyService.box.getBranchId() ?? '0';
-              final transactionItemsHint = ref
-                  .read(
-                    transactionItemsStreamProvider(
-                      transactionId: transaction.id,
-                      branchId: branchId,
-                    ),
-                  )
-                  .asData
-                  ?.value;
+              final transactionItemsHint =
+                  ref.read(optimisticCartProvider.notifier).hasPendingFor(
+                        transaction.id,
+                      )
+                  ? null
+                  : ref
+                        .read(
+                          transactionItemsStreamProvider(
+                            transactionId: transaction.id,
+                            branchId: branchId,
+                          ),
+                        )
+                        .asData
+                        ?.value;
               startCompleteTransactionFlow(
                 immediateCompletion: false,
                 completeTransaction: () async {

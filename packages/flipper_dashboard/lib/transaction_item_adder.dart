@@ -10,6 +10,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:flipper_ui/snack_bar_utils.dart';
 import 'package:flipper_models/providers/transactions_provider.dart';
 import 'package:flipper_models/providers/transaction_items_provider.dart';
+import 'package:flipper_models/providers/optimistic_cart_provider.dart';
 import 'package:synchronized/synchronized.dart';
 import 'package:flipper_services/GlobalLogError.dart';
 import 'package:flipper_models/helperModels/flipperWatch.dart';
@@ -29,11 +30,16 @@ class TransactionItemAdder {
   Future<bool> addItemToTransaction({
     required Variant variant,
     required bool isOrdering,
+    Product? productHint,
+    bool isCompositeProduct = false,
   }) async {
     final flipperWatch? w = kDebugMode
         ? flipperWatch("addItemToTransaction")
         : null;
     w?.start();
+
+    ITransaction? pendingTransactionForRollback;
+    var cartOptimismApplied = false;
 
     try {
       // Increment optimistic count IMMEDIATELY for instant UI feedback
@@ -51,6 +57,18 @@ class TransactionItemAdder {
         return ref.read(pendingProv.future);
       }
 
+      w?.log("Pre-PendingTransaction");
+      final pendingTransaction = await resolvePendingTransaction();
+      pendingTransactionForRollback = pendingTransaction;
+
+      if (!isOrdering && !isCompositeProduct) {
+        ref.read(optimisticCartProvider.notifier).addPendingLine(
+              transactionId: pendingTransaction.id,
+              variant: variant,
+            );
+        cartOptimismApplied = true;
+      }
+
       w?.log("Pre-ParallelFetch");
       final capella = ProxyService.getStrategy(Strategy.capella);
       final stockFuture =
@@ -58,20 +76,34 @@ class TransactionItemAdder {
               ? capella.getStockById(id: variant.stockId!)
               : Future<Stock?>.value(null);
 
+      final productFuture =
+          productHint != null
+              ? Future<Product?>.value(productHint)
+              : (variant.productId != null
+                  ? capella.getProduct(
+                      businessId: businessId,
+                      id: variant.productId!,
+                      branchId: branchId,
+                    )
+                  : Future<Product?>.value(null));
+
       final results = await Future.wait<Object?>([
-        resolvePendingTransaction(),
-        capella.getProduct(
-          businessId: businessId,
-          id: variant.productId!,
-          branchId: branchId,
-        ),
+        Future<ITransaction>.value(pendingTransaction),
+        productFuture,
         stockFuture,
       ]);
       w?.log("Post-ParallelFetch");
 
-      final pendingTransaction = results[0]! as ITransaction;
       final product = results[1] as Product?;
       final Stock? cachedStock = results[2] as Stock?;
+
+      if (cartOptimismApplied && product?.isComposite == true) {
+        ref.read(optimisticCartProvider.notifier).rollbackPending(
+              transactionId: pendingTransaction.id,
+              variantId: variant.id,
+            );
+        cartOptimismApplied = false;
+      }
 
       // Stock validation (only when not ordering)
       if (!isOrdering) {
@@ -84,6 +116,12 @@ class TransactionItemAdder {
               ScaffoldMessenger.of(context).hideCurrentSnackBar();
             }
             ref.read(optimisticOrderCountProvider.notifier).decrement();
+            if (cartOptimismApplied) {
+              ref.read(optimisticCartProvider.notifier).rollbackPending(
+                    transactionId: pendingTransaction.id,
+                    variantId: variant.id,
+                  );
+            }
             showErrorNotification(context, "You do not have enough stock");
             return false;
           }
@@ -117,7 +155,7 @@ class TransactionItemAdder {
             if (vid == null || vid.isEmpty) continue;
             final compositeVariant = variantsMap[vid];
             if (compositeVariant != null) {
-              await capella.saveTransactionItem(
+              final okComposite = await capella.saveTransactionItem(
                 variation: compositeVariant,
                 doneWithTransaction: false,
                 ignoreForReport: false,
@@ -128,11 +166,14 @@ class TransactionItemAdder {
                 partOfComposite: true,
                 compositePrice: composite.actualPrice,
               );
+              if (!okComposite) {
+                throw StateError('saveTransactionItem failed (composite line)');
+              }
             }
           }
         } else {
           w?.log("Pre-SaveItem");
-          await capella.saveTransactionItem(
+          final saved = await capella.saveTransactionItem(
             variation: variant,
             doneWithTransaction: false,
             ignoreForReport: false,
@@ -143,6 +184,9 @@ class TransactionItemAdder {
             partOfComposite: false,
           );
           w?.log("Post-SaveItem");
+          if (!saved) {
+            throw StateError('saveTransactionItem returned false');
+          }
         }
       });
       w?.log("Post-Lock-Release");
@@ -166,6 +210,21 @@ class TransactionItemAdder {
     } catch (e, s) {
       if (context.mounted) {
         ref.read(optimisticOrderCountProvider.notifier).decrement();
+        final txn = pendingTransactionForRollback;
+        if (txn != null && cartOptimismApplied) {
+          ref.read(optimisticCartProvider.notifier).rollbackPending(
+                transactionId: txn.id,
+                variantId: variant.id,
+              );
+        }
+      }
+
+      if (e is StateError && e.message == 'saveTransactionItem returned false') {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          showErrorNotification(context, "Failed to add item to cart");
+        }
+        return false;
       }
 
       if (!context.mounted) return false;
