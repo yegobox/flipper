@@ -6,6 +6,7 @@ import 'package:flipper_services/constants.dart';
 import 'package:flipper_models/utils/test_data/dummy_transaction_generator.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_models/SyncStrategy.dart';
+import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:supabase_models/brick/models/sars.model.dart';
 import 'package:supabase_models/brick/repository.dart';
@@ -53,9 +54,13 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         return Stream.value([]);
       }
 
-      ditto.sync.registerSubscription(
+      final preparedTx = prepareDqlSyncSubscription(
         "SELECT * FROM transactions WHERE branchId = :branchId",
-        arguments: {'branchId': branchId},
+        {'branchId': branchId},
+      );
+      ditto.sync.registerSubscription(
+        preparedTx.dql,
+        arguments: preparedTx.arguments,
       );
       ditto.store.registerObserver(
         "SELECT * FROM transactions WHERE branchId = :branchId",
@@ -361,9 +366,13 @@ mixin CapellaTransactionMixin implements TransactionInterface {
         return [];
       }
 
-      ditto.sync.registerSubscription(
+      final preparedTx = prepareDqlSyncSubscription(
         "SELECT * FROM transactions WHERE branchId = :branchId",
-        arguments: {'branchId': branchId},
+        {'branchId': branchId},
+      );
+      ditto.sync.registerSubscription(
+        preparedTx.dql,
+        arguments: preparedTx.arguments,
       );
       ditto.store.registerObserver(
         "SELECT * FROM transactions WHERE branchId = :branchId",
@@ -1560,7 +1569,11 @@ mixin CapellaTransactionMixin implements TransactionInterface {
 
       query += " ORDER BY lastTouched DESC";
 
-      ditto.sync.registerSubscription(query, arguments: arguments);
+      final preparedPending = prepareDqlSyncSubscription(query, arguments);
+      ditto.sync.registerSubscription(
+        preparedPending.dql,
+        arguments: preparedPending.arguments,
+      );
 
       final controller = StreamController<ITransaction>.broadcast();
 

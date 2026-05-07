@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart' hide Category;
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flipper_web/features/business_selection/business_branch_selector.dart';
 import 'package:flipper_web/features/dashboard/models/performance_data.dart';
+import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 
 final performanceDataProvider = FutureProvider<PerformanceData>((ref) async {
   final dittoService = ref.watch(dittoServiceProvider);
@@ -21,14 +22,22 @@ final performanceDataProvider = FutureProvider<PerformanceData>((ref) async {
   }
 
   // Register subscriptions for offline data
-  dittoService.dittoInstance!.sync.registerSubscription(
+  final preparedTxPerf = prepareDqlSyncSubscription(
     "SELECT * FROM transactions WHERE branchId = :branchId AND isIncome = true",
-    arguments: {"branchId": selectedBranch.serverId},
+    {"branchId": selectedBranch.serverId},
+  );
+  dittoService.dittoInstance!.sync.registerSubscription(
+    preparedTxPerf.dql,
+    arguments: preparedTxPerf.arguments,
   );
 
-  dittoService.dittoInstance!.sync.registerSubscription(
+  final preparedTiPerf = prepareDqlSyncSubscription(
     "SELECT * FROM transaction_items WHERE branchId = :branchId",
-    arguments: {"branchId": selectedBranch.serverId},
+    {"branchId": selectedBranch.serverId},
+  );
+  dittoService.dittoInstance!.sync.registerSubscription(
+    preparedTiPerf.dql,
+    arguments: preparedTiPerf.arguments,
   );
 
   final now = DateTime.now();

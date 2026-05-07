@@ -31,7 +31,11 @@ class _ConnectedPeersWidgetState extends ConsumerState<ConnectedPeersWidget>
 
   void _showPeersDialog(BuildContext context, PresenceGraph presenceGraph) {
     final peers = presenceGraph.remotePeers;
+    final peerList = peers.toList();
     final localPeer = presenceGraph.localPeer;
+
+    String shortPeerKey(String key) =>
+        key.length > 20 ? '${key.substring(0, 20)}...' : key;
 
     showDialog(
       context: context,
@@ -65,9 +69,7 @@ class _ConnectedPeersWidgetState extends ConsumerState<ConnectedPeersWidget>
                 ),
                 title: Text(localPeer.deviceName),
                 subtitle: Text(
-                  localPeer.peerKeyString.length > 20
-                      ? '${localPeer.peerKeyString.substring(0, 20)}...'
-                      : localPeer.peerKeyString,
+                  shortPeerKey(localPeer.peerKey),
                   style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
                 ),
                 trailing: Container(
@@ -116,9 +118,9 @@ class _ConnectedPeersWidgetState extends ConsumerState<ConnectedPeersWidget>
                 Flexible(
                   child: ListView.builder(
                     shrinkWrap: true,
-                    itemCount: peers.length,
+                    itemCount: peerList.length,
                     itemBuilder: (context, index) {
-                      final peer = peers[index];
+                      final peer = peerList[index];
                       return ListTile(
                         contentPadding: EdgeInsets.zero,
                         leading: Container(
@@ -131,9 +133,7 @@ class _ConnectedPeersWidgetState extends ConsumerState<ConnectedPeersWidget>
                         ),
                         title: Text(peer.deviceName),
                         subtitle: Text(
-                          peer.peerKeyString.length > 20
-                              ? '${peer.peerKeyString.substring(0, 20)}...'
-                              : peer.peerKeyString,
+                          shortPeerKey(peer.peerKey),
                           style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
                         ),
                         trailing: const Icon(Icons.sync, color: Colors.green, size: 16),

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flipper_models/ebm_helper.dart';
 import 'package:flipper_models/helper_models.dart';
 import 'package:flipper_models/sync/interfaces/stock_interface.dart';
+import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_services/constants.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:uuid/uuid.dart';
@@ -224,7 +225,11 @@ mixin CapellaStockMixin implements StockInterface {
           final arguments = {'id': id};
 
           // Subscribe to ensure we have the latest data from Ditto mesh
-          await ditto.sync.registerSubscription(query, arguments: arguments);
+          final prepared = prepareDqlSyncSubscription(query, arguments);
+          await ditto.sync.registerSubscription(
+            prepared.dql,
+            arguments: prepared.arguments,
+          );
 
           // Use registerObserver with initial data fetch
           final completer = Completer<Stock?>();
@@ -489,7 +494,11 @@ mixin CapellaStockMixin implements StockInterface {
     query += ' ORDER BY createdAt DESC LIMIT :limit';
 
     // Register subscription
-    ditto.sync.registerSubscription(query, arguments: arguments);
+    final prepared = prepareDqlSyncSubscription(query, arguments);
+    ditto.sync.registerSubscription(
+      prepared.dql,
+      arguments: prepared.arguments,
+    );
 
     observer = ditto.store.registerObserver(
       query,
@@ -507,7 +516,9 @@ mixin CapellaStockMixin implements StockInterface {
             if (request.subBranchId != null) {
               // Ensure we subscribe to this branch data so it syncs to this device
               ditto.sync.registerSubscription(
-                "SELECT * FROM branches WHERE _id = '${request.subBranchId}'",
+                dqlForSyncSubscription(
+                  "SELECT * FROM branches WHERE _id = '${request.subBranchId}'",
+                ),
               );
 
               talker.info(
@@ -578,7 +589,11 @@ mixin CapellaStockMixin implements StockInterface {
     query += ' ORDER BY createdAt DESC LIMIT :limit';
 
     // Register subscription
-    ditto.sync.registerSubscription(query, arguments: arguments);
+    final preparedOutgoing = prepareDqlSyncSubscription(query, arguments);
+    ditto.sync.registerSubscription(
+      preparedOutgoing.dql,
+      arguments: preparedOutgoing.arguments,
+    );
 
     observer = ditto.store.registerObserver(
       query,
@@ -596,7 +611,9 @@ mixin CapellaStockMixin implements StockInterface {
             if (request.mainBranchId != null) {
               // Ensure subscription
               ditto.sync.registerSubscription(
-                "SELECT * FROM branches WHERE _id = '${request.mainBranchId}'",
+                dqlForSyncSubscription(
+                  "SELECT * FROM branches WHERE _id = '${request.mainBranchId}'",
+                ),
               );
 
               final branchResult = await ditto.store.execute(
@@ -715,9 +732,13 @@ mixin CapellaStockMixin implements StockInterface {
 
       final controller = StreamController<Stock?>.broadcast();
       dynamic observer;
-      ditto.sync.registerSubscription(
+      final preparedStockId = prepareDqlSyncSubscription(
         "SELECT * FROM stocks WHERE id = :id",
-        arguments: {'id': stockId},
+        {'id': stockId},
+      );
+      ditto.sync.registerSubscription(
+        preparedStockId.dql,
+        arguments: preparedStockId.arguments,
       );
       observer = ditto.store.registerObserver(
         'SELECT * FROM stocks WHERE id = :id',

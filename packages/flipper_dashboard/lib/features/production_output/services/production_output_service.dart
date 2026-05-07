@@ -3,6 +3,7 @@ import 'package:supabase_models/brick/models/actual_output.model.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as models;
 import 'package:uuid/uuid.dart';
 import 'package:flipper_services/proxy.dart';
+import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import '../models/production_output_models.dart';
 
 /// Service layer for production output feature
@@ -128,7 +129,11 @@ class ProductionOutputService {
       final query =
           "SELECT * FROM actual_outputs WHERE ${whereClauses.join(' AND ')}";
 
-      ditto.sync.registerSubscription(query, arguments: arguments);
+      final preparedOut = prepareDqlSyncSubscription(query, arguments);
+      ditto.sync.registerSubscription(
+        preparedOut.dql,
+        arguments: preparedOut.arguments,
+      );
 
       final result = await ditto.store.execute(query, arguments: arguments);
 
@@ -174,7 +179,11 @@ class ProductionOutputService {
       final query =
           "SELECT * FROM work_orders WHERE ${whereClauses.join(' AND ')}";
 
-      ditto.sync.registerSubscription(query, arguments: arguments);
+      final preparedOut = prepareDqlSyncSubscription(query, arguments);
+      ditto.sync.registerSubscription(
+        preparedOut.dql,
+        arguments: preparedOut.arguments,
+      );
 
       final result = await ditto.store.execute(query, arguments: arguments);
 

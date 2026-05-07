@@ -2,6 +2,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:ditto_live/ditto_live.dart';
+import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:flipper_web/core/secrets.dart';
 import 'package:flipper_web/core/utils/platform.dart';
 import 'package:flipper_web/core/utils/platform_utils.dart';
@@ -130,41 +131,67 @@ class DittoSingleton {
       await Ditto.init();
       print('✅ [INIT] Ditto.init() completed');
 
-      print('🔧 [INIT] Creating AuthenticationHandler...');
-      final authHandler = AuthenticationHandler(
-        authenticationRequired: (authenticator) =>
-            _performAuthentication(authenticator, appId),
-        authenticationExpiringSoon: (authenticator, secondsRemaining) =>
-            _performAuthentication(authenticator, appId),
-      );
-      print('✅ [INIT] AuthenticationHandler created');
+      if (kDebugMode) {
+        DittoLogger.isEnabled = true;
+        DittoLogger.minimumLogLevel = LogLevel.debug;
+        DittoLogger.isDevtoolsLoggingEnabled = true;
+        print('✅ [INIT] DittoLogger enabled (debug, DevTools)');
+      }
 
-      print('🔧 [INIT] Creating OnlineWithAuthenticationIdentity...');
-      final identity = OnlineWithAuthenticationIdentity(
-        appID: appId,
-        authenticationHandler: authHandler,
-      );
-      print('✅ [INIT] OnlineWithAuthenticationIdentity created');
-
-      // isAndroid ? "ditto" :
-      print('🔧 [INIT] Calling Ditto.open()...');
-      _ditto = await Ditto.open(
-        identity: identity,
+      print('🔧 [INIT] Creating DittoConfig (Ditto 5)...');
+      final config = DittoConfig(
+        databaseID: appId,
+        connect: DittoConfigConnectServer(
+          url: 'https://$appId.cloud.ditto.live',
+        ),
         persistenceDirectory: persistenceDirectory,
       );
+      print('✅ [INIT] Calling Ditto.open(config)...');
+      _ditto = await Ditto.open(config);
       print(
         '✅ [INIT] Ditto.open() completed, instance hashCode: ${_ditto.hashCode}',
       );
 
+      // Legacy Flutter SDK could grow unbounded local __history; safe no-op if absent.
       try {
-        print('🔧 [INIT] Setting DQL_STRICT_MODE to false...');
-        await _ditto!.store.execute("ALTER SYSTEM SET DQL_STRICT_MODE = false");
-        print('✅ [INIT] DQL_STRICT_MODE set successfully');
+        await _ditto!.store.execute('EVICT FROM __history');
+        print('✅ [INIT] EVICT FROM __history completed (best-effort)');
       } catch (e) {
-        print(
-          '⚠️ [INIT] Could not set DQL_STRICT_MODE: $e (this might be normal depending on Ditto version)',
-        );
+        print('⚠️ [INIT] __history evict skipped or unsupported: $e');
       }
+
+      // Optional: relax subscription DQL restrictions (in-memory; see
+      // https://docs.ditto.live/sync/using-alter-system ). DQL supports `=` or `TO`.
+      // Unsupported setting names fail here and are non-fatal.
+      try {
+        await _ditto!.store.execute(
+          'ALTER SYSTEM SET DQL_RESTRICT_SUBSCRIPTION = false',
+        );
+        print(
+          '✅ [INIT] DQL_RESTRICT_SUBSCRIPTION relaxed (= false)',
+        );
+      } catch (e) {
+        try {
+          await _ditto!.store.execute(
+            'ALTER SYSTEM SET DQL_RESTRICT_SUBSCRIPTION TO false',
+          );
+          print(
+            '✅ [INIT] DQL_RESTRICT_SUBSCRIPTION relaxed (TO false)',
+          );
+        } catch (e2) {
+          print(
+            '⚠️ [INIT] DQL_RESTRICT_SUBSCRIPTION not applied (use dql_for_sync_subscription in app; alter errors: $e / $e2)',
+          );
+        }
+      }
+
+      // Ditto 5 defaults to DQL_STRICT_MODE=false (schema-free); no ALTER needed.
+
+      print('🔧 [INIT] Registering auth expiration handler...');
+      await _ditto!.auth.setExpirationHandler((ditto, timeUntilExpiration) {
+        unawaited(_performAuthentication(ditto, appId));
+      });
+      print('✅ [INIT] Auth expiration handler set');
 
       // Set DittoService instance BEFORE starting sync.
       // This ensures ProxyService.ditto.getUserAccess works even if sync setup fails.
@@ -185,18 +212,20 @@ class DittoSingleton {
       try {
         print('🔧 [INIT] Configuring transports and starting sync...');
         // Configure transports manually for the web/cloud sync
-        _ditto!.updateTransportConfig((config) {
+        _ditto!.updateTransportConfig((builder) {
           // Note: this will not enable peer-to-peer sync on the web platform
-          config.setAllPeerToPeerEnabled(true);
+          builder.setAllPeerToPeerEnabled(true);
         });
 
         // Start sync to connect to Ditto cloud
         final userName = platformUserName;
         final platform = getPlatformName();
         _ditto!.deviceName = '$userName-$platform-$userId';
-        _ditto!.startSync();
+        _ditto!.sync.start();
 
-        print("✅ [INIT] Sync started. is sync active: ${_ditto!.isSyncActive}");
+        print(
+          "✅ [INIT] Sync started. is sync active: ${_ditto!.sync.isActive}",
+        );
         print("✅ [INIT] Auth status: ${_ditto!.auth.status}");
       } catch (e) {
         print('⚠️ [INIT] Error starting Ditto sync: $e');
@@ -253,7 +282,7 @@ class DittoSingleton {
     if (_ditto != null) {
       try {
         print('🛑 Stopping Ditto sync and disposing singleton...');
-        _ditto!.stopSync();
+        _ditto!.sync.stop();
         try {
           // Explicitly close the Ditto instance to release internal locks
           _ditto!.close();
@@ -279,8 +308,8 @@ class DittoSingleton {
     if (_ditto != null) {
       try {
         print('🛑 Logging out from Ditto...');
-        _ditto!.stopSync();
-        _ditto!.auth.logout();
+        _ditto!.sync.stop();
+        await _ditto!.auth.logout();
         // Reset userId state
         _userId = null;
         print('✅ Ditto logout complete');
@@ -291,10 +320,7 @@ class DittoSingleton {
   }
 
   /// Internal helper to perform authentication with timeout and error handling
-  Future<void> _performAuthentication(
-    Authenticator authenticator,
-    String appId,
-  ) async {
+  Future<void> _performAuthentication(Ditto ditto, String appId) async {
     try {
       print('🔐 Starting Ditto authentication for appId: $appId');
 
@@ -316,7 +342,7 @@ class DittoSingleton {
       );
 
       print('🚀 Logging in to Ditto with token');
-      await authenticator.login(token: token, provider: provider);
+      await ditto.auth.login(token: token, provider: provider);
       print('✅ Ditto authentication successful for user: $userID');
     } catch (e, stackTrace) {
       print('❌ Ditto authentication failed: $e');

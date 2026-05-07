@@ -7,6 +7,7 @@ import 'package:flipper_services/proxy.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/db_model_export.dart';
+import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flipper_scanner/providers/scan_status_provider.dart';
 import 'package:flipper_scanner/random.dart';
@@ -203,9 +204,14 @@ class AuthScannerActions implements ScannerActions {
       final eventService = getEventService();
 
       // Register subscription with Ditto sync to ensure we receive events for this channel
+      final preparedEv = prepareDqlSyncSubscription(
+        "SELECT * FROM events WHERE channel = :channel",
+        {"channel": channel},
+      );
       DittoService.instance.dittoInstance!.sync.registerSubscription(
-          "SELECT * FROM events WHERE channel = :channel",
-          arguments: {"channel": channel});
+        preparedEv.dql,
+        arguments: preparedEv.arguments,
+      );
 
       // Listen for response events on the response channel
       eventService

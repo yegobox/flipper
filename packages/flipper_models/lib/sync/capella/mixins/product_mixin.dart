@@ -3,6 +3,7 @@ import 'dart:math';
 import 'package:brick_offline_first/brick_offline_first.dart' as brick;
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/sync/interfaces/product_interface.dart';
+import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/log_service.dart';
 import 'package:flipper_services/proxy.dart';
@@ -94,18 +95,26 @@ mixin CapellaProductMixin implements ProductInterface {
       /// this is because after test on new device, it can't pull data using complex query
       /// there is open issue on ditto https://support.ditto.live/hc/en-us/requests/2648?page=1
       ///
-      ditto.sync.registerSubscription(
+      final preparedProd = prepareDqlSyncSubscription(
         "SELECT * FROM products WHERE branchId = :branchId",
-        arguments: {'branchId': branchId},
+        {'branchId': branchId},
+      );
+      ditto.sync.registerSubscription(
+        preparedProd.dql,
+        arguments: preparedProd.arguments,
       );
       ditto.store.registerObserver(
         "SELECT * FROM products WHERE branchId = :branchId",
         arguments: {'branchId': branchId},
       );
       // Workaround for initial sync
-      ditto.sync.registerSubscription(
+      final preparedProdBiz = prepareDqlSyncSubscription(
         "SELECT * FROM products WHERE branchId = :branchId AND businessId = :businessId",
-        arguments: {'branchId': branchId, 'businessId': businessId},
+        {'branchId': branchId, 'businessId': businessId},
+      );
+      ditto.sync.registerSubscription(
+        preparedProdBiz.dql,
+        arguments: preparedProdBiz.arguments,
       );
       ditto.store.registerObserver(
         "SELECT * FROM products WHERE branchId = :branchId AND businessId = :businessId",

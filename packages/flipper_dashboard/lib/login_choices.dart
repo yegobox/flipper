@@ -324,8 +324,9 @@ class _LoginChoicesState extends ConsumerState<LoginChoices>
   }
 
   Future<void> _handleBusinessSelection(Business business) async {
-    // remove any branchId selected before
-    await ProxyService.box.remove(key: 'branchId');
+    // Do not clear branchId here: it widens a race with Ditto-backed prefs merge
+    // (attachDittoPersistence) and leaves getBranchId() null while business loads.
+    // setDefaultBranch / setDefaultBusiness overwrites when the user picks a branch.
     setState(() {
       _loadingItemId = business.id.toString();
     });

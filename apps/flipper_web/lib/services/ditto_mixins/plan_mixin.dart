@@ -1,6 +1,7 @@
 import 'package:ditto_live/ditto_live.dart';
 import 'package:flutter/foundation.dart' hide Category;
 import 'package:supabase_models/brick/models/plan.dart';
+import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'ditto_core_mixin.dart';
 
 mixin PlanMixin on DittoCore {
@@ -19,9 +20,13 @@ mixin PlanMixin on DittoCore {
   bool _ensurePlanReplicationSubscription(String businessId) {
     if (dittoInstance == null) return false;
     if (_planReplicationSubscriptions.contains(businessId)) return false;
-    dittoInstance!.sync.registerSubscription(
+    final prepared = prepareDqlSyncSubscription(
       _planQuery,
-      arguments: {'businessId': businessId},
+      {'businessId': businessId},
+    );
+    dittoInstance!.sync.registerSubscription(
+      prepared.dql,
+      arguments: prepared.arguments,
     );
     _planReplicationSubscriptions.add(businessId);
     return true;

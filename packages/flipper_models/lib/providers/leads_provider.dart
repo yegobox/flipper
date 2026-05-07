@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flipper_models/models/lead.dart';
+import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -23,7 +24,11 @@ final leadsStreamProvider = StreamProvider.autoDispose<List<Lead>>((ref) {
   // Ensure sync subscription is active (Ditto dedupes).
   // Ditto returns a SyncSubscription; just register once (deduped internally).
   try {
-    ditto.sync.registerSubscription(query, arguments: args);
+    final preparedLeads = prepareDqlSyncSubscription(query, args);
+    ditto.sync.registerSubscription(
+      preparedLeads.dql,
+      arguments: preparedLeads.arguments,
+    );
   } catch (_) {
     // Ignore subscription errors; observer query will still work on local store.
   }

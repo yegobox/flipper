@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flipper_models/helperModels/talker.dart';
 import 'package:flipper_models/sync/interfaces/ebm_interface.dart';
+import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_web/services/ditto_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -115,8 +116,12 @@ mixin EbmMixin implements EbmInterface {
           const dittoQuery = 'SELECT * FROM ebms WHERE branchId = :branchId';
           final arguments = {'branchId': branchId};
 
-          await ditto.sync
-              .registerSubscription(dittoQuery, arguments: arguments);
+          final preparedEbmFetch =
+              prepareDqlSyncSubscription(dittoQuery, arguments);
+          await ditto.sync.registerSubscription(
+            preparedEbmFetch.dql,
+            arguments: preparedEbmFetch.arguments,
+          );
           // Give it a moment to sync
           await Future.delayed(const Duration(milliseconds: 500));
 

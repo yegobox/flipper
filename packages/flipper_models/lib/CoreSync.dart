@@ -9,6 +9,7 @@ import 'package:flipper_models/helpers/cash_movement_utility_variant.dart';
 import 'package:flipper_models/helperModels/iuser.dart';
 import 'package:flipper_models/helperModels/random.dart';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_mocks/mocks.dart';
 import 'package:flipper_models/sync/mixins/asset_mixin.dart';
 import 'package:flipper_models/sync/mixins/auth_mixin.dart';
@@ -2555,9 +2556,13 @@ class CoreSync extends AiStrategyImpl
         talker.error('Ditto not initialized:001');
         return false;
       }
-      ditto.sync.registerSubscription(
+      final preparedEbm = prepareDqlSyncSubscription(
         "SELECT * FROM ebms WHERE businessId = :businessId AND branchId = :branchId",
-        arguments: {'businessId': businessId, 'branchId': branchId},
+        {'businessId': businessId, 'branchId': branchId},
+      );
+      ditto.sync.registerSubscription(
+        preparedEbm.dql,
+        arguments: preparedEbm.arguments,
       );
       ditto.store.registerObserver(
         "SELECT * FROM ebms WHERE businessId = :businessId AND branchId = :branchId",
@@ -2573,7 +2578,11 @@ class CoreSync extends AiStrategyImpl
       };
 
       // Subscribe to ensure we have the latest data from Ditto mesh
-      await ditto.sync.registerSubscription(query, arguments: arguments);
+      final preparedEbm2 = prepareDqlSyncSubscription(query, arguments);
+      await ditto.sync.registerSubscription(
+        preparedEbm2.dql,
+        arguments: preparedEbm2.arguments,
+      );
 
       // Use registerObserver to wait for data
       final completer = Completer<List<dynamic>>();

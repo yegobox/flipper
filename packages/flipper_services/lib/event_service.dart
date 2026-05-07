@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer';
 import 'package:flipper_models/helperModels/talker.dart';
+import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:flipper_services/Miscellaneous.dart';
 import 'package:flipper_services/constants.dart';
@@ -278,9 +279,13 @@ class EventService
       _loginEmptyPollCount = 0;
 
       // Subscribe to sync events for this specific channel
-      ditto.sync.registerSubscription(
+      final preparedLoginEv = prepareDqlSyncSubscription(
         "SELECT * FROM events WHERE channel = :channel",
-        arguments: {"channel": channel},
+        {"channel": channel},
+      );
+      ditto.sync.registerSubscription(
+        preparedLoginEv.dql,
+        arguments: preparedLoginEv.arguments,
       );
 
       talker.debug('Registered sync subscription for channel $channel');

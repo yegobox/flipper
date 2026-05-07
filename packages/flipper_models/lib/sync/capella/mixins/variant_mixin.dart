@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flipper_models/db_model_export.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flipper_models/sync/interfaces/variant_interface.dart';
+import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flipper_models/sync/interfaces/stock_interface.dart';
 import 'package:flipper_models/sync/models/paged_variants.dart';
 import 'package:flipper_services/proxy.dart';
@@ -89,6 +90,15 @@ mixin CapellaVariantMixin implements VariantInterface {
             },
           );
         }
+        return PagedVariants(variants: [], totalCount: 0);
+      }
+
+      if (branchId.isEmpty) {
+        final boxBranch = ProxyService.box.getBranchId();
+        talker.warning(
+          'variants(): empty branchId param (box.getBranchId()=$boxBranch). '
+          'Check login / branch selection and prefs merge after Ditto open.',
+        );
         return PagedVariants(variants: [], totalCount: 0);
       }
 
@@ -211,38 +221,31 @@ mixin CapellaVariantMixin implements VariantInterface {
       // the cloud. Always register subscriptions (Ditto dedupes); callers no
       // longer need to thread fetchRemote correctly for sync to work.
       // See product_mixin broad subscription + Ditto support #2648.
+      const broadVariantsSql =
+          'SELECT * FROM variants WHERE branchId = :branchId';
       try {
+        final preparedBroad = prepareDqlSyncSubscription(
+          broadVariantsSql,
+          {'branchId': branchId},
+        );
         await ditto.sync.registerSubscription(
-          'SELECT * FROM variants WHERE branchId = :branchId',
-          arguments: {'branchId': branchId},
+          preparedBroad.dql,
+          arguments: preparedBroad.arguments,
         );
         talker.debug('variants: registered broad branch subscription for sync');
-      } catch (e) {
-        talker.warning('variants: broad registerSubscription failed: $e');
-      }
-
-      final subArgs = Map<String, dynamic>.from(arguments)
-        ..remove('limit')
-        ..remove('offset');
-      var subQuery = query;
-      if (subArgs.length != arguments.length) {
-        subQuery = subQuery.replaceFirst(
-          RegExp(
-            r'\s+ORDER BY lastTouched DESC\s+LIMIT :limit OFFSET :offset\s*$',
-          ),
-          '',
+      } catch (e, st) {
+        talker.warning(
+          'variants: broad registerSubscription failed: $e\n'
+          '${describeDqlSyncSubscriptionAttempt(broadVariantsSql, {
+                'branchId': branchId,
+              })}\n'
+          '$st',
         );
       }
-      subQuery = subQuery.replaceFirst(
-        RegExp(r'\s+ORDER BY lastTouched DESC\s*$'),
-        '',
-      );
-      try {
-        await ditto.sync.registerSubscription(subQuery, arguments: subArgs);
-        talker.debug('variants: registered filtered subscription for sync');
-      } catch (e) {
-        talker.warning('variants: filtered registerSubscription failed: $e');
-      }
+
+      // Replication: broad branch subscription only. Filtered SELECT (search,
+      // taxes, pagination) runs via execute below; Ditto 5 can reject complex
+      // subscription predicates even after ORDER BY/LIMIT stripping.
 
       Future<List<dynamic>> runExecute() async {
         final r = await ditto.store.execute(query, arguments: arguments);
@@ -609,10 +612,20 @@ mixin CapellaVariantMixin implements VariantInterface {
       }
 
       // Subscribe to ensure we have the latest data
-      await dittoService.dittoInstance!.sync.registerSubscription(
-        query,
-        arguments: arguments,
-      );
+      try {
+        final preparedGetVariant =
+            prepareDqlSyncSubscription(query, arguments);
+        await dittoService.dittoInstance!.sync.registerSubscription(
+          preparedGetVariant.dql,
+          arguments: preparedGetVariant.arguments,
+        );
+      } catch (e, st) {
+        talker.warning(
+          'getVariant: registerSubscription failed: $e\n'
+          '${describeDqlSyncSubscriptionAttempt(query, arguments)}\n'
+          '$st',
+        );
+      }
 
       if (ProxyService.box.getUserLoggingEnabled() ?? false) {
         await logService.logException(
@@ -1093,7 +1106,20 @@ mixin CapellaVariantMixin implements VariantInterface {
       }
 
       // Subscribe to ensure we have the latest data
-      await ditto.sync.registerSubscription(query, arguments: arguments);
+      try {
+        final preparedByStock =
+            prepareDqlSyncSubscription(query, arguments);
+        await ditto.sync.registerSubscription(
+          preparedByStock.dql,
+          arguments: preparedByStock.arguments,
+        );
+      } catch (e, st) {
+        talker.warning(
+          'variantsByStockId: registerSubscription failed: $e\n'
+          '${describeDqlSyncSubscriptionAttempt(query, arguments)}\n'
+          '$st',
+        );
+      }
 
       if (ProxyService.box.getUserLoggingEnabled() ?? false) {
         await logService.logException(

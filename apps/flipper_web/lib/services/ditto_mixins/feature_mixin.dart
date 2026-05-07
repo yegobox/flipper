@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flipper_models/helperModels/business_feature.dart';
+import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flutter/foundation.dart';
 import 'ditto_core_mixin.dart';
 
@@ -63,9 +64,10 @@ mixin FeatureMixin on DittoCore {
 
     try {
       // 1. Register Subscription (to sync data)
+      final preparedFeat = prepareDqlSyncSubscription(query, args);
       syncSubscription = dittoInstance!.sync.registerSubscription(
-        query,
-        arguments: args,
+        preparedFeat.dql,
+        arguments: preparedFeat.arguments,
       );
 
       // 2. Register Observer (to listen for local changes)

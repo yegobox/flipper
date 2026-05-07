@@ -4,7 +4,7 @@ publish_to: "none"
 #  ios : 1.184
 # macos : 1.181
 
-version: 1.185.4252223235163+1756529168
+version: 1.185.4252223235164+1756529169
 
 
 environment:
@@ -28,7 +28,7 @@ dependencies:
   mime: ^2.0.0
   open_filex: ^4.7.0
   ant_icons: ^2.0.0-nullsafety.0
-  ditto_live: ^4.14.2
+  ditto_live: ^5.0.0
   feather_icons: ^1.1.0-nullsafety.0
   flex_color_scheme: ^4.2.0
   image_picker: ^1.2.1
@@ -217,7 +217,7 @@ msix_config:
   publisher_display_name: yegobox ltd
   identity_name: yegobox.yegoboxflipper
   # identity_name: yegobox.yegoboxflipper_6y224vs1dg1rr
-  msix_version: 1.170.5056.0
+  msix_version: 1.170.5057.0
   publisher: CN=B0F98A1E-8AE8-4B2B-BD1B-F494D4F791AE
   # publisher: CN=B0F334A1E-8AET-4B2C-BD1B-F239D4F791AE
   # B0F98A1E-8AE8-4B2B-BD1B-F494D4F791AE

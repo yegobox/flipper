@@ -6,6 +6,7 @@ import 'package:flipper_services/PaymentHandler.dart';
 import 'package:flipper_services/proxy.dart';
 import 'package:flutter/material.dart';
 import 'package:flipper_models/helperModels/extensions.dart';
+import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_models/brick/models/all_models.dart' as models;
 import 'package:supabase_models/brick/repository.dart';
@@ -135,9 +136,13 @@ class _FailedPaymentState extends State<FailedPayment>
       // Register for realtime updates
       final ditto = dittoService.dittoInstance;
       if (ditto != null) {
-        ditto.sync.registerSubscription(
+        final preparedSkip = prepareDqlSyncSubscription(
           'SELECT * FROM payment_skip_settings WHERE businessId = :businessId',
-          arguments: {'businessId': businessId},
+          {'businessId': businessId},
+        );
+        ditto.sync.registerSubscription(
+          preparedSkip.dql,
+          arguments: preparedSkip.arguments,
         );
         ditto.store.registerObserver(
           'SELECT * FROM payment_skip_settings WHERE businessId = :businessId',

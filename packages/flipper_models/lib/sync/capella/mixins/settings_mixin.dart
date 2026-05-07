@@ -1,4 +1,5 @@
 import 'package:supabase_models/brick/models/all_models.dart';
+import 'package:flipper_models/sync/dql_for_sync_subscription.dart';
 import 'package:supabase_models/brick/repository.dart';
 import 'package:talker/talker.dart';
 import 'package:flipper_web/services/ditto_service.dart';
@@ -47,9 +48,13 @@ mixin CapellaSettingsMixin {
         return null;
       }
 
-      ditto.sync.registerSubscription(
+      final preparedSettings = prepareDqlSyncSubscription(
         "SELECT * FROM settings WHERE businessId = :businessId",
-        arguments: {'businessId': businessId},
+        {'businessId': businessId},
+      );
+      ditto.sync.registerSubscription(
+        preparedSettings.dql,
+        arguments: preparedSettings.arguments,
       );
       ditto.store.registerObserver(
         "SELECT * FROM settings WHERE businessId = :businessId",
